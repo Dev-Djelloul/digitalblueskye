@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Portfolio de Digitalblueskye, intégrateur web et designer web créatif et passionné. Spécialisé en HTML, CSS, JavaScript et responsive design. Découvrez mes projets."
+    />
+    <title data-i18n="meta.title">
+      About Me | Digitalblueskye - Portfolio
+    </title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Audiowide&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="preconnect" href="https://player.canva.com" />
+    <link rel="stylesheet" href="styles/style.css" />
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+    />
+  </head>
+  <body>
+    <!-- Loader Start -->
+    <div id="loader-wrapper">
+      <video id="loader-video" autoplay loop muted playsinline>
+        <!-- <source src="/images/logo-video.webm" type="video/webm"> -->
+        <source
+          src="/images/logoVideos/Logo-Globe-Video.mp4"
+          type="video/mp4"
+        />
+        Votre navigateur ne supporte pas la vidéo HTML5.
+      </video>
+    </div>
+    <!-- Loader End -->
+
+    <!-- Header fixe avec logo et hamburger -->
+    <header class="site-header">
+      <div class="header-placeholder"></div>
+      <!-- Logo -->
+      <div class="header-logo">
+        <a href="/index.html" title="Retour à l'accueil">
+          <video id="logo-video" autoplay loop muted playsinline>
+            <source
+              src="/images/logoVideos/Logo-Globe-Video.mp4"
+              type="video/mp4"
+            />
+            <span>YELLOWBLUESKYE LOGO</span>
+          </video>
+        </a>
+      </div>
+      <!-- Contrôles alignés -->
+      <div class="menu-controls">
+        <button
+          id="lang-switch"
+          class="lang-button"
+          aria-label="Changer de langue"
+        >
+          <a
+            href="javascript:void(0)"
+            id="switch-to-en"
+            title="Switch to English"
+          >
+            <img
+              src="/images/icons/icons8-uk-flag-48.png"
+              alt="English"
+              width="32"
+              height="32"
+            />
+          </a>
+          <a
+            href="javascript:void(0)"
+            id="switch-to-fr"
+            style="display: none"
+            title="Passer en français"
+          >
+            <img
+              src="/images/icons/icons8-french-flag-48.png"
+              alt="Français"
+              width="32"
+              height="32"
+            />
+          </a>
+        </button>
+        <button id="theme-switch" aria-label="Changer de thème">
+          <svg width="24" height="24" viewBox="0 0 24 24" class="moon-icon">
+            <path
+              d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"
+              fill="currentColor"
+            />
+          </svg>
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            class="sun-icon"
+            style="display: none"
+          >
+            <path
+              d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0-5a1 1 0 0 0 1-1V1a1 1 0 0 0-2 0v0a1 1 0 0 0 1 1zm0 20a1 1 0 0 0-1 1v0a1 1 0 0 0 2 0v0a1 1 0 0 0-1-1zm10-11h0a1 1 0 0 0 0-2h0a1 1 0 0 0 0 2zM2 11h0a1 1 0 0 0 0 2h0a1 1 0 0 0 0-2zm16.95-5.95a1 1 0 0 0 0-1.41l0 0a1 1 0 0 0-1.41 0l0 0a1 1 0 0 0 0 1.41l0 0a1 1 0 0 0 1.41 0zm-14.9 14.9a1 1 0 0 0 0-1.41l0 0a1 1 0 0 0-1.41 0l0 0a1 1 0 0 0 0 1.41l0 0a1 1 0 0 0 1.41 0zM18.95 18.95a1 1 0 0 0 0-1.41l0 0a1 1 0 0 0-1.41 0l0 0a1 1 0 0 0 0 1.41l0 0a1 1 0 0 0 1.41 0zm-14.9-14.9a1 1 0 0 0 0-1.41l0 0a1 1 0 0 0-1.41 0l0 0a1 1 0 0 0 0 1.41l0 0a1 1 0 0 0 1.41 0z"
+              fill="currentColor"
+            />
+          </svg>
+        </button>
+      </div>
+      <!-- Hamburger placé DANS le header -->
+      <div class="hamburger" id="hamburger" aria-label="Menu">
+        <!-- Remplacer l'icône hamburger par un chevron -->
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="60"
+          height="60"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </div>
+    </header>
+
+    <!-- Menu dropdown qui apparaît sous le header -->
+    <div class="dropdown-menu" id="dropdown-menu">
+      <!-- Navigation -->
+      <nav class="dropdown-nav">
+        <ul>
+          <li>
+            <a href="/index.html" data-i18n="nav.home"><h2>ACCUEIL</h2></a>
+          </li>
+          <li>
+            <a href="/about.html" data-i18n="nav.about"
+              ><h2>À PROPOS DE MOI</h2></a
+            >
+          </li>
+          <li>
+            <a href="/projects.html" data-i18n="nav.projects"
+              ><h2>MES PROJETS ET COMPÉTENCES</h2></a
+            >
+          </li>
+          <li>
+            <a href="/contact.html" data-i18n="nav.contact"
+              ><h2>CONTACTEZ MOI</h2></a
+            >
+          </li>
+        </ul>
+      </nav>
+       <!-- Menu de navigation social média -->
+       <div class="social-media" data-aos="fade-up">
+        <div class="github">
+         <a href="https://github.com/Dev-Djelloul" target="_blank">
+           <img src="images/icons/icons8-github-64.png" alt="Github" />
+         </a>
+       </div>
+       <div>
+         <a href="https://www.linkedin.com/in/yellowblueskye/" target="_blank">
+           <img src="images/icons/icons8-linkedin-64.png" alt="LinkedIn" />
+         </a>
+       </div>
+     </div>
+    </div>
+
+    <!-- Overlay pour fermer le menu -->
+    <div class="menu-overlay" id="menu-overlay"></div>
+    <!-- Fin du menu dropdown -->
+
+    <main>  
+      <!-- Section d'introduction -->
+      <div class="intro-text">
+        <!-- Wrapper pour la photo et le contenu descriptif -->
+        <div class="content-wrapper">
+            <!-- Photo de profil -->
+            <div class="profile-photo-container intro-photo">
+              <img
+                src="/images/1659370989523.jpg"
+                alt="YellowBlueSkye - Développeur Web"
+                class="profile-photo"
+              />
+            </div>
+           </div>
+     </div>
+      <!-- Section À propos -->
+      <section id="about" class="about-section slide-from-left">
+
+        <div class="about-text-box cascade-container">
+          <p>
+            <span data-i18n="about.intro">
+              Hey ! Je m'appelle Djelloul, je suis un parisien passionné par
+              l'art, les civilisations anciennes, les voyages autour du globe 🌎
+              et les longues randonnées à vélo 🚲 </span
+            ><br />
+            <span data-i18n="about.background">
+              Issu d'une formation universitaire classique, cela fait maintenant
+              quelques années que je me suis, littéralement, pris de passion 🌈
+              pour l'univers du web 💻 sous toutes ses formes, langues,
+              languages et personnes 😊
+            </span>
+            <br />
+            <span data-i18n="about.journey">
+              Depuis ce jour, je suis devenu un digital learner assidu et enjoué
+              ! </span
+            ><br />
+            <span data-i18n="about.education">
+              Je présente ici mes premiers projets réalisés lors de mes
+              formations chez
+            </span>
+            <a
+              class="link-schools-openclassrooms"
+              style="font-weight: bold"
+              href="https://openclassrooms.com/fr/business/uplift?talentsPage=0&refinementList%5Blocations%5D%5B0%5D=FR%7CFrance"
+              target="_blank"
+            >
+              Openclassrooms
+            </a>
+            <span data-i18n="about.and"> et </span>
+            <a
+              class="link-schools-studi"
+              style="font-weight: bold"
+              href="https://www.studi.com/fr/cfa-studi"
+              target="_blank"
+            >
+              Studi </a
+            ><br />
+            <span data-i18n="about.future">
+              J'espère en apprendre davantage et continuer à me perfectionner
+              dans ce domaine qui me passionne tant désormais. </span
+            ><br />
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <footer id="footer">
+      <p data-i18n="footer.copyright">
+        &copy; 2024 YellowBlueSkye. Tous droits réservés.
+      </p>
+    </footer>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="scripts/translator.js"></script>
+    <script src="scripts/carousel.js"></script>
+    <script src="scripts/parallax.js"></script>
+    <script src="scripts/theme-switcher.js"></script>
+    <script src="scripts/navbar-dropdown.js"></script>
+    <script src="scripts/loader.js"></script>
+    <script src="scripts/welcome-animations.js"></script>
+    <script src="scripts/scroll-animations.js"></script>
+  </body>
+</html>
+<!-- Fin du code HTML -->
+<!--
+    Ce code HTML représente la structure d'un portfolio personnel pour un designer et développeur web. 
+    Il inclut des sections pour les projets, une présentation personnelle, et un menu de navigation.
+    Le code utilise des vidéos, des images, et des animations pour améliorer l'expérience utilisateur.
+    Les fonctionnalités incluent un carrousel de projets, un bouton de retour en haut, et un changement de thème.
+    Le code est conçu pour être responsive et accessible, avec des éléments interactifs tels que des boutons et des liens.
+    Les traductions sont gérées par un script JavaScript externe, et le style est appliqué via des fichiers CSS.
+    Le code utilise également des bibliothèques externes pour les animations et les icônes.
+    Les sections sont animées au défilement, et le carrousel de projets est contrôlé par JavaScript.
+    Le code est bien structuré et utilise des balises sémantiques pour améliorer la lisibilité et l'accessibilité.
+    Les commentaires dans le code aident à comprendre la structure et les fonctionnalités de chaque section.
+    Le code est conçu pour être facilement modifiable et extensible, permettant d'ajouter de nouveaux projets ou sections à l'avenir.
+    Il est également optimisé pour le référencement avec des balises meta appropriées.
+    Le code est écrit en HTML5 et utilise des attributs ARIA pour améliorer l'accessibilité.
+    Le code est compatible avec les navigateurs modernes et utilise des techniques de développement web réactives.
+    Il est recommandé de tester le code sur différents appareils et navigateurs pour garantir une expérience utilisateur cohérente.
+    Le code est prêt à être déployé sur un serveur web ou intégré dans un système de gestion de contenu.
+    Il est important de s'assurer que toutes les ressources (images, vidéos, scripts) sont correctement référencées et accessibles.   
+  -->

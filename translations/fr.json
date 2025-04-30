@@ -1,0 +1,210 @@
+{
+  "meta": {
+    "title": "YellowBlueSkye - Web Developer & Designer Portfolio",
+    "projectsTitle": "YellowBlueSkye - Projets & Compétences"
+  },
+
+  "header": {
+    "title": "YellowBlueSkye Designer",
+    "about": "À PROPOS",
+    "projects": "MES PROJETS",
+    "contact": "CONTACT"
+  },
+
+  "nav": {
+    "home": "ACCUEIL",
+    "about": "À PROPOS DE MOI",
+    "projects": "MES PROJETS ET COMPÉTENCES",
+    "contact": "CONTACTEZ MOI"
+  },
+
+  "about": {
+    "title": "Bienvenue sur mon portfolio",
+    "subtitle": "CHEF DE PROJET DIGITAL & DESIGNER WEB",
+    "invitation": " Explorez mon portfolio pour découvrir mes projets et n'hésitez pas à me contacter afin de travailler ensemble",
+    "explore": "Explorez mes projets en images",
+    "intro": "Hey ! Je m'appelle Djelloul, je suis un parisien passionné par l'art, les civilisations anciennes, les voyages autour du globe 🌎 et les longues randonnées à vélo 🚲",
+    "background": "Issu d'une formation universitaire classique, cela fait maintenant quelques années que je me suis, littéralement, pris de passion 🌈 pour l'univers du web 💻 sous toutes ses formes, langues, languages et personnes 😊",
+    "journey": "Depuis ce jour, je suis devenu un digital learner assidu et enjoué !",
+    "education": "Je présente ici mes premiers projets réalisés lors de mes formations chez",
+    "and": " et ",
+    "future": "J'espère en apprendre davantage et continuer à me perfectionner dans ce domaine qui me passionne tant désormais."
+    },
+
+  "projects": {
+    "title": "Explorez mes projets en images",
+    "pageTitle": "Projets - Portfolio YellowBlueSkye",
+    "subtitle": "MES PROJETS & COMPÉTENCES",
+    "headerTitle": "MES PROJETS",
+    "allTitle": "Mes projets",
+    "viewProject": "Démo en direct",
+    "viewLive": "En savoir plus sur ce projet",
+    "viewCode": "Voir le Code Source",
+    "prevProject": "Projet Précédent : {projectName}",
+    "nextProject": "Projet Suivant : {projectName}"
+  },
+  "skills": {
+    "title": "Mes compétences techniques",
+    "frontend": "Front-end",
+    "backend": "Back-end",
+    "database": "Base de données",
+    "design": "Design & Outils"
+  },
+  "contact": {
+    "name": "Nom",
+    "email": "Email",
+    "message": "Message",
+    "send": "Envoyer",
+    "required": "Champ requis",
+    "validEmail": "Veuillez entrer un email valide",
+    "success": "Message envoyé avec succès !",
+    "error": "Une erreur est survenue. Veuillez réessayer.",
+    "pageTitle": "Contact - Portfolio YellowBlueSkye",
+    "title": "YELLOWBLUESKYE CONTACT",
+    "locationTitle": "MA LOCALISATION 🪐",
+    "formTitle": "LAISSEZ VOTRE MESSAGE ICI",
+    "sendButton": "Envoyer le message",
+    "alternateContact": "Vous pouvez également m'envoyer un email à",
+    "successMessage": "Votre message a été envoyé avec succès!",
+    "errorMessage": "Une erreur est survenue. Veuillez réessayer.",
+    "headerTitle": "YELLOWBLUESKYE CONTACT"
+  },
+  "footer": {
+    "copyright": "© 2024 YellowBlueSkye. Tous droits réservés."
+  },
+  "projectNames": {
+    "ridingCities": "Riding Cities",
+    "booki": "Booki",
+    "ohmyfood": "Ohmyfood",
+    "printIt": "Print It",
+    "sophieBluel": "Sophie Bluel",
+    "memoryGame": "Memory Game",
+    "arcadiaZoo": "Arcadia Zoo",
+    "budgetBuddy": "Budget Buddy",
+    "tetrisWindsurf": "Tetris Windsurf"
+  },
+  "projectDescriptions": {
+    "ridingCities": {
+      "short": "Refonte du site d'une association de skateboard",
+      "full": "Riding Cities est le tout premier projet de site web utilisant les languages de bases HTML et CSS et publié sur Github-pages. Il a été conçu lors de mon apprentissage des languages de bases avec l'école Openclassrooms."
+    },
+    "booki": {
+      "short": "Site de réservation d'hébergements et d'activités",
+      "full": "Booki est un site web responsive créé avec HTML et CSS et publié sur GitHub Pages. Il a été conçu lors de mon apprentissage des langages de base avec l'école Openclassrooms."
+    },
+    "ohmyfood": {
+      "short": "Application de commande de repas en ligne",
+      "full": "Ohmyfood est un site web responsive créé avec HTML et CSS et publié sur GitHub Pages. Il a été conçu lors de mon apprentissage des langages de base avec l'école Openclassrooms."
+    },
+    "printIt": {
+      "short": "Site d'une imprimerie locale",
+      "full": "Print it est un site web développé avec HTML, CSS et les bases de JavaScript, publié sur GitHub Pages. Il a été conçu lors de mon apprentissage des langages de base avec l'école Openclassrooms."
+    },
+    "sophieBluel": {
+      "short": "Portfolio d'une architecte d'intérieur",
+      "full": "Le portfolio de Sophie Bluel est un site web responsive construit avec HTML, CSS, JavaScript, et la gestion des dépendances via Node Package Manager, et publié sur GitHub Pages. Pour lancer le projet complet, des dépendances doivent être installées. Les projets photo sont stockés dans une base de données. Ce projet a été réalisé dans le cadre de ma formation avec Openclassrooms pour maîtriser les fondamentaux du web."
+    },
+    "memoryGame": {
+      "short": "Jeu de mémoire interactif",
+      "full": "Memory Game est un jeu de mémoire créé avec HTML, CSS et JavaScript, et publié sur GitHub Pages. Il a été conçu dans le cadre de ma formation avec Studi pour maîtriser les fondamentaux du web."
+    },
+    "arcadiaZoo": {
+      "short": "Application de gestion pour un zoo",
+      "full": "Arcadia Zoo est une application web full-stack développée avec HTML, CSS, Bootstrap, et JavaScript pour le front-end, et PHP avec son gestionnaire de dépendances Composer, MySQL, Node.js et MongoDB pour le back-end. Elle utilise également Heroku pour le déploiement en ligne. Ce site web responsive a été créé dans le cadre d'une évaluation avec Studi."
+    },
+    "budgetBuddy": {
+      "short": "Application de suivi des dépenses",
+      "full": "Budget Buddy est une application de suivi des dépenses personnelles construite avec HTML, CSS, JavaScript, et le framework React.js, et publiée sur GitHub Pages. Elle a été conçue dans le cadre de mon apprentissage avec Studi pour maîtriser les outils modernes de développement web."
+    },
+    "tetrisWindsurf": {
+      "short": "Jeu de Tetris sur le thème du windsurf",
+      "full": "Tetris Windsurf est un jeu vidéo amusant et captivant développé avec HTML, CSS, JavaScript et WebGL. Il a été conçu pour être accessible sur différents appareils, avec une interface réactive et des commandes intuitives. Ce projet a été réalisé dans le cadre de ma formation avec Studi pour maîtriser les outils modernes de développement web."
+    }
+  },
+  "projectDetails": {
+    "overview": "Aperçu",
+    "technologies": "Technologies utilisées",
+    "challenges": "Défis",
+    "details": "DÉTAILS DU PROJET",
+    "objective": "Objectif",
+    "backToHome": "Accueil",
+    "backToProjectsList": "Tous les projets", 
+    "viewLive": "Visiter le site",
+    "viewCode": "Code source",
+    "previous": "Projet précédent",
+    "next": "Projet suivant",
+    "gallery": "Galerie",
+    "ridingCities": {
+      "title": "Riding Cities - Portfolio YellowBlueSkye",
+      "headerTitle": "PROJET RIDING CITIES",
+      "objective": "L'objectif de ce projet était de créer un site web simple et informatif pour une association de skateboard. Il s'agissait de mettre en pratique mes premières connaissances en HTML et CSS, tout en respectant une maquette fournie par le client.",
+      "technologiesDetail": "Pour ce projet, j'ai utilisé HTML5 pour structurer le contenu de la page et CSS3 pour le style et la mise en page. Le site est hébergé sur GitHub Pages pour un accès facile.",
+      "challengesSolutions": "Le principal défi était de créer une mise en page responsive qui s'adapte à différentes tailles d'écran. J'ai appris à utiliser les media queries et les unités relatives pour garantir que le site reste utilisable et esthétique sur tous les appareils."
+    },
+    "booki": {
+      "title": "Booki - Portfolio YellowBlueSkye",
+      "headerTitle": "PROJET BOOKI",
+      "objective": "L'objectif de ce projet était de créer une plateforme de réservation d'hébergements et d'activités en fonction de critères de recherche. Cette interface devait être entièrement responsive et permettre une navigation fluide sur tous les types d'appareils.",
+      "technologiesDetail": "Ce site a été développé en utilisant HTML5 pour la structure et CSS3 pour la mise en page et le style. Une attention particulière a été accordée aux media queries pour assurer une parfaite adaptation sur mobile, tablette et desktop.",
+      "challengesSolutions": "Le défi principal était de créer une mise en page complexe avec des cartes d'hébergement et d'activités qui s'adaptent parfaitement à toutes les tailles d'écran. J'ai utilisé CSS Grid et Flexbox pour organiser les éléments de façon optimale sur chaque appareil, garantissant ainsi une expérience utilisateur cohérente."
+    },
+    "ohmyfood": {
+      "title": "Ohmyfood - Portfolio YellowBlueSkye",
+      "headerTitle": "PROJET OHMYFOOD",
+      "objective": "L'objectif de ce projet était de développer un site \"mobile first\" qui répertorie les menus de restaurants gastronomiques. Le site devait permettre la réservation en ligne et la composition de menus personnalisés, avec une expérience utilisateur fluide et des animations CSS soignées.",
+      "technologiesDetail": "J'ai utilisé HTML5 pour structurer le contenu et CSS3 avec Sass pour le style et les animations. L'approche \"mobile first\" a guidé tout le développement, avec une adaptation progressive pour les écrans plus grands. Le préprocesseur Sass m'a permis d'organiser mon code CSS en modules réutilisables et de simplifier la création d'animations complexes.",
+      "challengesSolutions": "Le principal défi était de créer des animations fluides et attrayantes pour améliorer l'expérience utilisateur. J'ai implémenté des transitions sur les cartes de restaurants, des animations de chargement, et des effets de survol sur les boutons. Un autre défi était d'assurer la compatibilité sur différents navigateurs et appareils. Pour résoudre ces problèmes, j'ai utilisé des propriétés CSS modernes avec préfixes de fournisseurs et des tests approfondis."
+    },
+    "printIt": {
+      "title": "Print It - Portfolio YellowBlueSkye",
+      "headerTitle": "PROJET PRINT IT",
+      "objective": "L'objectif de ce projet était de dynamiser une page web statique avec JavaScript en ajoutant un carrousel d'images interactif. Ce projet marque mes premiers pas dans le développement JavaScript, avec l'implémentation d'interactions utilisateur simples mais efficaces.",
+      "technologiesDetail": "Ce projet utilise HTML5 et CSS3 pour la structure et le style de base du site, et JavaScript pour ajouter des fonctionnalités dynamiques comme le carrousel d'images avec navigation par flèches et par points. J'ai également implémenté des animations et transitions pour améliorer l'expérience utilisateur.",
+      "challengesSolutions": "Le principal défi était d'implémenter un carrousel fonctionnel avec une navigation fluide et intuitive, tout en gérant correctement les transitions entre les images. Pour résoudre ce problème, j'ai créé des fonctions JavaScript modulaires et j'ai utilisé des événements pour gérer les clics sur les flèches de navigation et les indicateurs de position, en mettant en place une logique de défilement circulaire."
+    },
+    "sophieBluel": {
+      "title": "Sophie Bluel - Portfolio YellowBlueSkye",
+      "headerTitle": "PROJET SOPHIE BLUEL",
+      "objective": "L'objectif de ce projet était de créer un site portfolio dynamique pour une architecte d'intérieur. Le site devait permettre à l'utilisateur de consulter les travaux de l'architecte, et à l'administrateur de se connecter pour gérer les projets (ajouter, modifier, supprimer) via une interface d'administration sécurisée.",
+      "technologiesDetail": "Ce projet a été développé en HTML5, CSS3 et JavaScript vanilla pour le front-end. J'ai utilisé l'API Fetch pour communiquer avec le backend existant (API REST), et mis en œuvre une authentification via JWT (JSON Web Tokens). J'ai également utilisé NPM pour gérer les dépendances du projet, notamment l'exécution du serveur backend.",
+      "challengesSolutions": "Le principal défi a été d'implémenter une interface d'administration sécurisée permettant la gestion complète des projets (CRUD). Pour résoudre ce problème, j'ai créé un système de login avec stockage du token JWT, et développé une modale d'édition intuitive pour ajouter et supprimer des projets. J'ai également mis en place un système de filtrage par catégories qui met à jour dynamiquement l'affichage des projets sans rechargement de page."
+    },
+    "memoryGame": {
+      "title": "Memory Game - Portfolio YellowBlueSkye",
+      "headerTitle": "PROJET MEMORY GAME",
+      "objective": "L'objectif de ce projet était de créer un jeu de mémoire interactif pour démontrer mes compétences en JavaScript. Le jeu devait inclure un système de score, un minuteur et des niveaux de difficulté variables.",
+      "technologiesDetail": "Ce projet a été construit en utilisant HTML5, CSS3 pour la mise en page et le style des cartes et du plateau de jeu, et JavaScript pour toutes les fonctionnalités interactives. J'ai implémenté la gestion des événements pour le retournement des cartes, la validation des correspondances et la gestion de l'état du jeu.",
+      "challengesSolutions": "Le défi principal était de créer une animation fluide pour le retournement des cartes et de gérer l'état du jeu tout au long de la session. J'ai résolu ce problème en utilisant des transitions CSS pour les animations et en construisant un système robuste de gestion d'état en JavaScript pour suivre les cartes retournées, les correspondances et la progression du jeu."
+    },
+    "arcadiaZoo": {
+      "title": "Arcadia Zoo - Portfolio YellowBlueSkye",
+      "headerTitle": "PROJET ARCADIA ZOO",
+      "objective": "L'objectif de ce projet était de créer une application complète de gestion de zoo, permettant aux visiteurs de consulter les informations sur les animaux et les événements, et aux administrateurs de gérer l'ensemble des données (animaux, enclos, employés, événements). Ce projet devait démontrer mes compétences en développement full-stack avec des technologies variées.",
+      "technologiesDetail": "Pour le front-end, j'ai utilisé HTML5, CSS3, Bootstrap pour le design responsive, et JavaScript pour les interactions. Côté back-end, j'ai travaillé avec PHP et son gestionnaire de dépendances Composer pour la logique serveur principale, MySQL pour la base de données relationnelle, Node.js et MongoDB pour certaines fonctionnalités spécifiques. L'ensemble a été déployé sur Heroku pour faciliter l'accès en ligne.",
+      "challengesSolutions": "Le principal défi était d'intégrer plusieurs technologies de base de données (MySQL et MongoDB) au sein d'une même application. J'ai résolu ce problème en créant une architecture claire qui délimite les responsabilités de chaque technologie : MySQL pour les données structurées (animaux, employés) et MongoDB pour les données plus flexibles (événements, commentaires). L'autre défi était la mise en place d'un système d'authentification sécurisé avec différents niveaux d'accès, que j'ai implémenté en utilisant PHP avec des sessions et des tokens JWT."
+    },
+    "budgetBuddy": {
+      "title": "Budget Buddy - Portfolio YellowBlueSkye",
+      "headerTitle": "PROJET BUDGET BUDDY",
+      "objective": "L'objectif de ce projet était de créer une application web moderne et interactive pour le suivi des dépenses personnelles. L'application devait permettre aux utilisateurs d'ajouter, de modifier et de supprimer des dépenses, de visualiser leurs habitudes de dépenses via des graphiques, et de fixer des budgets pour différentes catégories. Ce projet visait à démontrer mes compétences avec React.js et les principes modernes de développement front-end.",
+      "technologiesDetail": "J'ai développé cette application en utilisant React.js pour la structure de composants et la gestion de l'interface utilisateur. J'ai implémenté le state management à l'aide des React Hooks (useState, useEffect, useContext) pour gérer efficacement les données de l'application. Pour la persistance des données, j'ai utilisé localStorage afin que les utilisateurs puissent conserver leurs informations entre les sessions. J'ai également créé des visualisations de données interactives pour représenter graphiquement les dépenses.",
+      "challengesSolutions": "Le principal défi était de concevoir une architecture de composants efficace et de gérer correctement l'état de l'application à mesure qu'elle se complexifiait. J'ai résolu ce problème en utilisant le Context API de React pour centraliser la gestion de l'état et éviter le \"prop drilling\". Un autre défi était d'assurer une expérience utilisateur fluide avec des transitions et des animations appropriées tout en maintenant de bonnes performances. J'ai optimisé les renders avec des techniques comme la mémorisation de composants et l'utilisation judicieuse de l'hook useCallback."
+    },
+    "tetrisWindsurf": {
+      "title": "Tetris Windsurf - Portfolio YellowBlueSkye",
+      "headerTitle": "PROJET TETRIS WINDSURF",
+      "objective": "L'objectif de ce projet était de créer un jeu vidéo amusant et captivant qui combine la logique du célèbre jeu Tetris avec une thématique de sports nautiques. Ce jeu a été conçu pour être accessible sur différents appareils, avec une interface réactive et des commandes intuitives pour tous les types d'utilisateurs.",
+      "technologiesDetail": "Ce projet a été développé en utilisant JavaScript vanilla pour la logique du jeu et les interactions, HTML5 Canvas pour le rendu graphique des éléments de jeu, et CSS3 pour le style de l'interface utilisateur. J'ai également implémenté WebGL pour certains effets visuels avancés comme les particules d'eau et les reflets de lumière. Le design responsive permet une expérience optimale sur tous les appareils, des smartphones aux écrans larges.",
+      "challengesSolutions": "Le principal défi était d'adapter les mécaniques de jeu classiques du Tetris à une thématique de windsurf tout en gardant une jouabilité fluide et intuitive. J'ai résolu ce problème en concevant des pièces de Tetris personnalisées qui rappellent des éléments de planche à voile et en ajoutant des effets visuels comme des vagues et des éclaboussures d'eau pour renforcer l'ambiance nautique. Un autre défi était d'optimiser les performances pour les appareils mobiles, ce que j'ai résolu en implémentant des techniques de rendu efficaces et en adaptant la complexité graphique en fonction des capacités du dispositif."
+    }
+  },
+
+  "navigation": {
+    "previousProject": "Projet précédent",
+    "nextProject": "Projet suivant"
+  },
+
+  "ui": {
+    "backToTop": "Retour en haut"
+  }
+}

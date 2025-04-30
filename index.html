@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Portfolio de Digitalblueskye, intégrateur web et designer web créatif et passionné. Spécialisé en HTML, CSS, JavaScript et responsive design. Découvrez mes projets."
+    />
+    <title data-i18n="meta.title">
+      Web Designer & Developer | Digitalblueskye - Portfolio
+    </title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Audiowide&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="preconnect" href="https://player.canva.com" />
+    <link rel="stylesheet" href="styles/style.css" />
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+    />
+  </head>
+  <body>
+    <!-- Loader Start -->
+    <div id="loader-wrapper">
+      <video id="loader-video" autoplay loop muted playsinline>
+        <!-- <source src="/images/logo-video.webm" type="video/webm"> -->
+        <source
+          src="/images/logoVideos/Logo-Globe-Video.mp4"
+          type="video/mp4"
+        />
+        Votre navigateur ne supporte pas la vidéo HTML5.
+      </video>
+    </div>
+    <!-- Loader End -->
+
+    <!-- Header fixe avec logo et hamburger -->
+    <header class="site-header">
+      <div class="header-placeholder"></div>
+      <!-- Logo -->
+      <div class="header-logo">
+        <a href="/index.html" title="Retour à l'accueil">
+          <video id="logo-video" autoplay loop muted playsinline>
+            <source
+              src="/images/logoVideos/Logo-Globe-Video.mp4"
+              type="video/mp4"
+            />
+            <span>YELLOWBLUESKYE LOGO</span>
+          </video>
+        </a>
+      </div>
+      <!-- Contrôles alignés -->
+      <div class="menu-controls">
+        <button
+          id="lang-switch"
+          class="lang-button"
+          aria-label="Changer de langue"
+        >
+          <a
+            href="javascript:void(0)"
+            id="switch-to-en"
+            title="Switch to English"
+          >
+            <img
+              src="/images/icons/icons8-uk-flag-48.png"
+              alt="English"
+              width="32"
+              height="32"
+            />
+          </a>
+          <a
+            href="javascript:void(0)"
+            id="switch-to-fr"
+            style="display: none"
+            title="Passer en français"
+          >
+            <img
+              src="/images/icons/icons8-french-flag-48.png"
+              alt="Français"
+              width="32"
+              height="32"
+            />
+          </a>
+        </button>
+        <button id="theme-switch" aria-label="Changer de thème">
+          <svg width="24" height="24" viewBox="0 0 24 24" class="moon-icon">
+            <path
+              d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"
+              fill="currentColor"
+            />
+          </svg>
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            class="sun-icon"
+            style="display: none"
+          >
+            <path
+              d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0-5a1 1 0 0 0 1-1V1a1 1 0 0 0-2 0v0a1 1 0 0 0 1 1zm0 20a1 1 0 0 0-1 1v0a1 1 0 0 0 2 0v0a1 1 0 0 0-1-1zm10-11h0a1 1 0 0 0 0-2h0a1 1 0 0 0 0 2zM2 11h0a1 1 0 0 0 0 2h0a1 1 0 0 0 0-2zm16.95-5.95a1 1 0 0 0 0-1.41l0 0a1 1 0 0 0-1.41 0l0 0a1 1 0 0 0 0 1.41l0 0a1 1 0 0 0 1.41 0zm-14.9 14.9a1 1 0 0 0 0-1.41l0 0a1 1 0 0 0-1.41 0l0 0a1 1 0 0 0 0 1.41l0 0a1 1 0 0 0 1.41 0zM18.95 18.95a1 1 0 0 0 0-1.41l0 0a1 1 0 0 0-1.41 0l0 0a1 1 0 0 0 0 1.41l0 0a1 1 0 0 0 1.41 0zm-14.9-14.9a1 1 0 0 0 0-1.41l0 0a1 1 0 0 0-1.41 0l0 0a1 1 0 0 0 0 1.41l0 0a1 1 0 0 0 1.41 0z"
+              fill="currentColor"
+            />
+          </svg>
+        </button>
+      </div>
+      <!-- Hamburger placé DANS le header -->
+      <div class="hamburger" id="hamburger" aria-label="Menu">
+        <!-- Remplacer l'icône hamburger par un chevron -->
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="60"
+          height="60"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </div>
+    </header>
+
+    <!-- Menu dropdown qui apparaît sous le header -->
+    <div class="dropdown-menu" id="dropdown-menu">
+      <!-- Navigation -->
+      <nav class="dropdown-nav">
+        <ul>
+          <li>
+            <a href="/index.html" data-i18n="nav.home"><h2>ACCUEIL</h2></a>
+          </li>
+          <li>
+            <a href="/about.html" data-i18n="nav.about"
+              ><h2>À PROPOS DE MOI</h2></a
+            >
+          </li>
+          <li>
+            <a href="/projects.html" data-i18n="nav.projects"
+              ><h2>MES PROJETS ET COMPÉTENCES</h2></a
+            >
+          </li>
+          <li>
+            <a href="/contact.html" data-i18n="nav.contact"
+              ><h2>CONTACTEZ MOI</h2></a
+            >
+          </li>
+        </ul>
+      </nav>
+       <!-- Menu de navigation social média -->
+       <div class="social-media" data-aos="fade-up">
+        <div class="github">
+         <a href="https://github.com/Dev-Djelloul" target="_blank">
+           <img src="images/icons/icons8-github-64.png" alt="Github" />
+         </a>
+       </div>
+       <div>
+         <a href="https://www.linkedin.com/in/yellowblueskye/" target="_blank">
+           <img src="images/icons/icons8-linkedin-64.png" alt="LinkedIn" />
+         </a>
+       </div>
+     </div>
+    </div>
+
+    <!-- Overlay pour fermer le menu -->
+    <div class="menu-overlay" id="menu-overlay"></div>
+    <!-- Fin du menu dropdown -->
+
+    <!-- Section principale -->
+    <main>
+      <!-- Texte d'introduction -->
+      <div class="intro-text">
+        <!-- Wrapper pour le contenu descriptif -->
+        <div class="content-wrapper">
+          <!-- Regroupement des paragraphes et du bouton -->
+          <div class="text-content">
+            <h2 data-i18n="about.subtitle">CHEF DE PROJET DIGITAL / DESIGNER WEB</h2><br />
+            <p data-i18n="about.invitation">
+              Explorez mon portfolio pour découvrir mes projets et n'hésitez pas
+              à me contacter afin de travailler ensemble!
+            </p>
+          </div>
+        </div>
+        <!-- Bouton pour voir les projets -->
+        <a
+          href="#projects"
+          class="btn-explore"
+          data-i18n="about.explore"
+          title="Explorer mes projets"
+          >Explorez mes projets en images</a
+        >
+      </div>
+
+      <!-- Section Projets en vedette -->
+      <section id="projects" class="featured-projects slide-from-right">
+        <div class="carousel-container fade-in">
+          <div class="carousel-track">
+            <!-- Projet 1 -->
+            <div class="carousel-item">
+              <div class="project-preview" data-aos="fade-up">
+                <img src="images/header.png" alt="Riding Cities" />
+                <div class="project-preview-overlay">
+                  <h3 data-i18n="projectNames.ridingCities">Riding Cities</h3>
+                  <a
+                    href="projects/riding-cities.html"
+                    class="btn-view-project"
+                    data-i18n-title="projects.viewProject"
+                    title="Voir la fiche du projet"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="35"
+                      height="35"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path
+                        d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
+                      ></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Projet 2 -->
+            <div class="carousel-item">
+              <div class="project-preview" data-aos="fade-up">
+                <img
+                  src="images/imagesBooki/hebergements/1_xlarge/nicate-lee-kT-ZyaiwBe0-unsplash.jpg"
+                  alt="Booki"
+                />
+                <div class="project-preview-overlay">
+                  <h3 data-i18n="projectNames.booki">Booki</h3>
+                  <a
+                    href="projects/booki.html"
+                    class="btn-view-project"
+                    data-i18n-title="projects.viewProject"
+                    title="Voir la fiche du projet"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="35"
+                      height="35"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path
+                        d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
+                      ></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Projet 3 -->
+            <div class="carousel-item">
+              <div class="project-preview" data-aos="fade-up">
+                <img
+                  src="images/jay-wennington-N_Y88TWmGwA-unsplash.jpg"
+                  alt="Ohmyfood"
+                />
+                <div class="project-preview-overlay">
+                  <h3 data-i18n="projectNames.ohmyfood">Ohmyfood</h3>
+                  <a
+                    href="projects/ohmyfood.html"
+                    class="btn-view-project"
+                    data-i18n-title="projects.viewProject"
+                    title="Voir la fiche du projet"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="35"
+                      height="35"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path
+                        d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
+                      ></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Projet 4 -->
+            <div class="carousel-item">
+              <div class="project-preview" data-aos="fade-up">
+                <img src="images/yellow-book.jpeg" alt="Print It" />
+                <div class="project-preview-overlay">
+                  <h3 data-i18n="projectNames.printIt">Print It</h3>
+                  <a
+                    href="projects/print-it.html"
+                    class="btn-view-project"
+                    data-i18n-title="projects.viewProject"
+                    title="Voir la fiche du projet"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="35"
+                      height="35"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path
+                        d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
+                      ></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Projet 5 -->
+            <div class="carousel-item">
+              <div class="project-preview" data-aos="fade-up">
+                <img src="images/sophie-bluel.png" alt="Sophie Bluel" />
+                <div class="project-preview-overlay">
+                  <h3 data-i18n="projectNames.sophieBluel">Sophie Bluel</h3>
+                  <a
+                    href="projects/sophie-bluel.html"
+                    class="btn-view-project"
+                    data-i18n-title="projects.viewProject"
+                    title="Voir la fiche du projet"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="35"
+                      height="35"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path
+                        d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
+                      ></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Projet 6 -->
+            <div class="carousel-item">
+              <div class="project-preview" data-aos="fade-up">
+                <img src="images/jeu_de_memory.jpg" alt="Memory Game" />
+                <div class="project-preview-overlay">
+                  <h3 data-i18n="projectNames.memoryGame">Memory Game</h3>
+                  <a
+                    href="projects/memory-game.html"
+                    class="btn-view-project"
+                    data-i18n-title="projects.viewProject"
+                    title="Voir la fiche du projet"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="35"
+                      height="35"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path
+                        d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
+                      ></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Projet 7 -->
+            <div class="carousel-item">
+              <div class="project-preview" data-aos="fade-up">
+                <img
+                  src="images/imagesArcadiaZoo/Ticketzoo.jpeg"
+                  alt="Arcadia Zoo"
+                />
+                <div class="project-preview-overlay">
+                  <h3 data-i18n="projectNames.arcadiaZoo">Arcadia Zoo</h3>
+                  <a
+                    href="projects/arcadia-zoo.html"
+                    class="btn-view-project"
+                    data-i18n-title="projects.viewProject"
+                    title="Voir la fiche du projet"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="35"
+                      height="35"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path
+                        d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
+                      ></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Projet 8 -->
+            <div class="carousel-item">
+              <div class="project-preview" data-aos="fade-up">
+                <img src="images/blue-1761175.jpg" alt="Budget Buddy" />
+                <div class="project-preview-overlay">
+                  <h3 data-i18n="projectNames.budgetBuddy">Budget Buddy</h3>
+                  <a
+                    href="projects/budget-buddy.html"
+                    class="btn-view-project"
+                    data-i18n-title="projects.viewProject"
+                    title="Voir la fiche du projet"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="35"
+                      height="35"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path
+                        d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
+                      ></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Projet 9 -->
+            <div class="carousel-item">
+              <div class="project-preview" data-aos="fade-up">
+                <img
+                  src="images/imagesTetrisWindsurf/Tetris-cover-page.jpg"
+                  alt="Tetris Windsurf"
+                />
+                <div class="project-preview-overlay">
+                  <h3 data-i18n="projectNames.tetrisWindsurf">
+                    Tetris Windsurf
+                  </h3>
+                  <a
+                    href="projects/tetris-windsurf.html"
+                    class="btn-view-project"
+                    data-i18n-title="projects.viewProject"
+                    title="Voir la fiche du projet"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="35"
+                      height="35"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path
+                        d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
+                      ></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Contrôles du carrousel -->
+          <div class="carousel-controls">
+            <button class="carousel-btn prev-btn">
+              <i class="fa fa-chevron-left"></i>
+            </button>
+            <button class="carousel-btn pause-btn" aria-label="Pause/Play">
+              <i class="fa fa-pause" id="pause-icon"></i>
+            </button>
+            <button class="carousel-btn next-btn">
+              <i class="fa fa-chevron-right"></i>
+            </button>
+          </div>
+
+          <div class="carousel-dots">
+            <!-- Les points indicateurs seront générés par JavaScript -->
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer id="footer">
+      <p data-i18n="footer.copyright">
+        &copy; 2024 YellowBlueSkye. Tous droits réservés.
+      </p>
+    </footer>
+
+    <!-- Bouton retour en haut -->
+    <button
+      id="scroll-to-top"
+      class="scroll-to-top"
+      data-i18n-title="ui.backToTop"
+      title="Retour en haut"
+    >
+      <svg width="20" height="20" viewBox="0 0 24 24">
+        <path d="M7 14l5-5 5 5z" fill="currentColor"></path>
+      </svg>
+    </button>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+      AOS.init({
+        duration: 1000,
+        once: true,
+      });
+
+      // Script pour le bouton de retour en haut
+      document.addEventListener("DOMContentLoaded", function () {
+        var scrollToTopBtn = document.getElementById("scroll-to-top");
+
+        window.onscroll = function () {
+          if (
+            document.body.scrollTop > 300 ||
+            document.documentElement.scrollTop > 300
+          ) {
+            scrollToTopBtn.style.display = "flex";
+            scrollToTopBtn.style.opacity = "1";
+          } else {
+            scrollToTopBtn.style.opacity = "0";
+            setTimeout(() => {
+              if (
+                document.body.scrollTop <= 300 &&
+                document.documentElement.scrollTop <= 300
+              ) {
+                scrollToTopBtn.style.display = "none";
+              }
+            }, 300);
+          }
+        };
+
+        scrollToTopBtn.addEventListener("click", function () {
+          window.scrollTo({
+            top: 0,
+            behavior: "smooth",
+          });
+        });
+      });
+    </script>
+    <script src="scripts/translator.js"></script>
+    <script src="scripts/carousel.js"></script>
+    <script src="scripts/parallax.js"></script>
+    <script src="scripts/theme-switcher.js"></script>
+    <script src="scripts/navbar-dropdown.js"></script>
+    <script src="scripts/loader.js"></script>
+    <script src="scripts/welcome-animations.js"></script>
+    <script src="scripts/scroll-animations.js"></script>
+  </body>
+</html>
+<!-- Fin du code HTML -->
+<!--
+  Ce code HTML représente la structure d'un portfolio personnel pour un designer et développeur web. 
+  Il inclut des sections pour les projets, une présentation personnelle, et un menu de navigation.
+  Le code utilise des vidéos, des images, et des animations pour améliorer l'expérience utilisateur.
+  Les fonctionnalités incluent un carrousel de projets, un bouton de retour en haut, et un changement de thème.
+  Le code est conçu pour être responsive et accessible, avec des éléments interactifs tels que des boutons et des liens.
+  Les traductions sont gérées par un script JavaScript externe, et le style est appliqué via des fichiers CSS.
+  Le code utilise également des bibliothèques externes pour les animations et les icônes.
+  Les sections sont animées au défilement, et le carrousel de projets est contrôlé par JavaScript.
+  Le code est bien structuré et utilise des balises sémantiques pour améliorer la lisibilité et l'accessibilité.
+  Les commentaires dans le code aident à comprendre la structure et les fonctionnalités de chaque section.
+  Le code est conçu pour être facilement modifiable et extensible, permettant d'ajouter de nouveaux projets ou sections à l'avenir.
+  Il est également optimisé pour le référencement avec des balises meta appropriées.
+  Le code est écrit en HTML5 et utilise des attributs ARIA pour améliorer l'accessibilité.
+  Le code est compatible avec les navigateurs modernes et utilise des techniques de développement web réactives.
+  Il est recommandé de tester le code sur différents appareils et navigateurs pour garantir une expérience utilisateur cohérente.
+  Le code est prêt à être déployé sur un serveur web ou intégré dans un système de gestion de contenu.
+  Il est important de s'assurer que toutes les ressources (images, vidéos, scripts) sont correctement référencées et accessibles.   
+-->

@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Portfolio de Digitalblueskye, intégrateur web et designer web créatif et passionné. Spécialisé en HTML, CSS, JavaScript et responsive design. Découvrez mes projets."
+    />
+    <title data-i18n="meta.title">
+      Contact | Digitalblueskye - Portfolio
+    </title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Audiowide&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="preconnect" href="https://player.canva.com" />
+    <link rel="stylesheet" href="styles/style.css" />
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+    />
+  </head>
+  <body>
+    <!-- Header fixe avec logo et hamburger -->
+    <header class="site-header">
+      <div class="header-placeholder"></div>
+      <!-- Logo -->
+      <div class="header-logo">
+        <a href="/index.html" title="Retour à l'accueil">
+          <video id="logo-video" autoplay loop muted playsinline>
+            <source
+              src="/images/logoVideos/Logo-Globe-Video.mp4"
+              type="video/mp4"
+            />
+            <span>YELLOWBLUESKYE LOGO</span>
+          </video>
+        </a>
+      </div>
+      <!-- Contrôles alignés -->
+      <div class="menu-controls">
+        <button
+          id="lang-switch"
+          class="lang-button"
+          aria-label="Changer de langue"
+        >
+          <a
+            href="javascript:void(0)"
+            id="switch-to-en"
+            title="Switch to English"
+          >
+            <img
+              src="/images/icons/icons8-uk-flag-48.png"
+              alt="English"
+              width="32"
+              height="32"
+            />
+          </a>
+          <a
+            href="javascript:void(0)"
+            id="switch-to-fr"
+            style="display: none"
+            title="Passer en français"
+          >
+            <img
+              src="/images/icons/icons8-french-flag-48.png"
+              alt="Français"
+              width="32"
+              height="32"
+            />
+          </a>
+        </button>
+        <button id="theme-switch" aria-label="Changer de thème">
+          <svg width="24" height="24" viewBox="0 0 24 24" class="moon-icon">
+            <path
+              d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"
+              fill="currentColor"
+            />
+          </svg>
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            class="sun-icon"
+            style="display: none"
+          >
+            <path
+              d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0-5a1 1 0 0 0 1-1V1a1 1 0 0 0-2 0v0a1 1 0 0 0 1 1zm0 20a1 1 0 0 0-1 1v0a1 1 0 0 0 2 0v0a1 1 0 0 0-1-1zm10-11h0a1 1 0 0 0 0-2h0a1 1 0 0 0 0 2zM2 11h0a1 1 0 0 0 0 2h0a1 1 0 0 0 0-2zm16.95-5.95a1 1 0 0 0 0-1.41l0 0a1 1 0 0 0-1.41 0l0 0a1 1 0 0 0 0 1.41l0 0a1 1 0 0 0 1.41 0zm-14.9 14.9a1 1 0 0 0 0-1.41l0 0a1 1 0 0 0-1.41 0l0 0a1 1 0 0 0 0 1.41l0 0a1 1 0 0 0 1.41 0zM18.95 18.95a1 1 0 0 0 0-1.41l0 0a1 1 0 0 0-1.41 0l0 0a1 1 0 0 0 0 1.41l0 0a1 1 0 0 0 1.41 0zm-14.9-14.9a1 1 0 0 0 0-1.41l0 0a1 1 0 0 0-1.41 0l0 0a1 1 0 0 0 0 1.41l0 0a1 1 0 0 0 1.41 0z"
+              fill="currentColor"
+            />
+          </svg>
+        </button>
+      </div>
+      <!-- Hamburger placé DANS le header -->
+      <div class="hamburger" id="hamburger" aria-label="Menu">
+        <!-- Remplacer l'icône hamburger par un chevron -->
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="60"
+          height="60"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </div>
+    </header>
+
+    <!-- Menu dropdown qui apparaît sous le header -->
+    <div class="dropdown-menu" id="dropdown-menu">
+      <!-- Navigation -->
+      <nav class="dropdown-nav">
+        <ul>
+          <li>
+            <a href="/index.html" data-i18n="nav.home"><h2>ACCUEIL</h2></a>
+          </li>
+          <li>
+            <a href="/about.html" data-i18n="nav.about"
+              ><h2>À PROPOS DE MOI</h2></a
+            >
+          </li>
+          <li>
+            <a href="/projects.html" data-i18n="nav.projects"
+              ><h2>MES PROJETS ET COMPÉTENCES</h2></a
+            >
+          </li>
+          <li>
+            <a href="/contact.html" data-i18n="nav.contact"
+              ><h2>CONTACTEZ MOI</h2></a
+            >
+          </li>
+        </ul>
+      </nav>
+       <!-- Menu de navigation social média -->
+       <div class="social-media" data-aos="fade-up">
+        <div class="github">
+         <a href="https://github.com/Dev-Djelloul" target="_blank">
+           <img src="images/icons/icons8-github-64.png" alt="Github" />
+         </a>
+       </div>
+       <div>
+         <a href="https://www.linkedin.com/in/yellowblueskye/" target="_blank">
+           <img src="images/icons/icons8-linkedin-64.png" alt="LinkedIn" />
+         </a>
+       </div>
+     </div>
+    </div>
+
+    <!-- Overlay pour fermer le menu -->
+    <div class="menu-overlay" id="menu-overlay"></div>
+    <!-- Fin du menu dropdown -->
+
+    <main>
+       <!-- Section Contact -->
+    <section id="contact" data-aos="fade-up">
+      <div class="contact-container">
+        <!-- Bloc de localisation -->
+        <div class="contact-map" data-aos="fade-up">
+          <h3 class="title-banner" data-i18n="contact.locationTitle">
+            MA LOCALISATION 🪐
+          </h3>
+          <iframe
+            class="map"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d5249.667043389906!2d2.3726324945096957!3d48.86138487622553!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47e66dfbc5102947%3A0xe821db0f15238452!2s4%20Rue%20de%20la%20Folie%20M%C3%A9ricourt%2C%2075011%20Paris!5e0!3m2!1sfr!2sfr!4v1730708220925!5m2!1sfr!2sfr"
+            width="100%"
+            height="450"
+            style="border: 0"
+            allowfullscreen=""
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            title="Google Maps location of 4 Rue de la Folie-Méricourt, 75011 Paris, France"
+          >
+          </iframe>
+        </div>
+
+        <!-- Bloc de formulaire -->
+        <div class="contact-form" data-aos="fade-up">
+          <h3 class="title-banner" data-i18n="contact.formTitle">
+            LAISSEZ VOTRE MESSAGE ICI
+          </h3>
+          <form id="contact-form" onsubmit="sendEmail(event)">
+            <div class="form-group">
+              <label for="user_name">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                  <path
+                    d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+                  />
+                </svg>
+                <span data-i18n="contact.name">Nom</span>
+              </label>
+              <input
+                type="text"
+                id="user_name"
+                name="user_name"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="user_email">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                  <path
+                    d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"
+                  />
+                </svg>
+                <span data-i18n="contact.email">Email</span>
+              </label>
+              <input
+                type="email"
+                id="user_email"
+                name="user_email"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="message">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                  <path
+                    d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"
+                  />
+                </svg>
+                <span data-i18n="contact.message">Message</span>
+              </label>
+              <textarea
+                id="message"
+                name="message"
+                rows="5"
+                data-i18n-placeholder="contact.enterMessage"
+                required
+              ></textarea>
+            </div>
+
+            <button type="submit" data-i18n="contact.sendButton">
+              Envoyer le message
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <p class="contact-email" data-aos="fade-up">
+        <span data-i18n="contact.alternateContact"
+          >Vous pouvez également m'envoyer un email à</span
+        >
+        <a
+          href="https://mail.google.com/mail/?view=cm&fs=1&to=djelloulabid75@gmail.com"
+          target="_blank"
+        >
+          djelloulabid75@gmail.com
+        </a>
+      </p>
+        <video id="logo-video-dropdown" autoplay loop muted playsinline>
+          <source
+            src="/images/logoVideos/Logo-Globe-Video.mp4"
+            type="video/mp4"
+          />
+          <span>YELLOWBLUESKYE LOGO</span>
+        </video>
+    </section>
+    </main>
+
+   
+
+    <footer id="footer">
+      <p data-i18n="footer.copyright">
+        &copy; 2024 YellowBlueSkye. Tous droits réservés.
+      </p>
+    </footer>
+
+    <!-- Bouton retour en haut -->
+    <button
+      id="scroll-to-top"
+      class="scroll-to-top"
+      data-i18n-title="ui.backToTop"
+      title="Retour en haut"
+    >
+      <svg width="20" height="20" viewBox="0 0 24 24">
+        <path d="M7 14l5-5 5 5z" fill="currentColor"></path>
+      </svg>
+    </button>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
+    <script>
+      AOS.init({
+        duration: 800,
+        easing: "ease-in-out",
+        once: true,
+      });
+
+      // Script pour le bouton de retour en haut
+      document.addEventListener("DOMContentLoaded", function () {
+        var scrollToTopBtn = document.getElementById("scroll-to-top");
+
+        window.onscroll = function () {
+          if (
+            document.body.scrollTop > 300 ||
+            document.documentElement.scrollTop > 300
+          ) {
+            scrollToTopBtn.style.display = "flex";
+            scrollToTopBtn.style.opacity = "1";
+          } else {
+            scrollToTopBtn.style.opacity = "0";
+            setTimeout(() => {
+              if (
+                document.body.scrollTop <= 300 &&
+                document.documentElement.scrollTop <= 300
+              ) {
+                scrollToTopBtn.style.display = "none";
+              }
+            }, 300);
+          }
+        };
+
+        scrollToTopBtn.addEventListener("click", function () {
+          window.scrollTo({
+            top: 0,
+            behavior: "smooth",
+          });
+        });
+      });
+
+      // Fonction pour envoyer l'email
+      function sendEmail(event) {
+        event.preventDefault();
+        let successMessage =
+          document.getElementById("switch-to-en").style.display === "none"
+            ? "Your message has been sent successfully!"
+            : "Votre message a été envoyé avec succès!";
+        alert(successMessage);
+        document.getElementById("contact-form").reset();
+      }
+    </script>
+    <script src="scripts/translator.js"></script>
+    <script src="scripts/navbar.js"></script>
+    <script src="scripts/theme-switcher.js"></script>
+    <script src="scripts/navbar-dropdown.js"></script>
+  </body>
+</html>

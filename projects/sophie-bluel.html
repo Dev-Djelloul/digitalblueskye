@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Portfolio de Digitalblueskye, intégrateur web et designer web créatif et passionné. Spécialisé en HTML, CSS, JavaScript et responsive design. Découvrez mes projets."
+    />
+    <title data-i18n="meta.title">
+      Sophie Bluel | Project Portfolio | Digitalblueskye
+    </title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Audiowide&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="preconnect" href="https://player.canva.com" />
+    <link rel="stylesheet" href="/styles/style.css" />
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+    />
+  </head>
+  <body>
+    <!-- Header fixe avec logo et hamburger -->
+    <header class="site-header">
+      <div class="header-placeholder"></div>
+      <!-- Logo -->
+      <div class="header-logo">
+        <a href="/index.html" title="Retour à l'accueil">
+          <video id="logo-video" autoplay loop muted playsinline>
+            <source
+              src="/images/logoVideos/Logo-Globe-Video.mp4"
+              type="video/mp4"
+            />
+            <span>YELLOWBLUESKYE LOGO</span>
+          </video>
+        </a>
+      </div>
+      <!-- Contrôles alignés -->
+      <div class="menu-controls">
+        <button
+          id="lang-switch"
+          class="lang-button"
+          aria-label="Changer de langue"
+        >
+          <a
+            href="javascript:void(0)"
+            id="switch-to-en"
+            title="Switch to English"
+          >
+            <img
+              src="/images/icons/icons8-uk-flag-48.png"
+              alt="English"
+              width="32"
+              height="32"
+            />
+          </a>
+          <a
+            href="javascript:void(0)"
+            id="switch-to-fr"
+            style="display: none"
+            title="Passer en français"
+          >
+            <img
+              src="/images/icons/icons8-french-flag-48.png"
+              alt="Français"
+              width="32"
+              height="32"
+            />
+          </a>
+        </button>
+        <button id="theme-switch" aria-label="Changer de thème">
+          <svg width="24" height="24" viewBox="0 0 24 24" class="moon-icon">
+            <path
+              d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"
+              fill="currentColor"
+            />
+          </svg>
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            class="sun-icon"
+            style="display: none"
+          >
+            <path
+              d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0-5a1 1 0 0 0 1-1V1a1 1 0 0 0-2 0v0a1 1 0 0 0 1 1zm0 20a1 1 0 0 0-1 1v0a1 1 0 0 0 2 0v0a1 1 0 0 0-1-1zm10-11h0a1 1 0 0 0 0-2h0a1 1 0 0 0 0 2zM2 11h0a1 1 0 0 0 0 2h0a1 1 0 0 0 0-2zm16.95-5.95a1 1 0 0 0 0-1.41l0 0a1 1 0 0 0-1.41 0l0 0a1 1 0 0 0 0 1.41l0 0a1 1 0 0 0 1.41 0zm-14.9 14.9a1 1 0 0 0 0-1.41l0 0a1 1 0 0 0-1.41 0l0 0a1 1 0 0 0 0 1.41l0 0a1 1 0 0 0 1.41 0zM18.95 18.95a1 1 0 0 0 0-1.41l0 0a1 1 0 0 0-1.41 0l0 0a1 1 0 0 0 0 1.41l0 0a1 1 0 0 0 1.41 0zm-14.9-14.9a1 1 0 0 0 0-1.41l0 0a1 1 0 0 0-1.41 0l0 0a1 1 0 0 0 0 1.41l0 0a1 1 0 0 0 1.41 0z"
+              fill="currentColor"
+            />
+          </svg>
+        </button>
+      </div>
+      <!-- Hamburger placé DANS le header -->
+      <div class="hamburger" id="hamburger" aria-label="Menu">
+        <!-- Remplacer l'icône hamburger par un chevron -->
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="60"
+          height="60"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </div>
+    </header>
+
+    <!-- Menu dropdown qui apparaît sous le header -->
+    <div class="dropdown-menu" id="dropdown-menu">
+      <!-- Navigation -->
+      <nav class="dropdown-nav">
+        <ul>
+          <li>
+            <a href="/index.html" data-i18n="nav.home"><h2>ACCUEIL</h2></a>
+          </li>
+          <li>
+            <a href="/about.html" data-i18n="nav.about"
+              ><h2>À PROPOS DE MOI</h2></a
+            >
+          </li>
+          <li>
+            <a href="/projects.html" data-i18n="nav.projects"
+              ><h2>MES PROJETS ET COMPÉTENCES</h2></a
+            >
+          </li>
+          <li>
+            <a href="/contact.html" data-i18n="nav.contact"
+              ><h2>CONTACTEZ MOI</h2></a
+            >
+          </li>
+        </ul>
+      </nav>
+       <!-- Menu de navigation social média -->
+       <div class="social-media" data-aos="fade-up">
+        <div class="github">
+         <a href="https://github.com/Dev-Djelloul" target="_blank">
+           <img src="/images/icons/icons8-github-64.png" alt="Github" />
+         </a>
+       </div>
+       <div>
+         <a href="https://www.linkedin.com/in/yellowblueskye/" target="_blank">
+           <img src="/images/icons/icons8-linkedin-64.png" alt="LinkedIn" />
+         </a>
+       </div>
+     </div>
+    </div>
+
+    <!-- Overlay pour fermer le menu -->
+    <div class="menu-overlay" id="menu-overlay"></div>
+    <!-- Fin du menu dropdown -->
+
+  <!-- Section Projet Détaillé -->
+  <section class="project-detail">
+    <div class="project-hero" data-aos="fade-up">
+      <img src="../images/sophie-bluel.png" alt="Projet Sophie Bluel" />
+    </div>
+
+    <div class="project-content" data-aos="fade-up">
+      <h2 class="title-banner" data-i18n="projectNames.sophieBluel">SOPHIE BLUEL</h2>
+      
+      <p data-i18n="projectDescriptions.sophieBluel.full">
+        Le portfolio de Sophie Bluel est un site web responsive construit avec HTML, CSS, JavaScript, 
+        et la gestion de dépendances via Node Package Manager, et publié sur GitHub Pages. Pour lancer 
+        le projet complet, il faut installer les dépendances. Les projets photos sont stockés dans une base de données.
+        Ce projet a été réalisé dans le cadre de ma formation avec Openclassrooms pour maîtriser les fondamentaux du développement web.
+      </p>
+      
+      <div class="project-tech">
+        <span>HTML5</span>
+        <span>CSS3</span>
+        <span>JavaScript</span>
+        <span>API REST</span>
+        <span>Node.js</span>
+      </div>
+      
+      <div class="project-links">
+        <a href="/projects.html" class="btn-back-projects" data-i18n="projectDetails.backToProjectsList">
+          Tous les projets
+        </a>
+        <a href="https://dev-djelloul.github.io/sophie-bluel-architect/" target="_blank" data-i18n="projectDetails.viewLive">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1-2-2h6"></path>
+            <polyline points="15 3 21 3 21 9"></polyline>
+            <line x1="10" y1="14" x2="21" y2="3"></line>
+          </svg>
+          Visiter le site
+        </a>
+        <a href="https://github.com/Dev-Djelloul/sophie-bluel-architect" target="_blank" class="btn-view-code" data-i18n="projectDetails.viewCode">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+          </svg>
+          Code source
+        </a>
+      </div>
+    </div>
+    
+    <div class="project-content" data-aos="fade-up">
+      <h3 class="title-banner section-title" data-i18n="projectDetails.details">DÉTAILS DU PROJET</h3>
+      
+      <h4 data-i18n="projectDetails.objective">Objectif</h4>
+      <p data-i18n="projectDetails.sophieBluel.objective">
+        L'objectif de ce projet était de créer un site portfolio dynamique pour une architecte d'intérieur.
+        Le site devait permettre à l'utilisateur de consulter les travaux de l'architecte, et à l'administrateur
+        de se connecter pour gérer les projets (ajouter, modifier, supprimer) via une interface d'administration sécurisée.
+      </p>
+      
+      <h4 data-i18n="projectDetails.technologies">Technologies utilisées</h4>
+      <p data-i18n="projectDetails.sophieBluel.technologiesDetail">
+        Ce projet a été développé en HTML5, CSS3 et JavaScript vanilla pour le front-end. 
+        J'ai utilisé l'API Fetch pour communiquer avec le backend existant (API REST), et mis en œuvre
+        une authentification via JWT (JSON Web Tokens). J'ai également utilisé NPM pour gérer les dépendances
+        du projet, notamment l'exécution du serveur backend.
+      </p>
+      
+      <h4 data-i18n="projectDetails.challengesAndSolutions">Défis et solutions</h4>
+      <p data-i18n="projectDetails.sophieBluel.challengesSolutions">
+        Le principal défi a été d'implémenter une interface d'administration sécurisée permettant la gestion
+        complète des projets (CRUD). Pour résoudre ce problème, j'ai créé un système de login avec stockage
+        du token JWT, et développé une modale d'édition intuitive pour ajouter et supprimer des projets.
+        J'ai également mis en place un système de filtrage par catégories qui met à jour dynamiquement
+        l'affichage des projets sans rechargement de page.
+      </p>
+    </div>
+
+    <div class="project-gallery" data-aos="fade-up">
+      <h3 class="title-banner" data-i18n="projectDetails.gallery">GALERIE</h3>
+      <div class="gallery-grid">
+        <div class="gallery-item">
+          <img src="../images/imagesSophieBluel/appartement-paris-x.png" alt="Page d'accueil Sophie Bluel" />
+        </div>
+        <div class="gallery-item">
+          <img src="../images/imagesSophieBluel/le-coteau-cassis.png" alt="Page de connexion" />
+        </div>
+        <div class="gallery-item">
+          <img src="../images/imagesSophieBluel/structures-thermopolis.png" alt="Interface admin" />
+        </div>
+      </div>
+    </div>
+
+  
+    <!-- Navigation entre projets -->
+    <div class="project-navigation">
+      <!-- Lien Projet Précédent -->
+      <a href="print-it.html" 
+         class="prev-project" 
+         data-project-key="printIt"  
+         data-i18n-title="projects.prevProject" /* Traduit le title pour accessibilité */
+         title="Projet Précédent : Print It" /* Fallback accessibilité */
+         >   
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        <span class="project-name-display">Print It</span> <!-- Nouveau span pour le nom seul -->
+      </a>
+
+      <!-- Lien Projet Suivant -->
+      <a href="memory-game.html" 
+         class="next-project" 
+         data-project-key="memoryGame"  
+         data-i18n-title="projects.nextProject" /* Traduit le title pour accessibilité */
+         title="Projet Suivant : Memory Game" /* Fallback accessibilité */
+         >  
+        <span class="project-name-display">Memory Game</span> <!-- Nouveau span pour le nom seul -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+          <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>
+      </a>
+    </div>
+  </section>
+
+  <footer id="footer">
+    <p data-i18n="footer.copyright">&copy; 2024 YellowBlueSkye. Tous droits réservés.</p>
+  </footer>
+
+  <!-- Bouton retour en haut -->
+  <button id="scroll-to-top" class="scroll-to-top" data-i18n-title="ui.backToTop" title="Retour en haut">
+    <svg width="20" height="20" viewBox="0 0 24 24">
+      <path d="M7 14l5-5 5 5z" fill="currentColor"></path>
+    </svg>
+  </button>
+
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  <script>
+    AOS.init({
+      duration: 800,
+      easing: 'ease-in-out',
+      once: true
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+      var scrollToTopBtn = document.getElementById("scroll-to-top");
+      
+      window.onscroll = function() {
+        if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+          scrollToTopBtn.style.display = "flex";
+          scrollToTopBtn.style.opacity = "1";
+        } else {
+          scrollToTopBtn.style.opacity = "0";
+          setTimeout(() => {
+            if (document.body.scrollTop <= 300 && document.documentElement.scrollTop <= 300) {
+              scrollToTopBtn.style.display = "none";
+            }
+          }, 300);
+        }
+      };
+      
+      scrollToTopBtn.addEventListener("click", function() {
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth"
+        });
+      });
+    });
+  </script>
+ <script src="/scripts/translator.js"></script>
+ <script src="/scripts/theme-switcher.js"></script>
+ <script src="/scripts/navbar-dropdown.js"></script>
+</body>
+</html>

@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Portfolio de Digitalblueskye, intégrateur web et designer web créatif et passionné. Spécialisé en HTML, CSS, JavaScript et responsive design. Découvrez mes projets."
+    />
+    <title data-i18n="meta.title">
+      Projects | Digitalblueskye - Portfolio
+    </title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Audiowide&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="preconnect" href="https://player.canva.com" />
+    <link rel="stylesheet" href="styles/style.css" />
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+    />
+  </head>
+  <body>
+    <!-- Header fixe avec logo et hamburger -->
+    <header class="site-header">
+      <div class="header-placeholder"></div>
+      <!-- Logo -->
+      <div class="header-logo">
+        <a href="/index.html" title="Retour à l'accueil">
+          <video id="logo-video" autoplay loop muted playsinline>
+            <source
+              src="/images/logoVideos/Logo-Globe-Video.mp4"
+              type="video/mp4"
+            />
+            <span>YELLOWBLUESKYE LOGO</span>
+          </video>
+        </a>
+      </div>
+      <!-- Contrôles alignés -->
+      <div class="menu-controls">
+        <button
+          id="lang-switch"
+          class="lang-button"
+          aria-label="Changer de langue"
+        >
+          <a
+            href="javascript:void(0)"
+            id="switch-to-en"
+            title="Switch to English"
+          >
+            <img
+              src="/images/icons/icons8-uk-flag-48.png"
+              alt="English"
+              width="32"
+              height="32"
+            />
+          </a>
+          <a
+            href="javascript:void(0)"
+            id="switch-to-fr"
+            style="display: none"
+            title="Passer en français"
+          >
+            <img
+              src="/images/icons/icons8-french-flag-48.png"
+              alt="Français"
+              width="32"
+              height="32"
+            />
+          </a>
+        </button>
+        <button id="theme-switch" aria-label="Changer de thème">
+          <svg width="24" height="24" viewBox="0 0 24 24" class="moon-icon">
+            <path
+              d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"
+              fill="currentColor"
+            />
+          </svg>
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            class="sun-icon"
+            style="display: none"
+          >
+            <path
+              d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0-5a1 1 0 0 0 1-1V1a1 1 0 0 0-2 0v0a1 1 0 0 0 1 1zm0 20a1 1 0 0 0-1 1v0a1 1 0 0 0 2 0v0a1 1 0 0 0-1-1zm10-11h0a1 1 0 0 0 0-2h0a1 1 0 0 0 0 2zM2 11h0a1 1 0 0 0 0 2h0a1 1 0 0 0 0-2zm16.95-5.95a1 1 0 0 0 0-1.41l0 0a1 1 0 0 0-1.41 0l0 0a1 1 0 0 0 0 1.41l0 0a1 1 0 0 0 1.41 0zm-14.9 14.9a1 1 0 0 0 0-1.41l0 0a1 1 0 0 0-1.41 0l0 0a1 1 0 0 0 0 1.41l0 0a1 1 0 0 0 1.41 0zM18.95 18.95a1 1 0 0 0 0-1.41l0 0a1 1 0 0 0-1.41 0l0 0a1 1 0 0 0 0 1.41l0 0a1 1 0 0 0 1.41 0zm-14.9-14.9a1 1 0 0 0 0-1.41l0 0a1 1 0 0 0-1.41 0l0 0a1 1 0 0 0 0 1.41l0 0a1 1 0 0 0 1.41 0z"
+              fill="currentColor"
+            />
+          </svg>
+        </button>
+      </div>
+      <!-- Hamburger placé DANS le header -->
+      <div class="hamburger" id="hamburger" aria-label="Menu">
+        <!-- Remplacer l'icône hamburger par un chevron -->
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="60"
+          height="60"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </div>
+    </header>
+
+    <!-- Menu dropdown qui apparaît sous le header -->
+    <div class="dropdown-menu" id="dropdown-menu">
+      <!-- Navigation -->
+      <nav class="dropdown-nav">
+        <ul>
+          <li>
+            <a href="/index.html" data-i18n="nav.home"><h2>ACCUEIL</h2></a>
+          </li>
+          <li>
+            <a href="/about.html" data-i18n="nav.about"
+              ><h2>À PROPOS DE MOI</h2></a
+            >
+          </li>
+          <li>
+            <a href="/projects.html" data-i18n="nav.projects"
+              ><h2>MES PROJETS ET COMPÉTENCES</h2></a
+            >
+          </li>
+          <li>
+            <a href="/contact.html" data-i18n="nav.contact"
+              ><h2>CONTACTEZ MOI</h2></a
+            >
+          </li>
+        </ul>
+      </nav>
+       <!-- Menu de navigation social média -->
+       <div class="social-media" data-aos="fade-up">
+        <div class="github">
+         <a href="https://github.com/Dev-Djelloul" target="_blank">
+           <img src="images/icons/icons8-github-64.png" alt="Github" />
+         </a>
+       </div>
+       <div>
+         <a href="https://www.linkedin.com/in/yellowblueskye/" target="_blank">
+           <img src="images/icons/icons8-linkedin-64.png" alt="LinkedIn" />
+         </a>
+       </div>
+     </div>
+    </div>
+
+    <!-- Overlay pour fermer le menu -->
+    <div class="menu-overlay" id="menu-overlay"></div>
+    <!-- Fin du menu dropdown -->
+
+
+
+    <main>
+      <!-- Section Compétences -->
+      <section id="skills" class="skills-section">
+        <h2 class="title-banner" data-i18n="skills.title" data-aos="fade-up">
+          Mes compétences techniques
+        </h2>
+
+        <div class="skills-categories">
+          <!-- Frontend -->
+          <div class="skills-category" data-aos="fade-up">
+            <h3 class="category-title" data-i18n="skills.frontend">Frontend</h3>
+            <div class="skills-grid">
+              <div class="skill">
+                <a
+                  href="https://developer.mozilla.org/fr/docs/Web/HTML"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="skill-icon"
+                >
+                  <img src="images/icons/icons8-html5-50.png" alt="HTML5" />
+                </a>
+                <p>HTML5</p>
+              </div>
+              <div class="skill">
+                <a
+                  href="https://developer.mozilla.org/fr/docs/Web/CSS"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="skill-icon"
+                >
+                  <img src="images/icons/icons8-css3-50.png" alt="CSS3" />
+                </a>
+                <p>CSS3</p>
+              </div>
+              <div class="skill">
+                <a
+                  href="https://developer.mozilla.org/fr/docs/Web/JavaScript"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="skill-icon"
+                >
+                  <img
+                    src="images/icons/icons8-javascript-48.png"
+                    alt="JavaScript"
+                  />
+                </a>
+                <p>JavaScript</p>
+              </div>
+              <div class="skill">
+                <a
+                  href="https://getbootstrap.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="skill-icon"
+                >
+                  <img
+                    src="images/icons/icons8-bootstrap-48.png"
+                    alt="Bootstrap"
+                  />
+                </a>
+                <p>Bootstrap</p>
+              </div>
+              <div class="skill">
+                <a
+                  href="https://reactjs.org/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="skill-icon"
+                >
+                  <img src="images/icons/icons8-react-48.png" alt="React" />
+                </a>
+                <p>React</p>
+              </div>
+              <div class="skill">
+                <a
+                  href="https://sass-lang.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="skill-icon"
+                >
+                  <img src="images/icons/icons8-sass-48.png" alt="Sass" />
+                </a>
+                <p>Sass</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Backend -->
+          <div class="skills-category" data-aos="fade-up">
+            <h3 class="category-title" data-i18n="skills.backend">Backend</h3>
+            <div class="skills-grid">
+              <div class="skill">
+                <a
+                  href="https://www.php.net/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="skill-icon"
+                >
+                  <img src="images/icons/icons8-php-48.png" alt="PHP" />
+                </a>
+                <p>PHP</p>
+              </div>
+              <div class="skill">
+                <a
+                  href="https://nodejs.org/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="skill-icon"
+                >
+                  <img src="images/icons/icons8-node-js-48.png" alt="Node.js" />
+                </a>
+                <p>Node.js</p>
+              </div>
+              <div class="skill">
+                <a
+                  href="https://www.mysql.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="skill-icon"
+                >
+                  <img src="images/icons/icons8-mysql-48.png" alt="MySQL" />
+                </a>
+                <p>MySQL</p>
+              </div>
+              <div class="skill">
+                <a
+                  href="https://www.mongodb.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="skill-icon"
+                >
+                  <img src="images/icons/icons8-mongodb-48.png" alt="MongoDB" />
+                </a>
+                <p>MongoDB</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Outils -->
+          <div class="skills-category" data-aos="fade-up">
+            <h3 class="category-title" data-i18n="skills.tools">Outils</h3>
+            <div class="skills-grid">
+              <div class="skill">
+                <a
+                  href="https://www.canva.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="skill-icon"
+                >
+                  <img src="images/icons/icons8-canva-48.png" alt="Canva" />
+                </a>
+                <p>Canva</p>
+              </div>
+              <div class="skill">
+                <a
+                  href="https://www.figma.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="skill-icon"
+                >
+                  <img src="images/icons/icons8-figma-48.png" alt="Figma" />
+                </a>
+                <p>Figma</p>
+              </div>
+              <div class="skill">
+                <a
+                  href="https://github.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="skill-icon"
+                >
+                  <img src="images/icons/icons8-github-64.png" alt="GitHub" />
+                </a>
+                <p>GitHub</p>
+              </div>
+              <div class="skill">
+                <a
+                  href="https://code.visualstudio.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="skill-icon"
+                >
+                  <img src="images/icons/icons8-vs-code-48.png" alt="VS Code" />
+                </a>
+                <p>VS Code</p>
+              </div>
+              <div class="skill">
+                <a
+                  href="https://www.heroku.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="skill-icon"
+                >
+                  <img src="images/icons/icons8-heroku-48.png" alt="Heroku" />
+                </a>
+                <p>Heroku</p>
+              </div>
+              <div class="skill">
+                <a
+                  href="https://www.adobe.com/apps/all/all-platforms/pdp/indesign?source=apps"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="skill-icon"
+                >
+                  <img
+                    src="images/icons/icons8-adobe-indesign-40.png"
+                    alt="Adobe indesign"
+                  />
+                </a>
+                <p>Adobe indesign</p>
+              </div>
+              <div class="skill">
+                <a
+                  href="https://www.adobe.com/apps/all/all-platforms/pdp/illustrator?source=apps"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="skill-icon"
+                >
+                  <img
+                    src="images/icons/icons8-adobe-illustrator-48.png"
+                    alt="Adobe Illustrator"
+                  />
+                </a>
+                <p>Adobe Illustrator</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section Projets détaillés -->
+      <section id="projects">
+        <!-- Se traduit -->
+        <h2
+          class="title-banner"
+          data-i18n="projects.allTitle"
+          data-aos="fade-up"
+        >
+          Un aperçu de tous mes projets réalisés
+        </h2>
+
+        <div class="projects-grid">
+          <!-- Projet 1 -->
+          <div class="project-card" data-aos="fade-up" id="project-1">
+            <img src="images/header.png" alt="Projet-Riding-Cities" />
+            <div class="project-info">
+              <div>
+                <h3 data-i18n="projectNames.ridingCities">Riding Cities</h3>
+                <p data-i18n="projectDescriptions.ridingCities.full">
+                  Riding Cities est le tout premier projet de site web utilisant
+                  les languages de bases HTML et CSS et publié sur Github-pages.
+                  Il a été conçu lors de mon apprentissage des languages de
+                  bases avec l'école Openclassrooms.
+                </p>
+                <div class="project-tech">
+                  <span>HTML5</span>
+                  <span>CSS3</span>
+                </div>
+              </div>
+              <div class="project-links">
+                <a
+                  href="/projects/riding-cities.html"
+                  data-i18n="projects.viewLive"
+                  >En savoir plus sur ce projet</a
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- Projet 2 - Booki -->
+          <div class="project-card" data-aos="fade-up" id="project-2">
+            <img
+              src="images/aw-creative-VGs8z60yT2c-unsplash.jpg"
+              alt="Projet-Booki"
+            />
+            <div class="project-info">
+              <div>
+                <h3 data-i18n="projectNames.booki">Booki</h3>
+                <p data-i18n="projectDescriptions.booki.full">
+                  Booki est un site web responsive créé avec HTML et CSS et
+                  publié sur GitHub Pages.<br />
+                  Il a été conçu lors de mon apprentissage des langages de base
+                  avec l'école Openclassrooms.
+                </p>
+                <div class="project-tech">
+                  <span>HTML5</span>
+                  <span>CSS3</span>
+                  <span>Responsive</span>
+                </div>
+              </div>
+              <div class="project-links">
+                <a href="/projects/booki.html" data-i18n="projects.viewLive"
+                  >En savoir plus sur ce projet</a
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- Projet 3 - Ohmyfood -->
+          <div class="project-card" data-aos="fade-up" id="project-3">
+            <img
+              src="images/jay-wennington-N_Y88TWmGwA-unsplash.jpg"
+              alt="Projet-ohmyfood"
+            />
+            <div class="project-info">
+              <div>
+                <h3 data-i18n="projectNames.ohmyfood">Ohmyfood</h3>
+                <p data-i18n="projectDescriptions.ohmyfood.full">
+                  Ohmyfood est un site web responsive créé avec HTML et CSS et
+                  publié sur GitHub Pages.<br />
+                  Il a été conçu lors de mon apprentissage des langages de base
+                  avec l'école Openclassrooms.
+                </p>
+                <div class="project-tech">
+                  <span>HTML5</span>
+                  <span>CSS3</span>
+                  <span>Animations</span>
+                </div>
+              </div>
+              <div class="project-links">
+                <a href="/projects/ohmyfood.html" data-i18n="projects.viewLive"
+                  >En savoir plus sur ce projet</a
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- Projet 4 - Print it -->
+          <div class="project-card" data-aos="fade-up" id="project-4">
+            <img src="images/yellow-book.jpeg" alt="Project-Print-it" />
+            <div class="project-info">
+              <div>
+                <h3 data-i18n="projectNames.printIt">Print it</h3>
+                <p data-i18n="projectDescriptions.printIt.full">
+                  Print it est un site web développé avec HTML, CSS et les bases
+                  de JavaScript, publié sur GitHub Pages.<br />Il a été conçu
+                  lors de mon apprentissage des langages de base avec l'école
+                  Openclassrooms.
+                </p>
+                <div class="project-tech">
+                  <span>HTML5</span>
+                  <span>CSS3</span>
+                  <span>JavaScript</span>
+                </div>
+              </div>
+              <div class="project-links">
+                <a href="/projects/print-it.html" data-i18n="projects.viewLive"
+                  >En savoir plus sur ce projet</a
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- Projet 5 - Sophie Bluel -->
+          <div class="project-card" data-aos="fade-up" id="project-5">
+            <img src="images/sophie-bluel.png" alt="Projet-Sophie-Bluel" />
+            <div class="project-info">
+              <div>
+                <h3 style="color: #b1663c" data-i18n="projectNames.sophieBluel">
+                  Sophie Bluel
+                </h3>
+                <p data-i18n="projectDescriptions.sophieBluel.full">
+                  Le portfolio de Sophie Bluel est un site web responsive
+                  construit avec HTML, CSS, JavaScript, et la gestion des
+                  dépendances via Node Package Manager, et publié sur GitHub
+                  Pages.<br />
+                  Pour lancer le projet complet, des dépendances doivent être
+                  installées. Les projets photo sont stockés dans une base de
+                  données.<br />Ce projet a été réalisé dans le cadre de ma
+                  formation avec Openclassrooms pour maîtriser les fondamentaux
+                  du web.
+                </p>
+                <div class="project-tech">
+                  <span>HTML5</span>
+                  <span>CSS3</span>
+                  <span>JavaScript</span>
+                  <span>NPM</span>
+                  <span>API</span>
+                </div>
+              </div>
+              <div class="project-links">
+                <a
+                  href="/projects/sophie-bluel.html"
+                  data-i18n="projects.viewLive"
+                  >En savoir plus sur ce projet</a
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- Projet 6 - Memory Game -->
+          <div class="project-card" data-aos="fade-up" id="project-6">
+            <img src="images/jeu_de_memory.jpg" alt="Projet-Memory-Game" />
+            <div class="project-info">
+              <div>
+                <h3 data-i18n="projectNames.memoryGame">Memory Game</h3>
+                <p data-i18n="projectDescriptions.memoryGame.full">
+                  Memory Game est un jeu de mémoire créé avec HTML, CSS et
+                  JavaScript, et publié sur GitHub Pages.<br />Il a été conçu
+                  dans le cadre de ma formation avec Studi pour maîtriser les
+                  fondamentaux du web.
+                </p>
+                <div class="project-tech">
+                  <span>HTML5</span>
+                  <span>CSS3</span>
+                  <span>JavaScript</span>
+                </div>
+              </div>
+              <div class="project-links">
+                <a
+                  href="/projects/memory-game.html"
+                  data-i18n="projects.viewLive"
+                  >En savoir plus sur ce projet</a
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- Projet 7 - Arcadia Zoo -->
+          <div class="project-card" data-aos="fade-up" id="project-7">
+            <img src="images/logo-arcadia.jpeg" alt="Projet-Arcadia-Zoo" />
+            <div class="project-info">
+              <div>
+                <h3 data-i18n="projectNames.arcadiaZoo">Arcadia Zoo</h3>
+                <p data-i18n="projectDescriptions.arcadiaZoo.full">
+                  Arcadia Zoo est une application web full-stack développée avec
+                  HTML, CSS, Bootstrap, et JavaScript pour le front-end, et PHP
+                  avec son gestionnaire de dépendances Composer, MySQL, Node.js
+                  et MongoDB pour le back-end. Elle utilise également Heroku
+                  pour le déploiement en ligne.<br />Ce site web responsive a
+                  été créé dans le cadre d'une évaluation avec Studi.<br />
+                  <strong>Login Admin:</strong> admin@arcadiazoo.com <br />
+                  <strong>Login Vétérinaire:</strong> veterinaire@arcadiazoo.com
+                  <br />
+                  <strong>Login Employé:</strong> employe@arcadiazoo.com <br />
+                  <strong>Mot de passe:</strong> arcadia <br />
+                  N'hésitez pas à tester l'application et à partager vos retours
+                  !
+                </p>
+                <div class="project-tech">
+                  <span>HTML5</span>
+                  <span>CSS3</span>
+                  <span>Bootstrap</span>
+                  <span>JavaScript</span>
+                  <span>PHP</span>
+                  <span>MySQL</span>
+                  <span>MongoDB</span>
+                  <span>Heroku</span>
+                </div>
+              </div>
+              <div class="project-links">
+                <a
+                  href="/projects/arcadia-zoo.html"
+                  data-i18n="projects.viewLive"
+                  >En savoir plus sur ce projet</a
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- Projet 8 - Budget Buddy -->
+          <div class="project-card" data-aos="fade-up" id="project-8">
+            <img src="images/blue-1761175.jpg" alt="Projet-Budget-Buddy" />
+            <div class="project-info">
+              <div>
+                <h3 data-i18n="projectNames.budgetBuddy">Budget Buddy</h3>
+                <p data-i18n="projectDescriptions.budgetBuddy.full">
+                  Budget Buddy est une application de suivi des dépenses
+                  personnelles construite avec HTML, CSS, JavaScript, et le
+                  framework React.js, et publiée sur GitHub Pages.<br />
+                  Elle a été conçue dans le cadre de mon apprentissage avec
+                  Studi pour maîtriser les outils modernes de développement web.
+                </p>
+                <div class="project-tech">
+                  <span>HTML5</span>
+                  <span>CSS3</span>
+                  <span>JavaScript</span>
+                  <span>React.js</span>
+                </div>
+              </div>
+              <div class="project-links">
+                <a
+                  href="/projects/budget-buddy.html"
+                  data-i18n="projects.viewLive"
+                  >En savoir plus sur ce projet</a
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- Projet 9 - Tetris Windsurf -->
+          <div class="project-card" data-aos="fade-up" id="project-9">
+            <img
+              src="images/imagesTetrisWindsurf/Tetris-cover-page.jpg"
+              alt="Projet-Tetris-Windsurf"
+            />
+            <div class="project-info">
+              <div>
+                <h3 data-i18n="projectNames.tetrisWindsurf">Tetris Windsurf</h3>
+                <p data-i18n="projectDescriptions.tetrisWindsurf.full">
+                  Tetris Windsurf est un jeu vidéo amusant et captivant
+                  développé avec HTML, CSS, JavaScript et WebGL. Il a été conçu
+                  pour être accessible sur différents appareils, avec une
+                  interface réactive et des commandes intuitives. Ce projet a
+                  été réalisé dans le cadre de ma formation avec Studi pour
+                  maîtriser les outils modernes de développement web.
+                </p>
+                <div class="project-tech">
+                  <span>JavaScript</span>
+                  <span>HTML5 Canvas</span>
+                  <span>CSS3</span>
+                  <span>WebGL</span>
+                  <span>Responsive Design</span>
+                </div>
+              </div>
+              <div class="project-links">
+                <a
+                  href="/projects/tetris-windsurf.html"
+                  data-i18n="projects.viewLive"
+                  >En savoir plus sur ce projet</a
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer id="footer">
+      <p data-i18n="footer.copyright">
+        &copy; 2024 YellowBlueSkye. Tous droits réservés.
+      </p>
+    </footer>
+
+    <!-- Bouton flèche pour remonter en haut de page -->
+    <button
+      id="scroll-to-top"
+      class="scroll-to-top"
+      data-i18n-title="ui.backToTop"
+      title="Retour en haut"
+    >
+      <svg width="20" height="20" viewBox="0 0 24 24">
+        <path d="M7 14l5-5 5 5z" fill="currentColor"></path>
+      </svg>
+    </button>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+      AOS.init({
+        duration: 800,
+        easing: "ease-in-out",
+        once: true,
+      });
+
+      // Fonction pour gérer le bouton de retour en haut
+      document.addEventListener("DOMContentLoaded", function () {
+        var scrollToTopBtn = document.getElementById("scroll-to-top");
+
+        window.onscroll = function () {
+          if (
+            document.body.scrollTop > 300 ||
+            document.documentElement.scrollTop > 300
+          ) {
+            scrollToTopBtn.style.display = "flex";
+            scrollToTopBtn.style.opacity = "1";
+          } else {
+            scrollToTopBtn.style.opacity = "0";
+            setTimeout(() => {
+              if (
+                document.body.scrollTop <= 300 &&
+                document.documentElement.scrollTop <= 300
+              ) {
+                scrollToTopBtn.style.display = "none";
+              }
+            }, 300);
+          }
+        };
+
+        scrollToTopBtn.addEventListener("click", function () {
+          window.scrollTo({
+            top: 0,
+            behavior: "smooth",
+          });
+        });
+      });
+    </script>
+    <script src="scripts/translator.js"></script>
+    <script src="scripts/theme-switcher.js"></script>
+    <script src="scripts/parallax-effect.js"></script>
+    <script src="scripts/skills-parallax.js"></script>
+    <script src="scripts/navbar-dropdown.js"></script>
+  </body>
+</html>
