@@ -23,7 +23,7 @@
   --card-bg: rgba(255, 255, 255, 0.8);
   --accent-color: #ff66c4; /* Couleur d'accentuation change en rose */
   --secondary-bg: rgba(229, 227, 255, 0.8);
-  --border-color: #5d5dff;
+  --border-color: #ff66c4;
   --shadow-color: rgba(93, 93, 255, 0.15);
   --input-bg: rgba(0, 0, 0, 0.05);
   --skill-icon-bg: rgba(255, 255, 255, 0.8);
@@ -100,9 +100,10 @@ main {
 /* Styles de base pour les sections - Mode sombre par défaut */
 section { 
   scroll-margin-top: 100px; /* Ajuste le point d'arrivée lors du défilement */
-  margin-top: 200px; 
-  margin-bottom: 200px; /* Marges entre les sections */
-  /* border: 1px solid #5d5dff; */ /* Optionnel: vous pouvez supprimer ou commenter la bordure */
+  margin-top: 0px; 
+  margin-bottom: 100px; /* Marges entre les sections */
+  border: 1px solid var(--accent-color); /* Bordure de séparation */
+  border-radius: 5%; /* Coins arrondis */
   background-color: transparent !important; 
   /* Ombre portée violette intense */
   box-shadow: 0 0 25px 5px rgba(var(--accent-rgb), 0.6); /* Ombre basée sur la couleur d'accent */
@@ -112,7 +113,16 @@ section {
 /* Marge spécifique pour l'ancre #about pour compenser le header fixe */
 section#about, #about { 
   scroll-margin-top: 100px; 
+  margin-top: 100px; 
+  margin-bottom: 100px;
   border-radius: 15%;
+}
+
+section#projects, #projects { 
+  scroll-margin-top: 100px; 
+  margin-top: 1000px; 
+  margin-bottom: 500px;
+  border-radius: 5%;
 }
 
 #projects { /* Spécifique à la section projets */
@@ -121,7 +131,6 @@ section#about, #about {
 
 /* Styles pour les sections en mode clair */
 [data-theme="light"] section {
-  /* L'ombre utilisera automatiquement la variable --accent-rgb modifiée pour le mode clair */
   box-shadow: 0 0 25px 5px rgba(var(--accent-rgb), 0.4); /* Légèrement plus transparente pour le mode clair */
 }
 
@@ -161,12 +170,12 @@ section#about, #about {
 /* Animation de la photo de profil */
 .intro-text .profile-photo-container {
   opacity: 0;
-  transform: translateX(-100px);
-  animation: fadeInLeft 1s ease forwards 1.2s;
+  transform: translateX(-200px);
+  animation: fadeInLeft 1s ease forwards 1.5s;
   flex: 0 0 auto;
-  border-radius: 50%;
+  border-radius: 15%;
   overflow: hidden;
-  border: 1px solid var(--accent-color);
+  border: 3px solid var(--accent-color);
   box-shadow: 0 5px 15px rgba(var(--accent-rgb), 0.5);
   margin: 0;
   width: 100%;
@@ -178,8 +187,8 @@ section#about, #about {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  border-radius: 50%;
-  border: 1px solid var(--border-color);
+  border-radius: 15%;
+  border: 3px solid var(--border-color);
   box-shadow: 0 5px 100px var(--accent-color);
 }
 
@@ -219,6 +228,73 @@ section#about, #about {
   margin-bottom: 25px;
 }
 
+/* Bouton de téléchargement CV */
+.btn-download-cv {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 25px;
+  background: linear-gradient(45deg, var(--accent-color), #7b7bff);
+  border-radius: 15%;
+  text-decoration: none;
+  box-shadow: 0 5px 15px rgba(var(--accent-rgb), 0.4);
+  transition: transform 0.3s, box-shadow 0.3s;
+  border: 1px solid var(--accent-color);
+  cursor: pointer;
+  
+  /* Animation d'apparition */
+  opacity: 1;
+  transform: translateY(0);
+  margin: 40px;
+  
+  /* Effet brillant en mode sombre */
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  background-image: linear-gradient(
+    135deg, 
+    var(--secondary-bg) 0%,
+    #ffffff 30%,
+    var(--secondary-bg) 60%,
+    #ffffff 100%
+  );
+  background-size: 200% auto;
+  
+  /* Combinaison des animations */
+  animation: floatButton 3s ease-in-out infinite, 
+  pulseButton 2s infinite, 
+  textShine 3s linear infinite;
+}
+
+/* Style pour l'icône dans le bouton */
+.btn-download-cv i {
+  margin-right: 15px;
+  display: inline-block;
+  color: inherit; /* Hérite la couleur du parent */
+}
+
+/* Effet au survol */
+.btn-download-cv:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(var(--accent-rgb), 0.6);
+}
+
+/* Style spécifique pour le thème clair */
+[data-theme="light"] .btn-download-cv {
+  background: linear-gradient(45deg, #ff66c4, #ffb3ff);
+  background-clip: initial;
+  -webkit-background-clip: initial;
+  color: white;
+  animation: floatButton 3s ease-in-out infinite, 
+             pulseButtonLight 2s infinite;
+}
+
+/* Pour garantir que l'icône est visible en mode clair */
+[data-theme="light"] .btn-download-cv i {
+  color: white;
+}
+
+
 /* Bouton explorer */
 .intro-text .btn-explore {
   /* Style de base */
@@ -236,6 +312,7 @@ section#about, #about {
   transform: translateY(20px);
   margin-top: 0;
   
+  
   /* Effet brillant */
   background-clip: text;
   -webkit-background-clip: text;
@@ -249,18 +326,56 @@ section#about, #about {
   );
   background-size: 200% auto;
   
-  /* Combinaison des animations */
-  animation: fadeInUp 0.8s ease forwards 2.2s, 
-             pulseButton 2s infinite 3s, 
-             textShine 3s linear infinite 3s;
+
+/* Animation pour combiner apparition unique et effets continus */
+  animation: 
+    fadeInUp 0.8s ease forwards 2.2s,           /* Apparition unique */
+    floatButton 3s ease-in-out infinite 3s,     /* Flottement continu après apparition */
+    pulseButton 2s infinite 3s,                 /* Pulsation continue */
+    textShine 3s linear infinite 3s;            /* Brillance continue */
 }
 
+
+/* Animation d'apparition pour le bouton explorer */  
 .intro-text .btn-explore:hover {
   transform: translateY(-3px);
   box-shadow: 0 8px 20px rgba(var(--accent-rgb), 0.6);
 }
 
+/* Pour le thème clair */
+[data-theme="light"] .intro-text .btn-explore {  
+  animation: 
+    fadeInUp 0.8s ease forwards 2.2s,           /* Apparition unique */
+    floatButton 3s ease-in-out infinite 3s,     /* Flottement continu après apparition */
+    pulseButtonLight 2s infinite 3s;            /* Pulsation adaptée au thème clair */
+}
+
 /* Keyframes pour les animations */
+
+/* Animation de flottement continue */
+@keyframes floatButton {
+  0% {
+    opacity: 0.7;
+    transform: translateY(0px) translateX(0px) rotate(0deg);
+  }
+  25% {
+    opacity: 0.85;
+    transform: translateY(-15px) translateX(5px) rotate(1deg);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-20px) translateX(0px) rotate(0deg);
+  }
+  75% {
+    opacity: 0.85;
+    transform: translateY(-15px) translateX(-5px) rotate(-1deg);
+  }
+  100% {
+    opacity: 0.7;
+    transform: translateY(0px) translateX(0px) rotate(0deg);
+  }
+}
+
 @keyframes fadeInLeft {
   from {
     opacity: 0;
@@ -275,7 +390,7 @@ section#about, #about {
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(-200px);
   }
   to {
     opacity: 1;
@@ -319,8 +434,8 @@ section#about, #about {
 /* Style du bouton explorer en thème clair */
 [data-theme="light"] .intro-text .btn-explore {
   /* Fond et style de base */
-  background: linear-gradient(45deg, #ff66c4, #ffb3ff); /* Nouveau dégradé rose plus vif */
-  color: white; /* Couleur du texte visible (pas transparent) */
+  background: linear-gradient(45deg, #ff66c4, #ffb3ff); /* Dégradé clair */
+  color: white; /* Couleur du texte visible */
   box-shadow: 0 5px 15px rgba(var(--accent-rgb), 0.3);
   border: none;
 }
@@ -1070,8 +1185,8 @@ h3.title-banner::after { width: 60px; height: 3px; } /* Soulignement plus petit 
 /* Carrousel */
 .carousel-container { position: relative; max-width: 100%; margin: 0 auto; overflow: hidden; }
 .carousel-track { display: flex; transition: transform 0.5s ease-in-out;  will-change: transform;}
-.carousel-item { min-width: 50%; min-height: 50%; padding: 20px; box-sizing: border-box; margin: 0 auto; flex: 0 0 auto;}
-.carousel-controls { display: flex; justify-content: center; gap: 15px; margin: 20px 0; }
+.carousel-item { min-width: 50%; min-height: 50%; padding: 50px; box-sizing: border-box; margin: 0 auto; flex: 0 0 auto;}
+.carousel-controls { display: flex; justify-content: center; gap: 15px; margin: 0px 0px 50px 0px; }
 .carousel-btn { background-color: #3498db; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background-color 0.3s; font-size: 16px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
 .carousel-btn:hover { background-color: #2980b9; transform: scale(1.05); }
 .carousel-btn:focus { outline: none; box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.3); }
@@ -1185,7 +1300,9 @@ h3.title-banner::after { width: 60px; height: 3px; } /* Soulignement plus petit 
   /* Définissez une largeur si ce n'est pas déjà fait, pour référence */
   width: 66px; /* Exemple, ajustez à la taille actuelle ou souhaitée */
   height: 66px; /* Exemple, ajustez à la taille actuelle ou souhaitée */
-  border-radius: 25%; /* Arrondi pour correspondre aux autres icônes */
+  border-radius: 15%; /* Arrondi pour correspondre aux autres icônes */
+  border: 1px solid var(--accent-color); /* Bordure pour correspondre aux autres icônes */
+  margin: 50px; /* Espacement autour de l'icône */
 }
 
 /* Effet d'agrandissement au survol */
@@ -1257,7 +1374,7 @@ footer { background-color: #1f2032; color: var(--accent-color); padding: 20px; m
     }
   }
 
-  .project-detail { max-width: 625px; margin: 50px auto 0 auto; /* Centrage automatique avec auto */ padding: 50px 30px 0px 30px; /* Padding horizontal réduit pour les petits écrans */}
+  .project-detail { max-width: 625px; margin: 50px auto 100px auto; /* Centrage automatique avec auto */ padding: 50px 30px 0px 30px; /* Padding horizontal réduit pour les petits écrans */}
   .skills-grid { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 12px; } /* Grille compétences plus dense */
   .gallery-item:hover {
     transform: translateY(-5px); /* Supprime le scale(2.2) et garde/réduit le translateY */
@@ -1271,12 +1388,32 @@ footer { background-color: #1f2032; color: var(--accent-color); padding: 20px; m
   /* Mobiles */
   body { padding-top: 60px; } /* Ajuster le padding du body pour le header compact */
 
+  section#projects, #projects { padding: 0 15px; } /* Ajuster le padding des sections pour mobile */
+
   /* Ajuster le Header Compact pour Mobile */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(-50px); /* Distance réduite pour mobile */
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  [data-aos], .intro-text .profile-photo-container, .intro-text h2, .intro-text p, .intro-text .btn-explore {
+    will-change: opacity, transform; /* Optimisation des performances */
+  }
+
+
   header { height: 60px; padding: 0 15px; } /* Header compact */
   header h1 { font-size: 1rem; margin: 0 10px; } /* Titre plus petit */
   .header-logo {width: 50px;} 
   .hamburger { font-size: 1rem; } /* Taille de l'icône */
   #logo-video { height: 28px; } /* Logo plus petit */
+  .menu-controls { width: 100px; gap: 15px; margin-left: 0px; } /* Contrôles header */
+
 
   /* Ajuster le Header Compact pour Mobile */
   .compact-header { padding: 0 15px; } /* Header compact */
@@ -1288,7 +1425,17 @@ footer { background-color: #1f2032; color: var(--accent-color); padding: 20px; m
   .theme-toggle button { width: 35px; height: 35px; } /* Bouton thème plus petit */
   .theme-toggle button svg { width: 18px; height: 18px; }
 
-  /* Ajuster le menu déroulant pour mobile */
+  /* Ajustements dropdown pour mobile */
+  .dropdown-menu {
+      top: 40px; /* Positionné sous le header compact */
+      height: calc(95vh - 0px); /* Hauteur restante */
+      padding: 40px; /* Padding réduit */
+    }  
+  
+  .dropdown-nav a { 
+    font-size: 1rem; 
+  }
+
   .dropdown-menu .social-media {
     margin-top: 15px;
     padding-top: 15px;
@@ -1305,12 +1452,45 @@ footer { background-color: #1f2032; color: var(--accent-color); padding: 20px; m
     height: 30px;
   }
   
+  /* Ajuster le Titre de la page pour mobile */
+  .intro-text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 1200px;
+    margin: 50px auto;
+  }
+
+  .intro-text .content-wrapper {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 100px;
+    width: 100%;
+    margin: 0;
+    padding: 35px 50px;
+  }
+
+  .intro-text h2:nth-of-type(1) {
+    animation-duration: 0.6s; /* Animation plus rapide sur mobile */
+  }
+  
+  .intro-text p:nth-of-type(2) {
+    animation-duration: 0.6s;
+  }
+  
+  .intro-text .btn-explore {
+    animation-delay: 1.5s; /* Délai réduit sur mobile */
+  }
+
 
   /* Ajuste le titre bannière pour mobile */
   .title-banner {
     font-size: 0.9rem; /* Réduire la taille de la police (ajustez si besoin) */
     padding: 15px; /* Réduire le padding */
   }
+
   .title-banner::after {
     width: 60px; /* Réduire la largeur du trait */
     height: 3px; /* Réduire l'épaisseur du trait */
@@ -1333,7 +1513,7 @@ footer { background-color: #1f2032; color: var(--accent-color); padding: 20px; m
   .project-preview .btn-view-project { padding: 8px 18px; /* Réduits le padding vertical et horizontal */font-size: 0.9rem; /* Réduits la taille de la police */min-width: auto; /* Permet au bouton de prendre une largeur plus naturelle si nécessaire */}
   .project-preview-overlay h3 { color: white; font-size: 1rem; } /* Titre overlay plus petit */
   .project-hero { height: 250px; } /* Image détail projet moins haute */
-  .project-navigation { flex-wrap: nowrap; display: flex; justify-content: space-between; gap: 15px; align-items: center; } /* Navigation projet en colonne */
+  .project-navigation { flex-wrap: nowrap; display: flex; justify-content: space-between; gap: 15px; align-items: center; margin: 30px 0 75px;} /* Navigation projet en colonne */
   .project-detail .project-links { flex-direction: column; } /* Liens détail projet en colonne */
   .gallery-grid { grid-template-columns: 1fr; } /* Galerie 1 colonne */
   .skills-categories { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 30px; padding: 10px; } /* Catégories compétences en colonne */
@@ -1343,15 +1523,6 @@ footer { background-color: #1f2032; color: var(--accent-color); padding: 20px; m
   .skill img { width: 25px; height: 25px; }
   .skill p { font-size: 12px; }
 
-  /* Ajustements dropdown pour mobile */
-  .dropdown-menu {
-    top: 40px; /* Positionné sous le header compact */
-    height: calc(95vh - 0px); /* Hauteur restante */
-    padding: 40px; /* Padding réduit */
-  }
-  .dropdown-nav a { font-size: 1rem; } /* Liens plus petits */
-
-  .menu-controls { width: 100px; gap: 15px; margin-left: 0px; } /* Contrôles dropdown */
 
   .gallery-item:hover {
     transform: translateY(-5px); /* Supprime le scale(2.2) et garde/réduit le translateY */
@@ -1360,7 +1531,7 @@ footer { background-color: #1f2032; color: var(--accent-color); padding: 20px; m
   }
 
   .scroll-to-top {
-    bottom: 170px;
+    bottom: 50px;
   }
 
   footer {

@@ -28,7 +28,8 @@
     "journey": "Depuis ce jour, je suis devenu un digital learner assidu et enjoué !",
     "education": "Je présente ici mes premiers projets réalisés lors de mes formations chez",
     "and": " et ",
-    "future": "J'espère en apprendre davantage et continuer à me perfectionner dans ce domaine qui me passionne tant désormais."
+    "future": "J'espère en apprendre davantage et continuer à me perfectionner dans ce domaine qui me passionne tant désormais.",
+    "downloadCV": "Télécharger mon CV"
     },
 
   "projects": {
@@ -61,7 +62,7 @@
     "error": "Une erreur est survenue. Veuillez réessayer.",
     "pageTitle": "Contact - Portfolio YellowBlueSkye",
     "title": "YELLOWBLUESKYE CONTACT",
-    "locationTitle": "MA LOCALISATION 🪐",
+    "locationTitle": "CONTACT 🪐",
     "formTitle": "LAISSEZ VOTRE MESSAGE ICI",
     "sendButton": "Envoyer le message",
     "alternateContact": "Vous pouvez également m'envoyer un email à",

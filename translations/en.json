@@ -28,7 +28,8 @@
     "journey": "Since that day, I've become an enthusiastic and dedicated digital learner!",
     "education": "I present here my first projects completed during my training with",
     "and": " and ",
-    "future": "I hope to learn more and continue to improve in this field that I'm now so passionate about."
+    "future": "I hope to learn more and continue to improve in this field that I'm now so passionate about.",
+    "downloadCV": "Download my CV"
   },
   
   "projects": {
@@ -62,7 +63,7 @@
     "pageTitle": "Contact - YellowBlueSkye Portfolio",
     "headerTitle": "YELLOWBLUESKYE CONTACT",
     "title": "CONTACT ME",
-    "locationTitle": "MY LOCATION 🪐",
+    "locationTitle": "CONTACT 🪐",
     "formTitle": "LEAVE YOUR MESSAGE HERE",
     "enterName": "Enter your name...",
     "enterEmail": "Enter your email...",
