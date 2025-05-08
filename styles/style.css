@@ -96,8 +96,6 @@ section {
   margin-top: 100px; 
   margin-bottom: 100px; /* Marges entre les sections */
   background-color: transparent !important; 
-  /* Ombre portée violette intense */
-  box-shadow: 0 0 25px 5px rgba(var(--accent-rgb), 0.6); /* Ombre basée sur la couleur d'accent */
   padding: 0px; /* Padding pour l'espace interne */
 } 
 
@@ -114,14 +112,6 @@ section#projects, #projects {
 }
 
 
-/* Styles pour les sections en mode clair */
-[data-theme="light"] section {
-  /* L'ombre utilisera automatiquement la variable --accent-rgb modifiée pour le mode clair */  
-box-shadow: 0 0 25px 5px rgba(var(--accent-rgb), 0.6); /* Légèrement plus transparente pour le mode clair */
-border: 1px solid VA; /* Optionnel: vous pouvez supprimer ou commenter la bordure */
-}
-
-
 /* =========================
    ANIMATIONS ET TRANSITIONS
    ========================= */
@@ -132,7 +122,7 @@ border: 1px solid VA; /* Optionnel: vous pouvez supprimer ou commenter la bordur
   flex-direction: column;
   align-items: center;
   max-width: 1200px;
-  margin: 100px auto;
+  margin: 75px auto;
 }
 
 /* Titre principal */
@@ -150,8 +140,8 @@ border: 1px solid VA; /* Optionnel: vous pouvez supprimer ou commenter la bordur
   justify-content: center;
   gap: 100px;
   width: 100%;
-  margin: 0;
-  padding: 50px 100px;
+  margin: 20px 0px 20px 0px;
+  padding: 50px 10px 50px 10px;
 }
 
 /* Animation de la photo de profil */
@@ -893,7 +883,7 @@ header.nav-scrolled, .compact-header.nav-scrolled { background-color: rgba(35, 3
 .dropdown-nav a {
   color: var(--accent-color); 
   text-decoration: none; 
-  font-size: 1.2rem; 
+  font-size: 1rem; 
   font-weight: bolder;
   padding: 5px 10px; 
   transition: color 0.3s, transform 0.2s; 
@@ -976,7 +966,7 @@ h3.title-banner::after { width: 60px; height: 3px; } /* Soulignement plus petit 
    SECTION "À PROPOS"
    ========================= */
 .about-text-box {
-  background: rgba(35, 36, 54, 0.7); padding: 50px 60px; border-radius: 15%x; /* Boîte de texte */
+  padding: 50px 60px; border-radius: 15%x; /* Boîte de texte */
   box-shadow: 0 8px 30px var(--shadow-color) !important; margin: 0px auto; max-width: 900px; /* Ombre, marges, largeur max */
 }
 .about-text-box p { color: var(--accent-color); line-height: 1.7; font-size: 16px; margin-bottom: 0px; } /* Style des paragraphes */
@@ -1061,7 +1051,7 @@ h3.title-banner::after { width: 60px; height: 3px; } /* Soulignement plus petit 
 .project-tech { display: flex; justify-content: center;  flex-wrap: wrap; gap: 8px; margin-bottom: 20px; } /* Technologies (tags) */
 .project-tech span { background: var(--secondary-bg); color: var(--accent-color); padding: 5px 10px; border-radius: 15%; font-size: 0.8rem; font-weight: 600; border: 1px solid rgba(93, 93, 255, 0.3); } /* Style des tags */
 .project-links { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin-top: auto; } /* Conteneur des liens (en bas) */
-.project-links a { padding: 10px 20px; border-radius: 15%; text-decoration: none; font-weight: 600; font-size: 0.9rem; min-width: 120px; } /* Style des liens dans la carte */
+.project-links a { color: var(--accent-color); padding: 10px 20px; border-radius: 15%; text-decoration: none; font-weight: 600; font-size: 0.9rem; min-width: 120px; } /* Style des liens dans la carte */
 
 /* Grille d'aperçu des projets (page d'accueil) */
 .project-preview-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 30px; max-width: 1200px; margin: 40px auto; padding: 20px; } /* Grille 2 colonnes */
@@ -1508,7 +1498,7 @@ h3.title-banner::after { width: 60px; height: 3px; } /* Soulignement plus petit 
     height: calc(95vh - 0px); /* Hauteur restante */
     padding: 40px; /* Padding réduit */
   }
-  .dropdown-nav a { font-size: 1rem; } /* Liens plus petits */
+  .dropdown-nav a { font-size: 0.8rem; } /* Liens plus petits */
 
   .menu-controls { width: 100px; gap: 15px; margin-left: 0px; } /* Contrôles dropdown */
 
@@ -1521,10 +1511,52 @@ h3.title-banner::after { width: 60px; height: 3px; } /* Soulignement plus petit 
   .scroll-to-top {
     bottom: 170px;
   }
+    
+  #footer {
+      flex-direction: column-reverse; /* Inverse l'ordre : icônes en haut, texte en bas */
+      padding: 15px 20px;
+      gap: 15px;
+      text-align: center;
+    }
+    
+    #footer p {
+      flex-grow: 0;
+      width: 100%;
+      font-size: 0.8rem;
+      margin-top: 10px;
+    }
+    
+    /* Container pour les icônes sociales */
+    #footer .github,
+    #footer div:not(.github) {
+      margin: 0 10px;
+    }
+    
+    /* Groupe les icônes sociales au centre */
+    #footer div:first-of-type {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+      gap: 10px;
+    }
+    
+    #footer img {
+      width: 28px; /* Légèrement plus petit sur mobile */
+      height: 28px;
+    }
 
-  footer {
-    font-size: 0.8rem; /* Réduire la taille de la police (ajustez si besoin) */
-    padding: 15px; /* Optionnel: réduire le padding */
-  }
+    /* Version avec unités relatives */
+.slide-from-left {
+  transform: translateX(-15vw);
 }
+
+.slide-from-right {
+  transform: translateX(15vw);
+}
+
+.slide-from-bottom {
+  transform: translateY(15vh);
+}
+  }
+
 
