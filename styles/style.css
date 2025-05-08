@@ -1471,6 +1471,23 @@ h3.title-banner::after { width: 60px; height: 3px; } /* Soulignement plus petit 
     height: 2px;
   }
 
+   /* Taille de la photo de profil sur mobile */
+   .intro-text .content-wrapper {
+    flex-direction: column;
+    gap: 30px;
+    padding: 20px 10px;
+  }
+  
+  .intro-text .profile-photo-container {
+    max-width: 200px; /* Largeur maximale réduite */
+    max-height: 200px; /* Hauteur maximale réduite */
+    margin: 0 auto; /* Centrage horizontal */
+  }
+  
+  .intro-text .profile-photo {
+    box-shadow: 0 5px 50px var(--accent-color); /* Ombre légèrement réduite */
+  }
+
 
   /* Ajustements généraux du contenu pour mobile */
   .about-text-box { margin: 0px; padding: 10px; }
@@ -1544,18 +1561,28 @@ h3.title-banner::after { width: 60px; height: 3px; } /* Soulignement plus petit 
       width: 28px; /* Légèrement plus petit sur mobile */
       height: 28px;
     }
-
-    /* Version avec unités relatives */
-.slide-from-left {
-  transform: translateX(-15vw);
-}
-
-.slide-from-right {
-  transform: translateX(15vw);
-}
-
-.slide-from-bottom {
-  transform: translateY(15vh);
+  
+  /* Animations ajustées pour mobile */
+  .slide-from-left {
+    transform: translateX(-100%); /* Utiliser un pourcentage de la largeur de l'élément plutôt que vw */
+    will-change: transform, opacity; /* Optimisation pour les appareils mobiles */
+  }
+  
+  .slide-from-right {
+    transform: translateX(100%); /* Utiliser un pourcentage de la largeur de l'élément */
+    will-change: transform, opacity;
+  }
+  
+  .slide-from-bottom {
+    transform: translateY(50px); /* Valeur fixe plus appropriée pour mobile */
+    will-change: transform, opacity;
+  }
+  
+  /* Ajuster la durée de transition pour mobile */
+  .slide-hidden {
+    opacity: 0;
+    transition: opacity 0.8s ease, transform 0.8s ease; /* Légèrement plus rapide sur mobile */
+  }
 }
   }
 
