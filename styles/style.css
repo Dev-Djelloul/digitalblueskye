@@ -144,7 +144,7 @@ section#projects, #projects {
   padding: 50px 10px 50px 10px;
 }
 
-/* Animation de la photo de profil */
+/* Style de la photo de profil */
 .intro-text .profile-photo-container {
   opacity: 0;
   transform: translateX(-100px);
@@ -174,7 +174,7 @@ section#projects, #projects {
   box-shadow: 0 5px 100px var(--accent-color);
 }
 
-/* Animation de la photo de profil au survol pour le thème clair */
+/* Ombre de la photo de profil au survol pour le thème clair */
 [data-theme="light"] .intro-text .profile-photo-container {
   box-shadow: 0 5px 15px var(--accent-color);
 }
@@ -202,18 +202,20 @@ section#projects, #projects {
 }
 
 /* Animations pour le titre et le paragraphe de texte */
-.intro-text h2:nth-of-type(1) {
+.intro-text .animated-title {
   opacity: 0;
-  transform: translateY(20px);
-  animation: fadeInUp 0.8s ease forwards 1.4s;
+  /* transform: translateY(20px); */
+  animation: slideInRight 0.8s ease forwards 1.5s;
   margin-bottom: 40px;
+  font-size: 2.5rem;
 }
 
-.intro-text p:nth-of-type(2) {
+.intro-text .animated-paragraph {
   opacity: 0;
-  transform: translateY(20px);
-  animation: fadeInUp 0.8s ease forwards 1.8s;
+  /* transform: translateY(20px); */
+  animation: SlideInLeft 0.8s ease forwards 2.5s;
   margin-bottom: 25px;
+  font-size: 1.1rem;
 }
 
 /* Bouton de téléchargement CV */
@@ -318,10 +320,10 @@ background-size: 200% auto;
   background-size: 200% auto;
   
   /* Combinaison des animations */
-  animation: fadeInUp 0.8s ease forwards 2.2s, 
+  animation: fadeInUp 0.8s ease forwards 3.5s, 
              pulseButtonLight 2s infinite 3s, 
              textShine 3s linear infinite 3s, /* textShine commence à 3s */
-             floatButton 3s ease-in-out infinite 4s; /* floatButton commence après 4s */      
+             floatButton 3s ease-in-out infinite 5.5s; /* floatButton commence après 4s */      
 }
 
 .intro-text .btn-explore:hover {
@@ -330,10 +332,7 @@ background-size: 200% auto;
 }
 
 
-
 /* Keyframes pour les animations */
-
-
 /* Animation de flottement intensifiée */
 @keyframes floatButton {
   0% {
@@ -372,7 +371,7 @@ background-size: 200% auto;
 @keyframes fadeInLeft {
   from {
     opacity: 0;
-    transform: translateX(-900px);
+    transform: translateX(-500px);
   }
   to {
     opacity: 1;
@@ -383,7 +382,7 @@ background-size: 200% auto;
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(-400px);
+    transform: translateY(-500px);
   }
   to {
     opacity: 1;
@@ -397,6 +396,30 @@ background-size: 200% auto;
   }
   100% {
     background-position: 200% center;
+  }
+}
+
+/* Animation d'arrivée depuis la gauche pour le texte */
+@keyframes SlideInLeft { 
+  from {
+    opacity: 0;
+    transform: translateX(-500px); /* Ou une autre valeur pour un effet différent */
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Animation d'arrivée depuis la droite pour le texte */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(500px); /* Ou une autre valeur comme 50vw ou 300px */
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
 }
 
@@ -458,10 +481,10 @@ background-size: 200% auto;
 
 /* Animation du bouton explore au thème clair */
 [data-theme="light"] .intro-text .btn-explore {
-  animation: fadeInUp 0.8s ease forwards 2.2s, 
+  animation: fadeInUp 0.8s ease forwards 3.5s, 
              pulseButtonLight 2s infinite 3s, 
              textShine 3s linear infinite 3s, /* textShine commence à 3s */
-             floatButton 3s ease-in-out infinite 4s; /* floatButton commence après 4s */
+             floatButton 3s ease-in-out infinite 5.5s; /* floatButton commence après 4s */
 }
 
 /* Keyframe spécifique pour le thème clair */
@@ -569,11 +592,11 @@ background-size: 200% auto;
   }
   
   #loader-video {
-    width: 250px;
-    height: 250px;
+    width: 125px;
+    height: 125px;
     border-radius: 50%;
-    object-fit: cover;
-    border: 1px solid var(--border-color);
+    object-fit: contain;
+    border: 2px solid var(--border-color);
     box-shadow: 0 5px 100px #5d5dff;
   }
   
@@ -1034,7 +1057,7 @@ h3.title-banner::after { width: 60px; height: 3px; } /* Soulignement plus petit 
 /* Styles spécifiques à certains boutons */
 .btn-back-home { display: inline-flex; align-items: center; gap: 10px; padding: 5px 20px; } /* Bouton retour accueil (avec icône potentielle) */
 .view-all-projects .btn { padding: 15px 30px; font-size: 1.1rem; } /* Bouton "Voir tous les projets" (plus grand) */
-.contact-form button { padding: 15px 30px; margin-top: 15px; font-size: 16px; align-self: center; min-width: 200px; position: relative; overflow: hidden; } /* Bouton envoyer formulaire */
+.contact-form button { padding: 15px 30px; margin-top: 15px; font-size: 1.3rem; align-self: center; min-width: 200px; position: relative; overflow: hidden; } /* Bouton envoyer formulaire */
 .contact-form button::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent); transition: left 0.5s ease; } /* Effet "shine" au survol */
 .contact-form button:hover::before { left: 100%; }
 
@@ -1113,7 +1136,7 @@ h3.title-banner::after { width: 60px; height: 3px; } /* Soulignement plus petit 
 .project-hero::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 5px; background: linear-gradient(90deg, var(--accent-color), #6b8cff); } /* Ligne colorée sous l'image */
 .project-content { background: var(--card-bg); border-radius: 15%; padding: 30px; box-shadow: 0 8px 30px var(--shadow-color); margin-bottom: 40px; border-left: 5px solid var(--accent-color); } /* Bloc de contenu texte */
 .project-content p { color: var(--accent-color); line-height: 1.7; text-align: left; margin-bottom: 25px; } /* Paragraphes */
-.project-content h4 { color: var(--accent-color); border-bottom: 2px solid rgba(93, 93, 255, 0.2); padding-bottom: 5px; margin-top: 20px; } /* Sous-titres */
+.project-content h4 { color: var(--accent-color);font-size: 1rem; border-bottom: 2px solid rgba(93, 93, 255, 0.2); padding-bottom: 5px; margin-top: 20px; } /* Sous-titres */
 .project-detail .project-tech { justify-content: center; margin: 20px 0; } /* Technologies centrées */
 .project-detail .project-links { justify-content: center; margin: 25px 0; } /* Liens centrés */
 .project-detail .project-links a { padding: 12px 25px; font-size: 0.8rem; min-width: 150px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); } /* Style des liens */
@@ -1189,7 +1212,7 @@ h3.title-banner::after { width: 60px; height: 3px; } /* Soulignement plus petit 
 
 /* Carrousel */
 .carousel-container { position: relative; max-width: 100%; margin: 0 auto; overflow: hidden; }
-.carousel-track { display: flex; transition: transform 0.5s ease-in-out;  will-change: transform;}
+.carousel-track { display: flex; transition: transform 0.7s ease;  will-change: transform;}
 .carousel-item { min-width: 50%; min-height: 50%; padding: 20px; box-sizing: border-box; margin: 0 auto; flex: 0 0 auto;}
 .carousel-item .project-preview {height: 280px;}
 .carousel-item .project-preview img {height: 100%; object-fit: contain;}
@@ -1288,7 +1311,7 @@ h3.title-banner::after { width: 60px; height: 3px; } /* Soulignement plus petit 
 .contact-form:hover { transform: translateY(-5px); box-shadow: 0 15px 40px rgba(93, 93, 255, 0.3); } /* Effet survol */
 .contact-form form { display: flex; flex-direction: column; gap: 20px; } /* Structure interne formulaire */
 .form-group { display: flex; flex-direction: column; text-align: left; } /* Groupe label + input */
-.contact-form label { font-size: 16px; font-weight: 600; margin-bottom: 10px; color: var(--accent-color); transition: all 0.3s ease; display: flex; align-items: center; gap: 8px; } /* Style des labels */
+.contact-form label { font-size: 1.3rem; font-weight: 600; margin-bottom: 10px; color: var(--accent-color); transition: all 0.3s ease; display: flex; align-items: center; gap: 8px; } /* Style des labels */
 .contact-form label svg { width: 18px; height: 18px; fill: var(--accent-color); } /* Icône dans le label */
 .contact-form input, .contact-form textarea { /* Champs de saisie */
   padding: 15px; border: 2px solid var(--secondary-bg); background: var(--input-bg); border-radius: 10px; color: var(--text-color); /* Padding, bordure, fond, forme, couleur texte */
@@ -1304,7 +1327,7 @@ h3.title-banner::after { width: 60px; height: 3px; } /* Soulignement plus petit 
 /* Section email */
 .contact-email {
   background: var(--card-bg); padding: 50px; border-radius: 16px; max-width: 600px; margin: 50px auto !important; /* Style conteneur */
-  box-shadow: 0 10px 25px var(--shadow-color); border-left: 5px solid var(--accent-color); font-size: 18px; color: var(--accent-color); transition: all 0.3s ease; /* Ombre, bordure gauche, texte, transition */
+  box-shadow: 0 10px 25px var(--shadow-color); border-left: 5px solid var(--accent-color); font-size: 1.3rem; color: var(--accent-color); transition: all 0.3s ease; /* Ombre, bordure gauche, texte, transition */
 }
 .contact-email:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(93, 93, 255, 0.2); } /* Effet survol */
 .contact-email a { color: #C822FF; text-decoration: none; font-weight: bold; border-bottom: 2px dotted #C822FF; padding-bottom: 2px; transition: all 0.3s ease; } /* Lien email */
@@ -1474,12 +1497,12 @@ h3.title-banner::after { width: 60px; height: 3px; } /* Soulignement plus petit 
 section#contact, #contact {
   scroll-margin-top: 100px;
   margin-top: 50px;
-  padding: 40px;
+  padding: 50px;
 }
 
    #loader-video {
-    width: 150px;
-    height: 150px;
+    width: 100px;
+    height: 100px;
    }
 
   /* Ajuster le Header Compact pour Mobile */
@@ -1519,9 +1542,14 @@ section#contact, #contact {
 
   /* Ajuste le titre bannière pour mobile */
   .title-banner {
-    font-size: 1.2rem; /* Réduire la taille de la police (ajustez si besoin) */
+    font-size: 1rem; /* Réduire la taille de la police (ajustez si besoin) */
     padding: 15px; /* Réduire le padding */
   }
+  .title-banner h3 {
+    font-size: 1rem; /* Réduire la taille de la police */
+    margin-bottom: 10px; /* Réduire la marge inférieure */
+  }
+
   .title-banner::after {
     width: 60px; /* Réduire la largeur du trait */
     height: 3px; /* Réduire l'épaisseur du trait */
@@ -1533,20 +1561,21 @@ section#contact, #contact {
     height: 2px;
   }
 
-  .intro-text .text-content h2 {
-    font-size: 1rem; /* Réduire la taille de la police */
+   .intro-text .animated-title {
+    font-size: 2rem; /* Réduire la taille de la police */
   }
 
-  .intro-text .text-content p {
-    font-size: 0.7rem;
-    margin-bottom: 10px; /* Réduire l'espace entre le titre et le texte */
+  .intro-text .animated-paragraph {
+    font-size: 1rem;   /* Réduire la taille de la police */
+    margin-bottom: 10px; 
   }
+  
 
    /* Taille de la photo de profil sur mobile */
    .intro-text .content-wrapper {
     flex-direction: column;
     gap: 30px;
-    padding: 15px 75px;
+    padding: 15px 55px;
   }
   
   .intro-text .profile-photo-container {
@@ -1561,7 +1590,7 @@ section#contact, #contact {
 
    .intro-text .btn-explore {
     padding: 9px 18px; /* Réduire le padding vertical et horizontal */
-    font-size: 0.6rem; /* Réduire la taille de la police */
+    font-size: 0.8rem; /* Réduire la taille de la police */
     min-width: auto; /* Permettre au bouton de prendre une largeur plus naturelle */
   }
 
@@ -1622,10 +1651,13 @@ section#contact, #contact {
 
   /* Ajustements généraux du contenu pour mobile */
   .about-text-box { margin: 20px; padding: 40px; }
-  .about-text-box p { color: #C822FF; font-size: 0.8rem; margin-bottom: 0px;}
+  .about-text-box p { color: #C822FF; font-size: 0.8rem; margin-bottom: 0px; text-align: left;}
+  .project-info p {font-size: 0.8rem; text-align: left; } /* Texte projet plus petit */
   .project-content p { font-size: 0.8rem; text-align: left; } /* Texte projet plus petit */
   .project-detail .project-links a { font-size: 0.6rem; } /* Liens projet plus petits */
   .projects-grid { grid-template-columns: 1fr; padding: 40px; } /* Grille projets 1 colonne */
+  .project-links a { font-size: 0.6rem; } /* Liens projet plus petits */
+  .project-tech span {font-size: 0.6rem;} /* Taille police tech projet plus petite */
   .project-card img { height: 180px; } /* Image carte projet plus haute */
   .project-preview-grid { grid-template-columns: 1fr; gap: 20px; padding: 0 10px; } /* Grille aperçu 1 colonne */
   .project-preview { height: 250px; } /* Aperçu moins haut */
@@ -1641,6 +1673,10 @@ section#contact, #contact {
   .skill-icon { width: 45px; height: 45px; padding: 8px; }
   .skill img { width: 25px; height: 25px; }
   .skill p { font-size: 12px; }
+  .contact-form label {font-size: 0.8rem; } /* Taille police label plus petite */
+  .contact-form button {font-size: 0.6rem; padding: 8px 16px;} /* Bouton formulaire plus petit */
+  .contact-email {font-size: 0.9rem;} /* Taille police email plus petite */
+  .contact-email a { font-size: 0.6rem; } /* Lien email plus petit */
 
   /* Ajustements dropdown pour mobile */
   .dropdown-menu {
@@ -1648,7 +1684,14 @@ section#contact, #contact {
     height: calc(95vh - 0px); /* Hauteur restante */
     padding: 40px; /* Padding réduit */
   }
-  .dropdown-nav a { font-size: 0.8rem; } /* Liens plus petits */
+
+
+.dropdown-nav ul {
+  margin-bottom: 40px;
+  margin-top: 40px;
+}
+
+  .dropdown-nav a { font-size: 0.9rem; } /* Liens plus petits */
 
   .menu-controls { width: 100px; gap: 15px; margin-left: 0px; } /* Contrôles dropdown */
 

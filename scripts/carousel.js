@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let isPlaying = true;
   let interval = null;
   let isTransitioning = false;
-  const slideInterval = 1000; // 1.9 secondes entre chaque diapositive
+  const slideInterval = 1111; // Secondes entre chaque diapositive
   
   // Cloner les premiers et derniers slides pour le défilement infini
   function setupInfiniteCarousel() {
