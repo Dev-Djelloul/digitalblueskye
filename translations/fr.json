@@ -19,8 +19,7 @@
   },
 
   "about": {
-    "title": "Bienvenue sur mon portfolio",
-    "subtitle": "CHEF DE PROJET DIGITAL & DESIGNER WEB",
+    "title": "CHEF DE PROJET DIGITAL & DESIGNER WEB",
     "invitation": " Explorez mon portfolio pour découvrir mes projets et n'hésitez pas à me contacter afin de travailler ensemble",
     "explore": "Explorez mes projets en images",
     "intro": "Hey ! Je m'appelle Djelloul, je suis un parisien passionné par l'art, les civilisations anciennes, les voyages autour du globe 🌎 et les longues randonnées à vélo 🚲",
@@ -30,7 +29,7 @@
     "and": " et ",
     "future": "J'espère en apprendre davantage et continuer à me perfectionner dans ce domaine qui me passionne tant désormais.",
     "downloadCV": "Télécharger mon CV"
-    },
+  },
 
   "projects": {
     "title": "Explorez mes projets en images",
@@ -132,7 +131,7 @@
     "details": "DÉTAILS DU PROJET",
     "objective": "Objectif",
     "backToHome": "Accueil",
-    "backToProjectsList": "Tous les projets", 
+    "backToProjectsList": "Tous les projets",
     "viewLive": "Visiter le site",
     "viewCode": "Code source",
     "previous": "Projet précédent",
