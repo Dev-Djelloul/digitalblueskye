@@ -7,17 +7,15 @@
       name="description"
       content="Portfolio de Digitalblueskye, intégrateur web et designer web créatif et passionné. Spécialisé en HTML, CSS, JavaScript et responsive design. Découvrez mes projets."
     />
-    <title data-i18n="meta.title">
-      Projects | Digitalblueskye - Portfolio
-    </title>
+    <title data-i18n="meta.title">My projects | Digitalblueskye Blog</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Audiowide&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Grape+Nuts&display=swap"
       rel="stylesheet"
     />
     <link rel="preconnect" href="https://player.canva.com" />
-    <link rel="stylesheet" href="styles/style.css" />
+    <link rel="stylesheet" href="/styles/style.css" />
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
     <link
       rel="stylesheet"
@@ -116,269 +114,45 @@
     <!-- Menu dropdown qui apparaît sous le header -->
     <div class="dropdown-menu" id="dropdown-menu">
       <!-- Navigation -->
-      <nav class="dropdown-nav">
+    <nav class="dropdown-nav">
         <ul>
           <li>
             <a href="/index.html" data-i18n="nav.home"><h2>ACCUEIL</h2></a>
           </li>
           <li>
-            <a href="/about.html" data-i18n="nav.about"
+            <a href="/main/about.html" data-i18n="nav.about"
               ><h2>À PROPOS DE MOI</h2></a
             >
           </li>
           <li>
-            <a href="/projects.html" data-i18n="nav.projects"
-              ><h2>MES PROJETS ET COMPÉTENCES</h2></a
+            <a href="/main/explore.html" data-i18n="nav.explore"><h2>EXPLOREZ</h2></a>
+          </li>
+          <li>
+            <a href="/main/projects.html" data-i18n="nav.projects"
+              ><h2>MES PROJETS</h2></a
             >
           </li>
           <li>
-            <a href="/contact.html" data-i18n="nav.contact"
+            <a href="/main/skills.html" data-i18n="nav.skills"
+              ><h2>MES COMPÉTENCES</h2></a
+            >
+          </li>
+          <li>
+            <a href="/main/contact.html" data-i18n="nav.contact"
               ><h2>CONTACTEZ MOI</h2></a
             >
           </li>
         </ul>
       </nav>
-       <!-- Menu de navigation social média -->
-       <div class="social-media" data-aos="fade-up">
-     </div>
+      <!-- Menu de navigation social média -->
+      <div class="social-media" data-aos="fade-up"></div>
     </div>
 
     <!-- Overlay pour fermer le menu -->
     <div class="menu-overlay" id="menu-overlay"></div>
     <!-- Fin du menu dropdown -->
 
-
-
     <main>
-      <!-- Section Compétences -->
-      <section id="skills" class="skills-section">
-        <h2 class="title-banner" data-i18n="skills.title" data-aos="fade-up">
-          Mes compétences techniques
-        </h2>
-
-        <div class="skills-categories">
-          <!-- Frontend -->
-          <div class="skills-category" data-aos="fade-up">
-            <h3 class="category-title" data-i18n="skills.frontend">Frontend</h3>
-            <div class="skills-grid">
-              <div class="skill">
-                <a
-                  href="https://developer.mozilla.org/fr/docs/Web/HTML"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="skill-icon"
-                >
-                  <img src="images/icons/icons8-html5-50.png" alt="HTML5" />
-                </a>
-                <p>HTML5</p>
-              </div>
-              <div class="skill">
-                <a
-                  href="https://developer.mozilla.org/fr/docs/Web/CSS"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="skill-icon"
-                >
-                  <img src="images/icons/icons8-css3-50.png" alt="CSS3" />
-                </a>
-                <p>CSS3</p>
-              </div>
-              <div class="skill">
-                <a
-                  href="https://developer.mozilla.org/fr/docs/Web/JavaScript"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="skill-icon"
-                >
-                  <img
-                    src="images/icons/icons8-javascript-48.png"
-                    alt="JavaScript"
-                  />
-                </a>
-                <p>JavaScript</p>
-              </div>
-              <div class="skill">
-                <a
-                  href="https://getbootstrap.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="skill-icon"
-                >
-                  <img
-                    src="images/icons/icons8-bootstrap-48.png"
-                    alt="Bootstrap"
-                  />
-                </a>
-                <p>Bootstrap</p>
-              </div>
-              <div class="skill">
-                <a
-                  href="https://reactjs.org/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="skill-icon"
-                >
-                  <img src="images/icons/icons8-react-48.png" alt="React" />
-                </a>
-                <p>React</p>
-              </div>
-              <div class="skill">
-                <a
-                  href="https://sass-lang.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="skill-icon"
-                >
-                  <img src="images/icons/icons8-sass-48.png" alt="Sass" />
-                </a>
-                <p>Sass</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Backend -->
-          <div class="skills-category" data-aos="fade-up">
-            <h3 class="category-title" data-i18n="skills.backend">Backend</h3>
-            <div class="skills-grid">
-              <div class="skill">
-                <a
-                  href="https://www.php.net/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="skill-icon"
-                >
-                  <img src="images/icons/icons8-php-48.png" alt="PHP" />
-                </a>
-                <p>PHP</p>
-              </div>
-              <div class="skill">
-                <a
-                  href="https://nodejs.org/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="skill-icon"
-                >
-                  <img src="images/icons/icons8-node-js-48.png" alt="Node.js" />
-                </a>
-                <p>Node.js</p>
-              </div>
-              <div class="skill">
-                <a
-                  href="https://www.mysql.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="skill-icon"
-                >
-                  <img src="images/icons/icons8-mysql-48.png" alt="MySQL" />
-                </a>
-                <p>MySQL</p>
-              </div>
-              <div class="skill">
-                <a
-                  href="https://www.mongodb.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="skill-icon"
-                >
-                  <img src="images/icons/icons8-mongodb-48.png" alt="MongoDB" />
-                </a>
-                <p>MongoDB</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Outils -->
-          <div class="skills-category" data-aos="fade-up">
-            <h3 class="category-title" data-i18n="skills.tools">Outils</h3>
-            <div class="skills-grid">
-              <div class="skill">
-                <a
-                  href="https://www.canva.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="skill-icon"
-                >
-                  <img src="images/icons/icons8-canva-48.png" alt="Canva" />
-                </a>
-                <p>Canva</p>
-              </div>
-              <div class="skill">
-                <a
-                  href="https://www.figma.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="skill-icon"
-                >
-                  <img src="images/icons/icons8-figma-48.png" alt="Figma" />
-                </a>
-                <p>Figma</p>
-              </div>
-              <div class="skill">
-                <a
-                  href="https://github.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="skill-icon"
-                >
-                  <img src="images/icons/icons8-github-64.png" alt="GitHub" />
-                </a>
-                <p>GitHub</p>
-              </div>
-              <div class="skill">
-                <a
-                  href="https://code.visualstudio.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="skill-icon"
-                >
-                  <img src="images/icons/icons8-vs-code-48.png" alt="VS Code" />
-                </a>
-                <p>VS Code</p>
-              </div>
-              <div class="skill">
-                <a
-                  href="https://www.heroku.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="skill-icon"
-                >
-                  <img src="images/icons/icons8-heroku-48.png" alt="Heroku" />
-                </a>
-                <p>Heroku</p>
-              </div>
-              <div class="skill">
-                <a
-                  href="https://www.adobe.com/apps/all/all-platforms/pdp/indesign?source=apps"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="skill-icon"
-                >
-                  <img
-                    src="images/icons/icons8-adobe-indesign-40.png"
-                    alt="Adobe indesign"
-                  />
-                </a>
-                <p>Adobe indesign</p>
-              </div>
-              <div class="skill">
-                <a
-                  href="https://www.adobe.com/apps/all/all-platforms/pdp/illustrator?source=apps"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="skill-icon"
-                >
-                  <img
-                    src="images/icons/icons8-adobe-illustrator-48.png"
-                    alt="Adobe Illustrator"
-                  />
-                </a>
-                <p>Adobe Illustrator</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       <!-- Section Projets détaillés -->
       <section id="projects">
         <h2
@@ -386,13 +160,13 @@
           data-i18n="projects.allTitle"
           data-aos="fade-up"
         >
-          Un aperçu de tous mes projets réalisés
+          Tous mes projets
         </h2>
 
         <div class="projects-grid">
           <!-- Projet 1 -->
           <div class="project-card" data-aos="fade-up" id="project-1">
-            <img src="images/header.png" alt="Projet-Riding-Cities" />
+            <img src="/images/header.png" alt="Projet-Riding-Cities" />
             <div class="project-info">
               <div>
                 <h3 data-i18n="projectNames.ridingCities">Riding Cities</h3>
@@ -420,7 +194,7 @@
           <!-- Projet 2 - Booki -->
           <div class="project-card" data-aos="fade-up" id="project-2">
             <img
-              src="images/aw-creative-VGs8z60yT2c-unsplash.jpg"
+              src="/images/aw-creative-VGs8z60yT2c-unsplash.jpg"
               alt="Projet-Booki"
             />
             <div class="project-info">
@@ -449,7 +223,7 @@
           <!-- Projet 3 - Ohmyfood -->
           <div class="project-card" data-aos="fade-up" id="project-3">
             <img
-              src="images/jay-wennington-N_Y88TWmGwA-unsplash.jpg"
+              src="/images/jay-wennington-N_Y88TWmGwA-unsplash.jpg"
               alt="Projet-ohmyfood"
             />
             <div class="project-info">
@@ -477,7 +251,7 @@
 
           <!-- Projet 4 - Print it -->
           <div class="project-card" data-aos="fade-up" id="project-4">
-            <img src="images/yellow-book.jpeg" alt="Project-Print-it" />
+            <img src="/images/yellow-book.jpeg" alt="Project-Print-it" />
             <div class="project-info">
               <div>
                 <h3 data-i18n="projectNames.printIt">Print it</h3>
@@ -503,12 +277,10 @@
 
           <!-- Projet 5 - Sophie Bluel -->
           <div class="project-card" data-aos="fade-up" id="project-5">
-            <img src="images/sophie-bluel.png" alt="Projet-Sophie-Bluel" />
+            <img src="/images/sophie-bluel.png" alt="Projet-Sophie-Bluel" />
             <div class="project-info">
               <div>
-                <h3 data-i18n="projectNames.sophieBluel">
-                  Sophie Bluel
-                </h3>
+                <h3 data-i18n="projectNames.sophieBluel">Sophie Bluel</h3>
                 <p data-i18n="projectDescriptions.sophieBluel.full">
                   Le portfolio de Sophie Bluel est un site web responsive
                   construit avec HTML, CSS, JavaScript, et la gestion des
@@ -540,7 +312,7 @@
 
           <!-- Projet 6 - Memory Game -->
           <div class="project-card" data-aos="fade-up" id="project-6">
-            <img src="images/jeu_de_memory.jpg" alt="Projet-Memory-Game" />
+            <img src="/images/jeu_de_memory.jpg" alt="Projet-Memory-Game" />
             <div class="project-info">
               <div>
                 <h3 data-i18n="projectNames.memoryGame">Memory Game</h3>
@@ -568,7 +340,7 @@
 
           <!-- Projet 7 - Arcadia Zoo -->
           <div class="project-card" data-aos="fade-up" id="project-7">
-            <img src="images/logo-arcadia.jpeg" alt="Projet-Arcadia-Zoo" />
+            <img src="/images/logo-arcadia.jpeg" alt="Projet-Arcadia-Zoo" />
             <div class="project-info">
               <div>
                 <h3 data-i18n="projectNames.arcadiaZoo">Arcadia Zoo</h3>
@@ -610,7 +382,7 @@
 
           <!-- Projet 8 - Budget Buddy -->
           <div class="project-card" data-aos="fade-up" id="project-8">
-            <img src="images/blue-1761175.jpg" alt="Projet-Budget-Buddy" />
+            <img src="/images/blue-1761175.jpg" alt="Projet-Budget-Buddy" />
             <div class="project-info">
               <div>
                 <h3 data-i18n="projectNames.budgetBuddy">Budget Buddy</h3>
@@ -641,7 +413,7 @@
           <!-- Projet 9 - Tetris Windsurf -->
           <div class="project-card" data-aos="fade-up" id="project-9">
             <img
-              src="images/imagesTetrisWindsurf/Tetris-cover-page.jpg"
+              src="/images/imagesTetrisWindsurf/Tetris-cover-page.jpg"
               alt="Projet-Tetris-Windsurf"
             />
             <div class="project-info">
@@ -679,19 +451,18 @@
     <footer id="footer">
       <div class="github">
         <a href="https://github.com/Dev-Djelloul" target="_blank">
-          <img src="images/icons/icons8-github-64.png" alt="Github" />
+          <img src="/images/icons/icons8-github-64.png" alt="Github" />
         </a>
       </div>
       <div>
         <a href="https://www.linkedin.com/in/yellowblueskye/" target="_blank">
-          <img src="images/icons/icons8-linkedin-64.png" alt="LinkedIn" />
+          <img src="/images/icons/icons8-linkedin-64.png" alt="LinkedIn" />
         </a>
       </div>
       <p data-i18n="footer.copyright">
         &copy; 2024 YellowBlueSkye. Tous droits réservés.
       </p>
     </footer>
-
 
     <!-- Bouton flèche pour remonter en haut de page -->
     <button
@@ -745,10 +516,10 @@
         });
       });
     </script>
-    <script src="scripts/translator.js"></script>
-    <script src="scripts/theme-switcher.js"></script>
-    <script src="scripts/parallax-effect.js"></script>
-    <script src="scripts/skills-parallax.js"></script>
-    <script src="scripts/navbar-dropdown.js"></script>
+    <script src="/scripts/translator.js"></script>
+    <script src="/scripts/theme-switcher.js"></script>
+    <script src="/scripts/parallax-effect.js"></script>
+    <script src="/scripts/skills-parallax.js"></script>
+    <script src="/scripts/navbar-dropdown.js"></script>
   </body>
 </html>

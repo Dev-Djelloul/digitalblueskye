@@ -3,8 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const hamburger = document.getElementById('hamburger');
   const dropdownMenu = document.getElementById('dropdown-menu');
   const menuOverlay = document.getElementById('menu-overlay');
-  const header = document.querySelector('.site-header');
-  const logoVideo = document.getElementById('logo-video');
+const header = document.querySelector('.site-header') || document.querySelector('header');  const logoVideo = document.getElementById('logo-video');
   const icon = hamburger.querySelector('i');
   let headerTimeout;
   
@@ -16,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
     dropdownMenu.classList.add('active');
     menuOverlay.classList.add('active');
     hamburger.classList.add('active'); // Pour la rotation du chevron
-    document.body.style.overflow = 'hidden'; // Empêcher le défilement
+    document.body.classList.add('body-menu-open'); // AJOUTÉ : Pour décaler le contenu principal
   }
   
   // Fonction pour fermer le menu
@@ -24,8 +23,7 @@ document.addEventListener('DOMContentLoaded', function() {
     dropdownMenu.classList.remove('active');
     menuOverlay.classList.remove('active');
     hamburger.classList.remove('active');
-    document.body.style.overflow = ''; 
-    document.body.style.overflowY = 'auto'; // Force le défilement vertical
+    document.body.classList.remove('body-menu-open'); // AJOUTÉ : Pour remettre le contenu principal
   }
   
   // Événement pour le hamburger (toggle)
@@ -83,10 +81,6 @@ document.addEventListener('DOMContentLoaded', function() {
       // On descend - cacher immédiatement
       clearTimeout(headerTimeout);
       header.classList.add('nav-hidden');
-      // Fermer le menu si ouvert
-      if (dropdownMenu.classList.contains('active')) {
-        closeMenu();
-      }
     } else if (lastScrollY > currentScrollY) {
       // On remonte - attendre un peu avant de montrer
       clearTimeout(headerTimeout);

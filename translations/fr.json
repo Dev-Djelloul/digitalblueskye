@@ -1,29 +1,33 @@
 {
   "meta": {
-    "title": "YellowBlueSkye - Web Developer & Designer Portfolio",
-    "projectsTitle": "YellowBlueSkye - Projets & Compétences"
+    "title": "Digitalblueskye Blog",
+    "projectsTitle": "YellowBlueSkye - Projets & Compétences",
+    "newsPageTitle": "L'actualité et les tendances digitales - Digitalblueskye",
+    "newsPageDescription": "Retrouvez toutes les dernières actualités, analyses et tendances du monde digital par Digitalblueskye."
   },
 
   "header": {
     "title": "YellowBlueSkye Designer",
-    "about": "À PROPOS",
-    "projects": "MES PROJETS",
-    "contact": "CONTACT"
+    "languageSwitch": "<a href=\"projects-en.html\" id=\"switch-to-fr\" title=\"Traduire en français\">"
+
   },
 
   "nav": {
-    "home": "ACCUEIL",
-    "about": "À PROPOS DE MOI",
-    "projects": "MES PROJETS ET COMPÉTENCES",
-    "contact": "CONTACTEZ MOI"
+    "home": "Accueil",
+    "about": "À propos de moi",
+    "explore": "Explorez",
+    "projects": "Mes projets",
+    "skills": "Mes compétences",
+    "news": "News",
+    "contact": "Contactez moi"
   },
 
   "about": {
-    "title": "CHEF DE PROJET DIGITAL & DESIGNER WEB",
-    "invitation": " Explorez mon portfolio pour découvrir mes projets et n'hésitez pas à me contacter afin de travailler ensemble",
-    "explore": "Explorez mes projets en images",
-    "intro": "Hey ! Je m'appelle Djelloul, je suis un parisien passionné par l'art, les civilisations anciennes, les voyages autour du globe 🌎 et les longues randonnées à vélo 🚲",
-    "background": "Issu d'une formation universitaire classique, cela fait maintenant quelques années que je me suis, littéralement, pris de passion 🌈 pour l'univers du web 💻 sous toutes ses formes, langues, languages et personnes 😊",
+    "title": "CHEF DE PROJET DIGITAL",
+    "invitation": "N'hésitez pas à me contacter afin de travailler ensemble sur vos projets digitaux !",
+    "explore": "Explorez mon portfolio",
+    "intro": "Hey ! Je m'appelle Djelloul, je suis un parisien passionné par l'art, les civilisations anciennes, les voyages autour du globe et les longues randonnées à vélo 🚲",
+    "background": "Issu d'une formation universitaire classique, cela fait maintenant quelques années que je me suis, littéralement, pris de passion 🖤 pour l'univers du web sous toutes ses formes, langues, languages et personnes",
     "journey": "Depuis ce jour, je suis devenu un digital learner assidu et enjoué !",
     "education": "Je présente ici mes premiers projets réalisés lors de mes formations chez",
     "and": " et ",
@@ -31,12 +35,13 @@
     "downloadCV": "Télécharger mon CV"
   },
 
+  "explorer": {
+    "mainPageTitle": "Mes projets en images"
+  },
+
   "projects": {
-    "title": "Explorez mes projets en images",
-    "pageTitle": "Projets - Portfolio YellowBlueSkye",
-    "subtitle": "MES PROJETS & COMPÉTENCES",
-    "headerTitle": "MES PROJETS",
-    "allTitle": "Mes projets",
+    "title": "Explorez",
+    "allTitle": "Tous mes projets",
     "viewProject": "Démo en direct",
     "viewLive": "En savoir plus sur ce projet",
     "viewCode": "Voir le Code Source",
@@ -44,12 +49,14 @@
     "nextProject": "Projet Suivant : {projectName}"
   },
   "skills": {
-    "title": "Mes compétences techniques",
+    "title": "Mes compétences",
     "frontend": "Front-end",
     "backend": "Back-end",
-    "database": "Base de données",
-    "design": "Design & Outils"
+    "tools": "Environnement & Outils",
+    "design": "Design",
+    "database": "Base de données"
   },
+
   "contact": {
     "name": "Nom",
     "email": "Email",
@@ -64,8 +71,8 @@
     "error": "Une erreur est survenue. Veuillez réessayer.",
     "pageTitle": "Contact - Portfolio YellowBlueSkye",
     "title": "YELLOWBLUESKYE CONTACT",
-    "locationTitle": "CONTACT 🪐",
-    "formTitle": "LAISSEZ VOTRE MESSAGE",
+    "locationTitle": "Contact",
+    "formTitle": "Laissez-moi un message",
     "sendButton": "Envoyer le message",
     "alternateContact": "Vous pouvez également m'envoyer un email à",
     "successMessage": "Votre message a été envoyé avec succès!",
@@ -75,6 +82,19 @@
   "footer": {
     "copyright": "© 2024 YellowBlueSkye. Tous droits réservés."
   },
+
+  "explorerNames": {
+    "ridingCities": "RIDING CITIES",
+    "booki": "BOOKI",
+    "ohmyfood": "OHMYFOOD",
+    "printIt": "PRINT IT",
+    "sophieBluel": "SOPHIE BLUEL",
+    "memoryGame": "MEMORY GAME",
+    "arcadiaZoo": "ARCADIA ZOO",
+    "budgetBuddy": "BUDGET BUDDY",
+    "tetrisWindsurf": "TETRIS WINDSURF"
+  },
+
   "projectNames": {
     "ridingCities": "Riding Cities",
     "booki": "Booki",
@@ -128,7 +148,7 @@
     "overview": "Aperçu",
     "technologies": "Technologies utilisées",
     "challenges": "Défis",
-    "details": "DÉTAILS DU PROJET",
+    "details": "Détails du projet",
     "objective": "Objectif",
     "backToHome": "Accueil",
     "backToProjectsList": "Tous les projets",
@@ -209,5 +229,61 @@
 
   "ui": {
     "backToTop": "Retour en haut"
+  },
+
+  "news": {
+    "pageTitle": "L'actualité et les tendances digitales",
+    "pageSubtitle": "L'analyse mensuelle sur les dernières technologies, réglementations et la RSE !",
+    "backToList": "Retour aux actualités",
+    "article1": {
+      "title": "L'IA révolutionne la gestion de projet",
+      "summary": "Découvrez comment l'intelligence artificielle transforme le quotidien des chefs de projet digitaux...",
+      "dateline": "Technologie • 28 Mai 2025",
+      "metaTitle": "L'IA révolutionne la gestion de projet - Digitalblueskye",
+      "metaDescription": "Analyse détaillée de l'impact de l'intelligence artificielle sur les méthodologies de gestion de projet modernes.",
+      "publishDate": "28 Mai 2025",
+      "category": "Technologie",
+      "fullContent": "<p>L'intelligence artificielle (IA) n'est plus une simple promesse futuriste, elle s'ancre profondément dans les outils et les méthodologies de gestion de projet. De l'automatisation des tâches répétitives à l'analyse prédictive des risques, l'IA offre des perspectives nouvelles pour optimiser les processus et améliorer la prise de décision.</p><h2>Impact sur la planification</h2><p>Les algorithmes d'IA peuvent analyser des volumes massifs de données issues de projets antérieurs pour identifier des schémas, prédire les durées des tâches avec plus de précision et optimiser l'allocation des ressources. Cela permet de construire des plannings plus réalistes et de réduire les incertitudes.</p><h2>Automatisation et assistance</h2><p>De nombreuses tâches chronophages, comme la génération de rapports, le suivi de l'avancement ou la gestion documentaire, peuvent être partiellement ou totalement automatisées. L'IA peut également servir d'assistant virtuel, répondant aux questions des membres de l'équipe ou signalant les points d'attention.</p><h2>Gestion des risques proactive</h2><p>En analysant en continu les données du projet et les facteurs externes, l'IA peut identifier des risques potentiels bien avant qu'ils ne deviennent critiques, permettant aux chefs de projet de mettre en place des mesures préventives.</p><p>Bien que l'IA offre des avantages considérables, son intégration soulève également des questions éthiques et nécessite de nouvelles compétences. La formation des équipes et une approche réfléchie sont essentielles pour tirer pleinement parti de son potentiel.</p>"
+    },
+    "article2": {
+      "title": "Top 5 des outils de veille pour chefs de projet",
+      "summary": "Une sélection des meilleures plateformes pour rester informé des dernières innovations et stratégies...",
+      "dateline": "Outils • 27 Mai 2025",
+      "metaTitle": "Top 5 Outils de Veille pour Chefs de Projet - Digitalblueskye",
+      "metaDescription": "Découvrez notre sélection des 5 meilleurs outils de veille technologique et concurrentielle indispensables pour tout chef de projet digital.",
+      "publishDate": "27 Mai 2025",
+      "category": "Outils",
+      "fullContent": "<p>Dans un environnement digital en constante évolution, la veille technologique et concurrentielle est cruciale pour tout chef de projet. Voici une sélection de 5 outils incontournables :</p><ol><li><strong>Feedly :</strong> Un agrégateur de flux RSS puissant pour suivre blogs, sites d'actualités et publications spécialisées.</li><li><strong>Google Alerts :</strong> Simple et efficace pour surveiller des mots-clés spécifiques sur le web.</li><li><strong>Mention :</strong> Idéal pour le social listening et la surveillance de la réputation en ligne.</li><li><strong>Talkwalker :</strong> Une plateforme plus avancée pour l'analyse des médias sociaux et la veille concurrentielle.</li><li><strong>Pocket :</strong> Parfait pour sauvegarder des articles et des vidéos à consulter ultérieurement, même hors ligne.</li></ol><p>Choisir les bons outils et définir une stratégie de veille claire vous permettra de rester à la pointe et d'anticiper les tendances pour vos projets.</p>"
+    },
+    "article3": {
+      "title": "RGPD : Les nouvelles obligations à anticiper",
+      "summary": "Restez conforme avec les dernières évolutions réglementaires en matière de protection des données...",
+      "dateline": "Réglementation • 26 Mai 2025",
+      "metaTitle": "RGPD : Nouvelles Obligations et Conformité - Digitalblueskye",
+      "metaDescription": "Analyse des dernières évolutions du RGPD et des obligations à anticiper pour les entreprises en 2025.",
+      "publishDate": "26 Mai 2025",
+      "category": "Réglementation",
+      "fullContent": "<p>Le Règlement Général sur la Protection des Données (RGPD) continue d'évoluer. En 2025, de nouvelles interprétations et obligations émergent, notamment concernant l'utilisation de l'intelligence artificielle et le transfert de données hors UE. Il est crucial pour les entreprises de...</p><h2>Consentement et IA</h2><p>L'utilisation de données personnelles pour entraîner des modèles d'IA nécessite une attention particulière quant à la base légale du traitement et à la transparence envers les personnes concernées...</p>"
+    },
+    "article4": {
+      "title": "L'impact de la RSE dans le secteur digital",
+      "summary": "Comment les entreprises technologiques intègrent la Responsabilité Sociétale des Entreprises...",
+      "dateline": "RSE • 25 Mai 2025",
+      "metaTitle": "RSE et Digital : Enjeux et Opportunités - Digitalblueskye",
+      "metaDescription": "Exploration de l'intégration de la Responsabilité Sociétale des Entreprises (RSE) dans le secteur digital et ses impacts.",
+      "publishDate": "25 Mai 2025",
+      "category": "RSE",
+      "fullContent": "<p>La Responsabilité Sociétale des Entreprises (RSE) prend une place de plus en plus importante dans le secteur digital. Au-delà de l'impact environnemental des datacenters et des équipements (Green IT), les entreprises sont attendues sur des aspects sociaux comme l'inclusion, l'éthique de l'IA, et la protection des utilisateurs...</p><h2>Numérique responsable</h2><p>Le concept de numérique responsable englobe l'écoconception des services, l'accessibilité, et la sobriété numérique...</p>"
+    },
+    "article5": {
+      "title": "Les technologies qui façonneront 2026",
+      "summary": "Prospective sur les innovations majeures attendues l'année prochaine et leur impact potentiel...",
+      "dateline": "Prospective • 24 Mai 2025",
+      "metaTitle": "Technologies Clés de 2026 - Digitalblueskye",
+      "metaDescription": "Quelles seront les technologies qui marqueront l'année 2026 ? Analyse prospective des tendances émergentes.",
+      "publishDate": "24 Mai 2025",
+      "category": "Prospective",
+      "fullContent": "<p>Alors que 2025 touche à sa fin, quelles sont les grandes tendances technologiques qui se dessinent pour 2026 ? L'informatique quantique commencera-t-elle à livrer ses promesses ? La réalité étendue (XR) deviendra-t-elle mainstream ? Et quel sera le prochain jalon pour l'intelligence artificielle générative ?...</p><h2>Web3 et Métavers</h2><p>Après une phase de hype, les applications concrètes du Web3 et des métavers continuent de se développer, notamment dans les domaines du gaming, de la formation et du commerce...</p>"
+    }
   }
 }

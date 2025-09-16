@@ -13,7 +13,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Audiowide&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Grape+Nuts&display=swap"
       rel="stylesheet"
     />
     <link rel="preconnect" href="https://player.canva.com" />
@@ -116,23 +116,31 @@
     <!-- Menu dropdown qui apparaît sous le header -->
     <div class="dropdown-menu" id="dropdown-menu">
       <!-- Navigation -->
-      <nav class="dropdown-nav">
+        <nav class="dropdown-nav">
         <ul>
           <li>
             <a href="/index.html" data-i18n="nav.home"><h2>ACCUEIL</h2></a>
           </li>
           <li>
-            <a href="/about.html" data-i18n="nav.about"
+            <a href="/main/about.html" data-i18n="nav.about"
               ><h2>À PROPOS DE MOI</h2></a
             >
           </li>
           <li>
-            <a href="/projects.html" data-i18n="nav.projects"
-              ><h2>MES PROJETS ET COMPÉTENCES</h2></a
+            <a href="/main/explore.html" data-i18n="nav.explore"><h2>EXPLOREZ</h2></a>
+          </li>
+          <li>
+            <a href="/main/projects.html" data-i18n="nav.projects"
+              ><h2>MES PROJETS</h2></a
             >
           </li>
           <li>
-            <a href="/contact.html" data-i18n="nav.contact"
+            <a href="/main/skills.html" data-i18n="nav.skills"
+              ><h2>MES COMPÉTENCES</h2></a
+            >
+          </li>
+          <li>
+            <a href="/main/contact.html" data-i18n="nav.contact"
               ><h2>CONTACTEZ MOI</h2></a
             >
           </li>
@@ -146,8 +154,7 @@
     <!-- Overlay pour fermer le menu -->
     <div class="menu-overlay" id="menu-overlay"></div>
     <!-- Fin du menu dropdown -->
-
-    <!-- Section Projet Détaillé --> 
+  <main>    <!-- Section Projet Détaillé --> 
     <section class="project-detail">
       <div class="project-hero" data-aos="fade-up">
         <img
@@ -183,7 +190,7 @@
         </div>
 
         <div class="project-links">
-          <a href="/projects.html" class="btn-back-projects" data-i18n="projectDetails.backToProjectsList">
+          <a href="/main/projects.html" class="btn-back-projects" data-i18n="projectDetails.backToProjectsList">
             Tous les projets
           </a>
           <a
@@ -355,7 +362,8 @@
         </a>
       </div>
     </section>
-
+  </main>
+    <!-- Footer -->
     <footer id="footer">
       <div class="github">
         <a href="https://github.com/Dev-Djelloul" target="_blank">

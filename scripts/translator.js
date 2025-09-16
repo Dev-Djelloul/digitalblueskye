@@ -1,6 +1,6 @@
-/**
+ /**
  * Script de traduction pour le site YellowBlueSkye
- * Version corrigée pour éviter les redirections
+ * Version corrigée pour éviter les redirections et gérer innerHTML
  */
 document.addEventListener('DOMContentLoaded', function() {
   console.log("Translator script initialized");
@@ -15,6 +15,10 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Fonction pour mettre à jour l'affichage des boutons de langue
   function updateLanguageButtons() {
+    if (!switchToEN || !switchToFR) {
+      console.warn("Language switch buttons not found, cannot update display.");
+      return;
+    }
     if (currentLanguage === 'fr') {
       switchToEN.style.display = 'block';
       switchToFR.style.display = 'none';
@@ -35,102 +39,113 @@ document.addEventListener('DOMContentLoaded', function() {
   function translatePage() {
     console.log("Translating page to: " + currentLanguage);
     
-    // --- Traduction des éléments avec data-i18n ---
+    // --- Traduction des éléments avec data-i18n (contenu principal) ---
     const elements = document.querySelectorAll('[data-i18n]');
-    console.log("Found " + elements.length + " elements with [data-i18n]");
+    console.log("Found " + elements.length + " elements with [data-i18n] for main content.");
 
-    // ... (Code existant pour les titres h1/h2) ...
-    const headings = document.querySelectorAll('h1[data-i18n], h2[data-i18n]');
-    console.log("Found " + headings.length + " headings to translate specifically");
-    headings.forEach(heading => {
-      const key = heading.getAttribute('data-i18n');
-      const translation = getNestedTranslation(translations, key);
-      if (translation) {
-        heading.innerHTML = translation;
-      } else {
-        console.warn("No translation found for heading key: " + key);
-      }
-    });
-    
     elements.forEach(element => {
       const key = element.getAttribute('data-i18n');
       const translation = getNestedTranslation(translations, key);
       
       if (translation) {
-        // --- NOUVEAU : Gestion spécifique pour les boutons de navigation projet ---
-        if (element.matches('.prev-project, .next-project')) {
+        // Gestion spécifique pour les titres h1/h2 (peuvent contenir des <i>)
+        if (element.matches('h1, h2')) {
+          element.innerHTML = translation;
+        }
+        // Gestion spécifique pour les boutons de navigation projet
+        else if (element.matches('.prev-project, .next-project') && !element.hasAttribute('data-i18n-title')) { // S'assurer que ce n'est pas pour le title
           const projectKey = element.getAttribute('data-project-key');
           const projectNameTranslation = getNestedTranslation(translations, 'projectNames.' + projectKey);
 
           if (projectNameTranslation) {
-            // Remplace le marqueur {projectName} par le nom traduit
             element.textContent = translation.replace('{projectName}', projectNameTranslation);
           } else {
-            // Fallback si le nom du projet n'est pas trouvé (affiche juste le format)
-            element.textContent = translation.replace('{projectName}', projectKey); // Affiche la clé en fallback
+            element.textContent = translation.replace('{projectName}', projectKey);
             console.warn(`Project name translation not found for key: projectNames.${projectKey}`);
           }
         }
-        // --- FIN NOUVEAU ---
-
-        // Si l'élément est un input avec value (EXISTANT)
+        // Si l'élément est un input avec value
         else if (element.value !== undefined && element.tagName.toLowerCase() === 'input' && element.type !== 'password') {
           if (element.type === 'submit' || element.type === 'button') {
             element.value = translation;
           }
         }
-        // Si l'élément a des attributs title ou alt (EXISTANT)
-        else if (element.title !== undefined && key.includes('title')) {
-          element.title = translation;
-        }
-        else if (element.alt !== undefined && key.includes('alt')) {
+        // Si l'élément a un attribut alt
+        else if (element.hasAttribute('alt')) {
           element.alt = translation;
         }
-        // Pour les méta tags (EXISTANT)
+        // Pour les méta tags (description)
         else if (element.tagName.toLowerCase() === 'meta' && element.name === 'description') {
           element.content = translation;
         }
-        // Pour le titre de la page (EXISTANT)
+        // Pour le titre de la page (<title>)
         else if (element.tagName.toLowerCase() === 'title') {
           document.title = translation;
         }
-        // Pour tous les autres éléments (sauf les titres déjà traités) (EXISTANT)
-        else if (!element.matches('h1, h2')) { // Évite de retraduire les titres
-          element.textContent = translation;
+        // Pour tous les autres éléments (contenu général)
+        else {
+          // Vérifier si la clé indique un contenu HTML
+          if ((key.startsWith('radarPage.article') && (key.endsWith('Content') || key.endsWith('Summary'))) ||
+              key.includes('Summary') || key.includes('description') || key.includes('content') || key.includes('html')) { // Ajout de 'html' comme indicateur possible
+            element.innerHTML = translation;
+          } else {
+            element.textContent = translation;
+          }
         }
       } else {
-        // Ne pas afficher d'avertissement pour les titres car ils sont traités séparément
-        if (!element.matches('h1, h2')) {
-          console.warn("No translation found for key: " + key);
-        }
+        console.warn("No translation found for main content key: " + key + " on element:", element);
       }
     });
 
-    // --- NOUVEAU : Traduction des placeholders avec data-i18n-placeholder ---
-    const placeholderElements = document.querySelectorAll('[data-i18n-placeholder]');
-    console.log("Found " + placeholderElements.length + " elements with [data-i18n-placeholder]");
+    // --- Traduction des attributs title spécifiques avec data-i18n-title ---
+    const titleElements = document.querySelectorAll('[data-i18n-title]');
+    console.log("Found " + titleElements.length + " elements with [data-i18n-title].");
+    titleElements.forEach(element => {
+        const titleKey = element.getAttribute('data-i18n-title');
+        const translation = getNestedTranslation(translations, titleKey);
+        if (translation) {
+            if (element.matches('.prev-project, .next-project') && element.dataset.projectKey) {
+                const projectKey = element.dataset.projectKey;
+                const projectName = getNestedTranslation(translations, 'projectNames.' + projectKey);
+                if (projectName) {
+                    element.setAttribute('title', translation.replace('{projectName}', projectName));
+                } else {
+                    element.setAttribute('title', translation.replace('{projectName}', projectKey)); // Fallback
+                }
+            } else {
+                element.setAttribute('title', translation);
+            }
+        } else {
+            console.warn("No title translation found for key: " + titleKey + " on element:", element);
+        }
+    });
 
+    // --- Traduction des placeholders avec data-i18n-placeholder ---
+    const placeholderElements = document.querySelectorAll('[data-i18n-placeholder]');
+    console.log("Found " + placeholderElements.length + " elements with [data-i18n-placeholder].");
     placeholderElements.forEach(element => {
       const key = element.getAttribute('data-i18n-placeholder');
       const translation = getNestedTranslation(translations, key);
-
       if (translation) {
-        // Appliquer la traduction à l'attribut placeholder
         element.placeholder = translation;
       } else {
-        console.warn("No placeholder translation found for key: " + key);
+        console.warn("No placeholder translation found for key: " + key + " on element:", element);
       }
     });
-    // --- FIN NOUVEAU ---
-
-
-    // ... (Code existant pour le traitement spécial de skills-title) ...
+    
+    // --- Traitement spécial pour skills-title (si nécessaire) ---
     const skillsTitle = document.getElementById('skills-title');
-    if (skillsTitle) {
-      // ... (code existant) ...
+    if (skillsTitle && skillsTitle.hasAttribute('data-i18n')) { // S'assurer qu'il a l'attribut
+      const key = skillsTitle.getAttribute('data-i18n');
+      const translation = getNestedTranslation(translations, key);
+      if (translation) {
+        // Exemple de traitement si skills-title a besoin d'une structure HTML spécifique
+        // skillsTitle.innerHTML = `<span>${translation}</span>`; 
+        // Pour l'instant, on suppose qu'il est traité comme un h1/h2 normal si c'en est un
+      }
     }
 
-    // ... (Reste du code de la fonction translatePage : mise à jour lang, boutons, localStorage, AOS, etc.) ...
+    // Mise à jour finale
     document.documentElement.lang = currentLanguage;
     updateLanguageButtons();
     localStorage.setItem('language', currentLanguage);
@@ -138,76 +153,41 @@ document.addEventListener('DOMContentLoaded', function() {
       setTimeout(() => { AOS.refresh(); }, 100);
     }
     document.dispatchEvent(new CustomEvent('translationCompleted', { detail: { language: currentLanguage } }));
+    console.log("Page translation complete for " + currentLanguage);
   }
 
-  // Fonction pour mettre à jour la navigation des projets (simplifiée)
-  function updateProjectNavigation(translations) {
-    const prevLink = document.querySelector('.prev-project');
-    const nextLink = document.querySelector('.next-project');
-
-    // --- Mise à jour du TITLE UNIQUEMENT ---
-
-    if (prevLink && prevLink.dataset.projectKey) {
-      const projectKey = prevLink.dataset.projectKey;
-      const projectName = getNestedTranslation(translations, 'projectNames.' + projectKey); // On a toujours besoin du nom traduit pour le title
-      const titleKey = prevLink.dataset.i18nTitle;
-      
-      // Mettre à jour le title si data-i18n-title est utilisé
-      if (titleKey && projectName) {
-          let titleTemplate = getNestedTranslation(translations, titleKey);
-          if (titleTemplate) {
-              prevLink.setAttribute('title', titleTemplate.replace('{projectName}', projectName));
-          }
-      } 
-      // else { // Si pas de nom traduit, on peut mettre un title générique ou laisser celui du HTML
-      //    prevLink.setAttribute('title', 'Previous Project'); 
-      // }
-    }
-
-    if (nextLink && nextLink.dataset.projectKey) {
-      const projectKey = nextLink.dataset.projectKey;
-      const projectName = getNestedTranslation(translations, 'projectNames.' + projectKey); // On a toujours besoin du nom traduit pour le title
-      const titleKey = nextLink.dataset.i18nTitle;
-
-      // Mettre à jour le title si data-i18n-title est utilisé
-       if (titleKey && projectName) {
-           let titleTemplate = getNestedTranslation(translations, titleKey);
-           if (titleTemplate) {
-               nextLink.setAttribute('title', titleTemplate.replace('{projectName}', projectName));
-           }
-       }
-       // else { // Si pas de nom traduit, on peut mettre un title générique ou laisser celui du HTML
-       //    nextLink.setAttribute('title', 'Next Project'); 
-       // }
-    }
+  // Fonction pour mettre à jour la navigation des projets (appelée après chargement des traductions)
+  // Cette fonction est maintenant principalement pour les titles, le contenu textuel est géré par data-i18n
+  function updateProjectNavigationTitles(translationsData) {
+    // La logique de mise à jour des titles est déjà dans la boucle titleElements.forEach de translatePage()
+    // Cette fonction pourrait être utilisée pour d'autres logiques spécifiques à la navigation si besoin.
+    // Pour l'instant, on peut la laisser vide ou la supprimer si translatePage() couvre tout.
+    console.log("Project navigation titles updated (handled within translatePage).");
   }
 
   // Fonction pour charger les traductions
   async function loadTranslations(lang) {
     try {
       console.log("Loading translations for: " + lang);
-      const response = await fetch(`translations/${lang}.json`);
+      const response = await fetch(`/translations/${lang}.json`); // Chemin relatif à la racine du site
       if (!response.ok) {
-        throw new Error(`HTTP error: ${response.status}`);
-      }
-      translations = await response.json();
-      console.log("Translations loaded successfully");
-      translatePage();
-      updateProjectNavigation(translations);
-    } catch (error) {
-      console.error(`Error loading translations: ${error}`);
-      // Fallback: if file not found, try relative path
-      try {
+        // Essayer un chemin relatif au dossier parent (pour les pages dans des sous-dossiers comme /projects/)
+        console.warn(`Failed to load translations from /translations/${lang}.json, trying ../translations/${lang}.json`);
         const fallbackResponse = await fetch(`../translations/${lang}.json`);
         if (!fallbackResponse.ok) {
-          throw new Error(`HTTP error: ${fallbackResponse.status}`);
+          throw new Error(`HTTP error: ${fallbackResponse.status} (fallback also failed)`);
         }
         translations = await fallbackResponse.json();
-        translatePage();
-        updateProjectNavigation(translations);
-      } catch (fallbackError) {
-        console.error(`Fallback error loading translations: ${fallbackError}`);
+      } else {
+        translations = await response.json();
       }
+      
+      console.log("Translations loaded successfully for " + lang);
+      translatePage(); // Appelle translatePage qui gère maintenant aussi les titles spécifiques
+      // updateProjectNavigationTitles(translations); // Peut être redondant si translatePage gère tout
+    } catch (error) {
+      console.error(`Error loading translations for ${lang}: ${error}`);
+      // Optionnel: afficher un message à l'utilisateur ou utiliser une langue par défaut codée en dur
     }
   }
 
@@ -215,30 +195,34 @@ document.addEventListener('DOMContentLoaded', function() {
   if (switchToEN) {
     console.log("Adding event listener to English button");
     switchToEN.addEventListener('click', function(e) {
+      e.preventDefault(); // Toujours prévenir le comportement par défaut
       console.log("English button clicked");
-      if (e.preventDefault) e.preventDefault();
-      currentLanguage = 'en';
-      loadTranslations(currentLanguage);
-      return false; // Pour s'assurer qu'il n'y a pas de redirection
+      if (currentLanguage !== 'en') {
+        currentLanguage = 'en';
+        loadTranslations(currentLanguage);
+      }
+      return false;
     });
   } else {
-    console.warn("English language button not found");
+    console.warn("English language button (switch-to-en) not found");
   }
 
   if (switchToFR) {
     console.log("Adding event listener to French button");
     switchToFR.addEventListener('click', function(e) {
+      e.preventDefault(); // Toujours prévenir le comportement par défaut
       console.log("French button clicked");
-      if (e.preventDefault) e.preventDefault();
-      currentLanguage = 'fr';
-      loadTranslations(currentLanguage);
-      return false; // Pour s'assurer qu'il n'y a pas de redirection
+      if (currentLanguage !== 'fr') {
+        currentLanguage = 'fr';
+        loadTranslations(currentLanguage);
+      }
+      return false;
     });
   } else {
-    console.warn("French language button not found");
+    console.warn("French language button (switch-to-fr) not found");
   }
 
   // Initialisation - charger les traductions pour la langue actuelle
-  console.log("Initial loading of translations");
+  console.log("Initial loading of translations for: " + currentLanguage);
   loadTranslations(currentLanguage);
 });

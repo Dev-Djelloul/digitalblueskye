@@ -8,16 +8,16 @@
       content="Portfolio de Digitalblueskye, intégrateur web et designer web créatif et passionné. Spécialisé en HTML, CSS, JavaScript et responsive design. Découvrez mes projets."
     />
     <title data-i18n="meta.title">
-      Web Designer & Developer | Digitalblueskye - Portfolio
+    Digitalblueskye Blog 
     </title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Audiowide&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Grape+Nuts&display=swap"
       rel="stylesheet"
     />
     <link rel="preconnect" href="https://player.canva.com" />
-    <link rel="stylesheet" href="styles/style.css" />
+    <link rel="stylesheet" href="/styles/style.css" />
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
     <link
       rel="stylesheet"
@@ -30,7 +30,7 @@
       <video id="loader-video" autoplay loop muted playsinline>
         <!-- <source src="/images/logo-video.webm" type="video/webm"> -->
         <source
-          src="/images/logoVideos/Logo-Globe-Video.mp4"
+          src="images/logoVideos/Loader-Globe-Video.mp4"
           type="video/mp4"
         />
         Votre navigateur ne supporte pas la vidéo HTML5.
@@ -132,20 +132,28 @@
       <nav class="dropdown-nav">
         <ul>
           <li>
-            <a href="/index.html" data-i18n="nav.home"><h2>ACCUEIL</h2></a>
+            <a href="index.html" data-i18n="nav.home"><h2>ACCUEIL</h2></a>
           </li>
           <li>
-            <a href="/about.html" data-i18n="nav.about"
+            <a href="/main/about.html" data-i18n="nav.about"
               ><h2>À PROPOS DE MOI</h2></a
             >
           </li>
           <li>
-            <a href="/projects.html" data-i18n="nav.projects"
-              ><h2>MES PROJETS ET COMPÉTENCES</h2></a
+            <a href="/main/explore.html" data-i18n="nav.explore"><h2>EXPLOREZ</h2></a>
+          </li>
+          <li>
+            <a href="/main/projects.html" data-i18n="nav.projects"
+              ><h2>MES PROJETS</h2></a
             >
           </li>
           <li>
-            <a href="/contact.html" data-i18n="nav.contact"
+            <a href="/main/skills.html" data-i18n="nav.skills"
+              ><h2>MES COMPÉTENCES</h2></a
+            >
+          </li>
+          <li>
+            <a href="/main/contact.html" data-i18n="nav.contact"
               ><h2>CONTACTEZ MOI</h2></a
             >
           </li>
@@ -170,358 +178,193 @@
             <div class="job-title">
               <h2 data-i18n="about.title" class="animated-title">
                 <!-- Classe ajoutée -->
-                CHEF DE PROJET DIGITAL & DESIGNER WEB
+                CHEF DE PROJET DIGITAL
               </h2>
             </div>
             <br />
             <p data-i18n="about.invitation" class="animated-paragraph">
               <!-- Classe ajoutée -->
-              Explorez mon portfolio pour découvrir mes projets et n'hésitez pas
-              à me contacter afin de travailler ensemble!
+              N'hésitez pas à me contacter afin de travailler ensemble sur vos projets digitaux !
             </p>
           </div>
         </div>
         <!-- Bouton pour voir les projets -->
         <a
-          href="#projects"
+          href="/main/explore.html"
           class="btn-explore"
           data-i18n="about.explore"
-          title="Explorer mes projets"
-          >Explorez mes projets en images</a
+          title="Explorer les projets de mon portfolio"
+          >Explorez mon portfolio</a
         >
       </div>
 
-      <!-- Section Projets en vedette -->
-      <section id="projects" class="featured-projects">
-        <div class="carousel-container fade-in">
-          <div class="carousel-track">
-            <!-- Projet 1 -->
-            <div class="carousel-item">
-              <div class="project-preview" data-aos="fade-up">
-                <img src="images/header.png" alt="Riding Cities" />
-                <div class="project-preview-overlay">
-                  <h3 data-i18n="projectNames.ridingCities">Riding Cities</h3>
-                  <a
-                    href="projects/riding-cities.html"
-                    class="btn-view-project"
-                    data-i18n-title="projects.viewProject"
-                    title="Voir la fiche du projet"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="35"
-                      height="35"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    >
-                      <path
-                        d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
-                      ></path>
-                      <circle cx="12" cy="12" r="3"></circle>
-                    </svg>
-                  </a>
-                </div>
-              </div>
-            </div>
+      <!-- NOUVELLE SECTION : Radar des Tendances Digitales -->
+      <section class="page-title-container" style="padding-top: 100px">
+        <h1 class="main-page-title text-center" data-i18n="news.pageTitle">
+          Actualités et Tendances Digitales
+        </h1>
+        <p class="page-subtitle text-center" data-i18n="news.pageSubtitle">
+          L'analyse mensuelle sur les dernières technologies, réglementations et la RSE !
+        </p>
+      </section>
 
-            <!-- Projet 2 -->
-            <div class="carousel-item">
-              <div class="project-preview" data-aos="fade-up">
-                <img
-                  src="images/imagesBooki/hebergements/1_xlarge/nicate-lee-kT-ZyaiwBe0-unsplash.jpg"
-                  alt="Booki"
-                />
-                <div class="project-preview-overlay">
-                  <h3 data-i18n="projectNames.booki">Booki</h3>
-                  <a
-                    href="projects/booki.html"
-                    class="btn-view-project"
-                    data-i18n-title="projects.viewProject"
-                    title="Voir la fiche du projet"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="35"
-                      height="35"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    >
-                      <path
-                        d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
-                      ></path>
-                      <circle cx="12" cy="12" r="3"></circle>
-                    </svg>
-                  </a>
+      <section class="all-news-list section-padding">
+        <div class="container">
+          <div class="news-grid">
+            <!-- Réutiliser la même grille ou une variante -->
+            <!-- Article 1 -->
+            <article class="news-card slide-hidden slide-from-bottom">
+              <a
+                href="/news/article-ia-gestion-projet.html"
+                class="news-card-link"
+              >
+                <div class="news-card-image-container">
+                  <div class="news-card-icon"><i class="fas fa-brain"></i></div>
                 </div>
-              </div>
-            </div>
-
-            <!-- Projet 3 -->
-            <div class="carousel-item">
-              <div class="project-preview" data-aos="fade-up">
-                <img
-                  src="images/jay-wennington-N_Y88TWmGwA-unsplash.jpg"
-                  alt="Ohmyfood"
-                />
-                <div class="project-preview-overlay">
-                  <h3 data-i18n="projectNames.ohmyfood">Ohmyfood</h3>
-                  <a
-                    href="projects/ohmyfood.html"
-                    class="btn-view-project"
-                    data-i18n-title="projects.viewProject"
-                    title="Voir la fiche du projet"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="35"
-                      height="35"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    >
-                      <path
-                        d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
-                      ></path>
-                      <circle cx="12" cy="12" r="3"></circle>
-                    </svg>
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            <!-- Projet 4 -->
-            <div class="carousel-item">
-              <div class="project-preview" data-aos="fade-up">
-                <img src="images/yellow-book.jpeg" alt="Print It" />
-                <div class="project-preview-overlay">
-                  <h3 data-i18n="projectNames.printIt">Print It</h3>
-                  <a
-                    href="projects/print-it.html"
-                    class="btn-view-project"
-                    data-i18n-title="projects.viewProject"
-                    title="Voir la fiche du projet"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="35"
-                      height="35"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    >
-                      <path
-                        d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
-                      ></path>
-                      <circle cx="12" cy="12" r="3"></circle>
-                    </svg>
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            <!-- Projet 5 -->
-            <div class="carousel-item">
-              <div class="project-preview" data-aos="fade-up">
-                <img src="images/sophie-bluel.png" alt="Sophie Bluel" />
-                <div class="project-preview-overlay">
-                  <h3 data-i18n="projectNames.sophieBluel">Sophie Bluel</h3>
-                  <a
-                    href="projects/sophie-bluel.html"
-                    class="btn-view-project"
-                    data-i18n-title="projects.viewProject"
-                    title="Voir la fiche du projet"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="35"
-                      height="35"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    >
-                      <path
-                        d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
-                      ></path>
-                      <circle cx="12" cy="12" r="3"></circle>
-                    </svg>
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            <!-- Projet 6 -->
-            <div class="carousel-item">
-              <div class="project-preview" data-aos="fade-up">
-                <img src="images/jeu_de_memory.jpg" alt="Memory Game" />
-                <div class="project-preview-overlay">
-                  <h3 data-i18n="projectNames.memoryGame">Memory Game</h3>
-                  <a
-                    href="projects/memory-game.html"
-                    class="btn-view-project"
-                    data-i18n-title="projects.viewProject"
-                    title="Voir la fiche du projet"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="35"
-                      height="35"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    >
-                      <path
-                        d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
-                      ></path>
-                      <circle cx="12" cy="12" r="3"></circle>
-                    </svg>
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            <!-- Projet 7 -->
-            <div class="carousel-item">
-              <div class="project-preview" data-aos="fade-up">
-                <img
-                  src="images/imagesArcadiaZoo/Ticketzoo.jpeg"
-                  alt="Arcadia Zoo"
-                />
-                <div class="project-preview-overlay">
-                  <h3 data-i18n="projectNames.arcadiaZoo">Arcadia Zoo</h3>
-                  <a
-                    href="projects/arcadia-zoo.html"
-                    class="btn-view-project"
-                    data-i18n-title="projects.viewProject"
-                    title="Voir la fiche du projet"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="35"
-                      height="35"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    >
-                      <path
-                        d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
-                      ></path>
-                      <circle cx="12" cy="12" r="3"></circle>
-                    </svg>
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            <!-- Projet 8 -->
-            <div class="carousel-item">
-              <div class="project-preview" data-aos="fade-up">
-                <img src="images/blue-1761175.jpg" alt="Budget Buddy" />
-                <div class="project-preview-overlay">
-                  <h3 data-i18n="projectNames.budgetBuddy">Budget Buddy</h3>
-                  <a
-                    href="projects/budget-buddy.html"
-                    class="btn-view-project"
-                    data-i18n-title="projects.viewProject"
-                    title="Voir la fiche du projet"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="35"
-                      height="35"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    >
-                      <path
-                        d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
-                      ></path>
-                      <circle cx="12" cy="12" r="3"></circle>
-                    </svg>
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            <!-- Projet 9 -->
-            <div class="carousel-item">
-              <div class="project-preview" data-aos="fade-up">
-                <img
-                  src="images/imagesTetrisWindsurf/Tetris-cover-page.jpg"
-                  alt="Tetris Windsurf"
-                />
-                <div class="project-preview-overlay">
-                  <h3 data-i18n="projectNames.tetrisWindsurf">
-                    Tetris Windsurf
+                <div class="news-card-content">
+                  <h3 class="news-card-title" data-i18n="news.article1.title">
+                    L'IA révolutionne la gestion de projet
                   </h3>
-                  <a
-                    href="projects/tetris-windsurf.html"
-                    class="btn-view-project"
-                    data-i18n-title="projects.viewProject"
-                    title="Voir la fiche du projet"
+                  <p
+                    class="news-card-summary"
+                    data-i18n="news.article1.summary"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="35"
-                      height="35"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    >
-                      <path
-                        d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
-                      ></path>
-                      <circle cx="12" cy="12" r="3"></circle>
-                    </svg>
-                  </a>
+                    Découvrez comment l'intelligence artificielle transforme le
+                    quotidien des chefs de projet digitaux...
+                  </p>
+                  <span
+                    class="news-card-dateline"
+                    data-i18n="news.article1.dateline"
+                    >Technologie • 28 Mai 2025</span
+                  >
                 </div>
-              </div>
-            </div>
-          </div>
+              </a>
+            </article>
 
-          <!-- Contrôles du carrousel -->
-          <div class="carousel-controls">
-            <button class="carousel-btn prev-btn">
-              <i class="fa fa-chevron-left"></i>
-            </button>
-            <button class="carousel-btn pause-btn" aria-label="Pause/Play">
-              <i class="fa fa-pause" id="pause-icon"></i>
-            </button>
-            <button class="carousel-btn next-btn">
-              <i class="fa fa-chevron-right"></i>
-            </button>
-          </div>
+            <!-- Article 2 -->
+            <article
+              class="news-card slide-hidden slide-from-bottom"
+              style="transition-delay: 0.1s"
+            >
+              <a href="/article-outils-veille.html" class="news-card-link">
+                <div class="news-card-image-container">
+                  <div class="news-card-icon">
+                    <i class="fas fa-binoculars"></i>
+                  </div>
+                </div>
+                <div class="news-card-content">
+                  <h3 class="news-card-title" data-i18n="news.article2.title">
+                    Top 5 des outils de veille pour chefs de projet
+                  </h3>
+                  <p
+                    class="news-card-summary"
+                    data-i18n="news.article2.summary"
+                  >
+                    Une sélection des meilleures plateformes pour rester informé
+                    des dernières innovations et stratégies...
+                  </p>
+                  <span
+                    class="news-card-dateline"
+                    data-i18n="news.article2.dateline"
+                    >Outils • 27 Mai 2025</span
+                  >
+                </div>
+              </a>
+            </article>
 
-          <div class="carousel-dots">
-            <!-- Les points indicateurs seront générés par JavaScript -->
+            <!-- Article 3 (Exemple RGPD) -->
+            <article
+              class="news-card slide-hidden slide-from-bottom"
+              style="transition-delay: 0.2s"
+            >
+              <a
+                href="/news/article-rgpd-tendances.html"
+                class="news-card-link"
+              >
+                <div class="news-card-image-container">
+                  <div class="news-card-icon">
+                    <i class="fas fa-shield-alt"></i>
+                  </div>
+                </div>
+                <div class="news-card-content">
+                  <h3 class="news-card-title" data-i18n="news.article3.title">
+                    RGPD : Les nouvelles obligations à anticiper
+                  </h3>
+                  <p
+                    class="news-card-summary"
+                    data-i18n="news.article3.summary"
+                  >
+                    Restez conforme avec les dernières évolutions réglementaires
+                    en matière de protection des données...
+                  </p>
+                  <span
+                    class="news-card-dateline"
+                    data-i18n="news.article3.dateline"
+                    >Réglementation • 26 Mai 2025</span
+                  >
+                </div>
+              </a>
+            </article>
+            <!-- Article 4 (Exemple RSE) -->
+            <article
+              class="news-card slide-hidden slide-from-bottom"
+              style="transition-delay: 0.3s"
+            >
+              <a href="article-rse-digital.html" class="news-card-link">
+                <div class="news-card-image-container">
+                  <div class="news-card-icon"><i class="fas fa-leaf"></i></div>
+                </div>
+                <div class="news-card-content">
+                  <h3 class="news-card-title" data-i18n="news.article4.title">
+                    L'impact de la RSE dans le secteur digital
+                  </h3>
+                  <p
+                    class="news-card-summary"
+                    data-i18n="news.article4.summary"
+                  >
+                    Comment les entreprises technologiques intègrent la
+                    Responsabilité Sociétale des Entreprises...
+                  </p>
+                  <span
+                    class="news-card-dateline"
+                    data-i18n="news.article4.dateline"
+                    >RSE • 25 Mai 2025</span
+                  >
+                </div>
+              </a>
+            </article>
+
+            <!-- Article 5 (Exemple Tech Futur) -->
+            <article
+              class="news-card slide-hidden slide-from-bottom"
+              style="transition-delay: 0.4s"
+            >
+              <a href="/article-tech-futur.html" class="news-card-link">
+                <div class="news-card-image-container">
+                  <div class="news-card-icon">
+                    <i class="fas fa-rocket"></i>
+                  </div>
+                </div>
+                <div class="news-card-content">
+                  <h3 class="news-card-title" data-i18n="news.article5.title">
+                    Les technologies qui façonneront 2026
+                  </h3>
+                  <p
+                    class="news-card-summary"
+                    data-i18n="news.article5.summary"
+                  >
+                    Prospective sur les innovations majeures attendues l'année
+                    prochaine et leur impact potentiel...
+                  </p>
+                  <span
+                    class="news-card-dateline"
+                    data-i18n="news.article5.dateline"
+                    >Prospective • 24 Mai 2025</span
+                  >
+                </div>
+              </a>
+            </article>
+            <!-- Listez tous vos articles ici -->
           </div>
         </div>
       </section>
@@ -595,7 +438,6 @@
       });
     </script>
     <script src="scripts/translator.js"></script>
-    <script src="scripts/carousel.js"></script>
     <script src="scripts/parallax.js"></script>
     <script src="scripts/theme-switcher.js"></script>
     <script src="scripts/navbar-dropdown.js"></script>
@@ -606,7 +448,7 @@
 </html>
 <!-- Fin du code HTML -->
 <!--
-  Ce code HTML représente la structure d'un portfolio personnel pour un designer et développeur web. 
+  Ce code HTML représente la structure d'un portfolio personnel pour un chef de projet digital, designer et développeur web. 
   Il inclut des sections pour les projets, une présentation personnelle, et un menu de navigation.
   Le code utilise des vidéos, des images, et des animations pour améliorer l'expérience utilisateur.
   Les fonctionnalités incluent un carrousel de projets, un bouton de retour en haut, et un changement de thème.

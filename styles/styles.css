@@ -1,0 +1,497 @@
+/* =========================
+   CONTENEUR PRINCIPAL ET SECTIONS
+   ========================= */
+/* Conteneur principal du contenu */
+main {
+  overflow: hidden;
+  width: 100%;
+  margin: 0px;
+  padding: 0px; /* Supprimez le padding-left: 250px; d'ici s'il y était */
+  background-color: transparent !important;
+  transition: padding-left 0.4s ease; /* Transition pour le décalage fluide */
+}
+
+/* Nouvelle règle : Décaler main lorsque le menu est ouvert */
+body.body-menu-open main {
+  padding-left: 20%; /* IMPORTANT: Cette valeur doit correspondre à la largeur de votre .dropdown-menu. Si width: 250px pour le menu, utilisez padding-left: 250px; ici */
+}
+
+/* Override pour le thème clair */
+[data-theme="light"] main {
+  background-color: rgba(255, 255, 255, 0.997) !important;
+  /* ou utilisez une autre couleur de votre choix */
+}
+
+/* Styles de base pour les sections - Mode sombre par défaut */
+section {
+  scroll-margin-top: 100px; /* Ajuste le point d'arrivée lors du défilement */
+  margin-top: 100px;
+  margin-bottom: 100px; /* Marges entre les sections */
+  background-color: transparent !important;
+  padding: 0px; /* Padding pour l'espace interne */
+}
+
+/* Marge spécifique pour l'ancre #about pour compenser le header fixe */
+section#about,
+#about {
+  scroll-margin-top: 100px;
+  margin-top: 50px;
+  border-radius: 25%;
+}
+
+section#projects,
+#projects {
+  scroll-margin-top: 100px;
+  margin-top: 100px;
+}
+
+
+
+/* =========================
+   PAGE EXPLORER
+   ========================= */
+body.explorer-page {
+  padding-top: 80px; /* Hauteur du header normal */
+}
+
+.explorer-main-content {
+  /* Conteneur principal pour le contenu de la page explorer */
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 0px;
+  min-height: calc(100vh - 80px - 100px); /* viewport - header - footer */
+}
+
+/* Titre animé de la page Explorer */
+.main-page-title-container {
+  /* anciennement #project-display-placeholder */
+  width: 100%;
+  overflow: hidden;
+  padding: 20px 0;
+  text-align: center;
+  margin-top: 30px; /* Pour compenser le header fixe */
+  margin-bottom: 30px;
+}
+
+h1.main-title-animated {
+  font-size: 2.5rem;
+  background: linear-gradient(45deg, var(--accent-color), #c822ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-decoration: none;
+  transition: transform 0.3s;
+  display: inline-block;
+  white-space: nowrap;
+  animation: marquee-main-title 6s linear infinite;
+  position: relative;
+  margin: 20px;
+  padding: 0;
+}
+
+h1.main-title-animated .title-icon {
+  margin-left: 15px;
+  font-size: 2.5rem;
+}
+
+/* Structure layout Explorer (gauche/droite) */
+.explorer-layout-container {
+  display: flex;
+  background-color: transparent !important; /* Fond transparent */
+  border-radius: 15px;
+  box-shadow: 0 5px 20px var(--shadow-color);
+  overflow: hidden; /* Pour coins arrondis et contenu qui dépasse */
+  /* min-height: ...; /* S'adapte au contenu ou peut être défini */
+}
+
+/* Panneau de gauche : Liste des projets */
+.explorer-projects-list-panel {
+  flex: 0 0 320px; /* Largeur fixe */
+  background-color: transparent !important; /* Fond transparent */
+  padding: 20px 30px;
+  margin-top: 0px; /* AJOUT : Pour compenser le header fixe */
+  margin-bottom: 100px; /* AJOUT : Pour compenser le footer fixe */
+  /*border-right: 3px solid var(--accent-color);*/ /* Bordure droite pour séparer les sections */
+  display: flex;
+  flex-direction: column;
+}
+
+.scrollable-project-list-container {
+  flex-grow: 1;
+  overflow-y: auto;
+  position: relative;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE 10+ */
+  /* max-height calculée pour s'adapter à la hauteur disponible */
+  max-height: calc(
+    100vh - 80px - 40px - 100px - 50px - 70px
+  ); /* Ajuster précisément */
+}
+
+.scrollable-project-list-container::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
+}
+
+#explorerProjectList {
+  list-style-type: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+#explorerProjectList li {
+  padding: 12px 15px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--accent-color); /* Couleur d'accentuation */
+  /*border-left: 4px solid var(--border-color-subtle);*/ /* Bordure gauche pour le style */
+  transition: background-color 0.3s ease, color 0.3s ease,
+    border-left-color 0.3s ease, transform 0.2s ease;
+}
+
+#explorerProjectList li:hover {
+  background-color: var(--accent-color-lighter);
+  color: var(--accent-color);
+  transform: translateX(3px);
+}
+
+/* État actif - Thème Sombre (et par défaut) */
+#explorerProjectList li.manual-active-project,
+#explorerProjectList li.auto-active-project {
+  /* background-color: var(--accent-color); */ /* Supprimé pour que seul le texte change */
+  color: #c822ff; /* Texte en couleur d'accentuation */
+  border-left-color: var(--accent-color-darker);
+  transform: translateX(5px);
+}
+
+/* Styles pour les titres et catégories dans la liste */
+#explorerProjectList li .project-list-title {
+  display: block;
+  font-weight: bold;
+  font-size: 1.1rem;
+  margin-bottom: 4px;
+}
+
+#explorerProjectList li .project-list-category {
+  display: block;
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+/* Thème Clair pour la liste des projets */
+[data-theme="light"] #explorerProjectList li {
+  color: var(--accent-color); /* Couleur d'accentuation du thème clair */
+  border-left-color: var(
+    --border-color-subtle
+  ); /* Utilise la variable du thème clair */
+}
+
+[data-theme="light"] #explorerProjectList li:hover {
+  background-color: var(
+    --accent-color-lighter
+  ); /* Utilise la variable du thème clair */
+  color: var(--accent-color);
+}
+
+/* État actif - Thème Clair */
+[data-theme="light"] #explorerProjectList li.manual-active-project,
+[data-theme="light"] #explorerProjectList li.auto-active-project {
+  /* background-color: var(--accent-color); */ /* Supprimé */
+  color: #5d5dff; /* Texte en couleur d'accentuation du thème clair */
+  border-left-color: var(
+    --accent-color-darker
+  ); /* Utilise la variable du thème clair */
+}
+
+/* Panneau de droite : Affichage du projet */
+.explorer-project-display-panel {
+  flex-grow: 1;
+  padding: 30px 30px;
+  margin-top: 0px; /* Pour compenser le header fixe */
+  margin-bottom: 200px; /* Pour compenser le footer fixe */
+  background-color: transparent !important; /* Fond transparent, était var(--background-color) */
+  position: relative;
+  overflow: hidden; /* Empêche le défilement */
+}
+
+.project-display-content {
+  /* Conteneur pour la carte du projet affiché */
+  display: none; /* Caché par défaut */
+  animation: fadeInProjectDisplay 0.5s ease-in-out;
+  text-align: center; /* Centre la carte si elle est plus petite */
+}
+
+.project-display-content.active {
+  display: block; /* Affiché lorsque actif */
+}
+
+/* Cartes de projet (dans le panneau de droite) */
+.project-card-style {
+  background-color: var(--card-bg);
+  border-radius: 10px;
+  box-shadow: 0 4px 15px var(--shadow-color);
+  position: relative; /* Important pour positionner .project-card-overlay et .project-view-icon */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  width: 100%;
+  max-width: 450px; 
+  margin: 0 auto; 
+  overflow: hidden; 
+  /* display: flex; flex-direction: column; /* Supprimé car l'overlay sera sur l'image */
+}
+
+.project-card-style:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 10px 20px var(--accent-color),
+    0 6px 12px rgba(0, 0, 0, 0.3); 
+}
+
+.project-card-link { 
+  display: block; /* Ou inline-block, mais block est souvent plus simple pour les liens conteneurs */
+  text-decoration: none;
+  color: inherit;
+  position: relative; /* Nécessaire si .project-card-overlay est positionné par rapport à lui */
+  height: 100%; /* S'assurer que le lien prend la hauteur de l'image si l'image est le seul contenu visible principal */
+}
+
+
+/* Image de projet */
+.project-display-image { 
+  width: 100%;
+  height: auto; 
+  max-height: 450px; 
+  object-fit: cover;
+  display: block; 
+  transition: filter 0.3s ease;
+  border-radius: 10px; 
+}
+
+.project-card-style:hover .project-display-image {
+  filter: blur(3px) brightness(0.7); 
+}
+
+/* MODIFICATION : .project-card-overlay (conteneur du titre) */
+.project-card-overlay {
+  position: absolute; 
+  /* Positionné pour être sous l'icône oeil */
+  top: calc(50% + 30px + 10px); /* 50% (centre carte) + moitié hauteur oeil (30px) + espace (10px) */
+  left: 50%;
+  transform: translateX(-50%); /* Centré horizontalement */
+  width: auto; /* S'adapte au contenu du titre */
+  max-width: 90%; /* Empêche le titre d'être trop large */
+  background-color: transparent; /* PAS DE BANDE DE FOND */
+  padding: 0; /* Pas de padding pour l'overlay lui-même */
+  box-sizing: border-box; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  opacity: 0; /* Caché par défaut */
+  /* Transition avec un léger délai pour apparaître après l'icône */
+  transition: opacity 0.3s ease 0.1s, top 0.3s ease 0.1s; 
+  z-index: 11; /* Au-dessus de l'icône oeil si jamais il y a chevauchement */
+  pointer-events: none; /* Pour ne pas interférer avec le survol */
+}
+
+.project-card-style:hover .project-card-overlay {
+  opacity: 1; /* Apparaît au survol de la carte */
+  pointer-events: auto;
+}
+
+/* Styles pour le titre h3 existant dans .project-card-overlay */
+.project-card-overlay h3 {
+  background: linear-gradient(45deg, var(--accent-color), #c822ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-decoration: none;
+  transition: transform 0.3s;  
+  font-size: 1.8rem; 
+  font-weight: bold;
+  margin: 0;
+  line-height: 1.3;
+  text-align: center; 
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.267); /* Ombre portée pour lisibilité */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal; /* Permet le retour à la ligne si nécessaire */
+  max-width: 100%; /* S'assure qu'il ne dépasse pas son conteneur .project-card-overlay */
+}
+
+.project-view-icon {
+  position: absolute;
+  top: 50%; 
+  left: 50%; 
+  transform: translate(-50%, -50%) scale(0.8); 
+  background: linear-gradient(45deg, var(--accent-color), #c822ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-decoration: none;
+  transition: transform 0.3s;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  opacity: 0; /* Caché par défaut */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  z-index: 10; 
+}
+
+.project-card-style:hover .project-view-icon {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1); 
+}
+
+.highlight-project {
+  outline: 3px solid var(--accent-color);
+  box-shadow: 0 0 20px var(--accent-color);
+  transition: outline 0.3s, box-shadow 0.3s;
+}
+
+/* =========================
+   ANIMATIONS
+   ========================= */
+@keyframes marquee-main-title {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-110%);
+  }
+}
+
+@keyframes fadeInProjectDisplay {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 576px) {
+  /* Ajuster le Header Compact pour Mobile */
+  header {
+    height: 60px;
+    padding: 0 15px;
+  } /* Header compact */
+  header h1 {
+    font-size: 1rem;
+    margin: 0 10px;
+  } /* Titre plus petit */
+  .header-logo {
+    width: 50px;
+  }
+  .hamburger {
+    font-size: 1rem;
+  } /* Taille de l'icône */
+  #logo-video {
+    height: 40px;
+  } /* Logo plus petit */
+
+  /* Ajuster le Header Compact pour Mobile */
+  .compact-header {
+    padding: 0 15px;
+  } /* Header compact */
+  .compact-header .header-left {
+    gap: 8px;
+  } /* Espacement entre logo et titre */
+  .compact-header .page-title {
+    font-size: 1rem;
+  } /* Titre plus petit */
+  .compact-header #logo-video {
+    height: 30px;
+  } /* Logo plus petit */
+  .compact-header .language-switch img {
+    width: 32px;
+    height: 32px;
+  } /* Icône langue plus petite */
+  .menu-toggle {
+    font-size: 1.8rem;
+    padding: 8px;
+  } /* Bouton menu plus petit */
+  .theme-toggle button {
+    width: 35px;
+    height: 35px;
+  } /* Bouton thème plus petit */
+  .theme-toggle button svg {
+    width: 18px;
+    height: 18px;
+  }
+
+    /* Ajustements dropdown pour mobile */
+  .dropdown-menu {
+    width: 28%;
+    top: 40px; /* Positionné sous le header compact */
+    height: calc(95vh - 0px); /* Hauteur restante */
+    padding: 5px; /* Padding réduit */
+  }
+
+  .dropdown-nav ul {
+    margin-bottom: 40px;
+    margin-top: 100px;
+  }
+
+  .dropdown-nav a {
+    font-size: 0.7rem;
+  } /* Liens plus petits */
+
+  .menu-controls {
+    width: 100px;
+    gap: 15px;
+    margin-left: 0px;
+  } /* Contrôles dropdown */
+
+
+
+  /* Ajuster le menu déroulant pour mobile */
+  .dropdown-menu .social-media {
+    margin-top: 15px;
+    padding-top: 15px;
+    gap: 10px;
+  }
+
+  .dropdown-menu .social-media a {
+    width: 36px;
+    height: 36px;
+  }
+
+  .dropdown-menu .social-media img {
+    width: 30px;
+    height: 30px;
+  }
+
+  .explorer-layout-container {
+    /* AJOUT : Empiler les panneaux verticalement */
+    flex-direction: column;
+  }
+  h1.main-title-animated {
+    font-size: 1.6rem; /* Réduit la taille du titre sur les petits écrans */
+  }
+  .explorer-projects-list-panel {
+    flex: 0 0 100%; /* Panneau de gauche prend toute la largeur */
+    padding: 10px; /* Réduit le padding */
+    border-right: none; /* AJOUT : Supprimer la bordure droite si elle était active */
+  }
+  .explorer-project-display-panel {
+    padding: 40px; /* Réduit le padding */
+    /* S'assure qu'il prend la largeur nécessaire, flex-grow: 1; devrait déjà le faire */
+  }
+  #explorerProjectList li {
+    padding: 10px; /* Réduit le padding des éléments de la liste */
+    font-size: 0.9rem; /* Réduit la taille de la police */
+  }
+
+  .highlight-project {
+  outline: 3px solid var(--accent-color);
+  box-shadow: 0 0 20px var(--accent-color);
+  transition: outline 0.3s, box-shadow 0.3s;
+}
+}
+
+  

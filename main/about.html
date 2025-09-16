@@ -13,11 +13,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Audiowide&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Grape+Nuts&display=swap"
       rel="stylesheet"
     />
     <link rel="preconnect" href="https://player.canva.com" />
-    <link rel="stylesheet" href="styles/style.css" />
+    <link rel="stylesheet" href="/styles/style.css" />
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
     <link
       rel="stylesheet"
@@ -129,23 +129,31 @@
     <!-- Menu dropdown qui apparaît sous le header -->
     <div class="dropdown-menu" id="dropdown-menu">
       <!-- Navigation -->
-      <nav class="dropdown-nav">
+        <nav class="dropdown-nav">
         <ul>
           <li>
             <a href="/index.html" data-i18n="nav.home"><h2>ACCUEIL</h2></a>
           </li>
           <li>
-            <a href="/about.html" data-i18n="nav.about"
+            <a href="/main/about.html" data-i18n="nav.about"
               ><h2>À PROPOS DE MOI</h2></a
             >
           </li>
           <li>
-            <a href="/projects.html" data-i18n="nav.projects"
-              ><h2>MES PROJETS ET COMPÉTENCES</h2></a
+            <a href="/main/explore.html" data-i18n="nav.explore"><h2>EXPLOREZ</h2></a>
+          </li>
+          <li>
+            <a href="/main/projects.html" data-i18n="nav.projects"
+              ><h2>MES PROJETS</h2></a
             >
           </li>
           <li>
-            <a href="/contact.html" data-i18n="nav.contact"
+            <a href="/main/skills.html" data-i18n="nav.skills"
+              ><h2>MES COMPÉTENCES</h2></a
+            >
+          </li>
+          <li>
+            <a href="/main/contact.html" data-i18n="nav.contact"
               ><h2>CONTACTEZ MOI</h2></a
             >
           </li>
@@ -168,7 +176,7 @@
             <!-- Photo de profil -->
             <div class="profile-photo-container intro-photo">
               <img
-                src="/images/1659370989523.jpg"
+                src="/images/Djelloul Prague.webp"
                 alt="YellowBlueSkye - Développeur Web"
                 class="profile-photo"
               />
@@ -222,25 +230,23 @@
               dans ce domaine qui me passionne tant désormais. </span
             ><br />
           </p>
-        </div>
-      </section>
-
-          <!-- Bouton de téléchargement de CV -->
+              <!-- Bouton de téléchargement de CV -->
        <a href="/files/CV_Djelloul_ABID_Chef_de_Projet_Digital.pdf" class="btn-download-cv" target="_blank" title="Télécharger mon CV">
         <i class="fas fa-file-download"></i> <span data-i18n="about.downloadCV">Télécharger mon CV</span>
       </a>
-      
+        </div>
+      </section>
     </main>
 
     <footer id="footer">
       <div class="github">
         <a href="https://github.com/Dev-Djelloul" target="_blank">
-          <img src="images/icons/icons8-github-64.png" alt="Github" />
+          <img src="/images/icons/icons8-github-64.png" alt="Github" />
         </a>
       </div>
       <div>
         <a href="https://www.linkedin.com/in/yellowblueskye/" target="_blank">
-          <img src="images/icons/icons8-linkedin-64.png" alt="LinkedIn" />
+          <img src="/images/icons/icons8-linkedin-64.png" alt="LinkedIn" />
         </a>
       </div>
       <p data-i18n="footer.copyright">
@@ -249,13 +255,12 @@
     </footer>
 
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <script src="scripts/translator.js"></script>
-    <script src="scripts/carousel.js"></script>
-    <script src="scripts/theme-switcher.js"></script>
-    <script src="scripts/navbar-dropdown.js"></script>
-    <script src="scripts/loader.js"></script>
-    <script src="scripts/welcome-animations.js"></script>
-    <script src="scripts/scroll-animations.js"></script>
+    <script src="/scripts/translator.js"></script>
+    <script src="/scripts/theme-switcher.js"></script>
+    <script src="/scripts/navbar-dropdown.js"></script>
+    <script src="/scripts/loader.js"></script>
+    <script src="/scripts/welcome-animations.js"></script>
+    <script src="/scripts/scroll-animations.js"></script>
   </body>
 </html>
 <!-- Fin du code HTML -->
