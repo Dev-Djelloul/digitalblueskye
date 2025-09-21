@@ -70,8 +70,8 @@ body.explorer-page {
   overflow: hidden;
   padding: 20px 0;
   text-align: center;
-  margin-top: 30px; /* Pour compenser le header fixe */
-  margin-bottom: 30px;
+  margin-top: 80px; /* Pour compenser le header fixe */
+  margin-bottom: 50px;
 }
 
 h1.main-title-animated {
@@ -424,12 +424,38 @@ h1.main-title-animated .title-icon {
     height: 18px;
   }
 
-    /* Ajustements dropdown pour mobile */
+  /* Bloquer le scroll du body quand le menu est ouvert */
+  body.body-menu-open {
+    overflow: hidden; /* ✅ Empêche le scroll de la page */
+    position: fixed; /* ✅ Fixe la position du body */
+    width: 100%; /* ✅ Maintient la largeur */
+  }
+
+  /* Empêcher le décalage du main en mobile */
+  body.body-menu-open main {
+    padding-left: 0 !important; /* ✅ Annule le décalage */
+  }
+  
+  /* Empêcher le décalage du footer en mobile */
+  body.body-menu-open #footer {
+    padding-left: 20px !important; /* ✅ Garde le padding normal */
+  }
+  
+  /* Faire que le menu passe au-dessus avec un overlay plus visible */
+  .menu-overlay.active {
+    background-color: #c822ff; /* ✅ Overlay sombre visible */
+    pointer-events: auto; /* ✅ Permet de fermer en cliquant sur l'overlay */
+  }
+  
+  /* Ajuster la largeur du menu pour mobile */
   .dropdown-menu {
-    width: 28%;
+    width: 100%; /* ✅ Plus large que les 30% actuels pour une meilleure UX */
+    z-index: 2000; /* ✅ S'assure qu'il passe au-dessus */
     top: 40px; /* Positionné sous le header compact */
     height: calc(95vh - 0px); /* Hauteur restante */
-    padding: 5px; /* Padding réduit */
+    padding: 10px; /* Padding réduit */
+    position: fixed; /* ✅ Menu fixe */
+    overflow: hidden; /* ✅ Pas de scroll interne au menu */
   }
 
   .dropdown-nav ul {

@@ -7,15 +7,10 @@
       name="description"
       content="Portfolio de Digitalblueskye, intégrateur web et designer web créatif et passionné. Spécialisé en HTML, CSS, JavaScript et responsive design. Découvrez mes projets."
     />
-    <title data-i18n="meta.title">
-    Digitalblueskye Blog 
-    </title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Grape+Nuts&display=swap"
-      rel="stylesheet"
-    />
+    <title data-i18n="meta.title">Digitalblueskye Blog</title>
+ <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Iceland&display=swap" rel="stylesheet">
     <link rel="preconnect" href="https://player.canva.com" />
     <link rel="stylesheet" href="/styles/style.css" />
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
@@ -25,18 +20,6 @@
     />
   </head>
   <body>
-    <!-- Loader Start -->
-    <div id="loader-wrapper">
-      <video id="loader-video" autoplay loop muted playsinline>
-        <!-- <source src="/images/logo-video.webm" type="video/webm"> -->
-        <source
-          src="images/logoVideos/Loader-Globe-Video.mp4"
-          type="video/mp4"
-        />
-        Votre navigateur ne supporte pas la vidéo HTML5.
-      </video>
-    </div>
-    <!-- Loader End -->
 
     <!-- Header fixe avec logo et hamburger -->
     <header class="site-header">
@@ -44,12 +27,46 @@
       <!-- Logo -->
       <div class="header-logo">
         <a href="/index.html" title="Retour à l'accueil">
-          <video id="logo-video" autoplay loop muted playsinline>
+          <video
+            id="logo-video"
+            autoplay
+            loop
+            muted
+            playsinline
+            aria-label="Logo animé Digitalblueskye"
+          >
             <source
               src="/images/logoVideos/Logo-Globe-Video.mp4"
               type="video/mp4"
             />
-            <span>YELLOWBLUESKYE LOGO</span>
+            <track
+              kind="captions"
+              src="/images/logoVideos/logo-captions-fr.vtt"
+              srclang="fr"
+              label="Français"
+              default
+            />
+            <track
+              kind="captions"
+              src="/images/logoVideos/logo-captions-en.vtt"
+              srclang="en"
+              label="English"
+            />
+            <track
+              kind="descriptions"
+              src="/images/logoVideos/logo-descriptions-fr.vtt"
+              srclang="fr"
+              kind="descriptions"
+              label="Description française"
+            />
+            <track
+              kind="descriptions"
+              src="/images/logoVideos/logo-descriptions-en.vtt"
+              srclang="en"
+              kind="descriptions"
+              label="English description"
+            />
+            <span>DIGITALBLUESKYE LOGO</span>
           </video>
         </a>
       </div>
@@ -140,7 +157,9 @@
             >
           </li>
           <li>
-            <a href="/main/explore.html" data-i18n="nav.explore"><h2>EXPLOREZ</h2></a>
+            <a href="/main/explore.html" data-i18n="nav.explore"
+              ><h2>EXPLOREZ</h2></a
+            >
           </li>
           <li>
             <a href="/main/projects.html" data-i18n="nav.projects"
@@ -176,15 +195,16 @@
           <!-- Regroupement des paragraphes et du bouton -->
           <div class="text-content">
             <div class="job-title">
-              <h2 data-i18n="about.title" class="animated-title">
+              <h2 data-i18n="home.title" class="animated-title">
                 <!-- Classe ajoutée -->
                 CHEF DE PROJET DIGITAL
               </h2>
             </div>
             <br />
-            <p data-i18n="about.invitation" class="animated-paragraph">
+            <p data-i18n="home.invitation" class="animated-paragraph">
               <!-- Classe ajoutée -->
-              N'hésitez pas à me contacter afin de travailler ensemble sur vos projets digitaux !
+              N'hésitez pas à me contacter afin de travailler ensemble sur vos
+              projets digitaux !
             </p>
           </div>
         </div>
@@ -192,7 +212,7 @@
         <a
           href="/main/explore.html"
           class="btn-explore"
-          data-i18n="about.explore"
+          data-i18n="home.explore"
           title="Explorer les projets de mon portfolio"
           >Explorez mon portfolio</a
         >
@@ -204,7 +224,8 @@
           Actualités et Tendances Digitales
         </h1>
         <p class="page-subtitle text-center" data-i18n="news.pageSubtitle">
-          L'analyse mensuelle sur les dernières technologies, réglementations et la RSE !
+          L'analyse mensuelle sur les dernières technologies, réglementations et
+          la RSE !
         </p>
       </section>
 
@@ -437,11 +458,11 @@
         });
       });
     </script>
+    <script src="scripts/loader.js"></script>
     <script src="scripts/translator.js"></script>
     <script src="scripts/parallax.js"></script>
     <script src="scripts/theme-switcher.js"></script>
     <script src="scripts/navbar-dropdown.js"></script>
-    <script src="scripts/loader.js"></script>
     <script src="scripts/welcome-animations.js"></script>
     <script src="scripts/scroll-animations.js"></script>
   </body>

@@ -11,7 +11,7 @@
   },
 
   "nav": {
-    "home": "Home",    
+    "home": "Home",
     "about": "About me",
     "explore": "Explore",
     "projects": "My projects",
@@ -20,16 +20,78 @@
     "contact": "Contact me"
   },
 
+  "home": {
+    "title": "DIGITAL PROJECT MANAGER",
+    "invitation": "Feel free to contact me to work together on your digital projects!",
+    "explore": "Explore my portfolio"
+  },
+
+  "news": {
+    "pageTitle": "Digital News and Trends",
+    "pageSubtitle": "Monthly analysis on the latest technologies, regulations and CSR!",
+    "backToList": "Back to news",
+    "article1": {
+      "title": "AI is Revolutionizing Project Management",
+      "summary": "Discover how artificial intelligence is transforming the daily lives of digital project managers...",
+      "dateline": "Technology • May 28, 2025",
+      "metaTitle": "AI is Revolutionizing Project Management - Digitalblueskye",
+      "metaDescription": "Detailed analysis of the impact of artificial intelligence on modern project management methodologies.",
+      "publishDate": "May 28, 2025",
+      "category": "Technology",
+      "fullContent": "<p>Artificial intelligence (AI) is no longer a mere futuristic promise; it is deeply embedded in project management tools and methodologies. From automating repetitive tasks to predictive risk analysis, AI offers new perspectives for process optimization and improved decision-making.</p><h2>Impact on Planning</h2><p>AI algorithms can analyze massive volumes of data from past projects to identify patterns, predict task durations with greater accuracy, and optimize resource allocation. This allows for the creation of more realistic schedules and reduces uncertainties.</p><h2>Automation and Assistance</h2><p>Many time-consuming tasks, such as report generation, progress tracking, or document management, can be partially or fully automated. AI can also serve as a virtual assistant, answering team members' questions or flagging points of concern.</p><h2>Proactive Risk Management</h2><p>By continuously analyzing project data and external factors, AI can identify potential risks long before they become critical, enabling project managers to implement preventive measures.</p><p>Although AI offers considerable advantages, its integration also raises ethical questions and requires new skills. Team training and a thoughtful approach are essential to fully harness its potential.</p>"
+    },
+    "article2": {
+      "title": "Top 5 Monitoring Tools for Project Managers",
+      "summary": "A selection of the best platforms to stay informed about the latest innovations and strategies...",
+      "dateline": "Tools • May 27, 2025",
+      "metaTitle": "Top 5 Monitoring Tools for Project Managers - Digitalblueskye",
+      "metaDescription": "Discover our selection of the 5 best technological and competitive intelligence tools essential for any digital project manager.",
+      "publishDate": "May 27, 2025",
+      "category": "Tools",
+      "fullContent": "<p>In a constantly evolving digital environment, technological and competitive intelligence is crucial for any project manager. Here is a selection of 5 essential tools:</p><ol><li><strong>Feedly:</strong> A powerful RSS feed aggregator to follow blogs, news sites, and specialized publications.</li><li><strong>Google Alerts:</strong> Simple and effective for monitoring specific keywords on the web.</li><li><strong>Mention:</strong> Ideal for social listening and online reputation monitoring.</li><li><strong>Talkwalker:</strong> A more advanced platform for social media analysis and competitive intelligence.</li><li><strong>Pocket:</strong> Perfect for saving articles and videos to consult later, even offline.</li></ol><p>Choosing the right tools and defining a clear monitoring strategy will allow you to stay at the forefront and anticipate trends for your projects.</p>"
+    },
+    "article3": {
+      "title": "GDPR: New Obligations to Anticipate",
+      "summary": "Stay compliant with the latest regulatory developments in data protection...",
+      "dateline": "Regulation • May 26, 2025",
+      "metaTitle": "GDPR: New Obligations and Compliance - Digitalblueskye",
+      "metaDescription": "Analysis of the latest GDPR developments and obligations to anticipate for companies in 2025.",
+      "publishDate": "May 26, 2025",
+      "category": "Regulation",
+      "fullContent": "<p>The General Data Protection Regulation (GDPR) continues to evolve. In 2025, new interpretations and obligations are emerging, particularly concerning the use of artificial intelligence and data transfers outside the EU. It is crucial for companies to...</p><h2>Consent and AI</h2><p>The use of personal data to train AI models requires special attention to the legal basis for processing and transparency towards data subjects...</p>"
+    },
+    "article4": {
+      "title": "The Impact of CSR in the Digital Sector",
+      "summary": "How technology companies are integrating Corporate Social Responsibility...",
+      "dateline": "CSR • May 25, 2025",
+      "metaTitle": "CSR and Digital: Challenges and Opportunities - Digitalblueskye",
+      "metaDescription": "Exploration of the integration of Corporate Social Responsibility (CSR) in the digital sector and its impacts.",
+      "publishDate": "May 25, 2025",
+      "category": "CSR",
+      "fullContent": "<p>Corporate Social Responsibility (CSR) is taking on an increasingly important role in the digital sector. Beyond the environmental impact of data centers and equipment (Green IT), companies are expected to address social aspects such as inclusion, AI ethics, and user protection...</p><h2>Responsible Digital Practices</h2><p>The concept of responsible digital practices encompasses eco-design of services, accessibility, and digital sobriety...</p>"
+    },
+    "article5": {
+      "title": "Technologies That Will Shape 2026",
+      "summary": "Outlook on major innovations expected next year and their potential impact...",
+      "dateline": "Foresight • May 24, 2025",
+      "metaTitle": "Key Technologies of 2026 - Digitalblueskye",
+      "metaDescription": "What technologies will mark the year 2026? A prospective analysis of emerging trends.",
+      "publishDate": "May 24, 2025",
+      "category": "Foresight",
+      "fullContent": "<p>As 2025 draws to a close, what are the major technological trends shaping up for 2026? Will quantum computing begin to deliver on its promises? Will extended reality (XR) become mainstream? And what will be the next milestone for generative artificial intelligence?...</p><h2>Web3 and Metaverses</h2><p>After a hype phase, concrete applications of Web3 and metaverses continue to develop, particularly in gaming, training, and commerce...</p>"
+    }
+  },
+
   "about": {
     "title": "DIGITAL PROJECT MANAGER",
     "invitation": "Do not hesitate to contact me to work together on your digital projects!",
     "explore": "Start exploring",
-    "intro": "Hey! My name is Djelloul, I'm a Parisian passionate about art, ancient civilizations, traveling around the globe and long bike rides 🚲",
-    "background": "With a classic university background, I've spent the last few years literally falling in love 🖤 with the web universe in all its forms, languages, programming languages and people",
-    "journey": "Since that day, I've become an enthusiastic and dedicated digital learner!",
-    "education": "I present here my first projects completed during my training with",
+    "intro": "Hey! My name is Djelloul, but you can call me Yellow. I'm a Parisian with a passion for art, ancient civilizations, traveling around the world, and long bike rides 🚲",
+    "background": "With a traditional university background, I've spent the last few years literally falling in love 🖤 with the web universe in all its forms—languages, programming languages, and the amazing people in this field",
+    "journey": "Since that day, I have pursued various training programs and have become an enthusiastic and dedicated digital learner!",
+    "education": "Here I present my first projects completed during my training with",
     "and": " and ",
-    "future": "I hope to learn more and continue to improve in this field that I'm now so passionate about.",
+    "future": "I hope to continue learning and improving in this field that I'm so passionate about.",
     "downloadCV": "Download my CV"
   },
 
@@ -38,17 +100,11 @@
   },
 
   "projects": {
-    "title": "Explore my projects in pictures",
     "pageTitle": "Projects - Digitalblueskye Blog",
-    "headerTitle": "MY PROJECTS",
-    "subtitle": "MY PROJECTS & SKILLS",
-    "allTitle": "All my projects",
-    "viewProject": "Live Demo",
-    "viewLive": "Learn more about this project",
-    "viewCode": "View Source Code",
-    "prevProject": "Previous Project: {projectName}",
-    "nextProject": "Next Project: {projectName}"
+    "allTitle": "My projects",
+    "viewLive": "Learn more about this project"
   },
+
   "skills": {
     "title": "My hard skills",
     "pageTitle": "Skills - Digitalblueskye Blog",
@@ -58,7 +114,7 @@
     "design": "Design",
     "database": "Databases"
   },
-  
+
   "contact": {
     "name": "Name",
     "email": "Email",
@@ -85,7 +141,7 @@
     "copyright": "© 2024 YellowBlueSkye. All rights reserved."
   },
 
-   "explorerNames": {
+  "explorerNames": {
     "ridingCities": "RIDING CITIES",
     "booki": "BOOKI",
     "ohmyfood": "OHMYFOOD",
@@ -232,80 +288,5 @@
 
   "ui": {
     "backToTop": "Back to top"
-  },
-
-  "home": {
-    "welcome": "Welcome to My Portfolio",
-    "introduction": "I'm Djelloul, a passionate web developer and designer.",
-    "aboutMe": "About Me",
-    "mySkills": "My Skills",
-    "myProjects": "My Projects",
-    "contactMe": "Contact Me",
-    "languageSwitch": "Switch to English",
-    "exploreButton": "Explore My Work",
-    "downloadCV": "Download My CV",
-    "radarTeaserTitle": "Follow the Latest Digital Trends",
-    "radarArticle1Title": "AI Revolutionizes Project Management",
-    "radarArticle1Summary": "AI is deeply embedding itself in project management tools and methodologies, transforming the daily lives of digital project managers...",
-    "radarArticle2Title": "Top 5 Monitoring Tools for PMs",
-    "radarArticle2Summary": "Staying informed is crucial. Discover a selection of essential tools for effective monitoring...",
-    "radarReadMore": "Decrypt the Signal",
-    "viewAllRadar": "Explore My Entire Digital Radar"
-  },
-
-  "news": {
-    "pageTitle": "Digital News and Trends",
-    "pageSubtitle": "Monthly analysis on the latest technologies, regulations and CSR!",
-    "backToList": "Back to news",
-    "article1": {
-      "title": "AI is Revolutionizing Project Management",
-      "summary": "Discover how artificial intelligence is transforming the daily lives of digital project managers...",
-      "dateline": "Technology • May 28, 2025",
-      "metaTitle": "AI is Revolutionizing Project Management - Digitalblueskye",
-      "metaDescription": "Detailed analysis of the impact of artificial intelligence on modern project management methodologies.",
-      "publishDate": "May 28, 2025",
-      "category": "Technology",
-      "fullContent": "<p>Artificial intelligence (AI) is no longer a mere futuristic promise; it is deeply embedded in project management tools and methodologies. From automating repetitive tasks to predictive risk analysis, AI offers new perspectives for process optimization and improved decision-making.</p><h2>Impact on Planning</h2><p>AI algorithms can analyze massive volumes of data from past projects to identify patterns, predict task durations with greater accuracy, and optimize resource allocation. This allows for the creation of more realistic schedules and reduces uncertainties.</p><h2>Automation and Assistance</h2><p>Many time-consuming tasks, such as report generation, progress tracking, or document management, can be partially or fully automated. AI can also serve as a virtual assistant, answering team members' questions or flagging points of concern.</p><h2>Proactive Risk Management</h2><p>By continuously analyzing project data and external factors, AI can identify potential risks long before they become critical, enabling project managers to implement preventive measures.</p><p>Although AI offers considerable advantages, its integration also raises ethical questions and requires new skills. Team training and a thoughtful approach are essential to fully harness its potential.</p>"
-    },
-    "article2": {
-      "title": "Top 5 Monitoring Tools for Project Managers",
-      "summary": "A selection of the best platforms to stay informed about the latest innovations and strategies...",
-      "dateline": "Tools • May 27, 2025",
-      "metaTitle": "Top 5 Monitoring Tools for Project Managers - Digitalblueskye",
-      "metaDescription": "Discover our selection of the 5 best technological and competitive intelligence tools essential for any digital project manager.",
-      "publishDate": "May 27, 2025",
-      "category": "Tools",
-      "fullContent": "<p>In a constantly evolving digital environment, technological and competitive intelligence is crucial for any project manager. Here is a selection of 5 essential tools:</p><ol><li><strong>Feedly:</strong> A powerful RSS feed aggregator to follow blogs, news sites, and specialized publications.</li><li><strong>Google Alerts:</strong> Simple and effective for monitoring specific keywords on the web.</li><li><strong>Mention:</strong> Ideal for social listening and online reputation monitoring.</li><li><strong>Talkwalker:</strong> A more advanced platform for social media analysis and competitive intelligence.</li><li><strong>Pocket:</strong> Perfect for saving articles and videos to consult later, even offline.</li></ol><p>Choosing the right tools and defining a clear monitoring strategy will allow you to stay at the forefront and anticipate trends for your projects.</p>"
-    },
-    "article3": {
-      "title": "GDPR: New Obligations to Anticipate",
-      "summary": "Stay compliant with the latest regulatory developments in data protection...",
-      "dateline": "Regulation • May 26, 2025",
-      "metaTitle": "GDPR: New Obligations and Compliance - Digitalblueskye",
-      "metaDescription": "Analysis of the latest GDPR developments and obligations to anticipate for companies in 2025.",
-      "publishDate": "May 26, 2025",
-      "category": "Regulation",
-      "fullContent": "<p>The General Data Protection Regulation (GDPR) continues to evolve. In 2025, new interpretations and obligations are emerging, particularly concerning the use of artificial intelligence and data transfers outside the EU. It is crucial for companies to...</p><h2>Consent and AI</h2><p>The use of personal data to train AI models requires special attention to the legal basis for processing and transparency towards data subjects...</p>"
-    },
-    "article4": {
-      "title": "The Impact of CSR in the Digital Sector",
-      "summary": "How technology companies are integrating Corporate Social Responsibility...",
-      "dateline": "CSR • May 25, 2025",
-      "metaTitle": "CSR and Digital: Challenges and Opportunities - Digitalblueskye",
-      "metaDescription": "Exploration of the integration of Corporate Social Responsibility (CSR) in the digital sector and its impacts.",
-      "publishDate": "May 25, 2025",
-      "category": "CSR",
-      "fullContent": "<p>Corporate Social Responsibility (CSR) is taking on an increasingly important role in the digital sector. Beyond the environmental impact of data centers and equipment (Green IT), companies are expected to address social aspects such as inclusion, AI ethics, and user protection...</p><h2>Responsible Digital Practices</h2><p>The concept of responsible digital practices encompasses eco-design of services, accessibility, and digital sobriety...</p>"
-    },
-    "article5": {
-      "title": "Technologies That Will Shape 2026",
-      "summary": "Outlook on major innovations expected next year and their potential impact...",
-      "dateline": "Foresight • May 24, 2025",
-      "metaTitle": "Key Technologies of 2026 - Digitalblueskye",
-      "metaDescription": "What technologies will mark the year 2026? A prospective analysis of emerging trends.",
-      "publishDate": "May 24, 2025",
-      "category": "Foresight",
-      "fullContent": "<p>As 2025 draws to a close, what are the major technological trends shaping up for 2026? Will quantum computing begin to deliver on its promises? Will extended reality (XR) become mainstream? And what will be the next milestone for generative artificial intelligence?...</p><h2>Web3 and Metaverses</h2><p>After a hype phase, concrete applications of Web3 and metaverses continue to develop, particularly in gaming, training, and commerce...</p>"
-    }
   }
 }

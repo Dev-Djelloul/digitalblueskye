@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let currentActiveListIndex = -1;
   let autoScrollListIntervalId = null;
-  const autoScrollListDelay = 2500;
+  const autoScrollListDelay = 3750;
   let isPausedByInteraction = false; // Indique si une interaction utilisateur a mis en pause
 
   if (projectListItems.length === 0) {

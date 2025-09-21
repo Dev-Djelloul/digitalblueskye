@@ -13,7 +13,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Grape+Nuts&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Iceland&display=swap"
       rel="stylesheet"
     />
     <link rel="preconnect" href="https://player.canva.com" />
@@ -116,7 +116,7 @@
     <!-- Menu dropdown qui apparaît sous le header -->
     <div class="dropdown-menu" id="dropdown-menu">
       <!-- Navigation -->
-       <nav class="dropdown-nav">
+      <nav class="dropdown-nav">
         <ul>
           <li>
             <a href="/index.html" data-i18n="nav.home"><h2>ACCUEIL</h2></a>
@@ -127,7 +127,9 @@
             >
           </li>
           <li>
-            <a href="/main/explore.html" data-i18n="nav.explore"><h2>EXPLOREZ</h2></a>
+            <a href="/main/explore.html" data-i18n="nav.explore"
+              ><h2>EXPLOREZ</h2></a
+            >
           </li>
           <li>
             <a href="/main/projects.html" data-i18n="nav.projects"
@@ -153,48 +155,166 @@
     <!-- Overlay pour fermer le menu -->
     <div class="menu-overlay" id="menu-overlay"></div>
     <!-- Fin du menu dropdown -->
-<main>    <!-- Section Projet Détaillé -->
-    <section class="project-detail">
-      <div class="project-hero" data-aos="fade-up">
-        <img src="../images/jeu_de_memory.jpg" alt="Projet Memory Game" />
-      </div>
-
-      <div class="project-content" data-aos="fade-up">
-        <h2 class="title-banner" data-i18n="projectNames.memoryGame">
-          MEMORY GAME
-        </h2>
-
-        <p data-i18n="projectDescriptions.memoryGame.full">
-          Memory Game est un jeu de mémoire créé avec HTML, CSS et JavaScript,
-          et publié sur GitHub Pages. Il a été conçu dans le cadre de ma
-          formation avec Studi pour maîtriser les fondamentaux du développement
-          web.
-        </p>
-
-        <div class="project-tech">
-          <span>HTML5</span>
-          <span>CSS3</span>
-          <span>JavaScript</span>
-          <span>Animations</span>
+    <main>
+      <!-- Section Projet Détaillé -->
+      <section class="project-detail">
+        <div class="project-hero" data-aos="fade-up">
+          <img src="../images/jeu_de_memory.jpg" alt="Projet Memory Game" />
         </div>
 
-        <div class="project-links">
-          <a
-            href="/main/projects.html"
-            class="btn-back-projects"
-            data-i18n="projectDetails.backToProjectsList"
+        <div class="project-content" data-aos="fade-up">
+          <h2 class="title-banner" data-i18n="projectNames.memoryGame">
+            MEMORY GAME
+          </h2>
+
+          <p data-i18n="projectDescriptions.memoryGame.full">
+            Memory Game est un jeu de mémoire créé avec HTML, CSS et JavaScript,
+            et publié sur GitHub Pages. Il a été conçu dans le cadre de ma
+            formation avec Studi pour maîtriser les fondamentaux du
+            développement web.
+          </p>
+
+          <div class="project-tech">
+            <span>HTML5</span>
+            <span>CSS3</span>
+            <span>JavaScript</span>
+            <span>Animations</span>
+          </div>
+
+          <div class="project-links">
+            <a
+              href="/main/projects.html"
+              class="btn-back-projects"
+              data-i18n="projectDetails.backToProjectsList"
+            >
+              Tous les projets
+            </a>
+            <a
+              href="https://dev-djelloul.github.io/Memory_Game/"
+              target="_blank"
+              data-i18n="projectDetails.viewLive"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1-2-2h6"
+                ></path>
+                <polyline points="15 3 21 3 21 9"></polyline>
+                <line x1="10" y1="14" x2="21" y2="3"></line>
+              </svg>
+              Visiter le site
+            </a>
+            <a
+              href="https://github.com/Dev-Djelloul/Memory_Game"
+              target="_blank"
+              class="btn-view-code"
+              data-i18n="projectDetails.viewCode"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path
+                  d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
+                />
+              </svg>
+              Code source
+            </a>
+          </div>
+        </div>
+
+        <div class="project-content" data-aos="fade-up">
+          <h3
+            class="title-banner section-title"
+            data-i18n="projectDetails.details"
           >
-            Tous les projets
-          </a>
+            DÉTAILS DU PROJET
+          </h3>
+
+          <h4 data-i18n="projectDetails.objective">Objectif</h4>
+          <p data-i18n="projectDetails.memoryGame.objective">
+            L'objectif de ce projet était de créer un jeu de mémoire interactif
+            pour démontrer mes compétences en JavaScript. Le jeu devait inclure
+            un système de score, un minuteur et des niveaux de difficulté
+            variables.
+          </p>
+
+          <h4 data-i18n="projectDetails.technologies">
+            Technologies utilisées
+          </h4>
+          <p data-i18n="projectDetails.memoryGame.technologiesDetail">
+            Ce projet a été construit en utilisant HTML5, CSS3 pour la mise en
+            page et le style des cartes et du plateau de jeu, et JavaScript pour
+            toutes les fonctionnalités interactives. J'ai implémenté la gestion
+            des événements pour le retournement des cartes, la validation des
+            correspondances et la gestion de l'état du jeu.
+          </p>
+
+          <h4 data-i18n="projectDetails.challengesAndSolutions">
+            Défis et solutions
+          </h4>
+          <p data-i18n="projectDetails.memoryGame.challengesSolutions">
+            Le défi principal était de créer une animation fluide pour le
+            retournement des cartes et de gérer l'état du jeu tout au long de la
+            session. J'ai résolu ce problème en utilisant des transitions CSS
+            pour les animations et en construisant un système robuste de gestion
+            d'état en JavaScript pour suivre les cartes retournées, les
+            correspondances et la progression du jeu.
+          </p>
+        </div>
+
+        <div class="project-gallery" data-aos="fade-up">
+          <h3 class="title-banner" data-i18n="projectDetails.gallery">
+            GALERIE
+          </h3>
+          <div class="gallery-grid">
+            <div class="gallery-item">
+              <img
+                src="../images/imagesMemoryGame/Memory Game Home Page.png"
+                alt="Écran de démarrage"
+              />
+            </div>
+            <div class="gallery-item">
+              <img
+                src="../images/imagesMemoryGame/Memory Game Play Page.png"
+                alt="Jeu en cours"
+              />
+            </div>
+            <div class="gallery-item">
+              <img
+                src="../images/imagesMemoryGame/Memory Win Page.png"
+                alt="Écran de victoire"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Navigation entre projets -->
+        <div class="project-navigation">
+          <!-- Lien Projet Précédent -->
           <a
-            href="https://dev-djelloul.github.io/Memory_Game/"
-            target="_blank"
-            data-i18n="projectDetails.viewLive"
+            href="sophie-bluel.html"
+            class="prev-project"
+            data-project-key="sophieBluel"
+            data-i18n-title="projects.prevProject"
+            title="Projet Précédent : Sophie Bluel"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
+              width="24"
+              height="24"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -202,151 +322,39 @@
               stroke-linecap="round"
               stroke-linejoin="round"
             >
-              <path
-                d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1-2-2h6"
-              ></path>
-              <polyline points="15 3 21 3 21 9"></polyline>
-              <line x1="10" y1="14" x2="21" y2="3"></line>
+              <line x1="19" y1="12" x2="5" y2="12"></line>
+              <polyline points="12 19 5 12 12 5"></polyline>
             </svg>
-            Visiter le site
+            <span class="project-name-display">Sophie Bluel</span>
           </a>
+
+          <!-- Lien Projet Suivant -->
           <a
-            href="https://github.com/Dev-Djelloul/Memory_Game"
-            target="_blank"
-            class="btn-view-code"
-            data-i18n="projectDetails.viewCode"
+            href="arcadia-zoo.html"
+            class="next-project"
+            data-project-key="arcadiaZoo"
+            data-i18n-title="projects.nextProject"
+            title="Projet Suivant : Arcadia Zoo"
           >
+            <span class="project-name-display">Arcadia Zoo</span>
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
+              width="24"
+              height="24"
               viewBox="0 0 24 24"
-              fill="currentColor"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
             >
-              <path
-                d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
-              />
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
             </svg>
-            Code source
           </a>
         </div>
-      </div>
-
-      <div class="project-content" data-aos="fade-up">
-        <h3
-          class="title-banner section-title"
-          data-i18n="projectDetails.details"
-        >
-          DÉTAILS DU PROJET
-        </h3>
-
-        <h4 data-i18n="projectDetails.objective">Objectif</h4>
-        <p data-i18n="projectDetails.memoryGame.objective">
-          L'objectif de ce projet était de créer un jeu de mémoire interactif
-          pour démontrer mes compétences en JavaScript. Le jeu devait inclure un
-          système de score, un minuteur et des niveaux de difficulté variables.
-        </p>
-
-        <h4 data-i18n="projectDetails.technologies">Technologies utilisées</h4>
-        <p data-i18n="projectDetails.memoryGame.technologiesDetail">
-          Ce projet a été construit en utilisant HTML5, CSS3 pour la mise en
-          page et le style des cartes et du plateau de jeu, et JavaScript pour
-          toutes les fonctionnalités interactives. J'ai implémenté la gestion
-          des événements pour le retournement des cartes, la validation des
-          correspondances et la gestion de l'état du jeu.
-        </p>
-
-        <h4 data-i18n="projectDetails.challengesAndSolutions">
-          Défis et solutions
-        </h4>
-        <p data-i18n="projectDetails.memoryGame.challengesSolutions">
-          Le défi principal était de créer une animation fluide pour le
-          retournement des cartes et de gérer l'état du jeu tout au long de la
-          session. J'ai résolu ce problème en utilisant des transitions CSS pour
-          les animations et en construisant un système robuste de gestion d'état
-          en JavaScript pour suivre les cartes retournées, les correspondances
-          et la progression du jeu.
-        </p>
-      </div>
-
-      <div class="project-gallery" data-aos="fade-up">
-        <h3 class="title-banner" data-i18n="projectDetails.gallery">GALERIE</h3>
-        <div class="gallery-grid">
-          <div class="gallery-item">
-            <img
-              src="../images/imagesMemoryGame/Memory Game Home Page.png"
-              alt="Écran de démarrage"
-            />
-          </div>
-          <div class="gallery-item">
-            <img
-              src="../images/imagesMemoryGame/Memory Game Play Page.png"
-              alt="Jeu en cours"
-            />
-          </div>
-          <div class="gallery-item">
-            <img
-              src="../images/imagesMemoryGame/Memory Win Page.png"
-              alt="Écran de victoire"
-            />
-          </div>
-        </div>
-      </div>
-
-      <!-- Navigation entre projets -->
-      <div class="project-navigation">
-        <!-- Lien Projet Précédent -->
-        <a
-          href="sophie-bluel.html"
-          class="prev-project"
-          data-project-key="sophieBluel"
-          data-i18n-title="projects.prevProject"
-          title="Projet Précédent : Sophie Bluel"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <line x1="19" y1="12" x2="5" y2="12"></line>
-            <polyline points="12 19 5 12 12 5"></polyline>
-          </svg>
-          <span class="project-name-display">Sophie Bluel</span>
-        </a>
-
-        <!-- Lien Projet Suivant -->
-        <a
-          href="arcadia-zoo.html"
-          class="next-project"
-          data-project-key="arcadiaZoo"
-          data-i18n-title="projects.nextProject"
-          title="Projet Suivant : Arcadia Zoo"
-        >
-          <span class="project-name-display">Arcadia Zoo</span>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-            <polyline points="12 5 19 12 12 19"></polyline>
-          </svg>
-        </a>
-      </div>
-    </section>
-</main>
+      </section>
+    </main>
 
     <footer id="footer">
       <div class="github">
