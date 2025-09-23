@@ -169,7 +169,7 @@ h1.main-title-animated .title-icon {
 #explorerProjectList li .project-list-title {
   display: block;
   font-weight: bold;
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   margin-bottom: 4px;
 }
 
@@ -443,7 +443,7 @@ h1.main-title-animated .title-icon {
   
   /* Faire que le menu passe au-dessus avec un overlay plus visible */
   .menu-overlay.active {
-    background-color: #c822ff; /* ✅ Overlay sombre visible */
+    background-color: rgb(35, 36, 54); /* ✅ Overlay sombre visible */
     pointer-events: auto; /* ✅ Permet de fermer en cliquant sur l'overlay */
   }
   
@@ -453,18 +453,18 @@ h1.main-title-animated .title-icon {
     z-index: 2000; /* ✅ S'assure qu'il passe au-dessus */
     top: 40px; /* Positionné sous le header compact */
     height: calc(95vh - 0px); /* Hauteur restante */
-    padding: 10px; /* Padding réduit */
+    padding: 20px; /* Padding réduit */
     position: fixed; /* ✅ Menu fixe */
     overflow: hidden; /* ✅ Pas de scroll interne au menu */
   }
 
   .dropdown-nav ul {
     margin-bottom: 40px;
-    margin-top: 100px;
+    margin-top: 60px;
   }
 
   .dropdown-nav a {
-    font-size: 0.7rem;
+    font-size: 1.1rem;
   } /* Liens plus petits */
 
   .menu-controls {
@@ -497,7 +497,7 @@ h1.main-title-animated .title-icon {
     flex-direction: column;
   }
   h1.main-title-animated {
-    font-size: 1.6rem; /* Réduit la taille du titre sur les petits écrans */
+    font-size: 1.9rem; /* Réduit la taille du titre sur les petits écrans */
   }
   .explorer-projects-list-panel {
     flex: 0 0 100%; /* Panneau de gauche prend toute la largeur */

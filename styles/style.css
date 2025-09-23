@@ -267,7 +267,7 @@ section#skills,
 /* Bouton explorer */
 .intro-text .btn-explore {
   /* Animation d'apparition */
-  margin: 65px;
+  margin: 45px;
   opacity: 0;
   transform: translateY(50px);
   transition: opacity 0.8s ease-out, transform 0.8s ease-out;
@@ -551,7 +551,7 @@ section#skills,
 
 /* Animation depuis la gauche */
 .slide-from-left {
-  transform: translateX(-100px); /* Valeur par défaut pour les grands écrans */
+  transform: translateX(-500px); /* Valeur par défaut pour les grands écrans */
 }
 
 /* Animation depuis la droite */
@@ -661,7 +661,7 @@ header,
   will-change: transform;
   background: rgba(35, 36, 54, 0.9);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  border-bottom: 5px solid transparent;
+  border-bottom: 1px solid transparent;
   border-image: linear-gradient(45deg, var(--accent-color), #c822ff) 1;
 }
 
@@ -686,15 +686,9 @@ header {
 }
 
 /* Centrage du logo et du hamburger */
-.header-logo {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  margin-left: 0px;
-  margin-right: 0px;
-  width: 150px;
-  position: relative;
+.header-logo img {
+  margin: 5px 30px 0px 45px;
+  border-radius: 50%;
 }
 
 .header-logo :hover {
@@ -1006,7 +1000,7 @@ header.nav-scrolled,
   height: 100vh; /* Toute la hauteur de la vue */
   background-color: #23243600; /* Couleur de fond transparente */
   color: white;
-  padding: 20px;
+  padding: 40px;
   transform: translateX(-100%); /* Caché à gauche initialement */
   transition: transform 0.4s ease; /* Transition sur la transformation X */
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2); /* Ombre sur le côté droit */
@@ -1419,7 +1413,7 @@ h3.title-banner {
   height: 100%;
   display: flex;
   flex-direction: column; /* Transition, hauteur, flex pour contenu */
-  border: 2px solid transparent;
+  border: 1px solid transparent;
   border-image: linear-gradient(45deg, var(--accent-color), #c822ff) 1;
 }
 .project-card:hover {
@@ -1430,7 +1424,7 @@ h3.title-banner {
   width: 100%;
   height: 300px;
   object-fit: cover;
-  border-bottom: 5px solid transparent;
+  border-bottom: 3px solid transparent;
   border-image: linear-gradient(45deg, var(--accent-color), #c822ff) 1;
 } /* Image de la carte */
 .project-info {
@@ -1587,7 +1581,7 @@ h3.title-banner {
 .project-detail {
   max-width: 900px;
   margin: 70px auto 0 auto; /* Centrage automatique avec auto */
-  padding: 50px 30px 0px 45px; /* Padding horizontal réduit pour les petits écrans */
+  padding: 40px 40px 0px 40px;
   display: flex;
   flex-direction: column;
   gap: 15px; /* Espace entre les sections */
@@ -1625,7 +1619,7 @@ h3.title-banner {
   padding: 30px;
   box-shadow: 0 8px 30px var(--shadow-color);
   margin-bottom: 40px;
-  border: 2px solid transparent;
+  border: 1px solid transparent;
   border-image: linear-gradient(45deg, var(--accent-color), #c822ff) 1;
 } /* Conteneur du contenu du projet */
 .project-content p {
@@ -1685,7 +1679,8 @@ h3.title-banner {
   text-decoration: none;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   font-weight: bold;
-  font-size: 1.2rem; /* Optionnel: Augmenter la taille de la police */
+  font-size: 1rem; /* Optionnel: Augmenter la taille de la police */
+  border-radius: 25%;
   transition: all 0.3s ease;
   position: relative;
   z-index: 1;
@@ -1710,7 +1705,7 @@ h3.title-banner {
 .next-project:hover {
   transform: translateY(-3px);
   box-shadow: 0 6px 20px rgba(93, 93, 255, 0.5);
-  color: #c822ff;
+  color: white;
 }
 
 .prev-project:hover::before,
@@ -1731,7 +1726,7 @@ h3.title-banner {
   background: #34365400;
   border-radius: 5%;
   padding: 25px;
-  border: 2px solid transparent;
+  border: 1px solid transparent;
   border-image: linear-gradient(45deg, var(--accent-color), #c822ff) 1;
   margin-top: 40px;
   margin-bottom: 40px;
@@ -2281,7 +2276,7 @@ body.body-menu-open #footer {
   flex-grow: 1;
   margin-left: auto;
   text-align: center;
-  font-size: 1rem;
+  font-size: 1.2rem;
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
   -webkit-background-clip: text;
   background-clip: text;
@@ -2370,7 +2365,7 @@ body.body-menu-open #footer {
 @media (max-width: 1200px) {
   /* Tablettes larges et petits ordinateurs */
   .dropdown-menu {
-    padding: 10px;
+    padding: 35px;
   }
 
   .intro-text .animated-paragraph {
@@ -2463,7 +2458,7 @@ body.body-menu-open #footer {
 
   /* Faire que le menu passe au-dessus avec un overlay plus visible */
   .menu-overlay.active {
-    background-color: #c822ff; /* ✅ Overlay sombre visible */
+    background-color: rgb(35, 36, 54); /* ✅ Overlay sombre visible */
     pointer-events: auto; /* ✅ Permet de fermer en cliquant sur l'overlay */
   }
 
@@ -2473,7 +2468,7 @@ body.body-menu-open #footer {
     z-index: 2000; /* ✅ S'assure qu'il passe au-dessus */
     top: 40px; /* Positionné sous le header compact */
     height: calc(95vh - 0px); /* Hauteur restante */
-    padding: 10px; /* Padding réduit */
+    padding: 20px; /* Padding réduit */
     position: fixed; /* ✅ Menu fixe */
     overflow: hidden; /* ✅ Pas de scroll interne au menu */
   }
@@ -2515,15 +2510,17 @@ body.body-menu-open #footer {
     font-size: 1rem;
     margin: 0 10px;
   } /* Titre plus petit */
-  .header-logo {
-    width: 50px;
+
+  .header-logo img {
+    margin: 15px 30px 10px 15px;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
   }
+
   .hamburger {
     font-size: 1rem;
   } /* Taille de l'icône */
-  #logo-video {
-    height: 40px;
-  } /* Logo plus petit */
 
   /* Ajuster le Header Compact pour Mobile */
   .compact-header {
@@ -2574,13 +2571,13 @@ body.body-menu-open #footer {
 
   /* Ajuste le titre bannière pour mobile */
   .title-banner {
-    font-size: 1.6rem; /* Réduire la taille de la police (ajustez si besoin) */
+    font-size: 1.9rem; /* Réduire la taille de la police (ajustez si besoin) */
     padding: 15px; /* Réduire le padding */
   }
 
   h3.title-banner {
-    font-size: 1rem; /* Réduire la taille de la police */
-    margin-bottom: 10px; /* Réduire la marge inférieure */
+    font-size: 1.3rem; /* Réduire la taille de la police */
+    margin-bottom: 50px; /* Réduire la marge inférieure */
   }
 
   .intro-text {
@@ -2588,12 +2585,13 @@ body.body-menu-open #footer {
   }
 
   .intro-text .animated-title {
-    font-size: 1.8rem; /* Réduire la taille de la police */
+    font-size: 2rem; /* Réduire la taille de la police */
   }
 
   .intro-text .animated-paragraph {
-    font-size: 1rem; /* Réduire la taille de la police */
+    font-size: 1.1rem; /* Réduire la taille de la police */
     margin-bottom: 10px;
+    padding: 30px;
   }
 
   /* Taille de la photo de profil sur mobile */
@@ -2604,26 +2602,26 @@ body.body-menu-open #footer {
   }
 
   .intro-text .profile-photo-container {
-    max-width: 200px; /* Largeur maximale réduite */
+    max-width: 400px; /* Largeur maximale réduite */
     max-height: 400px; /* Hauteur maximale réduite */
     margin: 0 auto; /* Centrage horizontal */
   }
 
   .intro-text .profile-photo {
     box-shadow: 0 5px 50px var(--accent-color); /* Ombre légèrement réduite */
-    width: 200px;
+    width: 400px;
     height: 400px;
   }
 
   .intro-text .btn-explore {
-    padding: 9px 18px; /* Réduire le padding vertical et horizontal */
-    font-size: 1.1rem; /* Réduire la taille de la police */
+    padding: 8px 25px; /* Réduire le padding vertical et horizontal */
+    font-size: 1.2rem; /* Réduire la taille de la police */
     min-width: auto; /* Permettre au bouton de prendre une largeur plus naturelle */
   }
 
   .btn-download-cv {
-    padding: 9px 18px; /* Réduire le padding vertical et horizontal */
-    font-size: 0.8rem; /* Réduire la taille de la police */
+    padding: 8px 25px; /* Réduire le padding vertical et horizontal */
+    font-size: 1.2rem; /* Réduire la taille de la police */
     margin: 60px 0px 0px 0px; /* Marge supérieure réduite */
   }
 
@@ -2682,10 +2680,10 @@ body.body-menu-open #footer {
     ); /* Optionnel: éviter que la box touche les bords */
   }
   .about-text-box p {
-    font-size: 0.8rem;
+    font-size: 1.1rem;
   }
   .project-info p {
-    font-size: 0.8rem;
+    font-size: 1.1rem;
     text-align: left;
   } /* Texte projet plus petit */
   .project-content p {
@@ -2700,10 +2698,10 @@ body.body-menu-open #footer {
     padding: 40px;
   } /* Grille projets 1 colonne */
   .project-links a {
-    font-size: 0.8rem;
+    font-size: 1.2rem;
   } /* Liens projet plus petits */
   .project-tech span {
-    font-size: 0.7rem;
+    font-size: 1rem;
   } /* Taille police tech projet plus petite */
   .project-card img {
     height: 180px;
@@ -2782,7 +2780,7 @@ body.body-menu-open #footer {
     height: 22px;
   }
   .skill p {
-    font-size: 11px;
+    font-size: 1.2rem;
   }
 
   .contact-form {
@@ -2790,17 +2788,17 @@ body.body-menu-open #footer {
   }
 
   .contact-form label {
-    font-size: 0.8rem;
+    font-size: 1.1rem;
   } /* Taille police label plus petite */
   .contact-form button {
-    font-size: 0.8rem;
+    font-size: 1.2rem;
     padding: 8px 16px;
   } /* Bouton formulaire plus petit */
   .contact-email {
-    font-size: 0.9rem;
+    font-size: 1.1rem;
   } /* Taille police email plus petite */
   .contact-email a {
-    font-size: 0.9rem;
+    font-size: 1.2rem;
   } /* Lien email plus petit */
 
   /* Ajustements dropdown pour mobile */
@@ -2810,7 +2808,7 @@ body.body-menu-open #footer {
   }
 
   .dropdown-nav a {
-    font-size: 0.8rem;
+    font-size: 1.1rem;
   } /* Liens plus petits */
 
   [data-theme="light"] .dropdown-nav a {
@@ -2832,7 +2830,7 @@ body.body-menu-open #footer {
   }
 
   .scroll-to-top {
-    bottom: 60px;
+    bottom: 80px;
   }
 
   #footer {
@@ -2840,12 +2838,13 @@ body.body-menu-open #footer {
     justify-content: flex-start;
     gap: 0;
     padding: 15px 20px;
+    margin-top: 75px;
   }
 
   #footer p {
     margin-right: auto;
     text-align: left;
-    font-size: 0.6rem;
+    font-size: 0.9rem;
   }
 
   /* Container pour les icônes sociales */
@@ -2893,9 +2892,9 @@ section.page-title-container
 }
 
 .page-subtitle {
-  font-size: 2rem; 
+  font-size: 2rem;
   color: var(--accent-color); /* Couleur du sous-titre */
-  padding: 100px; /* Espacement autour du sous-titre */
+  padding: 40px; /* Espacement autour du sous-titre */
 }
 
 /* =========================
@@ -2926,7 +2925,6 @@ section.page-title-container
     minmax(600px, 1fr)
   ); /* Grille responsive */
   gap: 100px; /* Espace entre les cartes */
-  margin: 60px; /* Espace avant le bouton "Tout voir" */
 }
 
 .news-card {
@@ -3121,11 +3119,11 @@ section.page-title-container
     font-size: 1.3rem;
     color: var(--accent-color);
     font-weight: bold;
-    padding: 40px;
+    padding: 20px;
   }
 
   .page-subtitle {
-    font-size: 0.6rem; /* Taille de police responsive pour le sous-titre */
+    font-size: 1.1rem; /* Taille de police responsive pour le sous-titre */
   }
 
   .news-teaser-section,
