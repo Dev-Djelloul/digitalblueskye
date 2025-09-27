@@ -97,7 +97,7 @@ body::after {
 
 /* Ajustement de l'opacité de l'image de fond en thème clair */
 [data-theme="light"] body::before {
-  opacity: 0.5;
+  opacity: 0;
 }
 
 /* =========================
@@ -1578,7 +1578,7 @@ h3.title-banner {
 .project-detail {
   max-width: 900px;
   margin: 70px auto 0 auto; /* Centrage automatique avec auto */
-  padding: 40px 40px 0px 40px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 15px; /* Espace entre les sections */
@@ -2708,7 +2708,7 @@ body.body-menu-open #footer {
   } /* Liens projet plus petits */
   .projects-grid {
     grid-template-columns: 1fr;
-    padding: 40px;
+    padding: 20px;
   } /* Grille projets 1 colonne */
   .project-links a {
     font-size: 1.1rem;
@@ -2866,7 +2866,7 @@ body.body-menu-open #footer {
     justify-content: flex-start;
     gap: 0;
     padding: 15px 15px;
-    margin-top: 75px;
+    margin-top: 0px;
   }
 
   #footer p {
@@ -3136,7 +3136,7 @@ section.page-title-container
 
   .news-teaser-section,
   .all-news-list {
-    padding: 0px 45px 15px 50px; /* Ajustez le padding selon vos besoins */
+    padding: 20px; /* Ajustez le padding selon vos besoins */
   }
 
   .news-card {

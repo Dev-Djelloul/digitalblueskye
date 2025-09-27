@@ -10,6 +10,12 @@
     <title data-i18n="meta.title">
       About Me | Digitalblueskye - Portfolio
     </title>
+     <script>
+    (function() {
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+    </script>
     <script>
     (function() {
     const savedTheme = localStorage.getItem('theme');

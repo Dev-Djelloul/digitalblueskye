@@ -10,13 +10,19 @@
     <title data-i18n="meta.title">
       Web Designer & Developer | Digitalblueskye - Portfolio
     </title>
+     <script>
+    (function() {
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+   </script>
    <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Iceland&display=swap" rel="stylesheet">
-    <link rel="preconnect" href="https://player.canva.com" />
-    <link rel="stylesheet" href="/styles/style.css" />
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
-    <link
+   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+   <link href="https://fonts.googleapis.com/css2?family=Iceland&display=swap" rel="stylesheet">
+   <link rel="preconnect" href="https://player.canva.com" />
+   <link rel="stylesheet" href="/styles/style.css" />
+   <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
+   <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
     />

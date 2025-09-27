@@ -10,6 +10,12 @@
     <title data-i18n="meta.title">
       Arcadia Zoo | Project Portfolio | Digitalblueskye
     </title>
+    <script>
+      (function () {
+        const savedTheme = localStorage.getItem("theme") || "dark";
+        document.documentElement.setAttribute("data-theme", savedTheme);
+      })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -30,7 +36,7 @@
       <div class="header-placeholder"></div>
       <!-- Logo -->
       <div class="header-logo">
-         <a href="/index.html" title="Retour à l'accueil">
+        <a href="/index.html" title="Retour à l'accueil">
           <img
             src="/images/logoVideos/Logo-Globe.png"
             alt="Logo YellowBlueSkye"
