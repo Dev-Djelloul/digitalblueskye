@@ -661,7 +661,7 @@ header,
   will-change: transform;
   background: rgba(35, 36, 54, 0.9);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  border-bottom: 1px solid transparent;
+  border-bottom: 3px solid transparent;
   border-image: linear-gradient(45deg, var(--accent-color), #c822ff) 1;
 }
 
@@ -1402,7 +1402,7 @@ h3.title-banner {
 /* Carte individuelle de projet */
 .project-card {
   background-color: #34365400;
-  border-radius: 0%;
+  border-radius: 15px;
   overflow: hidden;
   box-shadow: 0 8px 20px var(--shadow-color); /* Style de la carte */
   transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -1410,7 +1410,7 @@ h3.title-banner {
   display: flex;
   flex-direction: column; /* Transition, hauteur, flex pour contenu */
   border: 1px solid transparent;
-  border-image: linear-gradient(45deg, var(--accent-color), #c822ff) 1;
+  border-image: 0;
 }
 .project-card:hover {
   transform: translateY(-10px);
@@ -1611,12 +1611,11 @@ h3.title-banner {
 } /* Ligne colorée sous l'image */
 .project-content {
   background: #34365400;
-  border-radius: 5%;
+  border-radius: 15px;
   padding: 30px;
   box-shadow: 0 8px 30px var(--shadow-color);
   margin-bottom: 40px;
   border: 1px solid transparent;
-  border-image: linear-gradient(45deg, var(--accent-color), #c822ff) 1;
 } /* Conteneur du contenu du projet */
 .project-content p {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
@@ -1624,8 +1623,8 @@ h3.title-banner {
   background-clip: text;
   color: transparent;
   line-height: 1.7;
-  text-align: left;
-  margin-bottom: 25px;
+  text-align: center;
+  margin-bottom: 50px;
   font-size: 1.3rem; /* Taille du texte */
 } /* Paragraphes */
 .project-content h4 {
@@ -1635,7 +1634,7 @@ h3.title-banner {
   color: transparent;
   font-size: 1.5rem;
   border-bottom: 2px solid rgba(93, 93, 255, 0.2);
-  padding-bottom: 15px;
+  padding-bottom: 30px;
   margin-top: 20px;
 } /* Sous-titres */
 .project-detail .project-tech {
@@ -1720,10 +1719,9 @@ h3.title-banner {
 /* Galerie d'images du projet */
 .project-gallery {
   background: #34365400;
-  border-radius: 5%;
+  border-radius: 15px;
   padding: 25px;
   border: 1px solid transparent;
-  border-image: linear-gradient(45deg, var(--accent-color), #c822ff) 1;
   margin-top: 40px;
   margin-bottom: 40px;
 } /* Conteneur galerie */
@@ -1923,14 +1921,14 @@ h3.title-banner {
    COMPÉTENCES (Skills) - 
    ========================= */
 .skills-section {
-  padding: 0 40px;
+  padding: 0 20px;
   max-width: 1400px;
   margin-bottom: 200px;
 }
 .skills-categories {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
-  gap: 40px;
+  gap: 100px;
   justify-items: center;
   align-items: stretch;
   width: 100%;
@@ -1964,7 +1962,7 @@ h3.title-banner {
   text-decoration: none;
   transition: transform 0.3s;
   font-size: 1.6rem;
-  margin-bottom: 18px;
+  margin-bottom: 50px;
   font-weight: 700;
   text-align: center;
   padding-bottom: 8px;
@@ -2754,9 +2752,9 @@ body.body-menu-open #footer {
 
   .skills-categories {
     grid-template-columns: 1fr;
-    padding: 10px;
+    padding: 5px;
     margin-bottom: 50px;
-    gap: 18px;
+    gap: 100px;
   }
   .skills-category {
     min-width: 0;
