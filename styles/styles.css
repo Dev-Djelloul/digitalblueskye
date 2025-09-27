@@ -518,6 +518,26 @@ h1.main-title-animated .title-icon {
   box-shadow: 0 0 20px var(--accent-color);
   transition: outline 0.3s, box-shadow 0.3s;
 }
+
+
+/* Menu dropdown en mode thème clair */
+[data-theme="light"] .dropdown-menu {
+  background-color: rgb(240, 238, 255) !important;
+}
+
+/* Si vous voulez aussi modifier l'overlay en mode clair */
+[data-theme="light"] .menu-overlay.active {
+  background-color: rgba(240, 238, 255, 0.9) !important;
+}
+
+/* Pour harmoniser les éléments du menu en mode clair */
+[data-theme="light"] .dropdown-nav a {
+  color: var(--accent-color); /* Utilise la couleur de texte du thème clair */
+}
+
+[data-theme="light"] .dropdown-nav a:hover {
+  color: #5d5dff;
+}
 }
 
   

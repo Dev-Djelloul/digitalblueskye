@@ -1,7 +1,7 @@
 window.addEventListener('load', () => {
     const loaderWrapper = document.getElementById('loader-wrapper');
     if (loaderWrapper) {
-      const minimumLoadTime = 6500; // Votre délai
+      const minimumLoadTime = 4500; // Votre délai
       const loadEndTime = Date.now();
       const timeToWait = Math.max(0, minimumLoadTime - (loadEndTime - performance.timing.navigationStart)); 
   

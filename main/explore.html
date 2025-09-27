@@ -10,6 +10,14 @@
     <title data-i18n="pageTitles.explorer">
       Visual Tour of my projects - Digitalblueskye Blog
     </title>
+     <script>
+    (function() {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    }
+    })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link

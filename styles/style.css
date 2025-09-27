@@ -194,7 +194,7 @@ section#skills,
   border-radius: 2%;
   overflow: hidden;
   border: 1px solid var(--accent-color);
-  box-shadow: 0 5px 15px rgba(var(--accent-rgb), 0.5);
+  box-shadow: 0 5px 5px rgba(var(--accent-rgb), 0.5);
   margin: 0;
   /* Dimensions fixes qui correspondent à l'image */
   width: 600px; /* Même valeur que la photo */
@@ -212,7 +212,7 @@ section#skills,
   height: 330px;
   object-fit: cover;
   border-radius: 2%;
-  box-shadow: 8 4px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 2 2px 3px rgba(0, 0, 0, 0.15);
   filter: brightness(0.86);
 }
 
@@ -689,6 +689,7 @@ header {
 .header-logo img {
   margin: 5px 30px 0px 45px;
   border-radius: 50%;
+  border: 1px solid var(--border-color);
 }
 
 .header-logo :hover {
@@ -1230,7 +1231,7 @@ h3.title-banner {
 .project-detail .project-links a:first-child,
 .project-links a {
   display: inline-block;
-  padding: 8px 25px;
+  padding: 8px 35px;
   background: linear-gradient(45deg, var(--accent-color), rgba(0, 0, 0, 0.2));
   color: white; /* Affichage, padding, fond dégradé, couleur texte */
   text-decoration: none;
@@ -2176,6 +2177,8 @@ h3.title-banner {
   width: 66px; /* Exemple, ajustez à la taille actuelle ou souhaitée */
   height: 66px; /* Exemple, ajustez à la taille actuelle ou souhaitée */
   border-radius: 50%; /* Arrondi pour correspondre aux autres icônes */
+  border: 1px solid var(--accent-color); /* Bordure pour correspondre aux autres icônes */
+  box-shadow: 0 4px 10px var(--shadow-color); /* Ombre pour correspondre aux autres icônes */
   margin: 30px; /* Espace autour de l'icône */
 }
 
@@ -2821,7 +2824,22 @@ body.body-menu-open #footer {
     font-size: 1.2rem;
   } /* Liens plus petits */
 
+  /* Menu dropdown en mode thème clair */
+  [data-theme="light"] .dropdown-menu {
+    background-color: rgb(240, 238, 255) !important;
+  }
+
+  /* Si vous voulez aussi modifier l'overlay en mode clair */
+  [data-theme="light"] .menu-overlay.active {
+    background-color: rgba(240, 238, 255, 0.9) !important;
+  }
+
+  /* Pour harmoniser les éléments du menu en mode clair */
   [data-theme="light"] .dropdown-nav a {
+    color: var(--accent-color); /* Utilise la couleur de texte du thème clair */
+  }
+
+  [data-theme="light"] .dropdown-nav a:hover {
     color: #5d5dff;
   }
 
