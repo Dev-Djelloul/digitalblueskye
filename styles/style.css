@@ -189,8 +189,7 @@ section#skills,
 .intro-text .profile-photo-container {
   opacity: 0;
   transform: translateX(-100px);
-  animation: fadeInLeft 1s ease forwards 1.2s;
-  flex: 0 0 auto;
+  transition: opacity 1s ease, transform 1s ease; 
   border-radius: 2%;
   overflow: hidden;
   border: 1px solid var(--accent-color);
@@ -1176,11 +1175,7 @@ h3.title-banner {
   border-bottom-style: solid;
 } /* Changement au survol */
 
-.profile-photo-container {
-  margin: 40px auto;
-  text-align: center;
-  max-width: 300px;
-}
+
 /* Conteneur pour la photo de profil */
 .profile-photo {
   width: 500px;
@@ -2497,7 +2492,7 @@ body.body-menu-open #footer {
   #contact {
     scroll-margin-top: 100px;
     margin-top: 50px;
-    padding: 50px;
+    padding: 20px;
   }
 
   #loader-video {

@@ -16,14 +16,6 @@
       document.documentElement.setAttribute('data-theme', savedTheme);
     })();
     </script>
-    <script>
-    (function() {
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme) {
-      document.documentElement.setAttribute('data-theme', savedTheme);
-    }
-    })();
-    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Iceland&display=swap" rel="stylesheet">
@@ -196,7 +188,7 @@
       <!-- Section À propos -->
        <section id="about" class="about-section">
 
-        <div class="about-text-box cascade-container">
+        <div class="about-text-box" data-aos="fade-up">
           <p>
             <span data-i18n="about.intro">
               Hey ! Je m'appelle Djelloul, je suis un parisien passionné par
@@ -264,13 +256,23 @@
       </p>
     </footer>
 
+    <!-- Librairies JavaScript -->
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+    <script src="/scripts/about-animations.js"></script>
     <script src="/scripts/translator.js"></script>
     <script src="/scripts/theme-switcher.js"></script>
     <script src="/scripts/navbar-dropdown.js"></script>
     <script src="/scripts/loader.js"></script>
-    <script src="/scripts/welcome-animations.js"></script>
     <script src="/scripts/scroll-animations.js"></script>
+    <script>
+    AOS.init({
+    duration: 1000,
+    once: true,
+    offset: 50
+    });
+    </script>
+
   </body>
 </html>
 <!-- Fin du code HTML -->
