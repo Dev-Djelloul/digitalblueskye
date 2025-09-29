@@ -40,32 +40,34 @@
 /* =========================
    RESET & STYLES DE BASE
    ========================= */
+
+
+@import url("https://fonts.googleapis.com/css2?family=Iceland&family=Lato:wght@400;500;700&display=swap");
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-} /* Reset universel pour marges, paddings et modèle de boîte */
-
-body {
-  font-family: "Iceland", sans-serif;
-  font-optical-sizing: auto; /* Ajustement optique de la police */
-  line-height: 1.6; /* Hauteur de ligne pour la lisibilité */
-  text-align: center; /* Alignement du texte par défaut */
-  color: var(--text-color); /* Couleur du texte héritée des variables */
-  position: relative; /* Nécessaire pour le positionnement des pseudo-éléments ::before et ::after */
-  z-index: 0; /* Contexte d'empilement de base */
-  background-color: transparent !important; /* Fond transparent pour laisser voir les couches inférieures (pseudo-éléments) */
-  transition: color var(--transition-speed) ease; /* Transition douce pour le changement de couleur de texte */
-  padding-top: 90px; /* Espace en haut par défaut pour le header normal fixe */
 }
 
-/* Ajustement du padding pour les pages utilisant le header compact */
+body {
+  font-family: "Open Sans", sans-serif;
+  font-optical-sizing: auto;
+  line-height: 1.6;
+  text-align: center;
+  color: var(--text-color);
+  position: relative;
+  z-index: 0;
+  background-color: transparent !important;
+  transition: color var(--transition-speed) ease;
+  padding-top: 90px;
+}
+
 body.contact-page,
 body.project-page {
   padding-top: 60px;
 }
 
-/* Pseudo-éléments pour gérer l'arrière-plan en couches */
 body::before,
 body::after {
   content: "";
@@ -74,30 +76,63 @@ body::after {
   left: 0;
   width: 100%;
   height: 100%;
-  pointer-events: none; /* Ne capture pas les clics */
+  pointer-events: none;
 }
 
 body::before {
-  /* Couche pour l'image de fond */
   background: url("../images/emily-bernal-v9vII5gV8Lw-unsplash.jpg")
-    center/cover no-repeat fixed; /* Image de fond */
-  opacity: 0.1; /* Opacité par défaut (thème sombre) */
-  z-index: -1; /* Positionnée derrière le contenu mais devant ::after */
-  transition: opacity var(--transition-speed) ease; /* Transition douce pour l'opacité */
+    center/cover no-repeat fixed;
+  opacity: 0.1;
+  z-index: -1;
+  transition: opacity var(--transition-speed) ease;
 }
 
 body::after {
-  /* Couche pour la couleur de fond unie */
-  background-color: var(
-    --background-color
-  ); /* Couleur de fond héritée des variables */
-  z-index: -2; /* Positionnée tout en arrière */
-  transition: background-color var(--transition-speed) ease; /* Transition douce pour la couleur */
+  background-color: var(--background-color);
+  z-index: -2;
+  transition: background-color var(--transition-speed) ease;
 }
 
-/* Ajustement de l'opacité de l'image de fond en thème clair */
 [data-theme="light"] body::before {
   opacity: 0;
+}
+
+h1,
+h2,
+h3 {
+  font-family: "Iceland", sans-serif;
+}
+
+p,
+li,
+article {
+  font-family: "Open Sans", sans-serif;
+}
+
+/* =========================
+   DIVISEUR D'INTRO
+   ========================= */
+.intro-divider {
+  margin: 40px auto 80px;
+  width: min(90%, 640px);
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--accent-color),
+    #c822ff,
+    transparent
+  );
+  position: relative;
+}
+.intro-divider::after {
+  content: "";
+  position: absolute;
+  inset: -12px 0 -20px;
+  background: linear-gradient(180deg, rgba(93, 93, 255, 0.2), transparent);
+  filter: blur(12px);
+  opacity: 0.6;
 }
 
 /* =========================
@@ -115,7 +150,15 @@ main {
 
 /* Nouvelle règle : Décaler main lorsque le menu est ouvert */
 body.body-menu-open main {
-  padding-left: 20%; /* IMPORTANT: Cette valeur doit correspondre à la largeur de votre .dropdown-menu. Si width: 250px pour le menu, utilisez padding-left: 250px; ici */
+  pointer-events: none;
+  padding-left: 20%;
+  /* IMPORTANT: Cette valeur doit correspondre à la largeur de votre .dropdown-menu. 
+  Si width: 250px pour le menu, utilisez padding-left: 250px; ici */
+}
+
+/* Empêcher le scroll de la page quand le menu est ouvert */
+body.body-menu-open {
+  overflow: auto;
 }
 
 /* Override pour le thème clair */
@@ -127,7 +170,7 @@ body.body-menu-open main {
 /* Styles de base pour les sections - Mode sombre par défaut */
 section {
   scroll-margin-top: 100px; /* Ajuste le point d'arrivée lors du défilement */
-  margin-top: 100px;
+  margin-top: 0px;
   margin-bottom: 100px; /* Marges entre les sections */
   background-color: transparent !important;
   padding: 0px; /* Padding pour l'espace interne */
@@ -189,7 +232,7 @@ section#skills,
 .intro-text .profile-photo-container {
   opacity: 0;
   transform: translateX(-100px);
-  transition: opacity 1s ease, transform 1s ease; 
+  transition: opacity 1s ease, transform 1s ease;
   border-radius: 2%;
   overflow: hidden;
   border: 1px solid var(--accent-color);
@@ -251,8 +294,9 @@ section#skills,
   opacity: 0;
   transform: translateX(500px);
   transition: opacity 1.8s ease-out, transform 1.8s ease-out;
-  margin-bottom: 40px;
-  font-size: 3rem;
+  margin-bottom: 80px;
+  margin-top: 30px;
+  font-size: 5rem;
 }
 
 .intro-text .animated-paragraph {
@@ -260,7 +304,7 @@ section#skills,
   transform: translateX(-500px);
   transition: opacity 2.4s ease-out, transform 2.4s ease-out;
   margin-bottom: 25px;
-  font-size: 1.5rem;
+  font-size: 1.6rem;
 }
 
 /* Bouton explorer */
@@ -273,7 +317,7 @@ section#skills,
   /* Style de base */
   display: inline-block;
   padding: 8px 25px;
-  font-size: 1.2rem;
+  font-size: 1.5rem;
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
   -webkit-background-clip: text;
   background-clip: text;
@@ -550,17 +594,17 @@ section#skills,
 
 /* Animation depuis la gauche */
 .slide-from-left {
-  transform: translateX(-500px); /* Valeur par défaut pour les grands écrans */
+  transform: translateX(-150px); /* Valeur par défaut pour les grands écrans */
 }
 
 /* Animation depuis la droite */
 .slide-from-right {
-  transform: translateX(100px); /* Valeur par défaut */
+  transform: translateX(150px); /* Valeur par défaut */
 }
 
 /* Animation depuis le bas */
 .slide-from-bottom {
-  transform: translateY(100px); /* Valeur par défaut */
+  transform: translateY(150px); /* Valeur par défaut */
 }
 
 /* Animation fade-in simple */
@@ -996,7 +1040,7 @@ header.nav-scrolled,
   position: fixed;
   top: 0; /* Aligné en haut */
   left: 0;
-  width: 25%; /* Ou la largeur que vous souhaitez, ex: 250px ou 25% */
+  width: 20%; /* Ou la largeur que vous souhaitez, ex: 250px ou 25% */
   height: 100vh; /* Toute la hauteur de la vue */
   background-color: #23243600; /* Couleur de fond transparente */
   color: white;
@@ -1007,14 +1051,18 @@ header.nav-scrolled,
   z-index: 2000;
   text-align: left;
   overflow-y: auto; /* Pour le défilement si le contenu du menu est long */
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch; /* Défilement fluide sur iOS */
+  pointer-events: auto; /* ✅ Capture les événements de souris */
+
   /* Masquer la barre de défilement pour Webkit (Chrome, Safari, Edge) */
-  &::-webkit-scrollbar {
-    display: none;
-  }
-  /* Masquer la barre de défilement pour Firefox */
-  scrollbar-width: none;
-  /* Masquer la barre de défilement pour IE et Edge (ancienne version) */
-  -ms-overflow-style: none;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE et Edge */
+}
+
+/* Correction pour cacher la barre de défilement WebKit */
+.dropdown-menu::-webkit-scrollbar {
+  display: none;
 }
 
 .dropdown-menu.active {
@@ -1029,15 +1077,16 @@ header.nav-scrolled,
   display: flex;
   flex-direction: column;
   gap: 30px;
-  margin-top: 175px;
+  margin-top: 100px;
   margin-bottom: 0px;
   align-items: start;
 }
 
 .dropdown-nav a {
+  font-family: "Iceland", sans-serif;
   color: var(--accent-color);
   text-decoration: none;
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   font-weight: bolder;
   padding: 5px 10px;
   transition: color 0.3s, transform 0.2s;
@@ -1049,33 +1098,52 @@ header.nav-scrolled,
   transform: translateX(5px);
 }
 
-/* Style de base pour les réseaux sociaux dans le dropdown menu */
-.dropdown-menu .social-media {
-  display: flex;
-  justify-content: center;
-  margin-top: 30px;
-  padding-top: 20px;
-  gap: 20px;
+.dropdown-nav .nav-link {
+  display: block;
+  width: 100%;
+  padding: 5px 10px;
+  font-family: "Iceland", sans-serif;
+  font-size: 1.4rem;
+  color: var(--accent-color);
 }
 
-.dropdown-menu .social-media div {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* =========================
+   SOUS-MENU DÉROULANT
+   ========================= */
+/* Conteneur du sous-menu */
+
+/* Masquer les sous-menus par défaut */
+.dropdown-submenu > .submenu-list {
+  display: none !important;
+  position: relative;
+  list-style: none;
+  margin: 5px 0 0 0;
+  padding: 0 0 0 20px;
 }
 
-.dropdown-menu .social-media img {
-  width: 50px;
-  height: 50px;
+/* Style des éléments du sous-menu */
+.dropdown-submenu .submenu-link {
+  font-size: 1.2rem;
+  padding: 0px 0;
+  opacity: 0.9;
 }
 
-.dropdown-menu .social-media a:hover {
-  transform: translateY(-5px);
+/* Afficher le sous-menu au survol */
+.dropdown-submenu:hover > .submenu-list {
+  display: flex !important;
+  flex-direction: column;
+  gap: 8px;
 }
 
-/* Suppression de l'animation AOS pour les réseaux sociaux pour éviter les conflits */
-.social-media[data-aos] {
-  opacity: 1;
+/* Style de la flèche du sous-menu */
+.submenu-chevron {
+  transition: transform 0.3s;
+  margin-left: 5px;
+}
+
+/* Rotation de la flèche au survol du sous-menu */
+.dropdown-submenu:hover .submenu-chevron {
+  transform: rotate(360deg);
 }
 
 /* Overlay sombre affiché derrière le menu déroulant */
@@ -1096,7 +1164,7 @@ header.nav-scrolled,
 .menu-overlay.active {
   display: block;
   opacity: 1;
-  pointer-events: none;
+  pointer-events: auto; /* ✅ Permet les clics sur l'overlay pour fermer */
 }
 
 /* =========================
@@ -1138,6 +1206,503 @@ h3.title-banner {
 }
 
 /* =========================
+   SECTION RADAR DIGITAL 
+   ========================= */
+/* Styles pour le titre principal de la section Radar sur la page d'accueil */
+/* Cible le h2.section-title avec data-i18n="home.radarTeaserTitle" dans section.page-title-container */
+section.page-title-container
+  > h2.section-title[data-i18n="home.radarTeaserTitle"] {
+  font-size: 3.5rem; /* Taille de police responsive, ajustée pour correspondre à d'autres titres principaux */
+  background: linear-gradient(45deg, var(--accent-color), #c822ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-decoration: none;
+  transition: transform 0.3s;
+  margin-bottom: 20px; /* Ajusté pour un espacement standard sous le titre */
+  padding-bottom: 10px; /* Optionnel, pour s'assurer que le dégradé n'est pas coupé */
+}
+
+.page-subtitle {
+  font-size: 1.6rem;
+  color: var(--text-color); /* Couleur du sous-titre */
+  padding: 40px; /* Espacement autour du sous-titre */
+}
+
+/* =========================
+   SECTION ACTUALITÉS ACCUEIL
+   ========================= */
+
+.page-title-container {
+  font-size: 2rem; /* Taille de police pour le titre principal des actualités */
+  background: linear-gradient(45deg, var(--accent-color), #c822ff);
+  font-weight: bold; /* Met le titre en gras */
+  padding: 35px;
+  margin-bottom: 150px;
+  margin-top: 200px;
+}
+
+.news-teaser-section,
+.all-news-list {
+  padding: 0px 50px 0px 50px; /* Ajustez le padding selon vos besoins */
+}
+
+.news-teaser-section .section-title,
+.all-news-list .main-page-title {
+  margin-bottom: 40px; /* Espace sous le titre de la section */
+}
+
+.news-grid {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(450px, 1fr)
+  ); /* Grille responsive */
+  gap: 100px; /* Espace entre les cartes */
+}
+
+.news-card {
+  height: auto; /* Hauteur automatique pour s'adapter au contenu */
+  width: 100%; /* Prend toute la largeur du conteneur parent */
+  border: 1px solid var(--border-color);
+  background-color: rgb(79 89 102 / 2%);
+  border-radius: 12px;
+  overflow: hidden; /* Pour que l'image/icône ne dépasse pas si vous utilisez des images */
+  display: flex; /* Pour que le lien prenne toute la carte */
+  flex-direction: column;
+  text-decoration: none; /* Enlève le soulignement du lien global de la carte */
+  box-shadow: 0 5px 15px var(--accent-color); /* Ombre plus marquée au survol */
+}
+
+.news-card-link {
+  /* Le lien <a> qui englobe la carte */
+  text-decoration: none;
+  color: inherit; /* Hérite la couleur du texte de la carte */
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* Pour que le lien remplisse la carte */
+}
+
+.news-card-image-container {
+  height: 250px; /* Hauteur fixe pour l'image ou l'icône */ 
+  background-color: var(--section-bg-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  width: 100%;
+}
+
+.news-card-image-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* Assure que l'image couvre bien sans se déformer */
+}
+
+.news-card-icon {
+  /* Si vous utilisez une icône à la place d'une image */
+  font-size: 3rem;
+  color: var(--accent-color);
+}
+
+.news-card-content {
+  padding: 20px 25px;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1; /* Permet à cette section de grandir et de pousser la dateline en bas */
+}
+
+.news-card-title {
+  font-size: 1.8rem;
+  color: var(--text-color);
+  margin-bottom: 10px;
+  font-weight: bold;
+  line-height: 1.3;
+}
+
+.news-card-summary {
+  font-size: 1rem;
+  color: var(--text-color);
+  line-height: 1.6;
+  margin-bottom: 15px;
+  flex-grow: 1; /* Permet au résumé de prendre l'espace disponible */
+}
+
+.news-card-dateline {
+  font-size: 1rem;
+  color: var(--accent-color);
+  margin-top: auto; /* Pousse la dateline en bas de la carte */
+}
+
+.news-card-author {
+  font-size: 0.9rem;
+  color: var(--text-color-light);
+  margin-top: 5px;
+}
+
+.view-all-news-container {
+  margin-top: 20px; /* Espace au-dessus du bouton "Tout voir" */
+}
+
+/* =========================
+   BLOG - STYLES GÉNÉRAUX
+   ========================= */
+.blog-page {
+  background-color: var(--background-color);
+}
+
+.blog-main-container {
+  padding-top: 0px;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* =========================
+   BLOG - BANNIÈRE HÉRO
+   ========================= */
+.blog-hero {
+  text-align: center;
+  padding: 60px 0;
+  background: linear-gradient(
+    135deg,
+    rgba(93, 93, 255, 0.1),
+    rgba(168, 52, 211, 0.85)
+  );
+  border-radius: 0 0 75px 75px;
+  margin-bottom: 40px;
+}
+
+.blog-title {
+  font-family: "Iceland", sans-serif;
+  font-size: 3.5rem;
+  margin-bottom: 20px;
+  background: linear-gradient(45deg, var(--accent-color), #c822ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  display: inline-block;
+}
+
+.blog-subtitle {
+  font-size: 1.2rem;
+  max-width: 600px;
+  margin: 0 auto;
+  opacity: 0.8;
+}
+
+/* =========================
+   BLOG - FILTRES
+   ========================= */
+.blog-filters {
+  margin-bottom: 40px;
+}
+
+.filter-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.search-box {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 12px 45px 12px 15px;
+  border: 1px solid rgba(93, 93, 255, 0.2);
+  border-radius: 8px;
+  background-color: rgba(93, 93, 255, 0.05);
+  font-family: "Lato", sans-serif;
+  color: var(--text-color);
+}
+
+.search-box button {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--accent-color);
+}
+
+.category-filter select {
+  padding: 12px 35px 12px 15px;
+  border: 1px solid rgba(93, 93, 255, 0.2);
+  border-radius: 8px;
+  background-color: rgba(93, 93, 255, 0.05);
+  font-family: "Lato", sans-serif;
+  color: var(--text-color);
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235d5dff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px;
+  cursor: pointer;
+}
+
+/* =========================
+   BLOG - CARTES D'ARTICLES
+   ========================= */
+.articles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 30px;
+  margin-bottom: 50px;
+}
+
+.blog-card {
+  background: rgba(35, 36, 54, 0.2);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.blog-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(93, 93, 255, 0.2);
+}
+
+.blog-card-link {
+  display: block;
+  text-decoration: none;
+  color: var(--text-color);
+}
+
+.blog-card-image-container {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+}
+
+.blog-card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: transform 0.5s ease;
+}
+
+.blog-card:hover .blog-card-image {
+  transform: scale(1.05);
+}
+
+.blog-card-category {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: linear-gradient(45deg, var(--accent-color), #c822ff);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.blog-card-content {
+  padding: 25px;
+}
+
+.blog-card-title {
+  font-family: "Iceland", sans-serif;
+  font-size: 1.5rem;
+  margin-bottom: 15px;
+  color: var(--accent-color);
+}
+
+.blog-card-summary {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 20px;
+  opacity: 0.9;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.blog-card-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.blog-card-readmore {
+  color: var(--accent-color);
+  font-weight: 600;
+  transition: opacity 0.3s;
+}
+
+.blog-card:hover .blog-card-readmore {
+  opacity: 1;
+  text-decoration: none;
+}
+
+/* =========================
+   BLOG - PAGINATION
+   ========================= */
+.blog-pagination {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 50px 0;
+}
+
+.pagination-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid rgba(93, 93, 255, 0.3);
+  background-color: transparent;
+  color: var(--text-color);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.pagination-btn:hover {
+  background-color: rgba(93, 93, 255, 0.1);
+  border-color: var(--accent-color);
+}
+
+.pagination-btn.active {
+  background: linear-gradient(45deg, var(--accent-color), #c822ff);
+  color: white;
+  border: none;
+}
+
+.pagination-btn.next-page {
+  width: auto;
+  padding: 0 15px;
+}
+
+
+/* =========================
+   SECTION ARTICLE DÉTAILLÉ
+   ========================= */
+
+/* Styles pour la page d'article détaillé */
+.article-detail-page .article-content-full {
+  padding: 40px 20px;
+}
+
+.article-header-detailed {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.article-title-main {
+  font-size: 4rem;
+  color: #c822ff;
+  margin-bottom: 15px;
+  margin-top: 50px;
+}
+
+.article-dateline-detailed {
+  font-size: 1.2rem;
+  color: var(--text-color-light);
+  margin-bottom: 30px;
+}
+
+.article-banner-image {
+  width: min(100%, 720px);
+  height: auto;
+  display: block;
+  margin: 0 auto 60px;
+  border-radius: 8px;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.25);
+}
+
+.article-body {
+  max-width: 800px; /* Limite la largeur du contenu de l'article pour la lisibilité */
+  margin: 0 auto;
+  font-size: 1.3rem;
+  line-height: 1.8;
+  color: var(--text-color);
+  text-align: left;
+}
+
+.article-body h2 {
+  font-size: 2.5rem;
+  color: var(--accent-color);
+  margin-top: 40px;
+  margin-bottom: 20px;
+}
+.article-body h3 {
+  font-size: 2rem;
+  color: var(--accent-color);
+  margin-top: 30px;
+  margin-bottom: 15px;
+}
+.article-body p,
+.article-body ul,
+.article-body ol {
+  margin-bottom: 20px;
+  font-size: 1.3rem;
+}
+.article-body ul,
+.article-body ol {
+  padding-left: 30px;
+}
+.article-body a {
+  color: var(--accent-color);
+  text-decoration: underline;
+}
+.article-body a:hover {
+  text-decoration: none;
+}
+
+.article-image img{
+  width: 100%;
+  height: auto;
+  margin: 20px 0;
+  border-radius: 8px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.article-navigation {
+  margin-top: 50px;
+  text-align: center;
+}
+.btn-nav-style {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 26px;
+  font-weight: 700;
+  font-size: 1rem;
+  border-radius: 8px;
+  background: linear-gradient(45deg, var(--accent-color), #c822ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-decoration: none;
+  border: 1px solid rgba(93, 93, 255, 0.35);
+  box-shadow: 0 4px 18px rgba(93, 93, 255, 0.25);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
+}
+
+.btn-nav-style:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 24px rgba(93, 93, 255, 0.4);
+  color: white;
+  background-clip: border-box;
+  -webkit-background-clip: border-box;
+}
+
+/* =========================
    SECTION "À PROPOS"
    ========================= */
 
@@ -1174,7 +1739,6 @@ h3.title-banner {
   color: #5d5dff;
   border-bottom-style: solid;
 } /* Changement au survol */
-
 
 /* Conteneur pour la photo de profil */
 .profile-photo {
@@ -1272,7 +1836,7 @@ h3.title-banner {
   margin-top: 15px;
   font-size: 1.3rem;
   align-self: center;
-  min-width: 100px;
+  min-width: 200px;
   position: relative;
   overflow: hidden;
 } /* Bouton envoyer formulaire */
@@ -2130,7 +2694,7 @@ h3.title-banner {
 
 /* Section email */
 .contact-email {
-  padding: 40px;
+  padding: 20px;
   border-radius: 5%;
   max-width: 600px;
   margin: 50px auto !important; /* Style conteneur */
@@ -2241,6 +2805,67 @@ h3.title-banner {
   box-shadow: 0 8px 20px var(--shadow-color);
 }
 
+
+/* =========================
+   BLOG - NEWSLETTER
+   ========================= */
+.blog-newsletter {
+  background: linear-gradient(
+    135deg,
+    rgba(93, 93, 255, 0.1),
+    rgba(200, 34, 255, 0.1)
+  );
+  padding: 40px;
+  border-radius: 12px;
+  text-align: center;
+  margin: 60px 0;
+}
+
+.blog-newsletter h3 {
+  font-family: "Iceland", sans-serif;
+  font-size: 2rem;
+  margin-bottom: 15px;
+  color: var(--accent-color);
+}
+
+.blog-newsletter p {
+  max-width: 600px;
+  margin: 0 auto 25px;
+  opacity: 0.9;
+}
+
+.newsletter-form {
+  display: flex;
+  max-width: 500px;
+  margin: 0 auto;
+  gap: 10px;
+}
+
+.newsletter-form input {
+  flex: 1;
+  padding: 12px 15px;
+  border: 1px solid rgba(93, 93, 255, 0.2);
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--text-color);
+  font-family: "Lato", sans-serif;
+}
+
+.newsletter-form button {
+  padding: 12px 25px;
+  background: linear-gradient(45deg, var(--accent-color), #c822ff);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.3s;
+}
+
+.newsletter-form button:hover {
+  transform: translateY(-3px);
+}
+
 /* =========================
    FOOTER
    ========================= */
@@ -2268,7 +2893,7 @@ body.body-menu-open #footer {
   flex-grow: 1;
   margin-left: auto;
   text-align: center;
-  font-size: 1.2rem;
+  font-size: 1rem;
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
   -webkit-background-clip: text;
   background-clip: text;
@@ -2381,16 +3006,6 @@ body.body-menu-open #footer {
   .dropdown-menu {
     padding: 35px;
     width: 33%;
-  }
-
-  .dropdown-menu .social-media {
-    margin-top: 20px;
-    gap: 15px;
-  }
-
-  .dropdown-menu .social-media a {
-    width: 40px;
-    height: 40px;
   }
 
   .intro-text {
@@ -2551,23 +3166,6 @@ body.body-menu-open #footer {
     height: 18px;
   }
 
-  /* Ajuster le menu déroulant pour mobile */
-  .dropdown-menu .social-media {
-    margin-top: 15px;
-    padding-top: 15px;
-    gap: 10px;
-  }
-
-  .dropdown-menu .social-media a {
-    width: 36px;
-    height: 36px;
-  }
-
-  .dropdown-menu .social-media img {
-    width: 30px;
-    height: 30px;
-  }
-
   /* Ajuste le titre bannière pour mobile */
   .title-banner {
     font-size: 1.9rem; /* Réduire la taille de la police (ajustez si besoin) */
@@ -2575,7 +3173,7 @@ body.body-menu-open #footer {
   }
 
   h3.title-banner {
-    font-size: 1.3rem; /* Réduire la taille de la police */
+    font-size: 1.7rem; /* Réduire la taille de la police */
     margin-bottom: 50px; /* Réduire la marge inférieure */
   }
 
@@ -2589,7 +3187,7 @@ body.body-menu-open #footer {
   }
 
   .intro-text .animated-paragraph {
-    font-size: 1.1rem; /* Réduire la taille de la police */
+    font-size: 1.2rem; /* Réduire la taille de la police */
     margin-bottom: 10px;
     padding: 30px;
   }
@@ -2622,14 +3220,14 @@ body.body-menu-open #footer {
   }
 
   .intro-text .btn-explore {
-    padding: 8px 25px; /* Réduire le padding vertical et horizontal */
-    font-size: 1.2rem; /* Réduire la taille de la police */
+    padding: 8px 15px; /* Réduire le padding vertical et horizontal */
+    font-size: 1.3rem; /* Réduire la taille de la police */
     min-width: auto; /* Permettre au bouton de prendre une largeur plus naturelle */
   }
 
   .btn-download-cv {
     padding: 8px 25px; /* Réduire le padding vertical et horizontal */
-    font-size: 1.2rem; /* Réduire la taille de la police */
+    font-size: 1.3rem; /* Réduire la taille de la police */
     margin: 60px 0px 0px 0px; /* Marge supérieure réduite */
   }
 
@@ -2688,14 +3286,14 @@ body.body-menu-open #footer {
     ); /* Optionnel: éviter que la box touche les bords */
   }
   .about-text-box p {
-    font-size: 1.1rem;
+    font-size: 1.3rem;
   }
   .project-info p {
-    font-size: 1.1rem;
+    font-size: 1.3rem;
     text-align: center;
   } /* Texte projet plus petit */
   .project-content p {
-    font-size: 1.1rem;
+    font-size: 1.3rem;
     text-align: center;
   } /* Texte projet plus petit */
   .project-detail .project-links a {
@@ -2706,7 +3304,7 @@ body.body-menu-open #footer {
     padding: 20px;
   } /* Grille projets 1 colonne */
   .project-links a {
-    font-size: 1.1rem;
+    font-size: 1.3rem;
   } /* Liens projet plus petits */
   .project-tech span {
     font-size: 1rem;
@@ -2796,14 +3394,14 @@ body.body-menu-open #footer {
   }
 
   .contact-form label {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
   } /* Taille police label plus petite */
   .contact-form button {
-    font-size: 1.2rem;
-    padding: 8px 16px;
+    font-size: 1.4rem;
+    padding: 8px 12px;
   } /* Bouton formulaire plus petit */
   .contact-email {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
   } /* Taille police email plus petite */
   .contact-email a {
     font-size: 1.2rem;
@@ -2892,225 +3490,53 @@ body.body-menu-open #footer {
 }
 
 /* =========================
-   SECTION RADAR DIGITAL (SUR LA PAGE D'ACCUEIL)
-   ========================= */
-/* Styles pour le titre principal de la section Radar sur la page d'accueil */
-/* Cible le h2.section-title avec data-i18n="home.radarTeaserTitle" dans section.page-title-container */
-section.page-title-container
-  > h2.section-title[data-i18n="home.radarTeaserTitle"] {
-  font-family: "WDXL Lubrifont TC", sans-serif;
-  font-size: clamp(
-    1.8rem,
-    4vw,
-    2.5rem
-  ); /* Taille de police responsive, ajustée pour correspondre à d'autres titres principaux */
-  background: linear-gradient(45deg, var(--accent-color), #c822ff);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  text-decoration: none;
-  transition: transform 0.3s;
-  margin-bottom: 20px; /* Ajusté pour un espacement standard sous le titre */
-  padding-bottom: 10px; /* Optionnel, pour s'assurer que le dégradé n'est pas coupé */
-}
-
-.page-subtitle {
-  font-size: 2rem;
-  color: var(--accent-color); /* Couleur du sous-titre */
-  padding: 40px; /* Espacement autour du sous-titre */
-}
-
-/* =========================
-   SECTION ACTUALITÉS (NEWS)
+   RESPONSIVE BLOG + ARTICLES 
    ========================= */
 
-.main-page-title {
-  font-size: 3rem; /* Taille de police pour le titre principal des actualités */
-  color: var(--accent-color); /* Couleur du titre principal */
-  font-weight: bold; /* Met le titre en gras */
-  padding: 60px;
+/* Ajustements pour les écrans moyens et petits */
+@media (max-width: 768px) {
+  .blog-main-container {
+    padding-top: 80px;
+  }
+
+  .blog-hero {
+    padding: 40px 0;
+  }
+
+  .blog-title {
+    font-size: 2.8rem;
+  }
+
+  .filter-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .articles-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+  }
+
+  .newsletter-form {
+    flex-direction: column;
+  }
 }
 
-.news-teaser-section,
-.all-news-list {
-  padding: 0px 50px 0px 50px; /* Ajustez le padding selon vos besoins */
+@media (max-width: 480px) {
+  .blog-title {
+    font-size: 2.3rem;
+  }
+
+  .blog-card-title {
+    font-size: 1.3rem;
+  }
+
+  .blog-newsletter {
+    padding: 30px 20px;
+  }
 }
 
-.news-teaser-section .section-title,
-.all-news-list .main-page-title {
-  margin-bottom: 40px; /* Espace sous le titre de la section */
-}
-
-.news-grid {
-  display: grid;
-  grid-template-columns: repeat(
-    auto-fit,
-    minmax(600px, 1fr)
-  ); /* Grille responsive */
-  gap: 100px; /* Espace entre les cartes */
-}
-
-.news-card {
-  background-color: rgb(79 89 102 / 2%);
-  border-radius: 12px;
-  overflow: hidden; /* Pour que l'image/icône ne dépasse pas si vous utilisez des images */
-  display: flex; /* Pour que le lien prenne toute la carte */
-  flex-direction: column;
-  text-decoration: none; /* Enlève le soulignement du lien global de la carte */
-  box-shadow: 0 5px 15px var(--accent-color); /* Ombre plus marquée au survol */
-}
-
-.news-card-link {
-  /* Le lien <a> qui englobe la carte */
-  text-decoration: none;
-  color: inherit; /* Hérite la couleur du texte de la carte */
-  display: flex;
-  flex-direction: column;
-  height: 100%; /* Pour que le lien remplisse la carte */
-}
-
-.news-card-image-container {
-  height: 300px; /* Hauteur fixe pour l'image ou l'icône */
-  background-color: var(
-    --section-bg-light
-  ); /* Couleur de fond si pas d'image */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-
-.news-card-image-container img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover; /* Assure que l'image couvre bien sans se déformer */
-}
-
-.news-card-icon {
-  /* Si vous utilisez une icône à la place d'une image */
-  font-size: 3rem;
-  color: var(--accent-color);
-}
-
-.news-card-content {
-  padding: 20px 25px;
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1; /* Permet à cette section de grandir et de pousser la dateline en bas */
-}
-
-.news-card-title {
-  font-size: 1.9rem;
-  color: var(--accent-color);
-  margin-bottom: 10px;
-  font-weight: bold;
-  line-height: 1.3;
-}
-
-.news-card-summary {
-  font-size: 1.4rem;
-  color: var(--accent-color);
-  line-height: 1.6;
-  margin-bottom: 15px;
-  flex-grow: 1; /* Permet au résumé de prendre l'espace disponible */
-}
-
-.news-card-dateline {
-  font-size: 1rem;
-  color: var(--accent-color);
-  margin-top: auto; /* Pousse la dateline en bas de la carte */
-}
-
-.view-all-news-container {
-  margin-top: 20px; /* Espace au-dessus du bouton "Tout voir" */
-}
-
-/* Styles pour la page d'article détaillé */
-.article-detail-page .article-content-full {
-  padding: 40px 20px;
-}
-
-.article-header-detailed {
-  text-align: center;
-  margin-bottom: 40px;
-}
-
-.article-title-main {
-  font-size: clamp(2rem, 5vw, 3rem);
-  color: var(--accent-color);
-  margin-bottom: 15px;
-}
-
-.article-dateline-detailed {
-  font-size: 0.9rem;
-  color: var(--text-color-light);
-  margin-bottom: 30px;
-}
-
-.article-banner-image {
-  width: 100%;
-  max-height: 400px;
-  object-fit: cover;
-  border-radius: 8px;
-  margin-bottom: 30px;
-}
-
-.article-body {
-  max-width: 800px; /* Limite la largeur du contenu de l'article pour la lisibilité */
-  margin: 0 auto;
-  font-size: 1.1rem;
-  line-height: 1.8;
-  color: var(--text-color);
-}
-
-.article-body h2 {
-  font-size: 1.8rem;
-  color: var(--accent-color);
-  margin-top: 40px;
-  margin-bottom: 20px;
-}
-.article-body h3 {
-  font-size: 1.5rem;
-  color: var(--accent-color);
-  margin-top: 30px;
-  margin-bottom: 15px;
-}
-.article-body p,
-.article-body ul,
-.article-body ol {
-  margin-bottom: 20px;
-}
-.article-body ul,
-.article-body ol {
-  padding-left: 30px;
-}
-.article-body a {
-  color: var(--accent-color);
-  text-decoration: underline;
-}
-.article-body a:hover {
-  text-decoration: none;
-}
-
-.article-navigation {
-  margin-top: 50px;
-  text-align: center;
-}
-.article-navigation .back-to-news {
-  display: inline-block;
-  padding: 10px 20px;
-  background-color: var(--accent-color);
-  color: var(--bg-color);
-  border-radius: 5px;
-  text-decoration: none;
-  font-weight: bold;
-}
-.article-navigation .back-to-news:hover {
-  background-color: var(
-    --accent-color-darker
-  ); /* Définir cette variable si besoin */
-}
-
+/* Ajustements spécifiques pour les sections News en mobile */
 @media (max-width: 576px) {
   section {
     padding: 0px;

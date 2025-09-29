@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Portfolio de Digitalblueskye, intégrateur web et designer web créatif et passionné. Spécialisé en HTML, CSS, JavaScript et responsive design. Découvrez mes projets."
+    />
+    <title data-i18n="meta.title">
+      My skills | Digitalblueskye Blog
+    </title>
+     <script>
+    (function() {
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+   </script>
+   <link rel="preconnect" href="https://fonts.googleapis.com">
+   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+   <link href="https://fonts.googleapis.com/css2?family=Iceland&display=swap" rel="stylesheet">
+   <link rel="preconnect" href="https://player.canva.com" />
+   <link rel="stylesheet" href="/styles/style.css" />
+   <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
+   <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+    />
+  </head>
+  <body>
+  <!-- Header fixe avec logo et hamburger -->
+    <header class="site-header">
+      <div class="header-placeholder"></div>
+      <!-- Logo -->
+      <div class="header-logo">
+        <a href="/index.html" title="Retour à l'accueil">
+          <img
+            src="/assets/images/logo/Logo-Globe.png"
+            alt="Logo YellowBlueSkye"
+            width="50"
+            height="50"
+          />
+        </a>
+      </div>
+      <!-- Contrôles alignés -->
+      <div class="menu-controls">
+        <button
+          id="lang-switch"
+          class="lang-button"
+          aria-label="Changer de langue"
+        >
+          <a
+            href="javascript:void(0)"
+            id="switch-to-en"
+            title="Switch to English"
+          >
+            <img
+              src="/assets/images/ui/icons8-uk-flag-48.png"
+              alt="English"
+              width="32"
+              height="32"
+            />
+          </a>
+          <a
+            href="javascript:void(0)"
+            id="switch-to-fr"
+            style="display: none"
+            title="Passer en français"
+          >
+            <img
+              src="/assets/images/ui/icons8-french-flag-48.png"
+              alt="Français"
+              width="32"
+              height="32"
+            />
+          </a>
+        </button>
+        <button id="theme-switch" aria-label="Changer de thème">
+          <svg width="24" height="24" viewBox="0 0 24 24" class="moon-icon">
+            <path
+              d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"
+              fill="currentColor"
+            />
+          </svg>
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            class="sun-icon"
+            style="display: none"
+          >
+            <path
+              d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0-5a1 1 0 0 0 1-1V1a1 1 0 0 0-2 0v0a1 1 0 0 0 1 1zm0 20a1 1 0 0 0-1 1v0a1 1 0 0 0 2 0v0a1 1 0 0 0-1-1zm10-11h0a1 1 0 0 0 0-2h0a1 1 0 0 0 0 2zM2 11h0a1 1 0 0 0 0 2h0a1 1 0 0 0 0-2zm16.95-5.95a1 1 0 0 0 0-1.41l0 0a1 1 0 0 0-1.41 0l0 0a1 1 0 0 0 0 1.41l0 0a1 1 0 0 0 1.41 0zm-14.9 14.9a1 1 0 0 0 0-1.41l0 0a1 1 0 0 0-1.41 0l0 0a1 1 0 0 0 0 1.41l0 0a1 1 0 0 0 1.41 0zM18.95 18.95a1 1 0 0 0 0-1.41l0 0a1 1 0 0 0-1.41 0l0 0a1 1 0 0 0 0 1.41l0 0a1 1 0 0 0 1.41 0zm-14.9-14.9a1 1 0 0 0 0-1.41l0 0a1 1 0 0 0-1.41 0l0 0a1 1 0 0 0 0 1.41l0 0a1 1 0 0 0 1.41 0z"
+              fill="currentColor"
+            />
+          </svg>
+        </button>
+      </div>
+      <!-- Hamburger placé DANS le header -->
+      <div class="hamburger" id="hamburger" aria-label="Menu">
+        <!-- Remplacer l'icône hamburger par un chevron -->
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="60"
+          height="60"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </div>
+    </header>
+
+    <!-- Menu dropdown qui apparaît sous le header -->
+    <div class="dropdown-menu" id="dropdown-menu">
+      <!-- Navigation -->
+      <nav class="dropdown-nav">
+        <ul>
+          <li>
+            <a href="/index.html" data-i18n="nav.home"><h2>ACCUEIL</h2></a>
+          </li>
+          <li>
+            <a href="/pages/about.html" data-i18n="nav.about"
+              ><h2>À PROPOS DE MOI</h2></a
+            >
+          </li>
+          <li class="dropdown-submenu">
+          <a class="nav-link nav-link-with-submenu">
+          <span data-i18n="nav.explore">Exploration</span>
+          <span class="submenu-chevron" aria-hidden="true">▾</span>
+          </a>
+          <ul class="submenu-list">
+            <li><a class="nav-link submenu-link" href="/pages/visualTourProjects.html" data-i18n="nav.images">En images</a></li>
+            <li><a class="nav-link submenu-link" href="/pages/projects.html" data-i18n="nav.projects">Mes projets</a></li>
+            <li><a class="nav-link submenu-link" href="/pages/skills.html" data-i18n="nav.skills">Mes compétences</a></li>
+          </ul>
+          </li>
+          <li class="dropdown-submenu">
+            <a class="nav-link nav-link-with-submenu">
+              <span data-i18n="nav.blog">Blog & Actus</span>
+              <span class="submenu-chevron" aria-hidden="true">▾</span>
+            </a>
+            <ul class="submenu-list">
+              <li><a class="nav-link submenu-link" href="/blog/digital/blogArticles.html" data-i18n="nav.blogDigital">Le coin Digital</a></li>
+              <li><a class="nav-link submenu-link" href="/blog/inspirations.html" data-i18n="nav.blogInspiration">Carnet Perso & Inspirations</a></li>
+            </ul>
+          </li>
+          <li>
+            <a href="/pages/contact.html" data-i18n="nav.contact"
+              ><h2>CONTACTEZ MOI</h2></a
+            >
+          </li>
+        </ul>
+      </nav>
+      <!-- Menu de navigation social média -->
+      <div class="social-media" data-aos="fade-up"></div>
+    </div>
+
+    <!-- Overlay pour fermer le menu -->
+    <div class="menu-overlay" id="menu-overlay"></div>
+    <!-- Fin du menu dropdown -->
+
+    <main>
+      <!-- Section Compétences -->
+      <section id="skills" class="skills-section">
+        <h2 class="title-banner" data-i18n="skills.title" data-aos="fade-up">
+          Mes compétences
+        </h2>
+
+        <div class="skills-categories">
+          <!-- Frontend -->
+          <div class="skills-category" data-aos="fade-up">
+            <h3 class="category-title" data-i18n="skills.frontend">Frontend</h3>
+            <div class="skills-grid">
+              <div class="skill">
+                <a
+                  href="https://developer.mozilla.org/fr/docs/Web/HTML"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="skill-icon"
+                >
+                  <img src="/assets/images/ui/icons8-html5-50.png" alt="HTML5" />
+                </a>
+                <p>HTML5</p>
+              </div>
+              <div class="skill">
+                <a
+                  href="https://developer.mozilla.org/fr/docs/Web/CSS"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="skill-icon"
+                >
+                  <img src="/assets/images/ui/icons8-css3-50.png" alt="CSS3" />
+                </a>
+                <p>CSS3</p>
+              </div>
+              <div class="skill">
+                <a
+                  href="https://developer.mozilla.org/fr/docs/Web/JavaScript"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="skill-icon"
+                >
+                  <img
+                    src="/assets/images/ui/icons8-javascript-48.png"
+                    alt="JavaScript"
+                  />
+                </a>
+                <p>JavaScript</p>
+              </div>
+              <div class="skill">
+                <a
+                  href="https://getbootstrap.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="skill-icon"
+                >
+                  <img
+                    src="/assets/images/ui/icons8-bootstrap-48.png"
+                    alt="Bootstrap"
+                  />
+                </a>
+                <p>Bootstrap</p>
+              </div>
+              <div class="skill">
+                <a
+                  href="https://reactjs.org/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="skill-icon"
+                >
+                  <img src="/assets/images/ui/icons8-react-48.png" alt="React" />
+                </a>
+                <p>React</p>
+              </div>
+              <div class="skill">
+                <a
+                  href="https://sass-lang.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="skill-icon"
+                >
+                  <img src="/assets/images/ui/icons8-sass-48.png" alt="Sass" />
+                </a>
+                <p>Sass</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Backend -->
+          <div class="skills-category" data-aos="fade-up">
+            <h3 class="category-title" data-i18n="skills.backend">Backend</h3>
+            <div class="skills-grid">
+              <div class="skill">
+                <a
+                  href="https://www.php.net/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="skill-icon"
+                >
+                  <img src="/assets/images/ui/icons8-php-48.png" alt="PHP" />
+                </a>
+                <p>PHP</p>
+              </div>
+              <div class="skill">
+                <a
+                  href="https://nodejs.org/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="skill-icon"
+                >
+                  <img src="/assets/images/ui/icons8-node-js-48.png" alt="Node.js" />
+                </a>
+                <p>Node.js</p>
+              </div>
+              <div class="skill">
+                <a
+                  href="https://www.mysql.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="skill-icon"
+                >
+                  <img src="/assets/images/ui/icons8-mysql-48.png" alt="MySQL" />
+                </a>
+                <p>MySQL</p>
+              </div>
+              <div class="skill">
+                <a
+                  href="https://www.mongodb.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="skill-icon"
+                >
+                  <img src="/assets/images/ui/icons8-mongodb-48.png" alt="MongoDB" />
+                </a>
+                <p>MongoDB</p>
+              </div>
+            </div>
+          </div>
+
+
+          <!-- Design -->
+
+          <div class="skills-category" data-aos="fade-up">
+            <h3 class="category-title" data-i18n="skills.design">Design</h3>
+            <div class="skills-grid">
+              <div class="skill">
+                <a
+                  href="https://www.canva.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="skill-icon"
+                >
+                  <img src="/assets/images/ui/icons8-canva-48.png" alt="Canva" />
+                </a>
+                <p>Canva</p>
+              </div>
+              <div class="skill">
+                <a
+                  href="https://www.figma.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="skill-icon"
+                >
+                  <img src="/assets/images/ui/icons8-figma-48.png" alt="Figma" />
+                </a>
+                <p>Figma</p>
+              </div>
+              <div class="skill">
+                <a
+                  href="https://www.adobe.com/apps/all/all-platforms/pdp/indesign?source=apps"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="skill-icon"
+                >
+                  <img
+                    src="/assets/images/ui/icons8-adobe-indesign-40.png"
+                    alt="Adobe indesign"
+                  />
+                </a>
+                <p>Indesign</p>
+              </div>
+              <div class="skill">
+                <a
+                  href="https://www.adobe.com/apps/all/all-platforms/pdp/illustrator?source=apps"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="skill-icon"
+                >
+                  <img
+                    src="/assets/images/ui/icons8-adobe-illustrator-48.png"
+                    alt="Adobe Illustrator"
+                  />
+                </a>
+                <p>Illustrator</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Environnement & Outils -->
+          <div class="skills-category" data-aos="fade-up">
+            <h3 class="category-title" data-i18n="skills.tools">Environnement & Outils</h3>
+            <div class="skills-grid">
+              <div class="skill">
+                <a
+                  href="https://github.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="skill-icon"
+                >
+                  <img src="/assets/images/ui/icons8-github-64.png" alt="GitHub" />
+                </a>
+                <p>GitHub</p>
+              </div>
+              <div class="skill">
+                <a
+                  href="https://code.visualstudio.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="skill-icon"
+                >
+                  <img src="/assets/images/ui/icons8-vs-code-48.png" alt="VS Code" />
+                </a>
+                <p>VS Code</p>
+              </div>
+              <div class="skill">
+                <a
+                  href="https://www.heroku.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="skill-icon"
+                >
+                  <img src="/assets/images/ui/icons8-heroku-48.png" alt="Heroku" />
+                </a>
+                <p>Heroku</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </section>
+
+
+    <footer id="footer">
+      <div class="github">
+        <a href="https://github.com/Dev-Djelloul" target="_blank">
+          <img src="/assets/images/ui/icons8-github-64.png" alt="Github" />
+        </a>
+      </div>
+      <div>
+        <a href="https://www.linkedin.com/in/yellowblueskye/" target="_blank">
+          <img src="/assets/images/ui/icons8-linkedin-64.png" alt="LinkedIn" />
+        </a>
+      </div>
+      <p data-i18n="footer.copyright">
+        &copy; 2024 YellowBlueSkye. Tous droits réservés.
+      </p>
+    </footer>
+
+
+    <!-- Bouton flèche pour remonter en haut de page -->
+    <button
+      id="scroll-to-top"
+      class="scroll-to-top"
+      data-i18n-title="ui.backToTop"
+      title="Retour en haut"
+    >
+      <svg width="20" height="20" viewBox="0 0 24 24">
+        <path d="M7 14l5-5 5 5z" fill="currentColor"></path>
+      </svg>
+    </button>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+      AOS.init({
+        duration: 800,
+        easing: "ease-in-out",
+        once: true,
+      });
+
+      // Fonction pour gérer le bouton de retour en haut
+      document.addEventListener("DOMContentLoaded", function () {
+        var scrollToTopBtn = document.getElementById("scroll-to-top");
+
+        window.onscroll = function () {
+          if (
+            document.body.scrollTop > 300 ||
+            document.documentElement.scrollTop > 300
+          ) {
+            scrollToTopBtn.style.display = "flex";
+            scrollToTopBtn.style.opacity = "1";
+          } else {
+            scrollToTopBtn.style.opacity = "0";
+            setTimeout(() => {
+              if (
+                document.body.scrollTop <= 300 &&
+                document.documentElement.scrollTop <= 300
+              ) {
+                scrollToTopBtn.style.display = "none";
+              }
+            }, 300);
+          }
+        };
+
+        scrollToTopBtn.addEventListener("click", function () {
+          window.scrollTo({
+            top: 0,
+            behavior: "smooth",
+          });
+        });
+      });
+    </script>
+    <script src="/scripts/translator.js"></script>
+    <script src="/scripts/theme-switcher.js"></script>
+    <script src="/scripts/parallax-effect.js"></script>
+    <script src="/scripts/skills-parallax.js"></script>
+    <script src="/scripts/navbar-dropdown.js"></script>
+  </body>
+</html>

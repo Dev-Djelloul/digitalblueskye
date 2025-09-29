@@ -28,14 +28,14 @@
     />
   </head>
   <body>
-    <!-- Header fixe avec logo et hamburger -->
+       <!-- Header fixe avec logo et hamburger -->
     <header class="site-header">
       <div class="header-placeholder"></div>
       <!-- Logo -->
       <div class="header-logo">
-       <a href="/index.html" title="Retour à l'accueil">
+        <a href="/index.html" title="Retour à l'accueil">
           <img
-            src="/images/logoVideos/Logo-Globe.png"
+            src="/assets/images/logo/Logo-Globe.png"
             alt="Logo YellowBlueSkye"
             width="50"
             height="50"
@@ -55,7 +55,7 @@
             title="Switch to English"
           >
             <img
-              src="/images/icons/icons8-uk-flag-48.png"
+              src="/assets/images/ui/icons8-uk-flag-48.png"
               alt="English"
               width="32"
               height="32"
@@ -68,7 +68,7 @@
             title="Passer en français"
           >
             <img
-              src="/images/icons/icons8-french-flag-48.png"
+              src="/assets/images/ui/icons8-french-flag-48.png"
               alt="Français"
               width="32"
               height="32"
@@ -124,44 +124,52 @@
             <a href="/index.html" data-i18n="nav.home"><h2>ACCUEIL</h2></a>
           </li>
           <li>
-            <a href="/main/about.html" data-i18n="nav.about"
+            <a href="/pages/about.html" data-i18n="nav.about"
               ><h2>À PROPOS DE MOI</h2></a
             >
           </li>
-          <li>
-            <a href="/main/explore.html" data-i18n="nav.explore"><h2>EXPLOREZ</h2></a>
+          <li class="dropdown-submenu">
+          <a class="nav-link nav-link-with-submenu">
+          <span data-i18n="nav.explore">Exploration</span>
+          <span class="submenu-chevron" aria-hidden="true">▾</span>
+          </a>
+          <ul class="submenu-list">
+            <li><a class="nav-link submenu-link" href="/pages/visualTourProjects.html" data-i18n="nav.images">En images</a></li>
+            <li><a class="nav-link submenu-link" href="/pages/projects.html" data-i18n="nav.projects">Mes projets</a></li>
+            <li><a class="nav-link submenu-link" href="/pages/skills.html" data-i18n="nav.skills">Mes compétences</a></li>
+          </ul>
+          </li>
+          <li class="dropdown-submenu">
+            <a class="nav-link nav-link-with-submenu">
+              <span data-i18n="nav.blog">Blog & Actus</span>
+              <span class="submenu-chevron" aria-hidden="true">▾</span>
+            </a>
+            <ul class="submenu-list">
+              <li><a class="nav-link submenu-link" href="/blog/digital/blogArticles.html" data-i18n="nav.blogDigital">Le coin Digital</a></li>
+              <li><a class="nav-link submenu-link" href="/blog/inspirations.html" data-i18n="nav.blogInspiration">Carnet Perso & Inspirations</a></li>
+            </ul>
           </li>
           <li>
-            <a href="/main/projects.html" data-i18n="nav.projects"
-              ><h2>MES PROJETS</h2></a
-            >
-          </li>
-          <li>
-            <a href="/main/skills.html" data-i18n="nav.skills"
-              ><h2>MES COMPÉTENCES</h2></a
-            >
-          </li>
-          <li>
-            <a href="/main/contact.html" data-i18n="nav.contact"
+            <a href="/pages/contact.html" data-i18n="nav.contact"
               ><h2>CONTACTEZ MOI</h2></a
             >
           </li>
         </ul>
       </nav>
-       <!-- Menu de navigation social média -->
-       <div class="social-media" data-aos="fade-up">
-     </div>
+      <!-- Menu de navigation social média -->
+      <div class="social-media" data-aos="fade-up"></div>
     </div>
 
     <!-- Overlay pour fermer le menu -->
     <div class="menu-overlay" id="menu-overlay"></div>
     <!-- Fin du menu dropdown -->
 
+
   <main>
   <!-- Section Projet Détaillé -->
   <section class="project-detail">
     <div class="project-hero" data-aos="fade-up">
-      <img src="../images/sophie-bluel.png" alt="Projet Sophie Bluel" />
+      <img src="/assets/images/projects/imagesSophieBluel/sophie-bluel.png" alt="Projet Sophie Bluel" />
     </div>
 
     <div class="project-content" data-aos="fade-up">
@@ -183,7 +191,7 @@
       </div>
       
       <div class="project-links">
-        <a href="/main/projects.html" class="btn-back-projects" data-i18n="projectDetails.backToProjectsList">
+        <a href="/pages/projects.html" class="btn-back-projects" data-i18n="projectDetails.backToProjectsList">
           Tous les projets
         </a>
         <a href="https://dev-djelloul.github.io/sophie-bluel-architect/" target="_blank" data-i18n="projectDetails.viewLive">
@@ -235,13 +243,13 @@
       <h3 class="title-banner" data-i18n="projectDetails.gallery">GALERIE</h3>
       <div class="gallery-grid">
         <div class="gallery-item">
-          <img src="../images/imagesSophieBluel/appartement-paris-x.png" alt="Page d'accueil Sophie Bluel" />
+          <img src="/assets/images/projects/imagesSophieBluel/appartement-paris-x.png" alt="Page d'accueil Sophie Bluel" />
         </div>
         <div class="gallery-item">
-          <img src="../images/imagesSophieBluel/le-coteau-cassis.png" alt="Page de connexion" />
+          <img src="/assets/images/projects/imagesSophieBluel/le-coteau-cassis.png" alt="Page de connexion" />
         </div>
         <div class="gallery-item">
-          <img src="../images/imagesSophieBluel/structures-thermopolis.png" alt="Interface admin" />
+          <img src="/assets/images/projects/imagesSophieBluel/structures-thermopolis.png" alt="Interface admin" />
         </div>
       </div>
     </div>
@@ -250,7 +258,7 @@
     <!-- Navigation entre projets -->
     <div class="project-navigation">
       <!-- Lien Projet Précédent -->
-      <a href="print-it.html" 
+      <a href="/projects/print-it.html" 
          class="prev-project" 
          data-project-key="printIt"  
          data-i18n-title="projects.prevProject" /* Traduit le title pour accessibilité */
@@ -264,7 +272,7 @@
       </a>
 
       <!-- Lien Projet Suivant -->
-      <a href="memory-game.html" 
+      <a href="/projects/memory-game.html" 
          class="next-project" 
          data-project-key="memoryGame"  
          data-i18n-title="projects.nextProject" /* Traduit le title pour accessibilité */
@@ -282,12 +290,12 @@
   <footer id="footer">
     <div class="github">
       <a href="https://github.com/Dev-Djelloul" target="_blank">
-        <img src="/images/icons/icons8-github-64.png" alt="Github" />
+        <img src="/assets/images/ui/icons8-github-64.png" alt="Github" />
       </a>
     </div>
     <div>
       <a href="https://www.linkedin.com/in/yellowblueskye/" target="_blank">
-        <img src="/images/icons/icons8-linkedin-64.png" alt="LinkedIn" />
+        <img src="/assets/images/ui/icons8-linkedin-64.png" alt="LinkedIn" />
       </a>
     </div>
     <p data-i18n="footer.copyright">

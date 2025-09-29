@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Découvrez les innovations technologiques majeures qui définiront 2026 et comment les intégrer à votre stratégie digitale." />
+    <title data-i18n="meta.titleTechFutur">Les technologies qui façonneront 2026 | DigitalBlueSkye</title>
+    <script>
+      (function() {
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+      })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Iceland&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles/style.css" />
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+  </head>
+  <body>
+    <!-- Header fixe avec logo et hamburger -->
+    <header class="site-header">
+      <div class="header-placeholder"></div>
+      <!-- Logo -->
+      <div class="header-logo">
+        <a href="/index.html" title="Retour à l'accueil">
+          <img src="/assets/images/logo/Logo-Globe.png" alt="Logo DigitalBlueSkye" width="50" height="50" />
+        </a>
+      </div>
+      <!-- Contrôles alignés -->
+      <div class="menu-controls">
+        <button id="lang-switch" class="lang-button" aria-label="Changer de langue">
+          <a href="javascript:void(0)" id="switch-to-en" title="Switch to English">
+            <img src="/assets/images/ui/icons8-uk-flag-48.png" alt="English" width="32" height="32" />
+          </a>
+          <a href="javascript:void(0)" id="switch-to-fr" style="display: none" title="Passer en français">
+            <img src="/assets/images/ui/icons8-french-flag-48.png" alt="Français" width="32" height="32" />
+          </a>
+        </button>
+        <button id="theme-switch" aria-label="Changer de thème">
+          <svg width="24" height="24" viewBox="0 0 24 24" class="moon-icon">
+            <path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z" fill="currentColor" />
+          </svg>
+          <svg width="24" height="24" viewBox="0 0 24 24" class="sun-icon" style="display: none">
+            <path d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0-5a1 1 0 0 0 1-1V1a1 1 0 0 0-2 0v0a1 1 0 0 0 1 1zm0 20a1 1 0 0 0-1 1v0a1 1 0 0 0 2 0v0a1 1 0 0 0-1-1zm10-11h0a1 1 0 0 0 0-2h0a1 1 0 0 0 0 2zM2 11h0a1 1 0 0 0 0 2h0a1 1 0 0 0 0-2zm16.95-5.95a1 1 0 0 0 0-1.41l0 0a1 1 0 0 0-1.41 0l0 0a1 1 0 0 0 0 1.41l0 0a1 1 0 0 0 1.41 0zm-14.9 14.9a1 1 0 0 0 0-1.41l0 0a1 1 0 0 0-1.41 0l0 0a1 1 0 0 0 0 1.41l0 0a1 1 0 0 0 1.41 0zM18.95 18.95a1 1 0 0 0 0-1.41l0 0a1 1 0 0 0-1.41 0l0 0a1 1 0 0 0 0 1.41l0 0a1 1 0 0 0 1.41 0zm-14.9-14.9a1 1 0 0 0 0-1.41l0 0a1 1 0 0 0-1.41 0l0 0a1 1 0 0 0 0 1.41l0 0a1 1 0 0 0 1.41 0z" fill="currentColor" />
+          </svg>
+        </button>
+      </div>
+      <!-- Hamburger -->
+      <div class="hamburger" id="hamburger" aria-label="Menu">
+        <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </div>
+    </header>
+
+    <!-- Menu dropdown -->
+    <div class="dropdown-menu" id="dropdown-menu">
+      <!-- Navigation -->
+      <nav class="dropdown-nav">
+        <ul>
+          <li>
+            <a href="/index.html" data-i18n="nav.home"><h2>ACCUEIL</h2></a>
+          </li>
+          <li>
+            <a href="/pages/about.html" data-i18n="nav.about"><h2>À PROPOS DE MOI</h2></a>
+          </li>
+          <li class="dropdown-submenu">
+            <a class="nav-link nav-link-with-submenu">
+              <span data-i18n="nav.explore">Exploration</span>
+              <span class="submenu-chevron" aria-hidden="true">▾</span>
+            </a>
+            <ul class="submenu-list">
+              <li><a class="nav-link submenu-link" href="/pages/visualTourProjects.html" data-i18n="nav.images">En images</a></li>
+              <li><a class="nav-link submenu-link" href="/pages/projects.html" data-i18n="nav.projects">Mes projets</a></li>
+              <li><a class="nav-link submenu-link" href="/pages/skills.html" data-i18n="nav.skills">Mes compétences</a></li>
+            </ul>
+          </li>
+          <li class="dropdown-submenu">
+            <a class="nav-link nav-link-with-submenu">
+              <span data-i18n="nav.blog">Blog & Actus</span>
+              <span class="submenu-chevron" aria-hidden="true">▾</span>
+            </a>
+            <ul class="submenu-list">
+              <li><a class="nav-link submenu-link" href="/blog/digital/blogArticles.html" data-i18n="nav.blogDigital">Le coin Digital</a></li>
+              <li><a class="nav-link submenu-link" href="/blog/inspirations.html" data-i18n="nav.blogInspiration">Carnet Perso & Inspirations</a></li>
+            </ul>
+          </li>
+          <li>
+            <a href="/pages/contact.html" data-i18n="nav.contact"><h2>CONTACTEZ MOI</h2></a>
+          </li>
+        </ul>
+      </nav>
+      <!-- Menu de navigation social média -->
+      <div class="social-media" data-aos="fade-up"></div>
+    </div>
+
+    <!-- Overlay pour fermer le menu -->
+    <div class="menu-overlay" id="menu-overlay"></div>
+
+    <!-- Contenu principal de l'article -->
+    <main class="article-detail-page">
+      <article class="article-content-full section-padding">
+        <div class="container">
+          <h1 class="article-title-main" data-i18n="news.article5.title">Les technologies qui façonneront 2026</h1>
+          <p class="article-dateline-detailed" data-i18n="news.article5.datelineFull">
+            Publié le 24 Septembre 2025 • Catégorie: Prospective
+          </p>
+          
+          <!-- Image principale de l'article -->
+          <img src="/assets/images/blog/2026 Future Tech/12744-en-entertainment-with-technology-in-2025-next-gen-games-and-events.jpg" alt="Technologies du futur" class="article-banner-image">
+          
+          <div class="article-body" data-i18n="news.article5.fullContent">
+            <!-- Le contenu sera injecté par le translator.js -->
+            <p>Alors que nous nous approchons de 2026, plusieurs innovations technologiques promettent de transformer radicalement nos méthodes de travail...</p>
+          </div>
+          
+          <!-- Navigation entre articles -->
+          <div class="article-navigation">
+            <a href="/blog/digital/article-rse-digital.html" class="btn-nav-style">&laquo; Article Précédent</a>
+            <a href="/blog/digital/blogArticles.html" class="btn-nav-style" data-i18n="news.backToList">Retour aux actualités</a>
+            <a href="/blog/digital/article-metavers-projets.html" class="btn-nav-style">Article Suivant &raquo;</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer id="footer">
+      <div class="github">
+        <a href="https://github.com/Dev-Djelloul" target="_blank">
+          <img src="/assets/images/ui/icons8-github-64.png" alt="Github" />
+        </a>
+      </div>
+      <div>
+        <a href="https://www.linkedin.com/in/yellowblueskye/" target="_blank">
+          <img src="/assets/images/ui/icons8-linkedin-64.png" alt="LinkedIn" />
+        </a>
+      </div>
+      <p data-i18n="footer.copyright">
+        &copy; 2024 DigitalBlueSkye. Tous droits réservés.
+      </p>
+    </footer>
+
+    <!-- Bouton retour en haut -->
+    <button id="scroll-to-top" class="scroll-to-top" data-i18n-title="ui.backToTop" title="Retour en haut">
+      <svg width="20" height="20" viewBox="0 0 24 24">
+        <path d="M7 14l5-5 5 5z" fill="currentColor"></path>
+      </svg>
+    </button>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+      AOS.init({
+        duration: 1000,
+        once: true,
+      });
+
+      // Script pour le bouton de retour en haut
+      document.addEventListener("DOMContentLoaded", function () {
+        var scrollToTopBtn = document.getElementById("scroll-to-top");
+
+        window.onscroll = function () {
+          if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+            scrollToTopBtn.style.display = "flex";
+            scrollToTopBtn.style.opacity = "1";
+          } else {
+            scrollToTopBtn.style.opacity = "0";
+            setTimeout(() => {
+              if (document.body.scrollTop <= 300 && document.documentElement.scrollTop <= 300) {
+                scrollToTopBtn.style.display = "none";
+              }
+            }, 300);
+          }
+        };
+
+        scrollToTopBtn.addEventListener("click", function () {
+          window.scrollTo({
+            top: 0,
+            behavior: "smooth",
+          });
+        });
+      });
+    </script>
+    <script src="/scripts/translator.js"></script>
+    <script src="/scripts/theme-switcher.js"></script>
+    <script src="/scripts/navbar-dropdown.js"></script>
+    <script src="/scripts/loader.js"></script>
+    <script src="/scripts/scroll-animations.js"></script>
+  </body>
+</html>

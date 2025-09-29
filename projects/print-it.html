@@ -31,14 +31,14 @@
     />
   </head>
   <body>
-    <!-- Header fixe avec logo et hamburger -->
+      <!-- Header fixe avec logo et hamburger -->
     <header class="site-header">
       <div class="header-placeholder"></div>
       <!-- Logo -->
       <div class="header-logo">
         <a href="/index.html" title="Retour à l'accueil">
           <img
-            src="/images/logoVideos/Logo-Globe.png"
+            src="/assets/images/logo/Logo-Globe.png"
             alt="Logo YellowBlueSkye"
             width="50"
             height="50"
@@ -58,7 +58,7 @@
             title="Switch to English"
           >
             <img
-              src="/images/icons/icons8-uk-flag-48.png"
+              src="/assets/images/ui/icons8-uk-flag-48.png"
               alt="English"
               width="32"
               height="32"
@@ -71,7 +71,7 @@
             title="Passer en français"
           >
             <img
-              src="/images/icons/icons8-french-flag-48.png"
+              src="/assets/images/ui/icons8-french-flag-48.png"
               alt="Français"
               width="32"
               height="32"
@@ -127,27 +127,33 @@
             <a href="/index.html" data-i18n="nav.home"><h2>ACCUEIL</h2></a>
           </li>
           <li>
-            <a href="/main/about.html" data-i18n="nav.about"
+            <a href="/pages/about.html" data-i18n="nav.about"
               ><h2>À PROPOS DE MOI</h2></a
             >
           </li>
-          <li>
-            <a href="/main/explore.html" data-i18n="nav.explore"
-              ><h2>EXPLOREZ</h2></a
-            >
+          <li class="dropdown-submenu">
+          <a class="nav-link nav-link-with-submenu">
+          <span data-i18n="nav.explore">Exploration</span>
+          <span class="submenu-chevron" aria-hidden="true">▾</span>
+          </a>
+          <ul class="submenu-list">
+            <li><a class="nav-link submenu-link" href="/pages/visualTourProjects.html" data-i18n="nav.images">En images</a></li>
+            <li><a class="nav-link submenu-link" href="/pages/projects.html" data-i18n="nav.projects">Mes projets</a></li>
+            <li><a class="nav-link submenu-link" href="/pages/skills.html" data-i18n="nav.skills">Mes compétences</a></li>
+          </ul>
+          </li>
+          <li class="dropdown-submenu">
+            <a class="nav-link nav-link-with-submenu">
+              <span data-i18n="nav.blog">Blog & Actus</span>
+              <span class="submenu-chevron" aria-hidden="true">▾</span>
+            </a>
+            <ul class="submenu-list">
+              <li><a class="nav-link submenu-link" href="/blog/digital/blogArticles.html" data-i18n="nav.blogDigital">Le coin Digital</a></li>
+              <li><a class="nav-link submenu-link" href="/blog/inspirations.html" data-i18n="nav.blogInspiration">Carnet Perso & Inspirations</a></li>
+            </ul>
           </li>
           <li>
-            <a href="/main/projects.html" data-i18n="nav.projects"
-              ><h2>MES PROJETS</h2></a
-            >
-          </li>
-          <li>
-            <a href="/main/skills.html" data-i18n="nav.skills"
-              ><h2>MES COMPÉTENCES</h2></a
-            >
-          </li>
-          <li>
-            <a href="/main/contact.html" data-i18n="nav.contact"
+            <a href="/pages/contact.html" data-i18n="nav.contact"
               ><h2>CONTACTEZ MOI</h2></a
             >
           </li>
@@ -161,11 +167,12 @@
     <div class="menu-overlay" id="menu-overlay"></div>
     <!-- Fin du menu dropdown -->
 
+
     <main>
       <!-- Section Projet Détaillé -->
       <section class="project-detail">
         <div class="project-hero" data-aos="fade-up">
-          <img src="../images/yellow-book.jpeg" alt="Projet Print It" />
+          <img src="/assets/images/projects/imagesPrint-it/yellow-book.jpeg" alt="Projet Print It" />
         </div>
 
         <div class="project-content" data-aos="fade-up">
@@ -187,7 +194,7 @@
 
           <div class="project-links">
             <a
-              href="/main/projects.html"
+              href="/pages/projects.html"
               class="btn-back-projects"
               data-i18n="projectDetails.backToProjectsList"
             >
@@ -288,19 +295,19 @@
           <div class="gallery-grid">
             <div class="gallery-item">
               <img
-                src="../images/imagesPrint-it/slideshow/slide4.png"
+                src="/assets/images/projects/imagesPrint-it/slideshow/slide4.png"
                 alt="Page d'accueil Print It"
               />
             </div>
             <div class="gallery-item">
               <img
-                src="../images/imagesPrint-it/slideshow/slide2.jpeg"
+                src="/assets/images/projects/imagesPrint-it/slideshow/slide2.jpeg"
                 alt="Carrousel Print It"
               />
             </div>
             <div class="gallery-item">
               <img
-                src="../images/imagesPrint-it/slideshow/slide3.jpeg"
+                src="/assets/images/projects/imagesPrint-it/slideshow/slide3.jpeg"
                 alt="Services Print It"
               />
             </div>
@@ -311,7 +318,7 @@
         <div class="project-navigation">
           <!-- Lien Projet Précédent -->
           <a
-            href="ohmyfood.html"
+            href="/projects/ohmyfood.html"
             class="prev-project"
             data-project-key="ohmyfood"
             data-i18n-title="projects.prevProject"
@@ -336,7 +343,7 @@
 
           <!-- Lien Projet Suivant -->
           <a
-            href="sophie-bluel.html"
+            href="/projects/sophie-bluel.html"
             class="next-project"
             data-project-key="sophieBluel"
             data-i18n-title="projects.nextProject"
@@ -365,12 +372,12 @@
     <footer id="footer">
       <div class="github">
         <a href="https://github.com/Dev-Djelloul" target="_blank">
-          <img src="/images/icons/icons8-github-64.png" alt="Github" />
+          <img src="/assets/images/ui/icons8-github-64.png" alt="Github" />
         </a>
       </div>
       <div>
         <a href="https://www.linkedin.com/in/yellowblueskye/" target="_blank">
-          <img src="/images/icons/icons8-linkedin-64.png" alt="LinkedIn" />
+          <img src="/assets/images/ui/icons8-linkedin-64.png" alt="LinkedIn" />
         </a>
       </div>
       <p data-i18n="footer.copyright">

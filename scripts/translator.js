@@ -1,4 +1,4 @@
- /**
+/**
  * Script de traduction pour le site YellowBlueSkye
  * Version corrigée pour éviter les redirections et gérer innerHTML
  */
@@ -84,13 +84,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         // Pour tous les autres éléments (contenu général)
         else {
-          // Vérifier si la clé indique un contenu HTML
-          if ((key.startsWith('radarPage.article') && (key.endsWith('Content') || key.endsWith('Summary'))) ||
-              key.includes('Summary') || key.includes('description') || key.includes('content') || key.includes('html')) { // Ajout de 'html' comme indicateur possible
-            element.innerHTML = translation;
-          } else {
-            element.textContent = translation;
-          }
+          element.innerHTML = translation;
         }
       } else {
         console.warn("No translation found for main content key: " + key + " on element:", element);

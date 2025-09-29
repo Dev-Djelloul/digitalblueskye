@@ -7,10 +7,27 @@
       name="description"
       content="Portfolio de Digitalblueskye, intégrateur web et designer web créatif et passionné. Spécialisé en HTML, CSS, JavaScript et responsive design. Découvrez mes projets."
     />
+    <!-- Script Mailchimp -->
+    <script id="mcjs">
+      !(function (c, h, i, m, p) {
+        (m = c.createElement(h)),
+          (p = c.getElementsByTagName(h)[0]),
+          (m.async = 1),
+          (m.src = i),
+          p.parentNode.insertBefore(m, p);
+      })(
+        document,
+        "script",
+        "https://chimpstatic.com/mcjs-connected/js/users/05a759a5d1f28eac39fa01d7b/974aeaf5604b9cb3ab05e4be4.js"
+      );
+    </script>
     <title data-i18n="meta.title">Digitalblueskye Blog</title>
- <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Iceland&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Iceland&display=swap"
+      rel="stylesheet"
+    />
     <link rel="preconnect" href="https://player.canva.com" />
     <link rel="stylesheet" href="/styles/style.css" />
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
@@ -20,7 +37,6 @@
     />
   </head>
   <body>
-
     <!-- Header fixe avec logo et hamburger -->
     <header class="site-header">
       <div class="header-placeholder"></div>
@@ -28,7 +44,7 @@
       <div class="header-logo">
         <a href="/index.html" title="Retour à l'accueil">
           <img
-            src="/images/logoVideos/Logo-Globe.png"
+            src="/assets/images/logo/Logo-Globe.png"
             alt="Logo YellowBlueSkye"
             width="50"
             height="50"
@@ -48,7 +64,7 @@
             title="Switch to English"
           >
             <img
-              src="/images/icons/icons8-uk-flag-48.png"
+              src="/assets/images/ui/icons8-uk-flag-48.png"
               alt="English"
               width="32"
               height="32"
@@ -61,7 +77,7 @@
             title="Passer en français"
           >
             <img
-              src="/images/icons/icons8-french-flag-48.png"
+              src="/assets/images/ui/icons8-french-flag-48.png"
               alt="Français"
               width="32"
               height="32"
@@ -114,30 +130,71 @@
       <nav class="dropdown-nav">
         <ul>
           <li>
-            <a href="index.html" data-i18n="nav.home"><h2>ACCUEIL</h2></a>
+            <a href="/index.html" data-i18n="nav.home"><h2>ACCUEIL</h2></a>
           </li>
           <li>
-            <a href="/main/about.html" data-i18n="nav.about"
+            <a href="/pages/about.html" data-i18n="nav.about"
               ><h2>À PROPOS DE MOI</h2></a
             >
           </li>
-          <li>
-            <a href="/main/explore.html" data-i18n="nav.explore"
-              ><h2>EXPLOREZ</h2></a
-            >
+          <li class="dropdown-submenu">
+            <a class="nav-link nav-link-with-submenu">
+              <span data-i18n="nav.explore">Exploration</span>
+              <span class="submenu-chevron" aria-hidden="true">▾</span>
+            </a>
+            <ul class="submenu-list">
+              <li>
+                <a
+                  class="nav-link submenu-link"
+                  href="/pages/visualTourProjects.html"
+                  data-i18n="nav.images"
+                  >En images</a
+                >
+              </li>
+              <li>
+                <a
+                  class="nav-link submenu-link"
+                  href="/pages/projects.html"
+                  data-i18n="nav.projects"
+                  >Mes projets</a
+                >
+              </li>
+              <li>
+                <a
+                  class="nav-link submenu-link"
+                  href="/pages/skills.html"
+                  data-i18n="nav.skills"
+                  >Mes compétences</a
+                >
+              </li>
+            </ul>
+          </li>
+          <li class="dropdown-submenu">
+            <a class="nav-link nav-link-with-submenu">
+              <span data-i18n="nav.blog">Blog & Actus</span>
+              <span class="submenu-chevron" aria-hidden="true">▾</span>
+            </a>
+            <ul class="submenu-list">
+              <li>
+                <a
+                  class="nav-link submenu-link"
+                  href="/blog/digital/blogArticles.html"
+                  data-i18n="nav.blogDigital"
+                  >Le coin Digital</a
+                >
+              </li>
+              <li>
+                <a
+                  class="nav-link submenu-link"
+                  href="/blog/inspirations.html"
+                  data-i18n="nav.blogInspiration"
+                  >Carnet Perso & Inspirations</a
+                >
+              </li>
+            </ul>
           </li>
           <li>
-            <a href="/main/projects.html" data-i18n="nav.projects"
-              ><h2>MES PROJETS</h2></a
-            >
-          </li>
-          <li>
-            <a href="/main/skills.html" data-i18n="nav.skills"
-              ><h2>MES COMPÉTENCES</h2></a
-            >
-          </li>
-          <li>
-            <a href="/main/contact.html" data-i18n="nav.contact"
+            <a href="/pages/contact.html" data-i18n="nav.contact"
               ><h2>CONTACTEZ MOI</h2></a
             >
           </li>
@@ -168,25 +225,26 @@
             <br />
             <p data-i18n="home.invitation" class="animated-paragraph">
               <!-- Classe ajoutée -->
-              N'hésitez pas à me contacter afin de travailler ensemble sur vos
-              projets digitaux !
+              Besoin d’un copilote pour vos projets digitaux ? Contactez-moi et
+              lançons la suite ensemble !
             </p>
           </div>
         </div>
         <!-- Bouton pour voir les projets -->
         <a
-          href="/main/explore.html"
+          href="/pages/visualTourProjects.html"
           class="btn-explore"
           data-i18n="home.explore"
           title="Explorer les projets de mon portfolio"
-          >Explorez mon portfolio</a
+          >Commencer à explorer</a
         >
       </div>
 
-      <!-- NOUVELLE SECTION : Radar des Tendances Digitales -->
-      <section class="page-title-container" style="padding-top: 100px">
+      <div class="intro-divider" aria-hidden="true"></div>
+
+      <section class="page-title-container" id="radar">
         <h1 class="main-page-title text-center" data-i18n="news.pageTitle">
-          Actualités et Tendances Digitales
+          Toute l'actualité sur les tendances digitales
         </h1>
         <p class="page-subtitle text-center" data-i18n="news.pageSubtitle">
           L'analyse mensuelle sur les dernières technologies, réglementations et
@@ -199,17 +257,20 @@
           <div class="news-grid">
             <!-- Réutiliser la même grille ou une variante -->
             <!-- Article 1 -->
-            <article class="news-card slide-hidden slide-from-bottom">
+            <article class="news-card slide-hidden slide-from-right">
               <a
-                href="/news/article-ia-gestion-projet.html"
+                href="/blog/digital/article-ia-gestion-projet.html"
                 class="news-card-link"
               >
                 <div class="news-card-image-container">
-                  <div class="news-card-icon"><i class="fas fa-brain"></i></div>
+                  <img
+                    src="/assets/images/blog/IA et gestion de projets/Futuristic-concept-of-artificial-intelligence-in-business.jpg"
+                    alt="Intelligence artificielle et gestion de projet"
+                  />
                 </div>
                 <div class="news-card-content">
                   <h3 class="news-card-title" data-i18n="news.article1.title">
-                    L'IA révolutionne la gestion de projet
+                    L’IA révolutionne la gestion de projet
                   </h3>
                   <p
                     class="news-card-summary"
@@ -221,7 +282,7 @@
                   <span
                     class="news-card-dateline"
                     data-i18n="news.article1.dateline"
-                    >Technologie • 28 Mai 2025</span
+                    >Technologie • 2 juin 2025</span
                   >
                 </div>
               </a>
@@ -229,25 +290,29 @@
 
             <!-- Article 2 -->
             <article
-              class="news-card slide-hidden slide-from-bottom"
+              class="news-card slide-hidden slide-from-left"
               style="transition-delay: 0.1s"
             >
-              <a href="/article-outils-veille.html" class="news-card-link">
+              <a
+                href="/blog/digital/article-outils-veille.html"
+                class="news-card-link"
+              >
                 <div class="news-card-image-container">
-                  <div class="news-card-icon">
-                    <i class="fas fa-binoculars"></i>
-                  </div>
+                  <img
+                    src="/assets/images/blog/Veille Digitale/outils-de-veille.png"
+                    alt="Intelligence artificielle et gestion de projet"
+                  />
                 </div>
                 <div class="news-card-content">
                   <h3 class="news-card-title" data-i18n="news.article2.title">
-                    Top 5 des outils de veille pour chefs de projet
+                    Les meilleurs outils de veille stratégique
                   </h3>
                   <p
                     class="news-card-summary"
                     data-i18n="news.article2.summary"
                   >
-                    Une sélection des meilleures plateformes pour rester informé
-                    des dernières innovations et stratégies...
+                    Comparatif des solutions pour optimiser votre veille
+                    concurrentielle et technologique en 2025...
                   </p>
                   <span
                     class="news-card-dateline"
@@ -260,28 +325,29 @@
 
             <!-- Article 3 (Exemple RGPD) -->
             <article
-              class="news-card slide-hidden slide-from-bottom"
+              class="news-card slide-hidden slide-from-right"
               style="transition-delay: 0.2s"
             >
               <a
-                href="/news/article-rgpd-tendances.html"
+                href="/blog/digital/article-rgpd-2025.html"
                 class="news-card-link"
               >
                 <div class="news-card-image-container">
-                  <div class="news-card-icon">
-                    <i class="fas fa-shield-alt"></i>
-                  </div>
+                  <img
+                    src="/assets/images/blog/RGPD/RGPD-dispositions-nationales.jpg"
+                    alt="Intelligence artificielle et gestion de projet"
+                  />
                 </div>
                 <div class="news-card-content">
                   <h3 class="news-card-title" data-i18n="news.article3.title">
-                    RGPD : Les nouvelles obligations à anticiper
+                    RGPD : les changements clés de 2025
                   </h3>
                   <p
                     class="news-card-summary"
                     data-i18n="news.article3.summary"
                   >
-                    Restez conforme avec les dernières évolutions réglementaires
-                    en matière de protection des données...
+                    Les nouvelles obligations et sanctions qui impactent votre
+                    stratégie de données...
                   </p>
                   <span
                     class="news-card-dateline"
@@ -293,23 +359,29 @@
             </article>
             <!-- Article 4 (Exemple RSE) -->
             <article
-              class="news-card slide-hidden slide-from-bottom"
+              class="news-card slide-hidden slide-from-left"
               style="transition-delay: 0.3s"
             >
-              <a href="article-rse-digital.html" class="news-card-link">
+              <a
+                href="/blog/digital/article-rse-digital.html"
+                class="news-card-link"
+              >
                 <div class="news-card-image-container">
-                  <div class="news-card-icon"><i class="fas fa-leaf"></i></div>
+                  <img
+                    src="/assets/images/blog/RSE/Green IT.jpeg"
+                    alt="Intelligence artificielle et gestion de projet"
+                  />
                 </div>
                 <div class="news-card-content">
                   <h3 class="news-card-title" data-i18n="news.article4.title">
-                    L'impact de la RSE dans le secteur digital
+                    RSE : intégrer l'impact environnemental dans vos projets web
                   </h3>
                   <p
                     class="news-card-summary"
                     data-i18n="news.article4.summary"
                   >
-                    Comment les entreprises technologiques intègrent la
-                    Responsabilité Sociétale des Entreprises...
+                    Comment concilier performance et sobriété numérique dans vos
+                    développements...
                   </p>
                   <span
                     class="news-card-dateline"
@@ -322,13 +394,19 @@
 
             <!-- Article 5 (Exemple Tech Futur) -->
             <article
-              class="news-card slide-hidden slide-from-bottom"
+              class="news-card slide-hidden slide-from-right"
               style="transition-delay: 0.4s"
             >
-              <a href="/article-tech-futur.html" class="news-card-link">
+              <a
+                href="/blog/digital/article-tech-2026.html"
+                class="news-card-link"
+              >
                 <div class="news-card-image-container">
-                  <div class="news-card-icon">
-                    <i class="fas fa-rocket"></i>
+                  <div class="news-card-image-container">
+                    <img
+                      src="/assets/images/blog/2026 Future Tech/Emerging-Technologies-SharedImg-StartUs-Insights-noresize-900x506.webp"
+                      alt="Intelligence artificielle et gestion de projet"
+                    />
                   </div>
                 </div>
                 <div class="news-card-content">
@@ -345,26 +423,83 @@
                   <span
                     class="news-card-dateline"
                     data-i18n="news.article5.dateline"
-                    >Prospective • 24 Mai 2025</span
+                    >Prospective • 24 Septembre 2025</span
                   >
                 </div>
               </a>
             </article>
+
+            <!-- Article 6 (Métavers) -->
+            <article
+              class="news-card slide-hidden slide-from-left"
+              style="transition-delay: 0.6s"
+            >
+              <a
+                href="/blog/digital/article-metavers-projets.html"
+                class="news-card-link"
+              >
+                <div class="news-card-image-container">
+                  <img
+                    src="/assets/images/blog/Metaverse/Boy in the Metaverse.jpeg"
+                    alt="Le métavers et les projets digitaux"
+                  />
+                </div>
+                <div class="news-card-content">
+                  <h3 class="news-card-title" data-i18n="news.article6.title">
+                    Le métavers : opportunités et défis pour les chefs de projet
+                    digital
+                  </h3>
+                  <p
+                    class="news-card-summary"
+                    data-i18n="news.article6.summary"
+                  >
+                    Explorer comment le métavers redéfinit la collaboration et
+                    l'expérience utilisateur...
+                  </p>
+                  <span
+                    class="news-card-dateline"
+                    data-i18n="news.article6.dateline"
+                    >Technologie • 10 Août 2025</span
+                  >
+                </div>
+              </a>
+            </article>
+
             <!-- Listez tous vos articles ici -->
           </div>
         </div>
       </section>
+
+      <!-- Newsletter -->
+      <div class="blog-newsletter">
+        <h3 data-i18n="blog.newsletterTitle">
+          Restez informé des dernières tendances
+        </h3>
+        <p data-i18n="blog.newsletterText">
+          Inscrivez-vous à ma newsletter pour recevoir mes derniers articles et
+          analyses
+        </p>
+        <form class="newsletter-form">
+          <input
+            type="email"
+            placeholder="Votre email"
+            required
+            data-i18n-placeholder="blog.emailPlaceholder"
+          />
+          <button type="submit" data-i18n="blog.subscribe">S'inscrire</button>
+        </form>
+      </div>
     </main>
 
     <footer id="footer">
       <div class="github">
         <a href="https://github.com/Dev-Djelloul" target="_blank">
-          <img src="images/icons/icons8-github-64.png" alt="Github" />
+          <img src="/assets/images/ui/icons8-github-64.png" alt="Github" />
         </a>
       </div>
       <div>
         <a href="https://www.linkedin.com/in/yellowblueskye/" target="_blank">
-          <img src="images/icons/icons8-linkedin-64.png" alt="LinkedIn" />
+          <img src="/assets/images/ui/icons8-linkedin-64.png" alt="LinkedIn" />
         </a>
       </div>
       <p data-i18n="footer.copyright">
@@ -430,6 +565,7 @@
     <script src="scripts/navbar-dropdown.js"></script>
     <script src="scripts/welcome-animations.js"></script>
     <script src="scripts/scroll-animations.js"></script>
+    <script src="scripts/newsletter.js"></script>
   </body>
 </html>
 <!-- Fin du code HTML -->
