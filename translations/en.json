@@ -20,11 +20,13 @@
     "blogInspiration": "Personal Journal & Inspirations",
     "contact": "Contact me"
   },
+  
 
   "home": {
-    "title": "DIGITAL PROJECT MANAGER",
+    "title": "DigitalBlueSkye",
     "invitation": "Need a co-pilot for your digital projects? Reach out and let’s launch what comes next together!",
-    "explore": "Start exploring"
+    "explore": "Start exploring",
+    "viewMore": "View all articles"
   },
 
   "news": {

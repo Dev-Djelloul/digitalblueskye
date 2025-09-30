@@ -196,9 +196,33 @@ section#skills,
   margin-top: 100px;
 }
 
-/* =========================
-   ANIMATIONS ET TRANSITIONS
-   ========================= */
+/* ==================================
+   ANIMATIONS, TRANSITIONS, BOUTONS
+   ================================== */
+
+/* Styles pour le bouton "Voir plus d'articles" */
+.view-more-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 60px;
+}
+
+.btn-view-more {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--accent-color);
+  font-family: "Iceland", sans-serif;
+  font-size: 1.3rem;
+  font-weight: bold;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.btn-view-more:hover {
+  color: #c822ff;
+  transform: translateY(-2px);
+}
 
 /* Animation d'apparition séquentielle */
 .intro-text {
@@ -206,7 +230,7 @@ section#skills,
   flex-direction: column;
   align-items: center;
   max-width: 1200px;
-  margin: 100px auto;
+  margin: 25px auto;
 }
 
 /* Titre principal */
@@ -1110,43 +1134,74 @@ header.nav-scrolled,
 /* =========================
    SOUS-MENU DÉROULANT
    ========================= */
-/* Conteneur du sous-menu */
 
-/* Masquer les sous-menus par défaut */
-.dropdown-submenu > .submenu-list {
-  display: none !important;
+/* Conteneur parent (assure le bon contexte) */
+.dropdown-submenu {
   position: relative;
+}
+
+/* Sous-menu: fermé par défaut, mais dans le flux (pas display:none) */
+.dropdown-submenu > .submenu-list {
+  /* Neutralise l'ancien display:none !important */
+  display: flex !important;
+  flex-direction: column;
+  gap: 8px;
+
+  /* Liste */
   list-style: none;
   margin: 5px 0 0 0;
   padding: 0 0 0 20px;
+
+  /* État fermé (accordéon CSS) */
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(6px);
+
+  /* Transitions */
+  transition:
+    max-height 0.25s ease,
+    opacity 0.2s ease,
+    transform 0.2s ease,
+    visibility 0s linear 0.2s; /* retarde la visibilité pour éviter le flash */
+}
+
+/* Ouvrir au survol (desktop) ET quand un enfant a le focus (clavier/tactile) */
+.dropdown-submenu:hover > .submenu-list,
+.dropdown-submenu:focus-within > .submenu-list,
+/* Fallback: focus direct sur le lien parent */
+.dropdown-submenu > a:focus + .submenu-list {
+  max-height: 1000px; /* assez grand pour contenir les éléments */
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+  transition-delay: 0s;
 }
 
 /* Style des éléments du sous-menu */
 .dropdown-submenu .submenu-link {
   font-size: 1.2rem;
-  padding: 0px 0;
+  padding: 0;
   opacity: 0.9;
 }
 
-/* Afficher le sous-menu au survol */
-.dropdown-submenu:hover > .submenu-list {
-  display: flex !important;
-  flex-direction: column;
-  gap: 8px;
-}
-
-/* Style de la flèche du sous-menu */
+/* Flèche du sous-menu */
 .submenu-chevron {
-  transition: transform 0.3s;
+  transition: transform 0.25s ease;
   margin-left: 5px;
 }
 
-/* Rotation de la flèche au survol du sous-menu */
-.dropdown-submenu:hover .submenu-chevron {
-  transform: rotate(360deg);
+/* Rotation de la flèche quand ouvert (hover ou focus-within) */
+.dropdown-submenu:hover .submenu-chevron,
+.dropdown-submenu:focus-within .submenu-chevron,
+.dropdown-submenu > a:focus .submenu-chevron {
+  transform: rotate(180deg);
 }
 
-/* Overlay sombre affiché derrière le menu déroulant */
+/* Overlay sombre affiché derrière le menu déroulant (inchangé) */
 .menu-overlay {
   position: fixed;
   top: 0;
@@ -1420,7 +1475,7 @@ section.page-title-container
   padding: 12px 45px 12px 15px;
   border: 1px solid rgba(93, 93, 255, 0.2);
   border-radius: 8px;
-  background-color: rgba(93, 93, 255, 0.05);
+  background: linear-gradient(135deg, rgba(93, 93, 255, 0.1), rgba(168, 52, 211, 0.85));
   font-family: "Lato", sans-serif;
   color: var(--text-color);
 }
@@ -2818,7 +2873,7 @@ section.page-title-container
   padding: 40px;
   border-radius: 12px;
   text-align: center;
-  margin: 60px 0;
+  margin: 150px 100px 100px;
 }
 
 .blog-newsletter h3 {
@@ -2864,6 +2919,29 @@ section.page-title-container
 
 .newsletter-form button:hover {
   transform: translateY(-3px);
+}
+
+.newsletter-form input[type="email"] {
+  transition: border-color 0.3s ease;
+}
+
+.newsletter-form input[type="email"].valid-email {
+  border-color: #4CAF50;
+  box-shadow: 0 0 0 1px rgba(76, 175, 80, 0.2);
+}
+
+.newsletter-form input[type="email"].invalid-email {
+  border-color: #FF5252;
+  box-shadow: 0 0 0 1px rgba(255, 82, 82, 0.2);
+}
+
+.newsletter-form button.submitting {
+  background-color: #7b7b7b;
+  cursor: wait;
+}
+
+.newsletter-form button.success {
+  background-color: #4CAF50;
 }
 
 /* =========================
