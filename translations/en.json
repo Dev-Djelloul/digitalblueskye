@@ -10,29 +10,29 @@
 
   "nav": {
     "home": "Home",
-    "about": "About me",
-    "explore": "Exploration",
-    "images": "In pictures",
-    "projects": "My projects",
-    "skills": "My skills",
-    "blog": "Blog & News",
-    "blogDigital": "Digital Corner",
-    "blogInspiration": "Personal Journal & Inspirations",
-    "contact": "Contact me"
+    "about": "About Me",
+    "explore": "Explore",
+    "images": "Gallery",
+    "projects": "My Projects",
+    "skills": "My Skills",
+    "blogDigital": "Digital Corner News",
+    "blogInspiration": "My blog",
+    "contact": "Contact Me"
   },
-  
 
   "home": {
     "title": "DigitalBlueSkye",
-    "invitation": "Need a co-pilot for your digital projects? Reach out and let’s launch what comes next together!",
+    "invitation": "Need a co-pilot for your digital projects? Reach out and let’s launch what comes next together !",
     "explore": "Start exploring",
     "viewMore": "View all articles"
   },
 
   "news": {
-    "pageTitle": "Digital News and Trends",
-    "pageSubtitle": "Monthly analysis on the latest technologies, regulations and CSR!",
-    "backToList": "Back to news",
+    "pageTitle": "The latest in digital trends",
+    "pageSubtitle": "Monthly insights into technologies, regulations, and CSR issues in the digital sector",
+    "backToList": "Back",
+    "previousArticle": "Previous Article",
+    "nextArticle": "Next Article",
 
     "article1": {
       "title": "AI is Revolutionizing Project Management",
@@ -298,9 +298,8 @@
 
   "blog": {
     "digital": {
-      "pageTitle": "Digital Corner",
-      "pageSubtitle": "News, trends and analysis of the digital world",
-      "backToList": "Back to news"
+      "pageTitle": "The Digital Corner",
+      "pageSubtitle": "News, trends and analysis of the digital world"
     },
     "search": "Search for an article...",
     "filterBy": "Filter by",

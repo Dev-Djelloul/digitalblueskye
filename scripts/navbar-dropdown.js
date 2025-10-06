@@ -3,41 +3,70 @@ document.addEventListener('DOMContentLoaded', function() {
   const hamburger = document.getElementById('hamburger');
   const dropdownMenu = document.getElementById('dropdown-menu');
   const menuOverlay = document.getElementById('menu-overlay');
-const header = document.querySelector('.site-header') || document.querySelector('header');  const logoVideo = document.getElementById('logo-video');
+  const header = document.querySelector('.site-header') || document.querySelector('header');
+  const logoVideo = document.getElementById('logo-video');
   const icon = hamburger.querySelector('i');
   let headerTimeout;
-  
+
+  // Détection desktop (hover) vs mobile (tap)
+  const isDesktop = window.matchMedia('(hover: hover) and (pointer: fine)');
+
   // ===== Gestion du menu dropdown =====
-  
-  // Fonction pour ouvrir le menu
   function openMenu() {
-    header.classList.remove('nav-hidden'); // Assure que le header est visible
+    header.classList.remove('nav-hidden');
     dropdownMenu.classList.add('active');
     menuOverlay.classList.add('active');
-    hamburger.classList.add('active'); // Pour la rotation du chevron
-    document.body.classList.add('body-menu-open'); // AJOUTÉ : Pour décaler le contenu principal
+    hamburger.classList.add('active');
+    document.body.classList.add('body-menu-open');
+    // a11y
+    hamburger.setAttribute('aria-expanded', 'true');
+    hamburger.setAttribute('aria-controls', 'dropdown-menu');
   }
-  
-  // Fonction pour fermer le menu
+
   function closeMenu() {
     dropdownMenu.classList.remove('active');
     menuOverlay.classList.remove('active');
     hamburger.classList.remove('active');
-    document.body.classList.remove('body-menu-open'); // AJOUTÉ : Pour remettre le contenu principal
+    document.body.classList.remove('body-menu-open');
+    // a11y
+    hamburger.setAttribute('aria-expanded', 'false');
   }
-  
-  // Événement pour le hamburger (toggle)
-  hamburger.addEventListener('click', function() {
-    if (dropdownMenu.classList.contains('active')) {
-      closeMenu();
-    } else {
-      openMenu();
-    }
+
+  // Clic hamburger: uniquement sur mobile/tablette (sur desktop → hover gère)
+  hamburger.addEventListener('click', function(e) {
+    if (isDesktop.matches) return; // desktop: ignorer le clic
+    e.preventDefault();
+    if (dropdownMenu.classList.contains('active')) closeMenu();
+    else openMenu();
   });
-  
+
   // Fermer le menu en cliquant sur l'overlay
   if (menuOverlay) {
     menuOverlay.addEventListener('click', closeMenu);
+  }
+
+  // Ouvrir/fermer au survol sur desktop (menu reste ouvert tant que hamburger/menu/overlay est survolé)
+  let hoverCloseTimer = null;
+  if (hamburger && dropdownMenu && menuOverlay && isDesktop.matches) {
+    const onEnter = () => {
+      if (hoverCloseTimer) { clearTimeout(hoverCloseTimer); hoverCloseTimer = null; }
+      openMenu();
+    };
+    const onLeave = () => {
+      if (hoverCloseTimer) clearTimeout(hoverCloseTimer);
+      hoverCloseTimer = setTimeout(() => {
+        if (!hamburger.matches(':hover') &&
+            !dropdownMenu.matches(':hover') &&
+            !menuOverlay.matches(':hover')) {
+          closeMenu();
+        }
+      }, 200); // délai anti-clignotement
+    };
+
+    [hamburger, dropdownMenu, menuOverlay].forEach(el => {
+      el.addEventListener('mouseenter', onEnter);
+      el.addEventListener('mouseleave', onLeave);
+    });
   }
   
   // Fermer le menu en cliquant sur les liens de navigation (sauf liens de langue)

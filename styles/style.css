@@ -230,7 +230,7 @@ section#skills,
   flex-direction: column;
   align-items: center;
   max-width: 1200px;
-  margin: 25px auto;
+  margin: 50px 125px 125px 125px;
 }
 
 /* Titre principal */
@@ -341,7 +341,7 @@ section#skills,
   /* Style de base */
   display: inline-block;
   padding: 8px 25px;
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
   -webkit-background-clip: text;
   background-clip: text;
@@ -377,7 +377,7 @@ section#skills,
   align-items: center;
   justify-content: center;
   padding: 12px 30px;
-  font-size: 1.4rem;
+  font-size: 1.2rem;
   margin: 50px 0 0;
   background: linear-gradient(45deg, var(--accent-color), #5d5dff);
   color: var(--text-color);
@@ -1064,7 +1064,7 @@ header.nav-scrolled,
   position: fixed;
   top: 0; /* Aligné en haut */
   left: 0;
-  width: 20%; /* Ou la largeur que vous souhaitez, ex: 250px ou 25% */
+  width: 20.5%; /* Ou la largeur que vous souhaitez, ex: 250px ou 25% */
   height: 100vh; /* Toute la hauteur de la vue */
   background-color: #23243600; /* Couleur de fond transparente */
   color: white;
@@ -1127,7 +1127,7 @@ header.nav-scrolled,
   width: 100%;
   padding: 5px 10px;
   font-family: "Iceland", sans-serif;
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   color: var(--accent-color);
 }
 
@@ -1292,7 +1292,7 @@ section.page-title-container
   font-size: 2rem; /* Taille de police pour le titre principal des actualités */
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
   font-weight: bold; /* Met le titre en gras */
-  padding: 35px;
+  padding: 45px;
   margin-bottom: 150px;
   margin-top: 200px;
 }
@@ -1400,6 +1400,338 @@ section.page-title-container
 }
 
 /* =========================
+   PAGE EXPLORER
+   ========================= */
+
+   body.explorer-page {
+  padding-top: 80px; /* Hauteur du header normal */
+}
+
+.explorer-main-content {
+  /* Conteneur principal pour le contenu de la page explorer */
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 0px;
+  min-height: calc(100vh - 80px - 100px); /* viewport - header - footer */
+}
+
+/* Titre animé de la page Explorer */
+.main-page-title-container {
+  /* anciennement #project-display-placeholder */
+  width: 100%;
+  overflow: hidden;
+  padding: 20px 0;
+  text-align: center;
+  margin-top: 80px; /* Pour compenser le header fixe */
+  margin-bottom: 50px;
+}
+
+h1.main-title-animated {
+  font-size: 2.5rem;
+  background: linear-gradient(45deg, var(--accent-color), #c822ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-decoration: none;
+  transition: transform 0.3s;
+  display: inline-block;
+  white-space: nowrap;
+  animation: marquee-main-title 6s linear infinite;
+  position: relative;
+  margin: 20px;
+  padding: 0;
+}
+
+h1.main-title-animated .title-icon {
+  margin-left: 15px;
+  font-size: 2.5rem;
+}
+
+/* Structure layout Explorer (gauche/droite) */
+.explorer-layout-container {
+  display: flex;
+  background-color: transparent !important; /* Fond transparent */
+  border-radius: 15px;
+  box-shadow: 0 5px 20px var(--shadow-color);
+  overflow: hidden; /* Pour coins arrondis et contenu qui dépasse */
+  /* min-height: ...; /* S'adapte au contenu ou peut être défini */
+}
+
+/* Panneau de gauche : Liste des projets */
+.explorer-projects-list-panel {
+  flex: 0 0 320px; /* Largeur fixe */
+  background-color: transparent !important; /* Fond transparent */
+  padding: 20px 30px;
+  margin-top: 0px; /* AJOUT : Pour compenser le header fixe */
+  margin-bottom: 100px; /* AJOUT : Pour compenser le footer fixe */
+  /*border-right: 3px solid var(--accent-color);*/ /* Bordure droite pour séparer les sections */
+  display: flex;
+  flex-direction: column;
+}
+
+.scrollable-project-list-container {
+  flex-grow: 1;
+  overflow-y: auto;
+  position: relative;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE 10+ */
+  /* max-height calculée pour s'adapter à la hauteur disponible */
+  max-height: calc(
+    100vh - 80px - 40px - 100px - 50px - 70px
+  ); /* Ajuster précisément */
+}
+
+.scrollable-project-list-container::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
+}
+
+#explorerProjectList {
+  list-style-type: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+#explorerProjectList li {
+  padding: 12px 15px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--accent-color); /* Couleur d'accentuation */
+  /*border-left: 4px solid var(--border-color-subtle);*/ /* Bordure gauche pour le style */
+  transition: background-color 0.3s ease, color 0.3s ease,
+    border-left-color 0.3s ease, transform 0.2s ease;
+}
+
+#explorerProjectList li:hover {
+  background-color: var(--accent-color-lighter);
+  color: var(--accent-color);
+  transform: translateX(3px);
+}
+
+/* État actif - Thème Sombre (et par défaut) */
+#explorerProjectList li.manual-active-project,
+#explorerProjectList li.auto-active-project {
+  /* background-color: var(--accent-color); */ /* Supprimé pour que seul le texte change */
+  color: #c822ff; /* Texte en couleur d'accentuation */
+  border-left-color: var(--accent-color-darker);
+  transform: translateX(5px);
+}
+
+/* Styles pour les titres et catégories dans la liste */
+#explorerProjectList li .project-list-title {
+  display: block;
+  font-weight: bold;
+  font-size: 1.3rem;
+  font-family: "Iceland", sans-serif;
+  margin-bottom: 4px;
+}
+
+#explorerProjectList li .project-list-category {
+  display: block;
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+/* Thème Clair pour la liste des projets */
+[data-theme="light"] #explorerProjectList li {
+  color: var(--accent-color); /* Couleur d'accentuation du thème clair */
+  border-left-color: var(
+    --border-color-subtle
+  ); /* Utilise la variable du thème clair */
+}
+
+[data-theme="light"] #explorerProjectList li:hover {
+  background-color: var(
+    --accent-color-lighter
+  ); /* Utilise la variable du thème clair */
+  color: var(--accent-color);
+}
+
+/* État actif - Thème Clair */
+[data-theme="light"] #explorerProjectList li.manual-active-project,
+[data-theme="light"] #explorerProjectList li.auto-active-project {
+  /* background-color: var(--accent-color); */ /* Supprimé */
+  color: #5d5dff; /* Texte en couleur d'accentuation du thème clair */
+  border-left-color: var(
+    --accent-color-darker
+  ); /* Utilise la variable du thème clair */
+}
+
+/* Panneau de droite : Affichage du projet */
+.explorer-project-display-panel {
+  flex-grow: 1;
+  padding: 30px 30px;
+  margin-top: 0px; /* Pour compenser le header fixe */
+  margin-bottom: 200px; /* Pour compenser le footer fixe */
+  background-color: transparent !important; /* Fond transparent, était var(--background-color) */
+  position: relative;
+  overflow: hidden; /* Empêche le défilement */
+}
+
+.project-display-content {
+  /* Conteneur pour la carte du projet affiché */
+  display: none; /* Caché par défaut */
+  animation: fadeInProjectDisplay 0.5s ease-in-out;
+  text-align: center; /* Centre la carte si elle est plus petite */
+}
+
+.project-display-content.active {
+  display: block; /* Affiché lorsque actif */
+}
+
+/* Cartes de projet (dans le panneau de droite) */
+.project-card-style {
+  background-color: var(--card-bg);
+  border-radius: 10px;
+  box-shadow: 0 4px 15px var(--shadow-color);
+  position: relative; /* Important pour positionner .project-card-overlay et .project-view-icon */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  width: 100%;
+  max-width: 450px; 
+  margin: 0 auto; 
+  overflow: hidden; 
+  /* display: flex; flex-direction: column; /* Supprimé car l'overlay sera sur l'image */
+}
+
+.project-card-style:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 10px 20px var(--accent-color),
+    0 6px 12px rgba(0, 0, 0, 0.3); 
+}
+
+.project-card-link { 
+  display: block; /* Ou inline-block, mais block est souvent plus simple pour les liens conteneurs */
+  text-decoration: none;
+  color: inherit;
+  position: relative; /* Nécessaire si .project-card-overlay est positionné par rapport à lui */
+  height: 100%; /* S'assurer que le lien prend la hauteur de l'image si l'image est le seul contenu visible principal */
+}
+
+
+/* Image de projet */
+.project-display-image { 
+  width: 100%;
+  height: auto; 
+  max-height: 450px; 
+  object-fit: cover;
+  display: block; 
+  transition: filter 0.3s ease;
+  border-radius: 10px; 
+}
+
+.project-card-style:hover .project-display-image {
+  filter: blur(3px) brightness(0.7); 
+}
+
+/* MODIFICATION : .project-card-overlay (conteneur du titre) */
+.project-card-overlay {
+  position: absolute; 
+  /* Positionné pour être sous l'icône oeil */
+  top: calc(50% + 30px + 10px); /* 50% (centre carte) + moitié hauteur oeil (30px) + espace (10px) */
+  left: 50%;
+  transform: translateX(-50%); /* Centré horizontalement */
+  width: auto; /* S'adapte au contenu du titre */
+  max-width: 90%; /* Empêche le titre d'être trop large */
+  background-color: transparent; /* PAS DE BANDE DE FOND */
+  padding: 0; /* Pas de padding pour l'overlay lui-même */
+  box-sizing: border-box; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  opacity: 0; /* Caché par défaut */
+  /* Transition avec un léger délai pour apparaître après l'icône */
+  transition: opacity 0.3s ease 0.1s, top 0.3s ease 0.1s; 
+  z-index: 11; /* Au-dessus de l'icône oeil si jamais il y a chevauchement */
+  pointer-events: none; /* Pour ne pas interférer avec le survol */
+}
+
+.project-card-style:hover .project-card-overlay {
+  opacity: 1; /* Apparaît au survol de la carte */
+  pointer-events: auto;
+}
+
+/* Styles pour le titre h3 existant dans .project-card-overlay */
+.project-card-overlay h3 {
+  background: linear-gradient(45deg, var(--accent-color), #c822ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-decoration: none;
+  transition: transform 0.3s;  
+  font-size: 1.8rem; 
+  font-weight: bold;
+  margin: 0;
+  line-height: 1.3;
+  text-align: center; 
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.267); /* Ombre portée pour lisibilité */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal; /* Permet le retour à la ligne si nécessaire */
+  max-width: 100%; /* S'assure qu'il ne dépasse pas son conteneur .project-card-overlay */
+}
+
+.project-view-icon {
+  position: absolute;
+  top: 50%; 
+  left: 50%; 
+  transform: translate(-50%, -50%) scale(0.8); 
+  background: linear-gradient(45deg, var(--accent-color), #c822ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-decoration: none;
+  transition: transform 0.3s;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  opacity: 0; /* Caché par défaut */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  z-index: 10; 
+}
+
+.project-card-style:hover .project-view-icon {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1); 
+}
+
+.highlight-project {
+  outline: 3px solid var(--accent-color);
+  box-shadow: 0 0 20px var(--accent-color);
+  transition: outline 0.3s, box-shadow 0.3s;
+}
+
+/* =========================
+   ANIMATIONS
+   ========================= */
+@keyframes marquee-main-title {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-110%);
+  }
+}
+
+@keyframes fadeInProjectDisplay {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+
+
+/* =========================
    BLOG - STYLES GÉNÉRAUX
    ========================= */
 .blog-page {
@@ -1422,11 +1754,6 @@ section.page-title-container
 .blog-hero {
   text-align: center;
   padding: 60px 0;
-  background: linear-gradient(
-    135deg,
-    rgba(93, 93, 255, 0.1),
-    rgba(168, 52, 211, 0.85)
-  );
   border-radius: 0 0 75px 75px;
   margin-bottom: 40px;
 }
@@ -2032,9 +2359,8 @@ section.page-title-container
   box-shadow: 0 15px 40px rgba(93, 93, 255, 0.3);
 } /* Effet au survol */
 .project-card img {
-  width: 100%;
   height: 300px;
-  object-fit: cover;
+  object-fit: contain;
   border-bottom: 3px solid transparent;
   border-image: linear-gradient(45deg, var(--accent-color), #c822ff) 1;
 } /* Image de la carte */
@@ -3260,7 +3586,7 @@ body.body-menu-open #footer {
   }
 
   .intro-text .animated-title {
-    font-size: 2rem; /* Réduire la taille de la police */
+    font-size: 3rem; /* Réduire la taille de la police */
     padding: 30px;
   }
 
@@ -3299,13 +3625,13 @@ body.body-menu-open #footer {
 
   .intro-text .btn-explore {
     padding: 8px 15px; /* Réduire le padding vertical et horizontal */
-    font-size: 1.3rem; /* Réduire la taille de la police */
+    font-size: 1.2rem; /* Réduire la taille de la police */
     min-width: auto; /* Permettre au bouton de prendre une largeur plus naturelle */
   }
 
   .btn-download-cv {
     padding: 8px 25px; /* Réduire le padding vertical et horizontal */
-    font-size: 1.3rem; /* Réduire la taille de la police */
+    font-size: 1.2rem; /* Réduire la taille de la police */
     margin: 60px 0px 0px 0px; /* Marge supérieure réduite */
   }
 
@@ -3313,50 +3639,56 @@ body.body-menu-open #footer {
     margin-right: 8px; /* Réduire l'espace de l'icône si besoin */
   }
 
-  /* Ajustements pour le carrousel en mode mobile */
-  .carousel-container {
-    padding-left: 10px; /* Un peu d'espace sur les côtés du conteneur */
-    padding-right: 10px;
+
+  .explorer-layout-container {
+    /* AJOUT : Empiler les panneaux verticalement */
+    flex-direction: column;
+  }
+  h1.main-title-animated {
+    font-size: 2.2rem; /* Réduit la taille du titre sur les petits écrans */
+  }
+  .explorer-projects-list-panel {
+    flex: 0 0 100%; /* Panneau de gauche prend toute la largeur */
+    padding: 10px; /* Réduit le padding */
+    border-right: none; /* AJOUT : Supprimer la bordure droite si elle était active */
+  }
+  .explorer-project-display-panel {
+    padding: 40px; /* Réduit le padding */
+    /* S'assure qu'il prend la largeur nécessaire, flex-grow: 1; devrait déjà le faire */
+  }
+  #explorerProjectList li {
+    padding: 10px; /* Réduit le padding des éléments de la liste */
+    font-size: 0.9rem; /* Réduit la taille de la police */
   }
 
-  .carousel-item {
-    min-width: 100%; /* Chaque item prend toute la largeur disponible */
-    padding: 10px 0; /* Réduire le padding vertical, pas de padding horizontal car l'item fait 100% */
-  }
+  .highlight-project {
+  outline: 3px solid var(--accent-color);
+  box-shadow: 0 0 20px var(--accent-color);
+  transition: outline 0.3s, box-shadow 0.3s;
+}
 
-  /* Ajuster la hauteur des images dans les .project-preview du carrousel si nécessaire */
-  .carousel-item .project-preview {
-    height: 150px; /* Ajustez cette hauteur selon vos besoins pour le carrousel mobile */
-  }
 
-  .carousel-item .project-preview img {
-    /* S'assurer que l'image remplit bien le conteneur .project-preview */
-    height: 100%;
-    object-fit: contain;
-  }
+/* Menu dropdown en mode thème clair */
+[data-theme="light"] .dropdown-menu {
+  background-color: rgb(240, 238, 255) !important;
+}
 
-  .carousel-item .project-preview-overlay h3 {
-    font-size: 1.2rem; /* Ajuster la taille du titre dans l'overlay du carrousel mobile */
-    margin-bottom: 10px;
-  }
+/* Si vous voulez aussi modifier l'overlay en mode clair */
+[data-theme="light"] .menu-overlay.active {
+  background-color: rgba(240, 238, 255, 0.9) !important;
+}
 
-  .carousel-item .project-preview .btn-view-project {
-    padding: 8px 15px;
-    font-size: 0.8rem;
-  }
+/* Pour harmoniser les éléments du menu en mode clair */
+[data-theme="light"] .dropdown-nav a {
+  color: var(--accent-color); /* Utilise la couleur de texte du thème clair */
+}
 
-  .carousel-controls {
-    margin: 15px 0; /* Réduire la marge des contrôles */
-  }
+[data-theme="light"] .dropdown-nav a:hover {
+  color: #5d5dff;
+}
+}
 
-  .carousel-btn {
-    width: 35px; /* Boutons de contrôle plus petits */
-    height: 35px;
-    font-size: 14px;
-  }
-
-  /* Ajustements généraux du contenu pour mobile */
-  .about-text-box {
+.about-text-box {
     margin: 40px auto; /* ✅ Centrage automatique horizontal */
     padding: 10px; /* Optionnel: réduire le padding pour mobile */
     max-width: calc(
@@ -3367,7 +3699,7 @@ body.body-menu-open #footer {
     font-size: 1.3rem;
   }
   .project-info p {
-    font-size: 1.3rem;
+    font-size: 1.2rem;
     text-align: center;
   } /* Texte projet plus petit */
   .project-content p {
@@ -3382,7 +3714,7 @@ body.body-menu-open #footer {
     padding: 20px;
   } /* Grille projets 1 colonne */
   .project-links a {
-    font-size: 1.3rem;
+    font-size: 1.2rem;
   } /* Liens projet plus petits */
   .project-tech span {
     font-size: 1rem;
@@ -3475,7 +3807,7 @@ body.body-menu-open #footer {
     font-size: 1.2rem;
   } /* Taille police label plus petite */
   .contact-form button {
-    font-size: 1.4rem;
+    font-size: 1.2rem;
     padding: 8px 12px;
   } /* Bouton formulaire plus petit */
   .contact-email {
@@ -3572,7 +3904,51 @@ body.body-menu-open #footer {
    ========================= */
 
 /* Ajustements pour les écrans moyens et petits */
-@media (max-width: 768px) {
+@media (max-width: 576px) {
+  section {
+    padding: 0px;
+    margin-top: 100px;
+    margin-bottom: 0px;
+  }
+
+  .main-page-title {
+    font-size: 1.9rem;
+    color: var(--accent-color);
+    font-weight: bold;
+    padding: 20px;
+  }
+
+  .page-subtitle {
+    font-size: 1rem; /* Taille de police responsive pour le sous-titre */
+  }
+
+  .news-teaser-section,
+  .all-news-list {
+    padding: 20px; /* Ajustez le padding selon vos besoins */
+  }
+
+  .news-card {
+    box-shadow: 0 6px 25px #5d5dff;
+  }
+
+  .news-grid {
+    grid-template-columns: 1fr; /* Une colonne sur mobile */
+  }
+  .news-card-title {
+    font-size: 1.9rem;
+  }
+  .article-title-main {
+    font-size: clamp(1.8rem, 6vw, 2.5rem);
+  }
+  .article-body {
+    font-size: 1rem;
+  }
+
+  .blog-newsletter {
+    margin: 0px;
+    padding: 30px 20px;
+  }
+
   .blog-main-container {
     padding-top: 80px;
   }
@@ -3583,6 +3959,10 @@ body.body-menu-open #footer {
 
   .blog-title {
     font-size: 2.8rem;
+  }
+
+   .blog-card-title {
+    font-size: 1.3rem;
   }
 
   .filter-container {
@@ -3600,60 +3980,5 @@ body.body-menu-open #footer {
   }
 }
 
-@media (max-width: 480px) {
-  .blog-title {
-    font-size: 2.3rem;
-  }
 
-  .blog-card-title {
-    font-size: 1.3rem;
-  }
 
-  .blog-newsletter {
-    padding: 30px 20px;
-  }
-}
-
-/* Ajustements spécifiques pour les sections News en mobile */
-@media (max-width: 576px) {
-  section {
-    padding: 0px;
-    margin-top: 100px;
-    margin-bottom: 0px;
-  }
-
-  .main-page-title {
-    font-size: 1.3rem;
-    color: var(--accent-color);
-    font-weight: bold;
-    padding: 20px;
-  }
-
-  .page-subtitle {
-    font-size: 1.1rem; /* Taille de police responsive pour le sous-titre */
-  }
-
-  .news-teaser-section,
-  .all-news-list {
-    padding: 20px; /* Ajustez le padding selon vos besoins */
-  }
-
-  .news-card {
-    box-shadow: 0 6px 25px #5d5dff;
-  }
-}
-
-@media (max-width: 768px) {
-  .news-grid {
-    grid-template-columns: 1fr; /* Une colonne sur mobile */
-  }
-  .news-card-title {
-    font-size: 1.2rem;
-  }
-  .article-title-main {
-    font-size: clamp(1.8rem, 6vw, 2.5rem);
-  }
-  .article-body {
-    font-size: 1rem;
-  }
-}

@@ -23,7 +23,6 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/styles/style.css" />
-    <link rel="stylesheet" href="/styles/styles.css" />
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
     <link
       rel="stylesheet"
@@ -32,18 +31,6 @@
   </head>
   <body class="explorer-page">
     <!-- Ajout de la classe pour des styles spécifiques si besoin -->
-
-    <!-- Loader Start (repris de explorer1.html) -->
-    <div id="loader-wrapper">
-      <video id="loader-video" autoplay loop muted playsinline>
-        <source
-          src="/images/logoVideos/Logo-Globe-Video.mp4"
-          type="video/mp4"
-        />
-        Votre navigateur ne supporte pas la vidéo HTML5.
-      </video>
-    </div>
-    <!-- Loader End -->
 
      <!-- Header fixe avec logo et hamburger -->
     <header class="site-header">
@@ -138,37 +125,54 @@
       <nav class="dropdown-nav">
         <ul>
           <li>
-            <a href="/index.html" data-i18n="nav.home"><h2>ACCUEIL</h2></a>
+            <a href="/index.html" data-i18n="nav.home"><h2>Accueil</h2></a>
           </li>
           <li>
             <a href="/pages/about.html" data-i18n="nav.about"
-              ><h2>À PROPOS DE MOI</h2></a
+              ><h2>A propos de moi</h2></a
             >
           </li>
           <li class="dropdown-submenu">
-          <a class="nav-link nav-link-with-submenu">
-          <span data-i18n="nav.explore">Exploration</span>
-          <span class="submenu-chevron" aria-hidden="true">▾</span>
-          </a>
-          <ul class="submenu-list">
-            <li><a class="nav-link submenu-link" href="/pages/visualTourProjects.html" data-i18n="nav.images">En images</a></li>
-            <li><a class="nav-link submenu-link" href="/pages/projects.html" data-i18n="nav.projects">Mes projets</a></li>
-            <li><a class="nav-link submenu-link" href="/pages/skills.html" data-i18n="nav.skills">Mes compétences</a></li>
-          </ul>
-          </li>
-          <li class="dropdown-submenu">
             <a class="nav-link nav-link-with-submenu">
-              <span data-i18n="nav.blog">Blog & Actus</span>
+              <span data-i18n="nav.explore">Exploration</span>
               <span class="submenu-chevron" aria-hidden="true">▾</span>
             </a>
             <ul class="submenu-list">
-              <li><a class="nav-link submenu-link" href="/blog/digital/blogArticles.html" data-i18n="nav.blogDigital">Le coin Digital</a></li>
-              <li><a class="nav-link submenu-link" href="/blog/inspirations.html" data-i18n="nav.blogInspiration">Carnet Perso & Inspirations</a></li>
+              <li>
+                <a
+                  class="nav-link submenu-link"
+                  href="/pages/visualTourProjects.html"
+                  data-i18n="nav.images"
+                  >Galerie</a
+                >
+              </li>
+              <li>
+                <a
+                  class="nav-link submenu-link"
+                  href="/pages/projects.html"
+                  data-i18n="nav.projects"
+                  >Mes projets</a
+                >
+              </li>
+              <li>
+                <a
+                  class="nav-link submenu-link"
+                  href="/pages/skills.html"
+                  data-i18n="nav.skills"
+                  >Mes compétences</a
+                >
+              </li>
             </ul>
+          </li>
+           <li>
+            <a href="/blog/digital/blogArticles.html" data-i18n="nav.blogDigital"><h2>L'actu du Coin Digital</h2></a>
+          </li>
+          <li>
+            <a href="/blog/inspirations.html" data-i18n="nav.blogInspiration"><h2>Mon carnet d’inspirations</h2></a>
           </li>
           <li>
             <a href="/pages/contact.html" data-i18n="nav.contact"
-              ><h2>CONTACTEZ MOI</h2></a
+              ><h2>Contactez-moi</h2></a
             >
           </li>
         </ul>
@@ -185,9 +189,7 @@
     <main class="explorer-main-content">
       <div id="project-display-placeholder" class="main-page-title-container">
         <h1 class="main-title-animated" data-i18n="explorer.mainPageTitle">
-          Mes projets en images<i
-            class="fas fa-hand-pointer fa-lg title-icon"
-          ></i>
+          Mes projets en images<i></i>
         </h1>
       </div>
 
@@ -464,8 +466,7 @@
     <script src="/scripts/translator.js"></script>
     <script src="/scripts/theme-switcher.js"></script>
     <script src="/scripts/navbar-dropdown.js"></script>
-    <script src="/scripts/loader.js"></script>
-    <script src="/scripts/explorer.js"></script>
+    <script src="/scripts/explore.js"></script>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         // Seulement sur mobile (largeur <= 768px)

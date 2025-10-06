@@ -11,13 +11,12 @@
   "nav": {
     "home": "Accueil",
     "about": "À propos de moi",
-    "explore": "Exploration",
-    "images": "En images",
+    "explore": "Explorez",
+    "images": "Galerie",
     "projects": "Mes projets",
     "skills": "Mes compétences",
-    "blog": "Blog & Actus",
-    "blogDigital": "Le Coin Digital",
-    "blogInspiration": "Carnet Perso & Inspirations",
+    "blogDigital": "L'actu du Coin Digital",
+    "blogInspiration": "Mon carnet d’inspirations",
     "contact": "Contactez moi"
   },
 
@@ -30,8 +29,10 @@
 
   "news": {
     "pageTitle": "Toute l'actualité sur les tendances digitales",
-    "pageSubtitle": "L'analyse mensuelle sur les dernières technologies, réglementations et la RSE !",
-    "backToList": "Retour aux actualités",
+    "pageSubtitle": "Le décryptage mensuel des technologies, des réglementations et des enjeux RSE du numérique.",
+    "backToList": "Retour",
+    "previousArticle": "Article Précédent",
+    "nextArticle": "Article Suivant",
 
     "article1": {
       "title": "L'IA révolutionne la gestion de projet",
@@ -291,9 +292,8 @@
 
   "blog": {
     "digital": {
-      "pageTitle": "L'actualité du coin digital",
-      "pageSubtitle": "Retrouvez toutes les tendances et analyses du monde numérique",
-      "backToList": "Retour vers le coin digital"
+      "pageTitle": "Le Coin Digital",
+      "pageSubtitle": "Retrouvez toutes les tendances et analyses du monde numérique"
     },
     "search": "Rechercher un article...",
     "filterBy": "Filtrer par",
