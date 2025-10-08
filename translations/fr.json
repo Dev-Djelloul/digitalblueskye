@@ -184,7 +184,7 @@
     },
     "memoryGame": {
       "short": "Jeu de mémoire interactif",
-      "full": "Memory Game est un jeu de mémoire créé avec HTML, CSS et JavaScript, et publié sur GitHub Pages. Il a été conçu dans le cadre de ma formation avec Studi pour maîtriser les fondamentaux du web."
+      "full": "Memory Game est un jeu de mémoire créé avec HTML, CSS et JavaScript, et publié on GitHub Pages. Il a été conçu dans le cadre de ma formation avec Studi pour maîtriser les fondamentaux du web."
     },
     "arcadiaZoo": {
       "short": "Application de gestion pour un zoo",
@@ -295,11 +295,28 @@
     "categoryReg": "Réglementation",
     "categoryCsr": "RSE & Impact",
     "categoryForesight": "Prospective",
+    "categoryManagement": "Management",
+    "categoryMetaverse": "Métavers",
+    "categoryPedagogy": "Pédagogie",
     "readMore": "Lire l'article",
     "newsletterTitle": "Restez informé des dernières tendances",
     "newsletterText": "Inscrivez-vous à ma newsletter pour recevoir mes derniers articles et analyses",
     "emailPlaceholder": "Votre email",
     "subscribe": "S'inscrire",
     "noResults": "Aucun article ne correspond à votre recherche"
+  },
+   "inspirations": {
+    "heroTitle": "Inspirations & Voyages",
+    "coverCaptionTitle": "Voyage, découverte & émerveillement",
+    "coverCaptionText": "Une image, une émotion, une histoire à partager…",
+    "storyTitle": "Récit de voyage",
+    "storyIntro": "Ici, chaque photo est une porte ouverte sur l’ailleurs.<br>Derrière chaque image, il y a un souffle d’aventure, une anecdote insolite, un parfum d’ailleurs ou un éclat de rire partagé au bout du monde.<br>Laisse-toi embarquer : clique sur une image, et découvre le récit, les secrets, les galères, les émerveillements et les petits bonheurs qui font la magie du voyage.<br>Prêt à explorer ? L’histoire commence là où la photo s’arrête…",
+    "storyPlaceholder": "Clique sur une photo pour plonger dans l’aventure !",
+    "galleryTitle": "Galerie de photographies",
+    "galleryCaption1": "Un lieu qui m’a marqué lors de mon dernier voyage.",
+    "quote": "« Le véritable voyage de découverte ne consiste pas à chercher de nouveaux paysages, mais à avoir de nouveaux yeux. »",
+    "shareTitle": "Partagez vos inspirations !",
+    "shareText": "Vous aussi, partagez vos plus beaux souvenirs de voyage ou vos coups de cœur en me contactant. Ensemble, faisons voyager l’inspiration !",
+    "contactBtn": "Me contacter"
   }
 }

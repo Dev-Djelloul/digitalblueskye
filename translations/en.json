@@ -299,11 +299,27 @@
     "categoryReg": "Regulation",
     "categoryCsr": "CSR & Impact",
     "categoryForesight": "Foresight",
+    "categoryPedagogy": "Pedagogy",
     "readMore": "Read article",
     "noResults": "No articles match your search",
     "newsletterTitle": "Stay informed about the latest trends",
     "newsletterText": "Subscribe to my newsletter to receive my latest articles and analyses",
     "emailPlaceholder": "Your email",
     "subscribe": "Subscribe"
-  }
+  },
+  "inspirations": {
+  "heroTitle": "Inspirations & Travels",
+  "coverCaptionTitle": "Travel, Discovery & Wonder",
+  "coverCaptionText": "An image, an emotion, a story to share…",
+  "storyTitle": "Travel Story",
+  "storyIntro": "Here, each photo is a doorway to somewhere else.<br>Behind every image lies a breath of adventure, a quirky anecdote, a scent from afar or a burst of laughter shared at the ends of the earth.<br>Let yourself be carried away: click on a picture and discover the story, the secrets, the mishaps, the wonders and the little joys that make travel magical.<br>Ready to explore? The story begins where the photo ends…",
+  "storyPlaceholder": "Click on a photo to discover its story !",
+  "galleryTitle": "Gallery of Photographs",
+  "galleryCaption1": "A place that left a mark on me during my last trip.",
+  "quote": "“The real voyage of discovery consists not in seeking new landscapes, but in having new eyes.”",
+  "shareTitle": "Share your inspirations!",
+  "shareText": "You too can share your best travel memories or favorites by contacting me. Together, let’s make inspiration travel!",
+  "contactBtn": "Contact me",
+  "galleryPhotographiesTitle": "Photo Gallery"
+}
 }
