@@ -3,20 +3,40 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Inspirations - Digitalblueskye</title>
+    <meta
+      name="description"
+      content="Portfolio de Digitalblueskye, intégrateur web et designer web créatif et passionné. Spécialisé en HTML, CSS, JavaScript et responsive design. Découvrez mes projets."
+    />
+    <title data-i18n="meta.title">Inspirations - Digitalblueskye</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Iceland&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="/styles/style.css" />
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+    />
   </head>
   <body>
-    <!-- Header complet -->
+    <!-- Header fixe avec logo et hamburger -->
     <header class="site-header">
       <div class="header-placeholder"></div>
+      <!-- Logo -->
       <div class="header-logo">
         <a href="/index.html" title="Retour à l'accueil">
-          <img src="/assets/images/logo/Logo-Globe.png" alt="Logo YellowBlueSkye" width="50" height="50" />
+          <img
+            src="/assets/images/logo/Logo-Globe.png"
+            alt="Logo YellowBlueSkye"
+            width="50"
+            height="50"
+          />
         </a>
       </div>
+      <!-- Contrôles alignés -->
       <div class="menu-controls">
         <button
           id="lang-switch"
@@ -70,6 +90,7 @@
           </svg>
         </button>
       </div>
+      <!-- Hamburger placé DANS le header -->
       <div class="hamburger" id="hamburger" aria-label="Menu">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -131,11 +152,19 @@
               </li>
             </ul>
           </li>
-           <li>
-            <a href="/blog/digital/blogArticles.html" data-i18n="nav.blogDigital"><h2>L'actu du Coin Digital</h2></a>
+          <li>
+            <a
+              href="/blog/digital/blogArticles.html"
+              data-i18n="nav.blogDigital"
+              ><h2>L'actu du Coin Digital</h2></a
+            >
           </li>
           <li>
-            <a href="/blog/inspirations.html" data-i18n="nav.blogInspiration"><h2>Mon carnet d’inspirations</h2></a>
+            <a
+              href="/blog/inspirations/inspirations.html"
+              data-i18n="nav.blogInspiration"
+              ><h2>Mon carnet d’inspirations</h2></a
+            >
           </li>
           <li>
             <a href="/pages/contact.html" data-i18n="nav.contact"
@@ -150,29 +179,104 @@
     <!-- Fin du menu dropdown -->
 
     <main class="inspirations-main">
+      <!-- Section héro immersive -->
       <section class="inspirations-hero" data-aos="fade-up">
-        <h1>Inspirations & Voyages</h1>
-        <p>Bienvenue dans mon carnet d’inspirations. Ici, je partage mes photos de voyage et les histoires qui les accompagnent.</p>
-      </section>
-      <section class="inspirations-gallery" data-aos="fade-up">
-        <h2>Ma galerie photo</h2>
-        <div class="gallery-grid">
-          <!-- Exemple d'image -->
-          <figure>
-            <img src="/assets/images/inspirations/exemple-voyage.jpg" alt="Exemple de voyage" class="img-fluid" />
-            <figcaption>Un lieu qui m’a marqué lors de mon dernier voyage.</figcaption>
-          </figure>
-          <!-- Ajoute d'autres figures ici -->
+        <div
+          class="hero-bg"
+          style="background-image: url('/assets/images/inspirations/hero-voyage.jpg');"
+        >
+          <div class="hero-overlay"></div>
+          <div class="hero-content">
+            <h1 data-i18n="inspirations.heroTitle">Inspirations & Voyages</h1>
+          </div>
         </div>
       </section>
-      <section class="inspirations-story" data-aos="fade-up">
-        <h2>Récit de voyage</h2>
-        <p>Chaque photo a son histoire. Clique sur une image pour découvrir le récit associé, mes impressions et conseils pour explorer ces destinations.</p>
+
+      <!-- Section cover stylisée -->
+      <section class="inspirations-cover" data-aos="fade-up">
+        <div class="cover-image-wrapper">
+          <img
+            src="/assets/images/travel inspirations/cover image/IMG_20230805_203931.jpg"
+            alt="Cover Inspirations & Voyages"
+            class="cover-image"
+          />
+          <div class="cover-caption">
+            <h2>Voyage, découverte & émerveillement</h2>
+            <p>Une image, une émotion, une histoire à partager…</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Zone récit dynamique SOUS le titre, AVANT le carrousel -->
+      <section class="inspirations-story section-padding" data-aos="fade-up">
+        <h1 data-i18n="inspirations.storyTitle">Récit de voyage</h1>
+        <p data-i18n="inspirations.storyIntro">
+          Ici, chaque photo est une porte ouverte sur l’ailleurs.  
+          <br>
+          Derrière chaque image, il y a un souffle d’aventure, une anecdote insolite, un parfum d’ailleurs ou un éclat de rire partagé au bout du monde.  
+          <br>
+          Laisse-toi embarquer : clique sur une image, et découvre le récit, les secrets, les galères, les émerveillements et les petits bonheurs qui font la magie du voyage.  
+          <br>
+          Prêt à explorer ? L’histoire commence là où la photo s’arrête…
+        </p>
         <!-- Zone pour futurs récits dynamiques -->
+         <div id="travel-story-content" class="travel-story-content"></div>
+      </section>
+
+      <!-- Galerie photo responsive (carrousel) -->
+      <section class="inspirations-gallery" data-aos="fade-up">
+        <h2>Galerie de photographies</h2>
+        <div class="carousel-container">
+          <div class="carousel-track">
+            <!-- Exemple d'image, duplique pour chaque voyage -->
+            <a href="#" class="carousel-item" data-story="voyage-inde-1" title="Voir le récit de Jaipur">
+              <img src="/assets/images/travel inspirations/India/IMG_20190109_121355_501.jpg" alt="Voyage en Inde" />
+            </a>
+            <a href="#" class="carousel-item" data-story="voyage-inde-2" title="Voir le récit du désert du Thar">
+              <img src="/assets/images/travel inspirations/India/IMG_20190116_222617_104.jpg" alt="Voyage en Inde" />
+            </a>
+            <a href="#" class="carousel-item" data-story="voyage-inde-3" title="Voir le récit du Ganges">
+              <img src="/assets/images/travel inspirations/India/IMG_20190116_223233_753.jpg" alt="Voyage en Inde" />
+            </a>
+            <!-- Ajoute autant d'images que tu veux -->
+          </div>
+
+          <div class="story-placeholder">
+          <h1 data-i18n="inspirations.storyPlaceholder">
+            Clique sur une photo et plonge dans l’aventure ! 
+          </h1>
+        </div>
+        </div>
+      </section>
+
+      <!-- Bloc citation/voyage -->
+      <section class="inspirations-quote" data-aos="fade-up">
+        <blockquote>
+          <p data-i18n="inspirations.quote">
+            « Le véritable voyage de découverte ne consiste pas à chercher de
+            nouveaux paysages, mais à avoir de nouveaux yeux. »
+          </p>
+          <footer>— Marcel Proust</footer>
+        </blockquote>
+      </section>
+
+      <!-- Appel à contribution ou partage -->
+      <section class="inspirations-share" data-aos="fade-up">
+        <h3 data-i18n="inspirations.shareTitle">Partagez vos inspirations !</h3>
+        <p data-i18n="inspirations.shareText">
+          Vous aussi, partagez vos plus beaux souvenirs de voyage ou vos coups
+          de cœur en me contactant. Ensemble, faisons voyager l’inspiration !
+        </p>
+        <a
+          href="/pages/contact.html"
+          class="btn-explore"
+          data-i18n="inspirations.contactBtn"
+        >
+          Me contacter
+        </a>
       </section>
     </main>
 
-    <!-- Footer -->
     <footer id="footer">
       <div class="github">
         <a href="https://github.com/Dev-Djelloul" target="_blank">
@@ -184,19 +288,33 @@
           <img src="/assets/images/ui/icons8-linkedin-64.png" alt="LinkedIn" />
         </a>
       </div>
-      <p>&copy; 2024 YellowBlueSkye. Tous droits réservés.</p>
+      <p data-i18n="footer.copyright">
+        &copy; 2024 YellowBlueSkye. Tous droits réservés.
+      </p>
     </footer>
 
-    <button id="scroll-to-top" class="scroll-to-top" title="Retour en haut">
+    <button
+      id="scroll-to-top"
+      class="scroll-to-top"
+      data-i18n-title="ui.backToTop"
+      title="Retour en haut"
+    >
       <svg width="20" height="20" viewBox="0 0 24 24">
         <path d="M7 14l5-5 5 5z" fill="currentColor"></path>
       </svg>
     </button>
+
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
-      AOS.init({ duration: 1000, once: true });
+      AOS.init({
+        duration: 1000,
+        once: true,
+      });
+
+      // Script pour le bouton de retour en haut
       document.addEventListener("DOMContentLoaded", function () {
         var scrollToTopBtn = document.getElementById("scroll-to-top");
+
         window.onscroll = function () {
           if (
             document.body.scrollTop > 300 ||
@@ -216,12 +334,22 @@
             }, 300);
           }
         };
+
         scrollToTopBtn.addEventListener("click", function () {
           window.scrollTo({
             top: 0,
             behavior: "smooth",
           });
         });
+      });
+    </script>
+    <script>
+      // Duplique les images pour effet infini
+      document.addEventListener("DOMContentLoaded", function () {
+        const track = document.querySelector(".carousel-track");
+        if (track) {
+          track.innerHTML += track.innerHTML; // Double les images pour boucle infinie
+        }
       });
     </script>
     <script src="/scripts/loader.js"></script>
@@ -232,5 +360,68 @@
     <script src="/scripts/welcome-animations.js"></script>
     <script src="/scripts/scroll-animations.js"></script>
     <script src="/scripts/newsletter.js"></script>
+    <script>
+      // Exemple de récits (à adapter avec tes vrais textes)
+      const travelStories = {
+        "voyage-inde-1": {
+          title: "Lumières de Jaipur",
+          content: "Un matin rose sur le Palais des Vents, des senteurs d’épices et le tumulte joyeux des bazars. L’Inde, c’est un choc, une fête, un émerveillement permanent."
+        },
+        "voyage-inde-2": {
+          title: "Le désert du Thar",
+          content: "Sous les étoiles, le silence du désert. Rencontre avec les nomades, partage d’un chai brûlant, et la sensation d’être minuscule dans l’immensité."
+        },
+        "voyage-inde-3": {
+          title: "Ganges, au lever du jour",
+          content: "La brume sur le fleuve, les prières, les couleurs. Un moment suspendu, entre spiritualité et poésie."
+        }
+        // Ajoute d'autres récits ici
+      };
+    </script>
+    <script>
+      document.querySelectorAll('.carousel-item').forEach(item => {
+        item.addEventListener('click', function(e) {
+          e.preventDefault();
+          const storyKey = this.getAttribute('data-story');
+          const story = travelStories[storyKey];
+          const container = document.getElementById('travel-story-content');
+          if (story && container) {
+            container.innerHTML = `
+              <div class="story-block">
+                <h3>${story.title}</h3>
+                <p>${story.content}</p>
+              </div>
+            `;
+            container.scrollIntoView({behavior: "smooth"});
+          }
+        });
+      });
+    </script>
+    <script>
+  // Délégation d'événement pour gérer les clics sur toutes les images du carrousel (y compris celles dupliquées)
+  document.addEventListener("DOMContentLoaded", function () {
+    const track = document.querySelector(".carousel-track");
+    const container = document.getElementById("travel-story-content");
+    if (track && container) {
+      track.addEventListener("click", function (e) {
+        const item = e.target.closest('.carousel-item');
+        if (item) {
+          e.preventDefault();
+          const storyKey = item.getAttribute('data-story');
+          const story = travelStories[storyKey];
+          if (story) {
+            container.innerHTML = `
+              <div class="story-block">
+                <h3>${story.title}</h3>
+                <p>${story.content}</p>
+              </div>
+            `;
+            container.scrollIntoView({behavior: "smooth"});
+          }
+        }
+      });
+    }
+  });
+</script>
   </body>
 </html>

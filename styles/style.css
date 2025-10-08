@@ -2308,6 +2308,253 @@ h1.main-title-animated .title-icon {
 }
 
 /* =========================
+   Carousel Inspirations - Styles améliorés
+   ========================= */
+ /* --- Carousel amélioré --- */
+.carousel-container {
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  margin: 0 auto 3.5rem auto;
+  max-width: 1100px;
+  background: none;
+  padding: 0 1rem;
+}
+.carousel-track {
+  display: flex;
+  gap: 2rem;
+  animation: scroll-carousel 8s linear infinite; /* Plus rapide */
+  will-change: transform;
+}
+@keyframes scroll-carousel {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.carousel-item {
+  flex: 0 0 320px;
+  display: block;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+  background: #fff;
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+  position: relative;
+  margin-bottom: 0.5rem;
+}
+.carousel-item img {
+  width: 100%;
+  height: 420px;
+  object-fit: cover;
+  display: block;
+  border-radius: 16px;
+  transition: filter 0.2s;
+}
+.carousel-item:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.13);
+}
+@media (max-width: 900px) {
+  .carousel-item {
+    flex: 0 0 60vw;
+  }
+  .carousel-item img {
+    height: 150px;
+  }
+}
+@media (max-width: 600px) {
+  .carousel-item {
+    flex: 0 0 80vw;
+  }
+  .carousel-item img {
+    height: 110px;
+  }
+}
+
+/* --- Espacement général et sections inspirations --- */
+.inspirations-main {
+  padding: 2.5rem 0 4rem 0;
+}
+.inspirations-hero {
+  margin-bottom: 3.5rem;
+  color: #0288d1;
+}
+.inspirations-hero .hero-content {
+  padding: 3rem 2rem 2rem 2rem;
+}
+.inspirations-hero h1 {
+  margin-bottom: 1.5rem;
+}
+.inspirations-story {
+  max-width: 900px;
+  margin: 0 auto 2.5rem auto;
+  padding: 0 1rem 2.5rem 1rem;
+  text-align: center;
+}
+.inspirations-story h1 {
+  margin-bottom: 1.2rem;
+  color: #0288d1;
+}
+.inspirations-story p {
+  font-size: 1.15rem;
+  color: #5d5dff;
+  margin-bottom: 0.5rem;
+}
+.inspirations-gallery {
+  margin: 0 auto 3.5rem auto;
+  max-width: 1100px;
+  padding: 0 1rem;
+  color: #0288d1;
+}
+.inspirations-gallery h2 {
+  text-align: center;
+  font-family: 'Iceland', cursive;
+  font-size: 2rem;
+  margin-bottom: 2rem;
+}
+
+/* --- Bloc citation/voyage --- */
+.inspirations-quote {
+  margin: 3.5rem auto 2.5rem auto;
+  max-width: 700px;
+  text-align: center;
+}
+.inspirations-quote blockquote {
+  font-size: 1.3rem;
+  font-style: italic;
+  color: #2d3a4a;
+  background: #f0f6fa;
+  border-left: 5px solid #4fc3f7;
+  padding: 1.5rem 2rem;
+  border-radius: 12px;
+  margin: 0;
+}
+.inspirations-quote footer {
+  margin-top: 1rem;
+  font-size: 1rem;
+  color: #6c7a89;
+}
+
+.story-placeholder {
+  margin-top: 5rem;
+}
+
+/* --- Bloc partage inspiration stylisé --- */
+.inspirations-share {
+  background: linear-gradient(90deg, #e3f2fd 60%, #fff 100%);
+  border-radius: 22px;
+  max-width: 700px;
+  margin: 4rem auto 2.5rem auto;
+  padding: 2.5rem 2.5rem 2.5rem 2.5rem;
+  text-align: center;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  border: 2px solid #4fc3f7;
+  position: relative;
+}
+.inspirations-share h3 {
+  font-family: 'Iceland', cursive;
+  font-size: 1.5rem;
+  margin-bottom: 1.2rem;
+  color: #0288d1;
+  letter-spacing: 1px;
+}
+.inspirations-share p {
+  font-size: 1.15rem;
+  margin-bottom: 1.5rem;
+  color: #444;
+}
+.inspirations-share .btn-explore {
+  background: linear-gradient(90deg, #4fc3f7 60%, #0288d1 100%);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 0.9rem 2.5rem;
+  font-size: 1.15rem;
+  font-family: 'Lato', Arial, sans-serif;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+  text-decoration: none;
+  display: inline-block;
+  font-weight: bold;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  margin-top: 0.5rem;
+  letter-spacing: 1px;
+}
+.inspirations-share .btn-explore:hover {
+  background: linear-gradient(90deg, #0288d1 60%, #4fc3f7 100%);
+  transform: translateY(-2px) scale(1.04);
+  color: #fff;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.13);
+}
+
+.inspirations-cover {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto 3rem auto;
+  max-width: 1100px;
+  padding: 0 1rem;
+}
+.cover-image-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 1200px;
+  border-radius: 22px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.13);
+}
+.cover-image {
+  width: 100%;
+  height: 540px;
+  object-fit: cover;
+  display: block;
+  border-radius: 22px;
+  filter: brightness(0.93) saturate(1.1);
+}
+.cover-caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(0deg, rgba(0,0,0,0.55) 70%, rgba(0,0,0,0.08) 100%);
+  color: #fff;
+  padding: 2rem 1.5rem 1.2rem 1.5rem;
+  border-radius: 0 0 22px 22px;
+  text-align: left;
+}
+.cover-caption h2 {
+  font-family: 'Iceland', cursive;
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  letter-spacing: 1px;
+}
+.cover-caption p {
+  font-size: 1.15rem;
+  margin: 0;
+  color: #e3f2fd;
+}
+
+.travel-story-content {
+  margin: 2rem auto 0 auto;
+  max-width: 800px;
+  background: #f7fafd68;
+  border-radius: 16px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+  padding: 2rem 1.5rem;
+  text-align: center;
+  transition: box-shadow 0.2s;
+}
+.story-block h1 {
+  font-family: 'Iceland', cursive;
+  color: #0288d1;
+  margin-bottom: 0.7rem;
+}
+.story-block p {
+  font-size: 1.15rem;
+  color: #444;
+}
+
+/* =========================
    PROJETS (Grille, Aperçu, Détail)
    ========================= */
 /* Grille principale des projets (page projets) */
@@ -2334,7 +2581,7 @@ h1.main-title-animated .title-icon {
 .parallax-image {
   transition: transform 0.2s ease-out;
   width: 150%;
-  height: 150%;
+  height: 250%;
   object-fit: cover;
   position: absolute;
   top: -25%;
@@ -2363,7 +2610,8 @@ h1.main-title-animated .title-icon {
   object-fit: contain;
   border-bottom: 3px solid transparent;
   border-image: linear-gradient(45deg, var(--accent-color), #c822ff) 1;
-} /* Image de la carte */
+} 
+/* Image de la carte */
 .project-info {
   padding: 20px;
   display: flex;
@@ -3720,7 +3968,7 @@ body.body-menu-open #footer {
     font-size: 1rem;
   } /* Taille police tech projet plus petite */
   .project-card img {
-    height: 180px;
+    height: 220px;
   } /* Image carte projet plus haute */
   .project-preview-grid {
     grid-template-columns: 1fr;
