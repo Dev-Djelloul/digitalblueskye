@@ -1,6 +1,6 @@
 # 🌐 Digitalblueskye – Mon Portfolio Web
 
-Bienvenue sur **Digitalblueskye**, mon portfolio en ligne.  
+Bienvenue sur **Digitalblueskye**, mon site web perso.  
 Ce site présente une sélection de mes projets en tant qu'**intégrateur web** et **développeur web**, et accompagnera mon évolution vers un rôle de **chef de projet digital**.
 
 ---
@@ -8,7 +8,7 @@ Ce site présente une sélection de mes projets en tant qu'**intégrateur web** 
 ## 👨‍💻 À propos de moi
 
 Je m'appelle **Djelloul**.  
-Passionné par le web, je conçois et développe des sites modernes, accessibles et performants.  
+Passionné par le web, je conçois et développe des sites modernes, accessibles et performants grâce à l'aide l'IA.  
 Mon parcours m’a amené à explorer plusieurs facettes du digital : intégration, développement front-end, design web et bientôt gestion de projets digitaux.
 
 ---
@@ -39,8 +39,10 @@ Voici un aperçu de quelques projets que vous pouvez retrouver sur ce site :
 ## 🎯 Objectifs
 
 - Centraliser mes travaux dans un espace clair et professionnel
-- Montrer mon évolution dans le digital
+- Montrer mon évolution progressive dans le monde du digital
 - Démontrer mes compétences en conception, intégration, développement et bientôt en pilotage de projet
+- Poster des articles liés aux dernières tendances digitales
+- Relater mes inspirations et mes différents voyages autour du globe
 
 ---
 
@@ -54,7 +56,7 @@ Voici un aperçu de quelques projets que vous pouvez retrouver sur ce site :
 
 ## 🚀 Déploiement
 
-Ce portfolio est hébergé sur **Netlify**  
+Ce siteweb est hébergé sur **Netlify**  
 🔗 [https://digitalblueskye.netlify.app](https://digitalblueskye.netlify.app)
 
 ---

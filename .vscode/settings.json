@@ -1,5 +1,6 @@
 {
     "git.ignoreLimitWarning": true,
     "liveServer.settings.port": 5501,
-    "files.autoSave": "afterDelay"
+    "files.autoSave": "afterDelay",
+    "editor.linkedEditing": true
 }

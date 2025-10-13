@@ -1228,7 +1228,7 @@ header.nav-scrolled,
   position: relative; /* Style bannière */
   padding: 20px;
   width: fit-content;
-  margin: 0 auto 30px;
+  margin: 30px auto 30px;
   border-radius: 5px 5px 15px 15px; /* Arrondit les coins inférieurs */ /* Dimensions et espacement */
 }
 h3.title-banner {
@@ -1280,9 +1280,9 @@ section.page-title-container
    ========================= */
 
 .page-title-container {
-  font-size: 2rem; /* Taille de police pour le titre principal des actualités */
-  background: linear-gradient(45deg, var(--accent-color), #c822ff);
-  font-weight: bold; /* Met le titre en gras */
+  font-size: 2rem;
+  background: linear-gradient(45deg, #c822ff0d, #c822ff);
+  font-weight: bold;
   padding: 45px;
   margin-bottom: 150px;
   margin-top: 200px;
@@ -1732,7 +1732,7 @@ h1.main-title-animated .title-icon {
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 10px;
 }
 
 /* =========================
@@ -2481,7 +2481,7 @@ h1.main-title-animated .title-icon {
   align-items: center;
   margin: 0 auto 3rem auto;
   max-width: 1100px;
-  padding: 0 2rem;
+  padding: 0 1rem;
 }
 .cover-image-wrapper {
   position: relative;
@@ -3645,7 +3645,7 @@ body.body-menu-open #footer {
   section#contact,
   #contact {
     scroll-margin-top: 100px;
-    margin-top: 50px;
+    margin-top: 0px;
   }
   .dropdown-menu {
     padding: 35px;
@@ -3751,7 +3751,7 @@ body.body-menu-open #footer {
   section#contact,
   #contact {
     scroll-margin-top: 100px;
-    margin-top: 50px;
+    margin-top: 0px;
     padding: 20px;
   }
 
@@ -3829,23 +3829,22 @@ body.body-menu-open #footer {
 
   .intro-text .animated-title {
     font-size: 3rem; /* Réduire la taille de la police */
-    padding: 30px;
+    padding: 20px;
   }
 
   .intro-text .animated-paragraph {
     font-size: 1.2rem; /* Réduire la taille de la police */
     margin-bottom: 10px;
-    padding: 30px;
+    padding: 15px;
   }
 
   /* Taille de la photo de profil sur mobile */
   .intro-text .content-wrapper {
     flex-direction: column;
     gap: 30px;
-    padding: 0px 30px;
+    padding: 30px;
     width: 100%;
     max-width: 400px; /* Largeur maximale réduite */
-    margin: 75px auto; /* Centrage horizontal */
   }
 
   /*.intro-text .profile-photo-container { */
@@ -3865,7 +3864,7 @@ body.body-menu-open #footer {
   }
 
   .intro-text .btn-explore {
-    margin: 40px; /* Marge supérieure réduite */
+    margin: 20px; /* Marge supérieure réduite */
     padding: 8px 15px; /* Réduire le padding vertical et horizontal */
     font-size: 1.2rem; /* Réduire la taille de la police */
     width: 250px; /* Permettre au bouton de prendre une largeur plus naturelle */
@@ -3929,8 +3928,8 @@ body.body-menu-open #footer {
 }
 
 .about-text-box {
-  margin: 60px auto; /* ✅ Centrage automatique horizontal */
-  padding: 10px; /* Optionnel: réduire le padding pour mobile */
+  margin: 30px auto; /* ✅ Centrage automatique horizontal */
+  padding: 0px; /* Optionnel: réduire le padding pour mobile */
   max-width: calc(
     100% - 80px
   ); /* Optionnel: éviter que la box touche les bords */
@@ -4069,11 +4068,7 @@ body.body-menu-open #footer {
 
 /* Menu dropdown en mode thème clair */
 [data-theme="light"] .dropdown-menu {
-background-color: rgba(255, 255, 255, 0.997) !important;}
-
-/* Si vous voulez aussi modifier l'overlay en mode clair */
-[data-theme="light"] .menu-overlay.active {
-  background-color: rgba(240, 238, 255, 0.9) !important;
+  background-color: rgba(255, 255, 255, 0.997) !important;
 }
 
 /* Pour harmoniser les éléments du menu en mode clair */
@@ -4145,7 +4140,6 @@ background-color: rgba(255, 255, 255, 0.997) !important;}
 @media (max-width: 576px) {
   section {
     padding: 0px;
-    margin-top: 100px;
     margin-bottom: 0px;
   }
 
@@ -4191,7 +4185,7 @@ background-color: rgba(255, 255, 255, 0.997) !important;}
   }
 
   .blog-main-container {
-    padding-top: 80px;
+    padding-top: 0px;
   }
 
   .blog-hero {
@@ -4213,7 +4207,8 @@ background-color: rgba(255, 255, 255, 0.997) !important;}
 
   .articles-grid {
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 20px;
+    gap: 50px;
+    padding: 20px;
   }
 
   .newsletter-form {
@@ -4222,10 +4217,10 @@ background-color: rgba(255, 255, 255, 0.997) !important;}
 
   .page-title-container {
     font-size: 2rem;
-    background: linear-gradient(45deg, var(--accent-color), #c822ff);
+    background: linear-gradient(45deg, #c822ff00, #c822ff);
     font-weight: bold;
     padding: 30px;
-    margin-bottom: 150px;
+    margin-bottom: 100px;
     margin-top: 100px;
   }
 
