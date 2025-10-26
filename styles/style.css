@@ -9,13 +9,14 @@
   --accent-color: #5d5dff; /* Couleur d'accentuation (liens, bordures, etc.) */
   --secondary-bg: #232436; /* Couleur de fond secondaire */
   --border-color: #5d5dff; /* Couleur des bordures */
-  --shadow-color: rgba(0, 0, 0, 0.3); /* Couleur des ombres */
-  --input-bg: rgba(
-    255,
-    255,
-    255,
-    0.1
+  --shadow-color: rgb(0 0 0 / 30%); /* Couleur des ombres */
+  --input-bg: rgb(
+    255
+    255
+    255 /
+    10%
   ); /* Couleur de fond des champs de formulaire */
+
   --skill-icon-bg: #343654; /* Couleur de fond des icônes de compétence */
   --skill-text-color: #b8c2cc; /* Couleur du texte des compétences */
   --transition-speed: 0.3s; /* Vitesse de transition générale */
@@ -24,16 +25,16 @@
 
 [data-theme="light"] {
   /* Variables pour le thème clair */
-  --background-color: rgb(242, 240, 250);
+  --background-color: rgb(242 240 250);
   --text-color: #5d5dff;
-  --card-bg: rgba(255, 255, 255, 0.8);
+  --card-bg: rgb(255 255 255 / 80%);
   --accent-color: #c822ff; /* Couleur d'accentuation change en rose */
-  --secondary-bg: rgba(229, 227, 255, 0.8);
+  --secondary-bg: rgb(229 227 255 / 80%);
   --border-color: #5d5dff;
-  --shadow-color: rgba(93, 93, 255, 0.15);
-  --input-bg: rgba(0, 0, 0, 0.05);
-  --skill-icon-bg: rgba(255, 255, 255, 0.8);
-  --skill-text-color: #555555;
+  --shadow-color: rgb(93 93 255 / 15%);
+  --input-bg: rgb(0 0 0 / 5%);
+  --skill-icon-bg: rgb(255 255 255 / 80%);
+  --skill-text-color: #555;
   --accent-rgb: 255, 102, 196; /* Valeur RGB de #ff66c4 pour les ombres en mode clair */
 }
 
@@ -44,22 +45,22 @@
 @import url("https://fonts.googleapis.com/css2?family=Iceland&family=Lato:wght@400;500;700&display=swap");
 
 * {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
 }
 
 body {
+  background-color: transparent !important;
+  color: var(--text-color);
   font-family: "Open Sans", sans-serif;
   font-optical-sizing: auto;
   line-height: 1.6;
-  text-align: center;
-  color: var(--text-color);
-  position: relative;
-  z-index: 0;
-  background-color: transparent !important;
-  transition: color var(--transition-speed) ease;
   padding-top: 90px;
+  position: relative;
+  text-align: center;
+  transition: color var(--transition-speed) ease;
+  z-index: 0;
 }
 
 body.contact-page,
@@ -70,26 +71,26 @@ body.project-page {
 body::before,
 body::after {
   content: "";
+  height: 100%;
+  left: 0;
+  pointer-events: none;
   position: absolute;
   top: 0;
-  left: 0;
   width: 100%;
-  height: 100%;
-  pointer-events: none;
 }
 
 body::before {
   background: url("../images/emily-bernal-v9vII5gV8Lw-unsplash.jpg")
     center/cover no-repeat fixed;
   opacity: 0.1;
-  z-index: -1;
   transition: opacity var(--transition-speed) ease;
+  z-index: -1;
 }
 
 body::after {
   background-color: var(--background-color);
-  z-index: -2;
   transition: background-color var(--transition-speed) ease;
+  z-index: -2;
 }
 
 [data-theme="light"] body::before {
@@ -99,7 +100,7 @@ body::after {
 h1,
 h2,
 h3 {
-  font-family: "Iceland", sans-serif;
+  font-family: Iceland, sans-serif;
 }
 
 p,
@@ -112,10 +113,6 @@ article {
    DIVISEUR D'INTRO
    ========================= */
 .intro-divider {
-  margin: 40px auto 80px;
-  width: min(90%, 640px);
-  height: 4px;
-  border-radius: 999px;
   background: linear-gradient(
     90deg,
     transparent,
@@ -123,34 +120,41 @@ article {
     #c822ff,
     transparent
   );
+  border-radius: 999px;
+  height: 4px;
+  margin: 40px auto 80px;
   position: relative;
+  width: min(90%, 640px);
 }
+
 .intro-divider::after {
+  background: linear-gradient(180deg, rgb(93 93 255 / 20%), transparent);
   content: "";
-  position: absolute;
-  inset: -12px 0 -20px;
-  background: linear-gradient(180deg, rgba(93, 93, 255, 0.2), transparent);
   filter: blur(12px);
+  inset: -12px 0 -20px;
   opacity: 0.6;
+  position: absolute;
 }
 
 /* =========================
    CONTENEUR PRINCIPAL ET SECTIONS
    ========================= */
+
 /* Conteneur principal du contenu */
 main {
-  overflow: hidden;
-  width: 100%;
-  margin: 0px;
-  padding: 0px; /* Supprimez le padding-left: 250px; d'ici s'il y était */
   background-color: transparent !important;
+  margin: 0;
+  overflow: hidden;
+  padding: 0;
   transition: padding-left 0.4s ease; /* Transition pour le décalage fluide */
+  width: 100%;
 }
 
 /* Nouvelle règle : Décaler main lorsque le menu est ouvert */
 body.body-menu-open main {
-  pointer-events: none;
   padding-left: 20%;
+  pointer-events: none;
+
   /* IMPORTANT: Cette valeur doit correspondre à la largeur de votre .dropdown-menu. 
   Si width: 250px pour le menu, utilisez padding-left: 250px; ici */
 }
@@ -162,37 +166,38 @@ body.body-menu-open {
 
 /* Override pour le thème clair */
 [data-theme="light"] main {
-  background-color: rgba(255, 255, 255, 0.997) !important;
+  background-color: rgb(255 255 255 / 99.7%) !important;
+
   /* ou utilisez une autre couleur de votre choix */
 }
 
 /* Styles de base pour les sections - Mode sombre par défaut */
 section {
-  scroll-margin-top: 100px; /* Ajuste le point d'arrivée lors du défilement */
-  margin-top: 0px;
-  margin-bottom: 100px; /* Marges entre les sections */
   background-color: transparent !important;
-  padding: 0px; /* Padding pour l'espace interne */
+  margin-bottom: 100px; /* Marges entre les sections */
+  margin-top: 0;
+  padding: 0; /* Padding pour l'espace interne */
+  scroll-margin-top: 100px; /* Ajuste le point d'arrivée lors du défilement */
 }
 
 /* Marge spécifique pour l'ancre #about pour compenser le header fixe */
 section#about,
 #about {
-  scroll-margin-top: 100px;
-  margin-top: 50px;
   border-radius: 25%;
+  margin-top: 50px;
+  scroll-margin-top: 100px;
 }
 
 section#projects,
 #projects {
-  scroll-margin-top: 100px;
   margin-top: 100px;
+  scroll-margin-top: 100px;
 }
 
 section#skills,
 #skills {
-  scroll-margin-top: 100px;
   margin-top: 100px;
+  scroll-margin-top: 100px;
 }
 
 /* ==================================
@@ -207,13 +212,13 @@ section#skills,
 }
 
 .btn-view-more {
-  display: flex;
   align-items: center;
-  gap: 8px;
   color: var(--accent-color);
-  font-family: "Iceland", sans-serif;
+  display: flex;
+  font-family: Iceland, sans-serif;
   font-size: 1.3rem;
   font-weight: bold;
+  gap: 8px;
   text-decoration: none;
   transition: all 0.3s ease;
 }
@@ -225,81 +230,80 @@ section#skills,
 
 /* Animation d'apparition séquentielle */
 .intro-text {
+  align-items: center;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  margin: 0 125px 125px;
   max-width: 1200px;
-  margin: 50px 125px 125px 125px;
 }
 
 /* Titre principal */
 .intro-text h1 {
   margin-bottom: 0;
-  width: 100%;
   text-align: center;
+  width: 100%;
 }
 
 /* Container photo et texte */
 .intro-text .content-wrapper {
+  align-items: center;
   display: flex;
   flex-direction: row;
-  align-items: center;
-  justify-content: center;
   gap: 100px;
+  justify-content: center;
+  margin: 0;
   width: 100%;
-  margin: 20px 0px 20px 0px;
 }
 
 /* Style de la photo de profil */
-
 .intro-text .profile-photo-container {
-  opacity: 0;
-  transform: translateX(-100px);
-  transition: opacity 1s ease, transform 1s ease;
-  border-radius: 2%;
-  overflow: hidden;
+  align-items: center;
   border: 1px solid var(--accent-color);
-  box-shadow: 0 5px 5px rgba(var(--accent-rgb), 0.5);
-  margin: 0;
-  /* Dimensions fixes qui correspondent à l'image */
-  width: 600px; /* Même valeur que la photo */
-  max-width: 100vw;
-  height: 450px;
+  border-radius: 2%;
+  box-shadow: 0 5px 5px rgb(var(--accent-rgb), 0.5);
+
   /* Centrage du contenu */
   display: flex;
+  height: 450px;
   justify-content: center;
-  align-items: center;
+  margin: 0;
+  max-width: 100vw;
+  opacity: 0;
+  overflow: hidden;
+  transform: translateX(-100px);
+  transition: opacity 1s ease, transform 1s ease;
+
+  /* Dimensions fixes qui correspondent à l'image */
+  width: 600px; /* Même valeur que la photo */
 }
 
 /* Style de la photo */
 .intro-text .profile-photo {
-  width: 480px;
-  height: 330px;
   object-fit: cover;
   border-radius: 2%;
-  box-shadow: 2 2px 3px rgba(0, 0, 0, 0.15);
+  box-shadow: 2 2px 3px rgb(0 0 0 / 15%);
+  height: 330px;
+  width: 480px;
 }
 
 /* Ombre de la photo de profil au survol pour le thème clair */
 
 /* Conteneur de texte */
 .intro-text .text-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
   align-items: center;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
   text-align: center;
 }
 
 /* Titres et paragraphes dans la section texte */
 .intro-text .text-content p,
 .intro-text .text-content h2 {
-  margin-bottom: 20px;
-  text-align: center;
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
-  -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  text-align: center;
   text-decoration: none;
   transition: transform 0.3s;
 }
@@ -310,108 +314,107 @@ section#skills,
 
 /* Animations pour le titre, le paragraphe de texte et le bouton de la page d'accueil */
 .intro-text .animated-title {
+  font-size: 5rem;
+  margin-bottom: 0px;
+  margin-top: 40px;
   opacity: 0;
   transform: translateX(500px);
   transition: opacity 1.8s ease-out, transform 1.8s ease-out;
-  margin-bottom: 80px;
-  margin-top: 30px;
-  font-size: 5rem;
 }
 
 .intro-text .animated-paragraph {
+  font-size: 1.6rem;
+  margin-bottom: 25px;
   opacity: 0;
   transform: translateX(-500px);
   transition: opacity 2.4s ease-out, transform 2.4s ease-out;
-  margin-bottom: 25px;
-  font-size: 1.6rem;
 }
 
 /* Bouton explorer */
 .intro-text .btn-explore {
-  /* Animation d'apparition */
-  margin: 45px;
-  opacity: 0;
-  transform: translateY(50px);
-  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
-  /* Style de base */
-  display: inline-block;
-  padding: 8px 25px;
-  font-size: 1.3rem;
-  background: linear-gradient(45deg, var(--accent-color), #c822ff);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  text-decoration: none;
-  border-radius: 5%;
-  box-shadow: 0 5px 15px rgba(var(--accent-rgb), 0.4);
-  /* Effet brillant */
-  background-clip: text;
-  -webkit-background-clip: text;
-  background-image: linear-gradient(
-    135deg,
-    var(--accent-color) 0%,
-    #ffffff 30%,
-    var(--accent-color) 60%,
-    #ffffff 100%
-  );
-  background-size: 200% auto;
   /* Combinaison des animations */
   animation: fadeInUp 0.8s ease forwards 3.5s, pulseButtonLight 2s infinite 3s,
     textShine 3s linear infinite 3s,
     /* textShine commence à 3s */ floatButton 3s ease-in-out infinite 5.5s; /* floatButton commence après 4s */
+
+  background: linear-gradient(45deg, var(--accent-color), #c822ff);
+
+  /* Effet brillant */
+  background-clip: text;
+  background-image: linear-gradient(
+    135deg,
+    var(--accent-color) 0%,
+    #fff 30%,
+    var(--accent-color) 60%,
+    #fff 100%
+  );
+  background-size: 200% auto;
+  border-radius: 5%;
+  box-shadow: 0 5px 15px rgb(var(--accent-rgb), 0.4);
+  color: transparent;
+
+  /* Style de base */
+  display: inline-block;
+  font-size: 1.3rem;
+
+  /* Animation d'apparition */
+  margin: 45px;
+  opacity: 0;
+  padding: 8px 25px;
+  text-decoration: none;
+  transform: translateY(50px);
+  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
 }
 
 .intro-text .btn-explore:hover {
+  box-shadow: 0 8px 20px rgb(var(--accent-rgb), 0.6);
   transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(var(--accent-rgb), 0.6);
 }
 
 /* Bouton de téléchargement CV */
 .btn-download-cv {
-  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  padding: 12px 30px;
-  font-size: 1.2rem;
-  margin: 50px 0 0;
-  background: linear-gradient(45deg, var(--accent-color), #5d5dff);
-  color: var(--text-color);
-  border-radius: 5%;
-  text-decoration: none;
-  box-shadow: 0 5px 15px rgba(var(--accent-rgb), 0.4);
-  transition: transform 0.3s, box-shadow 0.3s;
-  border: none;
-  cursor: pointer;
-
-  /* Animation d'apparition */
-  opacity: 1; /* Commencer visible plutôt que caché */
-  transform: translateY(0); /* Position initiale normale */
 
   /* Nouvelles animations en boucle continue */
   animation: floatButton 3s ease-in-out infinite, pulseButton 2s infinite,
     textShine 3s linear infinite;
+  background: linear-gradient(45deg, var(--accent-color), #5d5dff);
 
   /* Effet brillant en mode sombre */
   background-clip: text;
-  -webkit-background-clip: text;
   background-image: linear-gradient(
     135deg,
     var(--secondary-bg) 0%,
-    #ffffff 30%,
+    #fff 30%,
     var(--secondary-bg) 60%,
-    #ffffff 100%
+    #fff 100%
   );
   background-size: 200% auto;
+  border: none;
+  border-radius: 5%;
+  box-shadow: 0 5px 15px rgb(var(--accent-rgb), 0.4);
+  color: var(--text-color);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 1.2rem;
+  justify-content: center;
+  margin: 50px 0 0;
+
+  /* Animation d'apparition */
+  opacity: 1; /* Commencer visible plutôt que caché */
+  padding: 12px 30px;
+  text-decoration: none;
+  transform: translateY(0); /* Position initiale normale */
+  transition: transform 0.3s, box-shadow 0.3s;
 }
 
 /* Style spécifique pour le thème clair */
 [data-theme="light"] .btn-download-cv {
-  background: linear-gradient(45deg, #c822ff, #ffb3ff);
-  background-clip: initial;
-  -webkit-background-clip: initial;
-  color: white;
   /* Choisissez UNE SEULE animation selon votre préférence : */
   animation: floatButton 3s ease-in-out infinite, pulseButtonLight 2s infinite;
+  background: linear-gradient(45deg, #c822ff, #ffb3ff);
+  background-clip: initial;
+  color: white;
 }
 
 /* Pour garantir que l'icône est visible en mode clair */
@@ -421,39 +424,44 @@ section#skills,
 
 /* Style pour l'icône dans le bouton */
 .btn-download-cv i {
-  margin-right: 15px;
-  display: inline-block;
   color: inherit; /* Hérite la couleur du parent */
+  display: inline-block;
+  margin-right: 15px;
 }
 
 /* Effet au survol */
 .btn-download-cv:hover {
+  box-shadow: 0 8px 20px rgb(var(--accent-rgb), 0.6);
   transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(var(--accent-rgb), 0.6);
 }
 
 /* Keyframes pour les animations */
+
 /* Animation de flottement intensifiée */
 @keyframes floatButton {
   0% {
     opacity: 0.7;
-    transform: translateY(0px) translateX(0px) rotate(0deg);
+    transform: translateY(0) translateX(0) rotate(0deg);
   }
+
   25% {
     opacity: 0.85;
     transform: translateY(-15px) translateX(5px) rotate(1deg);
   }
+
   50% {
     opacity: 1;
-    transform: translateY(-20px) translateX(0px) rotate(0deg);
+    transform: translateY(-20px) translateX(0) rotate(0deg);
   }
+
   75% {
     opacity: 0.85;
     transform: translateY(-15px) translateX(-5px) rotate(-1deg);
   }
+
   100% {
     opacity: 0.7;
-    transform: translateY(0px) translateX(0px) rotate(0deg);
+    transform: translateY(0) translateX(0) rotate(0deg);
   }
 }
 
@@ -462,6 +470,7 @@ section#skills,
     opacity: 0;
     transform: scale(0.8);
   }
+
   100% {
     opacity: 1;
     transform: scale(1);
@@ -473,6 +482,7 @@ section#skills,
     opacity: 0;
     transform: translateX(-500px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -484,6 +494,7 @@ section#skills,
     opacity: 0;
     transform: translateY(-500px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -494,6 +505,7 @@ section#skills,
   0% {
     background-position: 0% center;
   }
+
   100% {
     background-position: 200% center;
   }
@@ -507,6 +519,7 @@ section#skills,
       -500px
     ); /* Ou une autre valeur pour un effet différent */
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -519,6 +532,7 @@ section#skills,
     opacity: 0;
     transform: translateX(500px); /* Ou une autre valeur comme 50vw ou 300px */
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -528,13 +542,15 @@ section#skills,
 /* Animation de pulsation pour le bouton */
 @keyframes pulseButton {
   0% {
-    box-shadow: 0 5px 15px rgba(var(--accent-rgb), 0.4);
+    box-shadow: 0 5px 15px rgb(var(--accent-rgb), 0.4);
   }
+
   50% {
-    box-shadow: 0 5px 25px rgba(var(--accent-rgb), 0.7);
+    box-shadow: 0 5px 25px rgb(var(--accent-rgb), 0.7);
   }
+
   100% {
-    box-shadow: 0 5px 15px rgba(var(--accent-rgb), 0.4);
+    box-shadow: 0 5px 15px rgb(var(--accent-rgb), 0.4);
   }
 }
 
@@ -542,7 +558,6 @@ section#skills,
 [data-theme="light"] .intro-text .text-content p,
 [data-theme="light"] .intro-text .text-content h2 {
   background: linear-gradient(45deg, var(--accent-color), #5d5dff);
-  -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
   text-decoration: none;
@@ -551,52 +566,55 @@ section#skills,
 
 /* Style du bouton explorer en thème clair */
 [data-theme="light"] .intro-text .btn-explore {
+  animation: fadeInUp 0.8s ease forwards 3.5s, pulseButtonLight 2s infinite 3s,
+    textShine 3s linear infinite 3s,
+    /* textShine commence à 3s */ floatButton 3s ease-in-out infinite 5.5s; /* floatButton commence après 4s */
+
   /* Fond et style de base */
   background: linear-gradient(
     45deg,
     #c822ff,
     #ffb3ff
   ); /* Nouveau dégradé rose plus vif */
-  color: white; /* Couleur du texte visible (pas transparent) */
-  box-shadow: 0 5px 15px rgba(var(--accent-rgb), 0.3);
+
   border: none;
-  animation: fadeInUp 0.8s ease forwards 3.5s, pulseButtonLight 2s infinite 3s,
-    textShine 3s linear infinite 3s,
-    /* textShine commence à 3s */ floatButton 3s ease-in-out infinite 5.5s; /* floatButton commence après 4s */
+  box-shadow: 0 5px 15px rgb(var(--accent-rgb), 0.3);
+  color: white; /* Couleur du texte visible (pas transparent) */
 }
 
 /* Effet de brillance pour le texte uniquement si vous le souhaitez */
 [data-theme="light"] .intro-text .btn-explore.text-effect {
   /* Si vous voulez l'effet brillant sur le texte, utilisez cette classe séparément */
   background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
   background-image: linear-gradient(
     135deg,
     var(--secondary-bg) 0%,
-    #333333 30%,
+    #333 30%,
     var(--secondary-bg) 60%,
-    #333333 100%
+    #333 100%
   );
   background-size: 200% auto;
+  color: transparent;
 }
 
 /* Effet de survol en thème clair */
 [data-theme="light"] .intro-text .btn-explore:hover {
+  box-shadow: 0 8px 20px rgb(var(--accent-rgb), 0.5);
   transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(var(--accent-rgb), 0.5);
 }
 
 /* Keyframe spécifique pour le thème clair */
 @keyframes pulseButtonLight {
   0% {
-    box-shadow: 0 5px 15px rgba(var(--accent-rgb), 0.3);
+    box-shadow: 0 5px 15px rgb(var(--accent-rgb), 0.3);
   }
+
   50% {
-    box-shadow: 0 5px 25px rgba(var(--accent-rgb), 0.5);
+    box-shadow: 0 5px 25px rgb(var(--accent-rgb), 0.5);
   }
+
   100% {
-    box-shadow: 0 5px 15px rgba(var(--accent-rgb), 0.3);
+    box-shadow: 0 5px 15px rgb(var(--accent-rgb), 0.3);
   }
 }
 
@@ -607,8 +625,8 @@ section#skills,
 /* Animations pour le défilement */
 .slide-hidden {
   opacity: 0;
-  visibility: hidden;
   transition: opacity 0.8s ease-out, transform 0.8s ease-out, visibility 0s 0.8s; /* Ajout de visibility à la transition */
+  visibility: hidden;
 }
 
 /* Animation depuis la gauche */
@@ -634,9 +652,9 @@ section#skills,
 /* Classe qui sera ajoutée par JavaScript pour déclencher l'animation */
 .slide-visible {
   opacity: 1;
-  visibility: visible;
   transform: translate(0, 0);
   transition-delay: 0s; /* S'assurer que la transition de visibilité s'applique immédiatement */
+  visibility: visible;
 }
 
 /* Animation en cascade pour les enfants */
@@ -650,15 +668,19 @@ section#skills,
 .cascade-container.slide-visible > *:nth-child(1) {
   transition-delay: 0.1s;
 }
+
 .cascade-container.slide-visible > *:nth-child(2) {
   transition-delay: 0.3s;
 }
+
 .cascade-container.slide-visible > *:nth-child(3) {
   transition-delay: 0.5s;
 }
+
 .cascade-container.slide-visible > *:nth-child(4) {
   transition-delay: 0.7s;
 }
+
 .cascade-container.slide-visible > *:nth-child(5) {
   transition-delay: 0.9s;
 }
@@ -673,19 +695,19 @@ section#skills,
    LOADER STYLES
    ========================= */
 #loader-wrapper {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  align-items: center;
   background-color: var(--background-color);
   display: flex;
+  height: 100%;
   justify-content: center;
-  align-items: center;
-  z-index: 9999;
+  left: 0;
   opacity: 1;
-  visibility: visible;
+  position: fixed;
+  top: 0;
   transition: opacity 0.5s ease-out, visibility 0s linear 0.5s;
+  visibility: visible;
+  width: 100%;
+  z-index: 9999;
 }
 
 /* Classe pour cacher le loader via JS */
@@ -695,12 +717,12 @@ section#skills,
 }
 
 #loader-video {
-  width: 125px;
-  height: 125px;
-  border-radius: 50%;
   object-fit: contain;
   border: 2px solid var(--border-color);
+  border-radius: 50%;
   box-shadow: 0 5px 100px #5d5dff;
+  height: 125px;
+  width: 125px;
 }
 
 /* Assurer que la couleur de fond du loader s'adapte au thème clair */
@@ -713,18 +735,18 @@ section#skills,
    ========================= */
 header,
 .compact-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  z-index: 2001;
-  transition: transform 0.2s ease, background-color 0.3s ease,
-    box-shadow 0.3s ease;
-  will-change: transform;
   background-color: #1e1f2f;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   border-bottom: 3px solid transparent;
   border-image: linear-gradient(45deg, var(--accent-color), #c822ff) 1;
+  box-shadow: 0 4px 15px rgb(0 0 0 / 20%);
+  left: 0;
+  position: fixed;
+  top: 0;
+  transition: transform 0.2s ease, background-color 0.3s ease,
+    box-shadow 0.3s ease;
+  width: 100%;
+  will-change: transform;
+  z-index: 2001;
 }
 
 /* Classe pour cacher le header */
@@ -735,12 +757,12 @@ header.header-hidden,
 
 /* Styles spécifiques au header normal */
 header {
-  padding-top: 10px;
-  padding-bottom: 10px;
-  display: flex;
-  justify-content: space-between;
   align-items: center;
+  display: flex;
   gap: 20px;
+  justify-content: space-between;
+  padding-bottom: 10px;
+  padding-top: 10px;
 }
 
 .header-placeholder {
@@ -749,9 +771,9 @@ header {
 
 /* Centrage du logo et du hamburger */
 .header-logo img {
-  margin: 5px 30px 0px 45px;
-  border-radius: 50%;
   border: 1px solid var(--border-color);
+  border-radius: 50%;
+  margin: 5px 30px 0 45px;
 }
 
 .header-logo :hover {
@@ -760,54 +782,54 @@ header {
 
 /* Ajustements pour le logo vidéo */
 #logo-video {
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  box-shadow: 0 5px 100px #5d5dff;
   display: block;
   height: 50px;
-  width: auto;
   margin: 0;
   margin-bottom: 0;
-  border-radius: 50%;
-  border: 1px solid var(--border-color);
-  box-shadow: 0 5px 100px #5d5dff;
+  width: auto;
 }
 
 /* Réseaux sociaux dans le header */
 header .social-media {
   display: flex;
-  justify-content: flex-end; /* Alignement à droite au lieu de center */
   gap: 25px; /* Réduit légèrement l'espacement entre les icônes */
+  justify-content: flex-end; /* Alignement à droite au lieu de center */
   margin: 0;
   margin-left: auto; /* Pousse les éléments vers la droite */
-  margin-right: 0px; /* Marge à droite pour l'espacement */
+  margin-right: 0; /* Marge à droite pour l'espacement */
 }
 
 /* Taille réduite pour les icônes dans le header */
 header .social-media a {
-  width: 45px; /* Plus petit que les 66px d'origine */
-  height: 45px; /* Plus petit que les 66px d'origine */
   border-radius: 50%;
-  transition: all 0.4s ease;
   box-shadow: 0 5px 15px var(--shadow-color); /* Ombre légèrement réduite */
-  position: relative;
+  height: 45px; /* Plus petit que les 66px d'origine */
   overflow: hidden;
+  position: relative;
+  transition: all 0.4s ease;
+  width: 45px; /* Plus petit que les 66px d'origine */
 }
 
 /* Ajuster la taille des icônes dans le header */
 header .social-media img {
-  width: 30px; /* Plus petit que les 32px d'origine */
   height: 30px; /* Plus petit que les 32px d'origine */
   position: relative;
-  z-index: 1;
   transition: filter 0.3s ease;
+  width: 30px; /* Plus petit que les 32px d'origine */
+  z-index: 1;
 }
 
 /* Contrôles (Thème/Langue) dans le menu déroulant */
 .menu-controls {
-  display: flex;
-  justify-content: center;
   align-items: center;
+  display: flex;
   gap: 20px;
-  padding: 0px;
-  margin: 0px; /* Ajustement de la marge pour le menu déroulant */
+  justify-content: center;
+  margin: 0; /* Ajustement de la marge pour le menu déroulant */
+  padding: 0;
   width: 200px;
 }
 
@@ -815,9 +837,9 @@ header .social-media img {
   background: none;
   border: none;
   color: #5d5dff;
+  cursor: pointer;
   outline: none;
   padding: 0;
-  cursor: pointer;
 }
 
 .menu-controls :hover {
@@ -827,15 +849,18 @@ header .social-media img {
 
 /* Thème clair pour le menu dropdown */
 [data-theme="light"] .dropdown-menu {
-  background-color: #ffffff00; /* Fond transparent pour le menu déroulant */
+  background-color: #fff0; /* Fond transparent pour le menu déroulant */
   color: var(--text-color);
 }
+
 [data-theme="light"] .dropdown-nav a {
   color: var(--accent-color);
 }
+
 [data-theme="light"] .dropdown-nav a:hover {
   color: #5d5dff;
 }
+
 [data-theme="light"] .menu-controls {
   border-top-color: var(--border-color);
 }
@@ -846,46 +871,46 @@ header .social-media a:hover {
 }
 
 /* Styles pour l'icône Hamburger */
-
 .hamburger {
-  cursor: pointer;
-  font-size: 1.5rem;
-  color: #fff; /* Couleur de l’icône (blanc pour contraste) */
-  transition: color 0.3s;
+  align-items: center;
   background: linear-gradient(
     45deg,
     var(--accent-color),
     #c822ff
   ); /* Dégradé */
+
   border: 1px solid var(--accent-color);
   border-radius: 50%;
-  width: 35px;
-  height: 35px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: absolute;
   bottom: 0;
+  box-shadow: 0 4px 10px rgb(0 0 0 / 30%);
+  color: #fff; /* Couleur de l’icône (blanc pour contraste) */
+  cursor: pointer;
+  display: flex;
+  font-size: 1.5rem;
+  height: 35px;
+  justify-content: center;
   left: 50%;
-  transform: translate(-50%, 50%);
-  z-index: 1002;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-  padding: 0;
   line-height: normal;
+  padding: 0;
+  position: absolute;
+  transform: translate(-50%, 50%);
+  transition: color 0.3s;
+  width: 35px;
+  z-index: 1002;
 }
 
 /* Icône hamburger dans le header */
 .hamburger:hover {
-  transform: translate(-50%, 50%) scale(1.1);
   background-color: #c822ff;
   color: white;
+  transform: translate(-50%, 50%) scale(1.1);
 }
 
 .hamburger svg {
-  transition: transform 0.3s ease;
   color: white;
-  width: 20px;
   height: 20px;
+  transition: transform 0.3s ease;
+  width: 20px;
 }
 
 /* Rotation du SVG quand le menu est actif */
@@ -895,9 +920,9 @@ header .social-media a:hover {
 
 /* Styles spécifiques au header compact (plus petit) */
 .compact-header {
-  height: 60px; /* Hauteur fixe réduite */
-  display: flex; /* Utilisation de flexbox */
   align-items: center; /* Alignement vertical */
+  display: flex; /* Utilisation de flexbox */
+  height: 60px; /* Hauteur fixe réduite */
   justify-content: space-between; /* Assure l'espacement entre les groupes gauche/droite */
   padding: 0 20px; /* Padding horizontal */
 }
@@ -907,28 +932,29 @@ header.nav-hidden,
 .compact-header.nav-hidden {
   transform: translateY(-100%);
 } /* Cache le header en le déplaçant vers le haut */
+
 /* Style optionnel quand le header est visible après scroll */
 header.nav-scrolled,
 .compact-header.nav-scrolled {
-  background-color: rgba(35, 36, 54, 0.95);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  background-color: rgb(35 36 54 / 95%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
 }
 
 /* Styles du header en thème clair */
 [data-theme="light"] header,
 [data-theme="light"] .compact-header {
-  background-color: rgba(255, 255, 255, 0.997) !important;
-  box-shadow: 0 4px 15px var(--shadow-color);
+  background-color: rgb(255 255 255 / 99.7%) !important;
   border-bottom-color: var(--accent-color);
-  border-radius: 0px 0px 0px 0px;
+  border-radius: 0;
+  box-shadow: 0 4px 15px var(--shadow-color);
 }
 
 /* Alignement du contenu du Header */
 .header-container {
-  width: 100%;
+  align-items: center;
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  width: 100%;
 } /* Utilisé dans le header compact pour structurer */
 .compact-header #logo-video {
   height: 35px;
@@ -936,13 +962,13 @@ header.nav-scrolled,
 
 /* Contrôles Header (Langue & Thème) */
 .header-left {
-  display: flex;
   align-items: center;
+  display: flex;
   gap: 15px;
 } /* Côté gauche du header compact */
 .header-right {
-  display: flex;
   align-items: center;
+  display: flex;
   gap: 15px;
 } /* Côté droit du header compact */
 
@@ -954,10 +980,10 @@ header.nav-scrolled,
   order: 2;
 } /* Sélecteur de langue ensuite */
 .compact-header .header-left .page-title {
-  order: 3;
+  color: var(--accent-color);
   font-size: 1.2rem;
   margin: 0;
-  color: var(--accent-color);
+  order: 3;
 } /* Titre de la page en dernier */
 [data-theme="light"] .compact-header .header-left .page-title {
   color: var(--accent-color);
@@ -965,79 +991,85 @@ header.nav-scrolled,
 
 /* Sélecteur de langue */
 .language-switch {
-  display: flex;
   align-items: center;
+  display: flex;
   gap: 10px;
 }
+
 .lang-button {
   background: none;
   border: none;
-  padding: 0;
   cursor: pointer;
+  padding: 0;
   transition: transform 0.3s ease;
 } /* Bouton drapeau */
 .lang-button:hover {
   transform: scale(1.1);
 } /* Effet au survol */
 .lang-button img {
-  width: 30px;
-  height: 30px;
   border-radius: 50%;
+  height: 30px;
+  width: 30px;
 } /* Image du drapeau */
 
 /* Positionnement différent des contrôles dans les headers */
+
 /* Les contrôles du header normal sont maintenant dans le dropdown ou placés via .header-right */
 .compact-header .language-switch img {
-  width: 40px;
   height: 40px;
+  width: 40px;
 } /* Taille drapeau dans header compact */
 
 /* Bouton de changement de thème */
 .theme-toggle button {
+  align-items: center;
   background: none; /* Pas de fond */
   border: none; /* Pas de bordure */
+  border-radius: 50%;
+  box-shadow: 0 2px 5px rgb(0 0 0 / 10%); /* Ombre légère */
   color: #7b7bff; /* Couleur par défaut pour les icônes SVG */
+  cursor: pointer; /* Curseur main */
+  display: flex;
+  height: 40px;
+  justify-content: center;
   outline: none; /* Pas de contour */
   padding: 0; /* Pas de padding */
-  cursor: pointer; /* Curseur main */
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   transition: color 0.3s ease, transform 0.3s ease; /* Ajustement transition */
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Ombre légère */
+  width: 40px;
 }
+
 .theme-toggle button svg {
-  width: 20px;
+  fill: currentcolor;
   height: 20px;
   transition: fill 0.3s ease;
-  fill: currentColor;
+  width: 20px;
 } /* Style de l'icône SVG (lune/soleil), hérite la couleur du bouton */
 
 .theme-toggle button:hover {
   color: #c822ff; /* Couleur rose au survol */
   transform: scale(1.6); /* Léger zoom */
 }
+
 .theme-toggle button:focus {
   outline: none; /* Pas de contour au focus */
 }
+
 /* Style pour le bouton de thème dans le header normal */
 [data-theme="light"] .theme-toggle button {
   background: none; /* Pas de fond */
   border: none; /* Pas de bordure */
+  box-shadow: 0 2px 5px var(--shadow-color); /* Ombre légère */
   color: #7b7bff; /* Couleur par défaut pour les icônes SVG */
+  cursor: pointer; /* Curseur main */
   outline: none; /* Pas de contour */
   padding: 0; /* Pas de padding */
-  cursor: pointer; /* Curseur main */
-  box-shadow: 0 2px 5px var(--shadow-color); /* Ombre légère */
 }
+
 [data-theme="light"] .theme-toggle button:hover {
+  background-color: rgb(93 93 255 / 15%); /* Fond léger au survol */
+  box-shadow: 0 4px 10px rgb(93 93 255 / 20%); /* Ombre accentuée au survol */
   color: #c822ff; /* Couleur rose au survol */
   transform: scale(1.1); /* Léger zoom */
-  background-color: rgba(93, 93, 255, 0.15); /* Fond léger au survol */
-  box-shadow: 0 4px 10px rgba(93, 93, 255, 0.2); /* Ombre accentuée au survol */
 }
 
 /* Icône hamburger au hover dans le header */
@@ -1046,37 +1078,37 @@ header.nav-scrolled,
 }
 
 [data-theme="light"] .hamburger:hover {
-  transform: translate(-50%, 50%) scale(1.1);
   background-color: #5d5dff;
   color: white;
+  transform: translate(-50%, 50%) scale(1.1);
 }
 
 /* =========================
    DROPDOWN MENU 
    ========================= */
+
 /* Conteneur principal du menu déroulant */
 .dropdown-menu {
-  position: fixed;
-  top: 0; /* Aligné en haut */
-  left: 0;
-  width: 37.5%; /* Ou la largeur que vous souhaitez, ex: 250px ou 25% */
-  height: 100vh; /* Toute la hauteur de la vue */
   background-color: #1e1f2f; /* Couleur de fond sombre */
+  box-shadow: 2px 0 10px rgb(0 0 0 / 20%); /* Ombre sur le côté droit */
   color: white;
-  padding: 40px;
-  transform: translateX(-100%); /* Caché à gauche initialement */
-  transition: transform 0.4s ease; /* Transition sur la transformation X */
-  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2); /* Ombre sur le côté droit */
-  z-index: 2000;
-  text-align: left;
-  overflow-y: auto; /* Pour le défilement si le contenu du menu est long */
-  overflow-x: hidden;
+  height: 100vh; /* Toute la hauteur de la vue */
+  left: 0;
+  overflow: hidden auto; /* Pour le défilement si le contenu du menu est long */
   -webkit-overflow-scrolling: touch; /* Défilement fluide sur iOS */
+  -ms-overflow-style: none; /* IE et Edge */
+  padding: 40px;
   pointer-events: auto; /* ✅ Capture les événements de souris */
+  position: fixed;
 
   /* Masquer la barre de défilement pour Webkit (Chrome, Safari, Edge) */
   scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE et Edge */
+  text-align: left;
+  top: 0; /* Aligné en haut */
+  transform: translateX(-100%); /* Caché à gauche initialement */
+  transition: transform 0.4s ease; /* Transition sur la transformation X */
+  width: 37.5%; /* Ou la largeur que vous souhaitez, ex: 250px ou 25% */
+  z-index: 2000;
 }
 
 /* Correction pour cacher la barre de défilement WebKit */
@@ -1092,24 +1124,24 @@ header.nav-scrolled,
 
 /* Liens de navigation dans le menu déroulant */
 .dropdown-nav ul {
-  list-style: none;
+  align-items: start;
   display: flex;
   flex-direction: column;
   gap: 30px;
+  list-style: none;
+  margin-bottom: 0;
   margin-top: 100px;
-  margin-bottom: 0px;
-  align-items: start;
 }
 
 .dropdown-nav a {
-  font-family: "Iceland", sans-serif;
   color: var(--accent-color);
-  text-decoration: none;
+  display: inline-block;
+  font-family: Iceland, sans-serif;
   font-size: 1.4rem;
   font-weight: bolder;
   padding: 5px 10px;
+  text-decoration: none;
   transition: color 0.3s, transform 0.2s;
-  display: inline-block;
 }
 
 .dropdown-nav a:hover {
@@ -1118,12 +1150,12 @@ header.nav-scrolled,
 }
 
 .dropdown-nav .nav-link {
-  display: block;
-  width: 100%;
-  padding: 5px 10px;
-  font-family: "Iceland", sans-serif;
-  font-size: 1.3rem;
   color: var(--accent-color);
+  display: block;
+  font-family: Iceland, sans-serif;
+  font-size: 1.3rem;
+  padding: 5px 10px;
+  width: 100%;
 }
 
 /* =========================
@@ -1144,20 +1176,21 @@ header.nav-scrolled,
 
   /* Liste */
   list-style: none;
-  margin: 5px 0 0 0;
-  padding: 0 0 0 20px;
+  margin: 5px 0 0;
 
   /* État fermé (accordéon CSS) */
   max-height: 0;
-  overflow: hidden;
   opacity: 0;
-  visibility: hidden;
+  overflow: hidden;
+  padding: 0 0 0 20px;
   pointer-events: none;
   transform: translateY(6px);
 
   /* Transitions */
   transition: max-height 0.25s ease, opacity 0.2s ease, transform 0.2s ease,
     visibility 0s linear 0.2s; /* retarde la visibilité pour éviter le flash */
+
+  visibility: hidden;
 }
 
 /* Ouvrir au survol (desktop) ET quand un enfant a le focus (clavier/tactile) */
@@ -1167,23 +1200,23 @@ header.nav-scrolled,
 .dropdown-submenu > a:focus + .submenu-list {
   max-height: 1000px; /* assez grand pour contenir les éléments */
   opacity: 1;
-  visibility: visible;
   pointer-events: auto;
   transform: translateY(0);
   transition-delay: 0s;
+  visibility: visible;
 }
 
 /* Style des éléments du sous-menu */
 .dropdown-submenu .submenu-link {
   font-size: 1.2rem;
-  padding: 0;
   opacity: 0.9;
+  padding: 0;
 }
 
 /* Flèche du sous-menu */
 .submenu-chevron {
-  transition: transform 0.25s ease;
   margin-left: 5px;
+  transition: transform 0.25s ease;
 }
 
 /* Rotation de la flèche quand ouvert (hover ou focus-within) */
@@ -1195,17 +1228,17 @@ header.nav-scrolled,
 
 /* Overlay sombre affiché derrière le menu déroulant (inchangé) */
 .menu-overlay {
+  background-color: rgb(0 0 0 / 0%);
+  display: none;
+  height: 100%;
+  left: 0;
+  opacity: 0;
+  pointer-events: none;
   position: fixed;
   top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgb(0 0 0 / 0%);
-  z-index: 999;
-  display: none;
-  opacity: 0;
   transition: opacity 0.4s ease;
-  pointer-events: none;
+  width: 100%;
+  z-index: 999;
 }
 
 .menu-overlay.active {
@@ -1219,26 +1252,25 @@ header.nav-scrolled,
    ========================= */
 .title-banner {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
-  -webkit-background-clip: text;
   background-clip: text;
+  border-radius: 5px 5px 15px 15px; /* Arrondit les coins inférieurs */ /* Dimensions et espacement */
   color: transparent;
+  font-size: 2.5rem; /* Taille du texte */
+  margin: 30px auto;
+  padding: 20px;
+  position: relative; /* Style bannière */
   text-decoration: none;
   transition: transform 0.3s;
-  font-size: 2.5rem; /* Taille du texte */
-  position: relative; /* Style bannière */
-  padding: 20px;
   width: fit-content;
-  margin: 30px auto 30px;
-  border-radius: 5px 5px 15px 15px; /* Arrondit les coins inférieurs */ /* Dimensions et espacement */
 }
+
 h3.title-banner {
+  background: linear-gradient(45deg, var(--accent-color), #c822ff);
+  background-clip: text;
+  color: transparent;
   font-size: 2rem; /* Taille du texte pour h3 */
   font-weight: bold; /* Gras */
   margin-bottom: 40px; /* Espacement en dessous */
-  background: linear-gradient(45deg, var(--accent-color), #c822ff);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
   text-decoration: none;
   transition: transform 0.3s;
 } /* Titre secondaire */
@@ -1247,31 +1279,75 @@ h3.title-banner {
 [data-theme="light"] .title-banner {
   color: var(--accent-color);
 }
+
 [data-theme="light"] .title-banner::after {
   background: var(--accent-color);
 }
 
+
+/* =========================
+   IMAGE FULL-BLEED PAGE ACCUEIL
+   ========================= */
+
+/* Hero full-bleed : image d'accueil couvre toute la largeur */
+.intro-text {
+  position: relative; /* nécessaire pour le positionnement full-bleed */
+}
+
+/* Conteneur full-bleed */
+.intro-text .hero-media {
+  box-shadow: none;
+  display: block;
+  height: clamp(320px, 45vh, 720px); /* hauteur responsive */
+  margin-left: calc(50% - 50vw); /* centre le full-bleed quand contenu est centré */
+  margin-right: calc(50% - 50vw);
+  max-width: 100vw;
+  overflow: hidden;
+  width: 100vw; /* occupe toute la largeur de la fenêtre */
+  z-index: 0;
+}
+
+/* Image qui remplit le conteneur et conserve le ratio */
+.intro-text .hero-media img { /* couverture complète */
+  object-fit: contain;
+  display: block;
+  height: 100%;
+  image-rendering: auto;
+  width: 100%;
+}
+
+/* S'assurer que le contenu texte reste au-dessus de l'image */
+.intro-text .content-wrapper,
+.intro-text .text-content,
+.intro-text .btn-explore {
+  position: relative;
+  z-index: 1;
+}
+
+
+
 /* =========================
    SECTION RADAR DIGITAL 
    ========================= */
+
 /* Styles pour le titre principal de la section Radar sur la page d'accueil */
+
 /* Cible le h2.section-title avec data-i18n="home.radarTeaserTitle" dans section.page-title-container */
 section.page-title-container
   > h2.section-title[data-i18n="home.radarTeaserTitle"] {
-  font-size: 3.5rem; /* Taille de police responsive, ajustée pour correspondre à d'autres titres principaux */
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
-  -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  text-decoration: none;
-  transition: transform 0.3s;
+  font-size: 3.5rem; /* Taille de police responsive, ajustée pour correspondre à d'autres titres principaux */
   margin-bottom: 20px; /* Ajusté pour un espacement standard sous le titre */
   padding-bottom: 10px; /* Optionnel, pour s'assurer que le dégradé n'est pas coupé */
+  text-decoration: none;
+  transition: transform 0.3s;
 }
 
 .page-subtitle {
-  font-size: 1.6rem;
   color: var(--text-color); /* Couleur du sous-titre */
+  font-size: 1.6rem;
   padding: 40px; /* Espacement autour du sous-titre */
 }
 
@@ -1280,17 +1356,17 @@ section.page-title-container
    ========================= */
 
 .page-title-container {
-  font-size: 2rem;
   background: linear-gradient(45deg, #c822ff0d, #c822ff);
+  font-size: 2rem;
   font-weight: bold;
-  padding: 45px;
   margin-bottom: 150px;
   margin-top: 200px;
+  padding: 45px;
 }
 
 .news-teaser-section,
 .all-news-list {
-  padding: 0px 50px 0px 50px; /* Ajustez le padding selon vos besoins */
+  padding: 0 50px; /* Ajustez le padding selon vos besoins */
 }
 
 .news-teaser-section .section-title,
@@ -1300,88 +1376,90 @@ section.page-title-container
 
 .news-grid {
   display: grid;
+  gap: 100px; /* Espace entre les cartes */
   grid-template-columns: repeat(
     auto-fit,
     minmax(450px, 1fr)
   ); /* Grille responsive */
-  gap: 100px; /* Espace entre les cartes */
 }
 
 .news-card {
-  height: auto; /* Hauteur automatique pour s'adapter au contenu */
-  width: 100%; /* Prend toute la largeur du conteneur parent */
   background-color: rgb(79 89 102 / 2%);
   border-radius: 12px;
-  overflow: hidden; /* Pour que l'image/icône ne dépasse pas si vous utilisez des images */
+  box-shadow: 0 5px 5px var(--accent-color); /* Ombre plus marquée au survol */
   display: flex; /* Pour que le lien prenne toute la carte */
   flex-direction: column;
+  height: auto; /* Hauteur automatique pour s'adapter au contenu */
+  overflow: hidden; /* Pour que l'image/icône ne dépasse pas si vous utilisez des images */
   text-decoration: none; /* Enlève le soulignement du lien global de la carte */
-  box-shadow: 0 5px 5px var(--accent-color); /* Ombre plus marquée au survol */
+  width: 100%; /* Prend toute la largeur du conteneur parent */
 }
 
 .news-card-link {
-  /* Le lien <a> qui englobe la carte */
-  text-decoration: none;
   color: inherit; /* Hérite la couleur du texte de la carte */
   display: flex;
   flex-direction: column;
   height: 100%; /* Pour que le lien remplisse la carte */
+
+  /* Le lien <a> qui englobe la carte */
+  text-decoration: none;
 }
 
 .news-card-image-container {
-  height: 250px; /* Hauteur fixe pour l'image ou l'icône */
+  align-items: center;
   background-color: var(--section-bg-light);
   display: flex;
-  align-items: center;
+  height: 250px; /* Hauteur fixe pour l'image ou l'icône */
   justify-content: center;
   overflow: hidden;
   width: 100%;
 }
 
 .news-card-image-container img {
-  width: 100%;
-  height: 100%;
   object-fit: contain; /* Assure que l'image couvre bien sans se déformer */
+  height: 100%;
+  width: 100%;
 }
 
 .news-card-icon {
+  color: var(--accent-color);
+
   /* Si vous utilisez une icône à la place d'une image */
   font-size: 3rem;
-  color: var(--accent-color);
 }
 
 .news-card-content {
-  padding: 20px 25px;
   display: flex;
   flex-direction: column;
   flex-grow: 1; /* Permet à cette section de grandir et de pousser la dateline en bas */
+  padding: 20px 25px;
 }
 
 .news-card-title {
-  font-size: 1.8rem;
   color: var(--text-color);
-  margin-bottom: 10px;
+  font-size: 1.8rem;
   font-weight: bold;
   line-height: 1.3;
+  margin-bottom: 10px;
 }
 
 .news-card-summary {
-  font-size: 1rem;
   color: var(--text-color);
+  flex-grow: 1; /* Permet au résumé de prendre l'espace disponible */
+  font-size: 1rem;
   line-height: 1.6;
   margin-bottom: 15px;
-  flex-grow: 1; /* Permet au résumé de prendre l'espace disponible */
 }
 
 .news-card-dateline {
-  font-size: 1rem;
   color: var(--accent-color);
+  font-size: 1rem;
   margin-top: auto; /* Pousse la dateline en bas de la carte */
 }
 
 .news-card-author {
-  font-size: 0.9rem;
   color: var(--text-color-light);
+  font-size: 0.9rem;
   margin-top: 5px;
 }
 
@@ -1398,78 +1476,85 @@ body.explorer-page {
 }
 
 .explorer-main-content {
+  margin: 0 auto;
+  max-width: 1600px;
+  min-height: calc(100vh - 80px - 100px); /* viewport - header - footer */
+  padding: 0;
+
   /* Conteneur principal pour le contenu de la page explorer */
   width: 100%;
-  max-width: 1600px;
-  margin: 0 auto;
-  padding: 0px;
-  min-height: calc(100vh - 80px - 100px); /* viewport - header - footer */
 }
 
 /* Titre animé de la page Explorer */
 .main-page-title-container {
-  /* anciennement #project-display-placeholder */
-  width: 100%;
+  margin-bottom: 50px;
+  margin-top: 80px; /* Pour compenser le header fixe */
   overflow: hidden;
   padding: 20px 0;
   text-align: center;
-  margin-top: 80px; /* Pour compenser le header fixe */
-  margin-bottom: 50px;
+
+  /* anciennement #project-display-placeholder */
+  width: 100%;
 }
 
 h1.main-title-animated {
-  font-size: 2.5rem;
+  animation: marquee-main-title 6s linear infinite;
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
-  -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  text-decoration: none;
-  transition: transform 0.3s;
   display: inline-block;
-  white-space: nowrap;
-  animation: marquee-main-title 6s linear infinite;
-  position: relative;
+  font-size: 2.5rem;
   margin: 20px;
   padding: 0;
+  position: relative;
+  text-decoration: none;
+  transition: transform 0.3s;
+  white-space: nowrap;
 }
 
 h1.main-title-animated .title-icon {
-  margin-left: 15px;
   font-size: 2.5rem;
+  margin-left: 15px;
 }
 
 /* Structure layout Explorer (gauche/droite) */
 .explorer-layout-container {
-  display: flex;
   background-color: transparent !important; /* Fond transparent */
   border-radius: 15px;
   box-shadow: 0 5px 20px var(--shadow-color);
+  display: flex;
   overflow: hidden; /* Pour coins arrondis et contenu qui dépasse */
+
   /* min-height: ...; /* S'adapte au contenu ou peut être défini */
 }
 
 /* Panneau de gauche : Liste des projets */
 .explorer-projects-list-panel {
-  flex: 0 0 320px; /* Largeur fixe */
   background-color: transparent !important; /* Fond transparent */
-  padding: 20px 30px;
-  margin-top: 0px; /* AJOUT : Pour compenser le header fixe */
-  margin-bottom: 100px; /* AJOUT : Pour compenser le footer fixe */
-  /*border-right: 3px solid var(--accent-color);*/ /* Bordure droite pour séparer les sections */
   display: flex;
+  flex: 0 0 320px; /* Largeur fixe */
   flex-direction: column;
+  margin-bottom: 100px; /* AJOUT : Pour compenser le footer fixe */
+  margin-top: 0; /* AJOUT : Pour compenser le header fixe */
+  padding: 20px 30px;
+
+  /* border-right: 3px solid var(--accent-color); */
+
+ /* Bordure droite pour séparer les sections */
 }
 
 .scrollable-project-list-container {
   flex-grow: 1;
-  overflow-y: auto;
-  position: relative;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE 10+ */
+
   /* max-height calculée pour s'adapter à la hauteur disponible */
   max-height: calc(
     100vh - 80px - 40px - 100px - 50px - 70px
   ); /* Ajuster précisément */
+
+  -ms-overflow-style: none; /* IE 10+ */
+  overflow-y: auto;
+  position: relative;
+  scrollbar-width: none; /* Firefox */
 }
 
 .scrollable-project-list-container::-webkit-scrollbar {
@@ -1478,19 +1563,22 @@ h1.main-title-animated .title-icon {
 
 #explorerProjectList {
   list-style-type: none;
-  padding-left: 0;
   margin: 0;
+  padding-left: 0;
 }
 
 #explorerProjectList li {
-  padding: 12px 15px;
-  margin-bottom: 8px;
   border-radius: 6px;
-  cursor: pointer;
   color: var(--accent-color); /* Couleur d'accentuation */
-  /*border-left: 4px solid var(--border-color-subtle);*/ /* Bordure gauche pour le style */
+  cursor: pointer;
+  margin-bottom: 8px;
+  padding: 12px 15px;
   transition: background-color 0.3s ease, color 0.3s ease,
     border-left-color 0.3s ease, transform 0.2s ease;
+
+  /* border-left: 4px solid var(--border-color-subtle); */
+
+ /* Bordure gauche pour le style */
 }
 
 #explorerProjectList li:hover {
@@ -1502,18 +1590,20 @@ h1.main-title-animated .title-icon {
 /* État actif - Thème Sombre (et par défaut) */
 #explorerProjectList li.manual-active-project,
 #explorerProjectList li.auto-active-project {
-  /* background-color: var(--accent-color); */ /* Supprimé pour que seul le texte change */
-  color: #c822ff; /* Texte en couleur d'accentuation */
+  /* background-color: var(--accent-color); */
+
+ /* Supprimé pour que seul le texte change */
   border-left-color: var(--accent-color-darker);
+  color: #c822ff; /* Texte en couleur d'accentuation */
   transform: translateX(5px);
 }
 
 /* Styles pour les titres et catégories dans la liste */
 #explorerProjectList li .project-list-title {
   display: block;
-  font-weight: bold;
+  font-family: Iceland, sans-serif;
   font-size: 1.3rem;
-  font-family: "Iceland", sans-serif;
+  font-weight: bold;
   margin-bottom: 4px;
 }
 
@@ -1525,44 +1615,50 @@ h1.main-title-animated .title-icon {
 
 /* Thème Clair pour la liste des projets */
 [data-theme="light"] #explorerProjectList li {
-  color: var(--accent-color); /* Couleur d'accentuation du thème clair */
   border-left-color: var(
     --border-color-subtle
   ); /* Utilise la variable du thème clair */
+
+  color: var(--accent-color); /* Couleur d'accentuation du thème clair */
 }
 
 [data-theme="light"] #explorerProjectList li:hover {
   background-color: var(
     --accent-color-lighter
   ); /* Utilise la variable du thème clair */
+
   color: var(--accent-color);
 }
 
 /* État actif - Thème Clair */
 [data-theme="light"] #explorerProjectList li.manual-active-project,
 [data-theme="light"] #explorerProjectList li.auto-active-project {
-  /* background-color: var(--accent-color); */ /* Supprimé */
-  color: #5d5dff; /* Texte en couleur d'accentuation du thème clair */
+  /* background-color: var(--accent-color); */
+
+ /* Supprimé */
   border-left-color: var(
     --accent-color-darker
   ); /* Utilise la variable du thème clair */
+
+  color: #5d5dff; /* Texte en couleur d'accentuation du thème clair */
 }
 
 /* Panneau de droite : Affichage du projet */
 .explorer-project-display-panel {
-  flex-grow: 1;
-  padding: 30px 30px;
-  margin-top: 0px; /* Pour compenser le header fixe */
-  margin-bottom: 200px; /* Pour compenser le footer fixe */
   background-color: transparent !important; /* Fond transparent, était var(--background-color) */
-  position: relative;
+  flex-grow: 1;
+  margin-bottom: 200px; /* Pour compenser le footer fixe */
+  margin-top: 0; /* Pour compenser le header fixe */
   overflow: hidden; /* Empêche le défilement */
+  padding: 30px;
+  position: relative;
 }
 
 .project-display-content {
+  animation: fadeInProjectDisplay 0.5s ease-in-out;
+
   /* Conteneur pour la carte du projet affiché */
   display: none; /* Caché par défaut */
-  animation: fadeInProjectDisplay 0.5s ease-in-out;
   text-align: center; /* Centre la carte si elle est plus petite */
 }
 
@@ -1575,37 +1671,38 @@ h1.main-title-animated .title-icon {
   background-color: var(--card-bg);
   border-radius: 10px;
   box-shadow: 0 4px 15px var(--shadow-color);
+  margin: 0 auto;
+  max-width: 450px;
+  overflow: hidden;
   position: relative; /* Important pour positionner .project-card-overlay et .project-view-icon */
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   width: 100%;
-  max-width: 450px;
-  margin: 0 auto;
-  overflow: hidden;
+
   /* display: flex; flex-direction: column; /* Supprimé car l'overlay sera sur l'image */
 }
 
 .project-card-style:hover {
+  box-shadow: 0 10px 20px var(--accent-color), 0 6px 12px rgb(0 0 0 / 30%);
   transform: translateY(-8px);
-  box-shadow: 0 10px 20px var(--accent-color), 0 6px 12px rgba(0, 0, 0, 0.3);
 }
 
 .project-card-link {
-  display: block; /* Ou inline-block, mais block est souvent plus simple pour les liens conteneurs */
-  text-decoration: none;
   color: inherit;
-  position: relative; /* Nécessaire si .project-card-overlay est positionné par rapport à lui */
+  display: block; /* Ou inline-block, mais block est souvent plus simple pour les liens conteneurs */
   height: 100%; /* S'assurer que le lien prend la hauteur de l'image si l'image est le seul contenu visible principal */
+  position: relative; /* Nécessaire si .project-card-overlay est positionné par rapport à lui */
+  text-decoration: none;
 }
 
 /* Image de projet */
 .project-display-image {
-  width: 100%;
+  object-fit: cover;
+  border-radius: 10px;
+  display: block;
   height: auto;
   max-height: 450px;
-  object-fit: cover;
-  display: block;
   transition: filter 0.3s ease;
-  border-radius: 10px;
+  width: 100%;
 }
 
 .project-card-style:hover .project-display-image {
@@ -1614,26 +1711,29 @@ h1.main-title-animated .title-icon {
 
 /* MODIFICATION : .project-card-overlay (conteneur du titre) */
 .project-card-overlay {
+  align-items: center;
+  background-color: transparent; /* PAS DE BANDE DE FOND */
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  left: 50%;
+  max-width: 90%; /* Empêche le titre d'être trop large */
+  opacity: 0; /* Caché par défaut */
+  padding: 0; /* Pas de padding pour l'overlay lui-même */
+  pointer-events: none; /* Pour ne pas interférer avec le survol */
   position: absolute;
+
   /* Positionné pour être sous l'icône oeil */
   top: calc(
     50% + 30px + 10px
   ); /* 50% (centre carte) + moitié hauteur oeil (30px) + espace (10px) */
-  left: 50%;
+
   transform: translateX(-50%); /* Centré horizontalement */
-  width: auto; /* S'adapte au contenu du titre */
-  max-width: 90%; /* Empêche le titre d'être trop large */
-  background-color: transparent; /* PAS DE BANDE DE FOND */
-  padding: 0; /* Pas de padding pour l'overlay lui-même */
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0; /* Caché par défaut */
+
   /* Transition avec un léger délai pour apparaître après l'icône */
   transition: opacity 0.3s ease 0.1s, top 0.3s ease 0.1s;
+  width: auto; /* S'adapte au contenu du titre */
   z-index: 11; /* Au-dessus de l'icône oeil si jamais il y a chevauchement */
-  pointer-events: none; /* Pour ne pas interférer avec le survol */
 }
 
 .project-card-style:hover .project-card-overlay {
@@ -1644,43 +1744,41 @@ h1.main-title-animated .title-icon {
 /* Styles pour le titre h3 existant dans .project-card-overlay */
 .project-card-overlay h3 {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
-  -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  text-decoration: none;
-  transition: transform 0.3s;
   font-size: 1.8rem;
   font-weight: bold;
-  margin: 0;
   line-height: 1.3;
-  text-align: center;
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.267); /* Ombre portée pour lisibilité */
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: normal; /* Permet le retour à la ligne si nécessaire */
+  margin: 0;
   max-width: 100%; /* S'assure qu'il ne dépasse pas son conteneur .project-card-overlay */
+  overflow: hidden;
+  text-align: center;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  text-shadow: 1px 1px 3px rgb(0 0 0 / 26.7%); /* Ombre portée pour lisibilité */
+  transition: transform 0.3s;
+  white-space: normal; /* Permet le retour à la ligne si nécessaire */
 }
 
 .project-view-icon {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) scale(0.8);
+  align-items: center;
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
-  -webkit-background-clip: text;
   background-clip: text;
+  border-radius: 50%;
+  box-shadow: 0 4px 10px rgb(0 0 0 / 30%);
   color: transparent;
+  display: flex;
+  font-size: 1.8rem;
+  height: 60px;
+  justify-content: center;
+  left: 50%;
+  opacity: 0; /* Caché par défaut */
+  position: absolute;
   text-decoration: none;
+  top: 50%;
+  transform: translate(-50%, -50%) scale(0.8);
   transition: transform 0.3s;
   width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.8rem;
-  opacity: 0; /* Caché par défaut */
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
   z-index: 10;
 }
 
@@ -1690,8 +1788,8 @@ h1.main-title-animated .title-icon {
 }
 
 .highlight-project {
-  outline: 3px solid var(--accent-color);
   box-shadow: 0 0 20px var(--accent-color);
+  outline: 3px solid var(--accent-color);
   transition: outline 0.3s, box-shadow 0.3s;
 }
 
@@ -1702,6 +1800,7 @@ h1.main-title-animated .title-icon {
   0% {
     transform: translateX(100%);
   }
+
   100% {
     transform: translateX(-110%);
   }
@@ -1712,6 +1811,7 @@ h1.main-title-animated .title-icon {
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1726,12 +1826,12 @@ h1.main-title-animated .title-icon {
 }
 
 .blog-main-container {
-  padding-top: 0px;
+  padding-top: 0;
 }
 
 .container {
-  max-width: 1200px;
   margin: 0 auto;
+  max-width: 1200px;
   padding: 0 10px;
 }
 
@@ -1739,27 +1839,26 @@ h1.main-title-animated .title-icon {
    BLOG - BANNIÈRE HÉRO
    ========================= */
 .blog-hero {
-  text-align: center;
-  padding: 60px 0;
   border-radius: 0 0 75px 75px;
   margin-bottom: 40px;
+  padding: 60px 0;
+  text-align: center;
 }
 
 .blog-title {
-  font-family: "Iceland", sans-serif;
-  font-size: 3.5rem;
-  margin-bottom: 20px;
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
-  -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
   display: inline-block;
+  font-family: Iceland, sans-serif;
+  font-size: 3.5rem;
+  margin-bottom: 20px;
 }
 
 .blog-subtitle {
   font-size: 1.2rem;
-  max-width: 600px;
   margin: 0 auto;
+  max-width: 600px;
   opacity: 0.8;
 }
 
@@ -1771,57 +1870,57 @@ h1.main-title-animated .title-icon {
 }
 
 .filter-container {
+  align-items: center;
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
   gap: 20px;
+  justify-content: space-between;
 }
 
 .search-box {
-  position: relative;
   flex: 1;
   min-width: 200px;
+  position: relative;
 }
 
 .search-box input {
-  width: 100%;
-  padding: 12px 45px 12px 15px;
-  border: 1px solid rgba(93, 93, 255, 0.2);
-  border-radius: 8px;
   background: linear-gradient(
     135deg,
-    rgba(93, 93, 255, 0.1),
-    rgba(216, 141, 243, 0.631)
+    rgb(93 93 255 / 10%),
+    rgb(216 141 243 / 63.1%)
   );
-  font-family: "Lato", sans-serif;
+  border: 1px solid rgb(93 93 255 / 20%);
+  border-radius: 8px;
   color: var(--text-color);
+  font-family: Lato, sans-serif;
+  padding: 12px 45px 12px 15px;
+  width: 100%;
 }
 
 .search-box button {
+  background: none;
+  border: none;
+  color: var(--accent-color);
+  cursor: pointer;
   position: absolute;
   right: 10px;
   top: 50%;
   transform: translateY(-50%);
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--accent-color);
 }
 
 .category-filter select {
-  padding: 12px 35px 12px 15px;
-  border: 1px solid rgba(93, 93, 255, 0.2);
-  border-radius: 8px;
-  background-color: rgba(93, 93, 255, 0.05);
-  font-family: "Lato", sans-serif;
-  color: var(--text-color);
   appearance: none;
+  background-color: rgb(93 93 255 / 5%);
   background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235d5dff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-  background-repeat: no-repeat;
   background-position: right 10px center;
+  background-repeat: no-repeat;
   background-size: 16px;
+  border: 1px solid rgb(93 93 255 / 20%);
+  border-radius: 8px;
+  color: var(--text-color);
   cursor: pointer;
+  font-family: Lato, sans-serif;
+  padding: 12px 35px 12px 15px;
 }
 
 /* =========================
@@ -1829,40 +1928,40 @@ h1.main-title-animated .title-icon {
    ========================= */
 .articles-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 30px;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   margin-bottom: 50px;
 }
 
 .blog-card {
   border-radius: 12px;
+  box-shadow: 0 4px 20px rgb(0 0 0 / 10%);
   overflow: hidden;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
 .blog-card:hover {
+  box-shadow: 0 10px 30px rgb(93 93 255 / 20%);
   transform: translateY(-5px);
-  box-shadow: 0 10px 30px rgba(93, 93, 255, 0.2);
 }
 
 .blog-card-link {
+  color: var(--text-color);
   display: block;
   text-decoration: none;
-  color: var(--text-color);
 }
 
 .blog-card-image-container {
-  position: relative;
   height: 200px;
   overflow: hidden;
+  position: relative;
 }
 
 .blog-card-image {
-  width: 100%;
-  height: 100%;
   object-fit: contain;
+  height: 100%;
   transition: transform 0.5s ease;
+  width: 100%;
 }
 
 .blog-card:hover .blog-card-image {
@@ -1870,15 +1969,15 @@ h1.main-title-animated .title-icon {
 }
 
 .blog-card-category {
-  position: absolute;
-  top: 15px;
-  right: 15px;
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
-  color: white;
-  padding: 6px 12px;
   border-radius: 20px;
+  color: white;
   font-size: 0.8rem;
   font-weight: 500;
+  padding: 6px 12px;
+  position: absolute;
+  right: 15px;
+  top: 15px;
 }
 
 .blog-card-content {
@@ -1886,28 +1985,28 @@ h1.main-title-animated .title-icon {
 }
 
 .blog-card-title {
-  font-family: "Iceland", sans-serif;
+  color: var(--accent-color);
+  font-family: Iceland, sans-serif;
   font-size: 1.5rem;
   margin-bottom: 15px;
-  color: var(--accent-color);
 }
 
 .blog-card-summary {
+  -webkit-box-orient: vertical;
+  display: -webkit-box;
   font-size: 0.95rem;
+  -webkit-line-clamp: 3;
   line-height: 1.6;
   margin-bottom: 20px;
   opacity: 0.9;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
 .blog-card-meta {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
+  display: flex;
   font-size: 0.9rem;
+  justify-content: space-between;
   opacity: 0.8;
 }
 
@@ -1927,37 +2026,37 @@ h1.main-title-animated .title-icon {
    ========================= */
 .blog-pagination {
   display: flex;
-  justify-content: center;
   gap: 10px;
+  justify-content: center;
   margin: 50px 0;
 }
 
 .pagination-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  border: 1px solid rgba(93, 93, 255, 0.3);
   background-color: transparent;
+  border: 1px solid rgb(93 93 255 / 30%);
+  border-radius: 8px;
   color: var(--text-color);
-  font-weight: 600;
   cursor: pointer;
+  font-weight: 600;
+  height: 40px;
   transition: all 0.3s ease;
+  width: 40px;
 }
 
 .pagination-btn:hover {
-  background-color: rgba(93, 93, 255, 0.1);
+  background-color: rgb(93 93 255 / 10%);
   border-color: var(--accent-color);
 }
 
 .pagination-btn.active {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
-  color: white;
   border: none;
+  color: white;
 }
 
 .pagination-btn.next-page {
-  width: auto;
   padding: 0 15px;
+  width: auto;
 }
 
 /* =========================
@@ -1970,107 +2069,111 @@ h1.main-title-animated .title-icon {
 }
 
 .article-header-detailed {
-  text-align: center;
   margin-bottom: 40px;
+  text-align: center;
 }
 
 .article-title-main {
-  font-size: 4rem;
   color: #c822ff;
+  font-size: 4rem;
   margin-bottom: 15px;
   margin-top: 50px;
 }
 
 .article-dateline-detailed {
-  font-size: 1.2rem;
   color: var(--text-color-light);
+  font-size: 1.2rem;
   margin-bottom: 30px;
 }
 
 .article-banner-image {
-  width: min(100%, 720px);
-  height: auto;
-  display: block;
-  margin: 0 auto 60px;
   border-radius: 8px;
-  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 12px 35px rgb(0 0 0 / 25%);
+  display: block;
+  height: auto;
+  margin: 0 auto 60px;
+  width: min(100%, 720px);
 }
 
 .article-body {
-  max-width: 800px; /* Limite la largeur du contenu de l'article pour la lisibilité */
-  margin: 0 auto;
+  color: var(--text-color);
   font-size: 1.3rem;
   line-height: 1.8;
-  color: var(--text-color);
+  margin: 0 auto;
+  max-width: 800px; /* Limite la largeur du contenu de l'article pour la lisibilité */
   text-align: left;
 }
 
 .article-body h2 {
+  color: var(--accent-color);
   font-size: 1.5rem;
-  color: var(--accent-color);
-  margin-top: 40px;
   margin-bottom: 20px;
+  margin-top: 40px;
 }
+
 .article-body h3 {
-  font-size: 1.25rem;
   color: var(--accent-color);
-  margin-top: 30px;
+  font-size: 1.25rem;
   margin-bottom: 15px;
+  margin-top: 30px;
 }
+
 .article-body p,
 .article-body ul,
 .article-body ol {
-  margin-bottom: 20px;
   font-size: 1.3rem;
+  margin-bottom: 20px;
 }
+
 .article-body ul,
 .article-body ol {
   padding-left: 30px;
 }
+
 .article-body a {
   color: var(--accent-color);
   text-decoration: underline;
 }
+
 .article-body a:hover {
   text-decoration: none;
 }
 
 .article-image img {
-  width: 100%;
+  border-radius: 8px;
+  box-shadow: 0 8px 25px rgb(0 0 0 / 20%);
   height: auto;
   margin: 20px 0;
-  border-radius: 8px;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  width: 100%;
 }
 
 .article-navigation {
   margin-top: 50px;
   text-align: center;
 }
+
 .btn-nav-style {
-  display: inline-flex;
   align-items: center;
+  background: linear-gradient(45deg, var(--accent-color), #c822ff);
+  background-clip: text;
+  border: 1px solid rgb(93 93 255 / 35%);
+  border-radius: 8px;
+  box-shadow: 0 4px 18px rgb(93 93 255 / 25%);
+  color: transparent;
+  display: inline-flex;
+  font-size: 1rem;
+  font-weight: 700;
   gap: 10px;
   padding: 10px 26px;
-  font-weight: 700;
-  font-size: 1rem;
-  border-radius: 8px;
-  background: linear-gradient(45deg, var(--accent-color), #c822ff);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
   text-decoration: none;
-  border: 1px solid rgba(93, 93, 255, 0.35);
-  box-shadow: 0 4px 18px rgba(93, 93, 255, 0.25);
   transition: transform 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
 }
 
 .btn-nav-style:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 24px rgba(93, 93, 255, 0.4);
-  color: white;
   background-clip: border-box;
-  -webkit-background-clip: border-box;
+  box-shadow: 0 6px 24px rgb(93 93 255 / 40%);
+  color: white;
+  transform: translateY(-3px);
 }
 
 /* =========================
@@ -2079,46 +2182,48 @@ h1.main-title-animated .title-icon {
 
 .about-text-box {
   background: transparent;
-  padding: 50px;
-  max-width: 800px;
   margin: 150px auto;
+  max-width: 800px;
+  padding: 50px;
 }
+
 .about-text-box p {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
-  -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  font-size: 1.4rem;
+  line-height: 1.7;
+  margin-bottom: 0;
   text-decoration: none;
   transition: transform 0.3s;
-  line-height: 1.7;
-  font-size: 1.4rem;
-  margin-bottom: 0px;
 } /* Style des paragraphes */
 
 .link-schools-openclassrooms,
 .link-schools-studi {
+  border-bottom: 2px dotted var(--accent-color);
+
   /* Liens vers les écoles */
   color: var(--accent-color);
-  text-decoration: none;
   font-weight: bold; /* Style de base */
-  border-bottom: 2px dotted var(--accent-color);
   padding-bottom: 2px;
+  text-decoration: none;
   transition: all 0.3s ease; /* Soulignement pointillé et transition */
 }
+
 .link-schools-openclassrooms:hover,
 .link-schools-studi:hover {
-  color: #5d5dff;
   border-bottom-style: solid;
+  color: #5d5dff;
 } /* Changement au survol */
 
 /* Conteneur pour la photo de profil */
 .profile-photo {
-  width: 500px;
-  height: 500px;
-  border-radius: 0;
   object-fit: contain; /* Dimensions, forme, ajustement image */
   border: 1px solid var(--border-color);
+  border-radius: 0;
   box-shadow: 0 5px 100px #5d5dff;
+  height: 500px;
+  width: 500px;
 }
 
 /* Styles "À propos" en thème clair */
@@ -2127,25 +2232,29 @@ h1.main-title-animated .title-icon {
 } /* Couleur du texte en thème clair */
 [data-theme="light"] .link-schools-openclassrooms,
 [data-theme="light"] .link-schools-studi {
-  color: var(--accent-color);
   border-bottom-color: var(--accent-color);
+  color: var(--accent-color);
 }
+
 [data-theme="light"] .link-schools-openclassrooms:hover,
 [data-theme="light"] .link-schools-studi:hover {
-  color: #c822ff;
   border-bottom-color: solid;
+  color: #c822ff;
 }
+
 [data-theme="light"] .profile-photo {
-  border-color: rgba(93, 93, 255, 0.6);
+  border-color: rgb(93 93 255 / 60%);
   box-shadow: 0 35px 80px var(--shadow-color);
 }
+
 [data-theme="light"] .profile-photo:hover {
-  box-shadow: 0 35px 80px rgba(93, 93, 255, 0.25);
+  box-shadow: 0 35px 80px rgb(93 93 255 / 25%);
 }
 
 /* =========================
    BOUTONS
    ========================= */
+
 /* Style de base commun pour les boutons principaux (dégradé) */
 .btn,
 .btn-back-home,
@@ -2155,20 +2264,21 @@ h1.main-title-animated .title-icon {
 .contact-form button,
 .project-detail .project-links a:first-child,
 .project-links a {
-  display: inline-block;
-  padding: 8px 35px;
-  background: linear-gradient(45deg, var(--accent-color), rgba(0, 0, 0, 0.2));
-  color: white; /* Affichage, padding, fond dégradé, couleur texte */
-  text-decoration: none;
-  border-radius: 5%;
-  font-weight: bold;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Style texte, forme, ombre */
-  transition: all 0.3s ease;
+  background: linear-gradient(45deg, var(--accent-color), rgb(0 0 0 / 20%));
   border: none;
+  border-radius: 5%;
+  box-shadow: 0 4px 15px rgb(0 0 0 / 20%); /* Style texte, forme, ombre */
+  color: white; /* Affichage, padding, fond dégradé, couleur texte */
   cursor: pointer;
-  text-align: center;
+  display: inline-block;
   font-family: inherit; /* Transition, reset bordure, curseur, alignement */
+  font-weight: bold;
+  padding: 8px 35px;
+  text-align: center;
+  text-decoration: none;
+  transition: all 0.3s ease;
 }
+
 /* Effet commun au survol des boutons principaux */
 .btn:hover,
 .btn-back-home:hover,
@@ -2177,49 +2287,50 @@ h1.main-title-animated .title-icon {
 .project-links a:first-child:hover,
 .contact-form button:hover,
 .project-detail .project-links a:first-child:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 7px 20px rgba(93, 93, 255, 0.4);
   background: linear-gradient(
     45deg,
     #4a4aff,
     #4b75ff
   ); /* Léger déplacement, ombre accentuée, dégradé modifié */
+
+  box-shadow: 0 7px 20px rgb(93 93 255 / 40%);
+  transform: translateY(-3px);
 }
 
 /* Styles spécifiques à certains boutons */
 .btn-back-home {
-  display: inline-flex;
   align-items: center;
+  display: inline-flex;
   gap: 10px;
   padding: 5px 20px;
 } /* Bouton retour accueil (avec icône potentielle) */
 .view-all-projects .btn {
-  padding: 15px 30px;
   font-size: 1.1rem;
+  padding: 15px 30px;
 } /* Bouton "Voir tous les projets" (plus grand) */
 .contact-form button {
-  padding: 8px 25px;
-  margin-top: 15px;
-  font-size: 1.3rem;
   align-self: center;
+  font-size: 1.3rem;
+  margin-top: 15px;
   min-width: 200px;
-  position: relative;
   overflow: hidden;
+  padding: 8px 25px;
+  position: relative;
 } /* Bouton envoyer formulaire */
 .contact-form button::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(255, 255, 255, 0.2),
+    rgb(255 255 255 / 20%),
     transparent
   );
+  content: "";
+  height: 100%;
+  left: -100%;
+  position: absolute;
+  top: 0;
   transition: left 0.5s ease;
+  width: 100%;
 } /* Effet "shine" au survol */
 .contact-form button:hover::before {
   left: 100%;
@@ -2231,129 +2342,144 @@ h1.main-title-animated .title-icon {
   border: 1px solid var(--accent-color);
   color: var(--accent-color);
 }
+
 /* Style spécifique lien GitHub dans la page détail projet */
 .project-detail .project-links a.github-link {
-  background-color: rgba(35, 36, 54, 0.8);
+  background-color: rgb(35 36 54 / 80%);
   border: 2px solid var(--accent-color);
-  color: #ffffff;
+  color: #fff;
 }
+
 /* Effet survol commun pour les liens de projet (y compris GitHub) */
 .project-links a:hover,
 .project-detail .project-links a:hover {
+  box-shadow: 0 5px 15px rgb(0 0 0 / 20%);
   transform: translateY(-3px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
 /* Bouton "Scroll to Top" (remonter en haut) */
 .scroll-to-top {
-  position: fixed;
-  bottom: 50px;
-  right: 40px;
-  width: 40px;
-  height: 40px;
+  align-items: center; /* Bordure, forme, centrage icône */
   background: var(--accent-color);
-  color: white; /* Positionnement, dimensions, couleurs */
   border: 2px solid var(--accent-color);
   border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center; /* Bordure, forme, centrage icône */
+  bottom: 50px;
+  box-shadow: 0 4px 10px rgb(0 0 0 / 30%);
+  color: white; /* Positionnement, dimensions, couleurs */
   cursor: pointer;
+  display: flex;
+  height: 40px;
+  justify-content: center;
   opacity: 0;
-  transition: all 0.3s ease;
-  z-index: 1000;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
   padding: 0; /* Curseur, caché par défaut, transition, empilement, ombre */
+  position: fixed;
+  right: 40px;
+  transition: all 0.3s ease;
+  width: 40px;
+  z-index: 1000;
 }
+
 .scroll-to-top svg {
-  width: 30px;
+  fill: currentcolor;
   height: 30px;
-  fill: currentColor;
+  width: 30px;
 } /* Icône flèche */
 .scroll-to-top:hover {
   background: #c822ff;
+  box-shadow: 0 6px 15px rgb(93 93 255 / 40%);
   color: white;
   transform: translateY(-5px);
-  box-shadow: 0 6px 15px rgba(93, 93, 255, 0.4);
 } /* Effet au survol */
 
 /* Scroll to top en thème clair */
 [data-theme="light"] .scroll-to-top {
   background: var(--accent-color);
-  color: white;
   border-color: #c822ff;
   box-shadow: 0 4px 10px var(--shadow-color);
+  color: white;
 }
+
 [data-theme="light"] .scroll-to-top:hover {
   background: #5d5dff;
-  color: white;
   border-color: #c822ff;
-  box-shadow: 0 6px 15px rgba(93, 93, 255, 0.3);
+  box-shadow: 0 6px 15px rgb(93 93 255 / 30%);
+  color: white;
 }
 
 /* =========================
    Carousel Inspirations - Styles améliorés
    ========================= */
+
 /* --- Carousel amélioré --- */
 .carousel-container {
-  width: 100%;
-  overflow: hidden;
-  position: relative;
-  margin: 0 auto 3.5rem auto;
-  max-width: 1100px;
   background: none;
+  margin: 0 auto 3.5rem;
+  max-width: 1100px;
+  overflow: hidden;
   padding: 0 1rem;
+  position: relative;
+  width: 100%;
 }
+
 .carousel-track {
+  animation: scroll-carousel 8s linear infinite; /* Plus rapide */
   display: flex;
   gap: 2rem;
-  animation: scroll-carousel 8s linear infinite; /* Plus rapide */
   will-change: transform;
 }
+
 @keyframes scroll-carousel {
   0% {
     transform: translateX(0);
   }
+
   100% {
     transform: translateX(-50%);
   }
 }
+
 .carousel-item {
-  flex: 0 0 320px;
-  display: block;
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.07);
   background: #fff;
-  transition: transform 0.2s, box-shadow 0.2s;
-  cursor: pointer;
-  position: relative;
-  margin-bottom: 0.5rem;
-}
-.carousel-item img {
-  width: 100%;
-  height: 420px;
-  object-fit: cover;
-  display: block;
   border-radius: 16px;
+  box-shadow: 0 2px 16px rgb(0 0 0 / 7%);
+  cursor: pointer;
+  display: block;
+  flex: 0 0 320px;
+  margin-bottom: 0.5rem;
+  overflow: hidden;
+  position: relative;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.carousel-item img {
+  object-fit: cover;
+  border-radius: 16px;
+  display: block;
+  height: 420px;
   transition: filter 0.2s;
+  width: 100%;
 }
+
 .carousel-item:hover {
+  box-shadow: 0 8px 32px rgb(0 0 0 / 13%);
   transform: scale(1.05);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.13);
 }
-@media (max-width: 900px) {
+
+@media (width <= 900px) {
   .carousel-item {
     flex: 0 0 60vw;
   }
+
   .carousel-item img {
     height: 150px;
   }
 }
-@media (max-width: 600px) {
+
+@media (width <= 600px) {
   .carousel-item {
     flex: 0 0 80vw;
   }
+
   .carousel-item img {
     height: 110px;
   }
@@ -2361,66 +2487,76 @@ h1.main-title-animated .title-icon {
 
 /* --- Espacement général et sections inspirations --- */
 .inspirations-main {
-  padding: 2.5rem 0 4rem 0;
+  padding: 2.5rem 0 4rem;
 }
+
 .inspirations-hero {
-  margin-bottom: 3.5rem;
   color: #0288d1;
+  margin-bottom: 3.5rem;
 }
+
 .inspirations-hero .hero-content {
-  padding: 3rem 2rem 2rem 2rem;
+  padding: 3rem 2rem 2rem;
 }
+
 .inspirations-hero h1 {
   margin-bottom: 1.5rem;
 }
+
 .inspirations-story {
+  margin: 0 auto 2.5rem;
   max-width: 900px;
-  margin: 0 auto 2.5rem auto;
-  padding: 0 1rem 2.5rem 1rem;
+  padding: 0 1rem 2.5rem;
   text-align: center;
 }
+
 .inspirations-story h1 {
-  margin-bottom: 1.2rem;
   color: #0288d1;
+  margin-bottom: 1.2rem;
 }
+
 .inspirations-story p {
-  font-size: 1.15rem;
   color: #5d5dff;
+  font-size: 1.15rem;
   margin-bottom: 0.5rem;
 }
+
 .inspirations-gallery {
-  margin: 0 auto 3.5rem auto;
+  color: #0288d1;
+  margin: 0 auto 3.5rem;
   max-width: 1100px;
   padding: 0 1rem;
-  color: #0288d1;
 }
+
 .inspirations-gallery h2 {
-  text-align: center;
-  font-family: "Iceland", cursive;
+  font-family: Iceland, cursive;
   font-size: 2rem;
   margin-bottom: 5rem;
+  text-align: center;
 }
 
 /* --- Bloc citation/voyage --- */
 .inspirations-quote {
-  margin: 3.5rem auto 2.5rem auto;
+  margin: 3.5rem auto 2.5rem;
   max-width: 700px;
   text-align: center;
 }
+
 .inspirations-quote blockquote {
-  font-size: 1.3rem;
-  font-style: italic;
-  color: #2d3a4a;
   background: #f0f6fa;
   border-left: 5px solid #4fc3f7;
-  padding: 1.5rem 2rem;
   border-radius: 12px;
+  color: #2d3a4a;
+  font-size: 1.3rem;
+  font-style: italic;
   margin: 0;
+  padding: 1.5rem 2rem;
 }
+
 .inspirations-quote footer {
-  margin-top: 1rem;
-  font-size: 1rem;
   color: #6c7a89;
+  font-size: 1rem;
+  margin-top: 1rem;
 }
 
 .story-placeholder {
@@ -2430,393 +2566,412 @@ h1.main-title-animated .title-icon {
 /* --- Bloc partage inspiration stylisé --- */
 .inspirations-share {
   background: linear-gradient(90deg, #e3f2fd 60%, #fff 100%);
-  border-radius: 22px;
-  max-width: 700px;
-  margin: 4rem auto 2.5rem auto;
-  padding: 2.5rem 2.5rem 2.5rem 2.5rem;
-  text-align: center;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
   border: 2px solid #4fc3f7;
+  border-radius: 22px;
+  box-shadow: 0 4px 24px rgb(0 0 0 / 8%);
+  margin: 4rem auto 2.5rem;
+  max-width: 700px;
+  padding: 2.5rem;
   position: relative;
+  text-align: center;
 }
+
 .inspirations-share h3 {
-  font-family: "Iceland", cursive;
-  font-size: 1.5rem;
-  margin-bottom: 1.2rem;
   color: #0288d1;
+  font-family: Iceland, cursive;
+  font-size: 1.5rem;
   letter-spacing: 1px;
+  margin-bottom: 1.2rem;
 }
+
 .inspirations-share p {
+  color: #444;
   font-size: 1.15rem;
   margin-bottom: 1.5rem;
-  color: #444;
 }
+
 .inspirations-share .btn-explore {
   background: linear-gradient(90deg, #4fc3f7 60%, #0288d1 100%);
-  color: #fff;
   border: none;
   border-radius: 10px;
-  padding: 0.9rem 2.5rem;
-  font-size: 1.15rem;
-  font-family: "Lato", Arial, sans-serif;
+  box-shadow: 0 2px 12px rgb(0 0 0 / 8%);
+  color: #fff;
   cursor: pointer;
-  transition: background 0.2s, transform 0.2s;
-  text-decoration: none;
   display: inline-block;
+  font-family: Lato, Arial, sans-serif;
+  font-size: 1.15rem;
   font-weight: bold;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  margin-top: 0.5rem;
   letter-spacing: 1px;
+  margin-top: 0.5rem;
+  padding: 0.9rem 2.5rem;
+  text-decoration: none;
+  transition: background 0.2s, transform 0.2s;
 }
+
 .inspirations-share .btn-explore:hover {
   background: linear-gradient(90deg, #0288d1 60%, #4fc3f7 100%);
-  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 6px 24px rgb(0 0 0 / 13%);
   color: #fff;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.13);
+  transform: translateY(-2px) scale(1.04);
 }
 
 .inspirations-cover {
+  align-items: center;
   display: flex;
   justify-content: center;
-  align-items: center;
-  margin: 0 auto 3rem auto;
+  margin: 0 auto 3rem;
   max-width: 1100px;
   padding: 0 1rem;
 }
+
 .cover-image-wrapper {
+  border-radius: 22px;
+  box-shadow: 0 8px 32px rgb(0 0 0 / 13%);
+  max-width: 1200px;
+  overflow: hidden;
   position: relative;
   width: 100%;
-  max-width: 1200px;
-  border-radius: 22px;
-  overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.13);
 }
+
 .cover-image {
-  width: 100%;
-  height: 540px;
   object-fit: cover;
-  display: block;
   border-radius: 22px;
+  display: block;
   filter: brightness(0.93) saturate(1.1);
-}
-.cover-caption {
-  position: absolute;
-  bottom: 0;
-  left: 0;
+  height: 540px;
   width: 100%;
+}
+
+.cover-caption {
   background: linear-gradient(
     0deg,
-    rgba(0, 0, 0, 0.55) 70%,
-    rgba(0, 0, 0, 0.08) 100%
+    rgb(0 0 0 / 55%) 70%,
+    rgb(0 0 0 / 8%) 100%
   );
-  color: #fff;
-  padding: 2rem 1.5rem 1.2rem 1.5rem;
   border-radius: 0 0 22px 22px;
+  bottom: 0;
+  color: #fff;
+  left: 0;
+  padding: 2rem 1.5rem 1.2rem;
+  position: absolute;
   text-align: left;
+  width: 100%;
 }
+
 .cover-caption h2 {
-  font-family: "Iceland", cursive;
+  font-family: Iceland, cursive;
   font-size: 2rem;
-  margin-bottom: 0.5rem;
   letter-spacing: 1px;
+  margin-bottom: 0.5rem;
 }
+
 .cover-caption p {
+  color: #e3f2fd;
   font-size: 1.15rem;
   margin: 0;
-  color: #e3f2fd;
 }
 
 .travel-story-content {
-  margin: 2rem auto 0 auto;
-  max-width: 800px;
   background: #f7fafd68;
   border-radius: 16px;
-  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.07);
+  box-shadow: 0 2px 16px rgb(0 0 0 / 7%);
+  margin: 2rem auto 0;
+  max-width: 800px;
   padding: 2rem 1.5rem;
   text-align: center;
   transition: box-shadow 0.2s;
 }
+
 .story-block h1 {
-  font-family: "Iceland", cursive;
   color: #0288d1;
+  font-family: Iceland, cursive;
   margin-bottom: 0.7rem;
 }
+
 .story-block p {
-  font-size: 1.15rem;
   color: #444;
+  font-size: 1.15rem;
 }
 
 /* =========================
    PROJETS (Grille, Aperçu, Détail)
    ========================= */
+
 /* Grille principale des projets (page projets) */
 .projects-grid {
   display: grid;
+  gap: 100px;
   grid-template-columns: repeat(
     auto-fill,
     minmax(400px, 1fr)
   ); /* Grille en rangée */
-  gap: 100px;
-  padding: 100px;
-  max-width: 1400px;
+
   margin: 0 auto;
+  max-width: 1400px;
+  padding: 100px;
+
   /* supprime grid-template-rows et max-height */
 }
 
 /* Effet Parallaxe */
 .parallax-container {
-  overflow: hidden;
-  position: relative;
   border-radius: 0%;
   height: 200px;
+  overflow: hidden;
+  position: relative;
 } /* Conteneur */
 .parallax-image {
-  transition: transform 0.2s ease-out;
-  width: 150%;
-  height: 250%;
   object-fit: cover;
+  height: 250%;
+  left: -25%;
   position: absolute;
   top: -25%;
-  left: -25%;
+  transition: transform 0.2s ease-out;
+  width: 150%;
 } /* Image plus grande pour effet */
 
 /* Carte individuelle de projet */
 .project-card {
   background-color: #34365400;
-  border-radius: 15px;
-  overflow: hidden;
-  box-shadow: 0 8px 20px var(--shadow-color); /* Style de la carte */
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  height: 100%;
-  display: flex;
-  flex-direction: column; /* Transition, hauteur, flex pour contenu */
   border: 1px solid transparent;
   border-image: 0;
+  border-radius: 15px;
+  box-shadow: 0 8px 20px var(--shadow-color); /* Style de la carte */
+  display: flex;
+  flex-direction: column; /* Transition, hauteur, flex pour contenu */
+  height: 100%;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
+
 .project-card:hover {
+  box-shadow: 0 15px 40px rgb(93 93 255 / 30%);
   transform: translateY(-10px);
-  box-shadow: 0 15px 40px rgba(93, 93, 255, 0.3);
 } /* Effet au survol */
 .project-card img {
-  height: 300px;
   object-fit: contain;
   border-bottom: 3px solid transparent;
   border-image: linear-gradient(45deg, var(--accent-color), #c822ff) 1;
+  height: 300px;
 }
+
 /* Image de la carte */
 .project-info {
-  padding: 20px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   flex-grow: 1;
+  justify-content: space-between;
+  padding: 20px;
 } /* Zone de texte de la carte */
 .project-info h3 {
-  margin: 0 0 15px;
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
-  -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  text-decoration: none;
-  transition: transform 0.3s;
   font-size: 1.8rem;
   font-weight: bold;
+  margin: 0 0 15px;
+  text-decoration: none;
+  transition: transform 0.3s;
 } /* Titre */
 .project-info p {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
-  -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  font-size: 1.3rem;
   line-height: 1.6;
   margin-bottom: 20px;
-  font-size: 1.3rem;
 } /* Description */
 .project-tech {
   display: flex;
-  justify-content: center;
   flex-wrap: wrap;
   gap: 8px;
+  justify-content: center;
   margin-bottom: 20px;
 } /* Technologies (tags) */
 .project-tech span {
-  background: rgb(0 0 0 / 0.1);
-  color: var(--text-color);
-  padding: 5px 10px;
+  background: rgb(0 0 0 / 10%);
+  border: 1px solid rgb(93 93 255 / 30%);
   border-radius: 15%;
+  color: var(--text-color);
   font-size: 0.9rem;
   font-weight: 600;
-  border: 1px solid rgba(93, 93, 255, 0.3);
+  padding: 5px 10px;
 } /* Style des tags */
 .project-links {
   display: flex;
-  justify-content: center;
-  gap: 15px;
   flex-wrap: wrap;
-  margin-top: auto;
+  gap: 15px;
+  justify-content: center;
   margin-bottom: auto;
   margin-bottom: 30px;
+  margin-top: auto;
 }
+
 /* Conteneur des liens (en bas) */
 .project-links a {
-  color: white;
-  padding: 10px 20px;
   border-radius: 5%;
-  text-decoration: none;
-  font-weight: 600;
+  color: white;
   font-size: 1.2rem;
+  font-weight: 600;
   min-width: 120px;
+  padding: 10px 20px;
+  text-decoration: none;
 } /* Style des liens dans la carte */
 
 /* Grille d'aperçu des projets (page d'accueil) */
 .project-preview-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
   gap: 30px;
-  max-width: 1200px;
+  grid-template-columns: repeat(2, 1fr);
   margin: 40px auto;
+  max-width: 1200px;
   padding: 20px;
 } /* Grille 2 colonnes */
+
 /* Aperçu individuel */
 .project-preview {
-  position: relative;
   border-radius: 15%;
-  overflow: hidden;
-  height: 350px;
   box-shadow: 0 10px 30px var(--shadow-color);
+  height: 350px;
+  overflow: hidden;
+  position: relative;
   transition: all 0.5s ease;
 } /* Conteneur avec image */
 .project-preview:hover {
+  box-shadow: 0 20px 40px rgb(93 93 255 / 40%);
   transform: translateY(-10px);
-  box-shadow: 0 20px 40px rgba(93, 93, 255, 0.4);
 } /* Effet survol conteneur */
 .project-preview img {
-  width: 100%;
-  height: 100%;
   object-fit: cover;
+  height: 100%;
   transition: all 0.8s ease;
+  width: 100%;
 } /* Image */
 .project-preview:hover img {
-  transform: scale(1.1);
   filter: brightness(0.7) blur(2px);
+  transform: scale(1.1);
 } /* Effet survol image (zoom, assombrissement, flou) */
 .project-preview-overlay {
-  /* Overlay qui apparaît au survol */
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  align-items: center;
   background: linear-gradient(
     to top,
-    rgba(35, 36, 54, 0.9),
+    rgb(35 36 54 / 90%),
     transparent
   ); /* Positionnement, fond dégradé */
-  padding: 30px 20px 20px;
-  transform: translateY(100%);
-  transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  opacity: 0; /* Caché en bas, transition complexe, invisible */
+
+  bottom: 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
   height: 100%; /* Centrage contenu */
+  justify-content: center;
+  left: 0;
+  opacity: 0; /* Caché en bas, transition complexe, invisible */
+  padding: 30px 20px 20px;
+
+  /* Overlay qui apparaît au survol */
+  position: absolute;
+  right: 0;
+  transform: translateY(100%);
+  transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
+
 .project-preview:hover .project-preview-overlay {
-  transform: translateY(0);
   opacity: 1;
+  transform: translateY(0);
 } /* Affichage de l'overlay au survol */
 .project-preview-overlay h3 {
   color: white;
   font-size: 1.8rem;
   margin-bottom: 20px;
-  text-align: center;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-  transform: translateY(20px);
   opacity: 0;
+  text-align: center;
+  text-shadow: 0 2px 10px rgb(0 0 0 / 50%);
+  transform: translateY(20px);
   transition: all 0.5s ease 0.1s;
 } /* Titre dans l'overlay (animation) */
 .project-preview:hover .project-preview-overlay h3 {
-  transform: translateY(0);
   opacity: 1;
+  transform: translateY(0);
 } /* Animation titre au survol */
 .btn-view-project {
-  transform: translateY(20px);
   opacity: 0;
+  transform: translateY(20px);
   transition: all 0.5s ease 0.2s;
 } /* Bouton dans l'overlay (animation) */
 .project-preview:hover .btn-view-project {
-  transform: translateY(0);
   opacity: 1;
+  transform: translateY(0);
 } /* Animation bouton au survol */
 
 /* Bouton "Voir tous les projets" */
 .view-all-projects {
-  text-align: center;
   margin: 50px 0;
+  text-align: center;
 }
 
 /* Page de détail d'un projet */
 .project-detail {
-  max-width: 900px;
-  margin: 70px auto 0 auto; /* Centrage automatique avec auto */
-  padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 15px; /* Espace entre les sections */
+  margin: 70px auto 0; /* Centrage automatique avec auto */
+  max-width: 900px;
+  padding: 20px;
 }
+
 .project-hero {
-  position: relative;
-  width: 100%;
-  height: 400px;
-  overflow: hidden;
   border-radius: 5%;
   box-shadow: 0 10px 30px var(--shadow-color);
+  height: 400px;
   margin-bottom: 40px;
-}
-.project-hero img {
+  overflow: hidden;
+  position: relative;
   width: 100%;
-  height: 100%;
+}
+
+.project-hero img {
   object-fit: cover;
-  transition: transform 0.8s ease;
   display: block;
+  height: 100%;
+  transition: transform 0.8s ease;
+  width: 100%;
 } /* Style image */
 .project-hero:hover img {
   transform: scale(1.05);
 } /* Effet zoom sur image */
 .project-hero::after {
-  content: "";
-  position: absolute;
   bottom: 0;
-  left: 0;
-  width: 100%;
+  content: "";
   height: 5px;
+  left: 0;
+  position: absolute;
+  width: 100%;
 } /* Ligne colorée sous l'image */
 .project-content {
   background: #34365400;
+  border: 1px solid transparent;
   border-radius: 15px;
-  padding: 30px;
   box-shadow: 0 8px 30px var(--shadow-color);
   margin-bottom: 40px;
-  border: 1px solid transparent;
+  padding: 30px;
 } /* Conteneur du contenu du projet */
 .project-content p {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
-  -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  line-height: 1.7;
-  text-align: center;
-  margin-bottom: 50px;
   font-size: 1.3rem; /* Taille du texte */
+  line-height: 1.7;
+  margin-bottom: 50px;
+  text-align: center;
 } /* Paragraphes */
 .project-content h4 {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
-  -webkit-background-clip: text;
   background-clip: text;
+  border-bottom: 2px solid rgb(93 93 255 / 20%);
   color: transparent;
   font-size: 1.5rem;
-  border-bottom: 2px solid rgba(93, 93, 255, 0.2);
-  padding-bottom: 30px;
   margin-top: 20px;
+  padding-bottom: 30px;
 } /* Sous-titres */
 .project-detail .project-tech {
   justify-content: center;
@@ -2827,61 +2982,60 @@ h1.main-title-animated .title-icon {
   margin: 25px 0;
 } /* Liens centrés */
 .project-detail .project-links a {
-  padding: 8px 25px;
+  box-shadow: 0 4px 10px rgb(0 0 0 / 20%);
   font-size: 1rem;
   min-width: 150px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  padding: 8px 25px;
 } /* Style des liens */
 
 /* Navigation entre projets (Précédent/Suivant) */
 .project-navigation {
   display: flex;
-  justify-content: space-between;
-  margin: 40px 0 40px;
   flex-wrap: wrap;
   gap: 15px; /* Ajout wrap et gap pour responsive */
+  justify-content: space-between;
+  margin: 40px 0;
 }
 
 .prev-project,
 .next-project {
-  display: inline-flex;
   align-items: center;
-  gap: 12px; /* Légèrement augmenté l'espace */
-  padding: 8px 20px; /* Augmenté le padding vertical et horizontal */
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
-  -webkit-background-clip: text;
   background-clip: text;
-  color: transparent;
-  text-decoration: none;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  font-weight: bold;
-  font-size: 0.9rem; /* Optionnel: Augmenter la taille de la police */
   border-radius: 5%;
-  transition: all 0.3s ease;
-  position: relative;
-  z-index: 1;
-  overflow: hidden;
+  box-shadow: 0 4px 15px rgb(0 0 0 / 20%);
+  color: transparent;
   cursor: pointer; /* Ajout d'un curseur main */
+  display: inline-flex;
+  font-size: 0.9rem; /* Optionnel: Augmenter la taille de la police */
+  font-weight: bold;
+  gap: 12px; /* Légèrement augmenté l'espace */
+  overflow: hidden;
+  padding: 8px 20px; /* Augmenté le padding vertical et horizontal */
+  position: relative;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  z-index: 1;
 }
 
 .prev-project::before,
 .next-project::before {
   content: "";
+  height: 100%;
+  left: 0;
+  opacity: 0;
   position: absolute;
   top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
   transition: opacity 0.3s ease;
+  width: 100%;
   z-index: -1;
 }
 
 .prev-project:hover,
 .next-project:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 20px rgba(93, 93, 255, 0.5);
+  box-shadow: 0 6px 20px rgb(93 93 255 / 50%);
   color: white;
+  transform: translateY(-3px);
 }
 
 .prev-project:hover::before,
@@ -2891,312 +3045,342 @@ h1.main-title-animated .title-icon {
 
 .prev-project svg,
 .next-project svg {
-  width: 22px; /* Optionnel: Augmenter la taille de l'icône */
-  height: 22px; /* Optionnel: Augmenter la taille de l'icône */
-  fill: currentColor;
+  fill: currentcolor;
   flex-shrink: 0; /* Empêche le SVG de rétrécir */
+  height: 22px; /* Optionnel: Augmenter la taille de l'icône */
+  width: 22px; /* Optionnel: Augmenter la taille de l'icône */
 }
 
 /* Galerie d'images du projet */
 .project-gallery {
   background: #34365400;
-  border-radius: 15px;
-  padding: 25px;
   border: 1px solid transparent;
-  margin-top: 40px;
+  border-radius: 15px;
   margin-bottom: 40px;
+  margin-top: 40px;
+  padding: 25px;
 } /* Conteneur galerie */
 .project-gallery:hover {
-  box-shadow: 0 10px 30px rgba(93, 93, 255, 0.3);
+  box-shadow: 0 10px 30px rgb(93 93 255 / 30%);
 } /* Effet survol galerie */
 .gallery-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   margin-top: 25px;
 } /* Grille responsive */
 .gallery-item {
-  overflow: hidden;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-  border: 1px solid var(--secondary-bg);
-  transition: all 0.3s ease;
-  height: 120px; /* Image individuelle */
-  display: flex; /* Ajout pour centrer l'image */
   align-items: center; /* Centrage vertical */
-  justify-content: center; /* Centrage horizontal */
   background-color: var(
     --secondary-bg
   ); /* Fond pour les images transparentes */
+
+  border: 1px solid var(--secondary-bg);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 20%);
+  display: flex; /* Ajout pour centrer l'image */
+  height: 120px; /* Image individuelle */
+  justify-content: center; /* Centrage horizontal */
+  overflow: hidden;
+  transition: all 0.3s ease;
 }
+
 /* Effet survol image */
 .gallery-item:hover {
-  transform: translateY(-50px) scale(2.2);
   border-color: 1px solid transparent;
   border-image: linear-gradient(45deg, var(--accent-color), #c822ff) 1;
-  box-shadow: 0 10px 25px rgba(93, 93, 255, 0.3);
+  box-shadow: 0 10px 25px rgb(93 93 255 / 30%);
+  transform: translateY(-50px) scale(2.2);
 }
 
 .gallery-item img {
-  width: 100%;
-  height: 100%;
   object-fit: contain;
+  height: 100%;
   transition: all 0.5s ease;
+  width: 100%;
 } /* Style image (contain pour voir toute l'image) */
 
 /* Carrousel */
 .carousel-container {
-  position: relative;
-  max-width: 100%;
   margin: 0 auto;
+  max-width: 100%;
   overflow: hidden;
+  position: relative;
 }
+
 .carousel-track {
   display: flex;
   transition: transform 0.7s ease;
   will-change: transform;
 }
+
 .carousel-item {
-  min-width: 50%;
-  min-height: 50%;
-  padding: 20px;
   box-sizing: border-box;
-  margin: 0 auto;
   flex: 0 0 auto;
+  margin: 0 auto;
+  min-height: 50%;
+  min-width: 50%;
+  padding: 20px;
 }
 
 .carousel-item .project-preview {
   height: 280px;
 }
+
 .carousel-item .project-preview img {
-  height: 100%;
   object-fit: contain;
+  height: 100%;
 }
 
 .carousel-controls {
   display: flex;
-  justify-content: center;
   gap: 15px;
+  justify-content: center;
   margin: 20px 0;
 }
+
 .carousel-btn {
+  align-items: center;
   background-color: #5d5dff;
-  color: white;
   border: 2px solid var(--accent-color);
-  width: 40px;
-  height: 40px;
   border-radius: 50%;
+  box-shadow: 0 2px 5px rgb(0 0 0 / 20%);
+  color: white;
   cursor: pointer;
   display: flex;
-  align-items: center;
+  font-size: 16px;
+  height: 40px;
   justify-content: center;
   transition: background-color 0.3s;
-  font-size: 16px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  width: 40px;
 }
+
 .carousel-btn:hover {
   background-color: #c822ff;
   transform: scale(1.05);
 }
+
 .carousel-btn:focus {
+  box-shadow: 0 0 0 3px rgb(52 152 219 / 30%);
   outline: none;
-  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.3);
 }
 
 /* Styles Projets en thème clair */
 [data-theme="light"] .project-card {
   background-color: var(--card-bg);
-  box-shadow: 0 8px 20px var(--shadow-color);
   border-color: var(--accent-color);
+  box-shadow: 0 8px 20px var(--shadow-color);
 }
+
 [data-theme="light"] .project-info p {
   color: var(--accent-color);
 }
+
 [data-theme="light"] .project-tech span {
-  background: rgba(93, 93, 255, 0.2);
+  background: rgb(93 93 255 / 20%);
+  border-color: rgb(93 93 255 / 30%);
+  box-shadow: 0 2px 5px rgb(93 93 255 / 10%);
   color: var(--accent-color);
-  border-color: rgba(93, 93, 255, 0.3);
-  box-shadow: 0 2px 5px rgba(93, 93, 255, 0.1);
 }
+
 [data-theme="light"] .project-preview {
   box-shadow: 0 10px 30px var(--shadow-color);
 }
+
 [data-theme="light"] .project-preview:hover {
-  box-shadow: 0 20px 40px rgba(93, 93, 255, 0.25);
+  box-shadow: 0 20px 40px rgb(93 93 255 / 25%);
 }
+
 [data-theme="light"] .project-preview-overlay {
-  background: linear-gradient(to top, rgba(240, 238, 255, 0.8), transparent);
+  background: linear-gradient(to top, rgb(240 238 255 / 80%), transparent);
 }
+
 [data-theme="light"] .project-preview-overlay h3 {
   color: var(--accent-color);
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  text-shadow: 0 1px 3px rgb(0 0 0 / 10%);
 }
+
 [data-theme="light"] .project-info h3 {
-  margin: 0 0 15px;
   color: var(--accent-color);
   font-size: 1.5rem;
+  margin: 0 0 15px;
 }
+
 [data-theme="light"] .project-content {
   background-color: var(--card-bg);
-  box-shadow: 0 8px 25px var(--shadow-color);
   border-left-color: var(--accent-color);
+  box-shadow: 0 8px 25px var(--shadow-color);
 }
+
 [data-theme="light"] .project-content p {
   color: var(--accent-color);
 }
+
 [data-theme="light"] .project-content h4 {
+  border-bottom-color: rgb(93 93 255 / 20%);
   color: var(--accent-color);
-  border-bottom-color: rgba(93, 93, 255, 0.2);
 }
+
 [data-theme="light"] .project-gallery {
   background-color: var(--card-bg);
   box-shadow: 0 8px 25px var(--shadow-color);
 }
+
 [data-theme="light"] .gallery-item {
-  border-color: rgba(0, 0, 0, 0.1);
+  border-color: rgb(0 0 0 / 10%);
 }
+
 [data-theme="light"] .gallery-item:hover {
   border-color: var(--accent-color);
-  box-shadow: 0 10px 25px rgba(93, 93, 255, 0.2);
+  box-shadow: 0 10px 25px rgb(93 93 255 / 20%);
 }
+
 [data-theme="light"] .project-navigation a {
   background-color: var(--card-bg);
-  color: #5d5dff;
-  border-color: rgba(93, 93, 255, 0.3);
+  border-color: rgb(93 93 255 / 30%);
   box-shadow: 0 4px 10px var(--shadow-color);
+  color: #5d5dff;
 }
+
 [data-theme="light"] .project-navigation a:hover {
   background-color: #f0f4ff;
-  color: #5d5dff;
   border-color: var(--accent-color);
-  box-shadow: 0 6px 15px rgba(93, 93, 255, 0.2);
+  box-shadow: 0 6px 15px rgb(93 93 255 / 20%);
+  color: #5d5dff;
 }
 
 /* MODIFIÉ: Cible les nouvelles classes */
 [data-theme="light"] .project-navigation .prev-project,
 [data-theme="light"] .project-navigation .next-project {
   background-color: var(--card-bg);
-  color: var(--accent-color);
   border-color: #c822ff;
   box-shadow: 0 4px 10px var(--shadow-color);
+  color: var(--accent-color);
 }
+
 /* MODIFIÉ: Cible les nouvelles classes */
 [data-theme="light"] .project-navigation .prev-project:hover,
 [data-theme="light"] .project-navigation .next-project:hover {
   background-color: #f0f4ff;
   border-color: var(--accent-color);
-  box-shadow: 0 6px 15px rgba(93, 93, 255, 0.2);
+  box-shadow: 0 6px 15px rgb(93 93 255 / 20%);
 }
 
 [data-theme="light"] .carousel-btn {
   background-color: #c822ff;
-  color: white;
   border: 2px solid var(--accent-color);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 5px rgb(0 0 0 / 10%);
+  color: white;
 }
+
 [data-theme="light"] .carousel-btn:hover {
   background-color: #5d5dff;
-  box-shadow: 0 4px 10px rgba(93, 93, 255, 0.2);
+  box-shadow: 0 4px 10px rgb(93 93 255 / 20%);
 }
 
 /* =========================
    COMPÉTENCES (Skills) - 
    ========================= */
 .skills-section {
-  padding: 0 20px;
-  max-width: 1400px;
   margin-bottom: 200px;
+  max-width: 1400px;
+  padding: 0 20px;
 }
+
 .skills-categories {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
   gap: 100px;
-  justify-items: center;
-  align-items: stretch;
-  width: 100%;
+  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
   margin: 0 auto;
   padding: 30px 0;
-}
-.skills-category {
-  min-width: 320px;
-  max-width: 600px;
+  place-items: stretch center;
   width: 100%;
+}
+
+.skills-category {
+  align-items: center;
+  background-color: rgb(0 0 0 / 2%);
   border-radius: 25px;
+  box-shadow: 0 8px 20px var(--shadow-color);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  padding: 24px 32px 24px 32px;
-  background-color: rgb(0 0 0 / 2%);
-  box-shadow: 0 8px 20px var(--shadow-color);
-  transition: all 0.3s ease;
   height: auto;
+  justify-content: flex-start;
+  max-width: 600px;
+  min-width: 320px;
+  padding: 24px 32px;
+  transition: all 0.3s ease;
+  width: 100%;
 }
+
 .skills-category:hover {
+  box-shadow: 0 12px 35px rgb(93 93 255 / 30%);
   transform: translateY(-5px);
-  box-shadow: 0 12px 35px rgba(93, 93, 255, 0.3);
 }
+
 .category-title {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
-  -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 50px;
+  padding-bottom: 8px;
+  text-align: center;
   text-decoration: none;
   transition: transform 0.3s;
-  font-size: 1.6rem;
-  margin-bottom: 50px;
-  font-weight: 700;
-  text-align: center;
-  padding-bottom: 8px;
 }
 
 .skills-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
   gap: 2px;
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  place-items: center center;
   width: 100%;
-  justify-items: center;
-  align-items: center;
 }
+
 .skill {
+  align-items: center;
   display: flex;
   flex-direction: column-reverse;
-  align-items: center;
-  max-width: 90px;
-  width: 100%;
   margin: 0 auto;
+  max-width: 90px;
   transition: all 0.3s ease;
+  width: 100%;
 }
+
 .skill:hover {
   transform: translateY(-5px);
 }
+
 .skill-icon {
-  width: 48px;
-  height: 48px;
-  padding: 4px;
-  background-color: var(--skill-icon-bg);
-  border-radius: 10px;
-  display: flex;
-  justify-content: center;
   align-items: center;
-  margin-bottom: 5px;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 10px var(--shadow-color);
+  background-color: var(--skill-icon-bg);
   border: 2px solid transparent;
   border-image: linear-gradient(45deg, var(--accent-color), #c822ff) 1;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px var(--shadow-color);
+  display: flex;
+  height: 48px;
+  justify-content: center;
+  margin-bottom: 5px;
+  padding: 4px;
+  transition: all 0.3s ease;
+  width: 48px;
 }
+
 .skill img {
-  width: 32px;
-  height: 32px;
   object-fit: contain;
+  height: 32px;
   transition: transform 0.3s ease;
+  width: 32px;
 }
+
 .skill p {
-  font-size: 1.2rem;
-  font-weight: bold;
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
-  -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  font-size: 1.2rem;
+  font-weight: bold;
   margin: 0;
   text-align: center;
 }
@@ -3204,24 +3388,28 @@ h1.main-title-animated .title-icon {
 /* Styles Compétences en thème clair */
 [data-theme="light"] .skills-category {
   background-color: var(--card-bg);
-  box-shadow: 0 8px 20px var(--shadow-color);
   border-top-color: var(--accent-color);
+  box-shadow: 0 8px 20px var(--shadow-color);
 }
+
 [data-theme="light"] .category-title {
   color: var(--accent-color);
 } /* Correction: var(--accent-color) et non var (--accent-color) */
 [data-theme="light"] .category-title::after {
   background: var(--accent-color);
 }
+
 [data-theme="light"] .skill-icon {
   background-color: var(--skill-icon-bg);
   border-color: var(--accent-color);
   box-shadow: 0 4px 10px var(--shadow-color);
 }
+
 [data-theme="light"] .skill:hover .skill-icon {
   background-color: #f0f4ff;
-  box-shadow: 0 8px 15px rgba(93, 93, 255, 0.2);
+  box-shadow: 0 8px 15px rgb(93 93 255 / 20%);
 }
+
 [data-theme="light"] .skill p {
   color: var(--accent-color);
 }
@@ -3232,16 +3420,17 @@ h1.main-title-animated .title-icon {
 .contact-form {
   /* Formulaire de contact */
   background: rgb(0 0 0 / 0%);
-  box-shadow: 0 10px 30px var(--shadow-color);
   border-radius: 5%;
-  padding: 30px 40px;
+  box-shadow: 0 10px 30px var(--shadow-color);
   margin: 30px auto;
   max-width: 600px;
+  padding: 30px 40px;
   transition: all 0.5s ease; /* Forme, padding, marges, largeur max, transition */
 }
+
 .contact-form:hover {
+  box-shadow: 0 15px 40px rgb(93 93 255 / 30%);
   transform: translateY(-5px);
-  box-shadow: 0 15px 40px rgba(93, 93, 255, 0.3);
 } /* Effet survol */
 .contact-form form {
   display: flex;
@@ -3254,43 +3443,44 @@ h1.main-title-animated .title-icon {
   text-align: left;
 } /* Groupe label + input */
 .contact-form label {
-  font-size: 1.3rem;
-  font-weight: 600;
-  margin-bottom: 10px;
+  align-items: center;
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
-  -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  display: flex;
+  font-size: 1.3rem;
+  font-weight: 600;
+  gap: 8px;
+  margin-bottom: 10px;
   text-decoration: none;
   transition: transform 0.3s;
-  display: flex;
-  align-items: center;
-  gap: 8px;
 } /* Style des labels */
 .contact-form label svg {
-  width: 18px;
-  height: 18px;
   fill: var(--accent-color);
+  height: 18px;
+  width: 18px;
 } /* Icône dans le label */
 .contact-form input,
 .contact-form textarea {
-  /* Champs de saisie */
-  padding: 15px;
-  border: 2px solid var(--secondary-bg);
   background: var(--input-bg);
+  border: 2px solid var(--secondary-bg);
   border-radius: 10px;
   color: var(--text-color); /* Padding, bordure, fond, forme, couleur texte */
   font-family: inherit;
   font-size: 16px;
-  transition: all 0.3s ease;
+
+  /* Champs de saisie */
+  padding: 15px;
   resize: none; /* Police, taille, transition, pas de redimensionnement textarea */
+  transition: all 0.3s ease;
 }
+
 .contact-form input:focus,
 .contact-form textarea:focus {
-  outline: none;
-  border-color: var(--accent-color);
-  box-shadow: 0 0 0 3px rgba(93, 93, 255, 0.3);
   background: var(--secondary-bg);
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgb(93 93 255 / 30%);
+  outline: none;
 } /* Style au focus */
 .contact-form input::placeholder,
 .contact-form textarea::placeholder {
@@ -3302,64 +3492,68 @@ h1.main-title-animated .title-icon {
 .contact-map {
   margin-bottom: 60px;
 }
+
 .map {
+  border: none;
   border-radius: 2px;
   box-shadow: 0 10px 30px var(--shadow-color);
-  width: 100%;
-  max-width: 900px;
+  display: block;
   height: 350px;
   margin: 0 auto;
-  border: none;
-  display: block;
+  max-width: 900px;
+  width: 100%;
 } /* Style de la carte */
 
 /* Section email */
 .contact-email {
-  padding: 20px;
-  border-radius: 5%;
-  max-width: 600px;
-  margin: 50px auto !important; /* Style conteneur */
-  box-shadow: 0 10px 25px var(--shadow-color);
-  font-size: 1.3rem;
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
-  -webkit-background-clip: text;
   background-clip: text;
+  border-radius: 5%;
+  box-shadow: 0 10px 25px var(--shadow-color);
   color: transparent;
+  font-size: 1.3rem;
+  margin: 50px auto !important; /* Style conteneur */
+  max-width: 600px;
+  padding: 20px;
   text-decoration: none;
   transition: transform 0.3s;
   transition: all 0.3s ease; /* Ombre, bordure gauche, texte, transition */
 }
+
 .contact-email:hover {
+  box-shadow: 0 15px 30px rgb(93 93 255 / 20%);
   transform: translateY(-5px);
-  box-shadow: 0 15px 30px rgba(93, 93, 255, 0.2);
 } /* Effet survol */
 .contact-email a {
-  color: var(--accent-color);
-  text-decoration: none;
-  font-weight: bold;
   border-bottom: 2px dotted var(--accent-color);
+  color: var(--accent-color);
+  font-weight: bold;
   padding-bottom: 2px;
+  text-decoration: none;
   transition: all 0.3s ease;
 } /* Lien email */
 .contact-email a:hover {
-  color: var(--accent-color);
   border-bottom-style: solid;
+  color: var(--accent-color);
 } /* Effet survol lien */
 
 /* Style de base pour le logo video dans la section social-media de la page contact */
 #logo-video-dropdown {
-  /* Ajoutez une transition pour un effet fluide */
-  transition: transform 0.3s ease-in-out;
+  border: 1px solid var(--accent-color); /* Bordure pour correspondre aux autres icônes */
+  border-radius: 50%; /* Arrondi pour correspondre aux autres icônes */
+  box-shadow: 0 4px 10px var(--shadow-color); /* Ombre pour correspondre aux autres icônes */
+
   /* Assurez-vous que la vidéo est affichée comme un bloc ou inline-block pour que transform fonctionne correctement */
   display: inline-block; /* ou block, selon votre layout */
+  height: 66px; /* Exemple, ajustez à la taille actuelle ou souhaitée */
+  margin: 30px; /* Espace autour de l'icône */
+
+  /* Ajoutez une transition pour un effet fluide */
+  transition: transform 0.3s ease-in-out;
   vertical-align: middle; /* Ajustez si nécessaire pour l'alignement */
+
   /* Définissez une largeur si ce n'est pas déjà fait, pour référence */
   width: 66px; /* Exemple, ajustez à la taille actuelle ou souhaitée */
-  height: 66px; /* Exemple, ajustez à la taille actuelle ou souhaitée */
-  border-radius: 50%; /* Arrondi pour correspondre aux autres icônes */
-  border: 1px solid var(--accent-color); /* Bordure pour correspondre aux autres icônes */
-  box-shadow: 0 4px 10px var(--shadow-color); /* Ombre pour correspondre aux autres icônes */
-  margin: 30px; /* Espace autour de l'icône */
 }
 
 /* Effet d'agrandissement au survol */
@@ -3371,16 +3565,18 @@ h1.main-title-animated .title-icon {
 /* Styles Contact en thème clair */
 [data-theme="light"] .contact-form {
   background: var(--card-bg);
-  box-shadow: 0 10px 30px var(--shadow-color);
   border-top-color: var(--accent-color);
+  box-shadow: 0 10px 30px var(--shadow-color);
 }
+
 [data-theme="light"] .contact-form label {
   color: var(--accent-color);
 }
+
 [data-theme="light"] .contact-form input,
 [data-theme="light"] .contact-form textarea {
-  border-color: var(--accent-color);
   background: #ffb3ff;
+  border-color: var(--accent-color);
   color: #5d5dff;
 } /* Champs de saisie */
 [data-theme="light"] .contact-form input::placeholder,
@@ -3391,35 +3587,37 @@ h1.main-title-animated .title-icon {
 [data-theme="light"] .contact-form input:focus,
 [data-theme="light"] .contact-form textarea:focus {
   border-color: #5d5dff;
-  box-shadow: 0 0 0 3px rgba(93, 93, 255, 0.3);
+  box-shadow: 0 0 0 3px rgb(93 93 255 / 30%);
 }
+
 [data-theme="light"] .map {
   filter: grayscale(20%) contrast(90%);
 } /* Léger filtre sur la carte */
 [data-theme="light"] .contact-email {
   background: var(--card-bg);
-  box-shadow: 0 10px 25px var(--shadow-color);
-  border-right: 5px solid var(--accent-color);
   border-left: 5px solid var(--accent-color);
-  font-size: 1.3rem;
+  border-right: 5px solid var(--accent-color);
+  box-shadow: 0 10px 25px var(--shadow-color);
   color: var(--accent-color);
+  font-size: 1.3rem;
   transition: all 0.3s ease; /* Ombre, bordure gauche, texte, transition */
 }
+
 [data-theme="light"] .contact-email:hover {
+  box-shadow: 0 15px 30px rgb(93 93 255 / 20%);
   transform: translateY(-5px);
-  box-shadow: 0 15px 30px rgba(93, 93, 255, 0.2);
 } /* Effet survol */
 [data-theme="light"] .contact-email a {
-  color: #5d5dff;
-  text-decoration: none;
-  font-weight: bold;
   border-bottom: 2px dotted #5d5dff;
+  color: #5d5dff;
+  font-weight: bold;
   padding-bottom: 2px;
+  text-decoration: none;
   transition: all 0.3s ease;
 } /* Lien email */
 [data-theme="light"] .contact-email a:hover {
-  color: #5d5dff;
   border-bottom-style: solid;
+  color: #5d5dff;
 } /* Effet survol lien */
 [data-theme="light"] .social-media a {
   background: var(--card-bg);
@@ -3432,53 +3630,53 @@ h1.main-title-animated .title-icon {
 .blog-newsletter {
   background: linear-gradient(
     135deg,
-    rgba(93, 93, 255, 0.1),
-    rgba(200, 34, 255, 0.1)
+    rgb(93 93 255 / 10%),
+    rgb(200 34 255 / 10%)
   );
-  padding: 40px;
   border-radius: 12px;
-  text-align: center;
   margin: 150px 100px 100px;
+  padding: 40px;
+  text-align: center;
 }
 
 .blog-newsletter h3 {
-  font-family: "Iceland", sans-serif;
+  color: var(--accent-color);
+  font-family: Iceland, sans-serif;
   font-size: 2rem;
   margin-bottom: 15px;
-  color: var(--accent-color);
 }
 
 .blog-newsletter p {
-  max-width: 600px;
   margin: 0 auto 25px;
+  max-width: 600px;
   opacity: 0.9;
 }
 
 .newsletter-form {
   display: flex;
-  max-width: 500px;
-  margin: 0 auto;
   gap: 10px;
+  margin: 0 auto;
+  max-width: 500px;
 }
 
 .newsletter-form input {
-  flex: 1;
-  padding: 12px 15px;
-  border: 1px solid rgba(93, 93, 255, 0.2);
+  background-color: rgb(255 255 255 / 10%);
+  border: 1px solid rgb(93 93 255 / 20%);
   border-radius: 8px;
-  background-color: rgba(255, 255, 255, 0.1);
   color: var(--text-color);
-  font-family: "Lato", sans-serif;
+  flex: 1;
+  font-family: Lato, sans-serif;
+  padding: 12px 15px;
 }
 
 .newsletter-form button {
-  padding: 12px 25px;
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
-  color: white;
   border: none;
   border-radius: 8px;
-  font-weight: 600;
+  color: white;
   cursor: pointer;
+  font-weight: 600;
+  padding: 12px 25px;
   transition: transform 0.3s;
 }
 
@@ -3492,12 +3690,12 @@ h1.main-title-animated .title-icon {
 
 .newsletter-form input[type="email"].valid-email {
   border-color: #4caf50;
-  box-shadow: 0 0 0 1px rgba(76, 175, 80, 0.2);
+  box-shadow: 0 0 0 1px rgb(76 175 80 / 20%);
 }
 
 .newsletter-form input[type="email"].invalid-email {
   border-color: #ff5252;
-  box-shadow: 0 0 0 1px rgba(255, 82, 82, 0.2);
+  box-shadow: 0 0 0 1px rgb(255 82 82 / 20%);
 }
 
 .newsletter-form button.submitting {
@@ -3513,16 +3711,16 @@ h1.main-title-animated .title-icon {
    FOOTER
    ========================= */
 #footer {
-  background-color: #1f203200; /* Thème sombre par défaut */
-  padding: 20px 30px; /* Padding de base pour tous les côtés */
-  margin-top: 0px;
-  display: flex;
   align-items: center;
+  background-color: #1f203200; /* Thème sombre par défaut */
+  box-sizing: border-box;
+  display: flex;
   flex-wrap: wrap;
   gap: 0;
-  width: 100%;
-  box-sizing: border-box;
+  margin-top: 0;
+  padding: 20px 30px; /* Padding de base pour tous les côtés */
   transition: padding-left 0.4s ease;
+  width: 100%;
 }
 
 /* Décaler le contenu interne du footer lorsque le menu est ouvert (BASE) */
@@ -3532,32 +3730,31 @@ body.body-menu-open #footer {
 
 /* Texte copyright */
 #footer p {
-  margin: 0;
-  flex-grow: 1;
-  margin-left: auto;
-  text-align: center;
-  font-size: 1rem;
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
-  -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  flex-grow: 1;
+  font-size: 1rem;
+  line-height: 1.7;
+  margin: 0;
+  margin-left: auto;
+  text-align: center;
   text-decoration: none;
   transition: transform 0.3s;
-  line-height: 1.7;
 }
 
 /* ... autres styles pour les icônes, liens, etc. ... */
 #footer .github,
 #footer div:not(.github) {
-  display: inline-flex;
   align-items: center;
+  display: inline-flex;
   gap: 0;
 }
 
 #footer a {
-  transition: transform 0.3s ease;
   display: inline-block;
   margin-left: 0;
+  transition: transform 0.3s ease;
 }
 
 #footer a:hover {
@@ -3565,8 +3762,8 @@ body.body-menu-open #footer {
 }
 
 #footer img {
-  width: 32px;
   height: 32px;
+  width: 32px;
 }
 
 /* Thème clair pour le FOOTER */
@@ -3575,6 +3772,7 @@ body.body-menu-open #footer {
   border-top-color: var(
     --accent-color
   ); /* Utilise la var --accent-color du thème clair */
+
   /* Le padding: 20px 30px; est hérité de la règle #footer de base */
 }
 
@@ -3590,6 +3788,7 @@ body.body-menu-open #footer {
 /* =========================
    UTILITAIRES & EFFETS
    ========================= */
+
 /* Animation AOS (Animate On Scroll) */
 [data-aos] {
   opacity: 0;
@@ -3603,26 +3802,27 @@ body.body-menu-open #footer {
    RESPONSIVE (Adaptation écrans)
    ========================= */
 
-@media (min-width: 1400px) {
+@media (width >= 1400px) {
   /* Grands écrans */
   .project-detail {
-    padding: 50px 80px 0px 80px;
+    padding: 50px 80px 0;
   }
+
   .gallery-item {
     height: 180px; /* Hauteur plus grande sur grands écrans */
   }
 
   .profile-photo {
-    width: 300px;
-    height: 320px;
-    border-radius: 0;
     object-fit: contain;
     border: 1px solid var(--border-color);
+    border-radius: 0;
     box-shadow: 0 5px 100px #5d5dff;
+    height: 320px;
+    width: 300px;
   }
 }
 
-@media (max-width: 1200px) {
+@media (width <= 1200px) {
   /* Tablettes larges et ordinateurs moyens */
   .dropdown-menu {
     padding: 35px;
@@ -3635,26 +3835,27 @@ body.body-menu-open #footer {
 }
 
 /* Tablettes et petits ordinateurs */
-@media (max-width: 992px) {
+@media (width <= 992px) {
   section#skills,
   #skills {
-    scroll-margin-top: 100px;
     margin-top: 50px;
+    scroll-margin-top: 100px;
   }
 
   section#contact,
   #contact {
+    margin-top: 0;
     scroll-margin-top: 100px;
-    margin-top: 0px;
   }
+
   .dropdown-menu {
+    background-color: #1e1f2f;
     padding: 35px;
     width: 75%;
-    background-color: #1e1f2f;
   }
 
   .intro-text {
-    padding: 0px 25px;
+    padding: 0 25px;
   }
 
   .intro-text .animated-paragraph {
@@ -3662,31 +3863,33 @@ body.body-menu-open #footer {
   }
 
   .intro-text .profile-photo-container {
-    width: 375px;
-    max-width: 100%;
     height: 450px;
+    max-width: 100%;
+    width: 375px;
   }
 
   .intro-text .profile-photo {
-    width: 500px;
     height: 350px;
+    width: 500px;
   }
 
   .about-text-box {
-    padding: 0px;
     margin: 50px;
+    padding: 0;
   }
 
   .projects-grid {
     display: grid;
+    gap: 100px;
     grid-template-columns: repeat(
       auto-fill,
       minmax(350px, 1fr)
     ); /* Grille en rangée */
-    gap: 100px;
-    padding: 100px;
-    max-width: 1400px;
+
     margin: 0 auto;
+    max-width: 1400px;
+    padding: 100px;
+
     /* supprime grid-template-rows et max-height */
   }
 
@@ -3695,7 +3898,7 @@ body.body-menu-open #footer {
   }
 }
 
-@media (max-width: 576px) {
+@media (width <= 576px) {
   /* Mobiles */
 
   /* Bloquer le scroll du body quand le menu est ouvert */
@@ -3717,19 +3920,19 @@ body.body-menu-open #footer {
 
   /* Faire que le menu passe au-dessus avec un overlay plus visible */
   .menu-overlay.active {
-    background-color: rgb(35, 36, 54); /* ✅ Overlay sombre visible */
+    background-color: rgb(35 36 54); /* ✅ Overlay sombre visible */
     pointer-events: auto; /* ✅ Permet de fermer en cliquant sur l'overlay */
   }
 
   /* Ajuster la largeur du menu pour mobile */
   .dropdown-menu {
-    width: 100%; /* ✅ Plus large que les 30% actuels pour une meilleure UX */
-    z-index: 2000; /* ✅ S'assure qu'il passe au-dessus */
-    top: 40px; /* Positionné sous le header compact */
     height: calc(95vh - 0px); /* Hauteur restante */
+    overflow: hidden; /* ✅ Pas de scroll interne au menu */
     padding: 20px; /* Padding réduit */
     position: fixed; /* ✅ Menu fixe */
-    overflow: hidden; /* ✅ Pas de scroll interne au menu */
+    top: 40px; /* Positionné sous le header compact */
+    width: 100%; /* ✅ Plus large que les 30% actuels pour une meilleure UX */
+    z-index: 2000; /* ✅ S'assure qu'il passe au-dessus */
   }
 
   body {
@@ -3738,26 +3941,26 @@ body.body-menu-open #footer {
 
   section#projects,
   #projects {
-    scroll-margin-top: 100px;
     margin-top: 100px;
+    scroll-margin-top: 100px;
   }
 
   section#skills,
   #skills {
-    scroll-margin-top: 100px;
     margin-top: 100px;
+    scroll-margin-top: 100px;
   }
 
   section#contact,
   #contact {
-    scroll-margin-top: 100px;
-    margin-top: 0px;
+    margin-top: 0;
     padding: 20px;
+    scroll-margin-top: 100px;
   }
 
   #loader-video {
-    width: 100px;
     height: 100px;
+    width: 100px;
   }
 
   /* Ajuster le Header Compact pour Mobile */
@@ -3771,10 +3974,10 @@ body.body-menu-open #footer {
   } /* Titre plus petit */
 
   .header-logo img {
-    margin: 15px 30px 5px 15px;
     border-radius: 50%;
-    width: 40px;
     height: 40px;
+    margin: 15px 30px 5px 15px;
+    width: 40px;
   }
 
   .hamburger {
@@ -3795,20 +3998,20 @@ body.body-menu-open #footer {
     height: 30px;
   } /* Logo plus petit */
   .compact-header .language-switch img {
-    width: 32px;
     height: 32px;
+    width: 32px;
   } /* Icône langue plus petite */
   .menu-toggle {
     font-size: 1.8rem;
     padding: 8px;
   } /* Bouton menu plus petit */
   .theme-toggle button {
-    width: 35px;
     height: 35px;
+    width: 35px;
   } /* Bouton thème plus petit */
   .theme-toggle button svg {
-    width: 18px;
     height: 18px;
+    width: 18px;
   }
 
   /* Ajuste le titre bannière pour mobile */
@@ -3823,8 +4026,8 @@ body.body-menu-open #footer {
   }
 
   .intro-text {
-    padding: 0px;
-    margin: 0px;
+    margin: 0;
+    padding: 0;
   }
 
   .intro-text .animated-title {
@@ -3842,38 +4045,41 @@ body.body-menu-open #footer {
   .intro-text .content-wrapper {
     flex-direction: column;
     gap: 30px;
+    max-width: 400px; /* Largeur maximale réduite */
     padding: 30px;
     width: 100%;
-    max-width: 400px; /* Largeur maximale réduite */
   }
 
-  /*.intro-text .profile-photo-container { */
+  /* .intro-text .profile-photo-container { */
+
   /* width: 375px; /* Largeur maximale réduite */
+
   /* height: 400px; /* Hauteur maximale réduite */
+
   /* margin: 0 auto;} /* Centrage horizontal */
 
   .intro-text .profile-photo-container {
-    width: 375px;
-    max-width: 100%;
     height: 410px;
+    max-width: 100%;
+    width: 375px;
   }
 
   .intro-text .profile-photo {
-    width: 340px;
     height: 300px;
+    width: 340px;
   }
 
   .intro-text .btn-explore {
+    font-size: 1.2rem; /* Réduire la taille de la police */
     margin: 20px; /* Marge supérieure réduite */
     padding: 8px 15px; /* Réduire le padding vertical et horizontal */
-    font-size: 1.2rem; /* Réduire la taille de la police */
     width: 250px; /* Permettre au bouton de prendre une largeur plus naturelle */
   }
 
   .btn-download-cv {
-    padding: 8px 25px; /* Réduire le padding vertical et horizontal */
     font-size: 1.2rem; /* Réduire la taille de la police */
-    margin: 60px 0px 0px 0px; /* Marge supérieure réduite */
+    margin: 60px 0 0; /* Marge supérieure réduite */
+    padding: 8px 25px; /* Réduire le padding vertical et horizontal */
   }
 
   .btn-download-cv i {
@@ -3884,37 +4090,42 @@ body.body-menu-open #footer {
     /* AJOUT : Empiler les panneaux verticalement */
     flex-direction: column;
   }
+
   h1.main-title-animated {
     font-size: 2.2rem; /* Réduit la taille du titre sur les petits écrans */
   }
+
   .explorer-projects-list-panel {
+    border-right: none; /* AJOUT : Supprimer la bordure droite si elle était active */
     flex: 0 0 100%; /* Panneau de gauche prend toute la largeur */
     padding: 10px; /* Réduit le padding */
-    border-right: none; /* AJOUT : Supprimer la bordure droite si elle était active */
   }
+
   .explorer-project-display-panel {
     padding: 40px; /* Réduit le padding */
+
     /* S'assure qu'il prend la largeur nécessaire, flex-grow: 1; devrait déjà le faire */
   }
+
   #explorerProjectList li {
-    padding: 10px; /* Réduit le padding des éléments de la liste */
     font-size: 0.9rem; /* Réduit la taille de la police */
+    padding: 10px; /* Réduit le padding des éléments de la liste */
   }
 
   .highlight-project {
-    outline: 3px solid var(--accent-color);
     box-shadow: 0 0 20px var(--accent-color);
+    outline: 3px solid var(--accent-color);
     transition: outline 0.3s, box-shadow 0.3s;
   }
 
   /* Menu dropdown en mode thème clair */
   [data-theme="light"] .dropdown-menu {
-    background-color: rgb(240, 238, 255) !important;
+    background-color: rgb(240 238 255) !important;
   }
 
   /* Si vous voulez aussi modifier l'overlay en mode clair */
   [data-theme="light"] .menu-overlay.active {
-    background-color: rgba(240, 238, 255, 0.9) !important;
+    background-color: rgb(240 238 255 / 90%) !important;
   }
 
   /* Pour harmoniser les éléments du menu en mode clair */
@@ -3929,14 +4140,17 @@ body.body-menu-open #footer {
 
 .about-text-box {
   margin: 30px auto; /* ✅ Centrage automatique horizontal */
-  padding: 0px; /* Optionnel: réduire le padding pour mobile */
   max-width: calc(
     100% - 80px
   ); /* Optionnel: éviter que la box touche les bords */
+
+  padding: 0; /* Optionnel: réduire le padding pour mobile */
 }
+
 .about-text-box p {
   font-size: 1.3rem;
 }
+
 .project-info p {
   font-size: 1.2rem;
   text-align: center;
@@ -3962,18 +4176,19 @@ body.body-menu-open #footer {
   height: 220px;
 } /* Image carte projet plus haute */
 .project-preview-grid {
-  grid-template-columns: 1fr;
   gap: 20px;
+  grid-template-columns: 1fr;
   padding: 0 10px;
 } /* Grille aperçu 1 colonne */
 .project-preview {
   height: 250px;
 } /* Aperçu moins haut */
 .project-preview .btn-view-project {
-  padding: 8px 18px; /* Réduits le padding vertical et horizontal */
   font-size: 0.9rem; /* Réduits la taille de la police */
   min-width: auto; /* Permet au bouton de prendre une largeur plus naturelle si nécessaire */
+  padding: 8px 18px; /* Réduits le padding vertical et horizontal */
 }
+
 .project-preview-overlay h3 {
   color: white;
   font-size: 1rem;
@@ -3982,11 +4197,11 @@ body.body-menu-open #footer {
   height: 250px;
 } /* Image détail projet moins haute */
 .project-navigation {
-  flex-wrap: nowrap;
-  display: flex;
-  justify-content: space-between;
-  gap: 15px;
   align-items: center;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 15px;
+  justify-content: space-between;
 } /* Navigation projet en colonne */
 .project-detail .project-links {
   flex-direction: column;
@@ -3996,50 +4211,56 @@ body.body-menu-open #footer {
 }
 
 .skills-categories {
-  grid-template-columns: 1fr;
-  padding: 5px;
-  margin-bottom: 50px;
   gap: 100px;
+  grid-template-columns: 1fr;
+  margin-bottom: 50px;
+  padding: 5px;
 }
+
 .skills-category {
-  min-width: 0;
-  width: 100%;
-  padding: 10px 2vw;
-  box-sizing: border-box;
-  height: auto;
-  flex-direction: column;
   align-items: stretch;
+  box-sizing: border-box;
+  flex-direction: column;
+  height: auto;
+  min-width: 0;
+  padding: 10px 2vw;
+  width: 100%;
 }
+
 .skills-grid {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
   justify-content: center;
-  width: 100%;
   max-width: 100%;
+  width: 100%;
 }
+
 .skill {
-  flex: 1 1 40%;
-  min-width: 110px;
-  max-width: 48%;
-  margin-bottom: 10px;
   box-sizing: border-box;
+  flex: 1 1 40%;
+  margin-bottom: 10px;
+  max-width: 48%;
+  min-width: 110px;
 }
+
 .skill-icon {
-  width: 38px;
   height: 38px;
   padding: 4px;
+  width: 38px;
 }
+
 .skill img {
-  width: 22px;
   height: 22px;
+  width: 22px;
 }
+
 .skill p {
   font-size: 1.1rem;
 }
 
 .contact-form {
-  padding: 40px 40px;
+  padding: 40px;
 }
 
 .contact-form label {
@@ -4068,7 +4289,7 @@ body.body-menu-open #footer {
 
 /* Menu dropdown en mode thème clair */
 [data-theme="light"] .dropdown-menu {
-  background-color: rgba(255, 255, 255, 0.997) !important;
+  background-color: rgb(255 255 255 / 99.7%) !important;
 }
 
 /* Pour harmoniser les éléments du menu en mode clair */
@@ -4081,17 +4302,17 @@ body.body-menu-open #footer {
 }
 
 .menu-controls {
-  width: 100px;
   gap: 15px;
-  margin-left: 0px;
+  margin-left: 0;
+  width: 100px;
 } /* Contrôles dropdown */
 
 .gallery-item:hover {
+  border-color: var(--accent-color); /* Garde la bordure colorée */
+  box-shadow: 0 10px 25px rgb(93 93 255 / 30%); /* Garde l'ombre */
   transform: translateY(
     -5px
   ); /* Supprime le scale(2.2) et garde/réduit le translateY */
-  border-color: var(--accent-color); /* Garde la bordure colorée */
-  box-shadow: 0 10px 25px rgba(93, 93, 255, 0.3); /* Garde l'ombre */
 }
 
 .scroll-to-top {
@@ -4100,36 +4321,36 @@ body.body-menu-open #footer {
 
 #footer {
   flex-direction: row-reverse; /* Garde l'ordre inversé même en mobile */
-  justify-content: flex-start;
   gap: 0;
-  padding: 15px 15px;
-  margin-top: 0px;
+  justify-content: flex-start;
+  margin-top: 0;
+  padding: 15px;
 }
 
 #footer p {
+  font-size: 0.9rem;
   margin-right: auto;
   text-align: left;
-  font-size: 0.9rem;
 }
 
 /* Container pour les icônes sociales */
 #footer .github,
 #footer div:not(.github) {
-  margin: 0;
   gap: 0;
+  margin: 0;
 }
 
 /* Supprime la règle qui centre les icônes */
 #footer div:first-of-type {
   display: inline-flex;
+  gap: 0;
   justify-content: flex-start;
   width: auto;
-  gap: 0;
 }
 
 #footer img {
-  width: 28px; /* Légèrement plus petit sur mobile */
   height: 28px;
+  width: 28px; /* Légèrement plus petit sur mobile */
 }
 
 /* =========================
@@ -4137,15 +4358,15 @@ body.body-menu-open #footer {
    ========================= */
 
 /* Ajustements pour les écrans moyens et petits */
-@media (max-width: 576px) {
+@media (width <= 576px) {
   section {
-    padding: 0px;
-    margin-bottom: 0px;
+    margin-bottom: 0;
+    padding: 0;
   }
 
   .main-page-title {
-    font-size: 1.9rem;
     color: whitesmoke;
+    font-size: 1.9rem;
     font-weight: bold;
     padding: 20px;
   }
@@ -4162,12 +4383,15 @@ body.body-menu-open #footer {
   .news-grid {
     grid-template-columns: 1fr; /* Une colonne sur mobile */
   }
+
   .news-card-title {
     font-size: 1.9rem;
   }
+
   .article-title-main {
     font-size: clamp(1.8rem, 6vw, 2.5rem);
   }
+
   .article-body {
     font-size: 1rem;
   }
@@ -4175,17 +4399,17 @@ body.body-menu-open #footer {
   .blog-newsletter {
     background: linear-gradient(
       135deg,
-      rgba(93, 93, 255, 0.1),
-      rgba(200, 34, 255, 0.1)
+      rgb(93 93 255 / 10%),
+      rgb(200 34 255 / 10%)
     );
-    padding: 25px;
     border-radius: 12px;
+    margin: 50px 25px;
+    padding: 25px;
     text-align: center;
-    margin: 50px 25px 50px;
   }
 
   .blog-main-container {
-    padding-top: 0px;
+    padding-top: 0;
   }
 
   .blog-hero {
@@ -4201,13 +4425,13 @@ body.body-menu-open #footer {
   }
 
   .filter-container {
-    flex-direction: column;
     align-items: stretch;
+    flex-direction: column;
   }
 
   .articles-grid {
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 50px;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     padding: 20px;
   }
 
@@ -4216,12 +4440,12 @@ body.body-menu-open #footer {
   }
 
   .page-title-container {
-    font-size: 2rem;
     background: linear-gradient(45deg, #c822ff00, #c822ff);
+    font-size: 2rem;
     font-weight: bold;
-    padding: 30px;
     margin-bottom: 100px;
     margin-top: 100px;
+    padding: 30px;
   }
 
   .page-subtitle {

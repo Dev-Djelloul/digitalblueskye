@@ -2,5 +2,14 @@
     "git.ignoreLimitWarning": true,
     "liveServer.settings.port": 5501,
     "files.autoSave": "afterDelay",
-    "editor.linkedEditing": true
+    "editor.linkedEditing": true,
+    "editor.codeActionsOnSave": {
+        "source.fixAll.stylelint": true
+    },
+    "stylelint.enable": true,
+    "stylelint.validate": [
+        "css",
+        "scss",
+        "less"
+    ]
 }
