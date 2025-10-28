@@ -53,7 +53,7 @@
 body {
   background-color: transparent !important;
   color: var(--text-color);
-  font-family: "Open Sans", sans-serif;
+  font-family: "Roboto Condensed", sans-serif;
   font-optical-sizing: auto;
   line-height: 1.6;
   padding-top: 90px;
@@ -106,7 +106,7 @@ h3 {
 p,
 li,
 article {
-  font-family: "Open Sans", sans-serif;
+  font-family: "Roboto Condensed", sans-serif;
 }
 
 /* =========================
@@ -1139,14 +1139,15 @@ header.nav-scrolled,
   font-family: Iceland, sans-serif;
   font-size: 1.4rem;
   font-weight: bolder;
-  padding: 5px 10px;
+  padding: 10px 15px;
   text-decoration: none;
   transition: color 0.3s, transform 0.2s;
-}
 
-.dropdown-nav a:hover {
-  color: #c822ff;
-  transform: translateX(5px);
+  /* Bordure dégradée uniquement */
+  background-image: linear-gradient(rgba(255, 255, 255, 0), white), linear-gradient(45deg, var(--accent-color), #c822ff);
+  background-origin: border-box;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .dropdown-nav .nav-link {
@@ -1892,7 +1893,7 @@ h1.main-title-animated .title-icon {
   border: 1px solid rgb(93 93 255 / 20%);
   border-radius: 8px;
   color: var(--text-color);
-  font-family: Lato, sans-serif;
+  font-family: "Roboto Condensed", sans-serif;
   padding: 12px 45px 12px 15px;
   width: 100%;
 }
@@ -1919,7 +1920,7 @@ h1.main-title-animated .title-icon {
   border-radius: 8px;
   color: var(--text-color);
   cursor: pointer;
-  font-family: Lato, sans-serif;
+  font-family: "Roboto Condensed", sans-serif;
   padding: 12px 35px 12px 15px;
 }
 
@@ -2105,15 +2106,15 @@ h1.main-title-animated .title-icon {
 }
 
 .article-body h2 {
-  color: var(--accent-color);
-  font-size: 1.5rem;
+  color: #c822ff;  
+  font-size: 1.8rem;
   margin-bottom: 20px;
   margin-top: 40px;
 }
 
 .article-body h3 {
   color: var(--accent-color);
-  font-size: 1.25rem;
+  font-size: 1.4rem;
   margin-bottom: 15px;
   margin-top: 30px;
 }
@@ -2962,6 +2963,7 @@ h1.main-title-animated .title-icon {
   font-size: 1.3rem; /* Taille du texte */
   line-height: 1.7;
   margin-bottom: 50px;
+  margin-top: 50px;
   text-align: center;
 } /* Paragraphes */
 .project-content h4 {
