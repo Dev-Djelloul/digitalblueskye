@@ -1,0 +1,8 @@
+# Format: New Name <new@email> <old@email>
+Djelloul Abid <digitalblueskye@gmail.com> <digitalblueskye@DigitalBlueSkyes-MacBook-Air.local>
+Djelloul Abid <digitalblueskye@gmail.com> <digitalblueskye@DigitalBlueSkye.local>
+Djelloul Abid <digitalblueskye@gmail.com> <digitalblueskye@MacBook-Air.local>
+# Si des variantes de nom existent :
+Djelloul Abid <digitalblueskye@gmail.com> <Djelloul ABID@users.noreply.github.com>
+# Option: forcer aussi le nom quand l’email est déjà bon
+Djelloul Abid <digitalblueskye@gmail.com> <digitalblueskye@gmail.com>
