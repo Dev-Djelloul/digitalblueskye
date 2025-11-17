@@ -631,12 +631,12 @@ section#skills,
 
 /* Animation depuis la gauche */
 .slide-from-left {
-  transform: translateX(-150px); /* Valeur par défaut pour les grands écrans */
+  transform: translateX(-350px); /* Valeur par défaut pour les grands écrans */
 }
 
 /* Animation depuis la droite */
 .slide-from-right {
-  transform: translateX(150px); /* Valeur par défaut */
+  transform: translateX(350px); /* Valeur par défaut */
 }
 
 /* Animation depuis le bas */
