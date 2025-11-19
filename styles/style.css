@@ -2787,7 +2787,7 @@ h1.main-title-animated .title-icon {
   flex-wrap: wrap;
   gap: 8px;
   justify-content: center;
-  margin-bottom: 20px;
+  margin-bottom: 40px;
 } /* Technologies (tags) */
 .project-tech span {
   background: rgb(0 0 0 / 10%);
@@ -4166,7 +4166,7 @@ body.body-menu-open #footer {
 } /* Liens projet plus petits */
 .projects-grid {
   grid-template-columns: 1fr;
-  padding: 20px;
+  padding: 0 175px;
 } /* Grille projets 1 colonne */
 .project-links a {
   font-size: 1.2rem;
@@ -4175,7 +4175,7 @@ body.body-menu-open #footer {
   font-size: 1rem;
 } /* Taille police tech projet plus petite */
 .project-card img {
-  height: 220px;
+  height: 375px;
 } /* Image carte projet plus haute */
 .project-preview-grid {
   gap: 20px;
@@ -4224,8 +4224,8 @@ body.body-menu-open #footer {
   box-sizing: border-box;
   flex-direction: column;
   height: auto;
-  min-width: 0;
-  padding: 10px 2vw;
+  max-width: 0;
+  padding: 30px 2vw;
   width: 100%;
 }
 
