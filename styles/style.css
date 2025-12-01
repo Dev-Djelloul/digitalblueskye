@@ -1535,8 +1535,8 @@ h1.main-title-animated .title-icon {
   display: flex;
   flex: 0 0 320px; /* Largeur fixe */
   flex-direction: column;
-  margin-bottom: 100px; /* AJOUT : Pour compenser le footer fixe */
-  margin-top: 0; /* AJOUT : Pour compenser le header fixe */
+  margin-bottom: 150px; /* AJOUT : Pour compenser le footer fixe */
+  margin-top: 100px; /* AJOUT : Pour compenser le header fixe */
   padding: 20px 30px;
 
   /* border-right: 3px solid var(--accent-color); */
@@ -1648,8 +1648,8 @@ h1.main-title-animated .title-icon {
 .explorer-project-display-panel {
   background-color: transparent !important; /* Fond transparent, était var(--background-color) */
   flex-grow: 1;
-  margin-bottom: 200px; /* Pour compenser le footer fixe */
-  margin-top: 0; /* Pour compenser le header fixe */
+  margin-bottom: 150px; /* Pour compenser le footer fixe */
+  margin-top: 100px; /* Pour compenser le header fixe */
   overflow: hidden; /* Empêche le défilement */
   padding: 30px;
   position: relative;
@@ -3787,7 +3787,7 @@ h1.main-title-animated .title-icon {
   font-size: 1rem;
   font-weight: 700;
   letter-spacing: 0.3px;
-  margin: 0;
+  margin: 10px;
   text-transform: uppercase;
 }
 
@@ -4522,7 +4522,7 @@ body.body-menu-open #footer {
 #footer div:first-of-type {
   display: inline-flex;
   gap: 0;
-  justify-content: flex-start;
+  justify-content: center;
   width: auto;
 }
 
