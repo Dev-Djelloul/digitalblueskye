@@ -18,8 +18,8 @@
     "contact": "Contactez moi"
   },
   "home": {
-    "title": "Chef de projet digital • Stratégie, IA, RGPD, RSE",
-    "invitation": "Chef de projet digital & consultant — j'accompagne les équipes sur la stratégie numérique, la conformité RGPD, la veille technologique et la performance web. Contactez‑moi pour audits, ateliers et accompagnement.",
+    "title": "Chef de projet digital",
+    "invitation": "Besoin d'un copilote pour vos projets numériques ? Contactez-moi et lançons ensemble la prochaine étape !",
     "explore": "Commencer à explorer",
     "viewMore": "Voir tous les articles"
   },
@@ -103,7 +103,7 @@
     "and": " et ",
     "future": "Je veux continuer à monter en compétences et transformer cette passion du digital en collaborations réussies.",
     "downloadCV": "Télécharger mon CV",
-    "fullContent": "<h1>À propos — YellowBlueSkye</h1><p>Je m'appelle Djelloul, surnommé Yellow. Je suis <strong>développeur web & chef de projet digital</strong> basé à Paris, avec une passion pour créer des projets web utiles, accessibles et durables.</p><h2>Mon parcours</h2><p>Après une formation universitaire classique, j'ai découvert ma véritable vocation dans le web il y a 2 ans. J'ai suivi <strong>deux parcours de formation intensive</strong> (OpenClassrooms et Studi) pendant lesquels j'ai réalisé <strong>9 projets complets</strong> : de sites responsifs à des applications full-stack avec authentification et gestion de données.</p><p>Chaque projet m'a permis de consolider mes compétences et de comprendre les enjeux réels de la gestion de projet : collaboration, qualité, performance et expérience utilisateur.</p><h2>Ce que je maîtrise</h2><ul><li><strong>Frontend</strong> — HTML5, CSS3, JavaScript vanilla & ES6, React, Bootstrap, design responsive</li><li><strong>Backend</strong> — PHP, Node.js, REST APIs, gestion d'authentification (JWT)</li><li><strong>Bases de données</strong> — MySQL, MongoDB, modélisation et optimisation</li><li><strong>Stratégie digitale</strong> — SEO, audits, prioritisation, cadrage produit</li><li><strong>Gestion de projet</strong> — méthode Agile, coordination équipes, livraison itérative</li></ul><h2>Ma méthodologie</h2><p>Je travaille de façon <strong>progressive et itérative</strong> : comprendre le besoin, prototyper rapidement, tester avec les utilisateurs, itérer. Ma priorité est toujours l'<strong>expérience utilisateur</strong> et l'<strong>accessibilité</strong>.</p><p>Je suis un <strong>apprenant continu</strong> : chaque projet me pousse à approfondir mes connaissances et à explorer les meilleures pratiques du secteur.</p><h2>Pourquoi travailler ensemble ?</h2><ul><li><strong>Rigueur</strong> — Je documente, je teste, je valide avant de livrer.</li><li><strong>Transparence</strong> — Communication régulière, respect des délais et des attentes.</li><li><strong>Approche moderne</strong> — Agile, SEO-first, éco-design et accessibilité intégrés.</li><li><strong>Passion</strong> — Je fais ça parce que j'aime créer de vraies solutions, pas juste du code.</li></ul><p><strong>Prêt·e à collaborer ?</strong> <a href='/pages/contact.html'>Contactez-moi</a> pour discuter de votre projet.</p>"
+    "fullContent": "<h2>À propos de moi</h2><p>Je m'appelle Djelloul, mais tout le monde m’appelle Yellow. Parisien curieux, je suis passionné d’art, de civilisations anciennes, de voyages et de longues randonnées à vélo 🚲 Je suis <strong>intégrateur web & chef de projet digital</strong> basé à Paris, avec une passion pour créer des projets web utiles, accessibles et durables.</p><h2>Mon parcours</h2><p>Après une formation universitaire classique, j'ai découvert ma véritable vocation dans le web il y a 2 ans. J'ai suivi <strong>deux parcours de formation intensive</strong> chez OpenClassrooms et Studi pendant lesquels j'ai réalisé <strong>9 projets complets</strong> : de sites web responsives à des applications full-stack avec authentification et gestion de données.</p><p>Chaque projet m'a permis de consolider mes compétences et de comprendre les enjeux réels de la gestion de projet : collaboration, qualité, performance et expérience utilisateur.</p><h2>Ce que je maîtrise</h2><ul><li><strong>Frontend</strong> : HTML5, CSS3, JavaScript vanilla & ES6, React, Bootstrap, design responsive</li><li><strong>Backend</strong> : PHP, Node.js, REST APIs, gestion d'authentification (JWT)</li><li><strong>Bases de données</strong> : MySQL, MongoDB, modélisation et optimisation</li><li><strong>Stratégie digitale</strong> : SEO, audits, prioritisation, cadrage produit</li><li><strong>Gestion de projet</strong> : méthode Agile, coordination équipes, livraison itérative</li></ul><h2>Ma méthodologie</h2><p>Je travaille de façon <strong>progressive et itérative</strong> : comprendre le besoin, prototyper rapidement, tester avec les utilisateurs, itérer. Ma priorité est toujours l'<strong>expérience utilisateur</strong> et l'<strong>accessibilité</strong>.</p><p>Je suis un <strong>apprenant continu</strong> : chaque projet me pousse à approfondir mes connaissances et à explorer les meilleures pratiques du secteur.</p><h2>Pourquoi travailler ensemble ?</h2><ul><li><strong>Rigueur</strong> : Je documente, je teste, je valide avant de livrer.</li><li><strong>Transparence</strong> : Communication régulière, respect des délais et des attentes.</li><li><strong>Approche moderne</strong> : Agile, SEO-first, éco-design et accessibilité intégrés.</li><li><strong>Passion</strong> : Je fais ça parce que j'aime créer de vraies solutions, pas juste du code.</li></ul><p><strong>Prêt·e à collaborer ?</strong> <a href='/pages/contact.html'>Contactez-moi</a> pour discuter de votre projet.</p>"
   },
   "explorer": {
     "mainPageTitle": "Mes projets en images"
@@ -148,6 +148,18 @@
     "headerTitle": "YELLOWBLUESKYE CONTACT"
   },
   "footer": {
+    "about": "À propos",
+    "aboutDesc": "Chef de projet digital & consultant en stratégie numérique. Je vous accompagne dans votre transformation digitale avec expertise, innovation et pragmatisme.",
+    "services": "Services",
+    "projects": "Nos projets",
+    "blog": "Blog & Articles",
+    "expertise": "Mon expertise",
+    "contact": "Me contacter",
+    "followUs": "Suivez-moi",
+    "legal": "Légal",
+    "privacy": "Politique de confidentialité",
+    "terms": "Conditions d'utilisation",
+    "cookies": "Gestion des cookies",
     "copyright": "© 2025 YellowBlueSkye. Tous droits réservés."
   },
   "trust": {
