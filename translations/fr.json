@@ -103,7 +103,7 @@
     "and": " et ",
     "future": "Je veux continuer à monter en compétences et transformer cette passion du digital en collaborations réussies.",
     "downloadCV": "Télécharger mon CV",
-    "fullContent": "<h1>À propos — YellowBlueSkye</h1><p>Je suis Djelloul (surnommé Yellow), chef de projet digital et consultant en stratégie numérique basé à Paris. J'accompagne les organisations pour rendre leurs projets web visibles, utiles et durables : audits SEO, cadrage produit, et accompagnement opérationnel.</p><h2>Ce que j'apporte</h2><ul><li><strong>Stratégie digitale & SEO</strong> — audits actionnables, priorisation et calendrier éditorial.</li><li><strong>Gestion de projet</strong> — pilotage, coordination design & développement, livraison itérative.</li><li><strong>Ateliers & formation</strong> — sessions pratiques pour rendre vos équipes autonomes.</li></ul><h2>Résultats concrets</h2><p>Parmi mes interventions : hausse du trafic organique, amélioration du taux de conversion et accélération des cycles de livraison.</p><p><a class='btn-download-cv' href='/assets/docs/CV-Yellow-2025.pdf' download>Télécharger mon CV</a></p><p>Prêt·e à avancer ? <a href='/pages/contact.html'>Contactez‑moi</a> pour discuter de votre projet.</p>"
+    "fullContent": "<h1>À propos — YellowBlueSkye</h1><p>Je m'appelle Djelloul, surnommé Yellow. Je suis <strong>développeur web & chef de projet digital</strong> basé à Paris, avec une passion pour créer des projets web utiles, accessibles et durables.</p><h2>Mon parcours</h2><p>Après une formation universitaire classique, j'ai découvert ma véritable vocation dans le web il y a 2 ans. J'ai suivi <strong>deux parcours de formation intensive</strong> (OpenClassrooms et Studi) pendant lesquels j'ai réalisé <strong>9 projets complets</strong> : de sites responsifs à des applications full-stack avec authentification et gestion de données.</p><p>Chaque projet m'a permis de consolider mes compétences et de comprendre les enjeux réels de la gestion de projet : collaboration, qualité, performance et expérience utilisateur.</p><h2>Ce que je maîtrise</h2><ul><li><strong>Frontend</strong> — HTML5, CSS3, JavaScript vanilla & ES6, React, Bootstrap, design responsive</li><li><strong>Backend</strong> — PHP, Node.js, REST APIs, gestion d'authentification (JWT)</li><li><strong>Bases de données</strong> — MySQL, MongoDB, modélisation et optimisation</li><li><strong>Stratégie digitale</strong> — SEO, audits, prioritisation, cadrage produit</li><li><strong>Gestion de projet</strong> — méthode Agile, coordination équipes, livraison itérative</li></ul><h2>Ma méthodologie</h2><p>Je travaille de façon <strong>progressive et itérative</strong> : comprendre le besoin, prototyper rapidement, tester avec les utilisateurs, itérer. Ma priorité est toujours l'<strong>expérience utilisateur</strong> et l'<strong>accessibilité</strong>.</p><p>Je suis un <strong>apprenant continu</strong> : chaque projet me pousse à approfondir mes connaissances et à explorer les meilleures pratiques du secteur.</p><h2>Pourquoi travailler ensemble ?</h2><ul><li><strong>Rigueur</strong> — Je documente, je teste, je valide avant de livrer.</li><li><strong>Transparence</strong> — Communication régulière, respect des délais et des attentes.</li><li><strong>Approche moderne</strong> — Agile, SEO-first, éco-design et accessibilité intégrés.</li><li><strong>Passion</strong> — Je fais ça parce que j'aime créer de vraies solutions, pas juste du code.</li></ul><p><strong>Prêt·e à collaborer ?</strong> <a href='/pages/contact.html'>Contactez-moi</a> pour discuter de votre projet.</p>"
   },
   "explorer": {
     "mainPageTitle": "Mes projets en images"
@@ -151,21 +151,20 @@
     "copyright": "© 2025 YellowBlueSkye. Tous droits réservés."
   },
   "trust": {
-    "title": "Témoignages & Preuves",
-    "subtitle": "Retours clients, certifications et cas d'étude qui attestent de la qualité des accompagnements.",
-    "partnersTitle": "Formations & partenaires",
-    "testimonial1": {
-      "text": "« Accompagnement structuré et pragmatique : audit complet, priorisation claire et livrables exploitables immédiatement. »",
-      "author": "— Responsable Produit, Booki"
-    },
-    "testimonial2": {
-      "text": "« Professionnel et pédagogue — intervention efficace sur la conformité RGPD et la préparation documentaire. »",
-      "author": "— Responsable Juridique"
-    },
-    "testimonial3": {
-      "text": "« Ateliers concrets et réutilisables : notre équipe sait maintenant prioriser et livrer avec une empreinte numérique réduite. »",
-      "author": "— Lead UX"
-    },
+    "title": "Parcours & Certifications",
+    "subtitle": "Formation intensive, projets concrets réalisés et compétences validées sur les technologies modernes.",
+    "journeyTitle": "Mon parcours d'apprentissage",
+    "cert1Title": "OpenClassrooms",
+    "cert1Desc": "Formation complète : Développeur Web (HTML5, CSS3, JavaScript, React, intégration APIs)",
+    "cert2Title": "Studi",
+    "cert2Desc": "Spécialisation Full-Stack : Front-end avancé, Back-end (PHP, Node.js), bases de données (MySQL, MongoDB)",
+    "projectsTitle": "9 projets réalisés et publiés",
+    "projectsDesc": "De l'e-commerce responsive aux applications avec authentification — portfolio complet montrant la progression.",
+    "skillsTitle": "Compétences validées",
+    "skillsList": "Frontend (HTML, CSS, JavaScript, React, Bootstrap) • Backend (PHP, Node.js) • Bases de données (MySQL, MongoDB) • Design & UX • SEO & stratégie digitale",
+    "approachTitle": "Ma méthodologie",
+    "approachList": "Agile & itératif • User-centered design • SEO-first • Documentation & communication • Tests & validation",
+    "partnersTitle": "Formations certifiantes",
     "partner1": "OpenClassrooms",
     "partner2": "Studi"
   },

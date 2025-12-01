@@ -5,8 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Portfolio de Digitalblueskye, intégrateur web et designer web créatif et passionné. Spécialisé en HTML, CSS, JavaScript et responsive design. Découvrez mes projets."
+      content="Chef de projet digital & consultant en stratégie numérique — portfolio et analyses sur l'IA, RGPD, RSE et design web. Projets, articles et prestations pour accompagner la transformation digitale."
     />
+    <!-- Open Graph / Social -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Digitalblueskye — Chef de projet digital" />
+    <meta property="og:description" content="Chef de projet digital & consultant en stratégie numérique — audits, accompagnement RGPD, veille technologique et optimisation web." />
+    <meta property="og:image" content="/assets/images/logo/Logo-Globe-Blue.png" />
+    <meta property="og:url" content="/index.html" />
+    <meta name="twitter:card" content="summary_large_image" />
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-XJ51Y4QD25"></script>
     <script>
@@ -46,6 +53,32 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
     />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Person",
+            "name": "Djelloul (Yellow)",
+            "jobTitle": "Chef de projet digital",
+            "url": "/",
+            "sameAs": [
+              "https://github.com/Dev-Djelloul",
+              "https://www.linkedin.com/in/yellowblueskye/"
+            ],
+            "worksFor": {
+              "@type": "Organization",
+              "name": "YellowBlueSkye"
+            }
+          },
+          {
+            "@type": "WebSite",
+            "name": "Digitalblueskye",
+            "url": "/"
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <!-- Header fixe avec logo et hamburger -->
@@ -239,6 +272,53 @@
 
       <div class="intro-divider" aria-hidden="true"></div>
 
+      <!-- Témoignages & Preuves -->
+      <section class="trust-section section-padding" aria-labelledby="trust-title">
+        <div class="container">
+          <h2 id="trust-title" class="section-title" data-i18n="trust.title">Parcours & Certifications</h2>
+          <p class="section-subtitle" data-i18n="trust.subtitle">Formation intensive, projets concrets réalisés et compétences validées sur les technologies modernes.</p>
+
+          <!-- Certifications & Formation -->
+          <div class="trust-cards-grid">
+            <div class="trust-card">
+              <h3 data-i18n="trust.cert1Title">OpenClassrooms</h3>
+              <p data-i18n="trust.cert1Desc">Formation complète : Développeur Web (HTML5, CSS3, JavaScript, React, intégration APIs)</p>
+            </div>
+
+            <div class="trust-card">
+              <h3 data-i18n="trust.cert2Title">Studi</h3>
+              <p data-i18n="trust.cert2Desc">Spécialisation Full-Stack : Front-end avancé, Back-end (PHP, Node.js), bases de données (MySQL, MongoDB)</p>
+            </div>
+
+            <div class="trust-card">
+              <h3 data-i18n="trust.projectsTitle">9 projets réalisés et publiés</h3>
+              <p data-i18n="trust.projectsDesc">De l'e-commerce responsive aux applications avec authentification — portfolio complet montrant la progression.</p>
+            </div>
+          </div>
+
+          <!-- Compétences & Méthodologie -->
+          <div class="trust-methodology">
+            <div class="methodology-item">
+              <h3 data-i18n="trust.skillsTitle">Compétences validées</h3>
+              <p data-i18n="trust.skillsList">Frontend (HTML, CSS, JavaScript, React, Bootstrap) • Backend (PHP, Node.js) • Bases de données (MySQL, MongoDB) • Design & UX • SEO & stratégie digitale</p>
+            </div>
+
+            <div class="methodology-item">
+              <h3 data-i18n="trust.approachTitle">Ma méthodologie</h3>
+              <p data-i18n="trust.approachList">Agile & itératif • User-centered design • SEO-first • Documentation & communication • Tests & validation</p>
+            </div>
+          </div>
+
+          <div class="trust-logos" aria-hidden="false">
+            <h3 class="small-title" data-i18n="trust.partnersTitle">Formations certifiantes</h3>
+            <ul class="logos-list">
+              <li><a href="https://openclassrooms.com/" target="_blank" rel="noopener" data-i18n="trust.partner1">OpenClassrooms</a></li>
+              <li><a href="https://www.studi.com/" target="_blank" rel="noopener" data-i18n="trust.partner2">Studi</a></li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
       <section class="page-title-container" id="radar">
         <h1 class="main-page-title text-center" data-i18n="news.pageTitle">
           Toute l'actualité sur les tendances digitales
@@ -430,7 +510,7 @@
         </a>
       </div>
       <p data-i18n="footer.copyright">
-        &copy; 2024 YellowBlueSkye. Tous droits réservés.
+        &copy; 2025 YellowBlueSkye. Tous droits réservés.
       </p>
     </footer>
 

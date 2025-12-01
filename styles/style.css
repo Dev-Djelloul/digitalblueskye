@@ -4607,3 +4607,82 @@ body.body-menu-open #footer {
     min-width: 120px;
   }
 }
+
+/* Grille de cartes pour certifications et formations */
+.trust-cards-grid {
+  display: grid;
+  gap: 25px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  margin-bottom: 50px;
+}
+
+.trust-card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 25px;
+  transition: all 0.3s ease;
+}
+
+.trust-card:hover {
+  border-color: var(--accent-color);
+  box-shadow: 0 8px 25px rgb(var(--accent-rgb), 0.15);
+  transform: translateY(-3px);
+}
+
+.trust-card h3 {
+  color: var(--accent-color);
+  font-size: 1.4rem;
+  margin-bottom: 12px;
+}
+
+.trust-card p {
+  color: var(--text-color);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+/* Section méthodologie et compétences */
+.trust-methodology {
+  background: linear-gradient(135deg, rgb(93 93 255 / 5%), rgb(200 34 255 / 5%));
+  border-radius: 12px;
+  display: grid;
+  gap: 30px;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  margin-bottom: 50px;
+  padding: 30px;
+}
+
+.methodology-item h3 {
+  color: var(--accent-color);
+  font-size: 1.3rem;
+  margin-bottom: 15px;
+}
+
+.methodology-item p {
+  color: var(--text-color);
+  font-size: 0.95rem;
+  line-height: 1.7;
+  opacity: 0.95;
+}
+
+@media (width <= 768px) {
+  .trust-cards-grid {
+    gap: 15px;
+    grid-template-columns: 1fr;
+  }
+
+  .trust-methodology {
+    gap: 20px;
+    grid-template-columns: 1fr;
+    padding: 20px;
+  }
+
+  .trust-card h3 {
+    font-size: 1.2rem;
+  }
+
+  .methodology-item h3 {
+    font-size: 1.1rem;
+  }
+}
