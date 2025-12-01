@@ -107,7 +107,7 @@
     "and": " and ",
     "future": "I want to keep leveling up and turn this passion for digital into successful collaborations.",
     "downloadCV": "Download my CV",
-    "fullContent": "<h1>About — YellowBlueSkye</h1><p>My name is Djelloul, known as Yellow. I'm a <strong>web developer & digital project manager</strong> based in Paris, with a passion for creating useful, accessible and sustainable web projects.</p><h2>My journey</h2><p>After a classical university education, I discovered my true calling in web development 2 years ago. I've completed <strong>two intensive training programs</strong> (OpenClassrooms and Studi) during which I built <strong>9 complete projects</strong>: from responsive websites to full-stack applications with authentication and data management.</p><p>Each project has allowed me to strengthen my skills and understand the real challenges of project management: collaboration, quality, performance and user experience.</p><h2>What I master</h2><ul><li><strong>Frontend</strong> : HTML5, CSS3, JavaScript vanilla & ES6, React, Bootstrap, responsive design</li><li><strong>Backend</strong> : PHP, Node.js, REST APIs, authentication management (JWT)</li><li><strong>Databases</strong> : MySQL, MongoDB, modeling and optimization</li><li><strong>Digital strategy</strong> : SEO, audits, prioritization, product framing</li><li><strong>Project management</strong> : Agile methodology, team coordination, iterative delivery</li></ul><h2>My methodology</h2><p>I work in a <strong>progressive and iterative way</strong>: understand the need, prototype quickly, test with users, iterate. My priority is always <strong>user experience</strong> and <strong>accessibility</strong>.</p><p>I'm a <strong>continuous learner</strong>: every project pushes me to deepen my knowledge and explore industry best practices.</p><h2>Why work together?</h2><ul><li><strong>Rigor</strong> : I document, I test, I validate before delivery.</li><li><strong>Transparency</strong> : Regular communication, respect for timelines and expectations.</li><li><strong>Modern approach</strong> : Agile, SEO-first, eco-design and accessibility integrated.</li><li><strong>Passion</strong> : I do this because I love creating real solutions, not just code.</li></ul><p><strong>Ready to collaborate?</strong> <a href='/pages/contact.html'>Contact me</a> to discuss your project.</p>"
+    "fullContent": "<h1>About Me</h1><p>My name is Djelloul, known as Yellow. I'm a <strong>web developer & digital project manager</strong> based in Paris, with a passion for creating useful, accessible and sustainable web projects.</p><h2>My Jcfourney</h2><p>After a classical university education, I discovered my true calling in web development 2 years ago. I've completed <strong>two intensive training programs</strong> (OpenClassrooms and Studi) during which I built <strong>9 complete projects</strong>: from responsive websites to full-stack applications with authentication and data management.</p><p>Each project has allowed me to strengthen my skills and understand the real challenges of project management: collaboration, quality, performance and user experience.</p><h2>What I master</h2><ul><li><strong>Frontend</strong> : HTML5, CSS3, JavaScript vanilla & ES6, React, Bootstrap, responsive design</li><li><strong>Backend</strong> : PHP, Node.js, REST APIs, authentication management (JWT)</li><li><strong>Databases</strong> : MySQL, MongoDB, modeling and optimization</li><li><strong>Digital strategy</strong> : SEO, audits, prioritization, product framing</li><li><strong>Project management</strong> : Agile methodology, team coordination, iterative delivery</li></ul><h2>My methodology</h2><p>I work in a <strong>progressive and iterative way</strong>: understand the need, prototype quickly, test with users, iterate. My priority is always <strong>user experience</strong> and <strong>accessibility</strong>.</p><p>I'm a <strong>continuous learner</strong>: every project pushes me to deepen my knowledge and explore industry best practices.</p><h2>Why work together?</h2><ul><li><strong>Rigor</strong> : I document, I test, I validate before delivery.</li><li><strong>Transparency</strong> : Regular communication, respect for timelines and expectations.</li><li><strong>Modern approach</strong> : Agile, SEO-first, eco-design and accessibility integrated.</li><li><strong>Passion</strong> : I do this because I love creating real solutions, not just code.</li></ul><p><strong>Ready to collaborate?</strong> <a href='/pages/contact.html'>Contact me</a> to discuss your project.</p>"
   },
   "explorer": {
     "mainPageTitle": "Visual Tour of My Projects"
@@ -152,7 +152,7 @@
     "about": "About",
     "aboutDesc": "Digital project manager & digital strategy consultant. I support you in your digital transformation with expertise, innovation and pragmatism.",
     "services": "Services",
-    "projects": "Our projects",
+    "projects": "My projects",
     "blog": "Blog & Articles",
     "expertise": "My expertise",
     "contact": "Contact me",
@@ -168,16 +168,16 @@
     "subtitle": "Intensive training, real projects completed and skills validated on modern technologies.",
     "journeyTitle": "My learning journey",
     "cert1Title": "OpenClassrooms",
-    "cert1Desc": "Complete training: Web Developer (HTML5, CSS3, JavaScript, React, APIs integration)",
+    "cert1Desc": "Web Integrator (HTML5, CSS3, JavaScript, React, APIs integration)",
     "cert2Title": "Studi",
-    "cert2Desc": "Full-Stack specialization: Advanced Front-end, Back-end (PHP, Node.js), databases (MySQL, MongoDB)",
+    "cert2Desc": "Web Developer Full-Stack specialization: Advanced Front-end, Back-end (PHP, Node.js), databases (MySQL, MongoDB)",
     "projectsTitle": "9 projects completed and published",
     "projectsDesc": "From responsive e-commerce to applications with authentication — complete portfolio showing progression.",
-    "skillsTitle": "Validated skills",
+    "skillsTitle": "Validated Skills",
     "skillsList": "Frontend (HTML, CSS, JavaScript, React, Bootstrap) • Backend (PHP, Node.js) • Databases (MySQL, MongoDB) • Design & UX • SEO & digital strategy",
-    "approachTitle": "My methodology",
+    "approachTitle": "My Methodology",
     "approachList": "Agile & iterative • User-centered design • SEO-first • Documentation & communication • Testing & validation",
-    "partnersTitle": "Certified trainings",
+    "partnersTitle": "Certified Trainings",
     "partner1": "OpenClassrooms",
     "partner2": "Studi"
   },

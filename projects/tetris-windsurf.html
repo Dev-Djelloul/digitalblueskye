@@ -414,22 +414,6 @@
         </div>
       </section>
 
-      <footer id="footer">
-        <div class="github">
-          <a href="https://github.com/Dev-Djelloul" target="_blank">
-            <img src="/assets/images/ui/icons8-github-64.png" alt="Github" />
-          </a>
-        </div>
-        <div>
-          <a href="https://www.linkedin.com/in/yellowblueskye/" target="_blank">
-            <img src="/assets/images/ui/icons8-linkedin-64.png" alt="LinkedIn" />
-          </a>
-        </div>
-        <p data-i18n="footer.copyright">
-          &copy; 2025 YellowBlueSkye. Tous droits réservés.
-        </p>
-      </footer>
-    </main>
     <!-- Bouton retour en haut -->
     <button
       id="scroll-to-top"
@@ -440,7 +424,54 @@
       <svg width="20" height="20" viewBox="0 0 24 24">
         <path d="M7 14l5-5 5 5z" fill="currentColor"></path>
       </svg>
-    </button>
+    </button>  
+  </main>
+
+      <!-- Footer -->
+    <footer id="footer">
+      <div class="footer-container">
+        <!-- Section Services -->
+        <div class="footer-section">
+          <h3 data-i18n="footer.services">Services</h3>
+          <ul>
+            <li><a href="/pages/projects.html" data-i18n="footer.projects">Nos projets</a></li>
+            <li><a href="/blog/digital/blogArticles.html" data-i18n="footer.blog">Blog & Articles</a></li>
+            <li><a href="/pages/about.html" data-i18n="footer.expertise">Mon expertise</a></li>
+            <li><a href="/pages/contact.html" data-i18n="footer.contact">Me contacter</a></li>
+          </ul>
+        </div>
+
+        <!-- Section Réseaux Sociaux -->
+        <div class="footer-section">
+          <h3 data-i18n="footer.followUs">Suivez-moi</h3>
+          <div class="footer-social">
+            <a href="https://github.com/Dev-Djelloul" target="_blank" rel="noopener noreferrer" title="GitHub">
+              <img src="/assets/images/ui/icons8-github-64.png" alt="Github" />
+            </a>
+            <a href="https://www.linkedin.com/in/yellowblueskye/" target="_blank" rel="noopener noreferrer" title="LinkedIn">
+              <img src="/assets/images/ui/icons8-linkedin-64.png" alt="LinkedIn" />
+            </a>
+          </div>
+        </div>
+
+        <!-- Section Légal -->
+        <div class="footer-section">
+          <h3 data-i18n="footer.legal">Légal</h3>
+          <ul>
+            <li><a href="/pages/privacy.html" data-i18n="footer.privacy">Politique de confidentialité</a></li>
+            <li><a href="/pages/terms.html" data-i18n="footer.terms">Conditions d'utilisation</a></li>
+            <li><a href="/pages/cookies-policy.html" data-i18n="footer.cookies">Gestion des cookies</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Copyright -->
+      <div class="footer-bottom">
+        <p data-i18n="footer.copyright">
+          &copy; 2025 YellowBlueSkye. Tous droits réservés.
+        </p>
+      </div>
+    </footer>
 
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>

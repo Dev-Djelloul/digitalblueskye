@@ -5,36 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Politique de confidentialité - Digitalblueskye. Découvrez comment nous protégeons vos données personnelles."
+    content="Politique de confidentialité de Digitalblueskye. Découvrez comment nous protégeons vos données personnelles."
     />
     <!-- Google tag (gtag.js) -->
-    <script
-      async
-      src="https://www.googletagmanager.com/gtag/js?id=G-XJ51Y4QD25"
-    ></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XJ51Y4QD25"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
-      function gtag() {
-        dataLayer.push(arguments);
-      }
-      gtag("js", new Date());
-      gtag("config", "G-XJ51Y4QD25");
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-XJ51Y4QD25');
     </script>
     <title data-i18n="meta.title">Politique de confidentialité - Digitalblueskye</title>
-    <script>
-      (function () {
-        const savedTheme = localStorage.getItem("theme") || "dark";
-        document.documentElement.setAttribute("data-theme", savedTheme);
-      })();
+    </title>
+     <script>
+    (function() {
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
     </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Iceland&display=swap"
       rel="stylesheet"
     />
+    <link rel="preconnect" href="https://player.canva.com" />
     <link rel="stylesheet" href="/styles/style.css" />
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+    />
   </head>
   <body>
     <!-- Header fixe avec logo et hamburger -->
@@ -112,15 +116,18 @@
       </div>
     </header>
 
-    <!-- Menu dropdown -->
+   <!-- Menu dropdown qui apparaît sous le header -->
     <div class="dropdown-menu" id="dropdown-menu">
+      <!-- Navigation -->
       <nav class="dropdown-nav">
         <ul>
           <li>
             <a href="/index.html" data-i18n="nav.home"><h2>Accueil</h2></a>
           </li>
           <li>
-            <a href="/pages/about.html" data-i18n="nav.about"><h2>À propos de moi</h2></a>
+            <a href="/pages/about.html" data-i18n="nav.about"
+              ><h2>A propos de moi</h2></a
+            >
           </li>
           <li class="dropdown-submenu">
             <a class="nav-link nav-link-with-submenu">
@@ -154,29 +161,26 @@
               </li>
             </ul>
           </li>
-          <li>
-            <a
-              href="/blog/digital/blogArticles.html"
-              data-i18n="nav.blogDigital"
-              ><h2>L'actu du Coin Digital</h2></a
-            >
+           <li>
+            <a href="/blog/digital/blogArticles.html" data-i18n="nav.blogDigital"><h2>L'actu du Coin Digital</h2></a>
           </li>
           <li>
-            <a
-              href="/blog/inspirations/inspirations.html"
-              data-i18n="nav.blogInspiration"
-              ><h2>Mon carnet d'inspirations</h2></a
-            >
+            <a href="/blog/inspirations/inspirations.html" data-i18n="nav.blogInspiration"><h2>Mon carnet d'inspirations</h2></a>
           </li>
           <li>
-            <a href="/pages/contact.html" data-i18n="nav.contact"><h2>Contactez-moi</h2></a>
+            <a href="/pages/contact.html" data-i18n="nav.contact"
+              ><h2>Contactez-moi</h2></a
+            >
           </li>
         </ul>
       </nav>
+      <!-- Menu de navigation social média -->
       <div class="social-media" data-aos="fade-up"></div>
     </div>
 
+    <!-- Overlay pour fermer le menu -->
     <div class="menu-overlay" id="menu-overlay"></div>
+    <!-- Fin du menu dropdown -->
 
     <!-- Contenu principal -->
     <main class="legal-page-main">
