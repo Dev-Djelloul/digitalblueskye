@@ -3760,18 +3760,21 @@ h1.main-title-animated .title-icon {
 }
 
 #footer .footer-container {
-  column-gap: 80px;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  align-items: flex-start;
+  display: flex;
+  gap: 40px;
+  justify-content: space-between;
   margin: 0 auto 50px;
-  max-width: 1200px;
+  max-width: 1300px;
   padding: 0 40px;
 }
 
 #footer .footer-section {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 1rem;
+  max-width: 300px;
   min-width: 0;
 }
 
