@@ -106,7 +106,8 @@
     "education": "Here are my first projects completed during my training with",
     "and": " and ",
     "future": "I want to keep leveling up and turn this passion for digital into successful collaborations.",
-    "downloadCV": "Download my CV"
+    "downloadCV": "Download my CV",
+    "fullContent": "<h1>About — YellowBlueSkye</h1><p>I'm Djelloul (known as Yellow), a digital project manager & strategy consultant based in Paris. I help teams make their web projects visible, useful and sustainable: SEO audits, product framing and hands-on delivery support.</p><h2>What I do</h2><ul><li><strong>Digital strategy & SEO</strong> — actionable audits, prioritisation and editorial planning.</li><li><strong>Project management</strong> — planning, coordination between design & dev, iterative delivery.</li><li><strong>Workshops & training</strong> — practical sessions to make your teams autonomous.</li></ul><h2>Real outcomes</h2><p>Examples include increased organic traffic, better conversion rates and faster delivery cycles.</p><p><a class='btn-download-cv' href='/assets/docs/CV-Yellow-2025.pdf' download>Download my CV</a></p><p>Ready to take the next step? <a href='/pages/contact.html'>Contact me</a> to discuss your project.</p>",
   },
   "explorer": {
     "mainPageTitle": "Visual Tour of My Projects"
@@ -148,7 +149,26 @@
     "errorMessage": "An error occurred. Please try again."
   },
   "footer": {
-    "copyright": "© 2024 YellowBlueSkye. All rights reserved."
+    "copyright": "© 2025 YellowBlueSkye. All rights reserved."
+  },
+  "trust": {
+    "title": "Testimonials & Proof",
+    "subtitle": "Client feedback, certifications and case studies that demonstrate the quality of delivered projects.",
+    "partnersTitle": "Training & partners",
+    "testimonial1": {
+      "text": "\"Structured, pragmatic support: full audit, clear prioritization and immediately actionable deliverables.\"",
+      "author": "— Product Lead, Booki"
+    },
+    "testimonial2": {
+      "text": "\"Professional and pedagogical — effective intervention on GDPR compliance and documentation readiness.\"",
+      "author": "— Legal Lead"
+    },
+    "testimonial3": {
+      "text": "\"Practical, reusable workshops: our team now prioritizes and ships with a reduced digital footprint.\"",
+      "author": "— Lead UX"
+    },
+    "partner1": "OpenClassrooms",
+    "partner2": "Studi"
   },
   "explorerNames": {
     "ridingCities": "RIDING CITIES",
