@@ -293,22 +293,6 @@
       </section>
     </main>
 
-    <footer id="footer">
-      <div class="github">
-        <a href="https://github.com/Dev-Djelloul" target="_blank">
-          <img src="/assets/images/ui/icons8-github-64.png" alt="Github" />
-        </a>
-      </div>
-      <div>
-        <a href="https://www.linkedin.com/in/yellowblueskye/" target="_blank">
-          <img src="/assets/images/ui/icons8-linkedin-64.png" alt="LinkedIn" />
-        </a>
-      </div>
-      <p data-i18n="footer.copyright">
-        &copy; 2024 YellowBlueSkye. Tous droits réservés.
-      </p>
-    </footer>
-
     <button
       id="scroll-to-top"
       class="scroll-to-top"
@@ -413,33 +397,6 @@
         });
       });
     </script>
-    <script>
-  // Délégation d'événement pour gérer les clics sur toutes les images du carrousel (y compris celles dupliquées)
-  document.addEventListener("DOMContentLoaded", function () {
-    const track = document.querySelector(".carousel-track");
-    const container = document.getElementById("travel-story-content");
-    if (track && container) {
-      track.addEventListener("click", function (e) {
-        const item = e.target.closest('.carousel-item');
-        if (item) {
-          e.preventDefault();
-          const storyKey = item.getAttribute('data-story');
-          const story = travelStories[storyKey];
-          if (story) {
-            container.innerHTML = `
-              <div class="story-block">
-                <h3>${story.title}</h3>
-                <p>${story.content}</p>
-              </div>
-            `;
-            container.scrollIntoView({behavior: "smooth"});
-          }
-        }
-      });
-    }
-  });
-</script>
-
     <footer id="footer">
       <div class="footer-container">
         <!-- Section Services -->
@@ -484,6 +441,35 @@
         </p>
       </div>
     </footer>
+
+<script>
+  // Délégation d'événement pour gérer les clics sur toutes les images du carrousel (y compris celles dupliquées)
+  document.addEventListener("DOMContentLoaded", function () {
+    const track = document.querySelector(".carousel-track");
+    const container = document.getElementById("travel-story-content");
+    if (track && container) {
+      track.addEventListener("click", function (e) {
+        const item = e.target.closest('.carousel-item');
+        if (item) {
+          e.preventDefault();
+          const storyKey = item.getAttribute('data-story');
+          const story = travelStories[storyKey];
+          if (story) {
+            container.innerHTML = `
+              <div class="story-block">
+                <h3>${story.title}</h3>
+                <p>${story.content}</p>
+              </div>
+            `;
+            container.scrollIntoView({behavior: "smooth"});
+          }
+        }
+      });
+    }
+  });
+</script>
+
+    
 
   </body>
 </html>

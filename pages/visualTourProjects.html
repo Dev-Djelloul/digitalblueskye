@@ -450,23 +450,6 @@
         </section>
       </div>
     </main>
-
-    <!-- Footer (repris de explorer1.html) -->
-    <footer id="footer">
-      <div class="github">
-        <a href="https://github.com/Dev-Djelloul" target="_blank">
-          <img src="/assets/images/ui/icons8-github-64.png" alt="Github" />
-        </a>
-      </div>
-      <div>
-        <a href="https://www.linkedin.com/in/yellowblueskye/" target="_blank">
-          <img src="/assets/images/ui/icons8-linkedin-64.png" alt="LinkedIn" />
-        </a>
-      </div>
-        <p data-i18n="footer.copyright">
-        &copy; 2025 YellowBlueSkye. Tous droits réservés.
-      </p>
-    </footer>
     <!-- Scripts -->
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
@@ -480,33 +463,6 @@
     <script src="/scripts/theme-switcher.js"></script>
     <script src="/scripts/navbar-dropdown.js"></script>
     <script src="/scripts/explore.js"></script>
-    <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        // Seulement sur mobile (largeur <= 768px)
-        if (window.innerWidth <= 768) {
-          document
-            .querySelectorAll("#explorerProjectList li")
-            .forEach(function (li) {
-              li.addEventListener("click", function () {
-                var targetId = li.getAttribute("data-project-target");
-                var target = document.getElementById(targetId);
-                if (target) {
-                  target.scrollIntoView({
-                    behavior: "smooth",
-                    block: "center",
-                  });
-                  // Optionnel : effet visuel temporaire
-                  target.classList.add("highlight-project");
-                  setTimeout(function () {
-                    target.classList.remove("highlight-project");
-                  }, 1200);
-                }
-              });
-            });
-        }
-      });
-    </script>
-
     <footer id="footer">
       <div class="footer-container">
         <!-- Section Services -->
@@ -551,6 +507,35 @@
         </p>
       </div>
     </footer>
+
+<script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Seulement sur mobile (largeur <= 768px)
+        if (window.innerWidth <= 768) {
+          document
+            .querySelectorAll("#explorerProjectList li")
+            .forEach(function (li) {
+              li.addEventListener("click", function () {
+                var targetId = li.getAttribute("data-project-target");
+                var target = document.getElementById(targetId);
+                if (target) {
+                  target.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center",
+                  });
+                  // Optionnel : effet visuel temporaire
+                  target.classList.add("highlight-project");
+                  setTimeout(function () {
+                    target.classList.remove("highlight-project");
+                  }, 1200);
+                }
+              });
+            });
+        }
+      });
+    </script>
+
+    
 
   </body>
 </html>
