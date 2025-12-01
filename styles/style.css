@@ -3762,7 +3762,7 @@ h1.main-title-animated .title-icon {
 #footer .footer-container {
   display: grid;
   gap: 40px;
-  grid-template-columns: repeat(4, minmax(200px, 1fr));
+  grid-template-columns: repeat(3, minmax(200px, 1fr));
   margin: 0 auto 40px;
   max-width: 1300px;
   padding: 0 20px;
