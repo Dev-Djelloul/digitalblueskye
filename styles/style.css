@@ -3760,12 +3760,12 @@ h1.main-title-animated .title-icon {
 }
 
 #footer .footer-container {
+  column-gap: 80px;
   display: grid;
-  gap: 40px;
-  grid-template-columns: repeat(3, minmax(200px, 1fr));
-  margin: 0 auto 40px;
-  max-width: 1300px;
-  padding: 0 20px;
+  grid-template-columns: repeat(3, 1fr);
+  margin: 0 auto 50px;
+  max-width: 1200px;
+  padding: 0 40px;
 }
 
 #footer .footer-section {
@@ -3858,7 +3858,9 @@ h1.main-title-animated .title-icon {
 
 #footer .footer-bottom {
   border-top: 1px solid rgb(200 34 255 / 20%);
-  padding-top: 20px;
+  margin: 60px auto 0;
+  max-width: 1200px;
+  padding: 30px 40px 0;
   text-align: center;
 }
 
@@ -4503,7 +4505,7 @@ body.body-menu-open #footer {
 #footer p {
   font-size: 0.9rem;
   margin-right: auto;
-  text-align: left;
+  text-align: center;
 }
 
 /* Container pour les icônes sociales */
