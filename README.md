@@ -1,15 +1,15 @@
 # 🌐 Digitalblueskye – Mon Portfolio Web
 
-Bienvenue sur **Digitalblueskye**, mon site web perso.  
-Ce site présente une sélection de mes projets en tant qu'**intégrateur web** et **développeur web**, et accompagnera mon évolution vers un rôle de **chef de projet digital**.
+Bienvenue sur **Digitalblueskye**, mon site web personnel de présentation.  
+Ce site présente une sélection de mes projets en tant qu'**intégrateur web** et **développeur web**, et accompagnera mon évolution vers le rôle de **chef de projet digital**.
 
 ---
 
 ## 👨‍💻 À propos de moi
 
 Je m'appelle **Djelloul**.  
-Passionné par le web, je conçois et développe des sites modernes, accessibles et performants grâce à l'aide l'IA.  
-Mon parcours m’a amené à explorer plusieurs facettes du digital : intégration, développement front-end, design web et bientôt gestion de projets digitaux.
+Passionné par le web, j'ai conçu et développé mon site web grâce à l'aide de l'IA.  
+Mon parcours m’a amené à explorer plusieurs facettes du digital : l'intégration, le développement front-end, le design web et actuellement la gestion de projets digitaux plus globalement.
 
 ---
 
@@ -50,7 +50,7 @@ Voici un aperçu de quelques projets que vous pouvez retrouver sur ce site :
 
 - [Mon profil LinkedIn](https://www.linkedin.com/in/yellowblueskye/)
 - [Mon GitHub](https://github.com/Dev-Djelloul/)
-- [Contact](mailto:djelloulabid75@gmail.com)
+- [Contact](mailto:digitalblueskye@gmail.com)
 
 ---
 
