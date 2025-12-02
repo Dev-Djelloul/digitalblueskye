@@ -25,7 +25,7 @@
 
 [data-theme="light"] {
   /* Variables pour le thème clair */
-  --background-color: rgb(242 240 250);
+  --background-color: white;
   --text-color: #5d5dff;
   --card-bg: rgb(255 255 255 / 80%);
   --accent-color: #c822ff; /* Couleur d'accentuation change en rose */
@@ -95,11 +95,13 @@ body::after {
   opacity: 0;
 }
 
+/*
 h1,
 h2,
 h3 {
   font-family: Iceland, sans-serif;
 }
+*/
 
 p,
 li,
@@ -629,12 +631,12 @@ section#skills,
 
 /* Animation depuis la gauche */
 .slide-from-left {
-  transform: translateX(-300px); /* Valeur par défaut pour les grands écrans */
+  transform: translateX(-250px); /* Valeur par défaut pour les grands écrans */
 }
 
 /* Animation depuis la droite */
 .slide-from-right {
-  transform: translateX(300px); /* Valeur par défaut */
+  transform: translateX(250px); /* Valeur par défaut */
 }
 
 /* Animation depuis le bas */
@@ -1831,7 +1833,7 @@ h1.main-title-animated .title-icon {
 .container {
   margin: 0 auto;
   max-width: 1200px;
-  padding: 0 10px;
+  padding: 0 30px;
 }
 
 /* =========================
@@ -2790,7 +2792,6 @@ h1.main-title-animated .title-icon {
 .project-card img {
   object-fit: contain;
   border-bottom: 3px solid transparent;
-  border-image: linear-gradient(45deg, var(--accent-color), #c822ff) 1;
   height: 300px;
 }
 
@@ -3888,7 +3889,7 @@ body.body-menu-open #footer {
 
 [data-theme="light"] #footer .footer-section p,
 [data-theme="light"] #footer .footer-section a {
-  color: #4a4a5e;
+  color: var(--accent-color);
 }
 
 [data-theme="light"] #footer .footer-section a:hover {
@@ -3896,7 +3897,7 @@ body.body-menu-open #footer {
 }
 
 [data-theme="light"] #footer .footer-bottom p {
-  color: #7a7a8e;
+  color: var(--accent-color);
 }
 
 [data-theme="light"] #footer .footer-social a {
@@ -4221,7 +4222,7 @@ body.body-menu-open #footer {
   .intro-text .content-wrapper {
     flex-direction: column;
     gap: 30px;
-    max-width: 400px; /* Largeur maximale réduite */
+    max-width: 100%; 
     padding: 30px;
     width: 100%;
   }
@@ -4296,7 +4297,7 @@ body.body-menu-open #footer {
 
   /* Menu dropdown en mode thème clair */
   [data-theme="light"] .dropdown-menu {
-    background-color: rgb(240 238 255) !important;
+    background-color: white;
   }
 
   /* Si vous voulez aussi modifier l'overlay en mode clair */
@@ -4340,7 +4341,7 @@ body.body-menu-open #footer {
 } /* Liens projet plus petits */
 .projects-grid {
   grid-template-columns: 1fr;
-  padding: 0 175px;
+  padding: 0 30px 100px;
 } /* Grille projets 1 colonne */
 .project-links a {
   font-size: 1.2rem;
@@ -4506,6 +4507,7 @@ body.body-menu-open #footer {
 #footer p {
   font-size: 0.9rem;
   margin-right: auto;
+  color: #8a8a9e;
   text-align: center;
 }
 
@@ -4519,9 +4521,9 @@ body.body-menu-open #footer {
 /* Supprime la règle qui centre les icônes */
 #footer div:first-of-type {
   display: inline-flex;
-  gap: 0;
+  gap: 5px;
   justify-content: center;
-  width: auto;
+  width: 100%;
 }
 
 #footer img {
