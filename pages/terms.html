@@ -7,6 +7,16 @@
       name="description"
     content="Conditions d'utilisation de Digitalblueskye. Consultez les conditions d'accès et d'utilisation de notre site."
     />
+    <link rel="canonical" href="https://digitalblueskye.netlify.app/pages/terms.html" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Conditions d&#x27;utilisation - Digitalblueskye" />
+    <meta property="og:description" content="Conditions d&#x27;utilisation de Digitalblueskye. Consultez les conditions d&#x27;accès et d&#x27;utilisation de notre site." />
+    <meta property="og:image" content="https://digitalblueskye.netlify.app/assets/images/logo/Logo-Globe-Blue.png" />
+    <meta property="og:url" content="https://digitalblueskye.netlify.app/pages/terms.html" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Conditions d&#x27;utilisation - Digitalblueskye" />
+    <meta name="twitter:description" content="Conditions d&#x27;utilisation de Digitalblueskye. Consultez les conditions d&#x27;accès et d&#x27;utilisation de notre site." />
+    <meta name="twitter:image" content="https://digitalblueskye.netlify.app/assets/images/logo/Logo-Globe-Blue.png" />
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-XJ51Y4QD25"></script>
     <script>
@@ -26,8 +36,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Iceland&display=swap"
       rel="stylesheet"
@@ -55,18 +63,24 @@
         </a>
       </div>
       <div class="menu-controls">
-        <button id="lang-switch" class="lang-button" aria-label="Changer de langue">
-          <a href="javascript:void(0)" id="switch-to-en" title="Switch to English">
+        <div class="language-switch" role="group" aria-label="Changer de langue">
+          <button
+            id="switch-to-en"
+            class="lang-button"
+            type="button"
+            title="Switch to English"
+          >
             <img
               src="/assets/images/ui/icons8-uk-flag-48.png"
               alt="English"
               width="32"
               height="32"
             />
-          </a>
-          <a
-            href="javascript:void(0)"
+          </button>
+          <button
             id="switch-to-fr"
+            class="lang-button"
+            type="button"
             style="display: none"
             title="Passer en français"
           >
@@ -76,8 +90,8 @@
               width="32"
               height="32"
             />
-          </a>
-        </button>
+          </button>
+        </div>
         <button id="theme-switch" aria-label="Changer de thème">
           <svg width="24" height="24" viewBox="0 0 24 24" class="moon-icon">
             <path

@@ -21,8 +21,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Iceland&display=swap"
       rel="stylesheet"
@@ -53,14 +51,11 @@
       </div>
       <!-- Contrôles alignés -->
       <div class="menu-controls">
-        <button
-          id="lang-switch"
-          class="lang-button"
-          aria-label="Changer de langue"
-        >
-          <a
-            href="javascript:void(0)"
+        <div class="language-switch" role="group" aria-label="Changer de langue">
+          <button
             id="switch-to-en"
+            class="lang-button"
+            type="button"
             title="Switch to English"
           >
             <img
@@ -69,10 +64,11 @@
               width="32"
               height="32"
             />
-          </a>
-          <a
-            href="javascript:void(0)"
+          </button>
+          <button
             id="switch-to-fr"
+            class="lang-button"
+            type="button"
             style="display: none"
             title="Passer en français"
           >
@@ -82,8 +78,8 @@
               width="32"
               height="32"
             />
-          </a>
-        </button>
+          </button>
+        </div>
         <button id="theme-switch" aria-label="Changer de thème">
           <svg width="24" height="24" viewBox="0 0 24 24" class="moon-icon">
             <path

@@ -7,14 +7,18 @@
       name="description"
       content="Chef de projet digital & consultant en stratégie numérique — portfolio et analyses sur l'IA, RGPD, RSE et design web. Projets, articles et prestations pour accompagner la transformation digitale."
     />
-    <!-- Open Graph / Social -->
+    <link rel="canonical" href="https://digitalblueskye.netlify.app/" />
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="Digitalblueskye — Chef de projet digital" />
-    <meta property="og:description" content="Chef de projet digital & consultant en stratégie numérique — audits, accompagnement RGPD, veille technologique et optimisation web." />
-    <meta property="og:image" content="/assets/images/logo/Logo-Globe-Blue.png" />
-    <meta property="og:url" content="/index.html" />
+    <meta property="og:title" content="Digitalblueskye Blog" />
+    <meta property="og:description" content="Chef de projet digital &amp; consultant en stratégie numérique — portfolio et analyses sur l&#x27;IA, RGPD, RSE et design web. Projets, articles et prestations pour accompagner la transformation digitale." />
+    <meta property="og:image" content="https://digitalblueskye.netlify.app/assets/images/logo/Logo-Globe-Blue.png" />
+    <meta property="og:url" content="https://digitalblueskye.netlify.app/" />
     <meta name="twitter:card" content="summary_large_image" />
-    <!-- Google tag (gtag.js) -->
+    <meta name="twitter:title" content="Digitalblueskye Blog" />
+    <meta name="twitter:description" content="Chef de projet digital &amp; consultant en stratégie numérique — portfolio et analyses sur l&#x27;IA, RGPD, RSE et design web. Projets, articles et prestations pour accompagner la transformation digitale." />
+    <meta name="twitter:image" content="https://digitalblueskye.netlify.app/assets/images/logo/Logo-Globe-Blue.png" />
+    <!-- Open Graph / Social -->
+<!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-XJ51Y4QD25"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -40,8 +44,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Iceland&display=swap"
       rel="stylesheet"
@@ -61,7 +63,7 @@
             "@type": "Person",
             "name": "Djelloul (Yellow)",
             "jobTitle": "Chef de projet digital",
-            "url": "/",
+            "url": "https://digitalblueskye.netlify.app/",
             "sameAs": [
               "https://github.com/Dev-Djelloul",
               "https://www.linkedin.com/in/yellowblueskye/"
@@ -74,7 +76,7 @@
           {
             "@type": "WebSite",
             "name": "Digitalblueskye",
-            "url": "/"
+            "url": "https://digitalblueskye.netlify.app/"
           }
         ]
       }
@@ -97,14 +99,11 @@
       </div>
       <!-- Contrôles alignés -->
       <div class="menu-controls">
-        <button
-          id="lang-switch"
-          class="lang-button"
-          aria-label="Changer de langue"
-        >
-          <a
-            href="javascript:void(0)"
+        <div class="language-switch" role="group" aria-label="Changer de langue">
+          <button
             id="switch-to-en"
+            class="lang-button"
+            type="button"
             title="Switch to English"
           >
             <img
@@ -113,10 +112,11 @@
               width="32"
               height="32"
             />
-          </a>
-          <a
-            href="javascript:void(0)"
+          </button>
+          <button
             id="switch-to-fr"
+            class="lang-button"
+            type="button"
             style="display: none"
             title="Passer en français"
           >
@@ -126,8 +126,8 @@
               width="32"
               height="32"
             />
-          </a>
-        </button>
+          </button>
+        </div>
         <button id="theme-switch" aria-label="Changer de thème">
           <svg width="24" height="24" viewBox="0 0 24 24" class="moon-icon">
             <path
