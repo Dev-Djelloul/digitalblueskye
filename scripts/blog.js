@@ -59,9 +59,40 @@ document.addEventListener('DOMContentLoaded', function() {
   // Variables pour suivre l'état
   let articlesContent = {}; // Contenu complet des articles (chargé depuis JSON)
   let currentPage = 1;      // Suivre la page de pagination actuelle
+
+  // Gestion des ancres de pagination (ex: #page-2)
+  function getPageFromHash() {
+    const match = window.location.hash.match(/^#page-(\d+)$/);
+    return match ? parseInt(match[1], 10) : null;
+  }
+
+  function setPageHash(pageNumber) {
+    const nextHash = `#page-${pageNumber}`;
+    if (window.location.hash !== nextHash) {
+      if (history.replaceState) {
+        history.replaceState(null, '', nextHash);
+      } else {
+        window.location.hash = nextHash;
+      }
+    }
+  }
+
+  function scrollToPageAnchor() {
+    const anchor = document.getElementById('filtres') ||
+      document.querySelector('.blog-filters');
+    if (anchor) {
+      const header = document.querySelector('.site-header');
+      const headerOffset = header ? header.offsetHeight + 16 : 16;
+      const anchorTop = anchor.getBoundingClientRect().top + window.pageYOffset;
+      const scrollTarget = Math.max(anchorTop - headerOffset, 0);
+      window.scrollTo({ top: scrollTarget, behavior: 'smooth' });
+    }
+  }
   
-  // Charger le contenu des articles au démarrage
-  loadArticlesContent();
+  // Charger le contenu des articles au démarrage (page depuis l'ancre si dispo)
+  const initialPage = getPageFromHash() || 1;
+  currentPage = initialPage;
+  loadArticlesContent(initialPage);
   
   // Détecter les changements de langue
   if (languageButton) {
@@ -170,14 +201,28 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Pagination fonctionnelle
   const paginationButtons = document.querySelectorAll('.pagination-btn');
-  const articlesPerPage = 3; // Nombre d'articles par page
+  const pageButtons = document.querySelectorAll('.pagination-btn[data-page]');
+  const navButtons = document.querySelectorAll('.pagination-btn[data-nav]');
+  const articlesPerPage = 8; // Nombre d'articles par page
+
+  function getTotalPages() {
+    return Math.max(1, Math.ceil(articleCards.length / articlesPerPage));
+  }
 
   if (paginationButtons.length > 0) {
     paginationButtons.forEach(btn => {
       btn.addEventListener('click', function() {
-        // Récupérer le numéro de la page
-        const pageNumber = parseInt(this.textContent);
-        
+        const totalPages = getTotalPages();
+        let pageNumber = currentPage;
+
+        if (this.dataset.page) {
+          pageNumber = parseInt(this.dataset.page, 10);
+        } else if (this.dataset.nav === 'prev') {
+          pageNumber = Math.max(1, currentPage - 1);
+        } else if (this.dataset.nav === 'next') {
+          pageNumber = Math.min(totalPages, currentPage + 1);
+        }
+
         // Mettre à jour la variable de suivi
         currentPage = pageNumber;
         
@@ -186,9 +231,23 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Mettre à jour l'UI pour montrer la page active
         updatePaginationUI(currentPage);
+
+        // Mettre à jour l'ancre et remonter sur la liste
+        setPageHash(currentPage);
+        scrollToPageAnchor();
       });
     });
   }
+
+  window.addEventListener('hashchange', () => {
+    const hashPage = getPageFromHash();
+    if (hashPage) {
+      currentPage = hashPage;
+      showArticlesForPage(currentPage);
+      updatePaginationUI(currentPage);
+      scrollToPageAnchor();
+    }
+  });
 
   // Mappage des valeurs du select vers les textes réels des catégories
   const categoryMap = {
@@ -201,18 +260,32 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Nouvelle fonction pour mettre à jour l'UI de pagination
   function updatePaginationUI(activePage) {
-    if (paginationButtons.length > 0) {
-      // D'abord, supprimer la classe active de tous les boutons
-      paginationButtons.forEach(btn => btn.classList.remove('active'));
+    const totalPages = getTotalPages();
+
+    if (pageButtons.length > 0) {
+      // D'abord, supprimer la classe active de tous les boutons de page
+      pageButtons.forEach(btn => btn.classList.remove('active'));
       
       // Ensuite, ajouter la classe active uniquement au bouton de la page active
-      const activeBtn = Array.from(paginationButtons).find(
-        btn => parseInt(btn.textContent) === activePage
+      const activeBtn = Array.from(pageButtons).find(
+        btn => parseInt(btn.dataset.page, 10) === activePage
       );
       
       if (activeBtn) {
         activeBtn.classList.add('active');
       }
+    }
+
+    if (navButtons.length > 0) {
+      navButtons.forEach(btn => {
+        const isPrev = btn.dataset.nav === 'prev';
+        const isNext = btn.dataset.nav === 'next';
+        const shouldDisable = (isPrev && activePage <= 1) ||
+          (isNext && activePage >= totalPages);
+
+        btn.disabled = shouldDisable;
+        btn.setAttribute('aria-disabled', shouldDisable ? 'true' : 'false');
+      });
     }
   }
 
@@ -319,9 +392,17 @@ document.addEventListener('DOMContentLoaded', function() {
       // En mode recherche, ne pas paginer
       return;
     }
+
+    const totalPages = getTotalPages();
+    const safePageNumber = Math.min(Math.max(pageNumber, 1), totalPages);
+    if (safePageNumber !== pageNumber) {
+      currentPage = safePageNumber;
+      updatePaginationUI(currentPage);
+      setPageHash(currentPage);
+    }
     
     // Calculer les indices de début et de fin
-    const startIndex = (pageNumber - 1) * articlesPerPage;
+    const startIndex = (safePageNumber - 1) * articlesPerPage;
     const endIndex = startIndex + articlesPerPage;
     
     let hasVisibleArticles = false;

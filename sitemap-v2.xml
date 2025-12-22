@@ -41,7 +41,7 @@
   <!-- Blog - Coin Digital -->
   <url>
     <loc>https://digitalblueskye.netlify.app/blog/digital/blogArticles.html</loc>
-    <lastmod>2025-12-01</lastmod>
+    <lastmod>2026-01-18</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
@@ -82,6 +82,11 @@
   <url>
     <loc>https://digitalblueskye.netlify.app/blog/digital/article-seo-chef-projet.html</loc>
     <lastmod>2025-12-01</lastmod>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://digitalblueskye.netlify.app/blog/digital/article-rgpd-ia-securite.html</loc>
+    <lastmod>2026-01-18</lastmod>
     <priority>0.65</priority>
   </url>
 </urlset>
