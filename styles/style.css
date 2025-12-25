@@ -241,7 +241,7 @@ section#skills,
 }
 
 .footer-logo-video #logo-video-dropdown {
-  margin: 0;
+  margin: 15px;
 }
 
 /* Animation d'apparition séquentielle */
@@ -1175,7 +1175,7 @@ header.nav-scrolled,
   color: var(--accent-color);
   display: block;
   font-family: Iceland, sans-serif;
-  font-size: 1.4rem;
+  font-size: 1.2rem;
   padding: 10px 15px;
   width: 100%;
 }
@@ -2588,6 +2588,54 @@ h1.main-title-animated .title-icon {
   padding: 50px;
 }
 
+.page-about main {
+  background:
+    radial-gradient(circle at 12% 8%, rgb(93 93 255 / 18%), transparent 45%),
+    radial-gradient(circle at 88% 18%, rgb(255 140 66 / 14%), transparent 40%),
+    linear-gradient(180deg, rgb(10 12 24 / 65%) 0%, rgb(10 12 24 / 0%) 40%);
+  padding: 80px 0 130px;
+  position: relative;
+}
+
+.page-about .intro-text {
+  display: flex;
+  justify-content: center;
+  padding: 40px 20px 10px;
+}
+
+.page-about .intro-text .profile-photo-container {
+  background: linear-gradient(135deg, rgb(93 93 255 / 35%), rgb(0 0 0 / 0%));
+  border-radius: 26px;
+  padding: 20px;
+}
+
+.page-about .about-text-box {
+  background: linear-gradient(145deg, rgb(16 18 34 / 92%), rgb(22 26 44 / 86%));
+  border: 1px solid rgb(93 93 255 / 25%);
+  border-radius: 28px;
+  box-shadow: 0 30px 80px rgb(5 8 20 / 60%);
+  margin: 80px auto 40px;
+  max-width: 920px;
+  overflow: hidden;
+  padding: 70px;
+  position: relative;
+}
+
+.page-about .about-text-box::before {
+  background: radial-gradient(circle, rgb(93 93 255 / 18%), transparent 65%);
+  content: "";
+  height: 280px;
+  left: -120px;
+  position: absolute;
+  top: -140px;
+  width: 280px;
+}
+
+.page-about .about-text-box > * {
+  position: relative;
+  z-index: 1;
+}
+
 /* Typographic hierarchy for about section */
 .about-text-box h1 {
   font-size: 2.2rem;
@@ -2603,6 +2651,16 @@ h1.main-title-animated .title-icon {
   line-height: 1.4;
   margin-bottom: 1.2rem;
   margin-top: 2rem;
+}
+
+.page-about .about-text-box h2::after {
+  background: linear-gradient(90deg, var(--accent-color), #ff8c42);
+  border-radius: 999px;
+  content: "";
+  display: block;
+  height: 3px;
+  margin-top: 10px;
+  width: 68px;
 }
 
 .about-text-box h3 {
@@ -2624,10 +2682,21 @@ h1.main-title-animated .title-icon {
   transition: transform 0.3s;
 } /* Style des paragraphes */
 
+.page-about .about-text-box p,
+.page-about .about-text-box li {
+  background: none;
+  color: var(--text-color);
+}
+
 .about-text-box ul {
   margin-bottom: 1.2rem;
   margin-top: 0.8rem;
   padding-left: 1.5rem;
+}
+
+.page-about .about-text-box ul {
+  list-style: none;
+  padding-left: 0;
 }
 
 .about-text-box li {
@@ -2637,6 +2706,57 @@ h1.main-title-animated .title-icon {
   font-size: 1.05rem;
   line-height: 1.6;
   margin-bottom: 0.6rem;
+}
+
+.page-about .about-text-box li {
+  padding-left: 24px;
+  position: relative;
+}
+
+.page-about .about-text-box li::before {
+  background: linear-gradient(135deg, var(--accent-color), #ff8c42);
+  border-radius: 50%;
+  content: "";
+  height: 8px;
+  left: 0;
+  position: absolute;
+  top: 10px;
+  width: 8px;
+}
+
+.page-about .about-cta {
+  align-items: center;
+  border-top: 1px solid rgb(93 93 255 / 25%);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 32px;
+  padding-top: 24px;
+  text-align: center;
+}
+
+.page-about .about-cta-note {
+  color: rgb(226 231 255 / 70%);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.page-about .btn-download-cv {
+  background: linear-gradient(135deg, #ff8c42, #5d5dff);
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 999px;
+  box-shadow: 0 16px 40px rgb(93 93 255 / 35%);
+  color: #fff;
+  font-size: 1.1rem;
+  gap: 12px;
+  letter-spacing: 0.02em;
+  padding: 14px 34px;
+  text-transform: uppercase;
+}
+
+.page-about .btn-download-cv:hover {
+  box-shadow: 0 22px 45px rgb(93 93 255 / 45%);
+  transform: translateY(-4px);
 }
 
 .link-schools-openclassrooms,
@@ -2671,6 +2791,28 @@ h1.main-title-animated .title-icon {
 [data-theme="light"] .about-text-box p {
   color: var(--accent-color);
 } /* Couleur du texte en thème clair */
+
+[data-theme="light"] .page-about main {
+  background:
+    radial-gradient(circle at 12% 8%, rgb(93 93 255 / 20%), transparent 45%),
+    radial-gradient(circle at 88% 18%, rgb(255 140 66 / 16%), transparent 40%),
+    linear-gradient(180deg, rgb(245 246 255 / 90%) 0%, rgb(245 246 255 / 0%) 45%);
+}
+
+[data-theme="light"] .page-about .about-text-box {
+  background: #fff;
+  border-color: rgb(93 93 255 / 20%);
+  box-shadow: 0 22px 50px rgb(93 93 255 / 18%);
+}
+
+[data-theme="light"] .page-about .about-cta-note {
+  color: rgb(90 98 140);
+}
+
+[data-theme="light"] .page-about .btn-download-cv {
+  border-color: rgb(93 93 255 / 20%);
+  box-shadow: 0 16px 35px rgb(93 93 255 / 22%);
+}
 [data-theme="light"] .link-schools-openclassrooms,
 [data-theme="light"] .link-schools-studi {
   border-bottom-color: var(--accent-color);
@@ -4072,7 +4214,7 @@ h1.main-title-animated .title-icon {
 /* Effet d'agrandissement au survol */
 #logo-video-dropdown:hover {
   /* Agrandit la vidéo de 10% (ajustez la valeur si besoin) */
-  transform: scale(2.2);
+  transform: scale(1.4);
 }
 
 /* Styles Contact en thème clair */
@@ -4736,6 +4878,11 @@ body.body-menu-open #footer {
     margin-right: 8px; /* Réduire l'espace de l'icône si besoin */
   }
 
+  .page-about .btn-download-cv {
+    max-width: 320px;
+    width: 100%;
+  }
+
   .explorer-layout-container {
     /* AJOUT : Empiler les panneaux verticalement */
     flex-direction: column;
@@ -4966,7 +5113,7 @@ body.body-menu-open #footer {
 }
 
 .scroll-to-top {
-  bottom: 80px;
+  bottom: 90px;
 }
 
 #footer {
