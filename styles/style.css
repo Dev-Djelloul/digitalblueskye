@@ -5439,6 +5439,24 @@ body.body-menu-open #footer {
   line-height: 1.6;
 }
 
+.trust-card-link {
+  color: var(--accent-color);
+  display: inline-flex;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-top: 12px;
+  text-decoration: none;
+  width: 100%;
+}
+
+.trust-card-link + .trust-card-link {
+  margin-top: 6px;
+}
+
+.trust-card-link:hover {
+  text-decoration: underline;
+}
+
 /* Section méthodologie et compétences */
 .trust-methodology {
   background: linear-gradient(135deg, rgb(93 93 255 / 5%), rgb(200 34 255 / 5%));
