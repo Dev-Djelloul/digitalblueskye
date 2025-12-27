@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Carnet d'inspirations de Digitalblueskye : voyages, couleurs, textures, architecture et instants marquants. Une galerie vivante avec récits et repères visuels."
+    />
+    <link rel="canonical" href="https://digitalblueskye.netlify.app/blog/inspirations/carnets-inspirations.html" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Mes carnets d'inspirations - Digitalblueskye" />
+    <meta property="og:description" content="Voyages, couleurs, textures, architecture et instants marquants. Une galerie vivante avec récits et repères visuels." />
+    <meta property="og:image" content="https://digitalblueskye.netlify.app/assets/images/logo/Logo-Globe-Blue.png" />
+    <meta property="og:url" content="https://digitalblueskye.netlify.app/blog/inspirations/carnets-inspirations.html" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Mes carnets d'inspirations - Digitalblueskye" />
+    <meta name="twitter:description" content="Voyages, couleurs, textures, architecture et instants marquants. Une galerie vivante avec récits et repères visuels." />
+    <meta name="twitter:image" content="https://digitalblueskye.netlify.app/assets/images/logo/Logo-Globe-Blue.png" />
+    <!-- Google tag (gtag.js) -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-XJ51Y4QD25"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+      gtag("config", "G-XJ51Y4QD25");
+    </script>
+    <title data-i18n="inspirations.metaTitle">Mes carnets d'inspirations | Digitalblueskye</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "name": "Mes carnets d'inspirations",
+        "description": "Voyages, couleurs, textures, architecture et instants marquants. Une galerie vivante avec récits et repères visuels.",
+        "url": "https://digitalblueskye.netlify.app/blog/inspirations/carnets-inspirations.html"
+      }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/css2?family=Iceland&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles/style.css" />
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+    />
+  </head>
+  <body>
+    <!-- Header fixe avec logo et hamburger -->
+    <header class="site-header">
+      <div class="header-placeholder"></div>
+      <!-- Logo -->
+      <div class="header-logo">
+        <a href="/index.html" title="Retour à l'accueil">
+          <img
+            src="/assets/images/logo/Logo-Globe.png"
+            alt="Logo YellowBlueSkye"
+            width="50"
+            height="50"
+          />
+        </a>
+      </div>
+      <!-- Contrôles alignés -->
+      <div class="menu-controls">
+        <div class="language-switch" role="group" aria-label="Changer de langue">
+          <button
+            id="switch-to-en"
+            class="lang-button"
+            type="button"
+            title="Switch to English"
+          >
+            <img
+              src="/assets/images/ui/icons8-uk-flag-48.png"
+              alt="English"
+              width="32"
+              height="32"
+            />
+          </button>
+          <button
+            id="switch-to-fr"
+            class="lang-button"
+            type="button"
+            style="display: none"
+            title="Passer en français"
+          >
+            <img
+              src="/assets/images/ui/icons8-french-flag-48.png"
+              alt="Français"
+              width="32"
+              height="32"
+            />
+          </button>
+        </div>
+        <button id="theme-switch" aria-label="Changer de thème">
+          <svg width="24" height="24" viewBox="0 0 24 24" class="moon-icon">
+            <path
+              d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"
+              fill="currentColor"
+            />
+          </svg>
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            class="sun-icon"
+            style="display: none"
+          >
+            <path
+              d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0-5a1 1 0 0 0 1-1V1a1 1 0 0 0-2 0v0a1 1 0 0 0 1 1zm0 20a1 1 0 0 0-1 1v0a1 1 0 0 0 2 0v0a1 1 0 0 0-1-1zm10-11h0a1 1 0 0 0 0-2h0a1 1 0 0 0 0 2zM2 11h0a1 1 0 0 0 0 2h0a1 1 0 0 0 0-2zm16.95-5.95a1 1 0 0 0 0-1.41l0 0a1 1 0 0 0-1.41 0l0 0a1 1 0 0 0 0 1.41l0 0a1 1 0 0 0 1.41 0zm-14.9 14.9a1 1 0 0 0 0-1.41l0 0a1 1 0 0 0-1.41 0l0 0a1 1 0 0 0 0 1.41l0 0a1 1 0 0 0 1.41 0zM18.95 18.95a1 1 0 0 0 0-1.41l0 0a1 1 0 0 0-1.41 0l0 0a1 1 0 0 0 0 1.41l0 0a1 1 0 0 0 1.41 0zm-14.9-14.9a1 1 0 0 0 0-1.41l0 0a1 1 0 0 0-1.41 0l0 0a1 1 0 0 0 0 1.41l0 0a1 1 0 0 0 1.41 0z"
+              fill="currentColor"
+            />
+          </svg>
+        </button>
+      </div>
+      <!-- Hamburger placé DANS le header -->
+      <div class="hamburger" id="hamburger" aria-label="Menu">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="60"
+          height="60"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </div>
+    </header>
+
+    <!-- Menu dropdown qui apparaît sous le header -->
+    <div class="dropdown-menu" id="dropdown-menu">
+      <nav class="dropdown-nav">
+        <ul>
+          <li>
+            <a href="/index.html" data-i18n="nav.home"><h2>Accueil</h2></a>
+          </li>
+          <li>
+            <a href="/pages/about.html" data-i18n="nav.about"
+              ><h2>A propos de moi</h2></a
+            >
+          </li>
+          <li class="dropdown-submenu">
+            <a class="nav-link nav-link-with-submenu">
+              <span data-i18n="nav.explore">Exploration</span>
+              <span class="submenu-chevron" aria-hidden="true">▾</span>
+            </a>
+            <ul class="submenu-list">
+              <li>
+                <a
+                  class="nav-link submenu-link"
+                  href="/pages/skills.html"
+                  data-i18n="nav.skills"
+                  >Mes compétences</a
+                >
+              </li>
+              <li>
+                <a
+                  class="nav-link submenu-link"
+                  href="/pages/projects.html"
+                  data-i18n="nav.projects"
+                  >Mes projets</a
+                >
+              </li>
+              <li>
+                <a
+                  class="nav-link submenu-link"
+                  href="/pages/visualTourProjects.html"
+                  data-i18n="nav.images"
+                  >Galerie</a
+                >
+              </li>
+            </ul>
+          </li>
+          <li>
+            <a
+              href="/blog/digital/blogArticles.html"
+              data-i18n="nav.blogDigital"
+              ><h2>L'actu du Coin Digital</h2></a
+            >
+          </li>
+          <li>
+            <a
+              href="/blog/inspirations/carnets-inspirations.html"
+              data-i18n="nav.blogInspiration"
+              ><h2>Mes carnets d’inspirations</h2></a
+            >
+          </li>
+          <li>
+            <a href="/pages/contact.html" data-i18n="nav.contact"
+              ><h2>Contactez-moi</h2></a
+            >
+          </li>
+        </ul>
+      </nav>
+      <div class="social-media" data-aos="fade-up"></div>
+    </div>
+    <div class="menu-overlay" id="menu-overlay"></div>
+    <!-- Fin du menu dropdown -->
+
+    <main class="inspirations-main">
+      <!-- Photo d'entrée en matière -->
+      <section class="inspirations-cover" id="inspiration-cover" data-aos="fade-up">
+        <div class="cover-image-wrapper">
+          <img
+            src="/assets/images/travel inspirations/Cover image/I-love-travel.jpg"
+            alt="Cover Inspirations & Voyages"
+            class="cover-image"
+          />
+        </div>
+      </section>
+
+      <!-- Section héro immersive -->
+      <section class="inspirations-hero" data-aos="fade-up">
+        <div
+          class="hero-bg"
+          style="background-image: url('/assets/images/inspirations/hero-voyage.jpg');"
+        >
+          <div class="hero-overlay"></div>
+          <div class="hero-content">
+            <p class="hero-eyebrow" data-i18n="inspirations.heroEyebrow">Fragments d'inspiration</p>
+            <p class="hero-lead" data-i18n="inspirations.heroSubtitle">
+              Voyages, textures, couleurs et architectures qui nourrissent mon esprit.
+            </p>
+            <div class="hero-actions">
+            </div>
+            <ul class="hero-badges" aria-label="Repères du carnet">
+              <li data-i18n="inspirations.heroBadge1">Voyages & récits</li>
+              <li data-i18n="inspirations.heroBadge2">Couleurs & matières</li>
+              <li data-i18n="inspirations.heroBadge3">Architecture & détails</li>
+              <li data-i18n="inspirations.heroBadge4">Nature & instants</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+
+      <section class="inspirations-feed section-padding" id="inspiration-feed" data-aos="fade-up">
+        <div class="section-header">
+        </div>
+
+        <div class="inspiration-filters" role="tablist" aria-label="Filtres du carnet">
+          <button class="filter-chip is-active" type="button" data-filter="all" data-i18n="inspirations.filterAll">Tout</button>
+          <button class="filter-chip" type="button" data-filter="voyage" data-i18n="inspirations.filterTravel">Voyage</button>
+          <button class="filter-chip" type="button" data-filter="architecture" data-i18n="inspirations.filterArchitecture">Architecture</button>
+          <button class="filter-chip" type="button" data-filter="nature" data-i18n="inspirations.filterNature">Nature</button>
+          <button class="filter-chip" type="button" data-filter="temple" data-i18n="inspirations.filterTemple">Temple</button>
+          <button class="filter-chip" type="button" data-filter="collage" data-i18n="inspirations.filterCollage">Collage</button>
+          <button class="filter-chip" type="button" data-filter="videos" data-i18n="inspirations.filterVideos">Vidéos</button>
+        </div>
+
+        <div class="inspiration-grid" id="inspirationGrid">
+          <article class="inspiration-card" data-category="architecture collage">
+            <a class="card-media" href="/blog/inspirations/antic-cities-collage-turquie.html" aria-label="Antic cities">
+              <img src="/assets/images/travel inspirations/Antic cities/Collage-Turquie.jpg" alt="Antic cities Collage-Turquie" />
+              <span class="card-tag">Antic cities</span>
+            </a>
+          </article>
+          <article class="inspiration-card" data-category="voyage">
+            <a class="card-media" href="/blog/inspirations/espana-vanupieds.html" aria-label="Espana 🇪🇸">
+              <img src="/assets/images/travel inspirations/España/Vanupieds.jpg" alt="Espana Vanupieds" />
+              <span class="card-tag">Espana <span class="flag-emoji">🇪🇸</span></span>
+            </a>
+          </article>
+          <article class="inspiration-card" data-category="temple">
+            <a class="card-media" href="/blog/inspirations/espana-cathedrale-de-saint-jacques-de-la-compostelle.html" aria-label="Espana 🇪🇸">
+              <img src="/assets/images/travel inspirations/España/Cathédrale de Saint Jacques de la compostelle.jpg" alt="Espana Cathédrale de Saint Jacques de la compostelle" />
+              <span class="card-tag">Espana <span class="flag-emoji">🇪🇸</span></span>
+            </a>
+          </article>
+          <article class="inspiration-card" data-category="nature">
+            <a class="card-media" href="/blog/inspirations/espana-promenons-nous-dans-les-bois.html" aria-label="Espana 🇪🇸">
+              <img src="/assets/images/travel inspirations/España/Promenons nous dans les bois.jpg" alt="Espana Promenons nous dans les bois" />
+              <span class="card-tag">Espana <span class="flag-emoji">🇪🇸</span></span>
+            </a>
+          </article>
+          <article class="inspiration-card" data-category="nature collage">
+            <a class="card-media" href="/blog/inspirations/sweden-abisko-collage.html" aria-label="Sweden 🇸🇪">
+              <img src="/assets/images/travel inspirations/Sweden/Abisko-collage.jpg" alt="Sweden Abisko-collage" />
+              <span class="card-tag">Sweden <span class="flag-emoji">🇸🇪</span></span>
+            </a>
+          </article>
+          <article class="inspiration-card" data-category="nature">
+            <a class="card-media" href="/blog/inspirations/india-devisinghpura-rajasthan-jaipur-2.html" aria-label="India 🇮🇳">
+              <img src="/assets/images/travel inspirations/India/Devisinghpura-rajasthan-jaipur-2.jpg" alt="India Devisinghpura-rajasthan-jaipur-2" />
+              <span class="card-tag">India <span class="flag-emoji">🇮🇳</span></span>
+            </a>
+          </article>
+          <article class="inspiration-card" data-category="temple">
+            <a class="card-media" href="/blog/inspirations/india-devisinghpura-rajasthan-jaipur.html" aria-label="India 🇮🇳">
+              <img src="/assets/images/travel inspirations/India/Devisinghpura-rajasthan-jaipur.jpg" alt="India Devisinghpura-rajasthan-jaipur" />
+              <span class="card-tag">India <span class="flag-emoji">🇮🇳</span></span>
+            </a>
+          </article>
+          <article class="inspiration-card" data-category="voyage">
+            <a class="card-media" href="/blog/inspirations/india-orange-height-phase-i-nala-sopara-india.html" aria-label="India 🇮🇳">
+              <img src="/assets/images/travel inspirations/India/Orange Height Phase I-Nala Sopara-India.jpg" alt="India Orange Height Phase I-Nala Sopara-India" />
+              <span class="card-tag">India <span class="flag-emoji">🇮🇳</span></span>
+            </a>
+          </article>
+          <article class="inspiration-card" data-category="architecture">
+            <a class="card-media" href="/blog/inspirations/india-taj-mahal.html" aria-label="India 🇮🇳">
+              <img src="/assets/images/travel inspirations/India/Taj Mahal.jpg" alt="India Taj Mahal" />
+              <span class="card-tag">India <span class="flag-emoji">🇮🇳</span></span>
+            </a>
+          </article>
+          <article class="inspiration-card" data-category="architecture voyage">
+            <a class="card-media" href="/blog/inspirations/ireland-elizabeth-fort-cork-2.html" aria-label="Ireland 🇮🇪">
+              <img src="/assets/images/travel inspirations/Ireland/Elizabeth Fort-Cork-2.jpg" alt="Ireland Elizabeth Fort-Cork-2" />
+              <span class="card-tag">Ireland <span class="flag-emoji">🇮🇪</span></span>
+            </a>
+          </article>
+          <article class="inspiration-card" data-category="architecture voyage">
+            <a class="card-media" href="/blog/inspirations/ireland-elizabeth-fort-cork.html" aria-label="Ireland 🇮🇪">
+              <img src="/assets/images/travel inspirations/Ireland/Elizabeth Fort-Cork.jpg" alt="Ireland Elizabeth Fort-Cork" />
+              <span class="card-tag">Ireland <span class="flag-emoji">🇮🇪</span></span>
+            </a>
+          </article>
+          <article class="inspiration-card" data-category="nature">
+            <a class="card-media" href="/blog/inspirations/sweden-kungsleden-circuit-de-randonnee-2.html" aria-label="Sweden 🇸🇪">
+              <img src="/assets/images/travel inspirations/Sweden/Kungsleden-circuit de randonnée-2.jpg" alt="Sweden Kungsleden-circuit de randonnée-2" />
+              <span class="card-tag">Sweden <span class="flag-emoji">🇸🇪</span></span>
+            </a>
+          </article>
+          <article class="inspiration-card" data-category="nature">
+            <a class="card-media" href="/blog/inspirations/sweden-kungsleden-circuit-de-randonnee.html" aria-label="Sweden 🇸🇪">
+              <img src="/assets/images/travel inspirations/Sweden/Kungsleden-circuit de randonnée.jpg" alt="Sweden Kungsleden-circuit de randonnée" />
+              <span class="card-tag">Sweden <span class="flag-emoji">🇸🇪</span></span>
+            </a>
+          </article>
+          <article class="inspiration-card" data-category="nature">
+            <a class="card-media" href="/blog/inspirations/sweden-lake-vuolep-njakajaure.html" aria-label="Sweden 🇸🇪">
+              <img src="/assets/images/travel inspirations/Sweden/Lake Vuolep Njakajaure.jpg" alt="Sweden Lake Vuolep Njakajaure" />
+              <span class="card-tag">Sweden <span class="flag-emoji">🇸🇪</span></span>
+            </a>
+          </article>
+          <article class="inspiration-card" data-category="architecture temple">
+            <a class="card-media" href="/blog/inspirations/turkey-bibliotheque-de-celsus.html" aria-label="Turkey 🇹🇷">
+              <img src="/assets/images/travel inspirations/Turkey/Bibliothèque de Celsus.jpg" alt="Turkey Bibliothèque de Celsus" />
+              <span class="card-tag">Turkey <span class="flag-emoji">🇹🇷</span></span>
+            </a>
+          </article>
+          <article class="inspiration-card" data-category="architecture temple">
+            <a class="card-media" href="/blog/inspirations/turkey-musee-a-ciel-ouvert-de-goreme.html" aria-label="Turkey 🇹🇷">
+              <img src="/assets/images/travel inspirations/Turkey/Musée à ciel ouvert de Göreme.jpg" alt="Turkey Musée à ciel ouvert de Göreme" />
+              <span class="card-tag">Turkey <span class="flag-emoji">🇹🇷</span></span>
+            </a>
+          </article>
+          <article class="inspiration-card" data-category="architecture temple">
+            <a class="card-media" href="/blog/inspirations/turkey-theatre-de-hierapolis.html" aria-label="Turkey 🇹🇷">
+              <img src="/assets/images/travel inspirations/Turkey/Théâtre de Hierapolis.jpg" alt="Turkey Théâtre de Hierapolis" />
+              <span class="card-tag">Turkey <span class="flag-emoji">🇹🇷</span></span>
+            </a>
+          </article>
+</div>
+      </section>
+
+      <!-- Section cover stylisée -->
+    </main>
+
+    <button
+      id="scroll-to-top"
+      class="scroll-to-top"
+      data-i18n-title="ui.backToTop"
+      title="Retour en haut"
+    >
+      <svg width="20" height="20" viewBox="0 0 24 24">
+        <path d="M7 14l5-5 5 5z" fill="currentColor"></path>
+      </svg>
+    </button>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+      AOS.init({
+        duration: 1000,
+        once: true,
+      });
+
+      // Script pour le bouton de retour en haut
+      document.addEventListener("DOMContentLoaded", function () {
+        var scrollToTopBtn = document.getElementById("scroll-to-top");
+
+        window.onscroll = function () {
+          if (
+            document.body.scrollTop > 300 ||
+            document.documentElement.scrollTop > 300
+          ) {
+            scrollToTopBtn.style.display = "flex";
+            scrollToTopBtn.style.opacity = "1";
+          } else {
+            scrollToTopBtn.style.opacity = "0";
+            setTimeout(() => {
+              if (
+                document.body.scrollTop <= 300 &&
+                document.documentElement.scrollTop <= 300
+              ) {
+                scrollToTopBtn.style.display = "none";
+              }
+            }, 300);
+          }
+        };
+
+        scrollToTopBtn.addEventListener("click", function () {
+          window.scrollTo({
+            top: 0,
+            behavior: "smooth",
+          });
+        });
+      });
+    </script>
+    <script src="/scripts/loader.js"></script>
+    <script src="/scripts/translator.js"></script>
+    <script src="/scripts/parallax.js"></script>
+    <script src="/scripts/theme-switcher.js"></script>
+    <script src="/scripts/navbar-dropdown.js"></script>
+    <script src="/scripts/welcome-animations.js"></script>
+    <script src="/scripts/scroll-animations.js"></script>
+    <script src="/scripts/newsletter.js"></script>
+    <footer id="footer">
+      <div class="footer-container">
+        <!-- Section Services -->
+        <div class="footer-section">
+          <h3 data-i18n="footer.services">Services</h3>
+          <ul>
+            <li><a href="/pages/projects.html" data-i18n="footer.projects">Nos projets</a></li>
+            <li><a href="/blog/digital/blogArticles.html" data-i18n="footer.blog">Blog & Articles</a></li>
+            <li><a href="/pages/about.html" data-i18n="footer.expertise">Mon expertise</a></li>
+            <li><a href="/pages/contact.html" data-i18n="footer.contact">Me contacter</a></li>
+          </ul>
+        </div>
+
+        <!-- Section Réseaux Sociaux -->
+        <div class="footer-section">
+          <h3 data-i18n="footer.followUs">Suivez-moi</h3>
+          <div class="footer-social">
+            <a href="https://github.com/Dev-Djelloul" target="_blank" rel="noopener noreferrer" title="GitHub">
+              <img src="/assets/images/ui/icons8-github-64.png" alt="Github" />
+            </a>
+            <a href="https://www.linkedin.com/in/yellowblueskye/" target="_blank" rel="noopener noreferrer" title="LinkedIn">
+              <img src="/assets/images/ui/icons8-linkedin-64.png" alt="LinkedIn" />
+            </a>
+          </div>
+          <div class="footer-logo-video">
+            <video id="logo-video-dropdown" autoplay loop muted playsinline>
+              <source
+                src="/assets/videos/logoVideos/Logo-Globe-Video.mp4"
+                type="video/mp4"
+              />
+              <span>YELLOWBLUESKYE LOGO</span>
+            </video>
+          </div>
+        </div>
+
+        <!-- Section Légal -->
+        <div class="footer-section">
+          <h3 data-i18n="footer.legal">Légal</h3>
+          <ul>
+            <li><a href="/pages/privacy.html" data-i18n="footer.privacy">Politique de confidentialité</a></li>
+            <li><a href="/pages/terms.html" data-i18n="footer.terms">Conditions d'utilisation</a></li>
+            <li><a href="/pages/cookies-policy.html" data-i18n="footer.cookies">Gestion des cookies</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Copyright -->
+      <div class="footer-bottom">
+        <p data-i18n="footer.copyright">
+          &copy; 2025 YellowBlueSkye. Tous droits réservés.
+        </p>
+      </div>
+    </footer>
+
+    
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const filterButtons = document.querySelectorAll(".filter-chip");
+    const cards = document.querySelectorAll(".inspiration-card");
+    const countEl = document.getElementById("filterCount");
+
+    function updateCount(count) {
+      if (countEl) {
+        countEl.textContent = count;
+      }
+    }
+
+    function applyFilter(filter) {
+      let visible = 0;
+      cards.forEach((card) => {
+        const categories = (card.dataset.category || "").split(" ");
+        const isVisible = filter === "all" || categories.includes(filter);
+        card.classList.toggle("is-hidden", !isVisible);
+        if (isVisible) visible += 1;
+      });
+      updateCount(visible);
+    }
+
+    if (filterButtons.length) {
+      filterButtons.forEach((button) => {
+        button.setAttribute("aria-pressed", button.classList.contains("is-active"));
+        button.addEventListener("click", () => {
+          filterButtons.forEach((btn) => {
+            btn.classList.remove("is-active");
+            btn.setAttribute("aria-pressed", "false");
+          });
+          button.classList.add("is-active");
+          button.setAttribute("aria-pressed", "true");
+          applyFilter(button.dataset.filter || "all");
+        });
+      });
+      applyFilter("all");
+    }
+  });
+</script>
+
+    
+
+  </body>
+</html>

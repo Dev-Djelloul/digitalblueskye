@@ -14,7 +14,7 @@
     "projects": "Mes projets",
     "skills": "Mes compétences",
     "blogDigital": "L'actualité du Coin Digital",
-    "blogInspiration": "Mon carnet d’inspirations",
+    "blogInspiration": "Mes carnets d’inspirations",
     "contact": "Contactez moi"
   },
   "home": {
@@ -356,18 +356,59 @@
     "noResults": "Aucun article ne correspond à votre recherche"
   },
   "inspirations": {
-    "heroTitle": "Inspirations & Voyages",
+    "metaTitle": "Mon carnet d'inspirations | Digitalblueskye",
+    "heroEyebrow": "Fragments d'inspiration",
+    "heroTitle": "Mes carnets d'inspirations",
+    "heroSubtitle": "Voyages, textures, couleurs et architectures qui nourrissent mon esprit.",
+    "heroCtaPrimary": "Explorer le carnet",
+    "heroCtaSecondary": "Voir la couverture",
+    "heroBadge1": "Voyages & récits",
+    "heroBadge2": "Couleurs & matières",
+    "heroBadge3": "Architecture & détails",
+    "navFeed": "Carnet",
+    "navCover": "Couverture",
+    "feedEyebrow": "Carnet",
+    "feedTitle": "Fragments d'inspiration",
+    "feedLead": "Des scènes, des couleurs et des ambiances qui nourrissent mes projets digitaux. Filtrez par intention pour retrouver l'esprit qui vous parle.",
+    "filterAll": "Tout",
+    "filterTravel": "Voyage",
+    "filterColor": "Couleur",
+    "filterArchitecture": "Architecture",
+    "filterNature": "Nature",
+    "filterRitual": "Rituels",
+    "filterTemple": "Temple",
+    "filterCollage": "Collage",
+    "filterVideos": "Vidéos",
+    "card1Title": "Façades rose et géométrie",
+    "card1Text": "Une palette chaude et des motifs répétitifs qui inspirent des interfaces rythmiques.",
+    "card2Title": "Rituels au lever du jour",
+    "card2Text": "Lumière douce et gestes lents : une ambiance idéale pour des parcours immersifs.",
+    "card3Title": "Espaces ouverts, lignes claires",
+    "card3Text": "Des horizons larges et des contrastes nets pour penser des grilles aérées.",
+    "card4Title": "Textures et épices",
+    "card4Text": "Des matières brutes et des pigments francs pour nourrir des identités visuelles.",
+    "card5Title": "Détails sculptés",
+    "card5Text": "Le souci du détail inspire des micro-interactions précises et élégantes.",
+    "card6Title": "Silhouettes au crépuscule",
+    "card6Text": "Une composition minimaliste pour rappeler l'importance de la respiration visuelle.",
+    "card7Title": "Horizons verts d'Irlande",
+    "card7Text": "Une lumière diffuse et des textures brutes pour des interfaces apaisées.",
+    "card8Title": "Cités antiques, matière et silence",
+    "card8Text": "Pierres chaudes et perspectives calmes pour structurer des parcours durables.",
+    "cardMetaTravel": "Voyage",
+    "cardMetaColor": "Couleur",
+    "cardMetaArchitecture": "Architecture",
+    "cardMetaNature": "Nature",
+    "cardMetaRitual": "Rituels",
+    "cardLink": "Lire le récit",
     "coverCaptionTitle": "Voyage, découverte & émerveillement",
     "coverCaptionText": "Une image, une émotion, une histoire à partager…",
     "storyTitle": "Récit de voyage",
     "storyIntro": "Ici, chaque photo est une porte ouverte sur l’ailleurs.<br>Derrière chaque image, il y a un souffle d’aventure, une anecdote insolite, un parfum d’ailleurs ou un éclat de rire partagé au bout du monde.<br>Laisse-toi embarquer : clique sur une image, et découvre le récit, les secrets, les galères, les émerveillements et les petits bonheurs qui font la magie du voyage.<br>Prêt à explorer ? L’histoire commence là où la photo s’arrête…",
-    "storyPlaceholder": "Clique sur une photo pour plonger dans l’aventure !",
+    "storyPlaceholder": "Cliquez sur une photo pour découvrir le récit.",
     "galleryTitle": "Galerie de photographies",
     "galleryCaption1": "Un lieu qui m’a marqué lors de mon dernier voyage.",
-    "quote": "« Le véritable voyage de découverte ne consiste pas à chercher de nouveaux paysages, mais à avoir de nouveaux yeux. »",
-    "shareTitle": "Partagez vos inspirations !",
-    "shareText": "Vous aussi, partagez vos plus beaux souvenirs de voyage ou vos coups de cœur en me contactant. Ensemble, faisons voyager l’inspiration !",
-    "contactBtn": "Me contacter"
+    "quote": "« Le véritable voyage de découverte ne consiste pas à chercher de nouveaux paysages, mais à avoir de nouveaux yeux. »"
   },
   "legal": {
     "lastUpdated": "Dernière mise à jour : 22 décembre 2025",
@@ -475,6 +516,114 @@
       "impactText": "Le refus des cookies non essentiels n'affecte pas l'accès au site, mais peut limiter certaines mesures d'audience et l'amélioration continue des performances.",
       "contact": "9. Contact",
       "contactInfo": "Pour toute question sur cette politique de cookies, veuillez nous <a href=\"/pages/contact.html\">contacter</a>."
+    }
+  },
+  "inspirationPages": {
+    "common": {
+      "adventureTitle": "Mon aventure",
+      "back": "Retour",
+      "prev": "Précédent",
+      "next": "Suivant"
+    },
+    "tags": {
+      "voyage": "Voyage",
+      "architecture": "Architecture",
+      "nature": "Nature",
+      "temple": "Temple",
+      "collage": "Collage",
+      "videos": "Vidéos"
+    },
+    "entries": {
+      "collage-des-cites-antiques-du-monde-entier": {
+        "title": "Collage des cités antiques du monde entier",
+        "lead": "Un collage de ruines et de pierre claire, où la matière prend le dessus sur la narration. La composition appelle au calme et à l’observation des textures.",
+        "adventure": "J’y vois un fil conducteur entre des lieux éloignés : mêmes pierres, mêmes gestes, mêmes traces du temps. Ce mélange d’architectures nourrit mon regard et me rappelle que l’inspiration voyage sans frontières."
+      },
+      "espana-castelo-de-san-felipe-galicia": {
+        "title": "Castelo de San Felipe",
+        "lead": "Face à l’Atlantique, le Castelo de San Felipe impose ses lignes défensives et son calme minéral. Le vent, la mer et la pierre dialoguent dans une même force tranquille.",
+        "adventure": "Je me suis arrêté sur chaque perspective, comme si le fort racontait sa propre stratégie. Les murs massifs, les ouvertures cadrées sur l’horizon et l’odeur salée composent une scène à la fois brute et apaisante."
+      },
+      "espana-cathedrale-de-saint-jacques-de-la-compostelle": {
+        "title": "Cathédrale de Saint Jacques de la Compostelle",
+        "lead": "Sous les voûtes de la cathédrale, la pierre raconte des siècles de pèlerinage. Une inspiration d’élévation, de lumière et de silence sacré.",
+        "adventure": "Chaque détail sculpté semble porter la mémoire des voyageurs. J’aime cette sensation d’immensité intérieure, cette façon qu’a l’architecture de donner un rythme à la contemplation."
+      },
+      "espana-promenons-nous-dans-les-bois": {
+        "title": "Promenons nous dans les bois",
+        "lead": "Un sentier simple, des feuillages qui filtrent la lumière, et l’envie de ralentir. Une inspiration de nature intime et de respiration longue.",
+        "adventure": "Ici, la composition est faite de nuances : verts profonds, textures humides, lignes souples. C’est un rappel doux que l’équilibre visuel se trouve souvent dans la simplicité."
+      },
+      "espana-vanupieds": {
+        "title": "Vanupieds",
+        "lead": "Une marche légère sur la terre chaude, un rythme simple et un regard ouvert. Vanupieds évoque la liberté de voyager sans filtres, au plus près du sol.",
+        "adventure": "C’est une image qui parle de mouvement et d’instant présent. Elle me rappelle que les plus belles idées naissent souvent quand on ralentit, quand on écoute ses pas plutôt que le bruit du monde."
+      },
+      "india-devisinghpura-rajasthan-jaipur": {
+        "title": "Devisinghpura, Rajasthan",
+        "lead": "Devisinghpura révèle un décor de terre chaude et de contrastes doux. Les formes simples et la lumière sèche offrent une inspiration très architecturale.",
+        "adventure": "Je me souviens d’un rythme lent, d’ombres nettes et d’une palette minérale. Cette scène nourrit un imaginaire de lieux modestes, mais profondément graphiques."
+      },
+      "india-devisinghpura-rajasthan-jaipur-2": {
+        "title": "Devisinghpura, Rajasthan",
+        "lead": "Un fragment de paysage où la nature reprend sa place, entre poussière et végétation. Une ambiance calme, presque suspendue.",
+        "adventure": "Le regard se pose sur les matières brutes, les reliefs et la lumière qui glisse sur le sol. Cette image m’inspire des compositions simples, guidées par la couleur et l’espace."
+      },
+      "india-orange-height-phase-i-nala-sopara-india": {
+        "title": "Orange Height Phase I, Nala Sopara",
+        "lead": "Dans cette scène urbaine, les volumes se superposent et la lumière découpe des lignes nettes. Une inspiration de voyage contemporain, entre densité et graphisme.",
+        "adventure": "J’y vois une énergie vive, un contraste entre vie quotidienne et architecture. Cette photo m’invite à travailler les angles, les ombres et la répétition des formes."
+      },
+      "india-taj-mahal": {
+        "title": "Le Taj Mahal",
+        "lead": "Le Taj Mahal capte la lumière avec une élégance presque irréelle. Marbre, symétries et reflets composent une leçon de pureté.",
+        "adventure": "Ce lieu m’inspire par son équilibre parfait et sa douceur lumineuse. Il rappelle qu’une composition peut être puissante sans être massive, et que la finesse est une force."
+      },
+      "ireland-elizabeth-fort-cork": {
+        "title": "Elizabeth Fort, Cork",
+        "lead": "Elizabeth Fort dessine un anneau protecteur au-dessus de Cork. Une inspiration de géométrie défensive et de panoramas ouverts.",
+        "adventure": "J’y ai ressenti une tension entre mémoire militaire et douceur de la ville. Les murs épais, les lignes courbes et la pierre patinée offrent une richesse graphique durable."
+      },
+      "ireland-elizabeth-fort-cork-2": {
+        "title": "Elizabeth Fort, Cork",
+        "lead": "Une seconde lecture du fort, plus intime, plus proche des textures. Le regard se fixe sur les détails plutôt que sur l’ensemble.",
+        "adventure": "Cette vue me parle d’échelle humaine et de traces du temps. Elle complète la première image en apportant du relief et une matière plus tactile."
+      },
+      "sweden-abisko-collage": {
+        "title": "Abisko",
+        "lead": "Abisko rassemble des éclats de lumière nordique, des reliefs doux et un silence presque palpable. Un collage qui respire et met en scène la clarté scandinave.",
+        "adventure": "Cette composition me rappelle l’importance des blancs et des vides. Elle inspire des mises en page aérées, où l’image se suffit presque à elle-même."
+      },
+      "sweden-kungsleden-circuit-de-randonnee": {
+        "title": "Circuit de randonnée, Kungsleden",
+        "lead": "Le Kungsleden déroule un sentier vaste, clair, presque minimal. Une inspiration d’endurance et de simplicité, portée par l’échelle du paysage.",
+        "adventure": "J’aime cette impression de distance infinie et de souffle long. Elle invite à travailler des compositions ouvertes, à laisser la place à l’air et au silence."
+      },
+      "sweden-kungsleden-circuit-de-randonnee-2": {
+        "title": "Circuit de randonnée, Kungsleden",
+        "lead": "Une autre facette du Kungsleden, plus texturée, plus proche du sol. Le chemin devient matière, le paysage se concentre.",
+        "adventure": "Cette image inspire des détails, des rythmes plus courts, presque musicaux. Elle complète la vue large avec une lecture plus intime de la nature."
+      },
+      "sweden-lake-vuolep-njakajaure": {
+        "title": "Lac Vuolip Njáhkájávri",
+        "lead": "Au bord du lac Vuolep Njakajaure, l’eau calme devient un miroir discret. Une inspiration de sobriété et d’espace, presque méditative.",
+        "adventure": "Je garde l’image d’un silence net, de lignes lisses et de couleurs froides. C’est une source d’inspiration pour des compositions épurées et centrées."
+      },
+      "turkey-bibliotheque-de-celsus": {
+        "title": "Bibliothèque de Celsus",
+        "lead": "La bibliothèque de Celsus fascine par sa façade théâtrale et ses proportions raffinées. Une inspiration de grandeur et de précision architecturale.",
+        "adventure": "Je suis marqué par la verticalité et la richesse des détails, presque sculpturaux. Ce lieu me rappelle que l’élégance passe aussi par l’ornement maîtrisé."
+      },
+      "turkey-musee-a-ciel-ouvert-de-göreme": {
+        "title": "Musée à ciel ouvert de Göreme",
+        "lead": "Le musée à ciel ouvert de Göreme révèle une architecture sculptée par la roche et le temps. Une poésie minérale unique, entre creux et lumière.",
+        "adventure": "Ces reliefs naturels évoquent des formes organiques, presque instinctives. Ils m’inspirent des textures brutes et des palettes douces, proches de la terre."
+      },
+      "turkey-theatre-de-hierapolis": {
+        "title": "Théâtre de Hierapolis",
+        "lead": "Au cœur des terrasses blanches de Pamukkale, le théâtre de Hiérapolis se dresse comme un sanctuaire du temps. La scène ouvre sur un paysage qui amplifie encore la sensation de grandeur.",
+        "adventure": "J’aime la façon dont l’espace guide le regard, du gradin jusqu’à l’horizon. Chaque niveau raconte une histoire, et l’ensemble inspire des compositions hiérarchisées, claires et puissantes."
+      }
     }
   }
 }

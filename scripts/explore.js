@@ -105,11 +105,11 @@ document.addEventListener("DOMContentLoaded", () => {
   
   // Initialisation du carrousel
   if (projectListItems.length > 0) {
-    showProjectCard(null); // Afficher le placeholder au début
-    // Le premier cycle se fera après autoScrollListDelay grâce à startListCarousel
-    startListCarousel(); 
+    currentActiveListIndex = 0;
+    highlightListItemAndShowCard(currentActiveListIndex, false);
+    startListCarousel();
   } else {
-    showProjectCard(null); 
+    showProjectCard(null);
   }
 
   // Gestion des traductions (inchangée)
