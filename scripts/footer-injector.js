@@ -57,7 +57,7 @@ function injectFooter() {
       <!-- Copyright -->
       <div class="footer-bottom">
         <p data-i18n="footer.copyright">
-          &copy; 2025 YellowBlueSkye. Tous droits réservés.
+          &copy; 2025 Digitalblueskye. Tous droits réservés.
         </p>
       </div>
     </footer>

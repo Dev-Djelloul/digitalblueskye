@@ -1,5 +1,5 @@
 /**
- * Script de traduction pour le site YellowBlueSkye
+ * Script de traduction pour le site Digitalblueskye
  * Version corrigée pour éviter les redirections et gérer innerHTML
  */
 document.addEventListener('DOMContentLoaded', function() {

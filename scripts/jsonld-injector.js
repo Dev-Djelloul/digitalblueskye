@@ -53,7 +53,7 @@
       "description": description,
       "author": {
         "@type": "Person",
-        "name": "Djelloul (YellowBlueSkye)",
+        "name": "Djelloul (Digitalblueskye)",
         "url": window.location.origin
       },
       "publisher": {
