@@ -4237,7 +4237,8 @@ h1.main-title-animated .title-icon {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
   background-clip: text;
   color: transparent;
-  font-size: 1.8rem;
+  font-family: Iceland, sans-serif;
+  font-size: 2.1rem;
   font-weight: bold;
   margin: 0 0 15px;
   text-decoration: none;
@@ -4263,6 +4264,7 @@ h1.main-title-animated .title-icon {
   border: 1px solid rgb(93 93 255 / 30%);
   border-radius: 15%;
   color: var(--text-color);
+  font-family: Iceland, sans-serif;
   font-size: 0.9rem;
   font-weight: 600;
   padding: 5px 10px;
@@ -4291,7 +4293,6 @@ h1.main-title-animated .title-icon {
 #projects .title-banner,
 #projects .project-info h3,
 #projects .project-info p,
-#projects .project-tech span,
 #projects .project-links a {
   background-image: linear-gradient(45deg, #5d5dff, #c822ff);
   background-clip: text;
@@ -4324,6 +4325,7 @@ h1.main-title-animated .title-icon {
 .project-detail .project-tech span {
   background: transparent;
   color: #5d5dff;
+  -webkit-text-fill-color: initial;
 }
 
 /* Grille d'aperçu des projets (page d'accueil) */
@@ -4658,9 +4660,9 @@ h1.main-title-animated .title-icon {
 } /* Grille responsive */
 .gallery-item {
   align-items: center; /* Centrage vertical */
-  background-color: #fff; /* Fond blanc pour les images */
+  background-color: var(--secondary-bg); /* Fond pour les images transparentes */
 
-  border: 1px solid #fff;
+  border: 1px solid var(--secondary-bg);
   box-shadow: 0 6px 20px rgb(0 0 0 / 20%);
   display: flex; /* Ajout pour centrer l'image */
   height: 220px; /* Image individuelle */
