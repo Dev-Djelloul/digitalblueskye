@@ -363,8 +363,8 @@
     "heroCtaSecondary": "View the cover",
     "heroBadge1": "Travels & stories",
     "heroBadge2": "Colors & materials",
-  "heroBadge3": "Architecture & details",
-  "heroBadge4": "Nature & moments",
+    "heroBadge3": "Architecture & details",
+    "heroBadge4": "Nature & moments",
     "navFeed": "Journal",
     "navCover": "Cover",
     "feedEyebrow": "Journal",
@@ -615,15 +615,15 @@
         "lead": "The Library of Celsus fascinates with its theatrical facade and refined proportions. An inspiration of grandeur and architectural precision.",
         "adventure": "I am struck by the verticality and richness of details, almost sculptural. This place reminds me that elegance also comes through controlled ornament."
       },
-      "turkey-musee-a-ciel-ouvert-de-göreme": {
-        "title": "Göreme Open Air Museum",
-        "lead": "The Göreme Open Air Museum reveals an architecture shaped by rock and time. A unique mineral poetry, between hollows and light.",
-        "adventure": "These natural reliefs evoke organic, almost instinctive forms. They inspire rough textures and soft palettes, close to the earth."
-      },
       "turkey-theatre-de-hierapolis": {
         "title": "Theatre of Hierapolis",
         "lead": "At the heart of Pamukkale's white terraces, the theatre of Hierapolis stands like a sanctuary of time. The stage opens onto a landscape that heightens the sense of grandeur.",
         "adventure": "I love how the space guides the eye, from the tiers to the horizon. Each level tells a story, and the whole inspires layered, clear, powerful compositions."
+      },
+      "turkey-musee-a-ciel-ouvert-de-goreme": {
+        "title": "Göreme Open Air Museum",
+        "lead": "The Göreme Open Air Museum reveals an architecture shaped by rock and time. A unique mineral poetry, between hollows and light.",
+        "adventure": "These natural reliefs evoke organic, almost instinctive forms. They inspire rough textures and soft palettes, close to the earth."
       }
     }
   }
