@@ -95,13 +95,10 @@ body::after {
   opacity: 0;
 }
 
-/*
 h1,
-h2,
-h3 {
+h2 {
   font-family: Iceland, sans-serif;
 }
-*/
 
 p,
 li,
@@ -870,11 +867,15 @@ header .social-media img {
 }
 
 [data-theme="light"] .dropdown-nav a {
-  color: var(--accent-color);
+  background: linear-gradient(45deg, #5d5dff, #c822ff);
+  background-clip: text;
+  color: transparent;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 [data-theme="light"] .dropdown-nav a:hover {
-  color: #5d5dff;
+  filter: brightness(0.9);
 }
 
 [data-theme="light"] .menu-controls {
@@ -959,8 +960,9 @@ header.nav-scrolled,
 /* Styles du header en thème clair */
 [data-theme="light"] header,
 [data-theme="light"] .compact-header {
-  background-color: rgb(255 255 255 / 99.7%) !important;
-  border-bottom-color: var(--accent-color);
+  background-color: var(--background-color) !important;
+  border-bottom-color: transparent;
+  border-image: linear-gradient(45deg, #5d5dff, #c822ff) 1;
   border-radius: 0;
   box-shadow: 0 4px 15px var(--shadow-color);
 }
@@ -1369,7 +1371,7 @@ section.page-title-container
 
 .page-subtitle {
   color: var(--text-color); /* Couleur du sous-titre */
-  font-size: 1.6rem;
+  font-size: 1.35rem;
   padding: 40px; /* Espacement autour du sous-titre */
 }
 
@@ -1378,12 +1380,21 @@ section.page-title-container
    ========================= */
 
 .page-title-container {
-  background: linear-gradient(45deg, #c822ff0d, #c822ff);
+  background: linear-gradient(45deg, rgb(200 34 255 / 6%), rgb(200 34 255 / 18%));
   font-size: 2rem;
   font-weight: bold;
   margin-bottom: 150px;
   margin-top: 200px;
   padding: 45px;
+}
+
+.page-title-container .main-page-title,
+.page-title-container .page-subtitle {
+  background: linear-gradient(45deg, #5d5dff, #c822ff);
+  background-clip: text;
+  color: transparent !important;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .news-teaser-section,
@@ -1418,6 +1429,11 @@ section.page-title-container
   overflow: hidden; /* Pour que l'image/icône ne dépasse pas si vous utilisez des images */
   text-decoration: none; /* Enlève le soulignement du lien global de la carte */
   width: 100%; /* Prend toute la largeur du conteneur parent */
+}
+
+[data-theme="light"] .news-card {
+  background-color: #fff;
+  background-image: none;
 }
 
 .news-card-link {
@@ -1462,6 +1478,7 @@ section.page-title-container
 
 .news-card-title {
   color: var(--text-color);
+  font-family: Iceland, sans-serif;
   font-size: 1.8rem;
   font-weight: bold;
   line-height: 1.3;
@@ -1478,6 +1495,7 @@ section.page-title-container
 
 .news-card-dateline {
   color: var(--accent-color);
+  font-family: Iceland, sans-serif;
   font-size: 1rem;
   margin-top: auto; /* Pousse la dateline en bas de la carte */
 }
@@ -2052,6 +2070,7 @@ h1.main-title-animated .title-icon {
 
 .blog-card-date {
   color: #c822ff;
+  font-family: Iceland, sans-serif;
   text-shadow: 0 0 10px rgb(200 34 255 / 25%);
 }
 
@@ -2496,6 +2515,7 @@ h1.main-title-animated .title-icon {
 
 .article-dateline-detailed {
   color: var(--text-color-light);
+  font-family: Iceland, sans-serif;
   font-size: 1.2rem;
   margin-bottom: 30px;
 }
@@ -2844,6 +2864,47 @@ h1.main-title-animated .title-icon {
 .page-about .about-text-box li {
   background: none;
   color: var(--text-color);
+}
+
+[data-theme="light"] .page-about .about-text-box h1,
+[data-theme="light"] .page-about .about-text-box h2,
+[data-theme="light"] .page-about .about-text-box h3,
+[data-theme="light"] .page-about .about-text-box p,
+[data-theme="light"] .page-about .about-text-box li {
+  background: linear-gradient(45deg, #5d5dff, #c822ff);
+  background-clip: text;
+  color: transparent !important;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+[data-theme="light"] .skills-section .title-banner,
+[data-theme="light"] .skills-section .category-title,
+[data-theme="light"] .skills-section p {
+  background: linear-gradient(45deg, #5d5dff, #c822ff);
+  background-clip: text;
+  color: transparent !important;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+[data-theme="light"] .contact-container .title-banner,
+[data-theme="light"] .contact-container label,
+[data-theme="light"] .contact-email,
+[data-theme="light"] .contact-email a {
+  background: linear-gradient(45deg, #5d5dff, #c822ff);
+  background-clip: text;
+  color: transparent !important;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+[data-theme="light"] .explorer-page h1.main-title-animated {
+  background: linear-gradient(45deg, #5d5dff, #c822ff);
+  background-clip: text;
+  color: transparent;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .about-text-box ul {
@@ -4198,7 +4259,7 @@ h1.main-title-animated .title-icon {
   margin-bottom: 40px;
 } /* Technologies (tags) */
 .project-tech span {
-  background: rgb(0 0 0 / 10%);
+  background: transparent;
   border: 1px solid rgb(93 93 255 / 30%);
   border-radius: 15%;
   color: var(--text-color);
@@ -4226,6 +4287,44 @@ h1.main-title-animated .title-icon {
   padding: 10px 20px;
   text-decoration: none;
 } /* Style des liens dans la carte */
+
+#projects .title-banner,
+#projects .project-info h3,
+#projects .project-info p,
+#projects .project-tech span,
+#projects .project-links a {
+  background-image: linear-gradient(45deg, #5d5dff, #c822ff);
+  background-clip: text;
+  color: transparent;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+#projects .project-tech span,
+.project-detail .project-tech span {
+  display: inline-flex;
+  align-items: center;
+}
+
+.project-detail h1,
+.project-detail h2,
+.project-detail h3,
+.project-detail h4,
+.project-detail p,
+.project-detail li,
+.project-detail .project-links a:not(.btn-live):not(.btn-github):not(.btn-view-code) {
+  background-image: linear-gradient(45deg, #5d5dff, #c822ff);
+  background-clip: text;
+  color: transparent;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+#projects .project-tech span,
+.project-detail .project-tech span {
+  background: transparent;
+  color: #5d5dff;
+}
 
 /* Grille d'aperçu des projets (page d'accueil) */
 .project-preview-grid {
@@ -4406,6 +4505,24 @@ h1.main-title-animated .title-icon {
   margin-top: 20px;
   padding-bottom: 30px;
 } /* Sous-titres */
+
+.project-content h4,
+.project-content p,
+.project-content li,
+.project-content strong,
+.project-content a {
+  background: linear-gradient(45deg, #5d5dff, #c822ff);
+  background-clip: text;
+  color: transparent;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.project-detail .project-links a {
+  background: none;
+  color: white;
+  -webkit-text-fill-color: initial;
+}
 .project-detail .project-tech {
   justify-content: center;
   margin: 20px 0;
@@ -4541,11 +4658,9 @@ h1.main-title-animated .title-icon {
 } /* Grille responsive */
 .gallery-item {
   align-items: center; /* Centrage vertical */
-  background-color: var(
-    --secondary-bg
-  ); /* Fond pour les images transparentes */
+  background-color: #fff; /* Fond blanc pour les images */
 
-  border: 1px solid var(--secondary-bg);
+  border: 1px solid #fff;
   box-shadow: 0 6px 20px rgb(0 0 0 / 20%);
   display: flex; /* Ajout pour centrer l'image */
   height: 220px; /* Image individuelle */
@@ -4796,6 +4911,7 @@ h1.main-title-animated .title-icon {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
   background-clip: text;
   color: transparent;
+  font-family: Iceland, sans-serif;
   font-size: 1.6rem;
   font-weight: 700;
   margin-bottom: 50px;
@@ -4858,6 +4974,7 @@ h1.main-title-animated .title-icon {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
   background-clip: text;
   color: transparent;
+  font-family: Iceland, sans-serif;
   font-size: 1.2rem;
   font-weight: bold;
   margin: 0;
@@ -5112,11 +5229,16 @@ h1.main-title-animated .title-icon {
     rgb(93 93 255 / 10%),
     rgb(200 34 255 / 10%)
   );
-  border: 1px solid var(--border-color);
+  border: 1px solid #c822ff;
   border-radius: 12px;
   margin: 150px 100px 100px;
   padding: 40px;
   text-align: center;
+}
+
+[data-theme="light"] .blog-newsletter {
+  background-color: #fff;
+  background-image: none;
 }
 
 .blog-newsletter h3 {
@@ -5318,25 +5440,38 @@ body.body-menu-open #footer {
 
 /* Thème clair pour le FOOTER */
 [data-theme="light"] #footer {
-  background: linear-gradient(135deg, rgb(255 255 255 / 98%) 0%, rgb(245 245 250 / 98%) 100%);
+  background-color: var(--background-color) !important;
+  background-image: none !important;
   border-top-color: var(--accent-color);
 }
 
 [data-theme="light"] #footer .footer-section h3 {
-  color: var(--accent-color);
+  background: linear-gradient(45deg, #5d5dff, #c822ff);
+  background-clip: text;
+  color: transparent;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 [data-theme="light"] #footer .footer-section p,
 [data-theme="light"] #footer .footer-section a {
-  color: var(--accent-color);
+  background: linear-gradient(45deg, #5d5dff, #c822ff);
+  background-clip: text;
+  color: transparent;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 [data-theme="light"] #footer .footer-section a:hover {
-  color: var(--accent-color);
+  filter: brightness(0.9);
 }
 
 [data-theme="light"] #footer .footer-bottom p {
-  color: var(--accent-color);
+  background: linear-gradient(45deg, #5d5dff, #c822ff);
+  background-clip: text;
+  color: transparent;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 [data-theme="light"] #footer .footer-social a {
@@ -5916,11 +6051,15 @@ body.body-menu-open #footer {
 
 /* Pour harmoniser les éléments du menu en mode clair */
 [data-theme="light"] .dropdown-nav a {
-  color: var(--accent-color); /* Utilise la couleur de texte du thème clair */
+  background: linear-gradient(45deg, #5d5dff, #c822ff);
+  background-clip: text;
+  color: transparent; /* Utilise la couleur de texte du thème clair */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 [data-theme="light"] .dropdown-nav a:hover {
-  color: #5d5dff;
+  filter: brightness(0.9);
 }
 
 .menu-controls {
@@ -6091,14 +6230,14 @@ body.body-menu-open #footer {
 
 .trust-section h2 {
   color: var(--accent-color);
-  font-size: 2.8rem;
+  font-size: 3.2rem;
   margin-bottom: 10px;
   text-align: center;
 }
 
 .trust-section .subtitle {
   color: var(--text-color);
-  font-size: 1.2rem;
+  font-size: 1.75rem;
   margin-bottom: 50px;
   opacity: 0.9;
   text-align: center;
@@ -6112,8 +6251,13 @@ body.body-menu-open #footer {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
   background-clip: text;
   color: transparent;
+  font-family: Iceland, sans-serif;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+.trust-section .section-subtitle {
+  font-size: 1.7rem;
 }
 
 /* Testimonials Grid */
@@ -6163,7 +6307,7 @@ body.body-menu-open #footer {
 
 .partners-section h3 {
   color: var(--accent-color);
-  font-size: 1.6rem;
+  font-size: 2rem;
   margin-bottom: 30px;
 }
 
@@ -6262,6 +6406,22 @@ body.body-menu-open #footer {
   transition: all 0.3s ease;
 }
 
+.trust-card--cert {
+  background: linear-gradient(135deg, var(--secondary-bg), var(--card-bg));
+  border-color: rgb(var(--accent-rgb), 0.4);
+}
+
+[data-theme="light"] .trust-card--cert {
+  background-color: #fff;
+  background-image: none;
+  border-color: rgb(93 93 255 / 45%);
+  box-shadow: 0 10px 24px rgb(93 93 255 / 12%);
+}
+
+[data-theme="light"] .trust-card {
+  background-color: #fff;
+}
+
 .trust-card:hover {
   border-color: var(--accent-color);
   box-shadow: 0 8px 25px rgb(var(--accent-rgb), 0.15);
@@ -6270,21 +6430,36 @@ body.body-menu-open #footer {
 
 .trust-card h3 {
   color: var(--accent-color);
-  font-size: 1.4rem;
+  font-size: 1.6rem;
   margin-bottom: 12px;
 }
 
 .trust-card p {
   color: var(--text-color);
-  font-size: 0.95rem;
+  font-size: 1.05rem;
   line-height: 1.6;
+}
+
+.trust-section .trust-card h3,
+.trust-section .trust-card p,
+.trust-section .trust-card a,
+.trust-section .methodology-item h3,
+.trust-section .methodology-item p,
+.trust-section .section-title,
+.trust-section .section-subtitle {
+  background: linear-gradient(45deg, #5d5dff, #c822ff);
+  background-clip: text;
+  color: transparent !important;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .trust-card-link {
   color: var(--accent-color);
   display: inline-flex;
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 600;
+  justify-content: center;
   margin-top: 12px;
   text-decoration: none;
   width: 100%;
@@ -6318,13 +6493,13 @@ body.body-menu-open #footer {
 
 .methodology-item h3 {
   color: var(--accent-color);
-  font-size: 1.3rem;
+  font-size: 1.5rem;
   margin-bottom: 15px;
 }
 
 .methodology-item p {
   color: var(--text-color);
-  font-size: 0.95rem;
+  font-size: 1.05rem;
   line-height: 1.7;
   opacity: 0.95;
 }

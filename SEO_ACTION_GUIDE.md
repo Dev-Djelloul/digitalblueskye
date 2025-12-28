@@ -10,15 +10,15 @@
 ### 1. Soumettre à Google Search Console (5 min)
 
 1. Accédez à https://search.google.com/search-console
-2. Sélectionnez votre propriété "digitalblueskye.netlify.app" (ou ajoutez-la si absent)
+2. Sélectionnez votre propriété "digitalblueskye.infinityfreeapp.com" (ou ajoutez-la si absent)
 3. **Inspecter l'URL:**
    - Cliquez sur "URL Inspection" (🔍 icône en haut)
-   - Collez : `https://digitalblueskye.netlify.app/blog/digital/article-seo-chef-projet.html`
+   - Collez : `https://digitalblueskye.infinityfreeapp.com/blog/digital/article-seo-chef-projet.html`
    - Cliquez "Request Indexing"
 4. **Soumettre le Sitemap:**
    - Allez à "Sitemaps" (colonne gauche)
    - Cliquez "New Sitemap"
-   - Entrez : `https://digitalblueskye.netlify.app/sitemap.xml`
+   - Entrez : `https://digitalblueskye.infinityfreeapp.com/sitemap.xml`
    - Cliquez "Submit"
 
 **Résultat attendu:** 
@@ -33,7 +33,7 @@
 Exécutez dans votre navigateur (n'importe quelle page Google):
 
 ```
-site:digitalblueskye.netlify.app/blog/digital/
+site:digitalblueskye.infinityfreeapp.com/blog/digital/
 ```
 
 **Résultats attendus:**
@@ -48,7 +48,7 @@ Utiliser un outil d'inspection social:
 
 **Option A - Facebook Sharing Debugger:**
 1. Allez https://developers.facebook.com/tools/debug/sharing/
-2. Copiez URL article : `https://digitalblueskye.netlify.app/blog/digital/article-seo-chef-projet.html`
+2. Copiez URL article : `https://digitalblueskye.infinityfreeapp.com/blog/digital/article-seo-chef-projet.html`
 3. Cliquez "Scrape Again"
 4. Vérifiez que OG tags s'affichent correctement
 
@@ -86,7 +86,7 @@ Utiliser un outil d'inspection social:
 ## 📊 Monitoring À Court-Terme (1-4 semaines)
 
 ### Semaine 1: Indexation
-- [ ] Article 8 visible dans `site:digitalblueskye.netlify.app`
+- [ ] Article 8 visible dans `site:digitalblueskye.infinityfreeapp.com`
 - [ ] Search Console : Zéro erreurs de crawl pour `/blog/digital/`
 - [ ] Meta tags valides (vérifiés via outils sociaux)
 
@@ -148,7 +148,7 @@ Utiliser un outil d'inspection social:
 **Corrections rapides:**
 
 - Resoumettre manuellement dans GSC (URL Inspection → Request Indexing)
-- Vérifier robots.txt contient : `Sitemap: https://digitalblueskye.netlify.app/sitemap.xml`
+- Vérifier robots.txt contient : `Sitemap: https://digitalblueskye.infinityfreeapp.com/sitemap.xml`
 
 ---
 
@@ -269,7 +269,7 @@ Avant de clôturer ce projet :
 A: 1-4 semaines pour première indexation. 2-3 mois avant stabilisation ranking. Patience requise!
 
 **Q: Mon article ne s'indexe pas, pourquoi?**
-A: Vérifier site:digitalblueskye.netlify.app. Si rien: peut être en sandbox (~30 jours pour nouveau domaine). Soumettez sitemap et attendez.
+A: Vérifier site:digitalblueskye.infinityfreeapp.com. Si rien: peut être en sandbox (~30 jours pour nouveau domaine). Soumettez sitemap et attendez.
 
 **Q: Meta descriptions n'apparaissent pas sur Google?**
 A: Normal! Google réécrit parfois pour match la requête. Vos descriptions optimisées aident le CTR.

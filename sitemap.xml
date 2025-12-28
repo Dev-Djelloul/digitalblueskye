@@ -5,7 +5,7 @@
         http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
   <!-- Accueil -->
   <url>
-    <loc>https://digitalblueskye.netlify.app/</loc>
+    <loc>https://digitalblueskye.infinityfreeapp.com/</loc>
     <lastmod>2025-09-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
@@ -13,89 +13,89 @@
 
   <!-- Pages principales -->
   <url>
-    <loc>https://digitalblueskye.netlify.app/pages/about.html</loc>
+    <loc>https://digitalblueskye.infinityfreeapp.com/pages/about.html</loc>
     <lastmod>2025-09-28</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://digitalblueskye.netlify.app/pages/explore.html</loc>
+    <loc>https://digitalblueskye.infinityfreeapp.com/pages/explore.html</loc>
     <lastmod>2025-09-28</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://digitalblueskye.netlify.app/pages/projects.html</loc>
+    <loc>https://digitalblueskye.infinityfreeapp.com/pages/projects.html</loc>
     <lastmod>2025-09-28</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://digitalblueskye.netlify.app/pages/skills.html</loc>
+    <loc>https://digitalblueskye.infinityfreeapp.com/pages/skills.html</loc>
     <lastmod>2025-09-28</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://digitalblueskye.netlify.app/pages/contact.html</loc>
+    <loc>https://digitalblueskye.infinityfreeapp.com/pages/contact.html</loc>
     <lastmod>2025-09-28</lastmod>
     <priority>0.7</priority>
   </url>
 
   <!-- Blog - Coin Digital -->
   <url>
-    <loc>https://digitalblueskye.netlify.app/blog/digital/blogArticles.html</loc>
+    <loc>https://digitalblueskye.infinityfreeapp.com/blog/digital/blogArticles.html</loc>
     <lastmod>2025-12-28</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://digitalblueskye.netlify.app/blog/digital/article-ia-gestion-projet.html</loc>
+    <loc>https://digitalblueskye.infinityfreeapp.com/blog/digital/article-ia-gestion-projet.html</loc>
     <lastmod>2025-12-01</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://digitalblueskye.netlify.app/blog/digital/article-outils-veille.html</loc>
+    <loc>https://digitalblueskye.infinityfreeapp.com/blog/digital/article-outils-veille.html</loc>
     <lastmod>2025-12-01</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://digitalblueskye.netlify.app/blog/digital/article-rgpd-2025.html</loc>
+    <loc>https://digitalblueskye.infinityfreeapp.com/blog/digital/article-rgpd-2025.html</loc>
     <lastmod>2025-12-01</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://digitalblueskye.netlify.app/blog/digital/article-rse-digital.html</loc>
+    <loc>https://digitalblueskye.infinityfreeapp.com/blog/digital/article-rse-digital.html</loc>
     <lastmod>2025-12-01</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://digitalblueskye.netlify.app/blog/digital/article-tech-2026.html</loc>
+    <loc>https://digitalblueskye.infinityfreeapp.com/blog/digital/article-tech-2026.html</loc>
     <lastmod>2025-12-01</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://digitalblueskye.netlify.app/blog/digital/article-metavers-projets.html</loc>
+    <loc>https://digitalblueskye.infinityfreeapp.com/blog/digital/article-metavers-projets.html</loc>
     <lastmod>2025-12-01</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://digitalblueskye.netlify.app/blog/digital/article-cone-apprentissage.html</loc>
+    <loc>https://digitalblueskye.infinityfreeapp.com/blog/digital/article-cone-apprentissage.html</loc>
     <lastmod>2025-12-01</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://digitalblueskye.netlify.app/blog/digital/article-seo-chef-projet.html</loc>
+    <loc>https://digitalblueskye.infinityfreeapp.com/blog/digital/article-seo-chef-projet.html</loc>
     <lastmod>2025-12-01</lastmod>
     <priority>0.65</priority>
   </url>
   <url>
-    <loc>https://digitalblueskye.netlify.app/blog/digital/article-rgpd-ia-securite.html</loc>
+    <loc>https://digitalblueskye.infinityfreeapp.com/blog/digital/article-rgpd-ia-securite.html</loc>
     <lastmod>2026-01-18</lastmod>
     <priority>0.65</priority>
   </url>
   <url>
-    <loc>https://digitalblueskye.netlify.app/blog/digital/article-pue-datacenters.html</loc>
+    <loc>https://digitalblueskye.infinityfreeapp.com/blog/digital/article-pue-datacenters.html</loc>
     <lastmod>2025-12-28</lastmod>
     <priority>0.65</priority>
   </url>
   <url>
-    <loc>https://digitalblueskye.netlify.app/blog/digital/article-connector-dots.html</loc>
+    <loc>https://digitalblueskye.infinityfreeapp.com/blog/digital/article-connector-dots.html</loc>
     <lastmod>2025-12-28</lastmod>
     <priority>0.65</priority>
   </url>

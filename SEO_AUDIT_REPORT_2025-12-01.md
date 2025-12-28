@@ -1,6 +1,6 @@
 # Rapport d'Audit SEO - Blog Articles
 **Date:** 1 décembre 2025  
-**Site:** digitalblueskye.netlify.app  
+**Site:** digitalblueskye.infinityfreeapp.com  
 **Domaine:** Portfolio Personnel + Blog Digital
 
 ---
@@ -104,7 +104,7 @@ Optimisation complète de 8 articles de blog pour la conformité SEO selon les r
 <meta property="og:description" data-i18n="news.articleN.metaDescription" />
 <meta property="og:image" content="/assets/images/blog/[article]/banner.jpg" />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="https://digitalblueskye.netlify.app/blog/digital/article-*.html" />
+<meta property="og:url" content="https://digitalblueskye.infinityfreeapp.com/blog/digital/article-*.html" />
 ```
 **Bénéfice:** Améliore CTR (click-through rate) sur Facebook, Twitter, LinkedIn. Affiche titre, description et image de qualité lors du partage.
 
@@ -125,7 +125,7 @@ Optimisation complète de 8 articles de blog pour la conformité SEO selon les r
 ### 4. Canonical Links
 **Implémentation:**
 ```html
-<link rel="canonical" href="https://digitalblueskye.netlify.app/blog/digital/article-*.html" />
+<link rel="canonical" href="https://digitalblueskye.infinityfreeapp.com/blog/digital/article-*.html" />
 ```
 **Bénéfice:** Signale à Google l'URL "officielle" de chaque article. Prévient le contenu dupliqué si URL accessible via plusieurs chemins.
 
@@ -156,13 +156,13 @@ Optimisation complète de 8 articles de blog pour la conformité SEO selon les r
   "author": {
     "@type": "Person",
     "name": "Digitalblueskye",
-    "url": "https://digitalblueskye.netlify.app"
+    "url": "https://digitalblueskye.infinityfreeapp.com"
   },
   "datePublished": "[ISO 8601 date]",
   "publisher": {
     "@type": "Organization",
     "name": "Digitalblueskye",
-    "logo": "https://digitalblueskye.netlify.app/assets/images/logo/Logo-Globe.png"
+    "logo": "https://digitalblueskye.infinityfreeapp.com/assets/images/logo/Logo-Globe.png"
   }
 }
 ```
@@ -193,7 +193,7 @@ Optimisation complète de 8 articles de blog pour la conformité SEO selon les r
 ```xml
 <!-- Ajout article 8 -->
 <url>
-  <loc>https://digitalblueskye.netlify.app/blog/digital/article-seo-chef-projet.html</loc>
+  <loc>https://digitalblueskye.infinityfreeapp.com/blog/digital/article-seo-chef-projet.html</loc>
   <lastmod>2025-12-01</lastmod>
   <priority>0.65</priority>
 </url>
@@ -290,7 +290,7 @@ Optimisation complète de 8 articles de blog pour la conformité SEO selon les r
    - Action : Soumettre dans Google Search Console
    - Étapes :
      1. Aller sur https://search.google.com/search-console
-     2. Sélectionner propriété "digitalblueskye.netlify.app"
+     2. Sélectionner propriété "digitalblueskye.infinityfreeapp.com"
      3. Inspecter URL : `blog/digital/article-seo-chef-projet.html`
      4. Cliquer "Request Indexing"
      5. Aller à "Sitemaps" et re-soumettre `/sitemap.xml`
@@ -348,7 +348,7 @@ Optimisation complète de 8 articles de blog pour la conformité SEO selon les r
 ## Monitoring & KPIs à Suivre
 
 ### Immédiats (Première semaine)
-- [ ] Article 8 indexé dans Google (vérifier via `site:digitalblueskye.netlify.app`)
+- [ ] Article 8 indexé dans Google (vérifier via `site:digitalblueskye.infinityfreeapp.com`)
 - [ ] Absence d'erreurs de crawl dans Search Console
 - [ ] Meta tags affichées correctement en page source
 - [ ] Lazy-loading fonctionnel (DevTools Network tab)
@@ -376,17 +376,17 @@ Optimisation complète de 8 articles de blog pour la conformité SEO selon les r
 
 ### Vérifier indexation Google
 ```bash
-site:digitalblueskye.netlify.app/blog/digital/
+site:digitalblueskye.infinityfreeapp.com/blog/digital/
 ```
 
 ### Vérifier meta tags en production
 ```bash
-curl -s https://digitalblueskye.netlify.app/blog/digital/article-seo-chef-projet.html | grep -i "meta name=\"description\""
+curl -s https://digitalblueskye.infinityfreeapp.com/blog/digital/article-seo-chef-projet.html | grep -i "meta name=\"description\""
 ```
 
 ### Valider sitemap XML
 ```bash
-curl -s https://digitalblueskye.netlify.app/sitemap.xml | xmllint --format -
+curl -s https://digitalblueskye.infinityfreeapp.com/sitemap.xml | xmllint --format -
 ```
 
 ### Vérifier schema.org JSON-LD injection (DevTools)
