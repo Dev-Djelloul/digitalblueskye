@@ -42,7 +42,7 @@
    RESET & STYLES DE BASE
    ========================= */
 
-@import url("https://fonts.googleapis.com/css2?family=Iceland&family=Lato:wght@400;500;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Bitter:ital,wght@0,100..900;1,100..900&family=Iceland&family=Lato:wght@400;500;700&display=swap");
 
 * {
   box-sizing: border-box;
@@ -53,7 +53,7 @@
 body {
   background-color: transparent !important;
   color: var(--text-color);
-  font-family: "Roboto Condensed", sans-serif;
+  font-family: "Bitter", serif;
   font-optical-sizing: auto;
   line-height: 1.6;
   padding-top: 90px;
@@ -106,7 +106,7 @@ h3 {
 p,
 li,
 article {
-  font-family: "Roboto Condensed", sans-serif;
+  font-family: "Bitter", serif;
 }
 
 /* =========================
@@ -1917,7 +1917,7 @@ h1.main-title-animated .title-icon {
   border: 1px solid rgb(93 93 255 / 20%);
   border-radius: 8px;
   color: var(--text-color);
-  font-family: "Roboto Condensed", sans-serif;
+  font-family: "Bitter", serif;
   padding: 12px 45px 12px 15px;
   width: 100%;
 }
@@ -1944,7 +1944,7 @@ h1.main-title-animated .title-icon {
   border-radius: 8px;
   color: var(--text-color);
   cursor: pointer;
-  font-family: "Roboto Condensed", sans-serif;
+  font-family: "Bitter", serif;
   padding: 12px 35px 12px 15px;
 }
 
@@ -2009,6 +2009,7 @@ h1.main-title-animated .title-icon {
   border-radius: 20px;
   color: white;
   font-size: 0.8rem;
+  font-family: Iceland, sans-serif;
   font-weight: 500;
   padding: 6px 12px;
   position: absolute;
@@ -2484,10 +2485,13 @@ h1.main-title-animated .title-icon {
 }
 
 .article-title-main {
-  color: #c822ff;
-  font-size: 4rem;
+  background: linear-gradient(45deg, var(--accent-color), #c822ff);
+  background-clip: text;
+  font-size: 3.6rem;
   margin-bottom: 15px;
   margin-top: 50px;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .article-dateline-detailed {
@@ -2526,6 +2530,151 @@ h1.main-title-animated .title-icon {
   font-size: 1.4rem;
   margin-bottom: 15px;
   margin-top: 30px;
+}
+
+.article-share,
+.article-comments {
+  background: linear-gradient(135deg, rgb(93 93 255 / 12%), rgb(200 34 255 / 8%));
+  border: 1px solid rgb(93 93 255 / 35%);
+  border-radius: 18px;
+  margin: 40px auto 0;
+  max-width: 900px;
+  padding: 28px;
+  text-align: center;
+}
+
+.article-section-title {
+  font-family: Iceland, sans-serif;
+  font-size: 1.9rem;
+  margin-bottom: 12px;
+}
+
+.article-section-subtitle {
+  font-size: 1rem;
+  margin-bottom: 24px;
+  opacity: 0.85;
+}
+
+.article-share-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+}
+
+.share-btn {
+  background: rgb(24 25 38 / 75%);
+  border: 1px solid rgb(93 93 255 / 45%);
+  border-radius: 999px;
+  color: #fff;
+  font-family: Iceland, sans-serif;
+  padding: 8px 18px;
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.share-btn:hover {
+  box-shadow: 0 10px 20px rgb(0 0 0 / 20%);
+  transform: translateY(-2px);
+}
+
+.share-btn.share-copy {
+  cursor: pointer;
+}
+
+.share-btn.is-copied {
+  background: linear-gradient(45deg, var(--accent-color), #c822ff);
+}
+
+.article-comments-form {
+  display: grid;
+  gap: 16px;
+  margin-top: 10px;
+  text-align: left;
+}
+
+.comments-status {
+  font-size: 0.95rem;
+  margin-bottom: 16px;
+  min-height: 1.2em;
+  opacity: 0.9;
+  text-align: center;
+}
+
+.comments-status.is-error {
+  color: #ff6b6b;
+}
+
+.comments-status.is-success {
+  color: #9df5c3;
+}
+
+.comments-list {
+  display: grid;
+  gap: 16px;
+  margin: 0 auto 24px;
+  max-width: 760px;
+}
+
+.comment-item {
+  background: rgb(24 25 38 / 70%);
+  border: 1px solid rgb(93 93 255 / 30%);
+  border-radius: 14px;
+  padding: 14px 18px;
+  text-align: left;
+}
+
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.comment-author {
+  font-family: Iceland, sans-serif;
+}
+
+.comment-date {
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+.comment-message {
+  margin: 0;
+}
+
+.comment-field {
+  display: grid;
+  gap: 6px;
+}
+
+.article-comments-form input,
+.article-comments-form textarea {
+  background: rgb(0 0 0 / 20%);
+  border: 1px solid rgb(93 93 255 / 35%);
+  border-radius: 12px;
+  color: #fff;
+  font-family: "Bitter", serif;
+  padding: 12px 14px;
+}
+
+.article-comments-form textarea {
+  resize: vertical;
+}
+
+.comment-honeypot {
+  display: none;
+}
+
+.comment-submit {
+  align-self: flex-start;
+  background: linear-gradient(45deg, var(--accent-color), #c822ff);
+  border: none;
+  border-radius: 999px;
+  color: #fff;
+  cursor: pointer;
+  font-family: Iceland, sans-serif;
+  padding: 10px 26px;
 }
 
 .article-body p,
@@ -3116,7 +3265,7 @@ h1.main-title-animated .title-icon {
   flex-direction: column;
   gap: 1.4rem;
   margin: 0 auto;
-  max-width: 650px;
+  max-width: 700px;
   padding: 3.5rem 3rem 3rem;
   position: relative;
   text-align: center;
@@ -3279,6 +3428,7 @@ h1.main-title-animated .title-icon {
   border-radius: 999px;
   color: #2d3a4a;
   cursor: pointer;
+  font-family: Iceland, sans-serif;
   font-size: 0.95rem;
   font-weight: 600;
   padding: 0.45rem 1.2rem;
@@ -5862,7 +6012,7 @@ body.body-menu-open #footer {
   }
 
   .article-title-main {
-    font-size: clamp(1.8rem, 6vw, 2.5rem);
+    font-size: clamp(1.7rem, 6vw, 2.3rem);
   }
 
   .article-body {

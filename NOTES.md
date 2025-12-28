@@ -12,12 +12,10 @@ Date: 2025-12-22
 ## Backend (prochaine étape)
 Objectif: logique backend de récupération/stocker les données utilisateurs via base de données, en cohérence avec RGPD/consentement.
 
-Propositions de prochaines actions:
-1. Définir quelles données sont collectées (minimum viable, finalité, durée).
-2. Choisir stack (ex: Node/Express + DB) et hébergement.
-3. Schéma DB + modèle consentement (versioning des consentements).
-4. Endpoints (opt‑in, opt‑out, export, suppression).
-5. Mise à jour front pour envoyer les consentements.
+Statut:
+- Backend PHP + MariaDB mis en place (consentements + commentaires).
+- Endpoints et schéma SQL ajoutés.
+- Front comment form + partage + envoi consentement prêts.
 
 ## Git
 - Dernier commit poussé sur GitHub.

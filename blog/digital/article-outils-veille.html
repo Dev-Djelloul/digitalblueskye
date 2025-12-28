@@ -248,6 +248,49 @@
             <a href="/blog/digital/blogArticles.html" class="btn-nav-style" data-i18n="news.backToList">Retour</a>
             <a href="/blog/digital/article-rgpd-2025.html" class="btn-nav-style" data-i18n="news.nextArticle">Article Suivant</a>
           </div>
+
+          <section class="article-share">
+            <h2 class="article-section-title" data-i18n="news.shareTitle">Partager l'article</h2>
+            <p class="article-section-subtitle" data-i18n="news.shareSubtitle">Si cet article vous a plu, partagez-le autour de vous.</p>
+            <div class="article-share-actions">
+              <a class="share-btn share-x" data-share="x" href="#" target="_blank" rel="noopener" data-i18n="news.shareX">X</a>
+              <a class="share-btn share-linkedin" data-share="linkedin" href="#" target="_blank" rel="noopener" data-i18n="news.shareLinkedIn">LinkedIn</a>
+              <a class="share-btn share-facebook" data-share="facebook" href="#" target="_blank" rel="noopener" data-i18n="news.shareFacebook">Facebook</a>
+              <button class="share-btn share-copy" data-share="copy" type="button" data-i18n="news.copyLink">Copier le lien</button>
+            </div>
+          </section>
+          <section class="article-comments">
+            <h2 class="article-section-title" data-i18n="news.commentsTitle">Commentaires</h2>
+            <p class="article-section-subtitle" data-i18n="news.commentsSubtitle">Un retour, une question ou une idée ? Laissez un commentaire.</p>
+            <p class="comments-status" data-comments-status></p>
+            <div class="comments-list" data-comments></div>
+            <div class="comments-copy" data-comments-copy hidden>
+              <span data-copy="empty" data-i18n="news.commentsEmpty">Aucun commentaire pour le moment.</span>
+              <span data-copy="success" data-i18n="news.commentsSuccess">Merci ! Votre commentaire a bien été publié.</span>
+              <span data-copy="pending" data-i18n="news.commentsPending">Merci ! Votre commentaire est en attente de validation.</span>
+              <span data-copy="error" data-i18n="news.commentsError">Erreur d'envoi.</span>
+            </div>
+            <form class="article-comments-form" novalidate>
+              <div class="comment-field">
+                <label for="comment-name" data-i18n="contact.name">Nom</label>
+                <input id="comment-name" name="comment-name" type="text" data-i18n-placeholder="contact.enterName" placeholder="Entrez votre nom..." />
+              </div>
+              <div class="comment-field">
+                <label for="comment-email" data-i18n="contact.email">Email</label>
+                <input id="comment-email" name="comment-email" type="email" data-i18n-placeholder="contact.enterEmail" placeholder="Entrez votre email..." />
+              </div>
+              <div class="comment-field">
+                <label for="comment-message" data-i18n="contact.message">Message</label>
+                <textarea id="comment-message" name="comment-message" rows="5" data-i18n-placeholder="contact.enterMessage" placeholder="Entrez votre message..."></textarea>
+              </div>
+              <div class="comment-honeypot" aria-hidden="true">
+                <label for="comment-website">Website</label>
+                <input id="comment-website" name="website" type="text" tabindex="-1" autocomplete="off" />
+              </div>
+              <button class="comment-submit" type="submit" data-i18n="contact.send">Envoyer</button>
+            </form>
+          </section>
+
         </div>
       </article>
     </main>
@@ -359,6 +402,8 @@
         });
       });
     </script>
+    <script src="/scripts/share-links.js"></script>
+    <script src="/scripts/comments.js"></script>
     <script src="/scripts/translator.js"></script>
     <script src="/scripts/theme-switcher.js"></script>
     <script src="/scripts/navbar-dropdown.js"></script>

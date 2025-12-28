@@ -1,5 +1,6 @@
 const CONSENT_KEY = 'dbs_consent_v1';
 const CONSENT_VERSION = 1;
+const CONSENT_ID_KEY = 'dbs_consent_id';
 const CONSENT_DELAY_MS = 10000;
 
 if ('scrollRestoration' in history) {
@@ -61,6 +62,34 @@ function saveConsent(consent) {
   } catch (error) {
     // Ignore storage errors
   }
+}
+
+function getConsentId() {
+  try {
+    let consentId = localStorage.getItem(CONSENT_ID_KEY);
+    if (!consentId) {
+      consentId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+      localStorage.setItem(CONSENT_ID_KEY, consentId);
+    }
+    return consentId;
+  } catch (error) {
+    return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+  }
+}
+
+function sendConsentToServer(consent) {
+  fetch('/backend/consent.php', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      consent_id: getConsentId(),
+      analytics: !!consent.analytics,
+      marketing: !!consent.marketing,
+      page_url: window.location.href
+    })
+  }).catch(() => {
+    // Fail silently
+  });
 }
 
 function getConsentCopy() {
@@ -246,6 +275,7 @@ function createConsentUI() {
     if (action === 'accept') {
       const consent = { necessary: true, analytics: true, marketing: true };
       saveConsent(consent);
+      sendConsentToServer(consent);
       applyConsent(consent);
       hideBanner();
       return;
@@ -254,6 +284,7 @@ function createConsentUI() {
     if (action === 'reject') {
       const consent = { necessary: true, analytics: false, marketing: false };
       saveConsent(consent);
+      sendConsentToServer(consent);
       applyConsent(consent);
       hideBanner();
       return;
@@ -266,6 +297,7 @@ function createConsentUI() {
         marketing: marketingInput.checked
       };
       saveConsent(consent);
+      sendConsentToServer(consent);
       applyConsent(consent);
       hideBanner();
       closePreferences();
