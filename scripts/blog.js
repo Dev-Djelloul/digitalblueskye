@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const categorySelect = document.getElementById('category-select');
   const articlesGrid = document.querySelector('.articles-grid');
   const articleCards = document.querySelectorAll('.blog-card');
-  const paginationContainer = document.querySelector('.pagination');
+  const paginationContainer = document.querySelector('.blog-pagination');
   const languageButton = document.getElementById('switch-to-fr') || document.getElementById('switch-to-en');
   const searchButton = document.getElementById('search-btn');
   
@@ -203,7 +203,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const paginationButtons = document.querySelectorAll('.pagination-btn');
   const pageButtons = document.querySelectorAll('.pagination-btn[data-page]');
   const navButtons = document.querySelectorAll('.pagination-btn[data-nav]');
-  const articlesPerPage = 8; // Nombre d'articles par page
+  const articlesPerPage = 6; // Nombre d'articles par page
 
   function getTotalPages() {
     return Math.max(1, Math.ceil(articleCards.length / articlesPerPage));
@@ -255,12 +255,17 @@ document.addEventListener('DOMContentLoaded', function() {
     'technology': ['Technologie', 'Technology'],
     'regulation': ['Réglementation', 'Regulation'],
     'csr': ['RSE & Impact', 'CSR & Impact'],
-    'foresight': ['Prospective', 'Foresight']
+    'foresight': ['Prospective', 'Foresight'],
+    'pedagogy': ['Pédagogie', 'Pedagogy']
   };
 
   // Nouvelle fonction pour mettre à jour l'UI de pagination
   function updatePaginationUI(activePage) {
     const totalPages = getTotalPages();
+
+    if (paginationContainer) {
+      paginationContainer.style.display = totalPages > 1 ? 'flex' : 'none';
+    }
 
     if (pageButtons.length > 0) {
       // D'abord, supprimer la classe active de tous les boutons de page
