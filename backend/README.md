@@ -16,7 +16,6 @@ XAMPP sert au dev local. En production, utilisez un hébergement PHP + MySQL/Mar
 
 - `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS`
 - `COMMENTS_REQUIRE_APPROVAL` (true/false)
-- `COMMENTS_RATE_LIMIT_MINUTES` (ex: 5)
 
 ## Endpoints
 - `POST /backend/consent.php`

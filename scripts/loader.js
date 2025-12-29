@@ -1,6 +1,7 @@
 const CONSENT_KEY = 'dbs_consent_v1';
 const CONSENT_VERSION = 1;
 const CONSENT_ID_KEY = 'dbs_consent_id';
+const CONSENT_SENT_KEY = 'dbs_consent_sent_v1';
 const CONSENT_DELAY_MS = 10000;
 
 if ('scrollRestoration' in history) {
@@ -64,6 +65,31 @@ function saveConsent(consent) {
   }
 }
 
+function getConsentSentMarker() {
+  try {
+    return localStorage.getItem(CONSENT_SENT_KEY) || '';
+  } catch (error) {
+    return '';
+  }
+}
+
+function markConsentSent(consent) {
+  try {
+    if (consent && consent.timestamp) {
+      localStorage.setItem(CONSENT_SENT_KEY, consent.timestamp);
+    }
+  } catch (error) {
+    // Ignore storage errors
+  }
+}
+
+function shouldSendConsent(consent) {
+  if (!consent || !consent.timestamp) {
+    return false;
+  }
+  return getConsentSentMarker() !== consent.timestamp;
+}
+
 function getConsentId() {
   try {
     let consentId = localStorage.getItem(CONSENT_ID_KEY);
@@ -78,6 +104,22 @@ function getConsentId() {
 }
 
 function sendConsentToServer(consent) {
+  function normalizeLanguage(value) {
+    if (!value) return '';
+    return value.toString().trim().toLowerCase().split(/[-_]/)[0] || '';
+  }
+
+  const language =
+    normalizeLanguage(
+      document.documentElement.lang ||
+        localStorage.getItem('language') ||
+        'fr'
+    ) || 'fr';
+  const theme =
+    document.documentElement.getAttribute('data-theme') ||
+    localStorage.getItem('theme') ||
+    'dark';
+
   fetch('/backend/consent.php', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -85,6 +127,8 @@ function sendConsentToServer(consent) {
       consent_id: getConsentId(),
       analytics: !!consent.analytics,
       marketing: !!consent.marketing,
+      language: language,
+      theme: theme,
       page_url: window.location.href
     })
   }).catch(() => {
@@ -93,7 +137,26 @@ function sendConsentToServer(consent) {
 }
 
 function getConsentCopy() {
-  const lang = localStorage.getItem('language') || document.documentElement.lang || 'fr';
+  function getCookie(name) {
+    const cookieString = `; ${document.cookie}`;
+    const parts = cookieString.split(`; ${name}=`);
+    if (parts.length === 2) {
+      return decodeURIComponent(parts.pop().split(';').shift());
+    }
+    return '';
+  }
+
+  function normalizeLanguage(value) {
+    if (!value) return '';
+    return value.toString().trim().toLowerCase().split(/[-_]/)[0] || '';
+  }
+
+  const lang = normalizeLanguage(
+    getCookie('language') ||
+      localStorage.getItem('language') ||
+      document.documentElement.lang ||
+      'fr'
+  ) || 'fr';
   const copy = {
     fr: {
       title: 'Gestion des données personnelles',
@@ -319,6 +382,10 @@ function createConsentUI() {
     analyticsInput.checked = !!savedConsent.analytics;
     marketingInput.checked = !!savedConsent.marketing;
     applyConsent(savedConsent);
+    if (shouldSendConsent(savedConsent)) {
+      sendConsentToServer(savedConsent);
+      markConsentSent(savedConsent);
+    }
     hideBanner();
   } else {
     showBanner();

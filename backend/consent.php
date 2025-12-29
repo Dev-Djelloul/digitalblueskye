@@ -19,6 +19,8 @@ if (!is_array($input)) {
 $consentId = trim((string) ($input['consent_id'] ?? ''));
 $analytics = !empty($input['analytics']) ? 1 : 0;
 $marketing = !empty($input['marketing']) ? 1 : 0;
+$language = substr(trim((string) ($input['language'] ?? '')), 0, 8);
+$theme = substr(trim((string) ($input['theme'] ?? '')), 0, 16);
 $pageUrl = trim((string) ($input['page_url'] ?? ''));
 
 if ($consentId === '' || $pageUrl === '') {
@@ -33,13 +35,15 @@ $userAgent = substr($_SERVER['HTTP_USER_AGENT'] ?? 'unknown', 0, 255);
 try {
     $pdo = get_db();
     $stmt = $pdo->prepare(
-        'INSERT INTO consent_logs (consent_id, analytics, marketing, created_at, ip_address, user_agent, page_url)
-         VALUES (:consent_id, :analytics, :marketing, :created_at, :ip_address, :user_agent, :page_url)'
+        'INSERT INTO consent_logs (consent_id, analytics, marketing, language, theme, created_at, ip_address, user_agent, page_url)
+         VALUES (:consent_id, :analytics, :marketing, :language, :theme, :created_at, :ip_address, :user_agent, :page_url)'
     );
     $stmt->execute([
         ':consent_id' => $consentId,
         ':analytics' => $analytics,
         ':marketing' => $marketing,
+        ':language' => $language !== '' ? $language : null,
+        ':theme' => $theme !== '' ? $theme : null,
         ':created_at' => date('Y-m-d H:i:s'),
         ':ip_address' => $ip,
         ':user_agent' => $userAgent,

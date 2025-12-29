@@ -85,22 +85,6 @@ $userAgent = substr($_SERVER['HTTP_USER_AGENT'] ?? 'unknown', 0, 255);
 try {
     $pdo = get_db();
 
-    // Basic rate limiting by IP.
-    $limitStmt = $pdo->prepare(
-        'SELECT created_at FROM article_comments WHERE ip_address = :ip ORDER BY created_at DESC LIMIT 1'
-    );
-    $limitStmt->execute([':ip' => $ip]);
-    $last = $limitStmt->fetchColumn();
-    if ($last && COMMENTS_RATE_LIMIT_MINUTES > 0) {
-        $lastTime = strtotime($last);
-        $minDelay = COMMENTS_RATE_LIMIT_MINUTES * 60;
-        if (time() - $lastTime < $minDelay) {
-            http_response_code(429);
-            echo json_encode(['ok' => false, 'error' => 'Too many requests']);
-            exit;
-        }
-    }
-
     $status = COMMENTS_REQUIRE_APPROVAL ? 'pending' : 'approved';
     $stmt = $pdo->prepare(
         'INSERT INTO article_comments (article_slug, page_url, author_name, author_email, message, status, created_at, ip_address, user_agent)

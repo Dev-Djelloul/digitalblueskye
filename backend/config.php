@@ -14,7 +14,6 @@ define('DB_CHARSET', 'utf8mb4');
 
 // Comment settings.
 define('COMMENTS_REQUIRE_APPROVAL', getenv('COMMENTS_REQUIRE_APPROVAL') === 'true');
-define('COMMENTS_RATE_LIMIT_MINUTES', (int) (getenv('COMMENTS_RATE_LIMIT_MINUTES') ?: 0));
 define('COMMENTS_MAX_LENGTH', 2000);
 
 header('Content-Type: application/json; charset=utf-8');
