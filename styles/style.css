@@ -2589,14 +2589,28 @@ h1.main-title-animated .title-icon {
 }
 
 .share-btn {
+  align-items: center;
   background: rgb(24 25 38 / 75%);
   border: 1px solid rgb(93 93 255 / 45%);
   border-radius: 999px;
   color: #fff;
+  display: inline-flex;
   font-family: Iceland, sans-serif;
-  padding: 8px 18px;
+  justify-content: center;
+  padding: 10px 16px;
   text-decoration: none;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.share-btn img {
+  display: block;
+  height: 24px;
+  width: 24px;
+}
+
+.share-copy-label {
+  font-size: 0.95rem;
+  margin-left: 8px;
 }
 
 .share-btn:hover {
@@ -2700,7 +2714,8 @@ h1.main-title-animated .title-icon {
   color: #fff;
   cursor: pointer;
   font-family: Iceland, sans-serif;
-  padding: 10px 26px;
+  font-size: 1.2rem;
+  padding: 14px 34px;
 }
 
 .article-body p,

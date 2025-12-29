@@ -21,11 +21,29 @@ document.addEventListener("DOMContentLoaded", () => {
       el.addEventListener("click", async () => {
         try {
           await navigator.clipboard.writeText(pageUrl);
-          const originalText = el.textContent;
-          el.textContent = isFrench ? "Lien copié !" : "Link copied!";
+          const labelText = isFrench ? "Lien copié !" : "Link copied!";
+          const label = el.querySelector(".share-copy-label");
+          if (label) {
+            label.textContent = labelText;
+          } else if (el.querySelector("img")) {
+            const span = document.createElement("span");
+            span.className = "share-copy-label";
+            span.textContent = labelText;
+            el.appendChild(span);
+          } else {
+            const originalText = el.textContent;
+            el.textContent = labelText;
+            el.dataset.originalText = originalText;
+          }
           el.classList.add("is-copied");
           setTimeout(() => {
-            el.textContent = originalText;
+            const existingLabel = el.querySelector(".share-copy-label");
+            if (existingLabel) {
+              existingLabel.remove();
+            } else if (el.dataset.originalText) {
+              el.textContent = el.dataset.originalText;
+              delete el.dataset.originalText;
+            }
             el.classList.remove("is-copied");
           }, 2000);
         } catch (error) {
