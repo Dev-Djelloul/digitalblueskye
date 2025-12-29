@@ -159,7 +159,7 @@ body.body-menu-open main {
 
 /* Empêcher le scroll de la page quand le menu est ouvert */
 body.body-menu-open {
-  overflow: auto;
+  overflow: hidden;
 }
 
 /* Override pour le thème clair */
@@ -731,11 +731,11 @@ section#skills,
 
 #loader-video {
   object-fit: contain;
-  border: 2px solid var(--border-color);
-  border-radius: 50%;
-  box-shadow: 0 5px 100px #5d5dff;
-  height: 125px;
-  width: 125px;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  height: 240px;
+  width: 240px;
 }
 
 /* Assurer que la couleur de fond du loader s'adapte au thème clair */
@@ -784,9 +784,10 @@ header {
 
 /* Centrage du logo et du hamburger */
 .header-logo img {
-  border: 1px solid var(--border-color);
   border-radius: 50%;
+  height: 80px;
   margin: 5px 30px 0 45px;
+  width: auto;
 }
 
 .header-logo :hover {
@@ -953,8 +954,13 @@ header.nav-hidden,
 /* Style optionnel quand le header est visible après scroll */
 header.nav-scrolled,
 .compact-header.nav-scrolled {
-  background-color: rgb(35 36 54 / 95%);
+  background-color: #1e1f2f;
   box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+body.body-menu-open header,
+body.body-menu-open .compact-header {
+  background-color: #1e1f2f;
 }
 
 /* Styles du header en thème clair */
@@ -1110,19 +1116,19 @@ header.nav-scrolled,
   background-color: #1e1f2f; /* Couleur de fond sombre */
   box-shadow: 2px 0 10px rgb(0 0 0 / 20%); /* Ombre sur le côté droit */
   color: white;
-  height: 100vh; /* Toute la hauteur de la vue */
+  height: calc(100vh - 100px); /* Toute la hauteur de la vue moins le header */
   left: 0;
   overflow: hidden auto; /* Pour le défilement si le contenu du menu est long */
   -webkit-overflow-scrolling: touch; /* Défilement fluide sur iOS */
   -ms-overflow-style: none; /* IE et Edge */
-  padding: 40px;
+  padding: 30px 40px 40px 90px;
   pointer-events: auto; /* ✅ Capture les événements de souris */
   position: fixed;
 
   /* Masquer la barre de défilement pour Webkit (Chrome, Safari, Edge) */
   scrollbar-width: none; /* Firefox */
   text-align: left;
-  top: 0; /* Aligné en haut */
+  top: 100px; /* Aligné sous le header */
   transform: translateX(-100%); /* Caché à gauche initialement */
   transition: transform 0.4s ease; /* Transition sur la transformation X */
   width: 75%; /* Ou la largeur que vous souhaitez, ex: 250px ou 25% */
@@ -1148,7 +1154,7 @@ header.nav-scrolled,
   gap: 30px;
   list-style: none;
   margin-bottom: 0;
-  margin-top: 100px;
+  margin-top: 20px;
 }
 
 .dropdown-nav a {
@@ -1160,9 +1166,9 @@ header.nav-scrolled,
   color: var(--accent-color);
   display: inline-block;
   font-family: Iceland, sans-serif;
-  font-size: 1.4rem;
+  font-size: 1.9rem;
   font-weight: bolder;
-  padding: 10px 15px;
+  padding: 10px 15px 10px 0;
   text-decoration: none;
   -webkit-text-fill-color: transparent;
   transition: color 0.3s, transform 0.2s;
@@ -1178,7 +1184,7 @@ header.nav-scrolled,
   display: block;
   font-family: Iceland, sans-serif;
   font-size: 1.2rem;
-  padding: 10px 15px;
+  padding: 0;
   width: 100%;
 }
 
@@ -2897,6 +2903,14 @@ h1.main-title-animated .title-icon {
   color: transparent !important;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+.contact-container .title-banner {
+  font-size: 3rem;
+}
+
+.contact-container h3.title-banner {
+  font-size: 2.3rem;
 }
 
 [data-theme="light"] .explorer-page h1.main-title-animated {
@@ -5018,7 +5032,7 @@ h1.main-title-animated .title-icon {
 .contact-form {
   /* Formulaire de contact */
   background: rgb(0 0 0 / 0%);
-  border-radius: 5%;
+  border-radius: 0;
   box-shadow: 0 10px 30px var(--shadow-color);
   margin: 30px auto;
   max-width: 600px;
@@ -5226,12 +5240,9 @@ h1.main-title-animated .title-icon {
    BLOG - NEWSLETTER
    ========================= */
 .blog-newsletter {
-  background: linear-gradient(
-    135deg,
-    rgb(93 93 255 / 10%),
-    rgb(200 34 255 / 10%)
-  );
-  border: 1px solid #c822ff;
+  background-color: rgb(255 255 255 / 6%);
+  border: 1px solid transparent;
+  border-image: linear-gradient(45deg, var(--accent-color), #c822ff) 1;
   border-radius: 12px;
   margin: 150px 100px 100px;
   padding: 40px;
@@ -5240,7 +5251,6 @@ h1.main-title-animated .title-icon {
 
 [data-theme="light"] .blog-newsletter {
   background-color: #fff;
-  background-image: none;
 }
 
 .blog-newsletter h3 {
@@ -5578,7 +5588,7 @@ body.body-menu-open #footer {
 @media (width <= 1200px) {
   /* Tablettes larges et ordinateurs moyens */
   .dropdown-menu {
-    padding: 35px;
+    padding: 30px 35px 35px 45px;
     width: 75%;
   }
 
@@ -5680,11 +5690,11 @@ body.body-menu-open #footer {
 
   /* Ajuster la largeur du menu pour mobile */
   .dropdown-menu {
-    height: calc(95vh - 0px); /* Hauteur restante */
+    height: calc(95vh - 70px); /* Hauteur restante */
     overflow: hidden; /* ✅ Pas de scroll interne au menu */
     padding: 20px; /* Padding réduit */
     position: fixed; /* ✅ Menu fixe */
-    top: 40px; /* Positionné sous le header compact */
+    top: 70px; /* Positionné sous le header compact */
     width: 100%; /* ✅ Plus large que les 30% actuels pour une meilleure UX */
     z-index: 2000; /* ✅ S'assure qu'il passe au-dessus */
   }
@@ -5729,9 +5739,9 @@ body.body-menu-open #footer {
 
   .header-logo img {
     border-radius: 50%;
-    height: 40px;
+    height: 60px;
     margin: 15px 30px 5px 15px;
-    width: 40px;
+    width: auto;
   }
 
   .hamburger {
@@ -6039,7 +6049,7 @@ body.body-menu-open #footer {
 /* Ajustements dropdown pour mobile */
 .dropdown-nav ul {
   margin-bottom: 40px;
-  margin-top: 75px;
+  margin-top: 20px;
 }
 
 .dropdown-nav a {
@@ -6223,7 +6233,7 @@ body.body-menu-open #footer {
 
 .trust-section {
   background: linear-gradient(135deg, rgb(93 93 255 / 8%), rgb(200 34 255 / 8%));
-  border-radius: 16px;
+  border-radius: 0;
   margin: 100px auto;
   max-width: 1200px;
   padding: 60px 40px;

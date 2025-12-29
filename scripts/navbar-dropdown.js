@@ -68,6 +68,18 @@ document.addEventListener('DOMContentLoaded', function() {
       el.addEventListener('mouseleave', onLeave);
     });
   }
+
+  // Fermer le sous-menu quand la souris sort (évite le focus collé au clic)
+  const dropdownSubmenus = document.querySelectorAll('.dropdown-submenu');
+  dropdownSubmenus.forEach(submenu => {
+    submenu.addEventListener('mouseleave', () => {
+      if (!isDesktop.matches) return;
+      const active = document.activeElement;
+      if (active && submenu.contains(active)) {
+        active.blur();
+      }
+    });
+  });
   
   // Fermer le menu en cliquant sur les liens de navigation (sauf liens de langue)
   const navLinks = document.querySelectorAll('.dropdown-nav a:not(#switch-to-en):not(#switch-to-fr)');

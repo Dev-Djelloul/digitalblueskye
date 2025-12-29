@@ -61,7 +61,7 @@
         "name": "Digitalblueskye",
         "logo": {
           "@type": "ImageObject",
-          "url": makeAbsoluteUrl("/assets/images/logo/Logo-Globe.png")
+          "url": makeAbsoluteUrl("/assets/images/logo/DigitalBlueSkye-Logo.png")
         }
       }
     };
