@@ -33,13 +33,14 @@ $userAgent = substr($_SERVER['HTTP_USER_AGENT'] ?? 'unknown', 0, 255);
 try {
     $pdo = get_db();
     $stmt = $pdo->prepare(
-        'INSERT INTO consent_logs (consent_id, analytics, marketing, ip_address, user_agent, page_url)
-         VALUES (:consent_id, :analytics, :marketing, :ip_address, :user_agent, :page_url)'
+        'INSERT INTO consent_logs (consent_id, analytics, marketing, created_at, ip_address, user_agent, page_url)
+         VALUES (:consent_id, :analytics, :marketing, :created_at, :ip_address, :user_agent, :page_url)'
     );
     $stmt->execute([
         ':consent_id' => $consentId,
         ':analytics' => $analytics,
         ':marketing' => $marketing,
+        ':created_at' => date('Y-m-d H:i:s'),
         ':ip_address' => $ip,
         ':user_agent' => $userAgent,
         ':page_url' => $pageUrl,

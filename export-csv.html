@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Exports CSV</title>
+    <link rel="stylesheet" href="/styles/style.css" />
+    <style>
+      .export-page {
+        min-height: 100vh;
+        padding: 60px 18px 30px;
+      }
+
+      .export-card {
+        background: linear-gradient(135deg, var(--secondary-bg), var(--card-bg));
+        border: 1px solid rgb(var(--accent-rgb), 0.4);
+        border-radius: 16px;
+        box-shadow: 0 8px 25px rgb(var(--accent-rgb), 0.15);
+        margin: 0 auto;
+        max-width: 700px;
+        padding: 12px 16px 16px;
+        text-align: left;
+      }
+
+      .export-back {
+        align-items: center;
+        background: rgb(93 93 255 / 12%);
+        border: 1px solid rgb(93 93 255 / 25%);
+        border-radius: 999px;
+        color: var(--text-color);
+        display: inline-flex;
+        font-size: 0.9rem;
+        gap: 8px;
+        left: 20px;
+        padding: 8px 14px;
+        position: absolute;
+        text-decoration: none;
+        top: 20px;
+      }
+
+      .export-back:hover {
+        background: rgb(93 93 255 / 20%);
+      }
+
+      .export-back .chevron {
+        font-size: 1rem;
+      }
+
+      .export-card h1 {
+        font-size: 1.55rem;
+        margin-bottom: 4px;
+      }
+
+      .export-title {
+        background: linear-gradient(45deg, #5d5dff, #c822ff);
+        background-clip: text;
+        color: transparent;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .export-title-note {
+        color: rgb(200 210 255 / 75%);
+        display: inline-block;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-left: 6px;
+        opacity: 0.9;
+        -webkit-text-fill-color: currentColor;
+        text-transform: uppercase;
+      }
+
+      .export-card p {
+        opacity: 0.8;
+        margin-bottom: 12px;
+      }
+
+      .export-form {
+        display: grid;
+        gap: 8px;
+      }
+
+      .export-row {
+        display: grid;
+        gap: 14px;
+      }
+
+      .export-row label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+
+      .export-row input {
+        background: rgb(93 93 255 / 8%);
+        border: 1px solid rgb(93 93 255 / 25%);
+        border-radius: 10px;
+        color: var(--text-color);
+        font-size: 0.95rem;
+        padding: 8px 12px;
+        width: 100%;
+      }
+
+      .export-actions {
+        display: grid;
+        gap: 8px;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        margin-top: 6px;
+      }
+
+      .export-actions button {
+        background: linear-gradient(45deg, var(--accent-color), #c822ff);
+        border: none;
+        border-radius: 999px;
+        color: #fff;
+        cursor: pointer;
+        font-weight: 700;
+        padding: 9px 14px;
+        text-transform: uppercase;
+      }
+
+      .export-actions button:hover {
+        box-shadow: 0 10px 25px rgb(93 93 255 / 35%);
+        transform: translateY(-1px);
+      }
+
+      .export-hint {
+        font-size: 0.82rem;
+        opacity: 0.7;
+      }
+
+      @media (width <= 600px) {
+        .export-card {
+          padding: 12px 14px 16px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <a class="export-back" href="/pages/privacy.html">
+      <span class="chevron">←</span>
+      Retour
+    </a>
+    <main class="export-page">
+      <section class="export-card">
+        <h1 class="export-title">
+          Données collectées
+          <span class="export-title-note">format CSV</span>
+        </h1>
+        <p>
+          Cette interface permet d’exporter les données collectées (contacts,
+          commentaires, consentements). Entrez votre token d’accès personnel
+          puis choisissez l’export souhaité. L’accès est strictement réservé à
+          l’administrateur.
+        </p>
+        <div class="export-form">
+          <div class="export-row">
+            <label for="export-token">Token</label>
+            <input id="export-token" type="password" autocomplete="off" />
+          </div>
+          <div class="export-actions">
+            <button type="button" data-table="contact_messages">Contacts</button>
+            <button type="button" data-table="article_comments">Commentaires</button>
+            <button type="button" data-table="consent_logs">Consentements</button>
+          </div>
+        </div>
+      </section>
+    </main>
+    <script>
+      const tokenInput = document.getElementById("export-token");
+      document.querySelectorAll("button[data-table]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const token = tokenInput.value.trim();
+          if (!token) {
+            alert("Token requis.");
+            return;
+          }
+          const table = button.dataset.table;
+          const params = new URLSearchParams({ table, token });
+          const url = `/export-csv.php?${params.toString()}`;
+          window.location.href = url;
+        });
+      });
+    </script>
+  </body>
+</html>

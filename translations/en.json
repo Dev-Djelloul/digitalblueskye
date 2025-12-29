@@ -162,6 +162,8 @@
   },
   "contact": {
     "name": "Name",
+    "firstName": "First name",
+    "lastName": "Last name",
     "email": "Email",
     "message": "Message",
     "enterName": "Enter your name...",
@@ -445,7 +447,8 @@
       "introText": "At Digitalblueskye, we respect your privacy and are committed to protecting your personal data. This policy explains how we collect, use, and protect your information.",
       "controller": "2. Data controller",
       "controllerText": "The data controller is DigitalBlueSkye. For any question about your personal data, you can contact us via the contact page.",
-      "dataCollection": "3. Data collected",
+    "dataCollection": "3. Data collected",
+    "dataCollectionCsv": "3. Data collected",
       "dataCollectionText": "We collect the following data:",
       "contactForm": "Contact form",
       "comments": "Comments",
@@ -549,7 +552,7 @@
   },
   "inspirationPages": {
     "common": {
-      "adventureTitle": "My journey",
+      "adventureTitle": "What I liked . . .",
       "back": "Back",
       "prev": "Previous",
       "next": "Next"

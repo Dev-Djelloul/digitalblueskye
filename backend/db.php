@@ -16,5 +16,6 @@ function get_db(): PDO {
     ];
 
     $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
+    $pdo->exec("SET time_zone = '" . date('P') . "'");
     return $pdo;
 }

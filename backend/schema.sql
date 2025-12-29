@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS consent_logs (
   consent_id VARCHAR(64) NOT NULL,
   analytics TINYINT(1) NOT NULL DEFAULT 0,
   marketing TINYINT(1) NOT NULL DEFAULT 0,
-  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   ip_address VARCHAR(45) NOT NULL,
   user_agent VARCHAR(255) NOT NULL,
   page_url VARCHAR(255) NOT NULL
@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS article_comments (
   author_email VARCHAR(180) NOT NULL,
   message TEXT NOT NULL,
   status ENUM('approved','pending') NOT NULL DEFAULT 'approved',
-  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   ip_address VARCHAR(45) NOT NULL,
   user_agent VARCHAR(255) NOT NULL
 );

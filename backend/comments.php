@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             "SELECT author_name, message, created_at
              FROM article_comments
              WHERE article_slug = :article AND status = 'approved'
-             ORDER BY created_at DESC
+             ORDER BY created_at DESC, id DESC
              LIMIT 100"
         );
         $stmt->execute([':article' => $article]);
@@ -91,7 +91,7 @@ try {
     );
     $limitStmt->execute([':ip' => $ip]);
     $last = $limitStmt->fetchColumn();
-    if ($last) {
+    if ($last && COMMENTS_RATE_LIMIT_MINUTES > 0) {
         $lastTime = strtotime($last);
         $minDelay = COMMENTS_RATE_LIMIT_MINUTES * 60;
         if (time() - $lastTime < $minDelay) {
@@ -103,8 +103,8 @@ try {
 
     $status = COMMENTS_REQUIRE_APPROVAL ? 'pending' : 'approved';
     $stmt = $pdo->prepare(
-        'INSERT INTO article_comments (article_slug, page_url, author_name, author_email, message, status, ip_address, user_agent)
-         VALUES (:article_slug, :page_url, :author_name, :author_email, :message, :status, :ip_address, :user_agent)'
+        'INSERT INTO article_comments (article_slug, page_url, author_name, author_email, message, status, created_at, ip_address, user_agent)
+         VALUES (:article_slug, :page_url, :author_name, :author_email, :message, :status, :created_at, :ip_address, :user_agent)'
     );
     $stmt->execute([
         ':article_slug' => $article,
@@ -113,6 +113,7 @@ try {
         ':author_email' => $email,
         ':message' => $message,
         ':status' => $status,
+        ':created_at' => date('Y-m-d H:i:s'),
         ':ip_address' => $ip,
         ':user_agent' => $userAgent,
     ]);

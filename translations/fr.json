@@ -18,7 +18,7 @@
     "contact": "Contactez moi"
   },
   "home": {
-    "title": "Digitalblueskye",
+    "title": "Digital Blue Skye",
     "explore": "Commencer à explorer",
     "viewMore": "Voir tous les articles"
   },
@@ -162,6 +162,8 @@
   },
   "contact": {
     "name": "Nom",
+    "firstName": "Prénom",
+    "lastName": "Nom",
     "email": "Email",
     "message": "Message",
     "enterName": "Entrez votre nom...",
@@ -444,7 +446,8 @@
       "introText": "Chez Digitalblueskye, nous respectons votre vie privée et nous nous engageons à protéger vos données personnelles. Cette politique explique comment nous collectons, utilisons et protégeons vos informations.",
       "controller": "2. Responsable du traitement",
       "controllerText": "Le responsable du traitement est DigitalBlueSkye. Pour toute question sur vos données personnelles, vous pouvez nous contacter via la page contact.",
-      "dataCollection": "3. Données collectées",
+    "dataCollection": "3. Données collectées",
+    "dataCollectionCsv": "3. Données collectées",
       "dataCollectionText": "Nous collectons les données suivantes :",
       "contactForm": "Formulaire de contact",
       "comments": "Commentaires",
@@ -548,7 +551,7 @@
   },
   "inspirationPages": {
     "common": {
-      "adventureTitle": "Mon aventure",
+      "adventureTitle": "Ce que j'aimé . . .",
       "back": "Retour",
       "prev": "Précédent",
       "next": "Suivant"

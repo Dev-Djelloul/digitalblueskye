@@ -27,14 +27,17 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const formatDate = (isoString) => {
-    const date = new Date(isoString);
+    const normalized = String(isoString || "").replace(" ", "T");
+    const date = new Date(normalized);
     if (Number.isNaN(date.getTime())) {
       return "";
     }
-    return date.toLocaleDateString(document.documentElement.lang || "fr", {
+    return date.toLocaleString(document.documentElement.lang || "fr", {
       year: "numeric",
       month: "long",
       day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
