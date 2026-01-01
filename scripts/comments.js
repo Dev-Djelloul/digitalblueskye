@@ -7,6 +7,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const listEl = commentsSection.querySelector("[data-comments]");
   const statusEl = commentsSection.querySelector("[data-comments-status]");
   const copyEl = commentsSection.querySelector("[data-comments-copy]");
+  const countNumberEl = document.querySelector("[data-comments-count]");
+  const countLabelEl = document.querySelector("[data-comments-count-label]");
   const form = commentsSection.querySelector(".article-comments-form");
   const articleSlug = window.location.pathname.split("/").pop().replace(".html", "");
 
@@ -25,6 +27,23 @@ document.addEventListener("DOMContentLoaded", () => {
     statusEl.textContent = message;
     statusEl.className = `comments-status ${type}`.trim();
   };
+
+  const setCount = (count) => {
+    if (!countNumberEl || !countLabelEl) {
+      return;
+    }
+    const safeCount = Number.isFinite(count) ? count : 0;
+    countNumberEl.textContent = String(safeCount);
+    const lang = (document.documentElement.lang || "").toLowerCase();
+    const isFrench = lang.startsWith("fr");
+    const isEnglish = lang.startsWith("en");
+    const useSingular = safeCount === 1 || (safeCount === 0 && (isFrench || isEnglish));
+    countLabelEl.textContent = useSingular
+      ? getCopy("countSingular", "commentaire")
+      : getCopy("countPlural", "commentaires");
+  };
+
+  setCount(Number.parseInt(countNumberEl?.textContent || "0", 10) || 0);
 
   const formatDate = (isoString) => {
     const normalized = String(isoString || "").replace(" ", "T");
@@ -81,9 +100,11 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       listEl.innerHTML = "";
       if (!data.comments || data.comments.length === 0) {
-        setStatus(getCopy("empty", "Aucun commentaire pour le moment."));
+        setCount(0);
+        setStatus("");
         return;
       }
+      setCount(data.comments.length);
       setStatus("");
       data.comments.forEach((comment) => {
         listEl.appendChild(renderComment(comment));
@@ -94,6 +115,11 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   loadComments();
+
+  document.addEventListener("translationCompleted", () => {
+    const currentCount = Number.parseInt(countNumberEl?.textContent || "0", 10);
+    setCount(Number.isNaN(currentCount) ? 0 : currentCount);
+  });
 
   if (!form) {
     return;

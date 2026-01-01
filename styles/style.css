@@ -2661,6 +2661,22 @@ h1.main-title-animated .title-icon {
   margin-bottom: 30px;
 }
 
+.article-comment-count {
+  align-items: center;
+  color: var(--text-color-light);
+  display: inline-flex;
+  font-family: "DynaPuff", system-ui;
+  font-size: 1.05rem;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+.comment-count-icon {
+  height: 22px;
+  width: 22px;
+}
+
 .article-banner-image {
   border-radius: 8px;
   box-shadow: 0 12px 35px rgb(0 0 0 / 25%);

@@ -1,15 +1,25 @@
 document.addEventListener("DOMContentLoaded", () => {
   const pageUrl = window.location.href;
-  const encodedUrl = encodeURIComponent(pageUrl);
+  const articleMatch = window.location.pathname.match(/\/blog\/digital\/(article-[^/]+\.html)/);
+  const shareBase = "https://digitalblueskye-share.netlify.app";
+  const shareUrl = articleMatch ? `${shareBase}/${articleMatch[1]}` : pageUrl;
+  const encodedUrl = encodeURIComponent(shareUrl);
   const encodedTitle = encodeURIComponent(document.title);
+  const metaDescription =
+    document.querySelector('meta[name="description"]')?.getAttribute("content") ||
+    document.querySelector('meta[property="og:description"]')?.getAttribute("content") ||
+    "";
+  const encodedSummary = encodeURIComponent(metaDescription);
   const isFrench = document.documentElement.lang === "fr";
 
   const shareHandlers = {
     x: (el) => {
-      el.href = `https://x.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`;
+      const rawText = [document.title, metaDescription].filter(Boolean).join(" — ");
+      const encodedText = encodeURIComponent(rawText);
+      el.href = `https://x.com/intent/tweet?url=${encodedUrl}&text=${encodedText}`;
     },
     linkedin: (el) => {
-      el.href = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
+      el.href = `https://www.linkedin.com/shareArticle?mini=true&url=${encodedUrl}&title=${encodedTitle}&summary=${encodedSummary}`;
     },
     facebook: (el) => {
       el.href = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
