@@ -2,7 +2,7 @@ const CONSENT_KEY = 'dbs_consent_v1';
 const CONSENT_VERSION = 1;
 const CONSENT_ID_KEY = 'dbs_consent_id';
 const CONSENT_SENT_KEY = 'dbs_consent_sent_v1';
-const CONSENT_DELAY_MS = 10000;
+const CONSENT_DELAY_MS = 5000;
 
 if ('scrollRestoration' in history) {
   history.scrollRestoration = 'manual';
@@ -314,16 +314,23 @@ function createConsentUI() {
     banner.classList.remove('consent-banner--expanded');
   }
 
+  function setScrollLock(locked) {
+    document.body.classList.toggle('consent-scroll-lock', locked);
+    document.documentElement.classList.toggle('consent-scroll-lock', locked);
+  }
+
   function hideBanner() {
     banner.classList.remove('consent-banner--visible');
     banner.classList.add('consent-banner--hidden');
     floatingButton.classList.add('consent-floating--visible');
+    setScrollLock(false);
   }
 
   function showBanner() {
     banner.classList.remove('consent-banner--hidden');
     banner.classList.add('consent-banner--visible');
     floatingButton.classList.remove('consent-floating--visible');
+    setScrollLock(true);
   }
 
   banner.addEventListener('click', (event) => {

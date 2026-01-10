@@ -2193,6 +2193,11 @@ h1.main-title-animated .title-icon {
 /* =========================
    CONSENT - DONNEES PERSONNELLES
    ========================= */
+.consent-scroll-lock {
+  overflow: hidden;
+  touch-action: none;
+}
+
 .consent-banner {
   background: linear-gradient(135deg, var(--secondary-bg), var(--card-bg));
   border: 1px solid rgb(93 93 255 / 30%);
