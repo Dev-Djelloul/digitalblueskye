@@ -17,8 +17,11 @@ $allowedTables = [
     'ip_address', 'user_agent', 'submitted_at'
   ],
   'consent_logs' => [
-    'id', 'consent_id', 'analytics', 'marketing', 'language', 'theme',
-    'created_at', 'ip_address', 'user_agent', 'page_url'
+    'id', 'consent_id', 'consent_given', 'analytics', 'marketing', 'language', 'theme',
+    'viewport_width', 'viewport_height', 'device_pixel_ratio',
+    'screen_width', 'screen_height', 'navigator_language',
+    'ua_data', 'in_app_browser', 'created_at', 'ip_address',
+    'user_agent', 'page_url'
   ],
   'article_comments' => [
     'id', 'article_slug', 'page_url', 'author_name', 'author_email',

@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS contact_messages (
   last_name VARCHAR(80) NOT NULL,
   email VARCHAR(160) NOT NULL,
   message TEXT NOT NULL,
+  contact_consent VARCHAR(3) NOT NULL DEFAULT 'no',
   ip_address VARCHAR(45) DEFAULT NULL,
   user_agent VARCHAR(255) DEFAULT NULL,
   submitted_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,

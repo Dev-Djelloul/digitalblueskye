@@ -27,12 +27,22 @@ $firstName = trim((string) ($_POST["user_first_name"] ?? ""));
 $lastName = trim((string) ($_POST["user_last_name"] ?? ""));
 $email = trim((string) ($_POST["user_email"] ?? ""));
 $message = trim((string) ($_POST["message"] ?? ""));
+$contactConsent = !empty($_POST["contact_consent"]) ? "yes" : "no";
 
 if ($firstName === "" || $lastName === "" || $email === "" || $message === "") {
   http_response_code(422);
   echo json_encode([
     "success" => false,
     "message" => "Missing required fields."
+  ]);
+  exit;
+}
+
+if ($contactConsent !== "yes") {
+  http_response_code(422);
+  echo json_encode([
+    "success" => false,
+    "message" => "Consent required."
   ]);
   exit;
 }
@@ -62,8 +72,8 @@ try {
   $mysqli->set_charset("utf8mb4");
 
   $stmt = $mysqli->prepare(
-    "INSERT INTO {$dbTable} (first_name, last_name, email, message, ip_address, user_agent, submitted_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?)"
+    "INSERT INTO {$dbTable} (first_name, last_name, email, message, contact_consent, ip_address, user_agent, submitted_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
   );
 
   $ipAddress = $_SERVER["REMOTE_ADDR"] ?? null;
@@ -71,11 +81,12 @@ try {
 
   $submittedAt = date("Y-m-d H:i:s");
   $stmt->bind_param(
-    "sssssss",
+    "ssssssss",
     $firstName,
     $lastName,
     $email,
     $message,
+    $contactConsent,
     $ipAddress,
     $userAgent,
     $submittedAt

@@ -5378,6 +5378,30 @@ h1.main-title-animated .title-icon {
   display: none;
 }
 
+.contact-consent {
+  margin: 20px 0 12px;
+}
+
+.contact-consent__label {
+  color: var(--text-color);
+  display: inline;
+  line-height: 1.4;
+  margin-bottom: 0;
+}
+
+.contact-consent__label input {
+  accent-color: var(--accent-color);
+  height: 16px;
+  margin: 0 10px 0 0;
+  vertical-align: baseline;
+  width: 16px;
+}
+
+.contact-consent__label span {
+  display: inline;
+}
+
+
 /* Carte Google Maps */
 .contact-map {
   margin-bottom: 60px;

@@ -104,6 +104,11 @@ function getConsentId() {
 }
 
 function sendConsentToServer(consent) {
+  function detectInAppBrowser() {
+    const ua = navigator.userAgent || '';
+    return /FBAN|FBAV|FB_IAB|Instagram|Line|Twitter|LinkedInApp|Snapchat|WhatsApp|TikTok|Pinterest|GSA|; wv|WebView|wv\)/i.test(ua);
+  }
+
   function normalizeLanguage(value) {
     if (!value) return '';
     return value.toString().trim().toLowerCase().split(/[-_]/)[0] || '';
@@ -120,6 +125,27 @@ function sendConsentToServer(consent) {
     localStorage.getItem('theme') ||
     'dark';
 
+  const viewportWidth = Number.isFinite(window.innerWidth) ? Math.round(window.innerWidth) : null;
+  const viewportHeight = Number.isFinite(window.innerHeight) ? Math.round(window.innerHeight) : null;
+  const devicePixelRatio =
+    typeof window.devicePixelRatio === 'number' && Number.isFinite(window.devicePixelRatio)
+      ? Math.round(window.devicePixelRatio * 100) / 100
+      : null;
+  const screenWidth =
+    window.screen && Number.isFinite(window.screen.width) ? Math.round(window.screen.width) : null;
+  const screenHeight =
+    window.screen && Number.isFinite(window.screen.height) ? Math.round(window.screen.height) : null;
+  const navigatorLanguage =
+    typeof navigator.language === 'string' ? navigator.language.trim().slice(0, 16) : '';
+  const uaData =
+    navigator.userAgentData && typeof navigator.userAgentData === 'object'
+      ? {
+          brands: navigator.userAgentData.brands,
+          mobile: navigator.userAgentData.mobile,
+          platform: navigator.userAgentData.platform
+        }
+      : null;
+
   fetch('/backend/consent.php', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -129,6 +155,14 @@ function sendConsentToServer(consent) {
       marketing: !!consent.marketing,
       language: language,
       theme: theme,
+      viewport_width: viewportWidth,
+      viewport_height: viewportHeight,
+      device_pixel_ratio: devicePixelRatio,
+      screen_width: screenWidth,
+      screen_height: screenHeight,
+      navigator_language: navigatorLanguage,
+      ua_data: uaData,
+      in_app_browser: detectInAppBrowser(),
       page_url: window.location.href
     })
   }).catch(() => {

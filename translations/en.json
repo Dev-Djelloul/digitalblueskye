@@ -182,6 +182,7 @@
     "locationTitle": "Contact",
     "formTitle": "Leave me a message",
     "sendButton": "Send message",
+    "consentText": "By submitting this form, I agree that the information provided will be used to respond to my request. I can exercise my rights by consulting the privacy policy.",
     "alternateContact": "You can also send me an email at",
     "successMessage": "Your message has been sent successfully!",
     "errorMessage": "An error occurred. Please try again."
@@ -456,6 +457,7 @@
       "comments": "Comments",
       "analytics": "Audience measurement",
       "cookies": "Cookies and trackers",
+      "technical": "Browser technical data",
       "dataUsage": "4. Processing purposes",
       "dataUsageText": "Your data is used to:",
       "useContact": "Respond to your messages via the contact form",

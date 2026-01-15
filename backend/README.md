@@ -20,6 +20,9 @@ XAMPP sert au dev local. En production, utilisez un hébergement PHP + MySQL/Mar
 ## Endpoints
 - `POST /backend/consent.php`
   - JSON : `consent_id`, `analytics`, `marketing`, `page_url`
+  - Champ dérivé en base : `consent_given` (`yes` si analytics ou marketing = 1, sinon `no`)
+  - Optionnel : `viewport_width`, `viewport_height`, `device_pixel_ratio`,
+    `screen_width`, `screen_height`, `navigator_language`, `ua_data`, `in_app_browser`
 - `GET /backend/comments.php?article=slug`
   - Retourne les commentaires approuvés
 - `POST /backend/comments.php`

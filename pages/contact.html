@@ -340,6 +340,14 @@
                   required
                 ></textarea>
               </div>
+              <div class="form-group contact-consent">
+                <label class="contact-consent__label">
+                  <input type="checkbox" name="contact_consent" required />
+                  <span data-i18n="contact.consentText">
+                    En soumettant ce formulaire, j'accepte que les informations saisies soient utilisées pour répondre à ma demande. Je peux exercer mes droits en consultant la politique de confidentialité.
+                  </span>
+                </label>
+              </div>
               <input type="hidden" id="user_name" name="user_name" />
               <input type="text" name="website" class="contact-honeypot" tabindex="-1" autocomplete="off" aria-hidden="true" />
               <button type="submit" data-i18n="contact.sendButton">
