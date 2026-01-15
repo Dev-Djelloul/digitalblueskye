@@ -14,7 +14,7 @@ $table = (string) ($_GET['table'] ?? '');
 $allowedTables = [
   'contact_messages' => [
     'id', 'first_name', 'last_name', 'email', 'message',
-    'ip_address', 'user_agent', 'submitted_at'
+    'contact_consent', 'ip_address', 'user_agent', 'submitted_at'
   ],
   'consent_logs' => [
     'id', 'consent_id', 'consent_given', 'analytics', 'marketing', 'language', 'theme',
