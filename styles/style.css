@@ -3197,6 +3197,14 @@ h1.main-title-animated .title-icon {
   width: 8px;
 }
 
+.page-about .about-values strong {
+  background: linear-gradient(90deg, var(--accent-color), #ff8c42);
+  background-clip: text;
+  color: transparent;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
 .page-about .about-timeline {
   display: grid;
   gap: 24px;
