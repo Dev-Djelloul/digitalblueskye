@@ -3197,6 +3197,141 @@ h1.main-title-animated .title-icon {
   width: 8px;
 }
 
+.page-about .about-timeline {
+  display: grid;
+  gap: 24px;
+  margin: 28px 0 12px;
+  padding-left: 24px;
+  position: relative;
+}
+
+.page-about .about-timeline::before {
+  background: linear-gradient(180deg, var(--accent-color), #ff8c42);
+  bottom: 6px;
+  content: "";
+  left: 8px;
+  opacity: 0.6;
+  position: absolute;
+  top: 6px;
+  width: 2px;
+}
+
+.page-about .timeline-item {
+  display: grid;
+  gap: 8px;
+  padding-left: 24px;
+  position: relative;
+}
+
+.page-about .timeline-item::before {
+  background: linear-gradient(135deg, var(--accent-color), #ff8c42);
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px rgb(93 93 255 / 18%);
+  content: "";
+  height: 12px;
+  left: 2px;
+  position: absolute;
+  top: 6px;
+  width: 12px;
+}
+
+.page-about .timeline-year {
+  color: #ff8c42;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.page-about .timeline-content h3 {
+  margin: 0;
+}
+
+.page-about .timeline-content p {
+  margin: 6px 0 0;
+}
+
+.page-about .timeline-link {
+  align-items: center;
+  background: rgb(93 93 255 / 15%);
+  border: 1px solid rgb(93 93 255 / 45%);
+  border-radius: 999px;
+  color: var(--accent-color);
+  display: inline-flex;
+  font-size: 0.88rem;
+  font-weight: 600;
+  gap: 6px;
+  margin: 4px 6px 0 0;
+  padding: 4px 12px;
+  position: relative;
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.page-about .timeline-link::before {
+  content: "✦";
+  font-size: 0.8rem;
+  opacity: 0.85;
+}
+
+.page-about .timeline-link:hover {
+  background: rgb(255 140 66 / 20%);
+  box-shadow: 0 10px 24px rgb(93 93 255 / 25%);
+  color: #ff8c42;
+  transform: translateY(-1px);
+}
+
+.page-about .skill-grid {
+  display: grid;
+  gap: 22px;
+  margin-top: 12px;
+}
+
+.page-about .skill-group {
+  background: linear-gradient(140deg, rgb(10 12 24 / 55%), rgb(16 20 40 / 65%));
+  border: 1px solid rgb(93 93 255 / 18%);
+  border-radius: 22px;
+  padding: 18px 22px;
+}
+
+.page-about .skill-group h3 {
+  margin-top: 0;
+}
+
+.page-about .skill-item {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+}
+
+.page-about .skill-item + .skill-item {
+  border-top: 1px dashed rgb(93 93 255 / 22%);
+}
+
+.page-about .skill-name {
+  font-weight: 600;
+}
+
+.page-about .skill-level {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.page-about .level-dot {
+  background: rgb(255 255 255 / 12%);
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: 50%;
+  height: 10px;
+  width: 10px;
+}
+
+.page-about .level-dot.is-on {
+  background: linear-gradient(135deg, #5d5dff, #ff8c42);
+  border-color: rgb(93 93 255 / 55%);
+  box-shadow: 0 0 10px rgb(93 93 255 / 45%);
+}
+
 .page-about .about-cta {
   align-items: center;
   border-top: 1px solid rgb(93 93 255 / 25%);
@@ -3276,6 +3411,36 @@ h1.main-title-animated .title-icon {
   background: #fff;
   border-color: rgb(93 93 255 / 20%);
   box-shadow: 0 22px 50px rgb(93 93 255 / 18%);
+}
+
+[data-theme="light"] .page-about .about-timeline::before {
+  opacity: 0.5;
+}
+
+[data-theme="light"] .page-about .timeline-item::before {
+  box-shadow: 0 0 0 4px rgb(93 93 255 / 12%);
+}
+
+[data-theme="light"] .page-about .timeline-year {
+  color: #ff8c42;
+}
+
+[data-theme="light"] .page-about .timeline-link:hover {
+  color: #5d5dff;
+}
+
+[data-theme="light"] .page-about .skill-group {
+  background: linear-gradient(140deg, rgb(245 246 255 / 95%), rgb(255 255 255 / 90%));
+  border-color: rgb(93 93 255 / 20%);
+}
+
+[data-theme="light"] .page-about .skill-item + .skill-item {
+  border-top-color: rgb(93 93 255 / 18%);
+}
+
+[data-theme="light"] .page-about .level-dot {
+  background: rgb(93 93 255 / 12%);
+  border-color: rgb(93 93 255 / 25%);
 }
 
 [data-theme="light"] .page-about .about-cta-note {
