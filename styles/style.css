@@ -3332,6 +3332,48 @@ h1.main-title-animated .title-icon {
   box-shadow: 0 0 10px rgb(93 93 255 / 45%);
 }
 
+.page-about .process-steps {
+  display: grid;
+  gap: 18px;
+  margin-top: 12px;
+}
+
+.page-about .process-step {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: minmax(42px, 60px) 1fr;
+  padding: 16px 18px;
+  background: linear-gradient(150deg, rgb(16 18 34 / 75%), rgb(22 26 44 / 85%));
+  border: 1px solid rgb(93 93 255 / 18%);
+  border-radius: 20px;
+  box-shadow: 0 18px 45px rgb(5 8 20 / 35%);
+}
+
+.page-about .process-index {
+  align-items: center;
+  background: linear-gradient(135deg, rgb(93 93 255 / 30%), rgb(255 140 66 / 20%));
+  border-radius: 16px;
+  color: #ff8c42;
+  display: inline-flex;
+  font-weight: 700;
+  height: 42px;
+  justify-content: center;
+  letter-spacing: 0.1em;
+}
+
+.page-about .process-body h3 {
+  margin: 0 0 6px;
+}
+
+.page-about .process-body p {
+  margin: 0 0 8px;
+}
+
+.page-about .process-meta {
+  color: rgb(226 231 255 / 75%);
+  font-size: 0.95rem;
+}
+
 .page-about .about-cta {
   align-items: center;
   border-top: 1px solid rgb(93 93 255 / 25%);
@@ -3441,6 +3483,16 @@ h1.main-title-animated .title-icon {
 [data-theme="light"] .page-about .level-dot {
   background: rgb(93 93 255 / 12%);
   border-color: rgb(93 93 255 / 25%);
+}
+
+[data-theme="light"] .page-about .process-step {
+  background: linear-gradient(150deg, rgb(245 246 255 / 95%), rgb(255 255 255 / 92%));
+  border-color: rgb(93 93 255 / 20%);
+  box-shadow: 0 14px 35px rgb(93 93 255 / 18%);
+}
+
+[data-theme="light"] .page-about .process-meta {
+  color: rgb(90 98 140);
 }
 
 [data-theme="light"] .page-about .about-cta-note {
