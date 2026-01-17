@@ -49,7 +49,7 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
     />
   </head>
-  <body class="page-about">
+  <body class="page-about" id="top">
     <!-- Loader Start -->
     <div id="loader-wrapper">
       <img
@@ -253,6 +253,54 @@
     offset: 50
     });
     </script>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        var scrollToTopBtn = document.getElementById("scroll-to-top");
+        if (!scrollToTopBtn) {
+          return;
+        }
+
+        window.addEventListener("scroll", function () {
+          if (
+            document.body.scrollTop > 300 ||
+            document.documentElement.scrollTop > 300
+          ) {
+            scrollToTopBtn.style.display = "flex";
+            scrollToTopBtn.style.opacity = "1";
+          } else {
+            scrollToTopBtn.style.opacity = "0";
+            setTimeout(() => {
+              if (
+                document.body.scrollTop <= 300 &&
+                document.documentElement.scrollTop <= 300
+              ) {
+                scrollToTopBtn.style.display = "none";
+              }
+            }, 300);
+          }
+        });
+
+        scrollToTopBtn.addEventListener("click", function () {
+          window.scrollTo({
+            top: 0,
+            behavior: "smooth",
+          });
+        });
+      });
+    </script>
+
+    <button
+      id="scroll-to-top"
+      class="scroll-to-top"
+      data-i18n-title="ui.backToTop"
+      title="Retour en haut"
+      type="button"
+    >
+      <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M7 14l5-5 5 5z" fill="currentColor"></path>
+      </svg>
+    </button>
 
     <footer id="footer">
       <div class="footer-container">

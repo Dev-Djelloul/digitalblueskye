@@ -143,9 +143,9 @@ article {
   );
   border-radius: 999px;
   height: 4px;
-  margin: 40px auto 80px;
+  margin: 80px auto;
   position: relative;
-  width: min(90%, 640px);
+  width: min(90%, 760px);
 }
 
 .intro-divider::after {
@@ -230,7 +230,7 @@ section#skills,
 .view-more-container {
   display: flex;
   justify-content: center;
-  margin-top: 60px;
+  margin: 60px 0 80px;
 }
 
 .btn-view-more {
@@ -1436,7 +1436,7 @@ section.page-title-container
   font-size: 2rem;
   font-weight: bold;
   margin-bottom: 150px;
-  margin-top: 200px;
+  margin-top: 80px;
   padding: 45px;
 }
 
@@ -3204,6 +3204,7 @@ h1.main-title-animated .title-icon {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
+
 
 .page-about .about-timeline {
   display: grid;
@@ -6848,12 +6849,22 @@ body.body-menu-open #footer {
   -webkit-text-fill-color: transparent;
 }
 
+.trust-section .trust-highlight {
+  background: linear-gradient(45deg, var(--accent-color), #c822ff);
+  background-clip: text;
+  color: transparent;
+  font-weight: 700;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
 .trust-section .section-subtitle {
   font-size: 1.7rem;
   font-family: Delius, cursive;
   font-weight: 400;
   font-style: normal;
 }
+
 
 /* Testimonials Grid */
 .testimonials-grid {
@@ -7047,6 +7058,21 @@ body.body-menu-open #footer {
   color: transparent !important;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+[data-theme="dark"] .trust-section .section-subtitle,
+[data-theme="dark"] .trust-section .trust-card p,
+[data-theme="dark"] .trust-section .methodology-item p {
+  background: none;
+  color: #fff !important;
+  font-family: Delius, cursive;
+  -webkit-text-fill-color: #fff;
+}
+
+[data-theme="dark"] .trust-section .trust-card p a,
+[data-theme="dark"] .trust-section .methodology-item p a {
+  color: #fff;
+  -webkit-text-fill-color: #fff;
 }
 
 .trust-card-link {
