@@ -1,6 +1,16 @@
 {
   "meta": {
-    "title": "Digitalblueskye Blog"
+    "title": "Digitalblueskye Blog",
+    "homeTitle": "Home",
+    "aboutTitle": "About",
+    "projectsTitle": "Projects",
+    "skillsTitle": "Skills",
+    "contactTitle": "Contact",
+    "privacyTitle": "Privacy",
+    "termsTitle": "Terms",
+    "cookiesTitle": "Cookies",
+    "blogTitle": "Digital Blog",
+    "galleryTitle": "Gallery"
   },
   "header": {
     "title": "Digitalblueskye Designer",
@@ -18,7 +28,7 @@
     "contact": "Contact Me"
   },
   "home": {
-    "title": "Digitalblueskye",
+    "title": "Digital Blue Skye",
     "explore": "Start exploring",
     "viewMore": "View all articles"
   },
@@ -44,7 +54,7 @@
     "article1": {
       "title": "AI is Revolutionizing Project Management",
       "summary": "Discover how artificial intelligence is transforming the daily lives of digital project managers...",
-      "metaTitle": "AI is Revolutionizing Project Management - Digitalblueskye",
+      "metaTitle": "AI is Revolutionizing Project Management",
       "metaDescription": "Detailed analysis of the impact of artificial intelligence on modern project management methodologies.",
       "dateline": "Technology • May 28, 2025",
       "datelineFull": "Published on May 28, 2025 • Category: Technology",
@@ -90,7 +100,7 @@
     "article7": {
       "title": "The Cone of Learning: Understanding and Applying Dale’s Pyramid",
       "summary": "A deep dive into the famous learning scheme, its origins, uses, and limitations for better learning and teaching.",
-      "metaTitle": "The Cone of Learning - Digitalblueskye",
+      "metaTitle": "The Cone of Learning",
       "metaDescription": "Comprehensive analysis of the Cone of Learning (Dale), its foundations, interpretations, and practical applications in education and training.",
       "dateline": "Pedagogy • November 14, 2025",
       "datelineFull": "Published on November 14, 2025 • Category: Pedagogy",
@@ -99,7 +109,7 @@
     "article8": {
       "title": "SEO and Digital Project Management: Optimizing Your Project Visibility",
       "summary": "Discover how to integrate SEO strategy into your digital projects to increase visibility, organic traffic, and ROI of your initiatives...",
-      "metaTitle": "SEO and Digital Project Management - Digitalblueskye",
+      "metaTitle": "SEO and Digital Project Management",
       "metaDescription": "Complete guide to the strategic role of SEO in digital project management and how project managers can optimize online visibility.",
       "dateline": "Technology • December 2, 2025",
       "datelineFull": "Published on December 2, 2025 • Category: Technology",
@@ -123,7 +133,7 @@
     "article11": {
       "title": "Connecting the Dots: The Key Skill in the Age of AI",
       "summary": "Why value is shifting from collecting facts to synthesizing patterns and making decisions.",
-      "metaTitle": "Connecting the Dots: The Key Skill in the Age of AI - Digitalblueskye",
+      "metaTitle": "Connecting the Dots: The Key Skill in the Age of AI",
       "metaDescription": "A pedagogical reading of Sam Altman's quote: become a dot connector rather than a fact collector.",
       "dateline": "Pedagogy • March 10, 2026",
       "datelineFull": "Published on March 10, 2026 • Category: Pedagogy",
@@ -386,7 +396,7 @@
     "subscribe": "Subscribe"
   },
   "inspirations": {
-    "metaTitle": "Inspiration journal | Digitalblueskye",
+    "metaTitle": "Inspiration journal",
     "heroEyebrow": "Inspiration fragments",
     "heroTitle": "My inspiration journal",
     "heroSubtitle": "Travels, textures, colors and architecture that feed my spirit.",

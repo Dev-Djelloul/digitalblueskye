@@ -1,6 +1,16 @@
 {
   "meta": {
-    "title": "Digitalblueskye — Chef de projet digital"
+    "title": "Digitalblueskye — Chef de projet digital",
+    "homeTitle": "Accueil",
+    "aboutTitle": "À propos",
+    "projectsTitle": "Projets",
+    "skillsTitle": "Compétences",
+    "contactTitle": "Contact",
+    "privacyTitle": "Confidentialité",
+    "termsTitle": "Conditions",
+    "cookiesTitle": "Cookies",
+    "blogTitle": "Blog digital",
+    "galleryTitle": "Galerie"
   },
   "header": {
     "title": "Digitalblueskye Designer",
@@ -44,7 +54,7 @@
     "article1": {
       "title": "L'IA révolutionne la gestion de projet",
       "summary": "Découvrez comment l'intelligence artificielle transforme le quotidien des chefs de projet digitaux...",
-      "metaTitle": "L'IA révolutionne la gestion de projet - Digitalblueskye",
+      "metaTitle": "L'IA révolutionne la gestion de projet",
       "metaDescription": "Analyse détaillée de l'impact de l'intelligence artificielle sur les méthodologies de gestion de projet modernes.",
       "dateline": "Technologie • 28 Mai 2025",
       "datelineFull": "Publié le 28 Mai 2025 • Catégorie: Technologie",
@@ -90,7 +100,7 @@
     "article7": {
       "title": "Le cône de l'apprentissage : comprendre et appliquer la pyramide de Dale",
       "summary": "Décryptage du célèbre schéma de l'apprentissage, ses origines, ses usages et ses limites pour mieux apprendre et transmettre.",
-      "metaTitle": "Le cône de l'apprentissage - Digitalblueskye",
+      "metaTitle": "Le cône de l'apprentissage",
       "metaDescription": "Analyse complète du cône de l'apprentissage (Dale), ses fondements, ses interprétations et ses applications concrètes dans l'enseignement et la formation.",
       "dateline": "Pédagogie • 14 Novembre 2025",
       "datelineFull": "Publié le 14 Novembre 2025 • Catégorie: Pédagogie",
@@ -99,7 +109,7 @@
     "article8": {
       "title": "SEO et gestion de projet digital : optimiser la visibilité de vos projets",
       "summary": "Découvrez comment intégrer la stratégie SEO dans vos projets digitaux pour augmenter la visibilité, le trafic organique et le ROI de vos initiatives...",
-      "metaTitle": "SEO et gestion de projet digital - Digitalblueskye",
+      "metaTitle": "SEO et gestion de projet digital",
       "metaDescription": "Guide complet sur le rôle stratégique du SEO dans la gestion de projets digitaux et comment les chefs de projet peuvent optimiser la visibilité en ligne.",
       "dateline": "Technologie • 2 Décembre 2025",
       "datelineFull": "Publié le 2 Décembre 2025 • Catégorie: Technologie",
@@ -123,7 +133,7 @@
     "article11": {
       "title": "Connecter les points : la compétence clé à l'ère de l'IA",
       "summary": "Pourquoi la valeur se déplace de l'accumulation de faits vers la synthèse, la reconnaissance de schémas et la décision.",
-      "metaTitle": "Connecter les points : la compétence clé à l'ère de l'IA - Digitalblueskye",
+      "metaTitle": "Connecter les points : la compétence clé à l'ère de l'IA",
       "metaDescription": "Lecture pédagogique de la citation de Sam Altman : devenir un connecteur de points plutôt qu'un simple collecteur de faits.",
       "dateline": "Pédagogie • 10 Mars 2026",
       "datelineFull": "Publié le 10 Mars 2026 • Catégorie: Pédagogie",
@@ -387,7 +397,7 @@
     "noResults": "Aucun article ne correspond à votre recherche"
   },
   "inspirations": {
-    "metaTitle": "Mon carnet d'inspirations | Digitalblueskye",
+    "metaTitle": "Carnets d'inspirations",
     "heroEyebrow": "Fragments d'inspiration",
     "heroTitle": "Mes carnets d'inspirations",
     "heroSubtitle": "Voyages, textures, couleurs et architectures qui nourrissent mon esprit.",

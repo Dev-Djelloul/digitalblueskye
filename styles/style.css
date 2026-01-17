@@ -1141,22 +1141,23 @@ body.body-menu-open .compact-header {
 /* Conteneur principal du menu déroulant */
 .dropdown-menu {
   background-color: #1e1f2f; /* Couleur de fond sombre */
-  box-shadow: 2px 0 10px rgb(0 0 0 / 20%); /* Ombre sur le côté droit */
+  box-shadow: -2px 0 10px rgb(0 0 0 / 20%); /* Ombre sur le côté gauche */
   color: white;
   height: calc(100vh - 100px); /* Toute la hauteur de la vue moins le header */
-  left: 0;
+  left: auto;
   overflow: hidden auto; /* Pour le défilement si le contenu du menu est long */
   -webkit-overflow-scrolling: touch; /* Défilement fluide sur iOS */
   -ms-overflow-style: none; /* IE et Edge */
   padding: 30px 40px 40px 90px;
   pointer-events: auto; /* ✅ Capture les événements de souris */
   position: fixed;
+  right: 0;
 
   /* Masquer la barre de défilement pour Webkit (Chrome, Safari, Edge) */
   scrollbar-width: none; /* Firefox */
   text-align: left;
   top: 100px; /* Aligné sous le header */
-  transform: translateX(-100%); /* Caché à gauche initialement */
+  transform: translateX(100%); /* Caché à droite initialement */
   transition: transform 0.4s ease; /* Transition sur la transformation X */
   width: 75%; /* Ou la largeur que vous souhaitez, ex: 250px ou 25% */
   z-index: 2000;
