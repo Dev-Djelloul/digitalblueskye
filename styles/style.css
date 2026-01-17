@@ -3032,7 +3032,7 @@ h1.main-title-animated .title-icon {
     radial-gradient(circle at 12% 8%, rgb(93 93 255 / 18%), transparent 45%),
     radial-gradient(circle at 88% 18%, rgb(255 140 66 / 14%), transparent 40%),
     linear-gradient(180deg, rgb(10 12 24 / 65%) 0%, rgb(10 12 24 / 0%) 40%);
-  padding: 80px 0 130px;
+  padding: 80px 0 50px;
   position: relative;
 }
 
@@ -5911,22 +5911,29 @@ h1.main-title-animated .title-icon {
 
 #footer .footer-container {
   align-items: flex-start;
-  display: flex;
-  gap: 40px;
-  justify-content: space-between;
-  margin: 0 auto 50px;
-  max-width: 1300px;
-  padding: 0 40px 20px;
+  display: grid;
+  gap: 80px;
+  grid-template-columns: repeat(3, minmax(220px, 1fr));
+  justify-content: center;
+  justify-items: center;
+  margin: 0 auto 70px;
+  max-width: 1100px;
+  padding: 20px 40px 40px;
+  width: 100%;
 }
 
 #footer .footer-section {
+  align-items: flex-start;
   display: flex;
-  flex: 1;
+  flex: 1 1 auto;
   flex-direction: column;
   gap: 1rem;
-  max-width: 300px;
+  max-width: none;
   min-width: 0;
+  text-align: left;
+  width: 100%;
 }
+
 
 #footer .footer-section.footer-about {
   max-width: 100%;
@@ -5937,7 +5944,7 @@ h1.main-title-animated .title-icon {
   font-size: 1rem;
   font-weight: 700;
   letter-spacing: 0.3px;
-  margin: 10px;
+  margin: 0 0 10px;
   text-transform: uppercase;
 }
 
@@ -5975,9 +5982,11 @@ h1.main-title-animated .title-icon {
 
 #footer .footer-social {
   align-items: center;
-  display: flex;
-  gap: 15px;
+  display: inline-flex;
+  gap: 5px;
+  justify-content: left;
   margin-top: 0.5rem;
+  width: 100%;
 }
 
 #footer .footer-social a {
@@ -6733,7 +6742,7 @@ body.body-menu-open #footer {
 #footer div:first-of-type {
   display: inline-flex;
   gap: 5px;
-  justify-content: center;
+  justify-content: left;
   width: 100%;
 }
 

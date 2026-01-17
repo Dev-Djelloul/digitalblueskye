@@ -443,7 +443,8 @@ window.addEventListener('load', () => {
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     const loaderWrapper = document.getElementById('loader-wrapper');
     if (loaderWrapper) {
-      const minimumLoadTime = 4500; // Votre délai
+      const isAboutPage = document.body.classList.contains('page-about');
+      const minimumLoadTime = isAboutPage ? 1500 : 4500; // Délai réduit sur la page about
       const loadEndTime = Date.now();
       const timeToWait = Math.max(0, minimumLoadTime - (loadEndTime - performance.timing.navigationStart)); 
   
