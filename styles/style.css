@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Delius&family=DynaPuff:wght@400..700&family=Lato:wght@400;500;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Delius&family=Lato:wght@400;500;700&family=Sour+Gummy:ital,wght@0,100..900;1,100..900&display=swap");
 
 /* =========================
    VARIABLES & THÈMES
@@ -23,7 +23,7 @@
   --skill-text-color: #b8c2cc; /* Couleur du texte des compétences */
   --transition-speed: 0.3s; /* Vitesse de transition générale */
   --accent-rgb: 93, 93, 255; /* Valeur RGB de #5d5dff pour les ombres */
-  --font-title: "DynaPuff", system-ui;
+  --font-title: "Sour Gummy", sans-serif;
 }
 
 [data-theme="light"] {
@@ -104,7 +104,7 @@ h1 {
 }
 
 h2 {
-  font-family: DynaPuff, system-ui;
+  font-family: "Sour Gummy", sans-serif;
   font-optical-sizing: auto;
   font-style: normal;
   font-variation-settings: "wdth" 100;
@@ -241,7 +241,7 @@ section#skills,
   box-shadow: 0 10px 24px rgb(93 93 255 / 25%);
   color: #fff;
   display: inline-flex;
-  font-family: DynaPuff, system-ui;
+  font-family: "Sour Gummy", sans-serif;
   font-size: 1rem;
   font-weight: 600;
   gap: 8px;
@@ -1193,7 +1193,7 @@ body.body-menu-open .compact-header {
   background-origin: border-box;
   color: var(--accent-color);
   display: inline-block;
-  font-family: DynaPuff, system-ui;
+  font-family: "Sour Gummy", sans-serif;
   font-size: 1.9rem;
   font-weight: bolder;
   padding: 10px 15px 10px 0;
@@ -1210,7 +1210,7 @@ body.body-menu-open .compact-header {
 .dropdown-nav .nav-link {
   color: var(--accent-color);
   display: block;
-  font-family: DynaPuff, system-ui;
+  font-family: "Sour Gummy", sans-serif;
   font-size: 1.2rem;
   padding: 0;
   width: 100%;
@@ -1327,7 +1327,7 @@ body.body-menu-open .compact-header {
 
 .dynapuff-title,
 .dynapuff {
-  font-family: DynaPuff, system-ui;
+  font-family: "Sour Gummy", sans-serif;
   font-optical-sizing: auto;
   font-weight: 400;
   font-style: normal;
@@ -1569,7 +1569,7 @@ section.page-title-container
 
 .news-card-title {
   color: var(--text-color);
-  font-family: DynaPuff, system-ui;
+  font-family: "Sour Gummy", sans-serif;
   font-size: 1.8rem;
   font-weight: bold;
   line-height: 1.3;
@@ -1586,7 +1586,7 @@ section.page-title-container
 
 .news-card-dateline {
   color: var(--accent-color);
-  font-family: DynaPuff, system-ui;
+  font-family: "Sour Gummy", sans-serif;
   font-size: 1rem;
   margin-top: auto; /* Pousse la dateline en bas de la carte */
 }
@@ -1738,7 +1738,7 @@ h1.main-title-animated .title-icon {
 /* Styles pour les titres et catégories dans la liste */
 #explorerProjectList li .project-list-title {
   display: block;
-  font-family: DynaPuff, system-ui;
+  font-family: "Sour Gummy", sans-serif;
   font-size: 1.3rem;
   font-weight: bold;
   margin-bottom: 4px;
@@ -2127,7 +2127,7 @@ h1.main-title-animated .title-icon {
   border-radius: 20px;
   color: white;
   font-size: 0.8rem;
-  font-family: DynaPuff, system-ui;
+  font-family: "Sour Gummy", sans-serif;
   font-weight: 500;
   padding: 6px 12px;
   position: absolute;
@@ -2142,7 +2142,7 @@ h1.main-title-animated .title-icon {
 .blog-card-title {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
   background-clip: text;
-  font-family: DynaPuff, system-ui;
+  font-family: "Sour Gummy", sans-serif;
   font-size: 1.5rem;
   margin-bottom: 15px;
   -webkit-background-clip: text;
@@ -2177,7 +2177,7 @@ h1.main-title-animated .title-icon {
 
 .blog-card-date {
   color: #c822ff;
-  font-family: DynaPuff, system-ui;
+  font-family: "Sour Gummy", sans-serif;
   text-shadow: 0 0 10px rgb(200 34 255 / 25%);
 }
 
@@ -2280,7 +2280,7 @@ h1.main-title-animated .title-icon {
 .consent-banner__title {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
   background-clip: text;
-  font-family: DynaPuff, system-ui;
+  font-family: "Sour Gummy", sans-serif;
   font-size: 1.35rem;
   margin-bottom: 8px;
   -webkit-background-clip: text;
@@ -2552,7 +2552,7 @@ h1.main-title-animated .title-icon {
 .legal-container h2 {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
   background-clip: text;
-  font-family: DynaPuff, system-ui;
+  font-family: "Sour Gummy", sans-serif;
   font-size: 1.35rem;
   margin-bottom: 10px;
   -webkit-background-clip: text;
@@ -2684,7 +2684,7 @@ h1.main-title-animated .title-icon {
 
 .article-dateline-detailed {
   color: var(--text-color-light);
-  font-family: DynaPuff, system-ui;
+  font-family: "Sour Gummy", sans-serif;
   font-size: 1.2rem;
   margin-bottom: 30px;
 }
@@ -2701,7 +2701,7 @@ h1.main-title-animated .title-icon {
   align-items: center;
   color: var(--text-color-light);
   display: inline-flex;
-  font-family: DynaPuff, system-ui;
+  font-family: "Sour Gummy", sans-serif;
   font-size: 1.05rem;
   gap: 8px;
   justify-content: center;
@@ -2765,7 +2765,7 @@ h1.main-title-animated .title-icon {
 }
 
 .article-section-title {
-  font-family: DynaPuff, system-ui;
+  font-family: "Sour Gummy", sans-serif;
   font-size: 1.9rem;
   margin-bottom: 12px;
 }
@@ -2790,7 +2790,7 @@ h1.main-title-animated .title-icon {
   border-radius: 999px;
   color: #fff;
   display: inline-flex;
-  font-family: DynaPuff, system-ui;
+  font-family: "Sour Gummy", sans-serif;
   justify-content: center;
   padding: 10px 16px;
   text-decoration: none;
@@ -2886,7 +2886,7 @@ h1.main-title-animated .title-icon {
 }
 
 .comment-author {
-  font-family: DynaPuff, system-ui;
+  font-family: "Sour Gummy", sans-serif;
 }
 
 .comment-date {
@@ -2956,7 +2956,7 @@ h1.main-title-animated .title-icon {
   border-radius: 999px;
   color: #fff;
   cursor: pointer;
-  font-family: DynaPuff, system-ui;
+  font-family: "Sour Gummy", sans-serif;
   font-size: 1.2rem;
   padding: 14px 34px;
 }
@@ -4012,7 +4012,7 @@ h1.main-title-animated .title-icon {
   border-radius: 999px;
   color: #2d3a4a;
   cursor: pointer;
-  font-family: DynaPuff, system-ui;
+  font-family: "Sour Gummy", sans-serif;
   font-size: 0.95rem;
   font-weight: 600;
   padding: 0.45rem 1.2rem;
@@ -4472,7 +4472,7 @@ h1.main-title-animated .title-icon {
 }
 
 .inspirations-gallery h2 {
-  font-family: DynaPuff, system-ui;
+  font-family: "Sour Gummy", sans-serif;
   font-size: 2rem;
   margin-bottom: 5rem;
   text-align: center;
@@ -4509,7 +4509,7 @@ h1.main-title-animated .title-icon {
 
 .story-placeholder h3 {
   color: #0288d1;
-  font-family: DynaPuff, system-ui;
+  font-family: "Sour Gummy", sans-serif;
   font-size: 1.4rem;
   margin: 0;
 }
@@ -4529,7 +4529,7 @@ h1.main-title-animated .title-icon {
 
 .inspirations-share h3 {
   color: #0288d1;
-  font-family: DynaPuff, system-ui;
+  font-family: "Sour Gummy", sans-serif;
   font-size: 1.5rem;
   letter-spacing: 1px;
   margin-bottom: 1.2rem;
@@ -4609,7 +4609,7 @@ h1.main-title-animated .title-icon {
 }
 
 .cover-caption h2 {
-  font-family: DynaPuff, system-ui;
+  font-family: "Sour Gummy", sans-serif;
   font-size: 2rem;
   letter-spacing: 1px;
   margin-bottom: 0.5rem;
@@ -4634,7 +4634,7 @@ h1.main-title-animated .title-icon {
 
 .story-block h3 {
   color: #0288d1;
-  font-family: DynaPuff, system-ui;
+  font-family: "Sour Gummy", sans-serif;
   margin-bottom: 0.7rem;
 }
 
@@ -4788,7 +4788,7 @@ h1.main-title-animated .title-icon {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
   background-clip: text;
   color: transparent;
-  font-family: DynaPuff, system-ui;
+  font-family: "Sour Gummy", sans-serif;
   font-size: 2.1rem;
   font-weight: bold;
   margin: 0 0 15px;
@@ -4815,7 +4815,7 @@ h1.main-title-animated .title-icon {
   border: 1px solid rgb(93 93 255 / 30%);
   border-radius: 15%;
   color: var(--text-color);
-  font-family: DynaPuff, system-ui;
+  font-family: "Sour Gummy", sans-serif;
   font-size: 0.9rem;
   font-weight: 600;
   padding: 5px 10px;
@@ -5424,9 +5424,10 @@ h1.main-title-animated .title-icon {
    COMPÉTENCES (Skills) - 
    ========================= */
 .skills-section {
-  margin-bottom: 200px;
+  margin: 0 auto 200px;
   max-width: 1400px;
   padding: 0 20px;
+  width: 100%;
 }
 
 .skills-categories {
@@ -5464,7 +5465,7 @@ h1.main-title-animated .title-icon {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
   background-clip: text;
   color: transparent;
-  font-family: DynaPuff, system-ui;
+  font-family: "Sour Gummy", sans-serif;
   font-size: 1.6rem;
   font-weight: 700;
   margin-bottom: 50px;
@@ -5527,7 +5528,7 @@ h1.main-title-animated .title-icon {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
   background-clip: text;
   color: transparent;
-  font-family: DynaPuff, system-ui;
+  font-family: "Sour Gummy", sans-serif;
   font-size: 1.2rem;
   font-weight: bold;
   margin: 0;
@@ -5836,7 +5837,7 @@ h1.main-title-animated .title-icon {
 
 .blog-newsletter h3 {
   color: var(--accent-color);
-  font-family: DynaPuff, system-ui;
+  font-family: "Sour Gummy", sans-serif;
   font-size: 2rem;
   margin-bottom: 15px;
 }
@@ -6890,7 +6891,7 @@ body.body-menu-open #footer {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
   background-clip: text;
   color: transparent;
-  font-family: DynaPuff, system-ui;
+  font-family: "Sour Gummy", sans-serif;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
