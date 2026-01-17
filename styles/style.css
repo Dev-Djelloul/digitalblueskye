@@ -2895,6 +2895,21 @@ h1.main-title-animated .title-icon {
   margin: 0;
 }
 
+[data-theme="light"] .comment-item {
+  background: #fff;
+  border-color: rgb(93 93 255 / 30%);
+  box-shadow: 0 10px 24px rgb(93 93 255 / 12%);
+}
+
+[data-theme="light"] .comment-author,
+[data-theme="light"] .comment-message {
+  color: #5d5dff;
+}
+
+[data-theme="light"] .comment-date {
+  color: rgb(93 93 255 / 70%);
+}
+
 .comment-field {
   display: grid;
   gap: 6px;
@@ -3205,6 +3220,10 @@ h1.main-title-animated .title-icon {
   -webkit-text-fill-color: transparent;
 }
 
+.page-about .consent-floating {
+  display: none;
+}
+
 
 .page-about .about-timeline {
   display: grid;
@@ -3480,6 +3499,15 @@ h1.main-title-animated .title-icon {
   color: #5d5dff;
 }
 
+[data-theme="light"] .page-about .timeline-link {
+  background: rgb(93 93 255 / 12%);
+  border-color: rgb(93 93 255 / 35%);
+  color: #5d5dff;
+  -webkit-text-fill-color: #5d5dff;
+  background-clip: border-box;
+  -webkit-background-clip: border-box;
+}
+
 [data-theme="light"] .page-about .skill-group {
   background: linear-gradient(140deg, rgb(245 246 255 / 95%), rgb(255 255 255 / 90%));
   border-color: rgb(93 93 255 / 20%);
@@ -3490,8 +3518,14 @@ h1.main-title-animated .title-icon {
 }
 
 [data-theme="light"] .page-about .level-dot {
-  background: rgb(93 93 255 / 12%);
-  border-color: rgb(93 93 255 / 25%);
+  background: rgb(93 93 255 / 18%);
+  border-color: rgb(93 93 255 / 40%);
+}
+
+[data-theme="light"] .page-about .level-dot.is-on {
+  background: linear-gradient(135deg, #5d5dff, #ff8c42);
+  border-color: rgb(93 93 255 / 55%);
+  box-shadow: 0 0 10px rgb(93 93 255 / 35%);
 }
 
 [data-theme="light"] .page-about .process-step {
@@ -6813,9 +6847,9 @@ body.body-menu-open #footer {
   background: linear-gradient(135deg, rgb(93 93 255 / 8%), rgb(200 34 255 / 8%));
   border-radius: 0;
   margin: 100px auto;
-  max-width: 1200px;
+  max-width: none;
   padding: 60px 40px;
-  width: 90%;
+  width: 100%;
 }
 
 .trust-section h2 {
@@ -7058,6 +7092,12 @@ body.body-menu-open #footer {
   color: transparent !important;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+.trust-section .section-subtitle,
+.trust-section .trust-card p,
+.trust-section .methodology-item p {
+  font-family: Delius, cursive;
 }
 
 [data-theme="dark"] .trust-section .section-subtitle,
