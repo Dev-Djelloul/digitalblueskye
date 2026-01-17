@@ -270,8 +270,10 @@ section#skills,
   align-items: center;
   display: flex;
   flex-direction: column;
-  margin: 0 125px 125px;
+  margin: 0 auto 125px;
   max-width: 1200px;
+  padding: 0 125px;
+  width: 100%;
 }
 
 /* Titre principal */
