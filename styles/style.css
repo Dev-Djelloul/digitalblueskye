@@ -1144,22 +1144,22 @@ body.body-menu-open .compact-header {
   box-shadow: -2px 0 10px rgb(0 0 0 / 20%); /* Ombre sur le côté gauche */
   color: white;
   height: calc(100vh - 100px); /* Toute la hauteur de la vue moins le header */
-  left: auto;
+  left: 0;
   overflow: hidden auto; /* Pour le défilement si le contenu du menu est long */
   -webkit-overflow-scrolling: touch; /* Défilement fluide sur iOS */
   -ms-overflow-style: none; /* IE et Edge */
   padding: 30px 40px 40px 90px;
   pointer-events: auto; /* ✅ Capture les événements de souris */
   position: fixed;
-  right: 0;
+  right: auto;
 
   /* Masquer la barre de défilement pour Webkit (Chrome, Safari, Edge) */
   scrollbar-width: none; /* Firefox */
   text-align: left;
   top: 100px; /* Aligné sous le header */
-  transform: translateX(100%); /* Caché à droite initialement */
+  transform: translateX(-100%); /* Caché à gauche initialement */
   transition: transform 0.4s ease; /* Transition sur la transformation X */
-  width: 75%; /* Ou la largeur que vous souhaitez, ex: 250px ou 25% */
+  width: min(35vw, 520px); /* Menu plus étroit sur desktop */
   z-index: 2000;
 }
 
@@ -1214,6 +1214,46 @@ body.body-menu-open .compact-header {
   font-size: 1.2rem;
   padding: 0;
   width: 100%;
+}
+
+/* Liens sociaux dans le dropdown */
+.dropdown-menu .social-media {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin-top: 30px;
+}
+
+.dropdown-menu .social-media::before {
+  background: linear-gradient(90deg, transparent, var(--accent-color), #c822ff, transparent);
+  border-radius: 999px;
+  content: "";
+  flex: 0 0 100%;
+  height: 4px;
+  margin-bottom: 16px;
+  opacity: 0.85;
+  width: min(90%, 520px);
+}
+
+.dropdown-menu .social-media a {
+  align-items: center;
+  border-radius: 50%;
+  box-shadow: 0 5px 15px var(--shadow-color);
+  display: inline-flex;
+  height: 45px;
+  justify-content: center;
+  transition: transform 0.3s ease;
+  width: 45px;
+}
+
+.dropdown-menu .social-media img {
+  height: 30px;
+  width: 30px;
+}
+
+.dropdown-menu .social-media a:hover {
+  transform: translateY(-4px) scale(1.05);
 }
 
 /* =========================
@@ -1287,6 +1327,8 @@ body.body-menu-open .compact-header {
 /* Overlay sombre affiché derrière le menu déroulant (inchangé) */
 .menu-overlay {
   background-color: rgb(0 0 0 / 0%);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   display: none;
   height: 100%;
   left: 0;

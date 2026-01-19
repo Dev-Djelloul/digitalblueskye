@@ -40,6 +40,9 @@ function injectFooter() {
             <a href="https://www.linkedin.com/in/yellowblueskye/" target="_blank" rel="noopener noreferrer" title="LinkedIn">
               <img src="/assets/images/ui/icons8-linkedin-64.png" alt="LinkedIn" />
             </a>
+            <a href="https://x.com/digitalblueskye" target="_blank" rel="noopener noreferrer" title="X">
+              <img src="/assets/images/ui/icons8-x-64.png" alt="X" />
+            </a>
           </div>
         </div>
 

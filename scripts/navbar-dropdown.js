@@ -8,6 +8,27 @@ document.addEventListener('DOMContentLoaded', function() {
   const icon = hamburger.querySelector('i');
   let headerTimeout;
 
+  const socialMarkup = `
+    <a href="https://github.com/Dev-Djelloul" target="_blank" rel="noopener noreferrer" title="GitHub" aria-label="GitHub">
+      <img src="/assets/images/ui/icons8-github-64.png" alt="GitHub" />
+    </a>
+    <a href="https://www.linkedin.com/in/yellowblueskye/" target="_blank" rel="noopener noreferrer" title="LinkedIn" aria-label="LinkedIn">
+      <img src="/assets/images/ui/icons8-linkedin-64.png" alt="LinkedIn" />
+    </a>
+    <a href="https://x.com/digitalblueskye" target="_blank" rel="noopener noreferrer" title="X" aria-label="X">
+      <img src="/assets/images/ui/icons8-x-64.png" alt="X" />
+    </a>
+  `;
+
+  const socialContainers = document.querySelectorAll('.dropdown-menu .social-media');
+  socialContainers.forEach(container => {
+    if (container.dataset.socialReady === 'true') return;
+    if (container.children.length === 0) {
+      container.innerHTML = socialMarkup;
+    }
+    container.dataset.socialReady = 'true';
+  });
+
   // Détection desktop (hover) vs mobile (tap)
   const isDesktop = window.matchMedia('(hover: hover) and (pointer: fine)');
 
