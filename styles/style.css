@@ -5860,8 +5860,14 @@ h1.main-title-animated .title-icon {
 
 .contact-consent__label input {
   accent-color: var(--accent-color);
+  appearance: auto;
+  border-radius: 4px;
+  box-shadow: none;
   height: 16px;
   margin: 0 10px 0 0;
+  min-height: 16px;
+  min-width: 16px;
+  padding: 0;
   vertical-align: baseline;
   width: 16px;
 }
