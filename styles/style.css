@@ -7382,4 +7382,44 @@ body.body-menu-open #footer {
     padding: 20px;
     width: 100%;
   }
+
+  .article-detail-page .article-content-full {
+    padding: 32px 12px;
+  }
+
+  .article-body {
+    font-size: 1rem;
+    margin: 0;
+    max-width: none;
+    padding: 0 4px;
+    width: 100%;
+  }
+
+  .article-body p,
+  .article-body ul,
+  .article-body ol {
+    font-size: 1rem;
+  }
+
+  .article-share,
+  .article-comments {
+    margin: 28px 0 0;
+    max-width: none;
+    padding: 20px 16px;
+    width: 100%;
+  }
+
+  .article-section-title {
+    font-size: 1.4rem;
+  }
+
+  .article-section-subtitle {
+    font-size: 0.95rem;
+  }
+
+  .comments-list {
+    margin: 0 0 24px;
+    max-width: none;
+    width: 100%;
+  }
 }
