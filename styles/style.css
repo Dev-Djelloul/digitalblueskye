@@ -7485,6 +7485,14 @@ body.body-menu-open #footer {
     font-size: 1rem;
   }
 
+  .intro-text {
+    padding: 0 4px;
+  }
+
+  .intro-text .content-wrapper {
+    padding: 0 4px;
+  }
+
   .title-banner {
     font-size: 1.6rem;
   }
@@ -7506,6 +7514,19 @@ body.body-menu-open #footer {
     font-size: 1rem;
     margin-top: 30px;
     padding: 8px 16px;
+  }
+
+  .page-about .intro-text {
+    padding: 0 4px;
+  }
+
+  .page-about .intro-text .content-wrapper {
+    padding: 0 4px;
+  }
+
+  .page-about .about-text-box {
+    margin: 20px 4px 28px;
+    padding: 20px 14px;
   }
 
   .btn-download-cv i {
