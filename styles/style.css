@@ -6912,13 +6912,13 @@ body.body-menu-open #footer {
   }
 
   .dropdown-nav a {
-    font-size: 1.05rem;
-    padding: 7px 8px 7px 0;
+    font-size: 1.1rem;
+    padding: 8px 8px 8px 0;
     text-align: center;
   } /* Liens plus petits */
 
   .dropdown-nav .nav-link {
-    font-size: 1.05rem;
+    font-size: 1.1rem;
   }
 
   .dropdown-submenu > .submenu-list {
@@ -6931,20 +6931,20 @@ body.body-menu-open #footer {
   }
 
   .dropdown-menu .social-media {
-    gap: 12px;
+    gap: 14px;
     margin-top: 38px;
     justify-content: center;
     width: 100%;
   }
 
   .dropdown-menu .social-media a {
-    height: 34px;
-    width: 34px;
+    height: 38px;
+    width: 38px;
   }
 
   .dropdown-menu .social-media img {
-    height: 20px;
-    width: 20px;
+    height: 24px;
+    width: 24px;
   }
 
 /* Menu dropdown en mode thème clair */
