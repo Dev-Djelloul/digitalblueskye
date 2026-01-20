@@ -7112,9 +7112,16 @@ body.body-menu-open #footer {
     padding: 20px;
   }
 
-  .page-title-container .main-page-title,
   .page-title-container .page-subtitle {
     background: linear-gradient(45deg, #5d5dff, #c822ff);
+    background-clip: text;
+    color: transparent;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .page-title-container .news-page-title {
+    background: linear-gradient(45deg, #ffdbe7, #ffeaf2);
     background-clip: text;
     color: transparent;
     -webkit-background-clip: text;
