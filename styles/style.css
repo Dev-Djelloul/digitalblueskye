@@ -7259,6 +7259,24 @@ body.body-menu-open #footer {
     margin-bottom: 32px;
   }
 
+  .contact-container .title-banner {
+    font-size: 1.6rem;
+  }
+
+  .contact-container h3.title-banner {
+    font-size: 1.3rem;
+  }
+
+  .page-about .btn-download-cv {
+    font-size: 1rem;
+    margin-top: 30px;
+    padding: 8px 16px;
+  }
+
+  .btn-download-cv i {
+    margin-right: 10px;
+  }
+
   .main-page-title {
     font-size: 2rem;
   }
@@ -7286,6 +7304,35 @@ body.body-menu-open #footer {
   .page-title-container {
     font-size: 1.6rem;
     padding: 20px;
+  }
+
+  .inspirations-hero .hero-eyebrow {
+    font-size: 1.1rem;
+  }
+
+  .detail-actions {
+    gap: 0.75rem;
+  }
+
+  .detail-nav {
+    flex-direction: column;
+    gap: 0.6rem;
+    width: 100%;
+  }
+
+  .detail-nav-link {
+    font-size: 0.9rem;
+    justify-content: center;
+    padding: 0.4rem 0.8rem;
+    width: 100%;
+  }
+
+  .detail-back,
+  .detail-cta {
+    font-size: 0.9rem;
+    justify-content: center;
+    padding: 0.5rem 1rem;
+    width: 100%;
   }
 
   .about-text-box p,
@@ -7318,5 +7365,21 @@ body.body-menu-open #footer {
 
   .logos-list li {
     font-size: 0.9rem;
+  }
+
+  .trust-section {
+    padding: 32px 14px;
+    width: 100%;
+  }
+
+  .trust-methodology {
+    gap: 16px;
+    padding: 16px;
+    width: 100%;
+  }
+
+  .methodology-item {
+    padding: 20px;
+    width: 100%;
   }
 }
