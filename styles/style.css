@@ -6355,12 +6355,27 @@ body.body-menu-open #footer {
   /* Ajuster la largeur du menu pour mobile */
   .dropdown-menu {
     height: calc(95vh - 70px); /* Hauteur restante */
-    overflow: hidden; /* ✅ Pas de scroll interne au menu */
+    overflow-y: auto; /* ✅ Scroll interne au menu */
+    scrollbar-width: thin;
+    scrollbar-color: rgb(93 93 255 / 65%) transparent;
     padding: 20px; /* Padding réduit */
     position: fixed; /* ✅ Menu fixe */
     top: 70px; /* Positionné sous le header compact */
     width: 100%; /* ✅ Plus large que les 30% actuels pour une meilleure UX */
     z-index: 2000; /* ✅ S'assure qu'il passe au-dessus */
+  }
+
+  .dropdown-menu::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .dropdown-menu::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .dropdown-menu::-webkit-scrollbar-thumb {
+    background-color: rgb(93 93 255 / 55%);
+    border-radius: 999px;
   }
 
   body {
@@ -6719,14 +6734,31 @@ body.body-menu-open #footer {
 } /* Lien email plus petit */
 
 /* Ajustements dropdown pour mobile */
-.dropdown-nav ul {
-  margin-bottom: 40px;
-  margin-top: 20px;
-}
+  .dropdown-nav ul {
+    gap: 16px;
+    margin-bottom: 24px;
+    margin-top: 12px;
+  }
 
-.dropdown-nav a {
-  font-size: 1.2rem;
-} /* Liens plus petits */
+  .dropdown-nav a {
+    font-size: 1rem;
+    padding: 6px 8px 6px 0;
+  } /* Liens plus petits */
+
+  .dropdown-menu .social-media {
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .dropdown-menu .social-media a {
+    height: 30px;
+    width: 30px;
+  }
+
+  .dropdown-menu .social-media img {
+    height: 18px;
+    width: 18px;
+  }
 
 /* Menu dropdown en mode thème clair */
 [data-theme="light"] .dropdown-menu {
