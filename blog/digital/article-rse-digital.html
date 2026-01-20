@@ -211,12 +211,18 @@
           >
             Publié le 20 Juillet 2025 • Catégorie: RSE & Impact
           </p>
-          <div class="article-comment-count" aria-live="polite">
-            <img src="/assets/images/ui/icons8-comment-48.png" alt="" class="comment-count-icon" width="24" height="24" loading="lazy" />
-            <span class="comment-count-number" data-comments-count>0</span>
-            <span class="comment-count-label" data-comments-count-label>commentaires</span>
+          <div class="article-reactions">
+            <div class="article-comment-count" aria-live="polite">
+              <img src="/assets/images/ui/icons8-comment-48.png" alt="" class="comment-count-icon" width="24" height="24" loading="lazy" />
+              <span class="comment-count-number" data-comments-count>0</span>
+              <span class="comment-count-label" data-comments-count-label>commentaires</span>
+            </div>
+            <button class="like-button" type="button" data-like data-like-scope="article" aria-pressed="false">
+              <img src="/assets/images/ui/icons8-like-48.png" alt="" class="like-icon" width="24" height="24" loading="lazy" />
+              <span class="like-count" data-like-count>0</span>
+              <span class="like-label" data-like-label>likes</span>
+            </button>
           </div>
-
           <!-- Image principale de l'article -->
           <img
             src="/assets/images/blog/RSE/vecteezy_earth-cartoon-banner-planet-in-universe_14484653.jpg"
@@ -389,6 +395,7 @@
       });
     </script>
     <script src="/scripts/share-links.js?v=4"></script>
+    <script src="/scripts/likes.js"></script>
     <script src="/scripts/comments.js"></script>
     <script src="/scripts/translator.js"></script>
     <script src="/scripts/theme-switcher.js"></script>

@@ -132,10 +132,20 @@
         <div class="container">
           <h1 class="article-title-main" data-i18n="news.article11.title"></h1>
           <p class="article-dateline-detailed" data-i18n="news.article11.datelineFull"></p>
-          <div class="article-comment-count" aria-live="polite">
-            <img src="/assets/images/ui/icons8-comment-48.png" alt="" class="comment-count-icon" width="24" height="24" loading="lazy" />
-            <span class="comment-count-number" data-comments-count>0</span>
-            <span class="comment-count-label" data-comments-count-label>commentaires</span>
+          <div class="article-reactions">
+            <div class="article-comment-count" aria-live="polite">
+              <img src="/assets/images/ui/icons8-comment-48.png" alt="" class="comment-count-icon" width="24" height="24" loading="lazy" />
+              <span class="comment-count-number" data-comments-count>0</span>
+              <span class="comment-count-label" data-comments-count-label>commentaires</span>
+            </div>
+            <button class="like-button" type="button" data-like data-like-scope="article" aria-pressed="false">
+              <img src="/assets/images/ui/icons8-like-48.png" alt="" class="like-icon" width="24" height="24" loading="lazy" />
+              <span class="like-count" data-like-count>0</span>
+              <span class="like-label" data-like-label>likes</span>
+            </button>
+          </div>
+          
+
           </div>
 
           <div class="article-image-main" style="text-align:center; margin-bottom:2em;">
@@ -274,6 +284,7 @@
       });
     </script>
     <script src="/scripts/share-links.js?v=4"></script>
+    <script src="/scripts/likes.js"></script>
     <script src="/scripts/comments.js"></script>
     <script src="/scripts/translator.js"></script>
     <script src="/scripts/carousel.js"></script>

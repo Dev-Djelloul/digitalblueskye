@@ -1159,7 +1159,7 @@ body.body-menu-open .compact-header {
   top: 100px; /* Aligné sous le header */
   transform: translateX(-100%); /* Caché à gauche initialement */
   transition: transform 0.4s ease; /* Transition sur la transformation X */
-  width: min(35vw, 520px); /* Menu plus étroit sur desktop */
+  width: min(40vw, 560px); /* Menu plus large sur desktop */
   z-index: 2000;
 }
 
@@ -1183,6 +1183,7 @@ body.body-menu-open .compact-header {
   list-style: none;
   margin-bottom: 0;
   margin-top: 20px;
+  text-align: left;
 }
 
 .dropdown-nav a {
@@ -1200,6 +1201,7 @@ body.body-menu-open .compact-header {
   text-decoration: none;
   -webkit-text-fill-color: transparent;
   transition: color 0.3s, transform 0.2s;
+  text-align: left;
 }
 
 .dropdown-nav a h2 {
@@ -1223,6 +1225,7 @@ body.body-menu-open .compact-header {
   flex-wrap: wrap;
   gap: 18px;
   margin-top: 30px;
+  justify-content: flex-start;
 }
 
 .dropdown-menu .social-media::before {
@@ -1241,15 +1244,15 @@ body.body-menu-open .compact-header {
   border-radius: 50%;
   box-shadow: 0 5px 15px var(--shadow-color);
   display: inline-flex;
-  height: 36px;
+  height: 52px;
   justify-content: center;
   transition: transform 0.3s ease;
-  width: 36px;
+  width: 52px;
 }
 
 .dropdown-menu .social-media img {
-  height: 22px;
-  width: 22px;
+  height: 32px;
+  width: 32px;
 }
 
 .dropdown-menu .social-media a:hover {
@@ -2750,9 +2753,169 @@ h1.main-title-animated .title-icon {
   margin-bottom: 30px;
 }
 
+.article-reactions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+.article-reactions .article-comment-count {
+  margin-bottom: 0;
+}
+
+.article-reactions .like-button {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  color: var(--text-color-light);
+  padding: 0;
+}
+
+.article-reactions .like-button:hover {
+  box-shadow: none;
+  transform: none;
+}
+
+.article-reactions .like-button.is-active {
+  background: transparent;
+}
+
+.article-reactions .like-icon {
+  height: 18px;
+  width: 18px;
+}
+
+.article-reactions .like-count {
+  font-size: 0.95rem;
+}
+
+.article-reactions .like-label {
+  font-size: 0.9rem;
+}
+
 .comment-count-icon {
   height: 22px;
   width: 22px;
+}
+
+.like-button {
+  align-items: center;
+  background: rgb(24 25 38 / 70%);
+  border: 1px solid rgb(93 93 255 / 35%);
+  border-radius: 999px;
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  font-family: "Sour Gummy", sans-serif;
+  gap: 8px;
+  justify-content: center;
+  padding: 8px 16px;
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.like-button:hover {
+  box-shadow: 0 8px 18px rgb(0 0 0 / 20%);
+  transform: translateY(-2px);
+}
+
+.like-button.is-active {
+  background: linear-gradient(45deg, var(--accent-color), #c822ff);
+  border-color: transparent;
+}
+
+.like-button.is-active .like-icon {
+  filter: brightness(1.15);
+}
+
+.like-icon {
+  display: block;
+  height: 20px;
+  width: 20px;
+}
+
+.like-count {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.like-label {
+  font-size: 0.9rem;
+}
+
+.detail-like {
+  align-self: center;
+  margin-top: 10px;
+}
+
+.detail-like {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  color: inherit;
+  padding: 0;
+}
+
+.detail-like:hover {
+  box-shadow: none;
+  transform: none;
+}
+
+.detail-like.is-active {
+  background: transparent;
+}
+
+.detail-title-row {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.detail-title-row h1 {
+  margin: 0;
+}
+
+.detail-title-label {
+  color: #5d5dff;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.detail-eyebrow-row--hidden {
+  display: none;
+}
+
+[data-theme="light"] .detail-title-label {
+  color: #5d5dff;
+}
+
+[data-theme="light"] .like-button {
+  background: #fff0f7;
+  border-color: rgb(200 34 255 / 30%);
+  box-shadow: 0 6px 14px rgb(93 93 255 / 12%);
+  color: #b4567c;
+}
+
+[data-theme="light"] .article-reactions .like-button {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  color: #5d5dff;
+}
+
+[data-theme="light"] .like-button.is-active {
+  background: linear-gradient(45deg, #ffb3d9, #ffd2e7);
+  color: #7a2e52;
+}
+
+[data-theme="light"] .like-icon {
+  filter: brightness(0.65) saturate(1.1);
 }
 
 .article-banner-image {
@@ -6737,21 +6900,35 @@ body.body-menu-open #footer {
   .dropdown-nav ul {
     gap: 16px;
     margin-bottom: 24px;
-    margin-top: 12px;
+    margin-top: 40px;
+    align-items: center;
+    text-align: center;
   }
 
   .dropdown-nav a {
     font-size: 1.05rem;
     padding: 7px 8px 7px 0;
+    text-align: center;
   } /* Liens plus petits */
 
   .dropdown-nav .nav-link {
     font-size: 1.05rem;
   }
 
+  .dropdown-submenu > .submenu-list {
+    align-items: center;
+    padding: 0;
+  }
+
+  .dropdown-submenu .submenu-link {
+    text-align: center;
+  }
+
   .dropdown-menu .social-media {
     gap: 12px;
-    margin-top: 22px;
+    margin-top: 38px;
+    justify-content: center;
+    width: 100%;
   }
 
   .dropdown-menu .social-media a {
@@ -7465,5 +7642,82 @@ body.body-menu-open #footer {
     margin: 0 0 24px;
     max-width: none;
     width: 100%;
+  }
+
+  .like-button {
+    padding: 7px 14px;
+  }
+
+  .like-icon {
+    height: 18px;
+    width: 18px;
+  }
+
+  .detail-title-row {
+    gap: 8px;
+  }
+
+  .detail-title-label {
+    font-size: 0.95rem;
+  }
+}
+
+@media (width >= 769px) {
+  .dropdown-menu {
+    padding-left: 90px;
+    text-align: left;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgb(93 93 255 / 65%) transparent;
+  }
+
+  .dropdown-nav ul {
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .dropdown-nav a {
+    font-size: 1.2rem;
+    text-align: left;
+  }
+
+  .dropdown-nav .nav-link {
+    font-size: 1.2rem;
+  }
+
+  .dropdown-submenu > .submenu-list {
+    align-items: flex-start;
+    padding-left: 20px;
+  }
+
+  .dropdown-submenu .submenu-link {
+    text-align: left;
+  }
+
+  .dropdown-menu .social-media {
+    justify-content: flex-start;
+  }
+
+  .dropdown-menu .social-media a {
+    height: 35px;
+    width: 35px;
+  }
+
+  .dropdown-menu .social-media img {
+    height: 22px;
+    width: 22px;
+  }
+
+  .dropdown-menu::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .dropdown-menu::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .dropdown-menu::-webkit-scrollbar-thumb {
+    background-color: rgb(93 93 255 / 55%);
+    border-radius: 999px;
   }
 }
