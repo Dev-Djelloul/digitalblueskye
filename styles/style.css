@@ -7630,6 +7630,12 @@ body.body-menu-open #footer {
     width: 100%;
   }
 
+  .article-detail-page .container {
+    max-width: none;
+    padding: 0;
+    width: 100%;
+  }
+
   .article-body p,
   .article-body ul,
   .article-body ol {
