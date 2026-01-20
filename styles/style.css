@@ -6180,7 +6180,7 @@ body.body-menu-open #footer {
 /* Responsive: Mobile */
 @media (width <= 768px) {
   #footer {
-    padding: 40px 20px 20px;
+    padding: 50px 20px 24px;
   }
 
   #footer .footer-container {
@@ -6188,7 +6188,7 @@ body.body-menu-open #footer {
     gap: 30px;
     grid-template-columns: 1fr;
     margin-bottom: 30px;
-    padding: 0 10px 10px;
+    padding: 10px 10px 12px;
   }
 
   #footer .footer-section {
@@ -6741,23 +6741,27 @@ body.body-menu-open #footer {
   }
 
   .dropdown-nav a {
-    font-size: 1rem;
-    padding: 6px 8px 6px 0;
+    font-size: 1.05rem;
+    padding: 7px 8px 7px 0;
   } /* Liens plus petits */
 
+  .dropdown-nav .nav-link {
+    font-size: 1.05rem;
+  }
+
   .dropdown-menu .social-media {
-    gap: 10px;
-    margin-top: 20px;
+    gap: 12px;
+    margin-top: 22px;
   }
 
   .dropdown-menu .social-media a {
-    height: 30px;
-    width: 30px;
+    height: 34px;
+    width: 34px;
   }
 
   .dropdown-menu .social-media img {
-    height: 18px;
-    width: 18px;
+    height: 20px;
+    width: 20px;
   }
 
 /* Menu dropdown en mode thème clair */
@@ -7431,6 +7435,14 @@ body.body-menu-open #footer {
   .article-body ul,
   .article-body ol {
     font-size: 1rem;
+  }
+
+  .article-body h2 {
+    font-size: 1.4rem;
+  }
+
+  .article-body h3 {
+    font-size: 1.15rem;
   }
 
   .article-share,
