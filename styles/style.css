@@ -6,6 +6,19 @@
 :root {
   /* Variables pour le thème sombre (par défaut) */
   --background-color: #1e1f2f; /* Couleur de fond principale */
+  --r6MHXQ: #1e1232; /* Stop haut du gradient Canva */
+  --Ypt7xQ: #16171e; /* Stop bas du gradient Canva */
+  --deep-black: #0b0b10; /* Noir du bas du dégradé */
+  --header-bg: linear-gradient(to left, #2b1052 45%, #0b284c);
+  --background-gradient: linear-gradient(
+    to bottom,
+    #0b284c 0%,
+    #2b1052 22%,
+    var(--r6MHXQ) 45%,
+    var(--Ypt7xQ) 80%,
+    var(--deep-black) 100%
+  ),
+  linear-gradient(to left, #2b1052 45%, #0b284c); /* Dégradé global du fond */
   --text-color: #c8c4c4; /* Couleur du texte principale */
   --card-bg: #343654; /* Couleur de fond des cartes/conteneurs */
   --accent-color: #5d5dff; /* Couleur d'accentuation (liens, bordures, etc.) */
@@ -29,6 +42,8 @@
 [data-theme="light"] {
   /* Variables pour le thème clair */
   --background-color: white;
+  --header-bg: var(--background-gradient);
+  --background-gradient: var(--background-color);
   --text-color: #5d5dff;
   --card-bg: rgb(255 255 255 / 80%);
   --accent-color: #c822ff; /* Couleur d'accentuation change en rose */
@@ -87,8 +102,8 @@ body::before {
 }
 
 body::after {
-  background-color: var(--background-color);
-  transition: background-color var(--transition-speed) ease;
+  background: var(--background-gradient);
+  transition: background var(--transition-speed) ease;
   z-index: -2;
 }
 
@@ -730,7 +745,7 @@ section#skills,
    ========================= */
 #loader-wrapper {
   align-items: center;
-  background-color: var(--background-color);
+  background: var(--background-gradient);
   display: flex;
   height: 100%;
   justify-content: center;
@@ -766,7 +781,7 @@ section#skills,
 
 /* Assurer que la couleur de fond du loader s'adapte au thème clair */
 [data-theme="light"] #loader-wrapper {
-  background-color: var(--background-color);
+  background: var(--background-gradient);
 }
 
 /* =========================
@@ -774,14 +789,14 @@ section#skills,
    ========================= */
 header,
 .compact-header {
-  background-color: #1e1f2f;
+  background: var(--header-bg);
   border-bottom: 3px solid transparent;
   border-image: linear-gradient(45deg, var(--accent-color), #c822ff) 1;
   box-shadow: 0 4px 15px rgb(0 0 0 / 20%);
   left: 0;
   position: fixed;
   top: 0;
-  transition: transform 0.2s ease, background-color 0.3s ease,
+  transition: transform 0.2s ease, background 0.3s ease,
     box-shadow 0.3s ease;
   width: 100%;
   will-change: transform;
@@ -889,7 +904,7 @@ header .social-media img {
 
 /* Thème clair pour le menu dropdown */
 [data-theme="light"] .dropdown-menu {
-  background-color: #fff0; /* Fond transparent pour le menu déroulant */
+  background: var(--background-gradient); /* Fond dégradé pour le menu déroulant */
   color: var(--text-color);
 }
 
@@ -980,19 +995,19 @@ header.nav-hidden,
 /* Style optionnel quand le header est visible après scroll */
 header.nav-scrolled,
 .compact-header.nav-scrolled {
-  background-color: #1e1f2f;
+  background: var(--header-bg);
   box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
 }
 
 body.body-menu-open header,
 body.body-menu-open .compact-header {
-  background-color: #1e1f2f;
+  background: var(--header-bg);
 }
 
 /* Styles du header en thème clair */
 [data-theme="light"] header,
 [data-theme="light"] .compact-header {
-  background-color: var(--background-color) !important;
+  background: var(--header-bg) !important;
   border-bottom-color: transparent;
   border-image: linear-gradient(45deg, #5d5dff, #c822ff) 1;
   border-radius: 0;
@@ -1140,7 +1155,7 @@ body.body-menu-open .compact-header {
 
 /* Conteneur principal du menu déroulant */
 .dropdown-menu {
-  background-color: #1e1f2f; /* Couleur de fond sombre */
+  background: var(--background-gradient); /* Couleur de fond sombre */
   box-shadow: -2px 0 10px rgb(0 0 0 / 20%); /* Ombre sur le côté gauche */
   color: white;
   height: calc(100vh - 100px); /* Toute la hauteur de la vue moins le header */
@@ -1480,7 +1495,7 @@ section.page-title-container
    ========================= */
 
 .page-title-container {
-  background: linear-gradient(45deg, rgb(200 34 255 / 6%), rgb(200 34 255 / 18%));
+  background: transparent;
   font-size: 2rem;
   font-weight: bold;
   margin-bottom: 150px;
@@ -2556,10 +2571,10 @@ h1.main-title-animated .title-icon {
 }
 
 .legal-container {
-  background: linear-gradient(135deg, rgb(93 93 255 / 10%), rgb(200 34 255 / 12%));
-  border: 1px solid rgb(93 93 255 / 25%);
+  background: var(--background-gradient);
+  border: 1px solid rgb(43 16 82 / 35%);
   border-radius: 24px;
-  box-shadow: 0 20px 45px rgb(0 0 0 / 30%);
+  box-shadow: 0 24px 55px rgb(0 0 0 / 45%);
   margin: 0 auto;
   max-width: 960px;
   padding: 40px 42px;
@@ -2587,11 +2602,22 @@ h1.main-title-animated .title-icon {
 }
 
 .legal-container section {
-  background: rgb(30 31 47 / 65%);
-  border: 1px solid rgb(93 93 255 / 18%);
+  background: var(--background-gradient);
+  border: 1px solid rgb(11 40 76 / 35%);
   border-radius: 18px;
   margin-bottom: 22px;
   padding: 22px 26px;
+}
+
+[data-theme="light"] .legal-container {
+  background: rgb(255 255 255 / 92%);
+  border-color: rgb(93 93 255 / 20%);
+  box-shadow: 0 18px 40px rgb(93 93 255 / 15%);
+}
+
+[data-theme="light"] .legal-container section {
+  background: rgb(245 246 255 / 90%);
+  border-color: rgb(93 93 255 / 18%);
 }
 
 .legal-container h2 {
@@ -3236,10 +3262,7 @@ h1.main-title-animated .title-icon {
 }
 
 .page-about main {
-  background:
-    radial-gradient(circle at 12% 8%, rgb(93 93 255 / 18%), transparent 45%),
-    radial-gradient(circle at 88% 18%, rgb(255 140 66 / 14%), transparent 40%),
-    linear-gradient(180deg, rgb(10 12 24 / 65%) 0%, rgb(10 12 24 / 0%) 40%);
+  background: transparent;
   padding: 80px 0 50px;
   position: relative;
 }
@@ -3679,10 +3702,7 @@ h1.main-title-animated .title-icon {
 } /* Couleur du texte en thème clair */
 
 [data-theme="light"] .page-about main {
-  background:
-    radial-gradient(circle at 12% 8%, rgb(93 93 255 / 20%), transparent 45%),
-    radial-gradient(circle at 88% 18%, rgb(255 140 66 / 16%), transparent 40%),
-    linear-gradient(180deg, rgb(245 246 255 / 90%) 0%, rgb(245 246 255 / 0%) 45%);
+  background: transparent;
 }
 
 [data-theme="light"] .page-about .about-text-box {
@@ -4015,10 +4035,7 @@ h1.main-title-animated .title-icon {
 
 /* --- Espacement général et sections inspirations --- */
 .inspirations-main {
-  background:
-    radial-gradient(circle at 12% 10%, rgb(2 136 209 / 18%), transparent 45%),
-    radial-gradient(circle at 90% 18%, rgb(79 195 247 / 16%), transparent 40%),
-    linear-gradient(180deg, rgb(245 248 255 / 92%) 0%, rgb(245 248 255 / 20%) 100%);
+  background: transparent;
   padding: 0 0 4rem;
 }
 
@@ -5397,16 +5414,16 @@ h1.main-title-animated .title-icon {
 
 /* Galerie d'images du projet */
 .project-gallery {
-  background: #34365400;
-  border: 1px solid transparent;
-  border-radius: 15px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
   margin-bottom: 40px;
   margin-top: 40px;
-  overflow: hidden;
-  padding: 25px;
+  overflow: visible;
+  padding: 0;
 } /* Conteneur galerie */
 .project-gallery:hover {
-  box-shadow: 0 10px 30px rgb(93 93 255 / 30%);
+  box-shadow: none;
 } /* Effet survol galerie */
 .gallery-grid {
   display: grid;
@@ -5416,10 +5433,9 @@ h1.main-title-animated .title-icon {
 } /* Grille responsive */
 .gallery-item {
   align-items: center; /* Centrage vertical */
-  background-color: var(--secondary-bg); /* Fond pour les images transparentes */
-
-  border: 1px solid var(--secondary-bg);
-  box-shadow: 0 6px 20px rgb(0 0 0 / 20%);
+  background: transparent;
+  border: none;
+  box-shadow: none;
   display: flex; /* Ajout pour centrer l'image */
   height: 220px; /* Image individuelle */
   justify-content: center; /* Centrage horizontal */
@@ -5429,22 +5445,27 @@ h1.main-title-animated .title-icon {
 
 /* Effet survol image */
 .gallery-item:hover {
-  border-color: 1px solid transparent;
-  border-image: linear-gradient(45deg, var(--accent-color), #c822ff) 1;
-  box-shadow: 0 10px 25px rgb(93 93 255 / 30%);
-  transform: translateY(-6px);
+  border: none;
+  box-shadow: none;
+  transform: none;
 }
 
 .gallery-item img {
   object-fit: contain;
   height: 100%;
-  padding: 10px;
+  padding: 0;
   transition: transform 0.5s ease;
   width: 100%;
 } /* Style image (contain pour voir toute l'image) */
 
 .gallery-item:hover img {
   transform: scale(1.35);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .gallery-item:hover img {
+    transform: scale(1.55);
+  }
 }
 
 /* Carrousel */
@@ -5569,17 +5590,19 @@ h1.main-title-animated .title-icon {
 }
 
 [data-theme="light"] .project-gallery {
-  background-color: var(--card-bg);
-  box-shadow: 0 8px 25px var(--shadow-color);
+  background: transparent;
+  box-shadow: none;
 }
 
 [data-theme="light"] .gallery-item {
-  border-color: rgb(0 0 0 / 10%);
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 
 [data-theme="light"] .gallery-item:hover {
-  border-color: var(--accent-color);
-  box-shadow: 0 10px 25px rgb(93 93 255 / 20%);
+  border: none;
+  box-shadow: none;
 }
 
 [data-theme="light"] .project-navigation a {
@@ -5661,6 +5684,12 @@ h1.main-title-animated .title-icon {
   width: 100%;
 }
 
+:root:not([data-theme="light"]) .home-page .skills-category {
+  background-color: rgb(16 18 26 / 70%);
+  border: 1px solid rgb(43 16 82 / 35%);
+  box-shadow: 0 14px 35px rgb(0 0 0 / 35%);
+}
+
 .skills-category:hover {
   box-shadow: 0 12px 35px rgb(93 93 255 / 30%);
   transform: translateY(-5px);
@@ -5700,6 +5729,12 @@ h1.main-title-animated .title-icon {
   padding: 10px 6px;
   transition: all 0.3s ease;
   width: 100%;
+}
+
+:root:not([data-theme="light"]) .home-page .skill {
+  background-color: rgb(11 40 76 / 18%);
+  border-color: rgb(43 16 82 / 35%);
+  box-shadow: 0 8px 18px rgb(0 0 0 / 25%);
 }
 
 .skill:hover {
@@ -6034,6 +6069,12 @@ h1.main-title-animated .title-icon {
   text-align: center;
 }
 
+:root:not([data-theme="light"]) .home-page .blog-newsletter {
+  background: linear-gradient(135deg, rgb(16 18 26 / 85%), rgb(11 40 76 / 35%));
+  border: 1px solid rgb(43 16 82 / 45%);
+  box-shadow: 0 20px 45px rgb(0 0 0 / 35%);
+}
+
 [data-theme="light"] .blog-newsletter {
   background-color: #fff;
 }
@@ -6076,6 +6117,11 @@ h1.main-title-animated .title-icon {
   padding: 12px 15px;
 }
 
+:root:not([data-theme="light"]) .home-page .newsletter-form input {
+  background-color: rgb(11 40 76 / 22%);
+  border-color: rgb(43 16 82 / 45%);
+}
+
 .newsletter-form button {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
   border: none;
@@ -6085,6 +6131,10 @@ h1.main-title-animated .title-icon {
   font-weight: 600;
   padding: 12px 25px;
   transition: transform 0.3s;
+}
+
+:root:not([data-theme="light"]) .home-page .newsletter-form button {
+  background: linear-gradient(to left, #2b1052 45%, #0b284c);
 }
 
 .newsletter-form button:hover {
@@ -6118,10 +6168,20 @@ h1.main-title-animated .title-icon {
    FOOTER
    ========================= */
 #footer {
-  background: linear-gradient(135deg, rgb(31 32 50 / 95%) 0%, rgb(20 20 35 / 98%) 100%);
+  background: var(--deep-black);
   border-top: 1px solid var(--accent-color);
   padding: 60px 40px 30px;
   width: 100%;
+}
+
+:root:not([data-theme="light"]) #footer {
+  background: var(--deep-black) !important;
+  background-image: none !important;
+}
+
+:root:not([data-theme="light"]) .blog-articles-page #footer {
+  background: var(--deep-black) !important;
+  background-image: none !important;
 }
 
 #footer .footer-container {
@@ -6745,7 +6805,7 @@ body.body-menu-open #footer {
 
   /* Menu dropdown en mode thème clair */
   [data-theme="light"] .dropdown-menu {
-    background-color: white;
+    background: var(--background-gradient);
   }
 
   /* Si vous voulez aussi modifier l'overlay en mode clair */
@@ -6949,7 +7009,7 @@ body.body-menu-open #footer {
 
 /* Menu dropdown en mode thème clair */
 [data-theme="light"] .dropdown-menu {
-  background-color: rgb(255 255 255 / 99.7%) !important;
+  background: var(--background-gradient) !important;
 }
 
 /* Pour harmoniser les éléments du menu en mode clair */
@@ -6969,11 +7029,8 @@ body.body-menu-open #footer {
 } /* Contrôles dropdown */
 
 .gallery-item:hover {
-  border-color: var(--accent-color); /* Garde la bordure colorée */
-  box-shadow: 0 10px 25px rgb(93 93 255 / 30%); /* Garde l'ombre */
-  transform: translateY(
-    -5px
-  ); /* Supprime le scale(2.2) et garde/réduit le translateY */
+  box-shadow: none;
+  transform: none;
 }
 
 .scroll-to-top {
@@ -7134,7 +7191,7 @@ body.body-menu-open #footer {
    ========================= */
 
 .trust-section {
-  background: linear-gradient(135deg, rgb(93 93 255 / 8%), rgb(200 34 255 / 8%));
+  background: transparent;
   border-radius: 0;
   margin: 100px auto;
   max-width: none;
@@ -7341,6 +7398,17 @@ body.body-menu-open #footer {
   border-color: rgb(var(--accent-rgb), 0.4);
 }
 
+:root:not([data-theme="light"]) .home-page .trust-card {
+  background-color: rgb(16 18 26 / 80%);
+  border-color: rgb(43 16 82 / 35%);
+  box-shadow: 0 18px 35px rgb(0 0 0 / 30%);
+}
+
+:root:not([data-theme="light"]) .home-page .trust-card--cert {
+  background: linear-gradient(135deg, rgb(16 18 26 / 85%), rgb(11 40 76 / 35%));
+  border-color: rgb(43 16 82 / 45%);
+}
+
 [data-theme="light"] .trust-card--cert {
   background-color: #fff;
   background-image: none;
@@ -7426,13 +7494,14 @@ body.body-menu-open #footer {
 
 /* Section méthodologie et compétences */
 .trust-methodology {
-  background: linear-gradient(135deg, rgb(93 93 255 / 5%), rgb(200 34 255 / 5%));
-  border-radius: 12px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
   display: grid;
   gap: 30px;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   margin-bottom: 50px;
-  padding: 30px;
+  padding: 0;
 }
 
 .methodology-item {
