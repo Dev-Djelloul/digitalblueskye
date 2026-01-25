@@ -2727,10 +2727,10 @@ h1.main-title-animated .title-icon {
 }
 
 .ia-page .badge {
-  background: rgb(139 92 246 / 15%);
-  border: 1px solid rgb(139 92 246 / 30%);
+  background: rgb(255 140 0 / 22%);
+  border: 1px solid rgb(255 140 0 / 45%);
   border-radius: 999px;
-  color: #c4b5fd;
+  color: #ffd6a1;
   display: inline-block;
   font-size: 0.75rem;
   font-weight: 500;
@@ -2739,10 +2739,9 @@ h1.main-title-animated .title-icon {
   text-decoration: none;
 }
 
-.ia-page .badge:hover {
-  background: rgb(255 140 0 / 22%);
-  border-color: rgb(255 140 0 / 45%);
-  color: #ffd6a1;
+.ia-page .badge:focus-visible {
+  outline: 2px solid rgb(255 140 0 / 70%);
+  outline-offset: 2px;
 }
 
 .ia-page section {
