@@ -23,6 +23,7 @@
     "images": "Galerie",
     "projects": "Mes projets",
     "skills": "Mes compétences",
+    "aiGovernance": "Gouvernance IA",
     "blogDigital": "L'actualité du Coin Digital",
     "blogInspiration": "Mes carnets d’inspirations",
     "contact": "Contactez moi"
@@ -204,7 +205,7 @@
     "projects": "Mes projets",
     "blog": "Le blog du Coin Digital",
     "expertise": "Qui suis-je ?",
-    "contact": "Me contacter",
+    "contact": "Formulaire de contact",
     "followUs": "Suivez-moi",
     "legal": "Mentions légales",
     "privacy": "Politique de confidentialité",

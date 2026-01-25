@@ -331,14 +331,25 @@ function createConsentUI() {
   const details = banner.querySelector('.consent-banner__details');
   const actions = banner.querySelector('.consent-banner__actions');
   const saveActions = banner.querySelector('.consent-banner__actions--save');
+  const customizeButton = banner.querySelector('[data-action="customize"]');
   const analyticsInput = banner.querySelector('#consent-analytics');
   const marketingInput = banner.querySelector('#consent-marketing');
+
+  if (customizeButton && !customizeButton.dataset.defaultLabel) {
+    customizeButton.dataset.defaultLabel = customizeButton.textContent || '';
+  }
+
+  function setCustomizeLabel(isOpen) {
+    if (!customizeButton) return;
+    customizeButton.textContent = isOpen ? 'Fermer' : (customizeButton.dataset.defaultLabel || customizeButton.textContent);
+  }
 
   function openPreferences() {
     details.hidden = false;
     saveActions.hidden = false;
     actions.hidden = true;
     banner.classList.add('consent-banner--expanded');
+    setCustomizeLabel(true);
   }
 
   function closePreferences() {
@@ -346,6 +357,7 @@ function createConsentUI() {
     saveActions.hidden = true;
     actions.hidden = false;
     banner.classList.remove('consent-banner--expanded');
+    setCustomizeLabel(false);
   }
 
   function setScrollLock(locked) {
@@ -372,7 +384,11 @@ function createConsentUI() {
     if (!action) return;
 
     if (action === 'customize') {
-      openPreferences();
+      if (banner.classList.contains('consent-banner--expanded')) {
+        closePreferences();
+      } else {
+        openPreferences();
+      }
       return;
     }
 
@@ -405,6 +421,7 @@ function createConsentUI() {
       applyConsent(consent);
       hideBanner();
       closePreferences();
+      setCustomizeLabel(false);
     }
   });
 

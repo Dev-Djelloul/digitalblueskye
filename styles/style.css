@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Delius&family=Lato:wght@400;500;700&family=Sour+Gummy:ital,wght@0,100..900;1,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Delius&family=Lato:wght@400;500;700&family=Share+Tech+Mono&family=Space+Mono:wght@400;700&family=Sour+Gummy:ital,wght@0,100..900;1,100..900&display=swap");
 
 /* =========================
    VARIABLES & THÈMES
@@ -2262,8 +2262,8 @@ h1.main-title-animated .title-icon {
 }
 
 .consent-banner {
-  background: linear-gradient(135deg, var(--secondary-bg), var(--card-bg));
-  border: 1px solid rgb(93 93 255 / 30%);
+  background: linear-gradient(135deg, #1e1232, #0b284c);
+  border: 1px solid rgb(93 93 255 / 40%);
   border-radius: 16px;
   bottom: 0;
   top: auto;
@@ -2293,8 +2293,8 @@ h1.main-title-animated .title-icon {
 }
 
 [data-theme="light"] .consent-banner {
-  background: linear-gradient(135deg, #fff, #f2f2ff);
-  border: 1px solid rgb(93 93 255 / 25%);
+  background: linear-gradient(135deg, #ffffff, #eef0ff);
+  border: 1px solid rgb(93 93 255 / 30%);
   box-shadow: 0 18px 45px rgb(93 93 255 / 18%);
   color: #2a2a2a;
 }
@@ -2678,6 +2678,188 @@ h1.main-title-animated .title-icon {
   .legal-container section {
     padding: 18px;
     text-align: left;
+  }
+}
+
+/* =========================
+   GOUVERNANCE IA
+   ========================= */
+.ia-page-main {
+  padding: 40px 0 80px;
+}
+
+.ia-page {
+  margin: 0 auto;
+  max-width: 960px;
+  padding: 0 24px;
+  text-align: center;
+}
+
+.ia-page .hero {
+  background: var(--background-gradient);
+  border: 1px solid rgb(43 16 82 / 45%);
+  border-radius: 24px;
+  box-shadow: 0 24px 55px rgb(0 0 0 / 45%);
+  margin-bottom: 28px;
+  padding: 36px 32px;
+}
+
+.ia-page .hero h1 {
+  background: linear-gradient(45deg, var(--accent-color), #c822ff);
+  background-clip: text;
+  font-family: var(--font-title);
+  font-optical-sizing: auto;
+  font-variation-settings: "wdth" 100;
+  font-size: clamp(2.2rem, 4vw, 3rem);
+  margin-bottom: 10px;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.ia-page .subtitle {
+  color: var(--text-color);
+  font-size: 1.05rem;
+  opacity: 0.85;
+}
+
+.ia-page .badge-group {
+  margin: 0.8rem 0 1.5rem;
+}
+
+.ia-page .badge {
+  background: rgb(139 92 246 / 15%);
+  border: 1px solid rgb(139 92 246 / 30%);
+  border-radius: 999px;
+  color: #c4b5fd;
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-right: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  text-decoration: none;
+}
+
+.ia-page .badge:hover {
+  background: rgb(255 140 0 / 22%);
+  border-color: rgb(255 140 0 / 45%);
+  color: #ffd6a1;
+}
+
+.ia-page section {
+  background: var(--secondary-bg);
+  border: 1px solid rgb(93 93 255 / 22%);
+  border-radius: 20px;
+  box-shadow: 0 16px 40px var(--shadow-color);
+  margin-bottom: 24px;
+  padding: 24px 28px;
+  text-align: center;
+}
+
+.ia-page section h2 {
+  color: var(--text-color);
+  font-family: var(--font-title);
+  font-size: 1.4rem;
+  margin-bottom: 10px;
+}
+
+.ia-page .ia-code-title {
+  background: linear-gradient(45deg, var(--accent-color), #c822ff);
+  background-clip: text;
+  color: transparent;
+  display: inline-block;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.ia-page p,
+.ia-page li {
+  color: var(--text-color);
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.ia-page .code-box {
+  background: linear-gradient(135deg, #0b284c, #1e1232);
+  border: 1px solid rgb(93 93 255 / 35%);
+  border-radius: 16px;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 2%);
+  color: #e5e7eb;
+  font-family: "Share Tech Mono", "Space Mono", "Roboto Condensed", ui-monospace, SFMono-Regular, Menlo, monospace;
+  padding: 20px 22px;
+  text-align: center;
+}
+
+.ia-page .code-box ul {
+  list-style: none;
+  margin: 0;
+  padding-left: 0;
+}
+
+.ia-page .code-box li {
+  font-family: "Share Tech Mono", "Space Mono", "Roboto Condensed", ui-monospace, SFMono-Regular, Menlo, monospace;
+  margin-bottom: 0.6rem;
+  padding-left: 0;
+}
+
+.ia-page .code-box li::before {
+  content: none;
+}
+
+.ia-page .code-box .code-subtitle {
+  background: linear-gradient(45deg, var(--accent-color), #c822ff);
+  background-clip: text;
+  color: transparent;
+  display: inline-block;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.ia-page .project-list {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+}
+
+.ia-page .project-list li {
+  margin-bottom: 0.4rem;
+  padding-left: 0;
+}
+
+.ia-page .project-list li::before {
+  content: none;
+}
+
+[data-theme="light"] .ia-page .hero {
+  background: rgb(255 255 255 / 92%);
+  border-color: rgb(93 93 255 / 20%);
+  box-shadow: 0 18px 40px rgb(93 93 255 / 15%);
+}
+
+[data-theme="light"] .ia-page section {
+  background: rgb(245 246 255 / 90%);
+  border-color: rgb(93 93 255 / 18%);
+}
+
+[data-theme="light"] .ia-page .code-box {
+  background: linear-gradient(135deg, #f1f4ff, #e5e8ff);
+  border-color: rgb(93 93 255 / 20%);
+  color: #1f2937;
+}
+
+@media (width <= 576px) {
+  .ia-page {
+    padding: 0 18px;
+  }
+
+  .ia-page .hero {
+    padding: 28px 22px;
+    text-align: center;
+  }
+
+  .ia-page section {
+    padding: 20px;
   }
 }
 
