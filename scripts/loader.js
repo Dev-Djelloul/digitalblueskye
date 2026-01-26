@@ -205,6 +205,7 @@ function getConsentCopy() {
       acceptAll: 'Tout accepter',
       rejectAll: 'Tout refuser',
       customize: 'Personnaliser',
+      close: 'Fermer',
       save: 'Enregistrer mes choix',
       info: 'Vous pouvez modifier vos choix à tout moment.',
       privacy: 'Politique de confidentialité',
@@ -225,6 +226,7 @@ function getConsentCopy() {
       acceptAll: 'Accept all',
       rejectAll: 'Reject all',
       customize: 'Customize',
+      close: 'Close',
       save: 'Save my choices',
       info: 'You can change your choices at any time.',
       privacy: 'Privacy policy',
@@ -341,7 +343,10 @@ function createConsentUI() {
 
   function setCustomizeLabel(isOpen) {
     if (!customizeButton) return;
-    customizeButton.textContent = isOpen ? 'Fermer' : (customizeButton.dataset.defaultLabel || customizeButton.textContent);
+    const copy = getConsentCopy();
+    customizeButton.textContent = isOpen
+      ? (copy.close || 'Fermer')
+      : (customizeButton.dataset.defaultLabel || customizeButton.textContent);
   }
 
   function openPreferences() {

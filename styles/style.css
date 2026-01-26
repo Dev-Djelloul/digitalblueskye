@@ -2815,6 +2815,19 @@ h1.main-title-animated .title-icon {
   -webkit-text-fill-color: transparent;
 }
 
+.ia-page .code-box .code-reference {
+  background: linear-gradient(90deg, #ffb347, #ff6b3d);
+  background-clip: text;
+  color: transparent;
+  display: inline-block;
+  font-size: 1.05rem;
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
 .ia-page .project-list {
   list-style: none;
   margin: 12px 0 0;
