@@ -6079,10 +6079,11 @@ h1.main-title-animated .title-icon {
   margin: 20px 0 12px;
 }
 
-.contact-consent__label {
+.contact-form .contact-consent__label {
   color: var(--text-color);
   display: inline;
-  line-height: 1.4;
+  font-size: 0.55rem;
+  line-height: 1.2;
   margin-bottom: 0;
 }
 
@@ -6091,17 +6092,19 @@ h1.main-title-animated .title-icon {
   appearance: auto;
   border-radius: 4px;
   box-shadow: none;
-  height: 16px;
+  height: 10px;
   margin: 0 10px 0 0;
-  min-height: 16px;
-  min-width: 16px;
+  min-height: 10px;
+  min-width: 10px;
   padding: 0;
   vertical-align: baseline;
-  width: 16px;
+  width: 10px;
 }
 
 .contact-consent__label span {
   display: inline;
+  font-size: 0.9rem;
+  line-height: 1.2;
 }
 
 
