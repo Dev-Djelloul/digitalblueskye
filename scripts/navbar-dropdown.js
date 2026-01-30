@@ -1,13 +1,4 @@
 document.addEventListener('DOMContentLoaded', function() {
-  // Éléments du DOM
-  const hamburger = document.getElementById('hamburger');
-  const dropdownMenu = document.getElementById('dropdown-menu');
-  const menuOverlay = document.getElementById('menu-overlay');
-  const header = document.querySelector('.site-header') || document.querySelector('header');
-  const logoVideo = document.getElementById('logo-video');
-  const icon = hamburger.querySelector('i');
-  let headerTimeout;
-
   const socialMarkup = `
     <a href="https://github.com/Dev-Djelloul" target="_blank" rel="noopener noreferrer" title="GitHub" aria-label="GitHub">
       <img src="/assets/images/ui/icons8-github-64.png" alt="GitHub" />
@@ -28,6 +19,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     container.dataset.socialReady = 'true';
   });
+
+  // Éléments du DOM
+  const hamburger = document.getElementById('hamburger');
+  const dropdownMenu = document.getElementById('dropdown-menu');
+  const menuOverlay = document.getElementById('menu-overlay');
+  const header = document.querySelector('.site-header') || document.querySelector('header');
+  const logoVideo = document.getElementById('logo-video');
+  const icon = hamburger ? hamburger.querySelector('i') : null;
+  let headerTimeout;
+
+  if (!hamburger || !dropdownMenu || !menuOverlay || !header) {
+    return;
+  }
 
   // Détection desktop (hover) vs mobile (tap)
   const isDesktop = window.matchMedia('(hover: hover) and (pointer: fine)');
