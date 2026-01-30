@@ -3370,6 +3370,18 @@ h1.main-title-animated .title-icon {
   color: #7b3dff;
 }
 
+[data-theme="light"] .article-comments-form input:-webkit-autofill,
+[data-theme="light"] .article-comments-form textarea:-webkit-autofill,
+[data-theme="light"] .article-comments-form input:-webkit-autofill:hover,
+[data-theme="light"] .article-comments-form textarea:-webkit-autofill:hover,
+[data-theme="light"] .article-comments-form input:-webkit-autofill:focus,
+[data-theme="light"] .article-comments-form textarea:-webkit-autofill:focus {
+  -webkit-text-fill-color: #7b3dff;
+  box-shadow: 0 0 0 1000px #ffe6fb inset;
+  caret-color: #7b3dff;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
 .comment-honeypot {
   display: none;
 }
