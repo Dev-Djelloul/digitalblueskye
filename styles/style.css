@@ -1173,7 +1173,7 @@ body.body-menu-open .compact-header {
   text-align: left;
   top: 100px; /* Aligné sous le header */
   transform: translateX(-100%); /* Caché à gauche initialement */
-  transition: transform 0.4s ease; /* Transition sur la transformation X */
+  transition: transform 0.8s ease; /* Transition sur la transformation X */
   width: min(40vw, 560px); /* Menu plus large sur desktop */
   z-index: 2000;
 }
