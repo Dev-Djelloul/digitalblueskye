@@ -242,7 +242,6 @@
             <h3 class="title-banner" data-i18n="contact.formTitle">
               LAISSEZ VOTRE MESSAGE
             </h3>
-            <div class="contact-toast" role="status" aria-live="polite" hidden></div>
             <form id="contact-form" data-endpoint="/contact-submit.php">
               <div class="form-group">
                 <label for="user_last_name">
@@ -366,6 +365,7 @@
               <button type="submit" data-i18n="contact.sendButton">
                 Envoyer le message
               </button>
+              <div class="contact-toast" role="status" aria-live="polite" hidden></div>
             </form>
           </div>
         </div>
@@ -541,7 +541,7 @@
             if (!toast) {
               return;
             }
-            toast.textContent = message;
+            toast.innerHTML = `<span>${message}</span>`;
             toast.className = `contact-toast ${variant || ""}`.trim();
             toast.hidden = false;
             clearTimeout(toast.dataset.timerId);
@@ -605,7 +605,7 @@
     </script>
     <style>
       .contact-toast {
-        margin: 12px 0 18px;
+        margin: 14px 0 0;
         padding: 12px 16px;
         border-radius: 14px;
         background: rgba(25, 22, 44, 0.75);
@@ -622,6 +622,23 @@
 
       .contact-toast.is-error {
         border-color: rgba(255, 125, 125, 0.65);
+      }
+
+      html[data-theme="light"] .contact-toast {
+        background: rgba(255, 225, 242, 0.95);
+        border-color: rgba(200, 34, 255, 0.35);
+      }
+
+      html[data-theme="light"] .contact-toast span {
+        background: linear-gradient(90deg, #c822ff, #ff72b6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        color: transparent;
+      }
+
+      html[data-theme="light"] .contact-toast.is-success {
+        border-color: rgba(255, 120, 200, 0.7);
       }
 
       @media (max-width: 768px) {
