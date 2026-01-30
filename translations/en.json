@@ -5,7 +5,7 @@
     "aboutTitle": "About",
     "projectsTitle": "Projects",
     "skillsTitle": "Skills",
-    "aiGovernanceTitle": "Generative AI Governance",
+    "aiGovernanceTitle": "AI Governance",
     "inspirationsTitle": "My Travel Blog",
     "contactTitle": "Contact",
     "privacyTitle": "Privacy",
@@ -31,7 +31,7 @@
     "contact": "Contact form"
   },
   "ia": {
-    "heroTitle": "Generative AI Governance",
+    "heroTitle": "AI Governance",
     "badgeGovernance": "AI Governance",
     "badgeGovernanceTitle": "Learn about AI governance",
     "badgeGdpr": "GDPR",

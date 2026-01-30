@@ -138,6 +138,21 @@ document.addEventListener("DOMContentLoaded", () => {
       website: formData.get("website") || "",
     };
 
+    const nameValue = String(payload.name || "").trim();
+    const emailValue = String(payload.email || "").trim();
+    const messageValue = String(payload.message || "").trim();
+    const emailValid = /^\S+@\S+\.\S+$/.test(emailValue);
+
+    if (!nameValue || !emailValue || !messageValue) {
+      setStatus("Missing required fields", "is-error");
+      return;
+    }
+
+    if (!emailValid) {
+      setStatus("Please enter a valid email address.", "is-error");
+      return;
+    }
+
     const submitBtn = form.querySelector(".comment-submit");
     if (submitBtn) {
       submitBtn.disabled = true;
