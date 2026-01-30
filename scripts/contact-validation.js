@@ -46,7 +46,12 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const clearValidity = (event) => {
-    event.target.setCustomValidity("");
+    const input = event.target;
+    if (input.type === "email" && input.validity.typeMismatch) {
+      input.setCustomValidity(getMessage(input));
+      return;
+    }
+    input.setCustomValidity("");
   };
 
   const inputs = form.querySelectorAll("input, textarea, select");

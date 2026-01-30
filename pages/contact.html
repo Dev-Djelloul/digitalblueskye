@@ -495,6 +495,11 @@
         form.addEventListener("submit", async function (event) {
           event.preventDefault();
 
+          if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+          }
+
           const endpoint = form.dataset.endpoint || "/contact-submit.php";
           const formData = new FormData(form);
           const firstName = (formData.get("user_first_name") || "").toString().trim();
@@ -513,6 +518,22 @@
             document.getElementById("switch-to-en").style.display === "none"
               ? "Failed to send the message. Please try again later."
               : "L'envoi du message a échoué. Veuillez réessayer plus tard.";
+          const emailInvalidMessage =
+            document.getElementById("switch-to-en").style.display === "none"
+              ? "Please enter a valid email address."
+              : "Veuillez saisir une adresse email valide.";
+
+          const emailInput = form.querySelector("#user_email");
+          const emailValue = (emailInput?.value || "").trim();
+          const emailRegex = /^[^@\\s]+@[^@\\s]+\\.[^@\\s]{2,}$/;
+          if (emailInput && !emailRegex.test(emailValue)) {
+            emailInput.setCustomValidity(emailInvalidMessage);
+            emailInput.reportValidity();
+            return;
+          }
+          if (emailInput) {
+            emailInput.setCustomValidity("");
+          }
 
           try {
             const dbPromise = fetch(endpoint, {
