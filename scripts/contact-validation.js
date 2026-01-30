@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const form = document.querySelector(".contact-form");
+  const form = document.querySelector("#contact-form");
   if (!form) {
     return;
   }
@@ -54,5 +54,6 @@ document.addEventListener("DOMContentLoaded", () => {
     input.addEventListener("invalid", handleInvalid);
     input.addEventListener("input", clearValidity);
     input.addEventListener("change", clearValidity);
+    input.addEventListener("blur", clearValidity);
   });
 });

@@ -525,21 +525,14 @@
 
           const emailInput = form.querySelector("#user_email");
           const emailValue = (emailInput?.value || "").trim();
-          const emailRegex = /^[^@\\s]+@[^@\\s]+\\.[^@\\s]{2,}$/;
+          const emailRegex = /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/;
+          if (emailInput) {
+            emailInput.setCustomValidity("");
+          }
           if (emailInput && !emailRegex.test(emailValue)) {
             emailInput.setCustomValidity(emailInvalidMessage);
             emailInput.reportValidity();
-            emailInput.addEventListener(
-              "input",
-              () => {
-                emailInput.setCustomValidity("");
-              },
-              { once: true }
-            );
             return;
-          }
-          if (emailInput) {
-            emailInput.setCustomValidity("");
           }
 
           try {
