@@ -1,3 +1,45 @@
+/*
+  DIGITALBLUESKYE — GLOBAL STYLESHEET
+  Central CSS file for layout, components, pages, themes, and responsive rules.
+  Table of contents (line numbers):
+  - VARIABLES & THÈMES (line 44)
+  - RESET & STYLES DE BASE (line 100)
+  - DIVISEUR D'INTRO (line 189)
+  - CONTENEUR PRINCIPAL ET SECTIONS (line 216)
+  - ANIMATIONS, TRANSITIONS, BOUTONS (line 281)
+  - ANIMATIONS AU DÉFILEMENT (line 711)
+  - LOADER STYLES (line 784)
+  - HEADER (Normal & Compact) (line 828)
+  - DROPDOWN MENU (line 1193)
+  - SOUS-MENU DÉROULANT (line 1318)
+  - TITRES DE SECTION (line 1410)
+  - IMAGE FULL-BLEED PAGE ACCUEIL (line 1466)
+  - SECTION RADAR DIGITAL (line 1506)
+  - SECTION ACTUALITÉS ACCUEIL (line 1534)
+  - PAGE EXPLORER (line 1705)
+  - ANIMATIONS (line 2034)
+  - BLOG - STYLES GÉNÉRAUX (line 2055)
+  - BLOG - BANNIÈRE HÉRO (line 2072)
+  - BLOG - FILTRES (line 2109)
+  - BLOG - CARTES D'ARTICLES (line 2170)
+  - CONSENT - DONNEES PERSONNELLES (line 2297)
+  - PAGES LEGALES (line 2607)
+  - GOUVERNANCE IA (line 2725)
+  - BLOG - PAGINATION (line 2919)
+  - SECTION ARTICLE DÉTAILLÉ (line 2957)
+  - SECTION "À PROPOS" (line 3500)
+  - BOUTONS (line 4044)
+  - Carousel Inspirations - Styles améliorés (line 4207)
+  - PROJETS (Grille, Aperçu, Détail) (line 5198)
+  - COMPÉTENCES (Skills) - (line 5912)
+  - CONTACT (line 6068)
+  - BLOG - NEWSLETTER (line 6357)
+  - FOOTER (line 6465)
+  - UTILITAIRES & EFFETS (line 6742)
+  - RESPONSIVE (Adaptation écrans) (line 6755)
+  - RESPONSIVE BLOG + ARTICLES (line 7373)
+  - SECTION CONFIANCE (TRUST) - TESTIMONIES & PARTNERS (line 7486)
+*/
 @import url("https://fonts.googleapis.com/css2?family=Delius&family=Lato:wght@400;500;700&family=Share+Tech+Mono&family=Space+Mono:wght@400;700&family=Sour+Gummy:ital,wght@0,100..900;1,100..900&display=swap");
 
 /* =========================
@@ -192,7 +234,7 @@ body.body-menu-open main {
   pointer-events: none;
   opacity: 0.2;
 
-  /* IMPORTANT: Cette valeur doit correspondre à la largeur de votre .dropdown-menu. 
+  /* IMPORTANT: Cette valeur doit correspondre à la largeur de votre .dropdown-menu.
   Si width: 250px pour le menu, utilisez padding-left: 250px; ici */
 }
 
@@ -785,7 +827,7 @@ section#skills,
 }
 
 /* =========================
-   HEADER (Normal & Compact) 
+   HEADER (Normal & Compact)
    ========================= */
 header,
 .compact-header {
@@ -1150,7 +1192,7 @@ body.body-menu-open .compact-header {
 }
 
 /* =========================
-   DROPDOWN MENU 
+   DROPDOWN MENU
    ========================= */
 
 /* Conteneur principal du menu déroulant */
@@ -1462,9 +1504,8 @@ h3.title-banner {
 }
 
 
-
 /* =========================
-   SECTION RADAR DIGITAL 
+   SECTION RADAR DIGITAL
    ========================= */
 
 /* Styles pour le titre principal de la section Radar sur la page d'accueil */
@@ -3158,7 +3199,7 @@ h1.main-title-animated .title-icon {
 }
 
 .article-body h2 {
-  color: #c822ff;  
+  color: #c822ff;
   font-size: 1.8rem;
   margin-bottom: 20px;
   margin-top: 40px;
@@ -5870,7 +5911,7 @@ h1.main-title-animated .title-icon {
 }
 
 /* =========================
-   COMPÉTENCES (Skills) - 
+   COMPÉTENCES (Skills) -
    ========================= */
 .skills-section {
   margin: 0 auto 200px;
@@ -6870,7 +6911,6 @@ body.body-menu-open #footer {
   } /* Ajuster le padding du body pour le header compact */
 
 
-
   section#contact,
   #contact {
     margin-top: 0;
@@ -6970,7 +7010,7 @@ body.body-menu-open #footer {
   .intro-text .content-wrapper {
     flex-direction: column;
     gap: 30px;
-    max-width: 100%; 
+    max-width: 100%;
     padding: 16px;
     width: 100%;
   }
@@ -7332,7 +7372,7 @@ body.body-menu-open #footer {
 }
 
 /* =========================
-   RESPONSIVE BLOG + ARTICLES 
+   RESPONSIVE BLOG + ARTICLES
    ========================= */
 
 /* Ajustements pour les écrans moyens et petits */
