@@ -1305,7 +1305,7 @@ body.body-menu-open .compact-header {
   /* Transitions */
   transition: max-height 0.25s ease, opacity 0.2s ease, transform 0.2s ease,
     visibility 0s linear 0.2s; /* retarde la visibilité pour éviter le flash */
-  transition-delay: 0.25s;
+  transition-delay: 0.2s;
 
   visibility: hidden;
 }
@@ -1319,7 +1319,7 @@ body.body-menu-open .compact-header {
   opacity: 1;
   pointer-events: auto;
   transform: translateY(0);
-  transition-delay: 0.25s;
+  transition-delay: 0.2s;
   visibility: visible;
 }
 
