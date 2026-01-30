@@ -529,6 +529,13 @@
           if (emailInput && !emailRegex.test(emailValue)) {
             emailInput.setCustomValidity(emailInvalidMessage);
             emailInput.reportValidity();
+            emailInput.addEventListener(
+              "input",
+              () => {
+                emailInput.setCustomValidity("");
+              },
+              { once: true }
+            );
             return;
           }
           if (emailInput) {
