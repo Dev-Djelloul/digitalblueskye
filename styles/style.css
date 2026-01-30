@@ -3345,17 +3345,17 @@ h1.main-title-animated .title-icon {
 
 .article-comments-form input,
 .article-comments-form textarea {
-  background: rgb(0 0 0 / 20%);
+  background: #ffffff;
   border: 1px solid rgb(93 93 255 / 35%);
   border-radius: 12px;
-  color: #fff;
+  color: #2d3a4a;
   font-family: Delius, cursive;
   padding: 12px 14px;
 }
 
 .article-comments-form input::placeholder,
 .article-comments-form textarea::placeholder {
-  color: #fff;
+  color: #2d3a4a;
   opacity: 0.85;
 }
 
@@ -3367,7 +3367,7 @@ h1.main-title-animated .title-icon {
 [data-theme="light"] .article-comments-form textarea {
   background: #ffe6fb;
   border-color: var(--accent-color);
-  color: #5d5dff;
+  color: #7b3dff;
 }
 
 .comment-honeypot {
