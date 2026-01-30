@@ -4058,6 +4058,10 @@ h1.main-title-animated .title-icon {
   padding: 8px 25px;
   position: relative;
 } /* Bouton envoyer formulaire */
+.contact-submit-text {
+  position: relative;
+  z-index: 1;
+}
 .contact-form button::before {
   background: linear-gradient(
     90deg,
@@ -6059,7 +6063,7 @@ h1.main-title-animated .title-icon {
   background: var(--input-bg);
   border: 2px solid var(--secondary-bg);
   border-radius: 10px;
-  color: var(--text-color); /* Padding, bordure, fond, forme, couleur texte */
+  color: #7b3dff;
   font-family: inherit;
   font-size: 16px;
 
@@ -6081,6 +6085,17 @@ h1.main-title-animated .title-icon {
   color: var(--text-color);
   opacity: 0.7;
 } /* Style placeholder */
+
+@supports (-webkit-background-clip: text) {
+  .contact-submit-text,
+  .contact-toast span {
+    background-image: linear-gradient(90deg, #6d63ff, #c822ff, #ff72b6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+  }
+}
 
 .contact-honeypot {
   display: none;
@@ -6208,17 +6223,40 @@ h1.main-title-animated .title-icon {
 [data-theme="light"] .contact-form textarea {
   background: #ffe6fb;
   border-color: var(--accent-color);
-  color: #5d5dff;
+  color: #7b3dff;
+  caret-color: #7b3dff;
 } /* Champs de saisie */
 [data-theme="light"] .contact-form input::placeholder,
 [data-theme="light"] .contact-form textarea::placeholder {
   color: var(--accent-color);
   opacity: 0.7;
 } /* Placeholder */
+[data-theme="light"] .contact-form input:-webkit-autofill,
+[data-theme="light"] .contact-form textarea:-webkit-autofill,
+[data-theme="light"] .contact-form input:-webkit-autofill:hover,
+[data-theme="light"] .contact-form textarea:-webkit-autofill:hover,
+[data-theme="light"] .contact-form input:-webkit-autofill:focus,
+[data-theme="light"] .contact-form textarea:-webkit-autofill:focus {
+  -webkit-text-fill-color: #7b3dff;
+  box-shadow: 0 0 0 1000px #ffe6fb inset;
+  caret-color: #7b3dff;
+}
 [data-theme="light"] .contact-form input:focus,
 [data-theme="light"] .contact-form textarea:focus {
   border-color: #5d5dff;
   box-shadow: 0 0 0 3px rgb(93 93 255 / 30%);
+}
+
+[data-theme="dark"] .contact-form input,
+[data-theme="dark"] .contact-form textarea {
+  background: #ffffff;
+  color: #2d3a4a;
+}
+
+[data-theme="dark"] .contact-form input::placeholder,
+[data-theme="dark"] .contact-form textarea::placeholder {
+  color: #2d3a4a;
+  opacity: 0.6;
 }
 
 [data-theme="light"] .map {
