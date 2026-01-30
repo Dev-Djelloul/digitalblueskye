@@ -138,18 +138,23 @@ document.addEventListener("DOMContentLoaded", () => {
       website: formData.get("website") || "",
     };
 
+    const lang = (document.documentElement.lang || "fr").toLowerCase();
+    const isEnglish = lang.startsWith("en");
+    const missingFieldsMessage = isEnglish ? "Missing required fields" : "Veuillez renseigner tous les champs obligatoires.";
+    const invalidEmailMessage = isEnglish ? "Please enter a valid email address." : "Veuillez saisir une adresse email valide.";
+
     const nameValue = String(payload.name || "").trim();
     const emailValue = String(payload.email || "").trim();
     const messageValue = String(payload.message || "").trim();
     const emailValid = /^\S+@\S+\.\S+$/.test(emailValue);
 
     if (!nameValue || !emailValue || !messageValue) {
-      setStatus("Missing required fields", "is-error");
+      setStatus(missingFieldsMessage, "is-error");
       return;
     }
 
     if (!emailValid) {
-      setStatus("Please enter a valid email address.", "is-error");
+      setStatus(invalidEmailMessage, "is-error");
       return;
     }
 
