@@ -3765,6 +3765,7 @@ h1.main-title-animated .title-icon {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  justify-content: center;
   margin-top: 8px;
 }
 
