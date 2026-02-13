@@ -3890,6 +3890,10 @@ h1.main-title-animated .title-icon {
   font-size: 0.95rem;
 }
 
+.page-about .process-meta strong:first-of-type {
+  color: #79e6ff;
+}
+
 .page-about .about-cta {
   align-items: center;
   border-top: 1px solid rgb(93 93 255 / 25%);
@@ -4030,6 +4034,10 @@ h1.main-title-animated .title-icon {
 
 [data-theme="light"] .page-about .process-meta {
   color: rgb(90 98 140);
+}
+
+[data-theme="light"] .page-about .process-meta strong:first-of-type {
+  color: #0f7ea8;
 }
 
 [data-theme="light"] .page-about .about-cta-note {
