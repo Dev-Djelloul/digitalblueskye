@@ -3757,6 +3757,21 @@ h1.main-title-animated .title-icon {
   margin: 6px 0 0;
 }
 
+.page-about .timeline-org {
+  display: inline-block;
+}
+
+.page-about .timeline-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.page-about .timeline-links .timeline-link {
+  margin: 0;
+}
+
 .page-about .timeline-org,
 .page-about .skill-group h3 {
   background: linear-gradient(90deg, #c9a7ff, #ffb6d9);
