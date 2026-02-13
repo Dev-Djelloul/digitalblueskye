@@ -3757,6 +3757,12 @@ h1.main-title-animated .title-icon {
   margin: 6px 0 0;
 }
 
+.page-about .timeline-mention {
+  display: inline-block;
+  font-size: 0.92rem;
+  font-style: italic;
+}
+
 .page-about .timeline-org {
   display: inline-block;
 }
@@ -3766,7 +3772,7 @@ h1.main-title-animated .title-icon {
   flex-wrap: wrap;
   gap: 8px;
   justify-content: center;
-  margin-top: 8px;
+  margin-top: 14px;
 }
 
 .page-about .timeline-links .timeline-link {
