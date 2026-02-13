@@ -3757,6 +3757,15 @@ h1.main-title-animated .title-icon {
   margin: 6px 0 0;
 }
 
+.page-about .timeline-org,
+.page-about .skill-group h3 {
+  background: linear-gradient(90deg, #c9a7ff, #ffb6d9);
+  background-clip: text;
+  color: transparent;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
 .page-about .timeline-link {
   align-items: center;
   background: rgb(93 93 255 / 15%);
@@ -3982,6 +3991,15 @@ h1.main-title-animated .title-icon {
   -webkit-text-fill-color: #5d5dff;
   background-clip: border-box;
   -webkit-background-clip: border-box;
+}
+
+[data-theme="light"] .page-about .timeline-org,
+[data-theme="light"] .page-about .skill-group h3 {
+  background: linear-gradient(90deg, #7f5bf4, #d654a4);
+  background-clip: text;
+  color: transparent;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 [data-theme="light"] .page-about .skill-group {
