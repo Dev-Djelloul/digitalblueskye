@@ -260,9 +260,9 @@
     "title": "Mon parcours de formation",
     "subtitle": "Un spectre digital complet autour de projets concrets",
     "journeyTitle": "Mon parcours d'apprentissage",
-    "cert1Title": "OpenClassrooms",
+    "cert1Title": "OpenClassrooms 100% en ligne",
     "cert1Desc": "<span class='trust-highlight'>Intégrateur Web</span><br>HTML5, CSS3, JavaScript, React, intégration APIs<br><span class='trust-highlight'>Chef de projet digital</span><br>Pilotage de projet, stratégie digitale, coordination d'équipes",
-    "cert2Title": "Studi",
+    "cert2Title": "Studi 100% en ligne",
     "cert2Desc": "<span class='trust-highlight'>Graduate Développeur Front-End</span><br>Front-end : Interfaces responsives, accessibilité<br>Back-end : PHP, Node.js<br>Bases de données : MySQL, MongoDB",
     "projectsTitle": "9 projets réalisés et publiés",
     "projectsDesc": "De la refonte de sites vitrines au e-commerce responsive, jusqu'à des apps interactives avec authentification, API et back-office — un portfolio structuré qui montre la montée en compétences, la qualité d'intégration et l'attention portée à l'UX.",
@@ -271,8 +271,8 @@
     "approachTitle": "Ma méthodologie",
     "approachList": "User-centered design<br>Agile & itératif<br>Documentation & communication<br>SEO-first<br>Tests & validation",
     "partnersTitle": "Formations certifiantes",
-    "partner1": "OpenClassrooms",
-    "partner2": "Studi"
+    "partner1": "OpenClassrooms 100% en ligne",
+    "partner2": "Studi 100% en ligne"
   },
   "explorerNames": {
     "ridingCities": "RIDING CITIES",

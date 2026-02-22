@@ -258,9 +258,16 @@
     <main>
       <!-- Texte d'introduction -->
       <div class="intro-text">
-     <!-- Image d'accueil ajoutée -->
       <div class="hero-media" aria-hidden="true">
-        <img src="/assets/images/backgrounds/Digital-vector.webp" alt="Visuel d'accueil" width="1200" height="600" loading="lazy" />
+        <img
+          class="hero-media-main"
+          src="/assets/images/backgrounds/chatgpt2.webp"
+          alt=""
+          width="1920"
+          height="1082"
+          loading="eager"
+          fetchpriority="high"
+        />
       </div>
         <!-- Wrapper pour le contenu descriptif -->
         <div class="content-wrapper">
@@ -295,30 +302,28 @@
 
           <!-- Certifications & Formation -->
           <div class="trust-cards-grid">
-            <div class="trust-card trust-card--cert">
-              <h3><a href="https://openclassrooms.com/fr/paths/1030-chef-de-projet-digital" target="_blank" rel="noopener" data-i18n="trust.cert1Title">OpenClassrooms</a></h3>
-              <p data-i18n="trust.cert1Desc">
-                Intégrateur Web (HTML5, CSS3, JavaScript, React, intégration APIs) •<br /><br />
-                Chef de projet digital :<br />
-                pilotage de projet, stratégie digitale, coordination d'équipes.
-              </p>
-            </div>
-
-            <div class="trust-card trust-card--cert">
-              <h3><a href="https://www.studi.com/fr/formation/developpement-web/graduate-developpeur-front-end" target="_blank" rel="noopener" data-i18n="trust.cert2Title">Studi</a></h3>
-              <p data-i18n="trust.cert2Desc">Spécialisation Full-Stack : Front-end avancé, Back-end (PHP, Node.js), bases de données (MySQL, MongoDB)</p>
+            <div class="trust-card trust-card--cert trust-card--merged">
+              <div class="trust-card-merged-col">
+                <h3><a href="https://openclassrooms.com/fr/paths/1030-chef-de-projet-digital" target="_blank" rel="noopener" data-i18n="trust.cert1Title">OpenClassrooms</a></h3>
+                <p data-i18n="trust.cert1Desc">
+                  Intégrateur Web (HTML5, CSS3, JavaScript, React, intégration APIs) •<br /><br />
+                  Chef de projet digital :<br />
+                  pilotage de projet, stratégie digitale, coordination d'équipes.
+                </p>
+              </div>
+              <div class="trust-card-merged-col">
+                <h3><a href="https://www.studi.com/fr/formation/developpement-web/graduate-developpeur-front-end" target="_blank" rel="noopener" data-i18n="trust.cert2Title">Studi</a></h3>
+                <p data-i18n="trust.cert2Desc">Spécialisation Full-Stack : Front-end avancé, Back-end (PHP, Node.js), bases de données (MySQL, MongoDB)</p>
+              </div>
             </div>
           </div>
 
           <!-- Compétences & Méthodologie -->
           <div class="trust-methodology">
-            <div class="methodology-item trust-card--cert">
+            <div class="methodology-item trust-card--cert methodology-item--combined">
               <h3 data-i18n="trust.skillsTitle">Compétences validées</h3>
               <p data-i18n="trust.skillsList">Frontend (HTML, CSS, JavaScript, React, Bootstrap) • Backend (PHP, Node.js) • Bases de données (MySQL, MongoDB) • Design & UX • SEO & stratégie digitale</p>
-            </div>
-
-            <div class="methodology-item trust-card--cert">
-              <h3 data-i18n="trust.approachTitle">Ma méthodologie</h3>
+              <h3 class="methodology-subtitle" data-i18n="trust.approachTitle">Ma méthodologie</h3>
               <p data-i18n="trust.approachList">Agile & itératif • User-centered design • SEO-first • Documentation & communication • Tests & validation</p>
             </div>
           </div>

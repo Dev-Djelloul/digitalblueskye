@@ -6,7 +6,6 @@ document.addEventListener('DOMContentLoaded', function() {
   const header = document.querySelector('.site-header') || document.querySelector('header');
   const logoVideo = document.getElementById('logo-video');
   const icon = hamburger.querySelector('i');
-  let headerTimeout;
 
   // Détection desktop (hover) vs mobile (tap)
   const isDesktop = window.matchMedia('(hover: hover) and (pointer: fine)');
@@ -100,50 +99,19 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
   
-  // ===== Gestion du header au scroll =====
-  
-  // Variables pour optimiser le scroll
-  let lastScrollY = window.scrollY;
-  let ticking = false;
-  
-  // Fonction pour mettre à jour l'état du header
-  function updateNavbar() {
+  // ===== Header fixe (pas de masquage au scroll) =====
+  function updateNavbarState() {
     const currentScrollY = window.scrollY;
-    
-    // Ajouter une classe si on a défilé (pour le fond)
     if (currentScrollY > 20) {
       header.classList.add('nav-scrolled');
     } else {
       header.classList.remove('nav-scrolled');
     }
-    
-    // Cacher le header quand on descend, le montrer quand on remonte suffisamment
-    if (currentScrollY > lastScrollY && currentScrollY > 10) {
-      // On descend - cacher immédiatement
-      clearTimeout(headerTimeout);
-      header.classList.add('nav-hidden');
-    } else if (lastScrollY > currentScrollY) {
-      // On remonte - attendre un peu avant de montrer
-      clearTimeout(headerTimeout);
-      headerTimeout = setTimeout(() => {
-        header.classList.remove('nav-hidden');
-      }, 400); // Attendre 200ms avant de montrer le header
-    } 
-    // Si on remonte de moins de 10px, on ne fait rien (header reste dans son état actuel)
-    
-    lastScrollY = currentScrollY;
-    ticking = false;
+    header.classList.remove('nav-hidden');
   }
-  
-  // Optimisation des performances pour le scroll
-  window.addEventListener('scroll', function() {
-    if (!ticking) {
-      window.requestAnimationFrame(function() {
-        updateNavbar();
-      });
-      ticking = true;
-    }
-  }, { passive: true });
+
+  updateNavbarState();
+  window.addEventListener('scroll', updateNavbarState, { passive: true });
   
   // ===== Gestion de la vidéo =====
   
