@@ -206,8 +206,8 @@ article {
 }
 
 .home-page main > .intro-text + .intro-divider {
-  margin-bottom: 42px;
-  margin-top: 28px;
+  margin-bottom: 34px;
+  margin-top: 14px;
 }
 
 .intro-divider::after {
@@ -1481,6 +1481,7 @@ h3.title-banner {
   border: 0;
   border-radius: 0;
   box-shadow: none;
+  display: grid;
   height: auto;
   margin-left: calc(50% - 50vw);
   margin-top: -90px;
@@ -1511,6 +1512,7 @@ h3.title-banner {
   background-color: #080b1b;
   display: block;
   height: 100%;
+  grid-area: 1 / 1;
   object-fit: contain;
   object-position: center top;
   width: 100%;
@@ -1519,8 +1521,34 @@ h3.title-banner {
 .home-page .intro-text .content-wrapper,
 .home-page .intro-text .text-content,
 .home-page .intro-text .btn-explore {
+  grid-area: 1 / 1;
   position: relative;
   z-index: 4;
+}
+
+.home-page .intro-text .content-wrapper {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  margin: 0 auto;
+  max-width: min(100%, var(--home-content-max));
+  padding: clamp(130px, 24vh, 250px) 24px 0;
+  width: 100%;
+}
+
+.home-page .intro-text .text-content {
+  align-items: center;
+  gap: 24px;
+  text-align: center;
+  width: 100%;
+}
+
+.home-page .intro-text .animated-title {
+  margin-top: 0;
+}
+
+.home-page .intro-text .btn-explore {
+  margin: 12px auto 0;
 }
 
 .home-page {
@@ -6470,18 +6498,18 @@ h1.main-title-animated .title-icon {
   background-color: rgb(255 255 255 / 6%);
   border: 1px solid transparent;
   border-image: linear-gradient(45deg, var(--accent-color), #c822ff) 1;
-  border-radius: 20px;
+  border-radius: 10px;
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
   margin: 0 auto;
   max-width: 980px;
-  padding: 80px;
+  padding: 50px;
   text-align: center;
   width: 100%;
 }
 
 :root:not([data-theme="light"]) .home-page .blog-newsletter {
-  background: linear-gradient(135deg, var(--secondary-bg), var(--card-bg));
+  background: linear-gradient(135deg, rgb(33 37 46 / 96%), rgb(24 27 35 / 96%));
   border: 1px solid rgb(var(--accent-rgb), 0.4);
   box-shadow: 0 20px 45px rgb(0 0 0 / 35%);
 }
@@ -7125,6 +7153,15 @@ body.body-menu-open #footer {
 
   .home-page .intro-text .hero-media-main {
     object-position: center top;
+  }
+
+  .home-page .intro-text .content-wrapper {
+    gap: 18px;
+    padding: clamp(90px, 17vh, 140px) 16px 0;
+  }
+
+  .home-page .intro-text .text-content {
+    gap: 18px;
   }
 
   .intro-text .animated-title {
