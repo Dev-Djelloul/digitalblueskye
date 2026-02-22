@@ -1751,7 +1751,7 @@ section.page-title-container
   display: flex;
   flex-direction: column;
   flex-grow: 1; /* Permet à cette section de grandir et de pousser la dateline en bas */
-  padding: 20px 25px;
+  padding: 20px 10px;
 }
 
 .news-card-title {
@@ -6504,7 +6504,9 @@ h1.main-title-animated .title-icon {
   background-color: rgb(255 255 255 / 6%);
   border: 1px solid transparent;
   border-image: linear-gradient(45deg, var(--accent-color), #c822ff) 1;
-  border-radius: 12px;
+  border-radius: 35px;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
   margin: 0;
   padding: 80px;
   text-align: center;
