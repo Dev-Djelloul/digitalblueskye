@@ -10,7 +10,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const form = commentsSection.querySelector(".article-comments-form");
   const articleSlug = window.location.pathname.split("/").pop().replace(".html", "");
 
-  const likeSymbol = String.fromCodePoint(0x1f44d);
+  const REACTIONS = [
+    { key: "like", emoji: String.fromCodePoint(0x1f44d) }, // 👍
+    { key: "smile", emoji: String.fromCodePoint(0x1f60a) }, // 😊
+    { key: "dislike", emoji: String.fromCodePoint(0x1f44e) }, // 👎
+    { key: "clap", emoji: String.fromCodePoint(0x1f44f) }, // 👏
+    { key: "blueheart", emoji: String.fromCodePoint(0x1f499) }, // 💙
+  ];
 
   const getCopy = (key, fallback) => {
     if (!copyEl) return fallback;
@@ -50,9 +56,15 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
-  const likeStorageKey = (commentId) => `dbs:liked:${articleSlug}:${commentId}`;
-  const hasLiked = (commentId) => localStorage.getItem(likeStorageKey(commentId)) === "1";
-  const markLiked = (commentId) => localStorage.setItem(likeStorageKey(commentId), "1");
+  const reactionStorageKey = (commentId) => `dbs:reaction:${articleSlug}:${commentId}`;
+  const getMyReaction = (commentId) => localStorage.getItem(reactionStorageKey(commentId)) || "";
+  const setMyReaction = (commentId, reactionKey) => {
+    if (!reactionKey) {
+      localStorage.removeItem(reactionStorageKey(commentId));
+      return;
+    }
+    localStorage.setItem(reactionStorageKey(commentId), reactionKey);
+  };
 
   const validatePayload = (payload) => {
     const nameValue = String(payload.name || "").trim();
@@ -85,17 +97,29 @@ document.addEventListener("DOMContentLoaded", () => {
     return response.json();
   };
 
-  const postLike = async (commentId) => {
+  const postReaction = async (commentId, reaction, operation = "add") => {
     const response = await fetch("/backend/comments.php", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        action: "like",
+        action: "react",
         article: articleSlug,
         comment_id: commentId,
+        reaction,
+        operation,
       }),
     });
     return response.json();
+  };
+
+  const updateReactionButtons = (container, reactions, activeReaction) => {
+    const buttons = container.querySelectorAll(".comment-reaction-btn");
+    buttons.forEach((btn) => {
+      const key = btn.dataset.reactionKey || "";
+      const count = Number((reactions && reactions[key]) || 0);
+      btn.querySelector(".comment-reaction-count").textContent = String(count);
+      btn.classList.toggle("is-active", key === activeReaction);
+    });
   };
 
   const createReplyForm = (commentId, onDone) => {
@@ -223,32 +247,95 @@ document.addEventListener("DOMContentLoaded", () => {
     const actions = document.createElement("div");
     actions.className = "comment-actions";
 
-    const likeBtn = document.createElement("button");
-    likeBtn.type = "button";
-    likeBtn.className = "comment-action-btn comment-like-btn";
-    likeBtn.textContent = `${likeSymbol} ${Number(comment.likes_count || 0)}`;
-    if (hasLiked(comment.id)) {
-      likeBtn.disabled = true;
-      likeBtn.classList.add("is-liked");
-    }
+    const reactionWrap = document.createElement("div");
+    reactionWrap.className = "comment-reactions";
 
-    likeBtn.addEventListener("click", async () => {
-      if (likeBtn.disabled) return;
-      likeBtn.disabled = true;
-      try {
-        const data = await postLike(comment.id);
-        if (!data.ok) {
-          setStatus(data.error || getCopy("error", t("Erreur d'envoi", "Send error")), "is-error");
-          likeBtn.disabled = false;
-          return;
+    const commentReactions = comment.reactions || {
+      like: Number(comment.likes_count || 0),
+      smile: 0,
+      dislike: 0,
+      clap: 0,
+      blueheart: 0,
+    };
+
+    const currentReaction = getMyReaction(comment.id);
+
+    REACTIONS.forEach((reaction) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "comment-reaction-btn";
+      btn.dataset.reactionKey = reaction.key;
+
+      const emoji = document.createElement("span");
+      emoji.className = "comment-reaction-emoji";
+      emoji.textContent = reaction.emoji;
+
+      const count = document.createElement("span");
+      count.className = "comment-reaction-count";
+      count.textContent = String(Number(commentReactions[reaction.key] || 0));
+
+      btn.appendChild(emoji);
+      btn.appendChild(count);
+      if (reaction.key === currentReaction) btn.classList.add("is-active");
+
+      btn.addEventListener("click", async () => {
+        const existingReaction = getMyReaction(comment.id);
+        reactionWrap.querySelectorAll("button").forEach((b) => {
+          b.disabled = true;
+        });
+
+        let liveReactions = { ...commentReactions };
+
+        try {
+          if (existingReaction === reaction.key) {
+            const removed = await postReaction(comment.id, reaction.key, "remove");
+            if (!removed.ok) {
+              setStatus(removed.error || getCopy("error", t("Erreur d'envoi", "Send error")), "is-error");
+              return;
+            }
+            liveReactions = removed.reactions || liveReactions;
+            setMyReaction(comment.id, "");
+            updateReactionButtons(reactionWrap, liveReactions, "");
+            commentReactions.like = Number(liveReactions.like || 0);
+            commentReactions.smile = Number(liveReactions.smile || 0);
+            commentReactions.dislike = Number(liveReactions.dislike || 0);
+            commentReactions.clap = Number(liveReactions.clap || 0);
+            commentReactions.blueheart = Number(liveReactions.blueheart || 0);
+            return;
+          }
+
+          if (existingReaction) {
+            const removed = await postReaction(comment.id, existingReaction, "remove");
+            if (removed.ok) {
+              liveReactions = removed.reactions || liveReactions;
+            }
+          }
+
+          const added = await postReaction(comment.id, reaction.key, "add");
+          if (!added.ok) {
+            setStatus(added.error || getCopy("error", t("Erreur d'envoi", "Send error")), "is-error");
+            updateReactionButtons(reactionWrap, liveReactions, existingReaction);
+            return;
+          }
+          liveReactions = added.reactions || liveReactions;
+          setMyReaction(comment.id, reaction.key);
+          updateReactionButtons(reactionWrap, liveReactions, reaction.key);
+          commentReactions.like = Number(liveReactions.like || 0);
+          commentReactions.smile = Number(liveReactions.smile || 0);
+          commentReactions.dislike = Number(liveReactions.dislike || 0);
+          commentReactions.clap = Number(liveReactions.clap || 0);
+          commentReactions.blueheart = Number(liveReactions.blueheart || 0);
+        } catch {
+          setStatus(getCopy("error", t("Erreur d'envoi", "Send error")), "is-error");
+          updateReactionButtons(reactionWrap, liveReactions, existingReaction);
+        } finally {
+          reactionWrap.querySelectorAll("button").forEach((b) => {
+            b.disabled = false;
+          });
         }
-        markLiked(comment.id);
-        likeBtn.classList.add("is-liked");
-        likeBtn.textContent = `${likeSymbol} ${Number(data.likes_count || 0)}`;
-      } catch {
-        setStatus(getCopy("error", t("Erreur d'envoi", "Send error")), "is-error");
-        likeBtn.disabled = false;
-      }
+      });
+
+      reactionWrap.appendChild(btn);
     });
 
     const replyBtn = document.createElement("button");
@@ -265,7 +352,7 @@ document.addEventListener("DOMContentLoaded", () => {
       item.appendChild(createReplyForm(comment.id, reloadFn));
     });
 
-    actions.appendChild(likeBtn);
+    actions.appendChild(reactionWrap);
     actions.appendChild(replyBtn);
 
     header.appendChild(author);
@@ -301,7 +388,6 @@ document.addEventListener("DOMContentLoaded", () => {
       listEl.innerHTML = "";
       setCount(comments.length);
       setStatus("");
-
       if (comments.length === 0) return;
 
       const byParent = new Map();

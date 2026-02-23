@@ -31,7 +31,7 @@ XAMPP sert au dev local. En production, utilisez un hébergement PHP + MySQL/Mar
   - Optionnel : `viewport_width`, `viewport_height`, `device_pixel_ratio`,
     `screen_width`, `screen_height`, `navigator_language`, `ua_data`, `in_app_browser`
 - `GET /backend/comments.php?article=slug`
-  - Retourne les commentaires approuvés (avec `id`, `parent_id`, `likes_count`)
+  - Retourne les commentaires approuvés (avec `id`, `parent_id`, `likes_count`, `reactions`)
 - `POST /backend/comments.php`
   - Publier commentaire/réponse :
     - JSON : `name`, `email`, `message`, `article`, `page_url`, `website` (honeypot), `parent_id` (optionnel)
@@ -47,3 +47,4 @@ Pour activer les fonctionnalités commentaires avancées sur une base existante 
 
 - `backend/migrations/2026-02-23-utf8mb4-comments.sql`
 - `backend/migrations/2026-02-23-comments-replies-likes.sql`
+- `backend/migrations/2026-02-23-comment-reactions.sql`

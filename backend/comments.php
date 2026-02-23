@@ -4,8 +4,27 @@ declare(strict_types=1);
 require_once __DIR__ . '/db.php';
 
 function get_client_ip(): string {
-    $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-    return $ip;
+    return $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+}
+
+function reaction_columns(): array {
+    return [
+        'like' => 'reactions_like',
+        'smile' => 'reactions_smile',
+        'dislike' => 'reactions_dislike',
+        'clap' => 'reactions_clap',
+        'blueheart' => 'reactions_blueheart',
+    ];
+}
+
+function format_reactions(array $row): array {
+    return [
+        'like' => (int) ($row['reactions_like'] ?? 0),
+        'smile' => (int) ($row['reactions_smile'] ?? 0),
+        'dislike' => (int) ($row['reactions_dislike'] ?? 0),
+        'clap' => (int) ($row['reactions_clap'] ?? 0),
+        'blueheart' => (int) ($row['reactions_blueheart'] ?? 0),
+    ];
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
@@ -19,7 +38,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     try {
         $pdo = get_db();
         $stmt = $pdo->prepare(
-            "SELECT id, parent_id, author_name, message, likes_count, created_at
+            "SELECT id, parent_id, author_name, message, likes_count,
+                    reactions_like, reactions_smile, reactions_dislike, reactions_clap, reactions_blueheart,
+                    created_at
              FROM article_comments
              WHERE article_slug = :article AND status = 'approved'
              ORDER BY created_at ASC, id ASC
@@ -27,7 +48,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         );
         $stmt->execute([':article' => $article]);
         $comments = $stmt->fetchAll();
-        echo json_encode(['ok' => true, 'comments' => $comments]);
+
+        $normalized = array_map(static function (array $comment): array {
+            $comment['reactions'] = format_reactions($comment);
+            return $comment;
+        }, $comments);
+
+        echo json_encode(['ok' => true, 'comments' => $normalized]);
     } catch (Throwable $e) {
         http_response_code(500);
         echo json_encode(['ok' => false, 'error' => 'Server error']);
@@ -50,24 +77,42 @@ if (!is_array($input)) {
 
 $action = trim((string) ($input['action'] ?? 'comment'));
 
-if ($action === 'like') {
+if ($action === 'react' || $action === 'like') {
     $article = trim((string) ($input['article'] ?? ''));
     $commentId = (int) ($input['comment_id'] ?? 0);
-    if ($article === '' || $commentId <= 0) {
+    $reaction = trim((string) ($input['reaction'] ?? ($action === 'like' ? 'like' : '')));
+    $operation = trim((string) ($input['operation'] ?? 'add')); // add|remove
+
+    if ($article === '' || $commentId <= 0 || $reaction === '') {
         http_response_code(422);
         echo json_encode(['ok' => false, 'error' => 'Missing required fields']);
         exit;
     }
 
+    $map = reaction_columns();
+    if (!isset($map[$reaction])) {
+        http_response_code(422);
+        echo json_encode(['ok' => false, 'error' => 'Invalid reaction']);
+        exit;
+    }
+
+    $delta = $operation === 'remove' ? -1 : 1;
+    $column = $map[$reaction];
+
     try {
         $pdo = get_db();
 
-        $update = $pdo->prepare(
-            'UPDATE article_comments
-             SET likes_count = likes_count + 1
-             WHERE id = :id AND article_slug = :article AND status = :status'
-        );
+        $updateSql = "UPDATE article_comments
+                      SET {$column} = GREATEST({$column} + :delta, 0)";
+        // Keep backward compatibility with likes_count.
+        if ($reaction === 'like') {
+            $updateSql .= ", likes_count = GREATEST(likes_count + :delta, 0)";
+        }
+        $updateSql .= " WHERE id = :id AND article_slug = :article AND status = :status";
+
+        $update = $pdo->prepare($updateSql);
         $update->execute([
+            ':delta' => $delta,
             ':id' => $commentId,
             ':article' => $article,
             ':status' => 'approved',
@@ -80,13 +125,19 @@ if ($action === 'like') {
         }
 
         $select = $pdo->prepare(
-            'SELECT likes_count FROM article_comments WHERE id = :id AND article_slug = :article LIMIT 1'
+            'SELECT likes_count, reactions_like, reactions_smile, reactions_dislike, reactions_clap, reactions_blueheart
+             FROM article_comments
+             WHERE id = :id AND article_slug = :article
+             LIMIT 1'
         );
         $select->execute([':id' => $commentId, ':article' => $article]);
-        $liked = $select->fetch();
-        $likesCount = (int) ($liked['likes_count'] ?? 0);
+        $row = $select->fetch() ?: [];
 
-        echo json_encode(['ok' => true, 'likes_count' => $likesCount]);
+        echo json_encode([
+            'ok' => true,
+            'likes_count' => (int) ($row['likes_count'] ?? 0),
+            'reactions' => format_reactions($row),
+        ]);
     } catch (Throwable $e) {
         http_response_code(500);
         echo json_encode(['ok' => false, 'error' => 'Server error']);
@@ -153,8 +204,16 @@ try {
 
     $status = COMMENTS_REQUIRE_APPROVAL ? 'pending' : 'approved';
     $stmt = $pdo->prepare(
-        'INSERT INTO article_comments (article_slug, page_url, parent_id, author_name, author_email, message, likes_count, status, created_at, ip_address, user_agent)
-         VALUES (:article_slug, :page_url, :parent_id, :author_name, :author_email, :message, :likes_count, :status, :created_at, :ip_address, :user_agent)'
+        'INSERT INTO article_comments (
+            article_slug, page_url, parent_id, author_name, author_email, message,
+            likes_count, reactions_like, reactions_smile, reactions_dislike, reactions_clap, reactions_blueheart,
+            status, created_at, ip_address, user_agent
+         )
+         VALUES (
+            :article_slug, :page_url, :parent_id, :author_name, :author_email, :message,
+            :likes_count, :reactions_like, :reactions_smile, :reactions_dislike, :reactions_clap, :reactions_blueheart,
+            :status, :created_at, :ip_address, :user_agent
+         )'
     );
     $stmt->execute([
         ':article_slug' => $article,
@@ -164,6 +223,11 @@ try {
         ':author_email' => $email,
         ':message' => $message,
         ':likes_count' => 0,
+        ':reactions_like' => 0,
+        ':reactions_smile' => 0,
+        ':reactions_dislike' => 0,
+        ':reactions_clap' => 0,
+        ':reactions_blueheart' => 0,
         ':status' => $status,
         ':created_at' => date('Y-m-d H:i:s'),
         ':ip_address' => $ip,

@@ -3462,9 +3462,50 @@ h1.main-title-animated .title-icon {
 }
 
 .comment-actions {
+  align-items: center;
   display: flex;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: 10px 12px;
   margin-top: 10px;
+}
+
+.comment-reactions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.comment-reaction-btn {
+  align-items: center;
+  background: rgb(11 40 76 / 22%);
+  border: 1px solid rgb(43 16 82 / 45%);
+  border-radius: 999px;
+  color: var(--text-color);
+  cursor: pointer;
+  display: inline-flex;
+  font-family: Delius, cursive;
+  font-size: 0.82rem;
+  gap: 5px;
+  line-height: 1;
+  padding: 5px 9px;
+}
+
+.comment-reaction-btn.is-active {
+  background: linear-gradient(45deg, rgb(93 93 255 / 28%), rgb(200 34 255 / 28%));
+  border-color: rgb(200 34 255 / 55%);
+}
+
+.comment-reaction-btn:disabled {
+  opacity: 0.7;
+}
+
+.comment-reaction-emoji {
+  font-size: 0.95rem;
+}
+
+.comment-reaction-count {
+  font-size: 0.78rem;
+  font-weight: 600;
 }
 
 .comment-action-btn {
@@ -3533,7 +3574,7 @@ h1.main-title-animated .title-icon {
   cursor: pointer;
   font-family: Delius, cursive;
   font-size: 0.95rem;
-  padding: 10px 20px;
+  padding: 8px 18px;
 }
 
 [data-theme="light"] .comment-item {
@@ -3555,6 +3596,17 @@ h1.main-title-animated .title-icon {
   background: rgb(255 255 255 / 85%);
   border-color: rgb(93 93 255 / 30%);
   color: #5d5dff;
+}
+
+[data-theme="light"] .comment-reaction-btn {
+  background: rgb(255 255 255 / 85%);
+  border-color: rgb(93 93 255 / 30%);
+  color: #5d5dff;
+}
+
+[data-theme="light"] .comment-reaction-btn.is-active {
+  background: linear-gradient(45deg, rgb(93 93 255 / 20%), rgb(200 34 255 / 20%));
+  border-color: rgb(200 34 255 / 50%);
 }
 
 [data-theme="light"] .comment-item-reply {
@@ -3625,7 +3677,7 @@ h1.main-title-animated .title-icon {
   cursor: pointer;
   font-family: Delius, cursive;
   font-size: 1.2rem;
-  padding: 8px 20px;
+  padding: 6px 18px;
 }
 
 .article-body p,
@@ -8523,6 +8575,12 @@ body.body-menu-open #footer {
   .comment-action-btn {
     font-size: 0.85rem;
     padding: 6px 10px;
+  }
+
+  .comment-reaction-btn {
+    font-size: 0.78rem;
+    gap: 4px;
+    padding: 5px 8px;
   }
 
   .comment-replies {
