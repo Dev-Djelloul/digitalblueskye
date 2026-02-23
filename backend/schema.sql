@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS consent_logs (
   ip_address VARCHAR(45) NOT NULL,
   user_agent VARCHAR(255) NOT NULL,
   page_url VARCHAR(255) NOT NULL
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE INDEX idx_consent_id ON consent_logs (consent_id);
 
@@ -26,14 +26,17 @@ CREATE TABLE IF NOT EXISTS article_comments (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   article_slug VARCHAR(160) NOT NULL,
   page_url VARCHAR(255) NOT NULL,
+  parent_id INT UNSIGNED NULL,
   author_name VARCHAR(80) NOT NULL,
   author_email VARCHAR(180) NOT NULL,
   message TEXT NOT NULL,
+  likes_count INT UNSIGNED NOT NULL DEFAULT 0,
   status ENUM('approved','pending') NOT NULL DEFAULT 'approved',
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   ip_address VARCHAR(45) NOT NULL,
   user_agent VARCHAR(255) NOT NULL
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE INDEX idx_article_slug ON article_comments (article_slug);
 CREATE INDEX idx_status_created ON article_comments (status, created_at);
+CREATE INDEX idx_parent_created ON article_comments (parent_id, created_at);

@@ -10,6 +10,13 @@ Cette application ajoute un backend simple pour :
 3. Importez `backend/schema.sql`.
 4. Mettez à jour `backend/config.php` si besoin (user/password).
 
+## Correctif emoji (utf8mb4)
+Si les emojis s'affichent en `?` dans les commentaires, exécutez une fois :
+
+- `backend/migrations/2026-02-23-utf8mb4-comments.sql`
+
+Note : les caractères déjà stockés en `?` ne peuvent pas être restaurés automatiquement.
+
 ## Production
 XAMPP sert au dev local. En production, utilisez un hébergement PHP + MySQL/MariaDB
 (mutualisé, VPS LAMP, etc.). Renseignez les variables d'environnement si possible :
@@ -24,10 +31,19 @@ XAMPP sert au dev local. En production, utilisez un hébergement PHP + MySQL/Mar
   - Optionnel : `viewport_width`, `viewport_height`, `device_pixel_ratio`,
     `screen_width`, `screen_height`, `navigator_language`, `ua_data`, `in_app_browser`
 - `GET /backend/comments.php?article=slug`
-  - Retourne les commentaires approuvés
+  - Retourne les commentaires approuvés (avec `id`, `parent_id`, `likes_count`)
 - `POST /backend/comments.php`
-  - JSON : `name`, `email`, `message`, `article`, `page_url`, `website` (honeypot)
+  - Publier commentaire/réponse :
+    - JSON : `name`, `email`, `message`, `article`, `page_url`, `website` (honeypot), `parent_id` (optionnel)
+  - Liker un commentaire :
+    - JSON : `action="like"`, `article`, `comment_id`
 
 ## Modération
 Activez `COMMENTS_REQUIRE_APPROVAL=true` pour passer les commentaires en `pending`.
 Ils n'apparaissent pas tant que leur statut n'est pas passé à `approved`.
+
+## Migrations SQL
+Pour activer les fonctionnalités commentaires avancées sur une base existante :
+
+- `backend/migrations/2026-02-23-utf8mb4-comments.sql`
+- `backend/migrations/2026-02-23-comments-replies-likes.sql`

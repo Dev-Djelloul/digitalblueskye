@@ -3461,6 +3461,81 @@ h1.main-title-animated .title-icon {
   margin: 0;
 }
 
+.comment-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.comment-action-btn {
+  background: rgb(11 40 76 / 22%);
+  border: 1px solid rgb(43 16 82 / 45%);
+  border-radius: 999px;
+  color: var(--text-color);
+  cursor: pointer;
+  font-family: Delius, cursive;
+  font-size: 0.9rem;
+  padding: 6px 12px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.comment-action-btn:hover {
+  box-shadow: 0 8px 16px rgb(0 0 0 / 20%);
+  transform: translateY(-1px);
+}
+
+.comment-action-btn.is-liked,
+.comment-action-btn:disabled {
+  cursor: default;
+  opacity: 0.7;
+  transform: none;
+}
+
+.comment-replies {
+  border-left: 1px solid rgb(93 93 255 / 28%);
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+  padding-left: 14px;
+}
+
+.comment-item-reply {
+  background: rgb(17 18 30 / 72%);
+}
+
+.reply-form-wrap {
+  margin-top: 12px;
+}
+
+.reply-form {
+  background: rgb(15 17 30 / 70%);
+  border: 1px solid rgb(93 93 255 / 22%);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.comment-actions-row {
+  display: flex;
+  gap: 10px;
+}
+
+.comment-submit-reply {
+  font-size: 1rem;
+  padding: 10px 20px;
+}
+
+.comment-secondary-btn {
+  align-self: flex-start;
+  background: transparent;
+  border: 1px solid rgb(93 93 255 / 40%);
+  border-radius: 999px;
+  color: var(--text-color);
+  cursor: pointer;
+  font-family: Delius, cursive;
+  font-size: 0.95rem;
+  padding: 10px 16px;
+}
+
 [data-theme="light"] .comment-item {
   background: #fff;
   border-color: rgb(93 93 255 / 30%);
@@ -3474,6 +3549,21 @@ h1.main-title-animated .title-icon {
 
 [data-theme="light"] .comment-date {
   color: rgb(93 93 255 / 70%);
+}
+
+[data-theme="light"] .comment-action-btn {
+  background: rgb(255 255 255 / 85%);
+  border-color: rgb(93 93 255 / 30%);
+  color: #5d5dff;
+}
+
+[data-theme="light"] .comment-item-reply {
+  background: #f8f9ff;
+}
+
+[data-theme="light"] .reply-form {
+  background: #f2f4ff;
+  border-color: rgb(93 93 255 / 30%);
 }
 
 .comment-field {
@@ -8426,13 +8516,21 @@ body.body-menu-open #footer {
     width: 100%;
   }
 
-  .like-button {
-    padding: 7px 14px;
+  .comment-actions {
+    flex-wrap: wrap;
   }
 
-  .like-icon {
-    height: 18px;
-    width: 18px;
+  .comment-action-btn {
+    font-size: 0.85rem;
+    padding: 6px 10px;
+  }
+
+  .comment-replies {
+    padding-left: 10px;
+  }
+
+  .comment-actions-row {
+    flex-wrap: wrap;
   }
 
   .detail-title-row {
