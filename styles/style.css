@@ -3533,7 +3533,7 @@ h1.main-title-animated .title-icon {
   cursor: pointer;
   font-family: Delius, cursive;
   font-size: 0.95rem;
-  padding: 10px 16px;
+  padding: 10px 20px;
 }
 
 [data-theme="light"] .comment-item {
@@ -3623,9 +3623,9 @@ h1.main-title-animated .title-icon {
   border-radius: 999px;
   color: #fff;
   cursor: pointer;
-  font-family: "Sour Gummy", sans-serif;
+  font-family: Delius, cursive;
   font-size: 1.2rem;
-  padding: 14px 34px;
+  padding: 8px 20px;
 }
 
 .article-body p,
