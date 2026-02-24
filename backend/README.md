@@ -49,3 +49,4 @@ Pour activer les fonctionnalités commentaires avancées sur une base existante 
 - `backend/migrations/2026-02-23-comments-replies-likes.sql`
 - `backend/migrations/2026-02-23-comment-reactions.sql`
 - `backend/migrations/2026-02-23-comment-positive-reactions.sql`
+- `backend/migrations/2026-02-24-drop-legacy-reaction-columns.sql`

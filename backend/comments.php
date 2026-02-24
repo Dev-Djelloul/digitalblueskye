@@ -240,15 +240,13 @@ try {
     $stmt = $pdo->prepare(
         'INSERT INTO article_comments (
             article_slug, page_url, parent_id, author_name, author_email, message,
-            likes_count, reactions_like, reactions_smile, reactions_dislike, reactions_clap, reactions_blueheart,
-            reactions_thumbsup, reactions_purpleheart, reactions_wink, reactions_sweatsmile,
+            likes_count, reactions_thumbsup, reactions_purpleheart, reactions_wink, reactions_sweatsmile,
             reactions_nerd, reactions_idea, reactions_robot, reactions_mobile, reactions_laptop,
             status, created_at, ip_address, user_agent
          )
          VALUES (
             :article_slug, :page_url, :parent_id, :author_name, :author_email, :message,
-            :likes_count, :reactions_like, :reactions_smile, :reactions_dislike, :reactions_clap, :reactions_blueheart,
-            :reactions_thumbsup, :reactions_purpleheart, :reactions_wink, :reactions_sweatsmile,
+            :likes_count, :reactions_thumbsup, :reactions_purpleheart, :reactions_wink, :reactions_sweatsmile,
             :reactions_nerd, :reactions_idea, :reactions_robot, :reactions_mobile, :reactions_laptop,
             :status, :created_at, :ip_address, :user_agent
          )'
@@ -261,11 +259,6 @@ try {
         ':author_email' => $email,
         ':message' => $message,
         ':likes_count' => 0,
-        ':reactions_like' => 0,
-        ':reactions_smile' => 0,
-        ':reactions_dislike' => 0,
-        ':reactions_clap' => 0,
-        ':reactions_blueheart' => 0,
         ':reactions_thumbsup' => 0,
         ':reactions_purpleheart' => 0,
         ':reactions_wink' => 0,
