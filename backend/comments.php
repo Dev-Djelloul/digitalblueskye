@@ -21,6 +21,30 @@ function reaction_columns(): array {
     ];
 }
 
+function canonical_reaction(string $reaction): string {
+    static $aliases = [
+        // New set (kept as-is)
+        'thumbsup' => 'thumbsup',
+        'purpleheart' => 'purpleheart',
+        'wink' => 'wink',
+        'sweatsmile' => 'sweatsmile',
+        'nerd' => 'nerd',
+        'idea' => 'idea',
+        'robot' => 'robot',
+        'mobile' => 'mobile',
+        'laptop' => 'laptop',
+        // Backward compatibility with older front bundles/cache
+        'like' => 'thumbsup',
+        'smile' => 'wink',
+        'blueheart' => 'purpleheart',
+        'clap' => 'idea',
+        'dislike' => 'sweatsmile',
+    ];
+
+    $key = strtolower(trim($reaction));
+    return $aliases[$key] ?? '';
+}
+
 function format_reactions(array $row): array {
     return [
         'thumbsup' => (int) ($row['reactions_thumbsup'] ?? 0),
@@ -89,7 +113,7 @@ $action = trim((string) ($input['action'] ?? 'comment'));
 if ($action === 'react' || $action === 'like') {
     $article = trim((string) ($input['article'] ?? ''));
     $commentId = (int) ($input['comment_id'] ?? 0);
-    $reaction = trim((string) ($input['reaction'] ?? ($action === 'like' ? 'thumbsup' : '')));
+    $reaction = canonical_reaction((string) ($input['reaction'] ?? ($action === 'like' ? 'thumbsup' : '')));
     $operation = trim((string) ($input['operation'] ?? 'add')); // add|remove
 
     if ($article === '' || $commentId <= 0 || $reaction === '') {
