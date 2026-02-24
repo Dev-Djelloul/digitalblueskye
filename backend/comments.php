@@ -9,21 +9,29 @@ function get_client_ip(): string {
 
 function reaction_columns(): array {
     return [
-        'like' => 'reactions_like',
-        'smile' => 'reactions_smile',
-        'dislike' => 'reactions_dislike',
-        'clap' => 'reactions_clap',
-        'blueheart' => 'reactions_blueheart',
+        'thumbsup' => 'reactions_thumbsup',
+        'purpleheart' => 'reactions_purpleheart',
+        'wink' => 'reactions_wink',
+        'sweatsmile' => 'reactions_sweatsmile',
+        'nerd' => 'reactions_nerd',
+        'idea' => 'reactions_idea',
+        'robot' => 'reactions_robot',
+        'mobile' => 'reactions_mobile',
+        'laptop' => 'reactions_laptop',
     ];
 }
 
 function format_reactions(array $row): array {
     return [
-        'like' => (int) ($row['reactions_like'] ?? 0),
-        'smile' => (int) ($row['reactions_smile'] ?? 0),
-        'dislike' => (int) ($row['reactions_dislike'] ?? 0),
-        'clap' => (int) ($row['reactions_clap'] ?? 0),
-        'blueheart' => (int) ($row['reactions_blueheart'] ?? 0),
+        'thumbsup' => (int) ($row['reactions_thumbsup'] ?? 0),
+        'purpleheart' => (int) ($row['reactions_purpleheart'] ?? 0),
+        'wink' => (int) ($row['reactions_wink'] ?? 0),
+        'sweatsmile' => (int) ($row['reactions_sweatsmile'] ?? 0),
+        'nerd' => (int) ($row['reactions_nerd'] ?? 0),
+        'idea' => (int) ($row['reactions_idea'] ?? 0),
+        'robot' => (int) ($row['reactions_robot'] ?? 0),
+        'mobile' => (int) ($row['reactions_mobile'] ?? 0),
+        'laptop' => (int) ($row['reactions_laptop'] ?? 0),
     ];
 }
 
@@ -39,7 +47,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $pdo = get_db();
         $stmt = $pdo->prepare(
             "SELECT id, parent_id, author_name, message, likes_count,
-                    reactions_like, reactions_smile, reactions_dislike, reactions_clap, reactions_blueheart,
+                    reactions_thumbsup, reactions_purpleheart, reactions_wink, reactions_sweatsmile,
+                    reactions_nerd, reactions_idea, reactions_robot, reactions_mobile, reactions_laptop,
                     created_at
              FROM article_comments
              WHERE article_slug = :article AND status = 'approved'
@@ -80,7 +89,7 @@ $action = trim((string) ($input['action'] ?? 'comment'));
 if ($action === 'react' || $action === 'like') {
     $article = trim((string) ($input['article'] ?? ''));
     $commentId = (int) ($input['comment_id'] ?? 0);
-    $reaction = trim((string) ($input['reaction'] ?? ($action === 'like' ? 'like' : '')));
+    $reaction = trim((string) ($input['reaction'] ?? ($action === 'like' ? 'thumbsup' : '')));
     $operation = trim((string) ($input['operation'] ?? 'add')); // add|remove
 
     if ($article === '' || $commentId <= 0 || $reaction === '') {
@@ -105,7 +114,7 @@ if ($action === 'react' || $action === 'like') {
         $updateSql = "UPDATE article_comments
                       SET {$column} = GREATEST({$column} + :delta, 0)";
         // Keep backward compatibility with likes_count.
-        if ($reaction === 'like') {
+        if ($reaction === 'thumbsup') {
             $updateSql .= ", likes_count = GREATEST(likes_count + :delta, 0)";
         }
         $updateSql .= " WHERE id = :id AND article_slug = :article AND status = :status";
@@ -125,7 +134,8 @@ if ($action === 'react' || $action === 'like') {
         }
 
         $select = $pdo->prepare(
-            'SELECT likes_count, reactions_like, reactions_smile, reactions_dislike, reactions_clap, reactions_blueheart
+            'SELECT likes_count, reactions_thumbsup, reactions_purpleheart, reactions_wink, reactions_sweatsmile,
+                    reactions_nerd, reactions_idea, reactions_robot, reactions_mobile, reactions_laptop
              FROM article_comments
              WHERE id = :id AND article_slug = :article
              LIMIT 1'
@@ -207,11 +217,15 @@ try {
         'INSERT INTO article_comments (
             article_slug, page_url, parent_id, author_name, author_email, message,
             likes_count, reactions_like, reactions_smile, reactions_dislike, reactions_clap, reactions_blueheart,
+            reactions_thumbsup, reactions_purpleheart, reactions_wink, reactions_sweatsmile,
+            reactions_nerd, reactions_idea, reactions_robot, reactions_mobile, reactions_laptop,
             status, created_at, ip_address, user_agent
          )
          VALUES (
             :article_slug, :page_url, :parent_id, :author_name, :author_email, :message,
             :likes_count, :reactions_like, :reactions_smile, :reactions_dislike, :reactions_clap, :reactions_blueheart,
+            :reactions_thumbsup, :reactions_purpleheart, :reactions_wink, :reactions_sweatsmile,
+            :reactions_nerd, :reactions_idea, :reactions_robot, :reactions_mobile, :reactions_laptop,
             :status, :created_at, :ip_address, :user_agent
          )'
     );
@@ -228,6 +242,15 @@ try {
         ':reactions_dislike' => 0,
         ':reactions_clap' => 0,
         ':reactions_blueheart' => 0,
+        ':reactions_thumbsup' => 0,
+        ':reactions_purpleheart' => 0,
+        ':reactions_wink' => 0,
+        ':reactions_sweatsmile' => 0,
+        ':reactions_nerd' => 0,
+        ':reactions_idea' => 0,
+        ':reactions_robot' => 0,
+        ':reactions_mobile' => 0,
+        ':reactions_laptop' => 0,
         ':status' => $status,
         ':created_at' => date('Y-m-d H:i:s'),
         ':ip_address' => $ip,

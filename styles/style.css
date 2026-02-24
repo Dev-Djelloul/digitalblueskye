@@ -3154,6 +3154,64 @@ h1.main-title-animated .title-icon {
   font-size: 0.9rem;
 }
 
+.like-reaction-picker {
+  position: relative;
+}
+
+.like-reaction-trigger {
+  align-items: center;
+  display: inline-flex;
+  gap: 8px;
+}
+
+.like-trigger-emoji {
+  font-size: 1.08rem;
+  line-height: 1;
+}
+
+.like-reaction-palette {
+  align-items: center;
+  background: rgb(9 12 27 / 96%);
+  border: 1px solid rgb(93 93 255 / 35%);
+  border-radius: 999px;
+  box-shadow: 0 16px 28px rgb(0 0 0 / 28%);
+  display: flex;
+  gap: 8px;
+  left: 0;
+  opacity: 0;
+  padding: 8px 10px;
+  pointer-events: none;
+  position: absolute;
+  top: -56px;
+  transform: translateY(6px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 25;
+}
+
+.like-reaction-picker:hover .like-reaction-palette,
+.like-reaction-picker:focus-within .like-reaction-palette,
+.like-reaction-picker.is-open .like-reaction-palette {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.like-reaction-choice {
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 1.24rem;
+  line-height: 1;
+  padding: 2px;
+  transition: transform 0.16s ease;
+}
+
+.like-reaction-choice:hover,
+.like-reaction-choice.is-active {
+  transform: translateY(-3px) scale(1.08);
+}
+
 .comment-count-icon {
   height: 22px;
   width: 22px;
@@ -3265,6 +3323,12 @@ h1.main-title-animated .title-icon {
   border: none;
   box-shadow: none;
   color: #5d5dff;
+}
+
+[data-theme="light"] .like-reaction-palette {
+  background: rgb(255 255 255 / 98%);
+  border-color: rgb(93 93 255 / 25%);
+  box-shadow: 0 12px 20px rgb(93 93 255 / 18%);
 }
 
 [data-theme="light"] .like-button.is-active {
@@ -3469,13 +3533,11 @@ h1.main-title-animated .title-icon {
   margin-top: 10px;
 }
 
-.comment-reactions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+.comment-reaction-picker {
+  position: relative;
 }
 
-.comment-reaction-btn {
+.comment-reaction-trigger {
   align-items: center;
   background: rgb(11 40 76 / 22%);
   border: 1px solid rgb(43 16 82 / 45%);
@@ -3484,28 +3546,62 @@ h1.main-title-animated .title-icon {
   cursor: pointer;
   display: inline-flex;
   font-family: Delius, cursive;
-  font-size: 0.82rem;
-  gap: 5px;
+  font-size: 0.92rem;
+  gap: 6px;
   line-height: 1;
-  padding: 5px 9px;
+  padding: 7px 12px;
 }
 
-.comment-reaction-btn.is-active {
-  background: linear-gradient(45deg, rgb(93 93 255 / 28%), rgb(200 34 255 / 28%));
-  border-color: rgb(200 34 255 / 55%);
+.comment-reaction-trigger-emoji {
+  font-size: 1rem;
 }
 
-.comment-reaction-btn:disabled {
-  opacity: 0.7;
-}
-
-.comment-reaction-emoji {
-  font-size: 0.95rem;
-}
-
-.comment-reaction-count {
-  font-size: 0.78rem;
+.comment-reaction-trigger-count {
+  font-size: 0.85rem;
   font-weight: 600;
+}
+
+.comment-reaction-palette {
+  align-items: center;
+  background: rgb(9 12 27 / 96%);
+  border: 1px solid rgb(93 93 255 / 35%);
+  border-radius: 999px;
+  box-shadow: 0 16px 28px rgb(0 0 0 / 28%);
+  display: flex;
+  gap: 8px;
+  left: 0;
+  opacity: 0;
+  padding: 8px 10px;
+  pointer-events: none;
+  position: absolute;
+  top: -52px;
+  transform: translateY(6px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 20;
+}
+
+.comment-reaction-picker:hover .comment-reaction-palette,
+.comment-reaction-picker:focus-within .comment-reaction-palette,
+.comment-reaction-picker.is-open .comment-reaction-palette {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.comment-reaction-choice {
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 1.22rem;
+  line-height: 1;
+  padding: 2px;
+  transition: transform 0.16s ease;
+}
+
+.comment-reaction-choice:hover,
+.comment-reaction-choice.is-active {
+  transform: translateY(-3px) scale(1.08);
 }
 
 .comment-action-btn {
@@ -3598,15 +3694,16 @@ h1.main-title-animated .title-icon {
   color: #5d5dff;
 }
 
-[data-theme="light"] .comment-reaction-btn {
+[data-theme="light"] .comment-reaction-trigger {
   background: rgb(255 255 255 / 85%);
   border-color: rgb(93 93 255 / 30%);
   color: #5d5dff;
 }
 
-[data-theme="light"] .comment-reaction-btn.is-active {
-  background: linear-gradient(45deg, rgb(93 93 255 / 20%), rgb(200 34 255 / 20%));
-  border-color: rgb(200 34 255 / 50%);
+[data-theme="light"] .comment-reaction-palette {
+  background: rgb(255 255 255 / 98%);
+  border-color: rgb(93 93 255 / 25%);
+  box-shadow: 0 12px 20px rgb(93 93 255 / 18%);
 }
 
 [data-theme="light"] .comment-item-reply {
@@ -8562,6 +8659,22 @@ body.body-menu-open #footer {
     font-size: 0.95rem;
   }
 
+  .like-reaction-palette {
+    gap: 6px;
+    padding: 7px 8px;
+    top: -50px;
+  }
+
+  .like-reaction-choice {
+    font-size: 1.08rem;
+  }
+
+  .like-reaction-trigger {
+    font-size: 0.9rem;
+    gap: 6px;
+    padding: 6px 10px;
+  }
+
   .comments-list {
     margin: 0 0 24px;
     max-width: none;
@@ -8577,10 +8690,20 @@ body.body-menu-open #footer {
     padding: 6px 10px;
   }
 
-  .comment-reaction-btn {
-    font-size: 0.78rem;
-    gap: 4px;
-    padding: 5px 8px;
+  .comment-reaction-trigger {
+    font-size: 0.82rem;
+    gap: 5px;
+    padding: 6px 10px;
+  }
+
+  .comment-reaction-palette {
+    gap: 6px;
+    padding: 7px 8px;
+    top: -48px;
+  }
+
+  .comment-reaction-choice {
+    font-size: 1.08rem;
   }
 
   .comment-replies {

@@ -1,8 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
   const likeButtons = document.querySelectorAll("[data-like]");
-  if (likeButtons.length === 0) {
-    return;
-  }
+  if (likeButtons.length === 0) return;
 
   const storage = (() => {
     try {
@@ -10,131 +8,186 @@ document.addEventListener("DOMContentLoaded", () => {
       window.localStorage.setItem(testKey, "1");
       window.localStorage.removeItem(testKey);
       return window.localStorage;
-    } catch (error) {
+    } catch {
       return null;
     }
   })();
+  if (!storage) return;
 
-  const getLang = () => (document.documentElement.lang || "fr").toLowerCase();
-
-  const getLabels = () => {
-    const lang = getLang();
-    const labels = {
-      fr: { singular: "like", plural: "likes" },
-      en: { singular: "like", plural: "likes" },
-    };
-    return lang.startsWith("en") ? labels.en : labels.fr;
-  };
+  const REACTIONS = [
+    { key: "thumbsup", emoji: String.fromCodePoint(0x1f44d) }, // 👍
+    { key: "purpleheart", emoji: String.fromCodePoint(0x1f49c) }, // 💜
+    { key: "wink", emoji: String.fromCodePoint(0x1f609) }, // 😉
+    { key: "sweatsmile", emoji: String.fromCodePoint(0x1f605) }, // 😅
+    { key: "nerd", emoji: String.fromCodePoint(0x1f913) }, // 🤓
+    { key: "idea", emoji: String.fromCodePoint(0x1f4a1) }, // 💡
+    { key: "robot", emoji: String.fromCodePoint(0x1f916) }, // 🤖
+    { key: "mobile", emoji: String.fromCodePoint(0x1f4f2) }, // 📲
+    { key: "laptop", emoji: String.fromCodePoint(0x1f4bb) }, // 💻
+  ];
+  const DEFAULT_KEY = "purpleheart";
 
   const slug = () => {
     const last = window.location.pathname.split("/").pop() || "page";
     return last.replace(".html", "") || "page";
   };
 
-  const readCount = (key) => {
-    if (!storage) {
-      return 0;
-    }
-    const value = Number.parseInt(storage.getItem(`likes:${key}:count`) || "0", 10);
-    return Number.isNaN(value) ? 0 : value;
+  const baseKey = (button) => {
+    const scope = button.getAttribute("data-like-scope") || "page";
+    return button.getAttribute("data-like-key") || `${scope}:${slug()}`;
   };
 
-  const readLiked = (key) => storage?.getItem(`likes:${key}:liked`) === "1";
+  const reactionsStorageKey = (key) => `likes:${key}:reactions`;
+  const reactionMineKey = (key) => `likes:${key}:mine`;
 
-  const writeState = (key, count, liked) => {
-    if (!storage) {
-      return;
+  const readReactions = (key) => {
+    try {
+      const parsed = JSON.parse(storage.getItem(reactionsStorageKey(key)) || "{}");
+      const result = {};
+      REACTIONS.forEach((reaction) => {
+        result[reaction.key] = Number(parsed?.[reaction.key] || 0);
+      });
+      return result;
+    } catch {
+      return Object.fromEntries(REACTIONS.map((reaction) => [reaction.key, 0]));
     }
-    storage.setItem(`likes:${key}:count`, String(count));
-    storage.setItem(`likes:${key}:liked`, liked ? "1" : "0");
   };
 
-  const updateButton = (button, count, liked) => {
-    const countEl = button.querySelector("[data-like-count]");
-    const labelEl = button.querySelector("[data-like-label]");
-    const { singular, plural } = getLabels();
-    const safeCount = Number.isFinite(count) ? count : 0;
-
-    if (countEl) {
-      countEl.textContent = String(safeCount);
-    }
-    if (labelEl) {
-      const useSingular = safeCount <= 1;
-      labelEl.textContent = useSingular ? singular : plural;
-    }
-    button.setAttribute("aria-pressed", liked ? "true" : "false");
-    button.classList.toggle("is-active", liked);
+  const writeReactions = (key, reactions) => {
+    storage.setItem(reactionsStorageKey(key), JSON.stringify(reactions));
   };
+
+  const readMine = (key) => storage.getItem(reactionMineKey(key)) || "";
+  const writeMine = (key, reactionKey) => {
+    if (!reactionKey) storage.removeItem(reactionMineKey(key));
+    else storage.setItem(reactionMineKey(key), reactionKey);
+  };
+
+  const totalCount = (reactions) =>
+    REACTIONS.reduce((acc, reaction) => acc + Number(reactions?.[reaction.key] || 0), 0);
+
+  const emojiByKey = (reactionKey) =>
+    REACTIONS.find((reaction) => reaction.key === reactionKey)?.emoji ||
+    REACTIONS.find((reaction) => reaction.key === DEFAULT_KEY)?.emoji ||
+    "💜";
 
   likeButtons.forEach((button) => {
-    const scope = button.getAttribute("data-like-scope") || "page";
-    const key = button.getAttribute("data-like-key") || `${scope}:${slug()}`;
-    let count = readCount(key);
-    let liked = readLiked(key);
+    const key = baseKey(button);
+    let reactions = readReactions(key);
+    let mine = readMine(key);
 
-    if (liked && count === 0) {
-      count = 1;
+    button.classList.add("like-reaction-trigger");
+
+    const icon = button.querySelector(".like-icon");
+    if (icon) icon.style.display = "none";
+
+    let triggerEmoji = button.querySelector(".like-trigger-emoji");
+    if (!triggerEmoji) {
+      triggerEmoji = document.createElement("span");
+      triggerEmoji.className = "like-trigger-emoji";
+      button.insertBefore(triggerEmoji, button.firstChild);
     }
 
-    updateButton(button, count, liked);
+    const countEl = button.querySelector("[data-like-count]");
+    const labelEl = button.querySelector("[data-like-label]");
 
-    button.addEventListener("click", () => {
-      if (!storage) {
-        return;
-      }
-      if (liked) {
-        count = Math.max(0, count - 1);
-        liked = false;
-      } else {
-        count += 1;
-        liked = true;
-      }
-      writeState(key, count, liked);
-      updateButton(button, count, liked);
+    const picker = document.createElement("div");
+    picker.className = "like-reaction-picker";
+    button.parentNode?.insertBefore(picker, button);
+    picker.appendChild(button);
+
+    const palette = document.createElement("div");
+    palette.className = "like-reaction-palette";
+    picker.appendChild(palette);
+
+    const refresh = () => {
+      triggerEmoji.textContent = emojiByKey(DEFAULT_KEY);
+      if (countEl) countEl.textContent = String(totalCount(reactions));
+      if (labelEl) labelEl.textContent = "réactions";
+      button.classList.toggle("is-active", !!mine);
+      button.setAttribute("aria-pressed", mine ? "true" : "false");
+      palette.querySelectorAll("button").forEach((btn) => {
+        btn.classList.toggle("is-active", btn.dataset.reactionKey === mine);
+      });
+    };
+
+    const openPalette = () => picker.classList.add("is-open");
+    const closePalette = () => picker.classList.remove("is-open");
+
+    button.addEventListener("mouseenter", openPalette);
+    picker.addEventListener("mouseleave", closePalette);
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      picker.classList.toggle("is-open");
     });
+
+    REACTIONS.forEach((reaction) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "like-reaction-choice";
+      btn.dataset.reactionKey = reaction.key;
+      btn.textContent = reaction.emoji;
+
+      btn.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (mine === reaction.key) {
+          reactions[reaction.key] = Math.max(0, Number(reactions[reaction.key] || 0) - 1);
+          mine = "";
+        } else {
+          if (mine) {
+            reactions[mine] = Math.max(0, Number(reactions[mine] || 0) - 1);
+          }
+          reactions[reaction.key] = Number(reactions[reaction.key] || 0) + 1;
+          mine = reaction.key;
+        }
+
+        writeReactions(key, reactions);
+        writeMine(key, mine);
+        refresh();
+        closePalette();
+      });
+
+      palette.appendChild(btn);
+    });
+
+    refresh();
   });
 
   const enhanceInspirationHeader = () => {
     const inspirationMain = document.querySelector(".inspiration-detail");
-    if (!inspirationMain) {
-      return;
-    }
+    if (!inspirationMain) return;
     const heroContent = inspirationMain.querySelector(".detail-hero-content");
     const h1 = heroContent?.querySelector("h1");
     const likeButton = heroContent?.querySelector(".detail-like");
-    if (!heroContent || !h1 || !likeButton) {
-      return;
-    }
+    if (!heroContent || !h1 || !likeButton) return;
 
     const existingRow = heroContent.querySelector(".detail-title-row");
     const eyebrowRow = heroContent.querySelector(".detail-eyebrow-row");
 
     if (existingRow) {
       const lead = heroContent.querySelector(".detail-lead");
-      if (lead) {
-        heroContent.insertBefore(h1, lead);
-      } else {
-        heroContent.insertBefore(h1, existingRow);
-      }
+      if (lead) heroContent.insertBefore(h1, lead);
+      else heroContent.insertBefore(h1, existingRow);
       existingRow.remove();
     }
 
     if (eyebrowRow) {
       eyebrowRow.classList.remove("detail-eyebrow-row--hidden");
-      if (!eyebrowRow.contains(likeButton)) {
-        eyebrowRow.appendChild(likeButton);
+      if (!eyebrowRow.contains(likeButton.closest(".like-reaction-picker") || likeButton)) {
+        eyebrowRow.appendChild(likeButton.closest(".like-reaction-picker") || likeButton);
       }
     }
   };
 
-  enhanceInspirationHeader();
-
-  document.addEventListener("translationCompleted", () => {
-    likeButtons.forEach((button) => {
-      const scope = button.getAttribute("data-like-scope") || "page";
-      const key = button.getAttribute("data-like-key") || `${scope}:${slug()}`;
-      updateButton(button, readCount(key), readLiked(key));
+  document.addEventListener("click", () => {
+    document.querySelectorAll(".like-reaction-picker.is-open").forEach((picker) => {
+      picker.classList.remove("is-open");
     });
-    enhanceInspirationHeader();
   });
+
+  enhanceInspirationHeader();
+  document.addEventListener("translationCompleted", enhanceInspirationHeader);
 });
