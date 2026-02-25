@@ -33,7 +33,6 @@
   - PROJETS (Grille, Aperçu, Détail) (line 5198)
   - COMPÉTENCES (Skills) - (line 5912)
   - CONTACT (line 6068)
-  - BLOG - NEWSLETTER (line 6357)
   - FOOTER (line 6465)
   - UTILITAIRES & EFFETS (line 6742)
   - RESPONSIVE (Adaptation écrans) (line 6755)
@@ -3664,24 +3663,26 @@ h1.main-title-animated .title-icon {
 
 .comment-actions-row {
   display: flex;
-  gap: 10px;
+  gap: 8px;
+  justify-content: flex-end;
+  width: 100%;
 }
 
 .comment-submit-reply {
-  font-size: 1rem;
-  padding: 10px 20px;
+  font-size: 0.9rem;
+  padding: 7px 14px;
 }
 
 .comment-secondary-btn {
-  align-self: flex-start;
+  align-self: auto;
   background: transparent;
   border: 1px solid rgb(93 93 255 / 40%);
   border-radius: 999px;
   color: var(--text-color);
   cursor: pointer;
   font-family: Delius, cursive;
-  font-size: 0.95rem;
-  padding: 8px 18px;
+  font-size: 0.86rem;
+  padding: 6px 14px;
 }
 
 [data-theme="light"] .comment-item {
@@ -3784,7 +3785,7 @@ h1.main-title-animated .title-icon {
   color: #fff;
   cursor: pointer;
   font-family: Delius, cursive;
-  font-size: 1.2rem;
+  font-size: 0.9rem;
   padding: 6px 18px;
 }
 
@@ -6762,118 +6763,6 @@ h1.main-title-animated .title-icon {
 }
 
 /* =========================
-   BLOG - NEWSLETTER
-   ========================= */
-.blog-newsletter {
-  background-color: rgb(255 255 255 / 6%);
-  border: 1px solid transparent;
-  border-image: linear-gradient(45deg, var(--accent-color), #c822ff) 1;
-  border-radius: 10px;
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
-  margin: 0 auto;
-  max-width: 980px;
-  padding: 50px;
-  text-align: center;
-  width: 100%;
-}
-
-:root:not([data-theme="light"]) .home-page .blog-newsletter {
-  background: linear-gradient(135deg, rgb(33 37 46 / 96%), rgb(24 27 35 / 96%));
-  border: 1px solid rgb(var(--accent-rgb), 0.4);
-  box-shadow: 0 20px 45px rgb(0 0 0 / 35%);
-}
-
-[data-theme="light"] .blog-newsletter {
-  background-color: #fff;
-}
-
-[data-theme="light"] .blog-newsletter h3 {
-  background: linear-gradient(45deg, #5d5dff, #c822ff);
-  background-clip: text;
-  color: transparent;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.blog-newsletter h3 {
-  color: var(--accent-color);
-  font-family: "Sour Gummy", sans-serif;
-  font-size: 2rem;
-  margin-bottom: 15px;
-}
-
-.blog-newsletter p {
-  margin: 0 auto 25px;
-  max-width: 600px;
-  opacity: 0.9;
-}
-
-.newsletter-form {
-  display: flex;
-  gap: 10px;
-  margin: 0 auto;
-  max-width: 500px;
-}
-
-.newsletter-form input {
-  background-color: rgb(255 255 255 / 10%);
-  border: 1px solid rgb(93 93 255 / 20%);
-  border-radius: 8px;
-  color: var(--text-color);
-  flex: 1;
-  font-family: Lato, sans-serif;
-  padding: 12px 15px;
-}
-
-:root:not([data-theme="light"]) .home-page .newsletter-form input {
-  background-color: rgb(11 40 76 / 22%);
-  border-color: rgb(43 16 82 / 45%);
-}
-
-.newsletter-form button {
-  background: linear-gradient(45deg, var(--accent-color), #c822ff);
-  border: none;
-  border-radius: 8px;
-  color: white;
-  cursor: pointer;
-  font-weight: 600;
-  padding: 12px 25px;
-  transition: transform 0.3s;
-}
-
-:root:not([data-theme="light"]) .home-page .newsletter-form button {
-  background: linear-gradient(to left, #2b1052 45%, #0b284c);
-}
-
-.newsletter-form button:hover {
-  transform: translateY(-3px);
-}
-
-.newsletter-form input[type="email"] {
-  transition: border-color 0.3s ease;
-}
-
-.newsletter-form input[type="email"].valid-email {
-  border-color: #4caf50;
-  box-shadow: 0 0 0 1px rgb(76 175 80 / 20%);
-}
-
-.newsletter-form input[type="email"].invalid-email {
-  border-color: #ff5252;
-  box-shadow: 0 0 0 1px rgb(255 82 82 / 20%);
-}
-
-.newsletter-form button.submitting {
-  background-color: #7b7b7b;
-  cursor: wait;
-}
-
-.newsletter-form button.success {
-  background-color: #4caf50;
-}
-
-/* =========================
    FOOTER
    ========================= */
 #footer {
@@ -7877,21 +7766,6 @@ body.body-menu-open #footer {
     font-size: 1rem;
   }
 
-  .blog-newsletter {
-    background: linear-gradient(
-      135deg,
-      rgb(93 93 255 / 10%),
-      rgb(200 34 255 / 10%)
-    );
-    border-radius: 12px;
-    margin: 36px auto;
-    max-width: none;
-    padding: 22px 14px;
-    text-align: center;
-    width: min(340px, calc(100% - 32px));
-  }
-
-
   .blog-hero {
     padding: 40px 0;
   }
@@ -7913,18 +7787,6 @@ body.body-menu-open #footer {
     gap: 50px;
     grid-template-columns: 1fr;
     padding: 20px;
-  }
-
-  .newsletter-form {
-    flex-direction: column;
-    max-width: 100%;
-    width: 100%;
-  }
-
-  .newsletter-form input,
-  .newsletter-form button {
-    min-width: 0;
-    width: 100%;
   }
 
   .page-title-container {
@@ -8723,6 +8585,8 @@ body.body-menu-open #footer {
 
   .comment-actions-row {
     flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 7px;
   }
 
   .detail-title-row {

@@ -107,7 +107,7 @@ document.addEventListener("DOMContentLoaded", () => {
     picker.appendChild(palette);
 
     const refresh = () => {
-      triggerEmoji.textContent = emojiByKey(DEFAULT_KEY);
+      triggerEmoji.textContent = emojiByKey(mine || DEFAULT_KEY);
       const total = totalCount(reactions);
       if (countEl) countEl.textContent = String(total);
       if (labelEl) labelEl.textContent = reactionLabel(total);
