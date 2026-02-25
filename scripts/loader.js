@@ -4,6 +4,11 @@ const CONSENT_ID_KEY = 'dbs_consent_id';
 const CONSENT_SENT_KEY = 'dbs_consent_sent_v1';
 const CONSENT_DELAY_MS = 5000;
 
+function isCookiesPolicyPage() {
+  const path = (window.location.pathname || '').toLowerCase();
+  return path.endsWith('/pages/cookies-policy.html') || path.endsWith('/cookies-policy.html');
+}
+
 if ('scrollRestoration' in history) {
   history.scrollRestoration = 'manual';
 }
@@ -261,6 +266,10 @@ function updateConsentText(banner, floatingButton) {
 }
 
 function createConsentUI() {
+  if (!isCookiesPolicyPage()) {
+    return;
+  }
+
   const banner = document.createElement('section');
   banner.className = 'consent-banner';
   banner.setAttribute('role', 'dialog');
@@ -485,8 +494,10 @@ window.addEventListener('load', () => {
       }, timeToWait); 
     }
 
-    setTimeout(() => {
-      createConsentUI();
-    }, CONSENT_DELAY_MS);
+    if (isCookiesPolicyPage()) {
+      setTimeout(() => {
+        createConsentUI();
+      }, CONSENT_DELAY_MS);
+    }
   });
   
