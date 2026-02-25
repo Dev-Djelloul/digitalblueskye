@@ -26,6 +26,12 @@ document.addEventListener("DOMContentLoaded", () => {
     { key: "laptop", emoji: String.fromCodePoint(0x1f4bb) }, // 💻
   ];
   const DEFAULT_KEY = "purpleheart";
+  const HOVER_OPEN_DELAY_MS = 2000;
+  const isEnglish = () => (document.documentElement.lang || "").toLowerCase().startsWith("en");
+  const reactionLabel = (count) => {
+    if (isEnglish()) return count <= 1 ? "reaction" : "reactions";
+    return count <= 1 ? "réaction" : "réactions";
+  };
 
   const slug = () => {
     const last = window.location.pathname.split("/").pop() || "page";
@@ -102,8 +108,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const refresh = () => {
       triggerEmoji.textContent = emojiByKey(DEFAULT_KEY);
-      if (countEl) countEl.textContent = String(totalCount(reactions));
-      if (labelEl) labelEl.textContent = "réactions";
+      const total = totalCount(reactions);
+      if (countEl) countEl.textContent = String(total);
+      if (labelEl) labelEl.textContent = reactionLabel(total);
       button.classList.toggle("is-active", !!mine);
       button.setAttribute("aria-pressed", mine ? "true" : "false");
       palette.querySelectorAll("button").forEach((btn) => {
@@ -111,14 +118,34 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     };
 
-    const openPalette = () => picker.classList.add("is-open");
-    const closePalette = () => picker.classList.remove("is-open");
+    let hoverTimer = 0;
+    const clearHoverTimer = () => {
+      if (hoverTimer) {
+        window.clearTimeout(hoverTimer);
+        hoverTimer = 0;
+      }
+    };
 
-    button.addEventListener("mouseenter", openPalette);
+    const openPalette = () => {
+      clearHoverTimer();
+      picker.classList.add("is-open");
+    };
+    const closePalette = () => {
+      clearHoverTimer();
+      picker.classList.remove("is-open");
+    };
+
+    const scheduleOpenPalette = () => {
+      clearHoverTimer();
+      hoverTimer = window.setTimeout(openPalette, HOVER_OPEN_DELAY_MS);
+    };
+
+    picker.addEventListener("mouseenter", scheduleOpenPalette);
     picker.addEventListener("mouseleave", closePalette);
     button.addEventListener("click", (event) => {
       event.preventDefault();
       event.stopPropagation();
+      clearHoverTimer();
       picker.classList.toggle("is-open");
     });
 

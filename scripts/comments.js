@@ -24,6 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const DEFAULT_REACTION = "purpleheart";
   const DEFAULT_EMOJI = REACTIONS.find((r) => r.key === DEFAULT_REACTION)?.emoji || "💜";
+  const HOVER_OPEN_DELAY_MS = 2000;
 
   const getCopy = (key, fallback) => {
     if (!copyEl) return fallback;
@@ -72,6 +73,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const sumReactions = (reactions) =>
     REACTIONS.reduce((acc, reaction) => acc + Number(reactions?.[reaction.key] || 0), 0);
+
+  const topActiveReactions = (reactions, limit = 3) =>
+    [...REACTIONS]
+      .map((reaction) => ({
+        ...reaction,
+        count: Number(reactions?.[reaction.key] || 0),
+      }))
+      .filter((reaction) => reaction.count > 0)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, limit);
 
   const postComment = async (payload) => {
     const response = await fetch("/backend/comments.php", {
@@ -202,7 +213,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return wrapper;
   };
 
-  const createReactionPicker = (commentId, reactionsState, reloadFn) => {
+  const createReactionPicker = (commentId, reactionsState) => {
     const picker = document.createElement("div");
     picker.className = "comment-reaction-picker";
 
@@ -211,39 +222,72 @@ document.addEventListener("DOMContentLoaded", () => {
     trigger.className = "comment-reaction-trigger";
     trigger.setAttribute("aria-expanded", "false");
 
-    const triggerEmoji = document.createElement("span");
-    triggerEmoji.className = "comment-reaction-trigger-emoji";
+    const triggerSummary = document.createElement("span");
+    triggerSummary.className = "comment-reaction-summary";
     const active = getMyReaction(commentId);
-    triggerEmoji.textContent = DEFAULT_EMOJI;
 
     const triggerCount = document.createElement("span");
     triggerCount.className = "comment-reaction-trigger-count";
     triggerCount.textContent = String(sumReactions(reactionsState));
 
-    trigger.appendChild(triggerEmoji);
+    trigger.appendChild(triggerSummary);
     trigger.appendChild(triggerCount);
 
     const palette = document.createElement("div");
     palette.className = "comment-reaction-palette";
 
+    let hoverTimer = 0;
+    const clearHoverTimer = () => {
+      if (hoverTimer) {
+        window.clearTimeout(hoverTimer);
+        hoverTimer = 0;
+      }
+    };
+
     const closePalette = () => {
+      clearHoverTimer();
       picker.classList.remove("is-open");
       trigger.setAttribute("aria-expanded", "false");
     };
 
     const openPalette = () => {
+      clearHoverTimer();
       picker.classList.add("is-open");
       trigger.setAttribute("aria-expanded", "true");
     };
 
-    trigger.addEventListener("mouseenter", openPalette);
+    const scheduleOpenPalette = () => {
+      clearHoverTimer();
+      hoverTimer = window.setTimeout(openPalette, HOVER_OPEN_DELAY_MS);
+    };
+
+    picker.addEventListener("mouseenter", scheduleOpenPalette);
     picker.addEventListener("mouseleave", closePalette);
     trigger.addEventListener("click", (event) => {
       event.stopPropagation();
+      clearHoverTimer();
       const isOpen = picker.classList.contains("is-open");
       if (isOpen) closePalette();
       else openPalette();
     });
+
+    const refreshTriggerSummary = (nextReactions) => {
+      const activeReactions = topActiveReactions(nextReactions);
+      triggerSummary.innerHTML = "";
+      if (!activeReactions.length) {
+        const fallback = document.createElement("span");
+        fallback.className = "comment-reaction-summary-item";
+        fallback.textContent = DEFAULT_EMOJI;
+        triggerSummary.appendChild(fallback);
+        return;
+      }
+      activeReactions.forEach((reaction) => {
+        const emoji = document.createElement("span");
+        emoji.className = "comment-reaction-summary-item";
+        emoji.textContent = reaction.emoji;
+        triggerSummary.appendChild(emoji);
+      });
+    };
 
     REACTIONS.forEach((reaction) => {
       const btn = document.createElement("button");
@@ -286,7 +330,7 @@ document.addEventListener("DOMContentLoaded", () => {
           }
 
           setMyReaction(commentId, nextActive);
-          triggerEmoji.textContent = DEFAULT_EMOJI;
+          refreshTriggerSummary(reactionsState);
           triggerCount.textContent = String(sumReactions(reactionsState));
           palette.querySelectorAll("button").forEach((b) => {
             b.classList.toggle("is-active", b.dataset.reactionKey === nextActive);
@@ -298,13 +342,13 @@ document.addEventListener("DOMContentLoaded", () => {
           palette.querySelectorAll("button").forEach((b) => {
             b.disabled = false;
           });
-          if (typeof reloadFn === "function") reloadFn();
         }
       });
 
       palette.appendChild(btn);
     });
 
+    refreshTriggerSummary(reactionsState);
     picker.appendChild(trigger);
     picker.appendChild(palette);
     return picker;
@@ -334,7 +378,7 @@ document.addEventListener("DOMContentLoaded", () => {
     actions.className = "comment-actions";
 
     const reactionsState = comment.reactions || {};
-    const picker = createReactionPicker(comment.id, reactionsState, reloadFn);
+    const picker = createReactionPicker(comment.id, reactionsState);
 
     const replyBtn = document.createElement("button");
     replyBtn.type = "button";
