@@ -76,6 +76,16 @@
     "explore": "Commencer à explorer",
     "viewMore": "Voir tous les articles"
   },
+  "assistant": {
+    "launcher": "Assistant IA",
+    "badge": "BlueSkye AI",
+    "panelTitle": "BlueSkye Assistant",
+    "subtitle": "Orientation rapide vers vos besoins.",
+    "inputPlaceholder": "Posez votre question...",
+    "send": "Envoyer",
+    "openTitle": "Ouvrir l'assistant IA",
+    "closeTitle": "Fermer l'assistant IA"
+  },
   "news": {
     "pageTitle": "L'actualité sur les tendances digitales",
     "pageSubtitle": "Le décryptage mensuel des technologies, des réglementations et des enjeux RSE du numérique.",

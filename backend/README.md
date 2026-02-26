@@ -23,6 +23,8 @@ XAMPP sert au dev local. En production, utilisez un hébergement PHP + MySQL/Mar
 
 - `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS`
 - `COMMENTS_REQUIRE_APPROVAL` (true/false)
+- `OPENAI_API_KEY` (pour l'assistant IA)
+- `OPENAI_MODEL` (optionnel, ex: `gpt-4.1-mini`)
 
 ## Endpoints
 - `POST /backend/consent.php`
@@ -37,6 +39,12 @@ XAMPP sert au dev local. En production, utilisez un hébergement PHP + MySQL/Mar
     - JSON : `name`, `email`, `message`, `article`, `page_url`, `website` (honeypot), `parent_id` (optionnel)
   - Liker un commentaire :
     - JSON : `action="like"`, `article`, `comment_id`
+- `POST /backend/ai-assistant.php`
+  - Chat assistant IA :
+    - JSON : `mode="chat"`, `message`, `history[]`, `language`, `session_id`, `page_url`
+    - Retour : `reply`, `cta`, `fallback`
+  - Tracking analytics assistant :
+    - JSON : `mode="event"`, `event_type`, `event_value`, `language`, `session_id`, `page_url`, `meta`
 
 ## Modération
 Activez `COMMENTS_REQUIRE_APPROVAL=true` pour passer les commentaires en `pending`.
@@ -50,3 +58,4 @@ Pour activer les fonctionnalités commentaires avancées sur une base existante 
 - `backend/migrations/2026-02-23-comment-reactions.sql`
 - `backend/migrations/2026-02-23-comment-positive-reactions.sql`
 - `backend/migrations/2026-02-24-drop-legacy-reaction-columns.sql`
+- `backend/migrations/2026-02-26-ai-assistant-events.sql`

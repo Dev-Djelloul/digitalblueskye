@@ -500,6 +500,62 @@
       </div>
     </footer>
 
+    <!-- Assistant IA (Homepage) -->
+    <button
+      id="ai-assistant-launcher"
+      class="ai-assistant-launcher"
+      type="button"
+      aria-controls="ai-assistant-panel"
+      aria-expanded="false"
+      data-i18n-title="assistant.openTitle"
+      title="Ouvrir l'assistant IA"
+    >
+      <span class="ai-assistant-launcher__dot" aria-hidden="true"></span>
+      <span data-i18n="assistant.launcher">Assistant IA</span>
+    </button>
+
+    <section
+      id="ai-assistant-panel"
+      class="ai-assistant-panel"
+      aria-label="Assistant IA"
+      aria-hidden="true"
+    >
+      <header class="ai-assistant-header">
+        <div class="ai-assistant-title-wrap">
+          <p class="ai-assistant-badge" data-i18n="assistant.badge">BlueSkye AI</p>
+          <h2 class="ai-assistant-title" data-i18n="assistant.panelTitle">BlueSkye Assistant</h2>
+          <p class="ai-assistant-subtitle" data-i18n="assistant.subtitle">
+            Orientation rapide vers vos besoins.
+          </p>
+        </div>
+        <button
+          id="ai-assistant-close"
+          class="ai-assistant-close"
+          type="button"
+          data-i18n-title="assistant.closeTitle"
+          title="Fermer l'assistant IA"
+          aria-label="Fermer"
+        >
+          &times;
+        </button>
+      </header>
+
+      <div id="ai-assistant-messages" class="ai-assistant-messages" aria-live="polite"></div>
+
+      <div id="ai-assistant-quick-actions" class="ai-assistant-quick-actions"></div>
+
+      <form id="ai-assistant-form" class="ai-assistant-form">
+        <input
+          id="ai-assistant-input"
+          type="text"
+          autocomplete="off"
+          data-i18n-placeholder="assistant.inputPlaceholder"
+          placeholder="Posez votre question..."
+        />
+        <button type="submit" data-i18n="assistant.send">Envoyer</button>
+      </form>
+    </section>
+
     <!-- Bouton retour en haut -->
     <button
       id="scroll-to-top"
@@ -558,6 +614,7 @@
     <script src="scripts/navbar-dropdown.js"></script>
     <script src="scripts/welcome-animations.js"></script>
     <script src="scripts/scroll-animations.js"></script>
+    <script src="scripts/ai-assistant.js"></script>
   </body>
 </html>
 <!-- Fin du code HTML -->

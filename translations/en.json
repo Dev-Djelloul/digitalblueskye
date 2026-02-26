@@ -78,6 +78,16 @@
     "explore": "Start exploring",
     "viewMore": "View all articles"
   },
+  "assistant": {
+    "launcher": "AI Assistant",
+    "badge": "BlueSkye AI",
+    "panelTitle": "BlueSkye Assistant",
+    "subtitle": "Quick guidance to the right page.",
+    "inputPlaceholder": "Ask your question...",
+    "send": "Send",
+    "openTitle": "Open AI assistant",
+    "closeTitle": "Close AI assistant"
+  },
   "news": {
     "pageTitle": "The latest in digital trends",
     "pageSubtitle": "Monthly insights into technologies, regulations, and CSR issues in the digital sector",
