@@ -40,5 +40,9 @@ define(
     'OPENAI_MODEL',
     defined('OPENAI_MODEL') ? OPENAI_MODEL : (getenv('OPENAI_MODEL') ?: 'gpt-4.1-mini')
 );
+define(
+    'OPENAI_PROJECT',
+    defined('OPENAI_PROJECT') ? OPENAI_PROJECT : (getenv('OPENAI_PROJECT') ?: '')
+);
 
 header('Content-Type: application/json; charset=utf-8');

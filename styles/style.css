@@ -8666,7 +8666,7 @@ body.body-menu-open #footer {
   background: linear-gradient(135deg, rgb(93 93 255 / 95%), rgb(43 16 82 / 95%));
   border: 1px solid rgb(255 255 255 / 22%);
   border-radius: 999px;
-  bottom: 24px;
+  top: 104px;
   box-shadow:
     0 8px 30px rgb(8 8 24 / 45%),
     0 0 0 1px rgb(93 93 255 / 30%);
@@ -8704,27 +8704,27 @@ body.body-menu-open #footer {
   background: linear-gradient(180deg, rgb(24 26 44 / 94%), rgb(16 16 31 / 95%));
   border: 1px solid rgb(93 93 255 / 35%);
   border-radius: 18px;
-  bottom: 78px;
+  left: 50%;
   box-shadow:
     0 18px 44px rgb(5 5 15 / 62%),
     0 0 0 1px rgb(93 93 255 / 28%);
   display: flex;
   flex-direction: column;
-  height: min(70vh, 560px);
+  height: min(76vh, 620px);
   opacity: 0;
   pointer-events: none;
   position: fixed;
-  right: 24px;
-  transform: translateY(14px) scale(0.98);
+  top: 50%;
+  transform: translate(-50%, -48%) scale(0.98);
   transition: opacity 0.25s ease, transform 0.25s ease;
-  width: min(380px, calc(100vw - 24px));
+  width: min(560px, calc(100vw - 32px));
   z-index: 1801;
 }
 
 .ai-assistant-panel.is-open {
   opacity: 1;
   pointer-events: auto;
-  transform: translateY(0) scale(1);
+  transform: translate(-50%, -50%) scale(1);
 }
 
 .ai-assistant-header {
@@ -8908,15 +8908,13 @@ body.body-menu-open #footer {
 
 @media (width <= 768px) {
   .ai-assistant-launcher {
-    bottom: 18px;
+    top: 88px;
     right: 14px;
   }
 
   .ai-assistant-panel {
-    bottom: 70px;
-    height: min(73vh, 540px);
-    right: 12px;
-    width: calc(100vw - 24px);
+    height: min(74vh, 640px);
+    width: calc(100vw - 20px);
   }
 }
 

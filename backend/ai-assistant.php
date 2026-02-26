@@ -191,6 +191,7 @@ log_assistant_event('user_message', $message, $sessionId, $language, $pageUrl, [
 
 $openAiKey = defined('OPENAI_API_KEY') ? (string) OPENAI_API_KEY : '';
 $model = defined('OPENAI_MODEL') ? (string) OPENAI_MODEL : 'gpt-4.1-mini';
+$openAiProject = defined('OPENAI_PROJECT') ? trim((string) OPENAI_PROJECT) : '';
 
 if ($openAiKey === '') {
     $reply = fallback_reply($intent, $language);
@@ -201,6 +202,7 @@ if ($openAiKey === '') {
         'reply' => $reply,
         'cta' => $cta,
         'fallback' => true,
+        'fallback_reason' => 'missing_api_key',
     ]);
     exit;
 }
@@ -257,13 +259,19 @@ $payload = [
     'messages' => $messages,
 ];
 
+$requestHeaders = [
+    'Content-Type: application/json',
+    'Authorization: Bearer ' . $openAiKey,
+];
+
+if ($openAiProject !== '') {
+    $requestHeaders[] = 'OpenAI-Project: ' . $openAiProject;
+}
+
 $ch = curl_init('https://api.openai.com/v1/chat/completions');
 curl_setopt_array($ch, [
     CURLOPT_POST => true,
-    CURLOPT_HTTPHEADER => [
-        'Content-Type: application/json',
-        'Authorization: Bearer ' . $openAiKey,
-    ],
+    CURLOPT_HTTPHEADER => $requestHeaders,
     CURLOPT_POSTFIELDS => json_encode($payload, JSON_UNESCAPED_UNICODE),
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_TIMEOUT => 20,
@@ -290,6 +298,7 @@ if ($response === false || $curlErr !== '' || $statusCode < 200 || $statusCode >
         'reply' => $reply,
         'cta' => $cta,
         'fallback' => true,
+        'fallback_reason' => 'openai_request_failed',
     ]);
     exit;
 }
@@ -299,6 +308,15 @@ $reply = trim((string) ($data['choices'][0]['message']['content'] ?? ''));
 
 if ($reply === '') {
     $reply = fallback_reply($intent, $language);
+
+    echo json_encode([
+        'ok' => true,
+        'reply' => $reply,
+        'cta' => $cta,
+        'fallback' => true,
+        'fallback_reason' => 'empty_openai_reply',
+    ]);
+    exit;
 }
 
 log_assistant_event('assistant_reply', $reply, $sessionId, $language, $pageUrl, ['intent' => $intent]);

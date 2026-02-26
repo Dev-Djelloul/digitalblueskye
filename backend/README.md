@@ -25,6 +25,7 @@ XAMPP sert au dev local. En production, utilisez un hébergement PHP + MySQL/Mar
 - `COMMENTS_REQUIRE_APPROVAL` (true/false)
 - `OPENAI_API_KEY` (pour l'assistant IA)
 - `OPENAI_MODEL` (optionnel, ex: `gpt-4.1-mini`)
+- `OPENAI_PROJECT` (optionnel, requis pour certaines clés `sk-proj`)
 
 ## Endpoints
 - `POST /backend/consent.php`

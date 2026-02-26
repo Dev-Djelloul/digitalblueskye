@@ -187,17 +187,23 @@ document.addEventListener('DOMContentLoaded', function () {
           label: language() === 'en' ? 'Go to contact' : 'Aller au contact',
           href: '/pages/contact.html'
         });
+        sendEvent('assistant_error_response', 'invalid_payload');
         return;
       }
 
       addMessage('bot', payload.reply, payload.cta || null);
       pushHistory('assistant', payload.reply);
+
+      if (payload.fallback === true) {
+        sendEvent('assistant_fallback', payload.fallback_reason || 'unknown');
+      }
     } catch (error) {
       loadingBubble.remove();
       addMessage('bot', activeCopy().technicalError, {
         label: language() === 'en' ? 'Go to contact' : 'Aller au contact',
         href: '/pages/contact.html'
       });
+      sendEvent('assistant_error_response', 'network_or_parse_error');
     }
   }
 
