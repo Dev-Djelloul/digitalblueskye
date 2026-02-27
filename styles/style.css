@@ -8685,7 +8685,7 @@ body.body-menu-open #footer {
   padding: 8px 12px;
   position: fixed;
   left: auto;
-  right: 5px;
+  right: 10px;
   transform: translateY(-50%);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   z-index: 1800;
