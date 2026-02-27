@@ -11,7 +11,14 @@ document.addEventListener('DOMContentLoaded', function () {
     return;
   }
 
-  const API_ENDPOINT = '/backend/ai-assistant.php';
+  const isInfinityFreeHost = /(?:^|\.)infinityfreeapp\.com$/i.test(window.location.hostname)
+    || /(?:^|\.)epizy\.com$/i.test(window.location.hostname)
+    || /(?:^|\.)rf\.gd$/i.test(window.location.hostname)
+    || /(?:^|\.)42web\.io$/i.test(window.location.hostname);
+
+  const API_ENDPOINT = isInfinityFreeHost
+    ? '/backend/ai-assistant.php?i=1'
+    : '/backend/ai-assistant.php';
   const sessionId = getOrCreateSessionId();
 
   const copy = {

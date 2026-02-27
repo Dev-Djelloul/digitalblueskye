@@ -283,6 +283,17 @@ $statusCode = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
 curl_close($ch);
 
 if ($response === false || $curlErr !== '' || $statusCode < 200 || $statusCode >= 300) {
+    $openAiErrorMessage = null;
+    $openAiErrorCode = null;
+
+    if (is_string($response) && $response !== '') {
+        $errorPayload = json_decode($response, true);
+        if (is_array($errorPayload)) {
+            $openAiErrorMessage = trim((string) ($errorPayload['error']['message'] ?? ''));
+            $openAiErrorCode = trim((string) ($errorPayload['error']['code'] ?? ''));
+        }
+    }
+
     $reply = fallback_reply($intent, $language);
     log_assistant_event(
         'assistant_reply_fallback',
@@ -290,7 +301,13 @@ if ($response === false || $curlErr !== '' || $statusCode < 200 || $statusCode >
         $sessionId,
         $language,
         $pageUrl,
-        ['reason' => 'openai_request_failed', 'status_code' => $statusCode, 'curl_error' => $curlErr]
+        [
+            'reason' => 'openai_request_failed',
+            'status_code' => $statusCode,
+            'curl_error' => $curlErr,
+            'openai_error_code' => $openAiErrorCode,
+            'openai_error_message' => $openAiErrorMessage,
+        ]
     );
 
     echo json_encode([
@@ -299,6 +316,12 @@ if ($response === false || $curlErr !== '' || $statusCode < 200 || $statusCode >
         'cta' => $cta,
         'fallback' => true,
         'fallback_reason' => 'openai_request_failed',
+        'diagnostic' => [
+            'status_code' => $statusCode,
+            'curl_error' => $curlErr,
+            'openai_error_code' => $openAiErrorCode,
+            'openai_error_message' => $openAiErrorMessage,
+        ],
     ]);
     exit;
 }

@@ -78,8 +78,8 @@
   },
   "assistant": {
     "launcher": "Assistant IA",
-    "badge": "BlueSkye AI",
-    "panelTitle": "BlueSkye Assistant",
+    "badge": "Assistant IA",
+    "panelTitle": "Blue Skye AI Assistant",
     "subtitle": "Orientation rapide vers vos besoins.",
     "inputPlaceholder": "Posez votre question...",
     "send": "Envoyer",
