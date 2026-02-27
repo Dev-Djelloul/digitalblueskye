@@ -16,8 +16,7 @@ document.addEventListener('DOMContentLoaded', function () {
       '<aside id="ai-assistant-panel" class="ai-assistant-panel" aria-hidden="true" role="dialog" aria-label="Blue Skye AI Assistant">',
       '<header class="ai-assistant-header">',
       '<div class="ai-assistant-title-wrap">',
-      '<h2 class="ai-assistant-title" data-i18n="assistant.panelTitle">Blue Skye AI Assistant</h2>',
-      '<p class="ai-assistant-subtitle" data-i18n="assistant.subtitle">Orientation rapide vers vos besoins.</p>',
+      '<h2 class="ai-assistant-title" data-i18n="assistant.panelTitle">Digital Blue Skye AI</h2>',
       '</div>',
       '<button id="ai-assistant-close" class="ai-assistant-close" type="button" title="Fermer" data-i18n-title="assistant.closeTitle" aria-label="Close">&times;</button>',
       '</header>',
@@ -58,14 +57,14 @@ document.addEventListener('DOMContentLoaded', function () {
   const copy = {
     fr: {
       launcher: 'Assistant IA',
-      panelTitle: 'Blue Skye AI Assistant',
-      subtitle: 'Orientation rapide vers vos besoins.',
+      panelTitle: 'Digital Blue Skye AI',
+      subtitle: '',
       inputPlaceholder: 'Posez votre question...',
       send: 'Envoyer',
       openTitle: "Ouvrir l'assistant IA",
       closeTitle: "Fermer l'assistant IA",
       welcome:
-        'Bonjour, je suis BlueSkye Assistant. Je vous oriente vers la bonne page en quelques secondes.',
+        'Bonjour, je suis l\'assistant IA, Digital Blue Skye. Je vous oriente vers la bonne page en quelques secondes.',
       trust:
         "Assistant IA informatif. Ne partagez pas de donnees personnelles sensibles.",
       empty: 'Ecrivez votre besoin pour que je vous guide.',
@@ -81,14 +80,14 @@ document.addEventListener('DOMContentLoaded', function () {
     },
     en: {
       launcher: 'AI Assistant',
-      panelTitle: 'Blue Skye AI Assistant',
-      subtitle: 'Quick guidance to the right page.',
+      panelTitle: 'Digital Blue Skye AI',
+      subtitle: '',
       inputPlaceholder: 'Ask your question...',
       send: 'Send',
       openTitle: 'Open AI assistant',
       closeTitle: 'Close AI assistant',
       welcome:
-        'Hello, I am BlueSkye Assistant. I can route you to the right page in seconds.',
+        'Hello, I am the AI Assistant of Digital Blue Skye. I can route you to the right page in seconds.',
       trust:
         'AI assistant for guidance only. Do not share sensitive personal data.',
       empty: 'Share your need and I will route you.',

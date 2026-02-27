@@ -81,8 +81,8 @@
   "assistant": {
     "launcher": "AI Assistant",
     "badge": "AI Assistant",
-    "panelTitle": "Blue Skye AI Assistant",
-    "subtitle": "Quick guidance to the right page.",
+    "panelTitle": "Digital Blue Skye AI",
+    "subtitle": "",
     "inputPlaceholder": "Ask your question...",
     "send": "Send",
     "openTitle": "Open AI assistant",
