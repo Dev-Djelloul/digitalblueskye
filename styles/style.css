@@ -8682,10 +8682,10 @@ body.body-menu-open #footer {
   font-size: 0.95rem;
   font-weight: 600;
   gap: 9px;
-  padding: 10px 16px;
+  padding: 8px 12px;
   position: fixed;
   left: auto;
-  right: 10px;
+  right: 5px;
   transform: translateY(-50%);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   z-index: 1800;

@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', function () {
       '<button id="ai-assistant-launcher" class="ai-assistant-launcher" type="button"',
       'aria-controls="ai-assistant-panel" aria-expanded="false" aria-label="Open AI assistant" data-i18n-title="assistant.openTitle">',
       '<span class="ai-assistant-launcher__dot" aria-hidden="true"></span>',
-      '<span data-i18n="assistant.launcher">Assistant IA</span>',
+      '<span data-i18n="assistant.launcher">Digital IA</span>',
       '</button>'
     ].join('');
 
@@ -56,8 +56,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
   const copy = {
     fr: {
-      launcher: 'Assistant IA',
-      panelTitle: 'Digital Blue Skye AI',
+      launcher: 'Digital IA',
+      panelTitle: 'Digital Blue Skye IA',
       subtitle: '',
       inputPlaceholder: 'Posez votre question...',
       send: 'Envoyer',
@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', function () {
       ]
     },
     en: {
-      launcher: 'AI Assistant',
+      launcher: 'Digital AI',
       panelTitle: 'Digital Blue Skye AI',
       subtitle: '',
       inputPlaceholder: 'Ask your question...',
