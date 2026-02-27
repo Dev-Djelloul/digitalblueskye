@@ -196,7 +196,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const c = activeCopy();
     messages.innerHTML = '';
     addMessage('bot', c.welcome);
-    addMessage('bot', c.trust);
   }
 
   function renderQuickActions() {
