@@ -459,7 +459,7 @@ section#skills,
     #fff 100%
   );
   background-size: 200% auto;
-  border-radius: 5%;
+  border-radius: 10px;
   box-shadow: 0 5px 15px rgb(var(--accent-rgb), 0.4);
   color: transparent;
 
@@ -8670,7 +8670,7 @@ body.body-menu-open #footer {
   align-items: center;
   background: linear-gradient(135deg, rgb(93 93 255 / 95%), rgb(43 16 82 / 95%));
   border: 1px solid rgb(255 255 255 / 22%);
-  border-radius: 999px;
+  border-radius: 10px;
   top: 30%;
   box-shadow:
     0 8px 30px rgb(8 8 24 / 45%),
@@ -8685,7 +8685,7 @@ body.body-menu-open #footer {
   padding: 10px 16px;
   position: fixed;
   left: auto;
-  right: 15px;
+  right: 10px;
   transform: translateY(-50%);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   z-index: 1800;
