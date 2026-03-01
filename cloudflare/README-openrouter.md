@@ -22,6 +22,10 @@ Le frontend pointe deja vers le Worker via:
 - `scripts/ai-assistant.js`
 - `CLOUDFLARE_WORKER_ENDPOINT`
 
+Important:
+- les appels frontend vers le Worker sont envoyes en `Content-Type: text/plain;charset=UTF-8`
+- cela evite le preflight `OPTIONS` bloque en 403 sur certains contextes InfinityFree
+
 ## 4) Test rapide (console navigateur)
 ```js
 fetch('https://digitalblueskye-ai.djelloulabid75.workers.dev', {

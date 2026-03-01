@@ -215,18 +215,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
   async function sendEvent(eventType, eventValue, meta) {
     try {
+      const payload = {
+        mode: 'event',
+        event_type: eventType,
+        event_value: eventValue || null,
+        language: language(),
+        session_id: sessionId,
+        page_url: window.location.pathname,
+        meta: meta || null
+      };
+
       await fetch(API_ENDPOINT, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          mode: 'event',
-          event_type: eventType,
-          event_value: eventValue || null,
-          language: language(),
-          session_id: sessionId,
-          page_url: window.location.pathname,
-          meta: meta || null
-        })
+        headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+        body: JSON.stringify(payload)
       });
     } catch (error) {
       // Event logging should stay transparent for users.
@@ -239,7 +241,7 @@ document.addEventListener('DOMContentLoaded', function () {
     try {
       const response = await fetch(API_ENDPOINT, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
         body: JSON.stringify({
           mode: 'chat',
           message: userText,

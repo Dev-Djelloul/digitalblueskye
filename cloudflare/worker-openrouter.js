@@ -13,15 +13,24 @@
 
 const DEFAULT_MODEL = 'google/gemma-2-9b-it:free';
 
-function jsonResponse(payload, status, corsOrigin) {
+function buildCorsHeaders(request, env) {
+  const fallbackOrigin = env.ALLOWED_ORIGIN || 'https://digitalblueskye.infinityfreeapp.com';
+  const requestOrigin = request.headers.get('Origin');
+  const corsOrigin = requestOrigin || fallbackOrigin;
+
+  return {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Access-Control-Allow-Origin': corsOrigin,
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': '*',
+    Vary: 'Origin'
+  };
+}
+
+function jsonResponse(payload, status, corsHeaders) {
   return new Response(JSON.stringify(payload), {
     status,
-    headers: {
-      'Content-Type': 'application/json; charset=utf-8',
-      'Access-Control-Allow-Origin': corsOrigin,
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type'
-    }
+    headers: corsHeaders
   });
 }
 
@@ -76,35 +85,31 @@ function extractReply(openRouterJson) {
 
 export default {
   async fetch(request, env) {
+    const corsHeaders = buildCorsHeaders(request, env);
     const allowedOrigin = env.ALLOWED_ORIGIN || 'https://digitalblueskye.infinityfreeapp.com';
-    const requestOrigin = request.headers.get('Origin');
-    const corsOrigin = requestOrigin === allowedOrigin ? requestOrigin : allowedOrigin;
 
     if (request.method === 'OPTIONS') {
       return new Response(null, {
         status: 204,
-        headers: {
-          'Access-Control-Allow-Origin': corsOrigin,
-          'Access-Control-Allow-Methods': 'POST, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type'
-        }
+        headers: corsHeaders
       });
     }
 
     if (request.method !== 'POST') {
-      return jsonResponse({ ok: false, error: 'method_not_allowed' }, 405, corsOrigin);
+      return jsonResponse({ ok: false, error: 'method_not_allowed' }, 405, corsHeaders);
     }
 
     let body;
     try {
-      body = await request.json();
+      const text = await request.text();
+      body = text ? JSON.parse(text) : {};
     } catch (error) {
-      return jsonResponse({ ok: false, error: 'invalid_json' }, 400, corsOrigin);
+      return jsonResponse({ ok: false, error: 'invalid_json' }, 400, corsHeaders);
     }
 
     const mode = typeof body?.mode === 'string' ? body.mode : 'chat';
     if (mode === 'event') {
-      return jsonResponse({ ok: true, tracked: true }, 200, corsOrigin);
+      return jsonResponse({ ok: true, tracked: true }, 200, corsHeaders);
     }
 
     const message = typeof body?.message === 'string' ? body.message.trim() : '';
@@ -112,11 +117,11 @@ export default {
     const history = normalizeHistory(body?.history);
 
     if (!message) {
-      return jsonResponse({ ok: false, error: 'empty_message' }, 400, corsOrigin);
+      return jsonResponse({ ok: false, error: 'empty_message' }, 400, corsHeaders);
     }
 
     if (!env.OPENROUTER_API_KEY) {
-      return jsonResponse({ ok: false, error: 'missing_openrouter_key' }, 500, corsOrigin);
+      return jsonResponse({ ok: false, error: 'missing_openrouter_key' }, 500, corsHeaders);
     }
 
     const model = env.OPENROUTER_MODEL || DEFAULT_MODEL;
@@ -168,7 +173,7 @@ export default {
           }
         },
         502,
-        corsOrigin
+        corsHeaders
       );
     }
 
@@ -185,7 +190,7 @@ export default {
           fallback_reason: 'empty_openrouter_reply'
         },
         200,
-        corsOrigin
+        corsHeaders
       );
     }
 
@@ -197,7 +202,7 @@ export default {
         model
       },
       200,
-      corsOrigin
+      corsHeaders
     );
   }
 };
