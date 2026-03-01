@@ -8807,7 +8807,7 @@ body.body-menu-open #footer {
 .ai-assistant-message p {
   display: block;
   height: auto;
-  line-height: 1.45;
+  line-height: 1.6;
   margin: 0;
   min-height: 0;
 }
@@ -8822,7 +8822,7 @@ body.body-menu-open #footer {
 }
 
 .ai-assistant-message li {
-  line-height: 1.45;
+  line-height: 1.6;
   margin: 0;
 }
 
@@ -8838,7 +8838,9 @@ body.body-menu-open #footer {
   align-self: flex-start;
   background: rgb(93 93 255 / 17%);
   border: 1px solid rgb(93 93 255 / 45%);
-  color: rgb(244 247 255 / 95%);
+  background: linear-gradient(92deg, #9ec4ff 0%, #9d7dff 45%, #e086ff 100%);
+  background-clip: text;
+  color: transparent;
 }
 
 .ai-assistant-message--user {
