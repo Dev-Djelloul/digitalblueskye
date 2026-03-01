@@ -11,7 +11,7 @@
  *   Example: https://digitalblueskye.infinityfreeapp.com
  */
 
-const DEFAULT_MODEL = 'google/gemma-2-9b-it:free';
+const DEFAULT_MODEL = 'openrouter/free';
 
 function buildCorsHeaders(request, env) {
   const fallbackOrigin = env.ALLOWED_ORIGIN || 'https://digitalblueskye.infinityfreeapp.com';
@@ -39,14 +39,16 @@ function buildSystemPrompt(language) {
     return [
       'You are the Digital Blue Skye assistant.',
       'Reply in concise, practical, actionable language.',
-      'When relevant, give concrete examples and clear next steps.'
+      'Prefer short sections and bullet points on separate lines.',
+      'Limit answers to the essentials unless the user asks for details.'
     ].join(' ');
   }
 
   return [
     "Tu es l'assistant Digital Blue Skye.",
     'Reponds en francais de facon concise, pratique et actionnable.',
-    'Quand c est pertinent, donne des exemples concrets et des prochaines etapes claires.'
+    'Privilegie des sections courtes et des puces sur des lignes separees.',
+    'Reste bref sauf si la personne demande explicitement plus de details.'
   ].join(' ');
 }
 
@@ -55,10 +57,10 @@ function normalizeHistory(history) {
 
   return history
     .filter((entry) => entry && typeof entry.content === 'string')
-    .slice(-8)
+    .slice(-4)
     .map((entry) => ({
       role: entry.role === 'assistant' ? 'assistant' : 'user',
-      content: entry.content.trim().slice(0, 1200)
+      content: entry.content.trim().slice(0, 700)
     }))
     .filter((entry) => entry.content.length > 0);
 }
@@ -134,8 +136,8 @@ export default {
         ...history,
         { role: 'user', content: message }
       ],
-      temperature: 0.5,
-      max_tokens: 500
+      temperature: 0.35,
+      max_tokens: 220
     };
 
     const upstream = await fetch('https://openrouter.ai/api/v1/chat/completions', {

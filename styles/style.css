@@ -8722,7 +8722,7 @@ body.body-menu-open #footer {
   opacity: 0;
   pointer-events: none;
   position: fixed;
-  top: 55%;
+  top: 60%;
   transform: translate(-50%, -48%) scale(0.98);
   transition: opacity 0.25s ease, transform 0.25s ease;
   width: min(680px, calc(100vw - 24px));
@@ -8812,6 +8812,28 @@ body.body-menu-open #footer {
   min-height: 0;
 }
 
+.ai-assistant-message p + p {
+  margin-top: 7px;
+}
+
+.ai-assistant-message ul {
+  margin: 0;
+  padding-left: 1.15rem;
+}
+
+.ai-assistant-message li {
+  line-height: 1.45;
+  margin: 0;
+}
+
+.ai-assistant-message li + li {
+  margin-top: 5px;
+}
+
+.ai-assistant-message strong {
+  font-weight: 700;
+}
+
 .ai-assistant-message--bot {
   align-self: flex-start;
   background: rgb(93 93 255 / 17%);
@@ -8887,7 +8909,7 @@ body.body-menu-open #footer {
   border-radius: 10px;
   color: #fff;
   cursor: pointer;
-  font-family: "Sour Gummy", sans-serif;
+  font-family: "Share Tech Mono", monospace;
   font-size: 0.83rem;
   font-weight: 600;
   padding: 10px 11px;
