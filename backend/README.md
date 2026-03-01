@@ -27,6 +27,15 @@ XAMPP sert au dev local. En production, utilisez un hébergement PHP + MySQL/Mar
 - `OPENAI_MODEL` (optionnel, ex: `gpt-4.1-mini`)
 - `OPENAI_PROJECT` (optionnel, requis pour certaines clés `sk-proj`)
 
+### Assistant IA hors InfinityFree (recommande)
+Pour eviter les limitations anti-bot InfinityFree sur les appels IA:
+- deployer le backend IA sur Cloudflare Worker
+- utiliser OpenRouter Free via le Worker
+- garder InfinityFree pour le frontend et les pages PHP classiques
+
+Guide de mise en place:
+- `cloudflare/README-openrouter.md`
+
 ## Endpoints
 - `POST /backend/consent.php`
   - JSON : `consent_id`, `analytics`, `marketing`, `page_url`

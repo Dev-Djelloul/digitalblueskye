@@ -44,14 +44,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
   if (!launcher || !panel || !closeButton || !messages || !quickActions || !form || !input) return;
 
-  const isInfinityFreeHost = /(?:^|\.)infinityfreeapp\.com$/i.test(window.location.hostname)
-    || /(?:^|\.)epizy\.com$/i.test(window.location.hostname)
-    || /(?:^|\.)rf\.gd$/i.test(window.location.hostname)
-    || /(?:^|\.)42web\.io$/i.test(window.location.hostname);
-
-  const API_ENDPOINT = isInfinityFreeHost
-    ? '/backend/ai-assistant.php?i=1'
-    : '/backend/ai-assistant.php';
+  const CLOUDFLARE_WORKER_ENDPOINT = 'https://digitalblueskye-ai.djelloulabid75.workers.dev';
+  const API_ENDPOINT = window.DBS_AI_ENDPOINT || CLOUDFLARE_WORKER_ENDPOINT;
   const sessionId = getOrCreateSessionId();
 
   const copy = {
