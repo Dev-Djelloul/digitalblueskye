@@ -344,7 +344,8 @@ document.addEventListener('DOMContentLoaded', function () {
   function formatBotMessageHtml(rawText) {
     const safe = escapeHtml(String(rawText || ''))
       .replace(/\r/g, '')
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/(\p{Extended_Pictographic}(?:\uFE0F|\uFE0E)?(?:\u200D\p{Extended_Pictographic}(?:\uFE0F|\uFE0E)?)*)/gu, '<span class="ai-assistant-emoji">$1</span>');
 
     // Si le modèle enchaîne des puces sur une même ligne, on les sépare.
     const normalizedBullets = safe.replace(/\s+-\s+/g, '\n- ');

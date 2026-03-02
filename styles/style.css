@@ -8883,6 +8883,15 @@ body.body-menu-open #footer {
   font-weight: 700;
 }
 
+.ai-assistant-emoji {
+  background: none !important;
+  background-clip: border-box;
+  color: initial;
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+  -webkit-background-clip: border-box;
+  -webkit-text-fill-color: initial;
+}
+
 .ai-assistant-message--bot {
   align-self: flex-start;
   background: rgb(93 93 255 / 17%);
