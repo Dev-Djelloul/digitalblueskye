@@ -470,6 +470,21 @@ function createConsentUI() {
 
 setDefaultConsent();
 
+document.addEventListener('DOMContentLoaded', () => {
+  if (!isCookiesPolicyPage()) {
+    return;
+  }
+
+  if (CONSENT_DELAY_MS > 0) {
+    setTimeout(() => {
+      createConsentUI();
+    }, CONSENT_DELAY_MS);
+    return;
+  }
+
+  createConsentUI();
+});
+
 window.addEventListener('load', () => {
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     const loaderWrapper = document.getElementById('loader-wrapper');
@@ -494,14 +509,5 @@ window.addEventListener('load', () => {
       }, timeToWait); 
     }
 
-    if (isCookiesPolicyPage()) {
-      if (CONSENT_DELAY_MS > 0) {
-        setTimeout(() => {
-          createConsentUI();
-        }, CONSENT_DELAY_MS);
-      } else {
-        createConsentUI();
-      }
-    }
   });
   
