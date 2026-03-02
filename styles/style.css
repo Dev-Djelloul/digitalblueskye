@@ -8771,7 +8771,7 @@ body.body-menu-open #footer {
 .ai-assistant-close {
   background: transparent;
   border: 0;
-  color: rgb(255 255 255 / 80%);
+  color: #5d5dff;
   cursor: pointer;
   font-size: 1.65rem;
   line-height: 1;
@@ -8780,6 +8780,55 @@ body.body-menu-open #footer {
   right: 14px;
   top: 12px;
   padding: 0;
+}
+
+.ai-assistant-voice-controls {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.ai-assistant-voice-select {
+  background: rgb(255 255 255 / 8%);
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: 10px;
+  color: #fff;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 0.7rem;
+  max-width: 148px;
+  min-width: 120px;
+  padding: 0 8px;
+}
+
+.ai-assistant-voice-btn {
+  background: rgb(255 255 255 / 7%);
+  border: 1px solid rgb(255 255 255 / 20%);
+  border-radius: 10px;
+  color: rgb(240 244 255 / 95%);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 38px;
+  width: 38px;
+  padding: 0;
+}
+
+.ai-assistant-voice-btn.is-active {
+  background: rgb(93 93 255 / 28%);
+  border-color: rgb(93 93 255 / 70%);
+}
+
+.ai-assistant-voice-btn img {
+  display: block;
+  height: 18px;
+  width: 18px;
+  object-fit: contain;
+}
+
+.ai-assistant-voice-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .ai-assistant-messages {
@@ -8905,7 +8954,7 @@ body.body-menu-open #footer {
   color: rgb(255 255 255 / 65%);
 }
 
-.ai-assistant-form button {
+.ai-assistant-send-btn {
   background: linear-gradient(135deg, #5d5dff, #8e41f8);
   border: 1px solid rgb(255 255 255 / 20%);
   border-radius: 10px;
@@ -8952,6 +9001,22 @@ body.body-menu-open #footer {
   color: #2f2b5f;
 }
 
+[data-theme="light"] .ai-assistant-voice-btn {
+  background: rgb(93 93 255 / 8%);
+  border-color: rgb(93 93 255 / 20%);
+}
+
+[data-theme="light"] .ai-assistant-voice-select {
+  background: rgb(93 93 255 / 8%);
+  border-color: rgb(93 93 255 / 20%);
+  color: #2f2b5f;
+}
+
+[data-theme="light"] .ai-assistant-voice-btn.is-active {
+  background: rgb(93 93 255 / 20%);
+  border-color: rgb(93 93 255 / 48%);
+}
+
 [data-theme="light"] .ai-assistant-form input {
   background: rgb(0 0 0 / 3%);
   color: #2f2b5f;
@@ -8973,6 +9038,21 @@ body.body-menu-open #footer {
     max-height: calc(100dvh - 108px);
     top: 54%;
     width: calc(100vw - 14px);
+  }
+
+  .ai-assistant-form {
+    flex-wrap: wrap;
+  }
+
+  .ai-assistant-form input {
+    flex-basis: 100%;
+  }
+
+  .ai-assistant-voice-select {
+    flex: 1;
+    max-width: none;
+    min-width: 0;
+    height: 38px;
   }
 }
 
