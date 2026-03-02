@@ -30,6 +30,16 @@ document.addEventListener('DOMContentLoaded', function () {
         attachFiles: 'Files',
         attachDrive: 'Google Drive',
         selectedFiles: 'Selected files:',
+        fileReady: 'Files are ready for analysis:',
+        fileUnsupported: 'Unsupported file type:',
+        fileReadFailed: 'Unable to read file:',
+        pdfLoading: 'Reading PDF content...',
+        pdfNoText: 'No readable text found in PDF:',
+        pdfReadFailed: 'Unable to read PDF:',
+        ocrLoading: 'Reading image text (OCR)...',
+        ocrNoText: 'No readable text found in image:',
+        ocrUnavailable: 'OCR unavailable in this browser/session.',
+        sendWithoutTextWithFiles: 'Please analyze the attached files.',
         copy: 'Copy',
         copied: 'Copied',
         expand: 'Expand',
@@ -56,6 +66,16 @@ document.addEventListener('DOMContentLoaded', function () {
       attachFiles: 'Fichiers',
       attachDrive: 'Google Drive',
       selectedFiles: 'Fichiers sélectionnés :',
+      fileReady: 'Fichiers prêts pour analyse :',
+      fileUnsupported: 'Type de fichier non pris en charge :',
+      fileReadFailed: 'Impossible de lire le fichier :',
+      pdfLoading: 'Lecture du contenu PDF...',
+      pdfNoText: 'Aucun texte lisible trouvé dans le PDF :',
+      pdfReadFailed: 'Impossible de lire le PDF :',
+      ocrLoading: 'Lecture du texte de l’image (OCR)...',
+      ocrNoText: 'Aucun texte lisible trouvé dans l’image :',
+      ocrUnavailable: 'OCR indisponible dans ce navigateur/session.',
+      sendWithoutTextWithFiles: 'Merci d’analyser les fichiers joints.',
       copy: 'Copier',
       copied: 'Copié',
       expand: 'Dérouler',
@@ -214,6 +234,8 @@ document.addEventListener('DOMContentLoaded', function () {
   let fileInput = document.getElementById('ai-assistant-file-input');
   // Historique local de conversation envoyé partiellement à l'API.
   let chatHistory = [];
+  let pendingFileContext = '';
+  let pendingFileNames = [];
   let isVoiceOutputEnabled = true;
   let isListening = false;
   let availableTtsVoices = [];
@@ -224,6 +246,207 @@ document.addEventListener('DOMContentLoaded', function () {
     fr: ['Aurelie', 'Amelie', 'Virginie', 'Marie', 'Thomas'],
     en: ['Samantha', 'Karen', 'Allison', 'Ava', 'Serena', 'Moira', 'Daniel']
   };
+  const readableFileExtensions = new Set(['txt', 'md', 'markdown', 'json', 'csv', 'log', 'xml', 'html', 'htm', 'js', 'ts', 'css', 'py', 'php', 'java', 'c', 'cpp', 'sql', 'yaml', 'yml']);
+  const imageFileExtensions = new Set(['png', 'jpg', 'jpeg', 'webp', 'bmp', 'gif', 'tiff']);
+  const pdfFileExtensions = new Set(['pdf']);
+  let tesseractLoaderPromise = null;
+  let pdfJsLoaderPromise = null;
+
+  function getFileExtension(name) {
+    const safeName = String(name || '');
+    const idx = safeName.lastIndexOf('.');
+    return idx >= 0 ? safeName.slice(idx + 1).toLowerCase() : '';
+  }
+
+  function isReadableTextFile(file) {
+    if (!file) return false;
+    const mime = String(file.type || '').toLowerCase();
+    if (mime.startsWith('text/')) return true;
+    if (mime.includes('json') || mime.includes('xml') || mime.includes('csv') || mime.includes('javascript')) return true;
+    return readableFileExtensions.has(getFileExtension(file.name));
+  }
+
+  function isImageFile(file) {
+    if (!file) return false;
+    const mime = String(file.type || '').toLowerCase();
+    if (mime.startsWith('image/')) return true;
+    return imageFileExtensions.has(getFileExtension(file.name));
+  }
+
+  function isPdfFile(file) {
+    if (!file) return false;
+    const mime = String(file.type || '').toLowerCase();
+    if (mime === 'application/pdf') return true;
+    return pdfFileExtensions.has(getFileExtension(file.name));
+  }
+
+  function readFileAsText(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ''));
+      reader.onerror = () => reject(new Error('file_read_error'));
+      reader.readAsText(file);
+    });
+  }
+
+  function loadTesseractLibrary() {
+    if (window.Tesseract?.recognize) return Promise.resolve(window.Tesseract);
+    if (tesseractLoaderPromise) return tesseractLoaderPromise;
+
+    tesseractLoaderPromise = new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+      script.async = true;
+      script.onload = () => {
+        if (window.Tesseract?.recognize) {
+          resolve(window.Tesseract);
+        } else {
+          reject(new Error('ocr_library_missing'));
+        }
+      };
+      script.onerror = () => reject(new Error('ocr_library_load_failed'));
+      document.head.appendChild(script);
+    });
+
+    return tesseractLoaderPromise;
+  }
+
+  async function extractTextFromImage(file, lang) {
+    const Tesseract = await loadTesseractLibrary();
+    const ocrLang = lang === 'en' ? 'eng' : 'fra+eng';
+    const result = await Tesseract.recognize(file, ocrLang);
+    return String(result?.data?.text || '').replace(/\r/g, '').trim();
+  }
+
+  function loadPdfJsLibrary() {
+    if (window.pdfjsLib?.getDocument) return Promise.resolve(window.pdfjsLib);
+    if (pdfJsLoaderPromise) return pdfJsLoaderPromise;
+
+    pdfJsLoaderPromise = new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+      script.async = true;
+      script.onload = () => {
+        if (!window.pdfjsLib?.getDocument) {
+          reject(new Error('pdfjs_missing'));
+          return;
+        }
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        resolve(window.pdfjsLib);
+      };
+      script.onerror = () => reject(new Error('pdfjs_load_failed'));
+      document.head.appendChild(script);
+    });
+
+    return pdfJsLoaderPromise;
+  }
+
+  async function extractTextFromPdf(file, lang) {
+    const pdfjsLib = await loadPdfJsLibrary();
+    const data = await file.arrayBuffer();
+    const pdfDoc = await pdfjsLib.getDocument({ data }).promise;
+    const maxPages = Math.min(pdfDoc.numPages, 8);
+    const textChunks = [];
+
+    for (let pageNum = 1; pageNum <= maxPages; pageNum += 1) {
+      const page = await pdfDoc.getPage(pageNum);
+      const textContent = await page.getTextContent();
+      const pageText = textContent.items.map((item) => item.str).join(' ').replace(/\s+/g, ' ').trim();
+      if (pageText) {
+        textChunks.push(`Page ${pageNum}: ${pageText}`);
+      }
+    }
+
+    const extractedText = textChunks.join('\n\n').trim();
+    if (extractedText) return extractedText;
+
+    // Fallback OCR for scanned PDFs: render first pages to canvas, then OCR.
+    const ocrPages = Math.min(pdfDoc.numPages, 3);
+    const ocrChunks = [];
+    for (let pageNum = 1; pageNum <= ocrPages; pageNum += 1) {
+      const page = await pdfDoc.getPage(pageNum);
+      const viewport = page.getViewport({ scale: 1.5 });
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.ceil(viewport.width);
+      canvas.height = Math.ceil(viewport.height);
+      const context = canvas.getContext('2d');
+      if (!context) continue;
+      await page.render({ canvasContext: context, viewport }).promise;
+      const ocrText = await extractTextFromImage(canvas, lang);
+      if (ocrText) {
+        ocrChunks.push(`Page ${pageNum}: ${ocrText}`);
+      }
+    }
+
+    return ocrChunks.join('\n\n').trim();
+  }
+
+  async function buildLocalFileContext(files) {
+    const maxFiles = 4;
+    const maxCharsPerFile = 5000;
+    const selected = Array.from(files || []).slice(0, maxFiles);
+    const readableNames = [];
+    const unsupportedNames = [];
+    const failedNames = [];
+    const noTextNames = [];
+    const snippets = [];
+
+    for (const file of selected) {
+      if (!isReadableTextFile(file)) {
+        if (isPdfFile(file)) {
+          try {
+            const pdfText = await extractTextFromPdf(file, currentLanguage);
+            if (!pdfText) {
+              noTextNames.push(file.name);
+              continue;
+            }
+            const excerpt = pdfText.length > maxCharsPerFile ? `${pdfText.slice(0, maxCharsPerFile)}\n...[truncated]` : pdfText;
+            snippets.push(`Fichier PDF: ${file.name}\n${excerpt}`);
+            readableNames.push(file.name);
+            continue;
+          } catch (error) {
+            failedNames.push(file.name);
+            continue;
+          }
+        }
+        if (!isImageFile(file)) {
+          unsupportedNames.push(file.name);
+          continue;
+        }
+        try {
+          const ocrText = await extractTextFromImage(file, currentLanguage);
+          if (!ocrText) {
+            noTextNames.push(file.name);
+            continue;
+          }
+          const excerpt = ocrText.length > maxCharsPerFile ? `${ocrText.slice(0, maxCharsPerFile)}\n...[truncated]` : ocrText;
+          snippets.push(`Fichier image (OCR): ${file.name}\n${excerpt}`);
+          readableNames.push(file.name);
+          continue;
+        } catch (error) {
+          failedNames.push(file.name);
+          continue;
+        }
+      }
+      try {
+        const raw = await readFileAsText(file);
+        const trimmed = raw.replace(/\r/g, '').trim();
+        const excerpt = trimmed.length > maxCharsPerFile ? `${trimmed.slice(0, maxCharsPerFile)}\n...[truncated]` : trimmed;
+        snippets.push(`Fichier: ${file.name}\n${excerpt || '[empty file]'}`);
+        readableNames.push(file.name);
+      } catch (error) {
+        failedNames.push(file.name);
+      }
+    }
+
+    return {
+      context: snippets.join('\n\n'),
+      readableNames,
+      unsupportedNames,
+      failedNames,
+      noTextNames
+    };
+  }
 
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   const speechRecognition = SpeechRecognition ? new SpeechRecognition() : null;
@@ -439,11 +662,44 @@ document.addEventListener('DOMContentLoaded', function () {
       fileInput.click();
     });
 
-    fileInput.addEventListener('change', () => {
+    fileInput.addEventListener('change', async () => {
       const files = Array.from(fileInput.files || []);
       if (!files.length) return;
-      const names = files.map((file) => file.name).join(', ');
-      input.value = `${i18n.selectedFiles} ${names}`;
+      const hasImages = files.some((file) => isImageFile(file));
+      const hasPdf = files.some((file) => isPdfFile(file));
+      let ocrLoadingBubble = null;
+      if (hasImages) {
+        ocrLoadingBubble = addMessage('bot', i18n.ocrLoading);
+      }
+      let pdfLoadingBubble = null;
+      if (hasPdf) {
+        pdfLoadingBubble = addMessage('bot', i18n.pdfLoading);
+      }
+      const result = await buildLocalFileContext(files);
+      if (ocrLoadingBubble) {
+        ocrLoadingBubble.remove();
+      }
+      if (pdfLoadingBubble) {
+        pdfLoadingBubble.remove();
+      }
+      pendingFileContext = result.context;
+      pendingFileNames = result.readableNames;
+
+      if (result.readableNames.length) {
+        addMessage('bot', `${i18n.fileReady} ${result.readableNames.join(', ')}`);
+      }
+      if (result.unsupportedNames.length) {
+        addMessage('bot', `${i18n.fileUnsupported} ${result.unsupportedNames.join(', ')}`);
+      }
+      if (result.failedNames.length) {
+        const failedLabel = hasPdf ? i18n.pdfReadFailed : (hasImages ? i18n.ocrUnavailable : i18n.fileReadFailed);
+        addMessage('bot', `${failedLabel} ${result.failedNames.join(', ')}`);
+      }
+      if (result.noTextNames?.length) {
+        const noTextLabel = hasPdf ? i18n.pdfNoText : i18n.ocrNoText;
+        addMessage('bot', `${noTextLabel} ${result.noTextNames.join(', ')}`);
+      }
+
       input.focus();
     });
   }
@@ -722,14 +978,18 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   // Envoie le message utilisateur au backend, affiche la réponse et met à jour l'historique.
-  async function askAI(userText) {
+  async function askAI(userText, fileContext = '') {
     const loading = addMessage('bot', i18n.loading);
     try {
+      const composedMessage = fileContext
+        ? `${userText}\n\n---\nContexte de fichiers locaux (ne pas ignorer):\n${fileContext}`
+        : userText;
+
       const response = await fetch(API_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          message: userText,
+          message: composedMessage,
           history: chatHistory.slice(-4),
           language: currentLanguage === 'en' ? 'en' : 'fr',
           mode: 'chat'
@@ -757,10 +1017,15 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('ai-assistant-form').addEventListener('submit', (e) => {
     e.preventDefault();
     const text = input.value.trim();
-    if (!text) return;
-    addMessage('user', text);
+    if (!text && !pendingFileContext) return;
+    const visibleText = text || i18n.sendWithoutTextWithFiles;
+    addMessage('user', visibleText);
     input.value = '';
-    askAI(text);
+    const fileContext = pendingFileContext;
+    pendingFileContext = '';
+    pendingFileNames = [];
+    if (fileInput) fileInput.value = '';
+    askAI(visibleText, fileContext);
   });
 
   if (ttsButton) {
