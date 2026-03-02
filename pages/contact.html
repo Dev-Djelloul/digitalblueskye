@@ -589,16 +589,15 @@
             const dbResult = results[0];
             const emailResult = results[1];
 
-            let emailOk = false;
-            if (emailResult.status === "fulfilled") {
-              emailOk = true;
-            }
+            const emailOk = emailResult.status === "fulfilled";
 
+            let dbOk = false;
             if (dbResult.status === "fulfilled") {
               const response = dbResult.value;
               if (response && response.ok) {
                 const payload = await response.json().catch(() => ({}));
-                if (!payload || !payload.success) {
+                dbOk = !!(payload && payload.success);
+                if (!dbOk) {
                   console.warn("Contact DB save failed:", payload);
                 }
               } else {
@@ -608,7 +607,7 @@
               console.warn("Contact DB save failed:", dbResult.reason);
             }
 
-            if (emailOk) {
+            if (emailOk && dbOk) {
               showToast(successMessage, "is-success");
               form.reset();
               return;
