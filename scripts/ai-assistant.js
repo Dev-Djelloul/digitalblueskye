@@ -343,11 +343,21 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function formatBotMessageHtml(rawText) {
     function linkifyLine(text) {
-      return text.replace(/(https?:\/\/[^\s<]+)/g, (url) => {
+      const preservedAnchors = [];
+      let output = text.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, (_, label, url) => {
+        const anchor = `<a class="ai-assistant-inline-link" href="${url}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+        preservedAnchors.push(anchor);
+        return `__AI_LINK_${preservedAnchors.length - 1}__`;
+      });
+
+      output = output.replace(/(https?:\/\/[^\s<]+)/g, (url) => {
         const cleanUrl = url.replace(/[),.;!?]+$/, '');
         const trailing = url.slice(cleanUrl.length);
         return `<a class="ai-assistant-inline-link" href="${cleanUrl}" target="_blank" rel="noopener noreferrer">${cleanUrl}</a>${trailing}`;
       });
+
+      output = output.replace(/__AI_LINK_(\d+)__/g, (_, idx) => preservedAnchors[Number(idx)] || '');
+      return output;
     }
 
     const safe = escapeHtml(String(rawText || ''))
