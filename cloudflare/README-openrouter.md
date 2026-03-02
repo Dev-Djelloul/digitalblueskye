@@ -26,6 +26,29 @@ Important:
 - les appels frontend vers le Worker sont envoyes en `Content-Type: text/plain;charset=UTF-8`
 - cela evite le preflight `OPTIONS` bloque en 403 sur certains contextes InfinityFree
 
+### Option: ajout de fichiers Google Drive dans le chat
+Le bouton Google Drive de l'assistant IA lit ces variables globales front:
+
+```html
+<script>
+  window.DBS_GOOGLE_API_KEY = "VOTRE_API_KEY";
+  window.DBS_GOOGLE_CLIENT_ID = "VOTRE_CLIENT_ID.apps.googleusercontent.com";
+  window.DBS_GOOGLE_APP_ID = "VOTRE_PROJECT_NUMBER"; // optionnel
+</script>
+```
+
+Ajoute ce bloc **avant** `scripts/ai-assistant.js`.
+
+Pre-requis Google Cloud:
+- Activer les API: `Google Picker API` et `Google Drive API`
+- Creer un OAuth client ID de type `Web application`
+- Ajouter les origines autorisees:
+  - `https://digitalblueskye.netlify.app`
+  - ton futur domaine de prod
+- Ajouter une API key restreinte (HTTP referrer) sur tes domaines web
+
+Si non configure, l'assistant affiche: `Google Drive n'est pas encore configuré.`
+
 ## 4) Test rapide (console navigateur)
 ```js
 fetch('https://digitalblueskye-ai.djelloulabid75.workers.dev', {

@@ -29,6 +29,10 @@ document.addEventListener('DOMContentLoaded', function () {
         attachMenu: 'Attachment options',
         attachFiles: 'Files',
         attachDrive: 'Google Drive',
+        driveNotConfigured: 'Google Drive is not configured yet.',
+        driveAuthFailed: 'Google Drive authentication failed.',
+        drivePickerFailed: 'Unable to open Google Drive picker.',
+        driveDownloadFailed: 'Unable to import file from Google Drive:',
         historyLabel: 'Conversations',
         newChat: 'New',
         deleteChat: 'Delete',
@@ -71,6 +75,10 @@ document.addEventListener('DOMContentLoaded', function () {
       attachMenu: "Options d'ajout",
       attachFiles: 'Fichiers',
       attachDrive: 'Google Drive',
+      driveNotConfigured: "Google Drive n'est pas encore configuré.",
+      driveAuthFailed: "L'authentification Google Drive a échoué.",
+      drivePickerFailed: "Impossible d'ouvrir le sélecteur Google Drive.",
+      driveDownloadFailed: "Impossible d'importer le fichier Google Drive :",
       historyLabel: 'Conversations',
       newChat: 'Nouveau',
       deleteChat: 'Supprimer',
@@ -187,7 +195,7 @@ document.addEventListener('DOMContentLoaded', function () {
           <div id="ai-assistant-quick-actions" class="ai-assistant-quick-actions"></div>
           <form id="ai-assistant-form" class="ai-assistant-form">
             ${createAttachControlsMarkup()}
-            <input id="ai-assistant-input" type="text" autocomplete="off" placeholder="${i18n.inputPlaceholder}">
+            <textarea id="ai-assistant-input" autocomplete="off" placeholder="${i18n.inputPlaceholder}" rows="1"></textarea>
             ${createVoiceControlsMarkup(micIconUrl, voiceIconUrl)}
             <button type="submit" class="ai-assistant-send-btn">${i18n.send}</button>
           </form>
@@ -256,6 +264,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Point d'entrée de l'API de l'assistant IA.
   const API_ENDPOINT = 'https://digitalblueskye-ai.djelloulabid75.workers.dev';
+  const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.readonly';
+  const DRIVE_PICKER_SCRIPT_URL = 'https://apis.google.com/js/api.js';
+  const GOOGLE_IDENTITY_SCRIPT_URL = 'https://accounts.google.com/gsi/client';
+  const DRIVE_API_KEY = String(window.DBS_GOOGLE_API_KEY || '').trim();
+  const DRIVE_CLIENT_ID = String(window.DBS_GOOGLE_CLIENT_ID || '').trim();
+  const DRIVE_APP_ID = String(window.DBS_GOOGLE_APP_ID || '').trim();
   const panel = document.getElementById('ai-assistant-panel');
   const panelHeader = panel ? panel.querySelector('.ai-assistant-header') : null;
   const launcherButton = document.getElementById('ai-assistant-launcher');
@@ -281,6 +295,10 @@ document.addEventListener('DOMContentLoaded', function () {
   let pendingFileContext = '';
   let pendingFileNames = [];
   let pendingVisionAttachments = [];
+  let driveAccessToken = '';
+  let pickerReadyPromise = null;
+  let identityReadyPromise = null;
+  let driveTokenClient = null;
   let isVoiceOutputEnabled = true;
   let isListening = false;
   let availableTtsVoices = [];
@@ -302,8 +320,9 @@ document.addEventListener('DOMContentLoaded', function () {
   function clampPanelPosition(left, top) {
     if (!panel) return { left, top };
     const margin = 8;
-    const maxLeft = Math.max(margin, window.innerWidth - panel.offsetWidth - margin);
-    const maxTop = Math.max(margin, window.innerHeight - panel.offsetHeight - margin);
+    const docEl = document.documentElement;
+    const maxLeft = Math.max(margin, docEl.clientWidth - panel.offsetWidth - margin);
+    const maxTop = Math.max(margin, docEl.scrollHeight - panel.offsetHeight - margin);
     return {
       left: Math.min(Math.max(left, margin), maxLeft),
       top: Math.min(Math.max(top, margin), maxTop),
@@ -355,6 +374,7 @@ document.addEventListener('DOMContentLoaded', function () {
   function applyPanelPosition(left, top, persist = true) {
     if (!panel) return;
     const next = clampPanelPosition(left, top);
+    panel.style.position = 'absolute';
     panel.style.left = `${next.left}px`;
     panel.style.top = `${next.top}px`;
     panel.style.transform = panel.classList.contains('is-open')
@@ -387,6 +407,7 @@ document.addEventListener('DOMContentLoaded', function () {
   function resetPanelPosition(removeSaved = false) {
     if (!panel) return;
     panel.classList.remove('is-draggable');
+    panel.style.removeProperty('position');
     panel.style.removeProperty('left');
     panel.style.removeProperty('top');
     panel.style.removeProperty('transform');
@@ -417,6 +438,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
     let dragState = null;
 
+    function autoScrollDuringDrag(event) {
+      const edge = 36;
+      const speed = 14;
+      if (event.clientY >= window.innerHeight - edge) {
+        window.scrollBy(0, speed);
+      } else if (event.clientY <= edge) {
+        window.scrollBy(0, -speed);
+      }
+    }
+
     function isInteractiveDragTarget(target) {
       if (!target || !target.closest) return false;
       return Boolean(
@@ -434,8 +465,10 @@ document.addEventListener('DOMContentLoaded', function () {
       if (isInteractiveDragTarget(event.target)) return;
 
       const rect = panel.getBoundingClientRect();
-      const offsetX = event.clientX - rect.left;
-      const offsetY = event.clientY - rect.top;
+      const panelPageLeft = rect.left + window.scrollX;
+      const panelPageTop = rect.top + window.scrollY;
+      const offsetX = event.pageX - panelPageLeft;
+      const offsetY = event.pageY - panelPageTop;
       const resizeHandleSize = 26;
       const isOnResizeHandle =
         offsetX >= rect.width - resizeHandleSize &&
@@ -454,8 +487,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     window.addEventListener('mousemove', (event) => {
       if (!dragState || !panel) return;
-      const left = event.clientX - dragState.offsetX;
-      const top = event.clientY - dragState.offsetY;
+      autoScrollDuringDrag(event);
+      const left = event.pageX - dragState.offsetX;
+      const top = event.pageY - dragState.offsetY;
       applyPanelPosition(left, top, false);
     });
 
@@ -744,6 +778,169 @@ document.addEventListener('DOMContentLoaded', function () {
       failedNames,
       noTextNames
     };
+  }
+
+  function loadExternalScript(src) {
+    return new Promise((resolve, reject) => {
+      const existing = document.querySelector(`script[src="${src}"]`);
+      if (existing) {
+        if (existing.dataset.loaded === 'true') {
+          resolve();
+          return;
+        }
+        existing.addEventListener('load', () => resolve(), { once: true });
+        existing.addEventListener('error', () => reject(new Error('script_load_failed')), { once: true });
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = src;
+      script.async = true;
+      script.onload = () => {
+        script.dataset.loaded = 'true';
+        resolve();
+      };
+      script.onerror = () => reject(new Error('script_load_failed'));
+      document.head.appendChild(script);
+    });
+  }
+
+  function ensurePickerReady() {
+    if (pickerReadyPromise) return pickerReadyPromise;
+    pickerReadyPromise = loadExternalScript(DRIVE_PICKER_SCRIPT_URL)
+      .then(() => new Promise((resolve, reject) => {
+        if (!window.gapi?.load) {
+          reject(new Error('gapi_missing'));
+          return;
+        }
+        window.gapi.load('picker', {
+          callback: () => resolve(),
+          onerror: () => reject(new Error('picker_load_failed')),
+          timeout: 5000,
+          ontimeout: () => reject(new Error('picker_timeout')),
+        });
+      }));
+    return pickerReadyPromise;
+  }
+
+  function ensureIdentityReady() {
+    if (identityReadyPromise) return identityReadyPromise;
+    identityReadyPromise = loadExternalScript(GOOGLE_IDENTITY_SCRIPT_URL).then(() => {
+      if (!window.google?.accounts?.oauth2?.initTokenClient) {
+        throw new Error('google_identity_missing');
+      }
+    });
+    return identityReadyPromise;
+  }
+
+  function isDriveConfigured() {
+    return Boolean(DRIVE_API_KEY && DRIVE_CLIENT_ID);
+  }
+
+  async function ensureDriveToken(forcePrompt = false) {
+    await ensureIdentityReady();
+    if (!driveTokenClient) {
+      driveTokenClient = window.google.accounts.oauth2.initTokenClient({
+        client_id: DRIVE_CLIENT_ID,
+        scope: DRIVE_SCOPE,
+        callback: () => {},
+      });
+    }
+
+    return new Promise((resolve, reject) => {
+      driveTokenClient.callback = (response) => {
+        if (response?.access_token) {
+          driveAccessToken = response.access_token;
+          resolve(response.access_token);
+          return;
+        }
+        reject(new Error('drive_token_missing'));
+      };
+      driveTokenClient.requestAccessToken({
+        prompt: forcePrompt || !driveAccessToken ? 'consent' : '',
+      });
+    });
+  }
+
+  function mapGoogleDocExport(meta) {
+    const mime = String(meta?.mimeType || '');
+    const map = {
+      'application/vnd.google-apps.document': { mimeType: 'text/plain', ext: 'txt' },
+      'application/vnd.google-apps.spreadsheet': { mimeType: 'text/csv', ext: 'csv' },
+      'application/vnd.google-apps.presentation': { mimeType: 'text/plain', ext: 'txt' },
+      'application/vnd.google-apps.drawing': { mimeType: 'image/png', ext: 'png' },
+    };
+    return map[mime] || null;
+  }
+
+  function sanitizeFilename(name, fallback = 'drive-file') {
+    const safe = String(name || '').trim().replace(/[\\/:*?"<>|]/g, '_');
+    return safe || fallback;
+  }
+
+  async function downloadDriveFile(doc, token) {
+    const id = String(doc?.id || '').trim();
+    const name = sanitizeFilename(doc?.name || 'drive-file');
+    const mimeType = String(doc?.mimeType || '').trim();
+    if (!id) throw new Error('drive_missing_id');
+
+    const exportConf = mapGoogleDocExport({ mimeType });
+    let url = '';
+    let resolvedMime = mimeType || 'application/octet-stream';
+    let resolvedName = name;
+
+    if (exportConf) {
+      url = `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(id)}/export?mimeType=${encodeURIComponent(exportConf.mimeType)}`;
+      resolvedMime = exportConf.mimeType;
+      if (!/\.[a-z0-9]{2,5}$/i.test(resolvedName)) {
+        resolvedName = `${resolvedName}.${exportConf.ext}`;
+      }
+    } else {
+      url = `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(id)}?alt=media`;
+    }
+
+    const response = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!response.ok) throw new Error(`drive_download_failed_${response.status}`);
+    const blob = await response.blob();
+    const finalMime = blob.type || resolvedMime;
+    return new File([blob], resolvedName, { type: finalMime, lastModified: Date.now() });
+  }
+
+  async function openDrivePicker() {
+    await ensurePickerReady();
+    const token = await ensureDriveToken(false).catch(() => ensureDriveToken(true));
+
+    return new Promise((resolve, reject) => {
+      const docsView = new window.google.picker.DocsView(window.google.picker.ViewId.DOCS)
+        .setIncludeFolders(false)
+        .setSelectFolderEnabled(false);
+
+      const pickerBuilder = new window.google.picker.PickerBuilder()
+        .setDeveloperKey(DRIVE_API_KEY)
+        .setOAuthToken(token)
+        .setTitle('Google Drive')
+        .enableFeature(window.google.picker.Feature.MULTISELECT_ENABLED)
+        .addView(docsView)
+        .setCallback((data) => {
+          if (data.action === window.google.picker.Action.PICKED) {
+            resolve(Array.isArray(data.docs) ? data.docs : []);
+            return;
+          }
+          if (data.action === window.google.picker.Action.CANCEL) {
+            resolve([]);
+            return;
+          }
+          reject(new Error('picker_failed'));
+        });
+
+      if (DRIVE_APP_ID) {
+        pickerBuilder.setAppId(DRIVE_APP_ID);
+      }
+
+      const picker = pickerBuilder.build();
+      picker.setVisible(true);
+    });
   }
 
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -1135,11 +1332,11 @@ document.addEventListener('DOMContentLoaded', function () {
       fileInput.click();
     });
 
-    fileInput.addEventListener('change', async () => {
-      const files = Array.from(fileInput.files || []);
-      if (!files.length) return;
-      const hasImages = files.some((file) => isImageFile(file));
-      const hasPdf = files.some((file) => isPdfFile(file));
+    async function processSelectedFiles(files) {
+      const normalizedFiles = Array.from(files || []);
+      if (!normalizedFiles.length) return;
+      const hasImages = normalizedFiles.some((file) => isImageFile(file));
+      const hasPdf = normalizedFiles.some((file) => isPdfFile(file));
       let ocrLoadingBubble = null;
       if (hasImages) {
         ocrLoadingBubble = addMessage('bot', i18n.ocrLoading);
@@ -1148,8 +1345,8 @@ document.addEventListener('DOMContentLoaded', function () {
       if (hasPdf) {
         pdfLoadingBubble = addMessage('bot', i18n.pdfLoading);
       }
-      const result = await buildLocalFileContext(files);
-      const vision = await buildVisionAttachments(files);
+      const result = await buildLocalFileContext(normalizedFiles);
+      const vision = await buildVisionAttachments(normalizedFiles);
       if (ocrLoadingBubble) {
         ocrLoadingBubble.remove();
       }
@@ -1182,13 +1379,54 @@ document.addEventListener('DOMContentLoaded', function () {
       }
 
       input.focus();
-    });
-  }
+    }
 
-  if (attachDriveButton) {
+    fileInput.addEventListener('change', async () => {
+      const files = Array.from(fileInput.files || []);
+      if (!files.length) return;
+      await processSelectedFiles(files);
+    });
+
+    if (attachDriveButton) {
+      attachDriveButton.addEventListener('click', async () => {
+        closeAttachMenu();
+        if (!isDriveConfigured()) {
+          addMessage('bot', i18n.driveNotConfigured);
+          return;
+        }
+
+        try {
+          const docs = await openDrivePicker();
+          if (!docs.length) return;
+          const files = [];
+          const failed = [];
+          const token = driveAccessToken || await ensureDriveToken(false);
+          for (const doc of docs.slice(0, 4)) {
+            try {
+              const file = await downloadDriveFile(doc, token);
+              files.push(file);
+            } catch (error) {
+              failed.push(doc?.name || doc?.id || 'file');
+            }
+          }
+
+          if (failed.length) {
+            addMessage('bot', `${i18n.driveDownloadFailed} ${failed.join(', ')}`);
+          }
+
+          await processSelectedFiles(files);
+        } catch (error) {
+          const msg = /token|auth|oauth/i.test(String(error?.message || ''))
+            ? i18n.driveAuthFailed
+            : i18n.drivePickerFailed;
+          addMessage('bot', msg);
+        }
+      });
+    }
+  } else if (attachDriveButton) {
     attachDriveButton.addEventListener('click', () => {
       closeAttachMenu();
-      window.open('https://drive.google.com/drive/my-drive', '_blank', 'noopener,noreferrer');
+      addMessage('bot', i18n.driveNotConfigured);
     });
   }
 
@@ -1486,6 +1724,21 @@ document.addEventListener('DOMContentLoaded', function () {
     if (fileInput) fileInput.value = '';
     askAI(visibleText, fileContext, attachments);
   });
+
+  if (input) {
+    // Enter = send, Shift+Enter = newline in the resizable textarea.
+    input.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        const form = document.getElementById('ai-assistant-form');
+        if (form?.requestSubmit) {
+          form.requestSubmit();
+        } else {
+          form?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+        }
+      }
+    });
+  }
 
   if (ttsButton) {
     // Active/désactive la lecture vocale.

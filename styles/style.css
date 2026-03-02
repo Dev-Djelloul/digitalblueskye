@@ -8725,13 +8725,15 @@ body.body-menu-open #footer {
 .ai-assistant-panel {
   backdrop-filter: blur(8px);
   background: linear-gradient(180deg, rgb(24 26 44 / 94%), rgb(16 16 31 / 95%));
-  border: 1px solid rgb(93 93 255 / 35%);
+  border: 2px solid transparent;
   border-radius: 15px;
   container-type: inline-size;
   left: 50%;
   box-shadow:
     0 18px 44px rgb(5 5 15 / 62%),
-    0 0 0 1px rgb(93 93 255 / 28%);
+    0 0 0 1px rgb(93 93 255 / 28%),
+    0 0 0 2px rgb(151 110 255 / 36%),
+    0 0 26px rgb(123 86 255 / 26%);
   display: flex;
   flex-direction: column;
   height: min(78vh, 760px);
@@ -8746,6 +8748,11 @@ body.body-menu-open #footer {
   overflow: hidden;
   width: min(940px, calc(100vw - 24px));
   z-index: 1801;
+  background-image:
+    linear-gradient(180deg, rgb(24 26 44 / 94%), rgb(16 16 31 / 95%)),
+    linear-gradient(130deg, rgb(116 99 255 / 85%), rgb(200 34 255 / 82%), rgb(116 99 255 / 85%));
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
 }
 
 .ai-assistant-panel.is-open {
@@ -9192,7 +9199,8 @@ body.body-menu-open #footer {
   display: none;
 }
 
-.ai-assistant-form input {
+.ai-assistant-form input,
+.ai-assistant-form textarea {
   background: rgb(255 255 255 / 8%);
   border: 1px solid rgb(255 255 255 / 18%);
   border-radius: 10px;
@@ -9204,7 +9212,14 @@ body.body-menu-open #footer {
   padding: 10px;
 }
 
-.ai-assistant-form input::placeholder {
+.ai-assistant-form textarea {
+  min-height: 42px;
+  max-height: 180px;
+  resize: vertical;
+}
+
+.ai-assistant-form input::placeholder,
+.ai-assistant-form textarea::placeholder {
   color: rgb(255 255 255 / 65%);
 }
 
@@ -9244,7 +9259,8 @@ body.body-menu-open #footer {
     grid-column: 1;
   }
 
-  .ai-assistant-form input {
+  .ai-assistant-form input,
+  .ai-assistant-form textarea {
     flex: initial;
     grid-column: 2;
     min-width: 0;
@@ -9271,10 +9287,17 @@ body.body-menu-open #footer {
 
 [data-theme="light"] .ai-assistant-panel {
   background: linear-gradient(180deg, rgb(255 255 255 / 97%), rgb(245 244 255 / 98%));
-  border-color: rgb(93 93 255 / 25%);
+  border-color: transparent;
   box-shadow:
     0 18px 40px rgb(88 74 136 / 22%),
-    0 0 0 1px rgb(93 93 255 / 17%);
+    0 0 0 1px rgb(93 93 255 / 17%),
+    0 0 0 2px rgb(118 87 255 / 24%),
+    0 0 18px rgb(137 99 255 / 16%);
+  background-image:
+    linear-gradient(180deg, rgb(255 255 255 / 97%), rgb(245 244 255 / 98%)),
+    linear-gradient(130deg, rgb(116 99 255 / 62%), rgb(200 34 255 / 56%), rgb(116 99 255 / 62%));
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
 }
 
 [data-theme="light"] .ai-assistant-title {
@@ -9372,12 +9395,14 @@ body.body-menu-open #footer {
   border-color: rgb(93 93 255 / 48%);
 }
 
-[data-theme="light"] .ai-assistant-form input {
+[data-theme="light"] .ai-assistant-form input,
+[data-theme="light"] .ai-assistant-form textarea {
   background: rgb(0 0 0 / 3%);
   color: #2f2b5f;
 }
 
-[data-theme="light"] .ai-assistant-form input::placeholder {
+[data-theme="light"] .ai-assistant-form input::placeholder,
+[data-theme="light"] .ai-assistant-form textarea::placeholder {
   color: rgb(47 43 95 / 57%);
 }
 
@@ -9399,7 +9424,8 @@ body.body-menu-open #footer {
     flex-wrap: wrap;
   }
 
-  .ai-assistant-form input {
+  .ai-assistant-form input,
+  .ai-assistant-form textarea {
     flex-basis: 100%;
     min-width: 0;
   }
