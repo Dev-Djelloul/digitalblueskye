@@ -258,6 +258,17 @@ Generated_Code/
 # because we have git ;-)
 _UpgradeReport_Files/
 Backup*/
+
+# Local secrets / environment overrides
+.env
+.env.*
+!.env.example
+backend/ai-secrets.php
+config/contact-db.local.php
+config/export-token.local.php
+cloudflare/.dev.vars*
+!cloudflare/.dev.vars.api.example
+cloudflare/.wrangler/
 UpgradeLog*.XML
 UpgradeLog*.htm
 ServiceFabricBackup/

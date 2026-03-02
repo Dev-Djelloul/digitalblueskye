@@ -4,6 +4,12 @@ declare(strict_types=1);
 require __DIR__ . '/config/contact-db.php';
 require __DIR__ . '/config/export-token.php';
 
+if (EXPORT_TOKEN === '') {
+  http_response_code(503);
+  echo "Export disabled.";
+  exit;
+}
+
 if (!hash_equals(EXPORT_TOKEN, (string) ($_GET['token'] ?? ''))) {
   http_response_code(403);
   echo "Forbidden";

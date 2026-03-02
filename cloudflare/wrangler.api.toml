@@ -1,0 +1,13 @@
+name = "digitalblueskye-api"
+main = "worker-api.js"
+compatibility_date = "2026-03-02"
+workers_dev = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "digitalblueskye"
+database_id = "eeb9d1b0-26ed-48a1-beb3-b0a944765174"
+
+[vars]
+ALLOWED_ORIGIN = "https://digitalblueskye.netlify.app/"
+COMMENTS_REQUIRE_APPROVAL = "false"

@@ -4,6 +4,17 @@ const CONSENT_ID_KEY = 'dbs_consent_id';
 const CONSENT_SENT_KEY = 'dbs_consent_sent_v1';
 const CONSENT_DELAY_MS = 0;
 
+function resolveApiUrl(path) {
+  const defaultBase = 'https://digitalblueskye-api.djelloulabid75.workers.dev';
+  const explicitBase = String(window.DBS_API_BASE || '').trim();
+  const inferredBase =
+    window.location.hostname.startsWith('www.')
+      ? `${window.location.protocol}//api.${window.location.hostname.slice(4)}`
+      : '';
+  const base = (explicitBase || inferredBase || defaultBase).replace(/\/+$/, '');
+  return base ? `${base}${path}` : path;
+}
+
 function isCookiesPolicyPage() {
   const path = (window.location.pathname || '').toLowerCase();
   return path.endsWith('/pages/cookies-policy.html') || path.endsWith('/cookies-policy.html');
@@ -151,7 +162,7 @@ function sendConsentToServer(consent) {
         }
       : null;
 
-  fetch('/backend/consent.php', {
+  fetch(resolveApiUrl('/backend/consent.php'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

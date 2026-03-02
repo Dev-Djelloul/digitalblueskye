@@ -2,13 +2,26 @@ document.addEventListener("DOMContentLoaded", () => {
   const commentsSection = document.querySelector(".article-comments");
   if (!commentsSection) return;
 
+  const resolveApiUrl = (path) => {
+    const defaultBase = "https://digitalblueskye-api.djelloulabid75.workers.dev";
+    const explicitBase = String(window.DBS_API_BASE || "").trim();
+    const inferredBase =
+      window.location.hostname.startsWith("www.")
+        ? `${window.location.protocol}//api.${window.location.hostname.slice(4)}`
+        : "";
+    const base = (explicitBase || inferredBase || defaultBase).replace(/\/+$/, "");
+    return base ? `${base}${path}` : path;
+  };
+
   const listEl = commentsSection.querySelector("[data-comments]");
   const statusEl = commentsSection.querySelector("[data-comments-status]");
   const copyEl = commentsSection.querySelector("[data-comments-copy]");
   const countNumberEl = document.querySelector("[data-comments-count]");
   const countLabelEl = document.querySelector("[data-comments-count-label]");
   const form = commentsSection.querySelector(".article-comments-form");
-  const articleSlug = window.location.pathname.split("/").pop().replace(".html", "");
+  const pathParts = window.location.pathname.split("/").filter(Boolean);
+  const lastSegment = pathParts.length > 0 ? pathParts[pathParts.length - 1] : "";
+  const articleSlug = lastSegment.replace(/\.html$/i, "");
 
   const REACTIONS = [
     { key: "thumbsup", emoji: String.fromCodePoint(0x1f44d) }, // 👍
@@ -85,7 +98,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .slice(0, limit);
 
   const postComment = async (payload) => {
-    const response = await fetch("/backend/comments.php", {
+    const response = await fetch(resolveApiUrl("/backend/comments.php"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -94,7 +107,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const postReaction = async (commentId, reactionKey, operation = "add") => {
-    const response = await fetch("/backend/comments.php", {
+    const response = await fetch(resolveApiUrl("/backend/comments.php"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -413,7 +426,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const loadComments = async () => {
     if (!listEl) return;
     try {
-      const response = await fetch(`/backend/comments.php?article=${encodeURIComponent(articleSlug)}`);
+      const response = await fetch(
+        resolveApiUrl(`/backend/comments.php?article=${encodeURIComponent(articleSlug)}`)
+      );
       const data = await response.json();
       if (!data.ok) {
         setStatus(data.error || getCopy("error", t("Erreur de chargement", "Loading error")), "is-error");

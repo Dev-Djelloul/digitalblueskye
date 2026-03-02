@@ -1,8 +1,8 @@
 <?php
 declare(strict_types=1);
 
-$dbHost = "sql300.infinityfree.com";
-$dbName = "if0_40780692_digitalblueskye";
-$dbUser = "if0_40780692";
-$dbPass = "DUVCqEl8epmL";
-$dbTable = "contact_messages";
+$dbHost = getenv('DB_HOST') ?: '127.0.0.1';
+$dbName = getenv('DB_NAME') ?: 'digitalblueskye';
+$dbUser = getenv('DB_USER') ?: 'root';
+$dbPass = getenv('DB_PASS') ?: '';
+$dbTable = getenv('CONTACT_TABLE') ?: 'contact_messages';

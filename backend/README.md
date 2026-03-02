@@ -26,6 +26,7 @@ XAMPP sert au dev local. En production, utilisez un hébergement PHP + MySQL/Mar
 - `OPENAI_API_KEY` (pour l'assistant IA)
 - `OPENAI_MODEL` (optionnel, ex: `gpt-4.1-mini`)
 - `OPENAI_PROJECT` (optionnel, requis pour certaines clés `sk-proj`)
+- `EXPORT_TOKEN` (obligatoire pour `export-csv.php`)
 
 ### Assistant IA hors InfinityFree (recommande)
 Pour eviter les limitations anti-bot InfinityFree sur les appels IA:
@@ -69,3 +70,4 @@ Pour activer les fonctionnalités commentaires avancées sur une base existante 
 - `backend/migrations/2026-02-23-comment-positive-reactions.sql`
 - `backend/migrations/2026-02-24-drop-legacy-reaction-columns.sql`
 - `backend/migrations/2026-02-26-ai-assistant-events.sql`
+- `backend/migrations/2026-03-02-reset-all-data.sql`

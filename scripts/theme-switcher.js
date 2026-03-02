@@ -6,6 +6,17 @@ document.addEventListener('DOMContentLoaded', function() {
   const moonIcon = themeSwitch.querySelector('.moon-icon');
   const sunIcon = themeSwitch.querySelector('.sun-icon');
 
+  function resolveApiUrl(path) {
+    const defaultBase = 'https://digitalblueskye-api.djelloulabid75.workers.dev';
+    const explicitBase = String(window.DBS_API_BASE || '').trim();
+    const inferredBase =
+      window.location.hostname.startsWith('www.')
+        ? `${window.location.protocol}//api.${window.location.hostname.slice(4)}`
+        : '';
+    const base = (explicitBase || inferredBase || defaultBase).replace(/\/+$/, '');
+    return base ? `${base}${path}` : path;
+  }
+
   function getCookie(name) {
     const cookieString = `; ${document.cookie}`;
     const parts = cookieString.split(`; ${name}=`);
@@ -57,7 +68,7 @@ document.addEventListener('DOMContentLoaded', function() {
           'fr'
       ) || 'fr';
 
-    fetch('/backend/consent.php', {
+    fetch(resolveApiUrl('/backend/consent.php'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

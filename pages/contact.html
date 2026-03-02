@@ -511,7 +511,16 @@
             return;
           }
 
-          const endpoint = form.dataset.endpoint || "/contact-submit.php";
+          const explicitApiBase = String(window.DBS_API_BASE || "").trim();
+          const defaultApiBase = "https://digitalblueskye-api.djelloulabid75.workers.dev";
+          const inferredApiBase = window.location.hostname.startsWith("www.")
+            ? `${window.location.protocol}//api.${window.location.hostname.slice(4)}`
+            : "";
+          const apiBase = (explicitApiBase || inferredApiBase || defaultApiBase).replace(/\/+$/, "");
+          const endpoint =
+            (form.dataset.endpoint || "/contact-submit.php").startsWith("http")
+              ? (form.dataset.endpoint || "/contact-submit.php")
+              : (apiBase ? `${apiBase}${form.dataset.endpoint || "/contact-submit.php"}` : (form.dataset.endpoint || "/contact-submit.php"));
           const formData = new FormData(form);
           const firstName = (formData.get("user_first_name") || "").toString().trim();
           const lastName = (formData.get("user_last_name") || "").toString().trim();

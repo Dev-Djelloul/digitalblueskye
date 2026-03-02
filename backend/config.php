@@ -21,10 +21,10 @@ foreach ($secretsCandidates as $secretsFile) {
 
 date_default_timezone_set('Europe/Paris');
 
-define('DB_HOST', getenv('DB_HOST') ?: 'sql300.infinityfree.com');
-define('DB_NAME', getenv('DB_NAME') ?: 'if0_40780692_digitalblueskye');
-define('DB_USER', getenv('DB_USER') ?: 'if0_40780692');
-define('DB_PASS', getenv('DB_PASS') ?: 'DUVCqEl8epmL');
+define('DB_HOST', getenv('DB_HOST') ?: '127.0.0.1');
+define('DB_NAME', getenv('DB_NAME') ?: 'digitalblueskye');
+define('DB_USER', getenv('DB_USER') ?: 'root');
+define('DB_PASS', getenv('DB_PASS') ?: '');
 define('DB_CHARSET', 'utf8mb4');
 
 // Comment settings.
