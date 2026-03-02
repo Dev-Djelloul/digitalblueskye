@@ -2903,6 +2903,7 @@ h1.main-title-animated .title-icon {
 }
 
 .ia-page .ia-code-title {
+  font-family: 'Share Tech Mono';
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
   background-clip: text;
   color: transparent;
