@@ -7237,7 +7237,7 @@ body.body-menu-open #footer {
 
   /* Ajuster le Header Compact pour Mobile */
   header {
-    height: 80px;
+    height: 52px;
     padding: 0 8px;
   } /* Header compact */
   header h1 {
@@ -8741,7 +8741,7 @@ body.body-menu-open #footer {
   border-top-right-radius: 15px;
   display: flex;
   justify-content: center;
-  padding: 14px 44px 12px 14px;
+  padding: 12px 44px 12px 14px;
   position: relative;
   text-align: center;
 }
