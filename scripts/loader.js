@@ -17,7 +17,14 @@ function resolveApiUrl(path) {
 
 function isCookiesPolicyPage() {
   const path = (window.location.pathname || '').toLowerCase();
-  return path.endsWith('/pages/cookies-policy.html') || path.endsWith('/cookies-policy.html');
+  return (
+    path.endsWith('/pages/cookies-policy.html') ||
+    path.endsWith('/cookies-policy.html') ||
+    path.endsWith('/pages/cookies-policy') ||
+    path.endsWith('/cookies-policy') ||
+    path.endsWith('/pages/cookies-policy/') ||
+    path.endsWith('/cookies-policy/')
+  );
 }
 
 if ('scrollRestoration' in history) {
