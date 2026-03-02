@@ -262,14 +262,13 @@ function updateConsentText(banner, floatingButton) {
   banner.querySelector('[data-consent="privacy"]').textContent = copy.privacy;
   banner.querySelector('[data-consent="cookies"]').textContent = copy.cookies;
   banner.querySelector('[data-consent="terms"]').textContent = copy.terms;
-  floatingButton.textContent = copy.manage;
+  if (floatingButton) {
+    floatingButton.textContent = copy.manage;
+  }
 }
 
 function createConsentUI() {
-  if (!isCookiesPolicyPage()) {
-    return;
-  }
-
+  const showFloatingButton = isCookiesPolicyPage();
   const banner = document.createElement('section');
   banner.className = 'consent-banner';
   banner.setAttribute('role', 'dialog');
@@ -329,13 +328,16 @@ function createConsentUI() {
     </div>
   `;
 
-  const floatingButton = document.createElement('button');
-  floatingButton.className = 'consent-floating';
-  floatingButton.setAttribute('type', 'button');
-  floatingButton.setAttribute('aria-label', 'Gestion des cookies');
-
   document.body.appendChild(banner);
-  document.body.appendChild(floatingButton);
+
+  let floatingButton = null;
+  if (showFloatingButton) {
+    floatingButton = document.createElement('button');
+    floatingButton.className = 'consent-floating';
+    floatingButton.setAttribute('type', 'button');
+    floatingButton.setAttribute('aria-label', 'Gestion des cookies');
+    document.body.appendChild(floatingButton);
+  }
 
   updateConsentText(banner, floatingButton);
 
@@ -382,14 +384,18 @@ function createConsentUI() {
   function hideBanner() {
     banner.classList.remove('consent-banner--visible');
     banner.classList.add('consent-banner--hidden');
-    floatingButton.classList.add('consent-floating--visible');
+    if (floatingButton) {
+      floatingButton.classList.add('consent-floating--visible');
+    }
     setScrollLock(false);
   }
 
   function showBanner() {
     banner.classList.remove('consent-banner--hidden');
     banner.classList.add('consent-banner--visible');
-    floatingButton.classList.remove('consent-floating--visible');
+    if (floatingButton) {
+      floatingButton.classList.remove('consent-floating--visible');
+    }
     setScrollLock(true);
   }
 
@@ -439,15 +445,17 @@ function createConsentUI() {
     }
   });
 
-  floatingButton.addEventListener('click', () => {
-    const saved = getSavedConsent();
-    if (saved) {
-      analyticsInput.checked = !!saved.analytics;
-      marketingInput.checked = !!saved.marketing;
-    }
-    showBanner();
-    openPreferences();
-  });
+  if (floatingButton) {
+    floatingButton.addEventListener('click', () => {
+      const saved = getSavedConsent();
+      if (saved) {
+        analyticsInput.checked = !!saved.analytics;
+        marketingInput.checked = !!saved.marketing;
+      }
+      showBanner();
+      openPreferences();
+    });
+  }
 
   const savedConsent = getSavedConsent();
   if (savedConsent) {
@@ -471,10 +479,6 @@ function createConsentUI() {
 setDefaultConsent();
 
 document.addEventListener('DOMContentLoaded', () => {
-  if (!isCookiesPolicyPage()) {
-    return;
-  }
-
   if (CONSENT_DELAY_MS > 0) {
     setTimeout(() => {
       createConsentUI();
