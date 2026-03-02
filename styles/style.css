@@ -8916,6 +8916,12 @@ body.body-menu-open #footer {
   text-decoration: underline;
 }
 
+.ai-assistant-inline-link {
+  color: #9ec4ff;
+  text-decoration: underline;
+  -webkit-text-fill-color: #9ec4ff;
+}
+
 .ai-assistant-quick-actions {
   border-top: 1px solid rgb(255 255 255 / 8%);
   display: flex;
@@ -8999,6 +9005,11 @@ body.body-menu-open #footer {
 [data-theme="light"] .ai-assistant-message--bot {
   background: rgb(93 93 255 / 11%);
   color: #2f2b5f;
+}
+
+[data-theme="light"] .ai-assistant-inline-link {
+  color: #4c4cff;
+  -webkit-text-fill-color: #4c4cff;
 }
 
 [data-theme="light"] .ai-assistant-message--user {

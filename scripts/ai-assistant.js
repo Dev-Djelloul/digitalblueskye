@@ -342,6 +342,14 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function formatBotMessageHtml(rawText) {
+    function linkifyLine(text) {
+      return text.replace(/(https?:\/\/[^\s<]+)/g, (url) => {
+        const cleanUrl = url.replace(/[),.;!?]+$/, '');
+        const trailing = url.slice(cleanUrl.length);
+        return `<a class="ai-assistant-inline-link" href="${cleanUrl}" target="_blank" rel="noopener noreferrer">${cleanUrl}</a>${trailing}`;
+      });
+    }
+
     const safe = escapeHtml(String(rawText || ''))
       .replace(/\r/g, '')
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
@@ -368,7 +376,7 @@ document.addEventListener('DOMContentLoaded', function () {
           html += '<ul>';
           inList = true;
         }
-        html += `<li>${line.slice(2).trim()}</li>`;
+        html += `<li>${linkifyLine(line.slice(2).trim())}</li>`;
         continue;
       }
 
@@ -376,7 +384,7 @@ document.addEventListener('DOMContentLoaded', function () {
         html += '</ul>';
         inList = false;
       }
-      html += `<p>${line}</p>`;
+      html += `<p>${linkifyLine(line)}</p>`;
     }
 
     if (inList) {
