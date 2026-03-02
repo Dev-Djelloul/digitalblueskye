@@ -8669,7 +8669,7 @@ body.body-menu-open #footer {
   align-items: center;
   background: linear-gradient(135deg, rgb(93 93 255 / 95%), rgb(43 16 82 / 95%));
   border: 1px solid rgb(255 255 255 / 22%);
-  border-radius: 10px;
+  border-radius: 20px;
   top: 30%;
   box-shadow:
     0 8px 30px rgb(8 8 24 / 45%),
@@ -8678,7 +8678,7 @@ body.body-menu-open #footer {
   cursor: pointer;
   display: inline-flex;
   font-family: "Share Tech Mono", monospace;
-  font-size: 0.95rem;
+  font-size: 0.75rem;
   font-weight: 600;
   gap: 9px;
   padding: 8px 12px;
@@ -8716,15 +8716,15 @@ body.body-menu-open #footer {
     0 0 0 1px rgb(93 93 255 / 28%);
   display: flex;
   flex-direction: column;
-  height: min(74vh, 680px);
+  height: min(78vh, 760px);
   max-height: calc(100dvh - 128px);
   opacity: 0;
   pointer-events: none;
   position: fixed;
-  top: 60%;
+  top: 58%;
   transform: translate(-50%, -48%) scale(0.98);
   transition: opacity 0.25s ease, transform 0.25s ease;
-  width: min(680px, calc(100vw - 24px));
+  width: min(940px, calc(100vw - 24px));
   z-index: 1801;
 }
 
@@ -8912,9 +8912,11 @@ body.body-menu-open #footer {
   height: auto;
   max-width: 92%;
   min-height: 0;
+  overflow-wrap: anywhere;
   padding: 9px 10px;
   position: relative;
   text-align: left;
+  word-break: break-word;
 }
 
 .ai-assistant-message,
@@ -9068,7 +9070,7 @@ body.body-menu-open #footer {
   border-top: 1px solid rgb(255 255 255 / 8%);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   padding: 10px;
 }
 
@@ -9148,9 +9150,10 @@ body.body-menu-open #footer {
   border: 1px solid rgb(255 255 255 / 18%);
   border-radius: 10px;
   color: #fff;
-  flex: 1;
+  flex: 2 1 420px;
   font-family: "Share Tech Mono", monospace;
   font-size: 0.85rem;
+  min-width: 280px;
   padding: 10px;
 }
 
@@ -9167,6 +9170,7 @@ body.body-menu-open #footer {
   font-family: "Share Tech Mono", monospace;
   font-size: 0.83rem;
   font-weight: 600;
+  min-width: 96px;
   padding: 10px 11px;
 }
 
@@ -9302,6 +9306,7 @@ body.body-menu-open #footer {
 
   .ai-assistant-form input {
     flex-basis: 100%;
+    min-width: 0;
   }
 
   .ai-assistant-voice-select {
