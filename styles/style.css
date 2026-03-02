@@ -424,10 +424,13 @@ section#skills,
 
 /* Animations pour le titre, le paragraphe de texte et le bouton de la page d'accueil */
 .intro-text .animated-title {
+  display: inline-block;
   font-size: 4.2rem;
+  line-height: 1.18;
   margin-bottom: 0;
   margin-top: 40px;
   opacity: 0;
+  padding: 0.22em;
   transform: translateX(500px);
   transition: opacity 1.8s ease-out, transform 1.8s ease-out;
 }
@@ -1650,6 +1653,11 @@ section.page-title-container
   -webkit-text-fill-color: transparent;
 }
 
+.page-title-container .main-page-title {
+  line-height: 1.15;
+  padding-bottom: 0.08em;
+}
+
 .page-title-container .news-page-title {
   background: linear-gradient(45deg, #ffdbe7, #ffeaf2);
   background-clip: text;
@@ -1771,11 +1779,13 @@ section.page-title-container
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
   background-clip: text;
   color: transparent;
+  display: inline-block;
   font-family: "Kaushan Script", "Fruktur", cursive;
   font-size: 1.8rem;
   font-weight: bold;
-  line-height: 1.3;
+  line-height: 1.18;
   margin-bottom: 10px;
+  padding-bottom: 0.22em;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -1790,9 +1800,11 @@ section.page-title-container
 
 .news-card-dateline {
   color: var(--accent-color);
+  display: inline-block;
   font-family: "Kaushan Script", "Fruktur", cursive;
   font-size: 1rem;
   margin-top: auto; /* Pousse la dateline en bas de la carte */
+  padding-bottom: 0.12em;
 }
 
 .news-card-author {
