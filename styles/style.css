@@ -9330,3 +9330,62 @@ body.body-menu-open #footer {
     box-shadow: 0 0 0 0 rgb(124 242 200 / 0%);
   }
 }
+
+/* Home mobile: cards full-width + hero image reposition */
+@media (width <= 576px) {
+  .home-page .intro-text .hero-media {
+    margin-top: -24px;
+    min-height: 0;
+  }
+
+  .home-page .intro-text .hero-media-main {
+    object-position: center 62%;
+  }
+
+  .home-page .trust-section {
+    padding-inline: 10px;
+  }
+
+  .home-page .trust-section .container,
+  .home-page .all-news-list .container {
+    max-width: 100%;
+    padding-inline: 6px;
+  }
+
+  .home-page .trust-cards-grid,
+  .home-page .trust-methodology {
+    padding-inline: 0;
+    width: 100%;
+  }
+
+  .home-page .trust-card--merged,
+  .home-page .trust-methodology .methodology-item--combined {
+    margin-inline: 0;
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .home-page .trust-card--merged {
+    padding: 20px 14px;
+  }
+
+  .home-page .trust-methodology .methodology-item--combined {
+    padding: 24px 14px;
+  }
+
+  .home-page .all-news-list {
+    padding-inline: 0;
+  }
+
+  .home-page .news-grid {
+    gap: 18px;
+  }
+
+  .home-page .news-card {
+    width: 100%;
+  }
+
+  .home-page .news-card-content {
+    padding: 20px 14px;
+  }
+}
