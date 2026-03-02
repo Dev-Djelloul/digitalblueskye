@@ -8845,6 +8845,7 @@ body.body-menu-open #footer {
   border-radius: 12px;
   display: block;
   flex-shrink: 0;
+  font-family: "Share Tech Mono", monospace;
   font-size: 0.86rem;
   height: auto;
   max-width: 92%;
@@ -9007,8 +9008,80 @@ body.body-menu-open #footer {
 .ai-assistant-form {
   border-top: 1px solid rgb(255 255 255 / 8%);
   display: flex;
+  align-items: center;
   gap: 8px;
   padding: 10px;
+}
+
+.ai-assistant-attach {
+  position: relative;
+}
+
+.ai-assistant-attach-toggle {
+  background: rgb(255 255 255 / 8%);
+  border: 1px solid rgb(255 255 255 / 20%);
+  border-radius: 10px;
+  color: #e2e8ff;
+  cursor: pointer;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 1rem;
+  font-weight: 700;
+  height: 38px;
+  line-height: 1;
+  min-width: 38px;
+  padding: 0;
+}
+
+.ai-assistant-attach-menu {
+  background: rgb(14 17 40 / 95%);
+  border: 1px solid rgb(255 255 255 / 16%);
+  border-radius: 10px;
+  box-shadow: 0 12px 26px rgb(0 0 0 / 35%);
+  display: none;
+  min-width: 180px;
+  padding: 6px;
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 8px);
+  z-index: 20;
+}
+
+.ai-assistant-attach-menu.is-open {
+  display: block;
+}
+
+.ai-assistant-attach-item {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  color: #e2e8ff;
+  cursor: pointer;
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  text-align: left;
+  width: 100%;
+}
+
+.ai-assistant-attach-item:hover {
+  background: rgb(93 93 255 / 20%);
+}
+
+.ai-assistant-attach-item img {
+  display: block;
+  height: 18px;
+  object-fit: contain;
+  width: 18px;
+}
+
+.ai-assistant-attach-item span {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 0.72rem;
+}
+
+.ai-assistant-file-input {
+  display: none;
 }
 
 .ai-assistant-form input {
@@ -9017,7 +9090,7 @@ body.body-menu-open #footer {
   border-radius: 10px;
   color: #fff;
   flex: 1;
-  font-family: Delius, cursive;
+  font-family: "Share Tech Mono", monospace;
   font-size: 0.85rem;
   padding: 10px;
 }
@@ -9088,6 +9161,25 @@ body.body-menu-open #footer {
 [data-theme="light"] .ai-assistant-voice-btn {
   background: rgb(93 93 255 / 8%);
   border-color: rgb(93 93 255 / 20%);
+}
+
+[data-theme="light"] .ai-assistant-attach-toggle {
+  background: rgb(93 93 255 / 8%);
+  border-color: rgb(93 93 255 / 22%);
+  color: #2f2b5f;
+}
+
+[data-theme="light"] .ai-assistant-attach-menu {
+  background: rgb(255 255 255 / 98%);
+  border-color: rgb(93 93 255 / 20%);
+}
+
+[data-theme="light"] .ai-assistant-attach-item {
+  color: #2f2b5f;
+}
+
+[data-theme="light"] .ai-assistant-attach-item:hover {
+  background: rgb(93 93 255 / 12%);
 }
 
 [data-theme="light"] .ai-assistant-voice-select {

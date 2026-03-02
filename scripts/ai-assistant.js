@@ -25,6 +25,11 @@ document.addEventListener('DOMContentLoaded', function () {
         send: 'Send',
         voiceSelectLabel: 'Voice',
         voiceSelectAuto: 'Auto voice',
+        attach: 'Add',
+        attachMenu: 'Attachment options',
+        attachFiles: 'Files',
+        attachDrive: 'Google Drive',
+        selectedFiles: 'Selected files:',
         copy: 'Copy',
         copied: 'Copied',
         expand: 'Expand',
@@ -46,6 +51,11 @@ document.addEventListener('DOMContentLoaded', function () {
       send: 'Envoyer',
       voiceSelectLabel: 'Voix',
       voiceSelectAuto: 'Voix auto',
+      attach: 'Ajouter',
+      attachMenu: "Options d'ajout",
+      attachFiles: 'Fichiers',
+      attachDrive: 'Google Drive',
+      selectedFiles: 'Fichiers sélectionnés :',
       copy: 'Copier',
       copied: 'Copié',
       expand: 'Dérouler',
@@ -77,6 +87,25 @@ document.addEventListener('DOMContentLoaded', function () {
     return `/assets/images/ui/${fileName}`;
   }
   const copyPasteIconUrl = resolveUiIconUrl('icons8-copy-paste-48.png');
+  const filesIconUrl = resolveUiIconUrl('icons8-files-64.png');
+  const driveIconUrl = resolveUiIconUrl('icons8-google-drive-64.png');
+
+  function createAttachControlsMarkup() {
+    return `
+      <div class="ai-assistant-attach" id="ai-assistant-attach">
+        <button id="ai-assistant-attach-toggle" class="ai-assistant-attach-toggle" type="button" aria-haspopup="true" aria-expanded="false" title="${i18n.attach}" aria-label="${i18n.attach}">+</button>
+        <div id="ai-assistant-attach-menu" class="ai-assistant-attach-menu" role="menu" aria-label="${i18n.attachMenu}">
+          <button id="ai-assistant-attach-file" class="ai-assistant-attach-item" type="button" role="menuitem">
+            <img src="${filesIconUrl}" alt="" aria-hidden="true">
+            <span>${i18n.attachFiles}</span>
+          </button>
+          <button id="ai-assistant-attach-drive" class="ai-assistant-attach-item" type="button" role="menuitem">
+            <img src="${driveIconUrl}" alt="" aria-hidden="true">
+            <span>${i18n.attachDrive}</span>
+          </button>
+        </div>
+      </div>`;
+  }
 
   function createVoiceControlsMarkup(micIconUrl, voiceIconUrl) {
     return `
@@ -111,6 +140,7 @@ document.addEventListener('DOMContentLoaded', function () {
           <div id="ai-assistant-messages" class="ai-assistant-messages"></div>
           <div id="ai-assistant-quick-actions" class="ai-assistant-quick-actions"></div>
           <form id="ai-assistant-form" class="ai-assistant-form">
+            ${createAttachControlsMarkup()}
             <input id="ai-assistant-input" type="text" autocomplete="off" placeholder="${i18n.inputPlaceholder}">
             ${createVoiceControlsMarkup(micIconUrl, voiceIconUrl)}
             <button type="submit" class="ai-assistant-send-btn">${i18n.send}</button>
@@ -127,6 +157,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const submitBtn = form.querySelector('button[type="submit"]');
     if (submitBtn) submitBtn.classList.add('ai-assistant-send-btn');
+
+    if (!document.getElementById('ai-assistant-attach-toggle')) {
+      const wrapper = document.createElement('div');
+      wrapper.innerHTML = createAttachControlsMarkup().trim();
+      const attach = wrapper.firstElementChild;
+      if (attach) {
+        const reference = form.querySelector('#ai-assistant-input') || form.firstChild;
+        if (reference) {
+          form.insertBefore(attach, reference);
+        } else {
+          form.appendChild(attach);
+        }
+      }
+    }
 
     if (!document.getElementById('ai-assistant-mic') || !document.getElementById('ai-assistant-tts')) {
       const submitButton = form.querySelector('.ai-assistant-send-btn') || form.querySelector('button[type="submit"]');
@@ -159,9 +203,15 @@ document.addEventListener('DOMContentLoaded', function () {
   const API_ENDPOINT = 'https://digitalblueskye-ai.djelloulabid75.workers.dev';
   const messagesContainer = document.getElementById('ai-assistant-messages');
   const input = document.getElementById('ai-assistant-input');
+  const attachRoot = document.getElementById('ai-assistant-attach');
+  const attachToggle = document.getElementById('ai-assistant-attach-toggle');
+  const attachMenu = document.getElementById('ai-assistant-attach-menu');
+  const attachFileButton = document.getElementById('ai-assistant-attach-file');
+  const attachDriveButton = document.getElementById('ai-assistant-attach-drive');
   const voiceSelect = document.getElementById('ai-assistant-voice-select');
   const micButton = document.getElementById('ai-assistant-mic');
   const ttsButton = document.getElementById('ai-assistant-tts');
+  let fileInput = document.getElementById('ai-assistant-file-input');
   // Historique local de conversation envoyé partiellement à l'API.
   let chatHistory = [];
   let isVoiceOutputEnabled = true;
@@ -192,6 +242,17 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     i18n = getI18n(currentLanguage);
     if (input) input.placeholder = i18n.inputPlaceholder;
+    if (attachToggle) {
+      attachToggle.title = i18n.attach;
+      attachToggle.setAttribute('aria-label', i18n.attach);
+    }
+    if (attachMenu) {
+      attachMenu.setAttribute('aria-label', i18n.attachMenu);
+    }
+    const attachFileLabel = attachFileButton?.querySelector('span');
+    if (attachFileLabel) attachFileLabel.textContent = i18n.attachFiles;
+    const attachDriveLabel = attachDriveButton?.querySelector('span');
+    if (attachDriveLabel) attachDriveLabel.textContent = i18n.attachDrive;
     const sendButton = document.querySelector('#ai-assistant-form .ai-assistant-send-btn');
     if (sendButton) sendButton.textContent = i18n.send;
     if (voiceSelect) {
@@ -340,6 +401,66 @@ document.addEventListener('DOMContentLoaded', function () {
       populateVoiceSelect(activeLang);
     });
   }
+
+  if (!fileInput) {
+    const form = document.getElementById('ai-assistant-form');
+    if (form) {
+      fileInput = document.createElement('input');
+      fileInput.id = 'ai-assistant-file-input';
+      fileInput.type = 'file';
+      fileInput.multiple = true;
+      fileInput.className = 'ai-assistant-file-input';
+      form.appendChild(fileInput);
+    }
+  }
+
+  function closeAttachMenu() {
+    if (!attachMenu || !attachToggle) return;
+    attachMenu.classList.remove('is-open');
+    attachToggle.setAttribute('aria-expanded', 'false');
+  }
+
+  function toggleAttachMenu() {
+    if (!attachMenu || !attachToggle) return;
+    const nextOpen = !attachMenu.classList.contains('is-open');
+    attachMenu.classList.toggle('is-open', nextOpen);
+    attachToggle.setAttribute('aria-expanded', String(nextOpen));
+  }
+
+  if (attachToggle) {
+    attachToggle.addEventListener('click', () => {
+      toggleAttachMenu();
+    });
+  }
+
+  if (attachFileButton && fileInput) {
+    attachFileButton.addEventListener('click', () => {
+      closeAttachMenu();
+      fileInput.click();
+    });
+
+    fileInput.addEventListener('change', () => {
+      const files = Array.from(fileInput.files || []);
+      if (!files.length) return;
+      const names = files.map((file) => file.name).join(', ');
+      input.value = `${i18n.selectedFiles} ${names}`;
+      input.focus();
+    });
+  }
+
+  if (attachDriveButton) {
+    attachDriveButton.addEventListener('click', () => {
+      closeAttachMenu();
+      window.open('https://drive.google.com/drive/my-drive', '_blank', 'noopener,noreferrer');
+    });
+  }
+
+  document.addEventListener('click', (event) => {
+    if (!attachRoot || !attachMenu?.classList.contains('is-open')) return;
+    if (!attachRoot.contains(event.target)) {
+      closeAttachMenu();
+    }
+  });
 
   // Échappe les caractères HTML pour éviter l'injection dans le rendu des messages.
   function escapeHtml(value) {
