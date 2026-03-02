@@ -1524,12 +1524,11 @@ h3.title-banner {
 }
 
 .home-page .intro-text .hero-media-main {
-  background-color: #080b1b;
   display: block;
   height: 100%;
   grid-area: 1 / 1;
-  object-fit: contain;
-  object-position: center top;
+  object-fit: cover;
+  object-position: center 42%;
   width: 100%;
 }
 
