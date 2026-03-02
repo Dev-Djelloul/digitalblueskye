@@ -8727,6 +8727,7 @@ body.body-menu-open #footer {
   background: linear-gradient(180deg, rgb(24 26 44 / 94%), rgb(16 16 31 / 95%));
   border: 1px solid rgb(93 93 255 / 35%);
   border-radius: 15px;
+  container-type: inline-size;
   left: 50%;
   box-shadow:
     0 18px 44px rgb(5 5 15 / 62%),
@@ -8738,9 +8739,11 @@ body.body-menu-open #footer {
   opacity: 0;
   pointer-events: none;
   position: fixed;
+  resize: both;
   top: 58%;
   transform: translate(-50%, -48%) scale(0.98);
   transition: opacity 0.25s ease, transform 0.25s ease;
+  overflow: hidden;
   width: min(940px, calc(100vw - 24px));
   z-index: 1801;
 }
@@ -8756,11 +8759,36 @@ body.body-menu-open #footer {
   border-bottom: 1px solid rgb(255 255 255 / 9%);
   border-top-left-radius: 15px;
   border-top-right-radius: 15px;
+  cursor: grab;
   display: flex;
   justify-content: center;
   padding: 13px 44px 12px 14px;
   position: relative;
   text-align: center;
+}
+
+.ai-assistant-panel.is-dragging .ai-assistant-header {
+  cursor: grabbing;
+  user-select: none;
+}
+
+@media (width >= 769px) {
+  .ai-assistant-panel {
+    min-height: 420px;
+    min-width: 560px;
+    max-height: calc(100dvh - 16px);
+    max-width: calc(100vw - 16px);
+  }
+}
+
+@media (width <= 768px) {
+  .ai-assistant-header {
+    cursor: default;
+  }
+
+  .ai-assistant-panel {
+    resize: none;
+  }
 }
 
 .ai-assistant-session-bar {
@@ -9191,6 +9219,54 @@ body.body-menu-open #footer {
   font-weight: 600;
   min-width: 96px;
   padding: 10px 11px;
+}
+
+@container (max-width: 760px) {
+  .ai-assistant-session-bar {
+    flex-wrap: wrap;
+  }
+
+  .ai-assistant-session-label {
+    flex-basis: 100%;
+  }
+
+  .ai-assistant-session-select {
+    min-width: 0;
+  }
+
+  .ai-assistant-form {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 8px;
+  }
+
+  .ai-assistant-attach {
+    grid-column: 1;
+  }
+
+  .ai-assistant-form input {
+    flex: initial;
+    grid-column: 2;
+    min-width: 0;
+  }
+
+  .ai-assistant-send-btn {
+    grid-column: 3;
+    min-width: 78px;
+    padding-left: 9px;
+    padding-right: 9px;
+  }
+
+  .ai-assistant-voice-select {
+    grid-column: 1 / span 2;
+    max-width: none;
+    min-width: 0;
+  }
+
+  .ai-assistant-voice-controls {
+    grid-column: 3;
+    justify-self: end;
+  }
 }
 
 [data-theme="light"] .ai-assistant-panel {

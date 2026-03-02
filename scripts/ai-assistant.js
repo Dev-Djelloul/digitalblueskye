@@ -256,6 +256,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Point d'entrée de l'API de l'assistant IA.
   const API_ENDPOINT = 'https://digitalblueskye-ai.djelloulabid75.workers.dev';
+  const panel = document.getElementById('ai-assistant-panel');
+  const panelHeader = panel ? panel.querySelector('.ai-assistant-header') : null;
+  const launcherButton = document.getElementById('ai-assistant-launcher');
+  const closeButton = document.getElementById('ai-assistant-close');
   const messagesContainer = document.getElementById('ai-assistant-messages');
   const input = document.getElementById('ai-assistant-input');
   const sessionSelect = document.getElementById('ai-assistant-session-select');
@@ -288,6 +292,214 @@ document.addEventListener('DOMContentLoaded', function () {
     en: ['Samantha', 'Karen', 'Allison', 'Ava', 'Serena', 'Moira', 'Daniel']
   };
   const conversationStorageKey = 'ai_assistant_conversations_v1';
+  const panelPositionStorageKey = 'ai_assistant_panel_position_v1';
+  const panelSizeStorageKey = 'ai_assistant_panel_size_v1';
+
+  function isDesktopPanelDragEnabled() {
+    return window.matchMedia('(min-width: 769px)').matches;
+  }
+
+  function clampPanelPosition(left, top) {
+    if (!panel) return { left, top };
+    const margin = 8;
+    const maxLeft = Math.max(margin, window.innerWidth - panel.offsetWidth - margin);
+    const maxTop = Math.max(margin, window.innerHeight - panel.offsetHeight - margin);
+    return {
+      left: Math.min(Math.max(left, margin), maxLeft),
+      top: Math.min(Math.max(top, margin), maxTop),
+    };
+  }
+
+  function clampPanelSize(width, height) {
+    const minWidth = 560;
+    const minHeight = 420;
+    const viewportMargin = 8;
+    const maxWidth = Math.max(minWidth, window.innerWidth - (viewportMargin * 2));
+    const maxHeight = Math.max(minHeight, window.innerHeight - (viewportMargin * 2));
+    return {
+      width: Math.min(Math.max(width, minWidth), maxWidth),
+      height: Math.min(Math.max(height, minHeight), maxHeight),
+    };
+  }
+
+  function applyPanelSize(width, height, persist = true) {
+    if (!panel) return;
+    const next = clampPanelSize(width, height);
+    panel.style.width = `${next.width}px`;
+    panel.style.height = `${next.height}px`;
+    panel.style.maxWidth = 'none';
+    panel.style.maxHeight = 'none';
+    if (!persist) return;
+    try {
+      localStorage.setItem(panelSizeStorageKey, JSON.stringify(next));
+    } catch (_) {
+      // ignore storage errors
+    }
+  }
+
+  function loadPanelSize() {
+    if (!panel || !isDesktopPanelDragEnabled()) return;
+    try {
+      const raw = localStorage.getItem(panelSizeStorageKey);
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      const width = Number(parsed?.width);
+      const height = Number(parsed?.height);
+      if (!Number.isFinite(width) || !Number.isFinite(height)) return;
+      applyPanelSize(width, height, false);
+    } catch (_) {
+      // ignore parse errors
+    }
+  }
+
+  function applyPanelPosition(left, top, persist = true) {
+    if (!panel) return;
+    const next = clampPanelPosition(left, top);
+    panel.style.left = `${next.left}px`;
+    panel.style.top = `${next.top}px`;
+    panel.style.transform = panel.classList.contains('is-open')
+      ? 'translate(0, 0) scale(1)'
+      : 'translate(0, 0) scale(0.98)';
+    panel.classList.add('is-draggable');
+    if (!persist) return;
+    try {
+      localStorage.setItem(panelPositionStorageKey, JSON.stringify(next));
+    } catch (_) {
+      // ignore storage errors
+    }
+  }
+
+  function loadPanelPosition() {
+    if (!panel || !isDesktopPanelDragEnabled()) return;
+    try {
+      const raw = localStorage.getItem(panelPositionStorageKey);
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      const left = Number(parsed?.left);
+      const top = Number(parsed?.top);
+      if (!Number.isFinite(left) || !Number.isFinite(top)) return;
+      applyPanelPosition(left, top, false);
+    } catch (_) {
+      // ignore parse errors
+    }
+  }
+
+  function resetPanelPosition(removeSaved = false) {
+    if (!panel) return;
+    panel.classList.remove('is-draggable');
+    panel.style.removeProperty('left');
+    panel.style.removeProperty('top');
+    panel.style.removeProperty('transform');
+    if (!removeSaved) return;
+    try {
+      localStorage.removeItem(panelPositionStorageKey);
+    } catch (_) {
+      // ignore storage errors
+    }
+  }
+
+  function resetPanelSize(removeSaved = false) {
+    if (!panel) return;
+    panel.style.removeProperty('width');
+    panel.style.removeProperty('height');
+    panel.style.removeProperty('max-width');
+    panel.style.removeProperty('max-height');
+    if (!removeSaved) return;
+    try {
+      localStorage.removeItem(panelSizeStorageKey);
+    } catch (_) {
+      // ignore storage errors
+    }
+  }
+
+  function setupPanelDrag() {
+    if (!panel) return;
+
+    let dragState = null;
+
+    function isInteractiveDragTarget(target) {
+      if (!target || !target.closest) return false;
+      return Boolean(
+        target.closest(
+          'input, textarea, button, select, option, a, label, [contenteditable="true"], ' +
+          '.ai-assistant-attach-menu'
+        )
+      );
+    }
+
+    panel.addEventListener('mousedown', (event) => {
+      if (!isDesktopPanelDragEnabled()) return;
+      if (!panel.classList.contains('is-open')) return;
+      if (event.button !== 0) return;
+      if (isInteractiveDragTarget(event.target)) return;
+
+      const rect = panel.getBoundingClientRect();
+      const offsetX = event.clientX - rect.left;
+      const offsetY = event.clientY - rect.top;
+      const resizeHandleSize = 26;
+      const isOnResizeHandle =
+        offsetX >= rect.width - resizeHandleSize &&
+        offsetY >= rect.height - resizeHandleSize;
+
+      // Preserve native CSS resize behavior in bottom-right corner.
+      if (isOnResizeHandle) return;
+
+      dragState = {
+        offsetX,
+        offsetY,
+      };
+      panel.classList.add('is-dragging');
+      event.preventDefault();
+    });
+
+    window.addEventListener('mousemove', (event) => {
+      if (!dragState || !panel) return;
+      const left = event.clientX - dragState.offsetX;
+      const top = event.clientY - dragState.offsetY;
+      applyPanelPosition(left, top, false);
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (panel && isDesktopPanelDragEnabled()) {
+        const rect = panel.getBoundingClientRect();
+        if (Number.isFinite(rect.width) && Number.isFinite(rect.height)) {
+          applyPanelSize(rect.width, rect.height, true);
+        }
+      }
+
+      if (!dragState || !panel) return;
+      dragState = null;
+      panel.classList.remove('is-dragging');
+      const left = Number.parseFloat(panel.style.left);
+      const top = Number.parseFloat(panel.style.top);
+      if (Number.isFinite(left) && Number.isFinite(top)) {
+        applyPanelPosition(left, top, true);
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      if (!panel) return;
+      if (!isDesktopPanelDragEnabled()) {
+        resetPanelPosition(false);
+        resetPanelSize(false);
+        return;
+      }
+      const width = Number.parseFloat(panel.style.width);
+      const height = Number.parseFloat(panel.style.height);
+      if (Number.isFinite(width) && Number.isFinite(height)) {
+        applyPanelSize(width, height, false);
+      } else {
+        loadPanelSize();
+      }
+      const left = Number.parseFloat(panel.style.left);
+      const top = Number.parseFloat(panel.style.top);
+      if (Number.isFinite(left) && Number.isFinite(top)) {
+        applyPanelPosition(left, top, false);
+      } else {
+        loadPanelPosition();
+      }
+    });
+  }
 
   function normalizeHistory(history) {
     if (!Array.isArray(history)) return [];
@@ -1329,19 +1541,26 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   // Ouvre/ferme le panneau de chat.
-  document.getElementById('ai-assistant-launcher').addEventListener('click', () => {
-    document.getElementById('ai-assistant-panel').classList.toggle('is-open');
-  });
+  if (launcherButton && panel) {
+    launcherButton.addEventListener('click', () => {
+      panel.classList.toggle('is-open');
+    });
+  }
 
-  document.getElementById('ai-assistant-close').addEventListener('click', () => {
-    document.getElementById('ai-assistant-panel').classList.remove('is-open');
-  });
+  if (closeButton && panel) {
+    closeButton.addEventListener('click', () => {
+      panel.classList.remove('is-open');
+    });
+  }
 
   document.addEventListener('translationCompleted', (event) => {
     applyAssistantLanguage(event.detail?.language);
   });
 
   applyAssistantLanguage(currentLanguage);
+  setupPanelDrag();
+  loadPanelSize();
+  loadPanelPosition();
   ensureSessionState();
   renderSessionOptions();
   renderCurrentConversation();
