@@ -440,6 +440,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function cleanAssistantReplyText(rawText) {
     return String(rawText || '')
+      .replace(/^\s{0,3}#{1,6}\s+/gm, '')
+      .replace(/\s#{3,}\s+/g, ' ')
       .replace(/[●•◦▪▫]/g, '')
       .replace(/[ \t]{2,}/g, ' ')
       .replace(/\n{3,}/g, '\n\n')
