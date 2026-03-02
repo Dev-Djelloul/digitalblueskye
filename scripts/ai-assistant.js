@@ -424,7 +424,16 @@ document.addEventListener('DOMContentLoaded', function () {
       .replace(/`(.+?)`/g, '$1')
       .replace(/\[(.*?)\]\((.*?)\)/g, '$1')
       .replace(/#{1,6}\s*/g, '')
+      .replace(/[●•◦▪▫]/g, '')
       .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function cleanAssistantReplyText(rawText) {
+    return String(rawText || '')
+      .replace(/[●•◦▪▫]/g, '')
+      .replace(/[ \t]{2,}/g, ' ')
+      .replace(/\n{3,}/g, '\n\n')
       .trim();
   }
 
@@ -461,10 +470,11 @@ document.addEventListener('DOMContentLoaded', function () {
       loading.remove();
 
       if (data.ok) {
-        addMessage('bot', data.reply);
-        speakText(data.reply);
+        const cleanedReply = cleanAssistantReplyText(data.reply);
+        addMessage('bot', cleanedReply);
+        speakText(cleanedReply);
         chatHistory.push({ role: 'user', content: userText });
-        chatHistory.push({ role: 'assistant', content: data.reply });
+        chatHistory.push({ role: 'assistant', content: cleanedReply });
       } else {
         addMessage('bot', i18n.connectionError + (data.error || i18n.fallbackConnectionError));
       }
