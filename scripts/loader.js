@@ -2,7 +2,7 @@ const CONSENT_KEY = 'dbs_consent_v1';
 const CONSENT_VERSION = 1;
 const CONSENT_ID_KEY = 'dbs_consent_id';
 const CONSENT_SENT_KEY = 'dbs_consent_sent_v1';
-const CONSENT_DELAY_MS = 5000;
+const CONSENT_DELAY_MS = 0;
 
 function isCookiesPolicyPage() {
   const path = (window.location.pathname || '').toLowerCase();
@@ -495,9 +495,13 @@ window.addEventListener('load', () => {
     }
 
     if (isCookiesPolicyPage()) {
-      setTimeout(() => {
+      if (CONSENT_DELAY_MS > 0) {
+        setTimeout(() => {
+          createConsentUI();
+        }, CONSENT_DELAY_MS);
+      } else {
         createConsentUI();
-      }, CONSENT_DELAY_MS);
+      }
     }
   });
   
