@@ -8866,14 +8866,10 @@ body.body-menu-open #footer {
 }
 
 .ai-assistant-message-content {
-  max-height: 220px;
-  overflow: hidden;
-  padding-right: 68px;
-  padding-top: 2px;
-}
-
-.ai-assistant-message-content.is-expanded {
   max-height: none;
+  overflow: visible;
+  padding-right: 38px;
+  padding-top: 2px;
 }
 
 .ai-assistant-message-actions {
@@ -8911,14 +8907,6 @@ body.body-menu-open #footer {
 
 .ai-assistant-copy-btn.is-copied {
   border-color: rgb(90 207 166 / 75%);
-}
-
-.ai-assistant-toggle-btn {
-  font-size: 0.95rem;
-}
-
-.ai-assistant-toggle-btn.is-hidden {
-  display: none;
 }
 
 .ai-assistant-message p {

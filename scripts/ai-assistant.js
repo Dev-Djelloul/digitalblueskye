@@ -831,15 +831,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  function setToggleButtonState(toggleBtn, contentEl, expanded) {
-    if (!toggleBtn || !contentEl) return;
-    contentEl.classList.toggle('is-expanded', expanded);
-    toggleBtn.textContent = expanded ? '▴' : '▾';
-    const label = expanded ? i18n.collapse : i18n.expand;
-    toggleBtn.title = label;
-    toggleBtn.setAttribute('aria-label', label);
-  }
-
   function refreshBubbleActionLabels() {
     const copyButtons = messagesContainer.querySelectorAll('.ai-assistant-copy-btn');
     copyButtons.forEach((button) => {
@@ -847,13 +838,6 @@ document.addEventListener('DOMContentLoaded', function () {
       const label = isCopied ? i18n.copied : i18n.copy;
       button.title = label;
       button.setAttribute('aria-label', label);
-    });
-
-    const toggleButtons = messagesContainer.querySelectorAll('.ai-assistant-toggle-btn');
-    toggleButtons.forEach((button) => {
-      const content = button.closest('.ai-assistant-message')?.querySelector('.ai-assistant-message-content');
-      const expanded = !!content?.classList.contains('is-expanded');
-      setToggleButtonState(button, content, expanded);
     });
   }
 
@@ -891,24 +875,8 @@ document.addEventListener('DOMContentLoaded', function () {
       }, 1400);
     });
 
-    const toggleBtn = document.createElement('button');
-    toggleBtn.type = 'button';
-    toggleBtn.className = 'ai-assistant-bubble-btn ai-assistant-toggle-btn';
-    toggleBtn.addEventListener('click', () => {
-      const nextExpanded = !content.classList.contains('is-expanded');
-      setToggleButtonState(toggleBtn, content, nextExpanded);
-      messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    });
-
     actions.appendChild(copyBtn);
-    actions.appendChild(toggleBtn);
     bubble.appendChild(actions);
-
-    requestAnimationFrame(() => {
-      const isLongContent = content.scrollHeight > 210 || content.innerText.length > 260;
-      toggleBtn.classList.toggle('is-hidden', !isLongContent);
-      setToggleButtonState(toggleBtn, content, !isLongContent);
-    });
   }
 
   function setMicState(listening) {
