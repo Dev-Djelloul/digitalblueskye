@@ -8709,7 +8709,7 @@ body.body-menu-open #footer {
   backdrop-filter: blur(8px);
   background: linear-gradient(180deg, rgb(24 26 44 / 94%), rgb(16 16 31 / 95%));
   border: 1px solid rgb(93 93 255 / 35%);
-  border-radius: 5px;
+  border-radius: 15px;
   left: 50%;
   box-shadow:
     0 18px 44px rgb(5 5 15 / 62%),
@@ -8737,6 +8737,8 @@ body.body-menu-open #footer {
 .ai-assistant-header {
   align-items: center;
   border-bottom: 1px solid rgb(255 255 255 / 9%);
+  border-top-left-radius: 15px;
+  border-top-right-radius: 15px;
   display: flex;
   justify-content: center;
   padding: 14px 44px 12px 14px;
