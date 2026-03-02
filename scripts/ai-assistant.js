@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function () {
         ttsOff: 'Voice playback disabled',
         speechUnsupported: 'Voice dictation is not available on this browser',
         loading: '...',
-        connectionError: 'Error: ',
+        friendlyApiError: 'I hit a temporary issue. Please try again in a few seconds.',
         fallbackConnectionError: 'Connection problem',
         assistantDown: 'The assistant is currently unavailable.',
         greeting: 'Hello! How can I help you?'
@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', function () {
       ttsOff: 'Lecture vocale désactivée',
       speechUnsupported: 'Dictée vocale non disponible sur ce navigateur',
       loading: '...',
-      connectionError: 'Erreur: ',
+      friendlyApiError: "Oups, je rencontre un souci temporaire. Réessaie dans quelques secondes.",
       fallbackConnectionError: 'Problème de connexion',
       assistantDown: "L'assistant est indisponible actuellement.",
       greeting: 'Bonjour ! Comment puis-je vous aider ?'
@@ -700,6 +700,13 @@ document.addEventListener('DOMContentLoaded', function () {
       .trim();
   }
 
+  function formatAssistantApiError(apiError) {
+    const normalized = String(apiError || '').toLowerCase();
+    if (!normalized) return i18n.fallbackConnectionError;
+    if (normalized.includes('openrouter')) return i18n.friendlyApiError;
+    return i18n.friendlyApiError;
+  }
+
   // Lit la réponse de l'assistant via la synthèse vocale si activée.
   function speakText(text) {
     if (!isVoiceOutputEnabled || !window.speechSynthesis || !text) return;
@@ -739,7 +746,7 @@ document.addEventListener('DOMContentLoaded', function () {
         chatHistory.push({ role: 'user', content: userText });
         chatHistory.push({ role: 'assistant', content: cleanedReply });
       } else {
-        addMessage('bot', i18n.connectionError + (data.error || i18n.fallbackConnectionError));
+        addMessage('bot', formatAssistantApiError(data.error));
       }
     } catch (e) {
       if(loading) loading.remove();

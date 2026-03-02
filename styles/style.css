@@ -8795,7 +8795,8 @@ body.body-menu-open #footer {
   color: #fff;
   font-family: "Share Tech Mono", monospace;
   font-size: 0.7rem;
-  max-width: 148px;
+  height: 38px;
+  max-width: 194px;
   min-width: 120px;
   padding: 0 8px;
 }
@@ -8853,6 +8854,15 @@ body.body-menu-open #footer {
   padding: 9px 10px;
   position: relative;
   text-align: left;
+}
+
+.ai-assistant-message,
+.ai-assistant-message p,
+.ai-assistant-message li,
+.ai-assistant-message a,
+.ai-assistant-message strong,
+.ai-assistant-message span {
+  font-family: "Share Tech Mono", monospace !important;
 }
 
 .ai-assistant-message-content {
@@ -8945,7 +8955,7 @@ body.body-menu-open #footer {
   background: none !important;
   background-clip: border-box;
   color: initial;
-  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif !important;
   -webkit-background-clip: border-box;
   -webkit-text-fill-color: initial;
 }
