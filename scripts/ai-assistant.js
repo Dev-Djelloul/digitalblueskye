@@ -919,10 +919,12 @@ document.addEventListener('DOMContentLoaded', function () {
       const pickerBuilder = new window.google.picker.PickerBuilder()
         .setDeveloperKey(DRIVE_API_KEY)
         .setOAuthToken(token)
+        .setOrigin(window.location.origin || `${window.location.protocol}//${window.location.host}`)
         .setTitle('Google Drive')
         .enableFeature(window.google.picker.Feature.MULTISELECT_ENABLED)
         .addView(docsView)
         .setCallback((data) => {
+          if (!data?.action) return;
           if (data.action === window.google.picker.Action.PICKED) {
             resolve(Array.isArray(data.docs) ? data.docs : []);
             return;
@@ -931,7 +933,7 @@ document.addEventListener('DOMContentLoaded', function () {
             resolve([]);
             return;
           }
-          reject(new Error('picker_failed'));
+          // Ignore intermediate Picker events (e.g. loaded/view-changed).
         });
 
       if (DRIVE_APP_ID) {
