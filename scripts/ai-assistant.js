@@ -25,6 +25,10 @@ document.addEventListener('DOMContentLoaded', function () {
         send: 'Send',
         voiceSelectLabel: 'Voice',
         voiceSelectAuto: 'Auto voice',
+        copy: 'Copy',
+        copied: 'Copied',
+        expand: 'Expand',
+        collapse: 'Collapse',
         micOn: 'Enable microphone',
         micOff: 'Stop microphone',
         ttsOn: 'Voice playback enabled',
@@ -42,6 +46,10 @@ document.addEventListener('DOMContentLoaded', function () {
       send: 'Envoyer',
       voiceSelectLabel: 'Voix',
       voiceSelectAuto: 'Voix auto',
+      copy: 'Copier',
+      copied: 'Copié',
+      expand: 'Dérouler',
+      collapse: 'Réduire',
       micOn: 'Activer le micro',
       micOff: 'Arrêter le micro',
       ttsOn: 'Lecture vocale activée',
@@ -68,6 +76,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     return `/assets/images/ui/${fileName}`;
   }
+  const copyPasteIconUrl = resolveUiIconUrl('icons8-copy-paste-48.png');
 
   function createVoiceControlsMarkup(micIconUrl, voiceIconUrl) {
     return `
@@ -189,6 +198,7 @@ document.addEventListener('DOMContentLoaded', function () {
       voiceSelect.title = i18n.voiceSelectLabel;
       voiceSelect.setAttribute('aria-label', i18n.voiceSelectLabel);
     }
+    refreshBubbleActionLabels();
     setMicState(isListening);
     setTtsState(isVoiceOutputEnabled);
     if (speechRecognition) {
@@ -410,6 +420,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (kind === 'bot') {
       bubble.innerHTML = formatBotMessageHtml(text);
+      enhanceBotBubble(bubble);
     } else {
       const p = document.createElement('p');
       p.textContent = text;
@@ -419,6 +430,108 @@ document.addEventListener('DOMContentLoaded', function () {
     messagesContainer.appendChild(bubble);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
     return bubble;
+  }
+
+  function copyTextToClipboard(text) {
+    const safeText = String(text || '').trim();
+    if (!safeText) return Promise.resolve(false);
+    if (navigator.clipboard?.writeText) {
+      return navigator.clipboard.writeText(safeText).then(() => true).catch(() => false);
+    }
+    try {
+      const area = document.createElement('textarea');
+      area.value = safeText;
+      area.setAttribute('readonly', '');
+      area.style.position = 'absolute';
+      area.style.left = '-9999px';
+      document.body.appendChild(area);
+      area.select();
+      const ok = document.execCommand('copy');
+      document.body.removeChild(area);
+      return Promise.resolve(!!ok);
+    } catch (error) {
+      return Promise.resolve(false);
+    }
+  }
+
+  function setToggleButtonState(toggleBtn, contentEl, expanded) {
+    if (!toggleBtn || !contentEl) return;
+    contentEl.classList.toggle('is-expanded', expanded);
+    toggleBtn.textContent = expanded ? '▴' : '▾';
+    const label = expanded ? i18n.collapse : i18n.expand;
+    toggleBtn.title = label;
+    toggleBtn.setAttribute('aria-label', label);
+  }
+
+  function refreshBubbleActionLabels() {
+    const copyButtons = messagesContainer.querySelectorAll('.ai-assistant-copy-btn');
+    copyButtons.forEach((button) => {
+      const isCopied = button.dataset.state === 'copied';
+      const label = isCopied ? i18n.copied : i18n.copy;
+      button.title = label;
+      button.setAttribute('aria-label', label);
+    });
+
+    const toggleButtons = messagesContainer.querySelectorAll('.ai-assistant-toggle-btn');
+    toggleButtons.forEach((button) => {
+      const content = button.closest('.ai-assistant-message')?.querySelector('.ai-assistant-message-content');
+      const expanded = !!content?.classList.contains('is-expanded');
+      setToggleButtonState(button, content, expanded);
+    });
+  }
+
+  function enhanceBotBubble(bubble) {
+    if (!bubble || bubble.querySelector('.ai-assistant-message-actions')) return;
+
+    const content = document.createElement('div');
+    content.className = 'ai-assistant-message-content';
+    while (bubble.firstChild) {
+      content.appendChild(bubble.firstChild);
+    }
+    bubble.appendChild(content);
+
+    const actions = document.createElement('div');
+    actions.className = 'ai-assistant-message-actions';
+
+    const copyBtn = document.createElement('button');
+    copyBtn.type = 'button';
+    copyBtn.className = 'ai-assistant-bubble-btn ai-assistant-copy-btn';
+    copyBtn.innerHTML = `<img src="${copyPasteIconUrl}" alt="" aria-hidden="true">`;
+    copyBtn.title = i18n.copy;
+    copyBtn.setAttribute('aria-label', i18n.copy);
+    copyBtn.addEventListener('click', async () => {
+      const ok = await copyTextToClipboard(content.innerText);
+      if (!ok) return;
+      copyBtn.dataset.state = 'copied';
+      copyBtn.classList.add('is-copied');
+      copyBtn.title = i18n.copied;
+      copyBtn.setAttribute('aria-label', i18n.copied);
+      setTimeout(() => {
+        copyBtn.dataset.state = '';
+        copyBtn.classList.remove('is-copied');
+        copyBtn.title = i18n.copy;
+        copyBtn.setAttribute('aria-label', i18n.copy);
+      }, 1400);
+    });
+
+    const toggleBtn = document.createElement('button');
+    toggleBtn.type = 'button';
+    toggleBtn.className = 'ai-assistant-bubble-btn ai-assistant-toggle-btn';
+    toggleBtn.addEventListener('click', () => {
+      const nextExpanded = !content.classList.contains('is-expanded');
+      setToggleButtonState(toggleBtn, content, nextExpanded);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    });
+
+    actions.appendChild(copyBtn);
+    actions.appendChild(toggleBtn);
+    bubble.appendChild(actions);
+
+    requestAnimationFrame(() => {
+      const isLongContent = content.scrollHeight > 210 || content.innerText.length > 260;
+      toggleBtn.classList.toggle('is-hidden', !isLongContent);
+      setToggleButtonState(toggleBtn, content, !isLongContent);
+    });
   }
 
   function setMicState(listening) {
