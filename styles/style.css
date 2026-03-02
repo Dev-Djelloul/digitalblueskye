@@ -8745,6 +8745,68 @@ body.body-menu-open #footer {
   text-align: center;
 }
 
+.ai-assistant-session-bar {
+  align-items: center;
+  border-bottom: 1px solid rgb(255 255 255 / 8%);
+  display: flex;
+  gap: 8px;
+  padding: 8px 10px;
+}
+
+.ai-assistant-session-label {
+  color: rgb(235 240 255 / 85%);
+  font-family: "Share Tech Mono", monospace;
+  font-size: 0.67rem;
+  white-space: nowrap;
+}
+
+.ai-assistant-session-select {
+  background: rgb(255 255 255 / 8%);
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: 8px;
+  color: #fff;
+  flex: 1;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 0.68rem;
+  min-width: 0;
+  padding: 6px 8px;
+}
+
+.ai-assistant-session-new {
+  background: rgb(93 93 255 / 24%);
+  border: 1px solid rgb(93 93 255 / 58%);
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 0.86rem;
+  font-weight: 700;
+  height: 28px;
+  line-height: 1;
+  min-width: 28px;
+  padding: 0;
+}
+
+.ai-assistant-session-delete {
+  align-items: center;
+  background: rgb(255 93 124 / 16%);
+  border: 1px solid rgb(255 93 124 / 45%);
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  height: 28px;
+  justify-content: center;
+  min-width: 28px;
+  padding: 0;
+}
+
+.ai-assistant-session-delete img {
+  display: block;
+  height: 14px;
+  object-fit: contain;
+  width: 14px;
+}
+
 .ai-assistant-title-wrap {
   text-align: center;
   width: 100%;
@@ -9123,6 +9185,27 @@ body.body-menu-open #footer {
   color: transparent;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+[data-theme="light"] .ai-assistant-session-label {
+  color: rgb(47 43 95 / 72%);
+}
+
+[data-theme="light"] .ai-assistant-session-select {
+  background: rgb(93 93 255 / 8%);
+  border-color: rgb(93 93 255 / 20%);
+  color: #2f2b5f;
+}
+
+[data-theme="light"] .ai-assistant-session-new {
+  background: rgb(93 93 255 / 16%);
+  border-color: rgb(93 93 255 / 34%);
+  color: #2f2b5f;
+}
+
+[data-theme="light"] .ai-assistant-session-delete {
+  background: rgb(255 93 124 / 12%);
+  border-color: rgb(255 93 124 / 30%);
 }
 
 [data-theme="light"] .ai-assistant-subtitle,

@@ -29,10 +29,16 @@ document.addEventListener('DOMContentLoaded', function () {
         attachMenu: 'Attachment options',
         attachFiles: 'Files',
         attachDrive: 'Google Drive',
+        historyLabel: 'Conversations',
+        newChat: 'New',
+        deleteChat: 'Delete',
+        sessionDefault: 'New conversation',
         selectedFiles: 'Selected files:',
         fileReady: 'Files are ready for analysis:',
         fileUnsupported: 'Unsupported file type:',
         fileReadFailed: 'Unable to read file:',
+        imageReady: 'Image ready for visual analysis:',
+        imageReadFailed: 'Unable to prepare image for visual analysis:',
         pdfLoading: 'Reading PDF content...',
         pdfNoText: 'No readable text found in PDF:',
         pdfReadFailed: 'Unable to read PDF:',
@@ -65,10 +71,16 @@ document.addEventListener('DOMContentLoaded', function () {
       attachMenu: "Options d'ajout",
       attachFiles: 'Fichiers',
       attachDrive: 'Google Drive',
+      historyLabel: 'Conversations',
+      newChat: 'Nouveau',
+      deleteChat: 'Supprimer',
+      sessionDefault: 'Nouvelle conversation',
       selectedFiles: 'Fichiers sélectionnés :',
       fileReady: 'Fichiers prêts pour analyse :',
       fileUnsupported: 'Type de fichier non pris en charge :',
       fileReadFailed: 'Impossible de lire le fichier :',
+      imageReady: "Image prête pour l'analyse visuelle :",
+      imageReadFailed: "Impossible de préparer l'image pour l'analyse visuelle :",
       pdfLoading: 'Lecture du contenu PDF...',
       pdfNoText: 'Aucun texte lisible trouvé dans le PDF :',
       pdfReadFailed: 'Impossible de lire le PDF :',
@@ -109,6 +121,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const copyPasteIconUrl = resolveUiIconUrl('icons8-copy-paste-48.png');
   const filesIconUrl = resolveUiIconUrl('icons8-files-64.png');
   const driveIconUrl = resolveUiIconUrl('icons8-google-drive-64.png');
+  const deleteIconUrl = resolveUiIconUrl('icons8-delete-48.png');
 
   function createAttachControlsMarkup() {
     return `
@@ -124,6 +137,18 @@ document.addEventListener('DOMContentLoaded', function () {
             <span>${i18n.attachDrive}</span>
           </button>
         </div>
+      </div>`;
+  }
+
+  function createSessionControlsMarkup() {
+    return `
+      <div class="ai-assistant-session-bar">
+        <label class="ai-assistant-session-label" for="ai-assistant-session-select">${i18n.historyLabel}</label>
+        <select id="ai-assistant-session-select" class="ai-assistant-session-select" aria-label="${i18n.historyLabel}"></select>
+        <button id="ai-assistant-session-new" class="ai-assistant-session-new" type="button" title="${i18n.newChat}" aria-label="${i18n.newChat}">+</button>
+        <button id="ai-assistant-session-delete" class="ai-assistant-session-delete" type="button" title="${i18n.deleteChat}" aria-label="${i18n.deleteChat}">
+          <img src="${deleteIconUrl}" alt="" aria-hidden="true">
+        </button>
       </div>`;
   }
 
@@ -157,6 +182,7 @@ document.addEventListener('DOMContentLoaded', function () {
             <h2 class="ai-assistant-title">Digital Blue Skye AI</h2>
             <button id="ai-assistant-close" class="ai-assistant-close" type="button">&times;</button>
           </header>
+          ${createSessionControlsMarkup()}
           <div id="ai-assistant-messages" class="ai-assistant-messages"></div>
           <div id="ai-assistant-quick-actions" class="ai-assistant-quick-actions"></div>
           <form id="ai-assistant-form" class="ai-assistant-form">
@@ -174,6 +200,15 @@ document.addEventListener('DOMContentLoaded', function () {
     const closeBtn = document.getElementById('ai-assistant-close');
     if (closeBtn) closeBtn.classList.add('ai-assistant-close');
     if (!form) return;
+
+    if (!document.getElementById('ai-assistant-session-select')) {
+      const header = document.querySelector('#ai-assistant-panel .ai-assistant-header');
+      const wrapper = document.createElement('div');
+      wrapper.innerHTML = createSessionControlsMarkup().trim();
+      if (header && header.parentNode) {
+        header.insertAdjacentElement('afterend', wrapper.firstElementChild);
+      }
+    }
 
     const submitBtn = form.querySelector('button[type="submit"]');
     if (submitBtn) submitBtn.classList.add('ai-assistant-send-btn');
@@ -223,6 +258,10 @@ document.addEventListener('DOMContentLoaded', function () {
   const API_ENDPOINT = 'https://digitalblueskye-ai.djelloulabid75.workers.dev';
   const messagesContainer = document.getElementById('ai-assistant-messages');
   const input = document.getElementById('ai-assistant-input');
+  const sessionSelect = document.getElementById('ai-assistant-session-select');
+  const sessionNewButton = document.getElementById('ai-assistant-session-new');
+  const sessionDeleteButton = document.getElementById('ai-assistant-session-delete');
+  const sessionLabel = document.querySelector('.ai-assistant-session-label');
   const attachRoot = document.getElementById('ai-assistant-attach');
   const attachToggle = document.getElementById('ai-assistant-attach-toggle');
   const attachMenu = document.getElementById('ai-assistant-attach-menu');
@@ -234,8 +273,10 @@ document.addEventListener('DOMContentLoaded', function () {
   let fileInput = document.getElementById('ai-assistant-file-input');
   // Historique local de conversation envoyé partiellement à l'API.
   let chatHistory = [];
+  let sessionsState = { activeSessionId: '', sessions: [] };
   let pendingFileContext = '';
   let pendingFileNames = [];
+  let pendingVisionAttachments = [];
   let isVoiceOutputEnabled = true;
   let isListening = false;
   let availableTtsVoices = [];
@@ -246,6 +287,19 @@ document.addEventListener('DOMContentLoaded', function () {
     fr: ['Aurelie', 'Amelie', 'Virginie', 'Marie', 'Thomas'],
     en: ['Samantha', 'Karen', 'Allison', 'Ava', 'Serena', 'Moira', 'Daniel']
   };
+  const conversationStorageKey = 'ai_assistant_conversations_v1';
+
+  function normalizeHistory(history) {
+    if (!Array.isArray(history)) return [];
+    return history
+      .map((entry) => {
+        const role = entry?.role === 'assistant' ? 'assistant' : 'user';
+        const content = typeof entry?.content === 'string' ? entry.content : String(entry?.content ?? '');
+        return { role, content: content.trim() };
+      })
+      .filter((m) => m.content.length > 0)
+      .slice(-16);
+  }
   const readableFileExtensions = new Set(['txt', 'md', 'markdown', 'json', 'csv', 'log', 'xml', 'html', 'htm', 'js', 'ts', 'css', 'py', 'php', 'java', 'c', 'cpp', 'sql', 'yaml', 'yml']);
   const imageFileExtensions = new Set(['png', 'jpg', 'jpeg', 'webp', 'bmp', 'gif', 'tiff']);
   const pdfFileExtensions = new Set(['pdf']);
@@ -287,6 +341,38 @@ document.addEventListener('DOMContentLoaded', function () {
       reader.onerror = () => reject(new Error('file_read_error'));
       reader.readAsText(file);
     });
+  }
+
+  function readFileAsDataUrl(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ''));
+      reader.onerror = () => reject(new Error('file_dataurl_error'));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function buildVisionAttachments(files) {
+    const selected = Array.from(files || []).filter((file) => isImageFile(file)).slice(0, 2);
+    const readyNames = [];
+    const failedNames = [];
+    const attachments = [];
+
+    for (const file of selected) {
+      try {
+        const url = await readFileAsDataUrl(file);
+        if (!url.startsWith('data:image/')) {
+          failedNames.push(file.name);
+          continue;
+        }
+        attachments.push({ type: 'image_url', name: file.name, url });
+        readyNames.push(file.name);
+      } catch (error) {
+        failedNames.push(file.name);
+      }
+    }
+
+    return { attachments, readyNames, failedNames };
   }
 
   function loadTesseractLibrary() {
@@ -476,6 +562,16 @@ document.addEventListener('DOMContentLoaded', function () {
     if (attachFileLabel) attachFileLabel.textContent = i18n.attachFiles;
     const attachDriveLabel = attachDriveButton?.querySelector('span');
     if (attachDriveLabel) attachDriveLabel.textContent = i18n.attachDrive;
+    if (sessionLabel) sessionLabel.textContent = i18n.historyLabel;
+    if (sessionSelect) sessionSelect.setAttribute('aria-label', i18n.historyLabel);
+    if (sessionNewButton) {
+      sessionNewButton.title = i18n.newChat;
+      sessionNewButton.setAttribute('aria-label', i18n.newChat);
+    }
+    if (sessionDeleteButton) {
+      sessionDeleteButton.title = i18n.deleteChat;
+      sessionDeleteButton.setAttribute('aria-label', i18n.deleteChat);
+    }
     const sendButton = document.querySelector('#ai-assistant-form .ai-assistant-send-btn');
     if (sendButton) sendButton.textContent = i18n.send;
     if (voiceSelect) {
@@ -483,12 +579,159 @@ document.addEventListener('DOMContentLoaded', function () {
       voiceSelect.setAttribute('aria-label', i18n.voiceSelectLabel);
     }
     refreshBubbleActionLabels();
+    renderSessionOptions();
     setMicState(isListening);
     setTtsState(isVoiceOutputEnabled);
     if (speechRecognition) {
       speechRecognition.lang = currentLanguage === 'en' ? 'en-US' : 'fr-FR';
     }
     populateVoiceSelect(currentLanguage);
+    renderCurrentConversation();
+  }
+
+  function buildSessionId() {
+    return `s_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
+  }
+
+  function makeDefaultSession() {
+    return {
+      id: buildSessionId(),
+      title: i18n.sessionDefault,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      history: []
+    };
+  }
+
+  function loadSessionsState() {
+    try {
+      const raw = localStorage.getItem(conversationStorageKey);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed?.sessions)) return null;
+      const sessions = parsed.sessions
+        .map((s) => ({
+          id: typeof s?.id === 'string' ? s.id : buildSessionId(),
+          title: typeof s?.title === 'string' && s.title.trim() ? s.title : i18n.sessionDefault,
+          createdAt: Number(s?.createdAt) || Date.now(),
+          updatedAt: Number(s?.updatedAt) || Date.now(),
+          history: normalizeHistory(Array.isArray(s?.history) ? s.history : [])
+        }))
+        .slice(-20);
+      return {
+        activeSessionId: typeof parsed?.activeSessionId === 'string' ? parsed.activeSessionId : '',
+        sessions
+      };
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function saveSessionsState() {
+    try {
+      localStorage.setItem(conversationStorageKey, JSON.stringify(sessionsState));
+    } catch (error) {
+      // Ignore storage failures.
+    }
+  }
+
+  function getActiveSession() {
+    return sessionsState.sessions.find((s) => s.id === sessionsState.activeSessionId) || null;
+  }
+
+  function titleFromHistory(history) {
+    const firstUser = history.find((h) => h.role === 'user');
+    if (!firstUser?.content) return i18n.sessionDefault;
+    const compact = firstUser.content.replace(/\s+/g, ' ').trim();
+    return compact.length > 42 ? `${compact.slice(0, 42)}...` : compact;
+  }
+
+  function ensureSessionState() {
+    const loaded = loadSessionsState();
+    if (loaded?.sessions?.length) {
+      sessionsState = loaded;
+    } else {
+      const first = makeDefaultSession();
+      sessionsState = { activeSessionId: first.id, sessions: [first] };
+      saveSessionsState();
+    }
+
+    if (!sessionsState.sessions.some((s) => s.id === sessionsState.activeSessionId)) {
+      sessionsState.activeSessionId = sessionsState.sessions[0]?.id || makeDefaultSession().id;
+    }
+  }
+
+  function renderSessionOptions() {
+    if (!sessionSelect) return;
+    sessionSelect.innerHTML = '';
+    const sorted = [...sessionsState.sessions].sort((a, b) => b.updatedAt - a.updatedAt);
+    for (const session of sorted) {
+      const option = document.createElement('option');
+      option.value = session.id;
+      option.textContent = session.title || i18n.sessionDefault;
+      sessionSelect.appendChild(option);
+    }
+    if (sessionsState.activeSessionId) {
+      sessionSelect.value = sessionsState.activeSessionId;
+    }
+  }
+
+  function renderCurrentConversation() {
+    if (!messagesContainer) return;
+    messagesContainer.innerHTML = '';
+    const active = getActiveSession();
+    chatHistory = active?.history ? [...active.history] : [];
+    if (!chatHistory.length) {
+      addMessage('bot', i18n.greeting);
+      return;
+    }
+    for (const msg of chatHistory) {
+      addMessage(msg.role === 'assistant' ? 'bot' : 'user', msg.content);
+    }
+  }
+
+  function persistActiveConversation() {
+    const active = getActiveSession();
+    if (!active) return;
+    active.history = normalizeHistory(chatHistory);
+    active.updatedAt = Date.now();
+    active.title = titleFromHistory(active.history);
+    saveSessionsState();
+    renderSessionOptions();
+  }
+
+  function switchSession(sessionId) {
+    if (!sessionsState.sessions.some((s) => s.id === sessionId)) return;
+    sessionsState.activeSessionId = sessionId;
+    saveSessionsState();
+    renderSessionOptions();
+    renderCurrentConversation();
+  }
+
+  function createNewSession() {
+    const next = makeDefaultSession();
+    sessionsState.sessions.unshift(next);
+    sessionsState.sessions = sessionsState.sessions.slice(0, 20);
+    sessionsState.activeSessionId = next.id;
+    saveSessionsState();
+    renderSessionOptions();
+    renderCurrentConversation();
+  }
+
+  function deleteActiveSession() {
+    if (!sessionsState.sessions.length) return;
+    const currentId = sessionsState.activeSessionId;
+    sessionsState.sessions = sessionsState.sessions.filter((s) => s.id !== currentId);
+    if (!sessionsState.sessions.length) {
+      const fallback = makeDefaultSession();
+      sessionsState.sessions = [fallback];
+      sessionsState.activeSessionId = fallback.id;
+    } else {
+      sessionsState.activeSessionId = sessionsState.sessions[0].id;
+    }
+    saveSessionsState();
+    renderSessionOptions();
+    renderCurrentConversation();
   }
 
   function getStoredVoicePreferences() {
@@ -625,6 +868,24 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  if (sessionSelect) {
+    sessionSelect.addEventListener('change', () => {
+      switchSession(sessionSelect.value);
+    });
+  }
+
+  if (sessionNewButton) {
+    sessionNewButton.addEventListener('click', () => {
+      createNewSession();
+    });
+  }
+
+  if (sessionDeleteButton) {
+    sessionDeleteButton.addEventListener('click', () => {
+      deleteActiveSession();
+    });
+  }
+
   if (!fileInput) {
     const form = document.getElementById('ai-assistant-form');
     if (form) {
@@ -676,6 +937,7 @@ document.addEventListener('DOMContentLoaded', function () {
         pdfLoadingBubble = addMessage('bot', i18n.pdfLoading);
       }
       const result = await buildLocalFileContext(files);
+      const vision = await buildVisionAttachments(files);
       if (ocrLoadingBubble) {
         ocrLoadingBubble.remove();
       }
@@ -684,9 +946,16 @@ document.addEventListener('DOMContentLoaded', function () {
       }
       pendingFileContext = result.context;
       pendingFileNames = result.readableNames;
+      pendingVisionAttachments = vision.attachments;
 
       if (result.readableNames.length) {
         addMessage('bot', `${i18n.fileReady} ${result.readableNames.join(', ')}`);
+      }
+      if (vision.readyNames.length) {
+        addMessage('bot', `${i18n.imageReady} ${vision.readyNames.join(', ')}`);
+      }
+      if (vision.failedNames.length) {
+        addMessage('bot', `${i18n.imageReadFailed} ${vision.failedNames.join(', ')}`);
       }
       if (result.unsupportedNames.length) {
         addMessage('bot', `${i18n.fileUnsupported} ${result.unsupportedNames.join(', ')}`);
@@ -946,7 +1215,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   // Envoie le message utilisateur au backend, affiche la réponse et met à jour l'historique.
-  async function askAI(userText, fileContext = '') {
+  async function askAI(userText, fileContext = '', attachments = []) {
     const loading = addMessage('bot', i18n.loading);
     try {
       const composedMessage = fileContext
@@ -960,7 +1229,8 @@ document.addEventListener('DOMContentLoaded', function () {
           message: composedMessage,
           history: chatHistory.slice(-4),
           language: currentLanguage === 'en' ? 'en' : 'fr',
-          mode: 'chat'
+          mode: 'chat',
+          attachments
         })
       });
 
@@ -971,14 +1241,19 @@ document.addEventListener('DOMContentLoaded', function () {
         const cleanedReply = cleanAssistantReplyText(data.reply);
         addMessage('bot', cleanedReply);
         speakText(cleanedReply);
-        chatHistory.push({ role: 'user', content: userText });
         chatHistory.push({ role: 'assistant', content: cleanedReply });
+        persistActiveConversation();
       } else {
-        addMessage('bot', formatAssistantApiError(data.error));
+        const msg = formatAssistantApiError(data.error);
+        addMessage('bot', msg);
+        chatHistory.push({ role: 'assistant', content: msg });
+        persistActiveConversation();
       }
     } catch (e) {
       if(loading) loading.remove();
       addMessage('bot', i18n.assistantDown);
+      chatHistory.push({ role: 'assistant', content: i18n.assistantDown });
+      persistActiveConversation();
     }
   }
 
@@ -988,12 +1263,16 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!text && !pendingFileContext) return;
     const visibleText = text || i18n.sendWithoutTextWithFiles;
     addMessage('user', visibleText);
+    chatHistory.push({ role: 'user', content: visibleText });
+    persistActiveConversation();
     input.value = '';
     const fileContext = pendingFileContext;
+    const attachments = pendingVisionAttachments.slice(0, 2);
     pendingFileContext = '';
     pendingFileNames = [];
+    pendingVisionAttachments = [];
     if (fileInput) fileInput.value = '';
-    askAI(visibleText, fileContext);
+    askAI(visibleText, fileContext, attachments);
   });
 
   if (ttsButton) {
@@ -1063,7 +1342,7 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   applyAssistantLanguage(currentLanguage);
-  if (messagesContainer && !messagesContainer.children.length) {
-    addMessage('bot', i18n.greeting);
-  }
+  ensureSessionState();
+  renderSessionOptions();
+  renderCurrentConversation();
 });

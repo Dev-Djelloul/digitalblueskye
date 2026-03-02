@@ -40,11 +40,39 @@ function normalizeHistory(history) {
     .slice(-8);
 }
 
+function normalizeAttachments(attachments) {
+  if (!Array.isArray(attachments)) return [];
+
+  return attachments
+    .map((entry) => {
+      const name = typeof entry?.name === 'string' ? entry.name.slice(0, 160) : 'image';
+      const url = typeof entry?.url === 'string' ? entry.url.trim() : '';
+      const type = entry?.type === 'image_url' ? 'image_url' : '';
+      return { type, url, name };
+    })
+    .filter((item) => item.type === 'image_url' && item.url.startsWith('data:image/'))
+    .slice(0, 2);
+}
+
 function extractReply(data) {
   return data?.choices?.[0]?.message?.content?.trim() || '';
 }
 
-async function callOpenRouter({ apiKey, model, systemPrompt, history, message, referer }) {
+async function callOpenRouter({ apiKey, model, systemPrompt, history, message, attachments, referer }) {
+  const userMessage =
+    attachments.length > 0
+      ? {
+        role: 'user',
+        content: [
+          { type: 'text', text: message },
+          ...attachments.map((item) => ({
+            type: 'image_url',
+            image_url: { url: item.url }
+          }))
+        ]
+      }
+      : { role: 'user', content: message };
+
   const resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -58,7 +86,7 @@ async function callOpenRouter({ apiKey, model, systemPrompt, history, message, r
       messages: [
         { role: 'system', content: systemPrompt },
         ...history,
-        { role: 'user', content: message }
+        userMessage
       ],
       temperature: 0.6
     })
@@ -112,11 +140,21 @@ export default {
 
     const language = body.language === 'en' ? 'en' : 'fr';
     const history = normalizeHistory(body.history);
+    const attachments = normalizeAttachments(body.attachments);
+    const hasImages = attachments.length > 0;
 
     const systemPrompt =
       language === 'en'
-        ? 'You are the Digital Blue Skye assistant. Be concise, practical, and actionable.'
-        : "Tu es l'assistant Digital Blue Skye. Reponds en francais de facon concise, pratique et actionnable.";
+        ? (
+          hasImages
+            ? 'You are the Digital Blue Skye assistant. Be concise, practical, and actionable. Strict vision mode: report only what is directly visible. Never invent brands, places, prices, or context. If uncertain, say "Uncertain". Structure image answers as: 1) Observations, 2) Uncertainties, 3) Next useful checks.'
+            : 'You are the Digital Blue Skye assistant. Be concise, practical, and actionable.'
+        )
+        : (
+          hasImages
+            ? "Tu es l'assistant Digital Blue Skye. Reponds en francais de facon concise, pratique et actionnable. Mode vision strict: decris uniquement ce qui est directement visible. N'invente jamais marque, lieu, prix ou contexte. Si un point est incertain, ecris \"Incertain\". Structure la reponse image en: 1) Observations, 2) Incertitudes, 3) Verifications utiles."
+            : "Tu es l'assistant Digital Blue Skye. Reponds en francais de facon concise, pratique et actionnable."
+        );
 
     const requestedModel = (env.OPENROUTER_MODEL || DEFAULT_MODEL).trim();
     const modelsToTry = [requestedModel, FALLBACK_MODEL].filter((v, i, a) => v && a.indexOf(v) === i);
@@ -130,6 +168,7 @@ export default {
         systemPrompt,
         history,
         message,
+        attachments,
         referer
       });
 
