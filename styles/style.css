@@ -39,7 +39,7 @@
   - RESPONSIVE BLOG + ARTICLES (line 7373)
   - SECTION CONFIANCE (TRUST) - TESTIMONIES & PARTNERS (line 7486)
 */
-@import url("https://fonts.googleapis.com/css2?family=Delius&family=Lato:wght@400;500;700&family=Share+Tech+Mono&family=Space+Mono:wght@400;700&family=Sour+Gummy:ital,wght@0,100..900;1,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Delius&family=Lato:wght@400;500;700&family=Jura:wght@300..700&family=Space+Mono:wght@400;700&family=Sour+Gummy:ital,wght@0,100..900;1,100..900&display=swap");
 
 /* =========================
    VARIABLES & THÈMES
@@ -2903,7 +2903,7 @@ h1.main-title-animated .title-icon {
 }
 
 .ia-page .ia-code-title {
-  font-family: 'Share Tech Mono';
+  font-family: 'Jura';
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
   background-clip: text;
   color: transparent;
@@ -2925,7 +2925,7 @@ h1.main-title-animated .title-icon {
   border-radius: 16px;
   box-shadow: inset 0 0 0 1px rgb(255 255 255 / 2%);
   color: #e5e7eb;
-  font-family: "Share Tech Mono", "Space Mono", "Roboto Condensed", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: "Jura", "Space Mono", "Roboto Condensed", ui-monospace, SFMono-Regular, Menlo, monospace;
   padding: 20px 22px;
   text-align: center;
 }
@@ -2937,7 +2937,7 @@ h1.main-title-animated .title-icon {
 }
 
 .ia-page .code-box li {
-  font-family: "Share Tech Mono", "Space Mono", "Roboto Condensed", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: "Jura", "Space Mono", "Roboto Condensed", ui-monospace, SFMono-Regular, Menlo, monospace;
   margin-bottom: 0.6rem;
   padding-left: 0;
 }
@@ -8678,7 +8678,7 @@ body.body-menu-open #footer {
   color: #fff;
   cursor: pointer;
   display: inline-flex;
-  font-family: "Share Tech Mono", monospace;
+  font-family: "Jura", monospace;
   font-size: 0.75rem;
   font-weight: 600;
   gap: 9px;
@@ -8757,7 +8757,7 @@ body.body-menu-open #footer {
 
 .ai-assistant-session-label {
   color: rgb(235 240 255 / 85%);
-  font-family: "Share Tech Mono", monospace;
+  font-family: "Jura", monospace;
   font-size: 0.67rem;
   white-space: nowrap;
 }
@@ -8768,7 +8768,7 @@ body.body-menu-open #footer {
   border-radius: 8px;
   color: #fff;
   flex: 1;
-  font-family: "Share Tech Mono", monospace;
+  font-family: "Jura", monospace;
   font-size: 0.68rem;
   min-width: 0;
   padding: 6px 8px;
@@ -8780,7 +8780,7 @@ body.body-menu-open #footer {
   border-radius: 8px;
   color: #fff;
   cursor: pointer;
-  font-family: "Share Tech Mono", monospace;
+  font-family: "Jura", monospace;
   font-size: 0.86rem;
   font-weight: 700;
   height: 28px;
@@ -8818,7 +8818,7 @@ body.body-menu-open #footer {
   background: linear-gradient(92deg, #9ec4ff 0%, #9d7dff 45%, #e086ff 100%);
   background-clip: text;
   color: transparent;
-  font-family: "Share Tech Mono", monospace;
+  font-family: "Jura", monospace;
   font-size: 1.08rem;
   letter-spacing: 0.02em;
   line-height: 1.2;
@@ -8857,7 +8857,7 @@ body.body-menu-open #footer {
   border: 1px solid rgb(255 255 255 / 18%);
   border-radius: 10px;
   color: #fff;
-  font-family: "Share Tech Mono", monospace;
+  font-family: "Jura", monospace;
   font-size: 0.7rem;
   height: 38px;
   max-width: 194px;
@@ -8910,7 +8910,7 @@ body.body-menu-open #footer {
   border-radius: 12px;
   display: block;
   flex-shrink: 0;
-  font-family: "Share Tech Mono", monospace;
+  font-family: "Jura", monospace;
   font-size: 0.86rem;
   height: auto;
   max-width: 92%;
@@ -8928,7 +8928,7 @@ body.body-menu-open #footer {
 .ai-assistant-message a,
 .ai-assistant-message strong,
 .ai-assistant-message span {
-  font-family: "Share Tech Mono", monospace !important;
+  font-family: "Jura", monospace !important;
 }
 
 .ai-assistant-message-content {
@@ -9033,7 +9033,7 @@ body.body-menu-open #footer {
 .ai-assistant-link {
   color: #9ec4ff;
   display: inline-block;
-  font-family: "Share Tech Mono", monospace;
+  font-family: "Jura", monospace;
   margin-top: 7px;
   text-decoration: underline;
 }
@@ -9087,7 +9087,7 @@ body.body-menu-open #footer {
   border-radius: 10px;
   color: #e2e8ff;
   cursor: pointer;
-  font-family: "Share Tech Mono", monospace;
+  font-family: "Jura", monospace;
   font-size: 1rem;
   font-weight: 700;
   height: 38px;
@@ -9140,7 +9140,7 @@ body.body-menu-open #footer {
 }
 
 .ai-assistant-attach-item span {
-  font-family: "Share Tech Mono", monospace;
+  font-family: "Jura", monospace;
   font-size: 0.72rem;
 }
 
@@ -9154,7 +9154,7 @@ body.body-menu-open #footer {
   border-radius: 10px;
   color: #fff;
   flex: 2 1 420px;
-  font-family: "Share Tech Mono", monospace;
+  font-family: "Jura", monospace;
   font-size: 0.85rem;
   min-width: 280px;
   padding: 10px;
@@ -9170,7 +9170,7 @@ body.body-menu-open #footer {
   border-radius: 10px;
   color: #fff;
   cursor: pointer;
-  font-family: "Share Tech Mono", monospace;
+  font-family: "Jura", monospace;
   font-size: 0.83rem;
   font-weight: 600;
   min-width: 96px;
