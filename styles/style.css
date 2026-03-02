@@ -9298,7 +9298,7 @@ body.body-menu-open #footer {
   .ai-assistant-panel {
     height: min(76vh, 720px);
     max-height: calc(100dvh - 108px);
-    top: 54%;
+    top: 56%;
     width: calc(100vw - 14px);
   }
 
