@@ -136,7 +136,10 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Ajuster le padding-top du body selon la hauteur du header
   function updateBodyPadding() {
-    if (document.body.classList.contains('home-page')) {
+    if (
+      document.body.classList.contains('home-page')
+      || document.body.classList.contains('inspirations-page')
+    ) {
       document.body.style.paddingTop = '0px';
       return;
     }

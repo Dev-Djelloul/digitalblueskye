@@ -435,6 +435,15 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
+  function placePanelInCurrentViewport() {
+    if (!panel || !isDesktopPanelDragEnabled()) return;
+    const panelWidth = panel.offsetWidth || Math.min(window.innerWidth - 24, 940);
+    const panelHeight = panel.offsetHeight || Math.min(window.innerHeight - 128, 760);
+    const left = window.scrollX + Math.max(8, Math.round((window.innerWidth - panelWidth) / 2));
+    const top = window.scrollY + Math.max(8, Math.round((window.innerHeight - panelHeight) / 2));
+    applyPanelPosition(left, top, false);
+  }
+
   function setupPanelDrag() {
     if (!panel) return;
 
@@ -1983,6 +1992,10 @@ document.addEventListener('DOMContentLoaded', function () {
   // Ouvre/ferme le panneau de chat.
   if (launcherButton && panel) {
     launcherButton.addEventListener('click', () => {
+      const isOpening = !panel.classList.contains('is-open');
+      if (isOpening) {
+        placePanelInCurrentViewport();
+      }
       panel.classList.toggle('is-open');
     });
   }
