@@ -136,6 +136,10 @@ body.project-page {
   padding-top: 60px;
 }
 
+body.home-page {
+  padding-top: 0;
+}
+
 body::before,
 body::after {
   content: "";
@@ -849,7 +853,7 @@ section#skills,
    ========================= */
 header,
 .compact-header {
-  background: var(--header-bg);
+  /*background: var(--header-bg);/* Dégradé pour le header */
   border-bottom: 3px solid transparent;
   border-image: linear-gradient(45deg, var(--accent-color), #c822ff) 1;
   box-shadow: 0 4px 15px rgb(0 0 0 / 20%);
@@ -9056,6 +9060,20 @@ body.body-menu-open #footer {
   font-weight: 700;
 }
 
+.ai-assistant-tts-token,
+.ai-assistant-tts-segment {
+  border-radius: 4px;
+  transition: background-color 0.14s ease, color 0.14s ease;
+}
+
+.ai-assistant-tts-token.is-speaking,
+.ai-assistant-tts-segment.is-speaking {
+  background: rgb(124 242 200 / 28%);
+  color: #ecfffb;
+  -webkit-background-clip: border-box;
+  -webkit-text-fill-color: #ecfffb;
+}
+
 .ai-assistant-emoji {
   background: none !important;
   background-clip: border-box;
@@ -9353,6 +9371,13 @@ body.body-menu-open #footer {
 
 [data-theme="light"] .ai-assistant-message--user {
   background: rgb(43 16 82 / 84%);
+}
+
+[data-theme="light"] .ai-assistant-tts-token.is-speaking,
+[data-theme="light"] .ai-assistant-tts-segment.is-speaking {
+  background: rgb(93 93 255 / 18%);
+  color: #2f2b5f;
+  -webkit-text-fill-color: #2f2b5f;
 }
 
 [data-theme="light"] .ai-assistant-quick-action {

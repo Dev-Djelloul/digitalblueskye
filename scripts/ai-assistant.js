@@ -302,6 +302,8 @@ document.addEventListener('DOMContentLoaded', function () {
   let isVoiceOutputEnabled = true;
   let isListening = false;
   let availableTtsVoices = [];
+  let activeSpeechTracking = null;
+  let speechTrackingToken = 0;
   const selectedTtsVoices = { fr: null, en: null };
   const voicePreferenceStorageKey = 'ai_assistant_voice_pref_v1';
 
@@ -1652,17 +1654,198 @@ document.addEventListener('DOMContentLoaded', function () {
     return i18n.friendlyApiError;
   }
 
+  function ensureSpeechSegmentSpans(bubble) {
+    if (!bubble) return [];
+    const content = bubble.querySelector('.ai-assistant-message-content');
+    if (!content) return [];
+
+    const existing = Array.from(content.querySelectorAll('.ai-assistant-tts-segment'));
+    if (existing.length) return existing;
+
+    const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT, {
+      acceptNode(node) {
+        if (!node?.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+
+    const textNodes = [];
+    let current = walker.nextNode();
+    while (current) {
+      textNodes.push(current);
+      current = walker.nextNode();
+    }
+
+    textNodes.forEach((node) => {
+      const parts = node.nodeValue.match(/[^.!?…\n]+[.!?…]?[\s\n]*/g) || [node.nodeValue];
+      const frag = document.createDocumentFragment();
+
+      parts.forEach((part) => {
+        if (!part) return;
+        if (!part.trim()) {
+          frag.appendChild(document.createTextNode(part));
+          return;
+        }
+        const segment = document.createElement('span');
+        segment.className = 'ai-assistant-tts-segment';
+        segment.textContent = part;
+        frag.appendChild(segment);
+      });
+
+      node.parentNode?.replaceChild(frag, node);
+    });
+
+    return Array.from(content.querySelectorAll('.ai-assistant-tts-segment'));
+  }
+
+  function clearSpeechTrackingVisual() {
+    if (!activeSpeechTracking) return;
+    const { bubble, segmentSpans, fallbackTimerId, fallbackStartTimeoutId } = activeSpeechTracking;
+    if (fallbackTimerId) {
+      clearTimeout(fallbackTimerId);
+    }
+    if (fallbackStartTimeoutId) {
+      clearTimeout(fallbackStartTimeoutId);
+    }
+    bubble?.classList.remove('is-speaking');
+    segmentSpans?.forEach((span) => span.classList.remove('is-speaking'));
+    activeSpeechTracking = null;
+  }
+
+  function updateSpeechTrackingAtIndex(segmentIndex) {
+    if (!activeSpeechTracking || segmentIndex < 0) return;
+    const { segmentSpans, bubble, activeSegmentIndex } = activeSpeechTracking;
+    if (!segmentSpans.length || segmentIndex === activeSegmentIndex) return;
+    if (activeSegmentIndex >= 0 && segmentSpans[activeSegmentIndex]) {
+      segmentSpans[activeSegmentIndex].classList.remove('is-speaking');
+    }
+    const next = segmentSpans[segmentIndex];
+    if (!next) return;
+    bubble.classList.add('is-speaking');
+    next.classList.add('is-speaking');
+    activeSpeechTracking.activeSegmentIndex = segmentIndex;
+  }
+
+  function buildSpeechSegmentMap(segmentSpans) {
+    const segments = [];
+    if (!segmentSpans?.length) return segments;
+    let cursor = 0;
+    segmentSpans.forEach((span, spanIndex) => {
+      const normalized = sanitizeTextForSpeech(span.textContent || '');
+      if (!normalized) return;
+      const start = cursor;
+      const end = start + normalized.length;
+      segments.push({ spanIndex, start, end });
+      cursor = end + 1;
+    });
+    return segments;
+  }
+
+  function buildSpeechTextFromSegments(segmentSpans) {
+    if (!segmentSpans?.length) return '';
+    const chunks = segmentSpans
+      .map((span) => sanitizeTextForSpeech(span.textContent || ''))
+      .filter(Boolean);
+    return chunks.join(' ').trim();
+  }
+
+  function getSegmentIndexForChar(segments, charIndex) {
+    if (!segments.length) return -1;
+    for (let i = segments.length - 1; i >= 0; i -= 1) {
+      if (charIndex >= segments[i].start) return segments[i].spanIndex;
+    }
+    return segments[0].spanIndex;
+  }
+
+  function startEstimatedSpeechTracking(utteranceRate = 1) {
+    if (!activeSpeechTracking || activeSpeechTracking.fallbackTimerId) return;
+    const safeRate = Number.isFinite(utteranceRate) && utteranceRate > 0 ? utteranceRate : 1;
+    const baseCharsPerSecond = currentLanguage === 'en' ? 15.5 : 14.5;
+    const charsPerSecond = baseCharsPerSecond * safeRate;
+    const startedAt = performance.now();
+
+    const tick = () => {
+      if (!activeSpeechTracking) return;
+      const elapsedMs = performance.now() - startedAt;
+      const charIndex = Math.floor((elapsedMs / 1000) * charsPerSecond);
+      const segmentIndex = getSegmentIndexForChar(activeSpeechTracking.speechSegments, charIndex);
+      if (segmentIndex >= 0) {
+        updateSpeechTrackingAtIndex(segmentIndex);
+      }
+      activeSpeechTracking.fallbackTimerId = window.setTimeout(tick, 33);
+    };
+
+    tick();
+  }
+
   // Lit la réponse de l'assistant via la synthèse vocale si activée.
-  function speakText(text) {
+  function speakText(text, bubble = null) {
     if (!isVoiceOutputEnabled || !window.speechSynthesis || !text) return;
 
+    speechTrackingToken += 1;
+    clearSpeechTrackingVisual();
     window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(sanitizeTextForSpeech(text));
+
+    const segmentSpans = ensureSpeechSegmentSpans(bubble);
+    const speechSegments = buildSpeechSegmentMap(segmentSpans);
+    const speechText = buildSpeechTextFromSegments(segmentSpans) || sanitizeTextForSpeech(text);
+    if (!speechText) return;
+
+    if (bubble && segmentSpans.length) {
+      activeSpeechTracking = {
+        bubble,
+        segmentSpans,
+        speechSegments,
+        activeSegmentIndex: -1,
+        hasRealBoundaryEvent: false,
+        fallbackTimerId: 0,
+        fallbackStartTimeoutId: 0
+      };
+    }
+
     const activeLang = currentLanguage === 'en' ? 'en' : 'fr';
-    utterance.lang = activeLang === 'en' ? 'en-US' : 'fr-FR';
-    utterance.voice = selectedTtsVoices[activeLang] || null;
-    utterance.rate = activeLang === 'en' ? 0.95 : 0.92;
-    utterance.pitch = activeLang === 'en' ? 1.02 : 0.98;
+    const speechOptions = {
+      lang: activeLang === 'en' ? 'en-US' : 'fr-FR',
+      voice: selectedTtsVoices[activeLang] || null,
+      rate: activeLang === 'en' ? 1.03 : 1.03,
+      pitch: activeLang === 'en' ? 1.02 : 0.98
+    };
+
+    const utterance = new SpeechSynthesisUtterance(speechText);
+    utterance.lang = speechOptions.lang;
+    utterance.voice = speechOptions.voice;
+    utterance.rate = speechOptions.rate;
+    utterance.pitch = speechOptions.pitch;
+
+    utterance.onboundary = (event) => {
+      if (!activeSpeechTracking) return;
+      if (typeof event?.charIndex !== 'number') return;
+      activeSpeechTracking.hasRealBoundaryEvent = true;
+      if (activeSpeechTracking.fallbackTimerId) {
+        clearTimeout(activeSpeechTracking.fallbackTimerId);
+        activeSpeechTracking.fallbackTimerId = 0;
+      }
+      const segmentIndex = getSegmentIndexForChar(activeSpeechTracking.speechSegments, event.charIndex);
+      if (segmentIndex < 0) return;
+      updateSpeechTrackingAtIndex(segmentIndex);
+    };
+
+    utterance.onstart = () => {
+      if (!activeSpeechTracking) return;
+      activeSpeechTracking.fallbackStartTimeoutId = window.setTimeout(() => {
+        if (!activeSpeechTracking || activeSpeechTracking.hasRealBoundaryEvent) return;
+        startEstimatedSpeechTracking(utterance.rate || 1);
+      }, 420);
+    };
+
+    utterance.onend = () => {
+      clearSpeechTrackingVisual();
+    };
+
+    utterance.onerror = () => {
+      clearSpeechTrackingVisual();
+    };
+
     window.speechSynthesis.speak(utterance);
   }
 
@@ -1691,8 +1874,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
       if (data.ok) {
         const cleanedReply = cleanAssistantReplyText(data.reply);
-        addMessage('bot', cleanedReply);
-        speakText(cleanedReply);
+        const botBubble = addMessage('bot', cleanedReply);
+        speakText(cleanedReply, botBubble);
         chatHistory.push({ role: 'assistant', content: cleanedReply });
         persistActiveConversation();
       } else {
@@ -1748,7 +1931,9 @@ document.addEventListener('DOMContentLoaded', function () {
       isVoiceOutputEnabled = !isVoiceOutputEnabled;
       setTtsState(isVoiceOutputEnabled);
       if (!isVoiceOutputEnabled && window.speechSynthesis) {
+        speechTrackingToken += 1;
         window.speechSynthesis.cancel();
+        clearSpeechTrackingVisual();
       }
     });
     setTtsState(isVoiceOutputEnabled);
