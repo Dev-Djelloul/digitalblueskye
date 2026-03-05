@@ -274,7 +274,7 @@
     "cert1Title": "OpenClassrooms 100% online",
     "cert1Desc": "<span class='trust-highlight'>Web Integrator</span><br>HTML5, CSS3, JavaScript, React, API integration<br><span class='trust-highlight'>Digital Project Manager</span><br>Project leadership, digital strategy, team coordination",
     "cert2Title": "Studi 100% online",
-    "cert2Desc": "<span class='trust-highlight'>Graduate Front-End Developer</span><br>Front-end : Responsive interfaces, accessibility<br>Back-end : PHP, Node.js<br>Databases : MySQL, MongoDB",
+    "cert2Desc": "<span class='trust-highlight'>Graduate Front-End Developer</span><br><span class='trust-highlight'>Front-end</span> : Responsive interfaces, accessibility<br><span class='trust-highlight'>Back-end</span> : PHP, Node.js<br><span class='trust-highlight'>Databases</span> : MySQL, MongoDB",
     "projectsTitle": "9 projects completed and published",
     "projectsDesc": "From showcase site redesigns to responsive e-commerce, up to interactive apps with authentication, APIs, and back-office — a structured portfolio highlighting skill growth, integration quality, and UX attention.",
     "skillsTitle": "Validated Skills",

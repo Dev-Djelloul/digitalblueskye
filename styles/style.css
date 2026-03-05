@@ -7889,7 +7889,7 @@ body.body-menu-open #footer {
     gap: 10px;
     margin: 0 auto;
     max-width: 100%;
-    overflow: hidden;
+    overflow: visible;
     padding: 18px 10px;
     width: 100%;
   }
@@ -7915,6 +7915,17 @@ body.body-menu-open #footer {
     hyphens: auto;
     overflow-wrap: anywhere;
     word-break: break-word;
+  }
+
+  .trust-cert-header {
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .trust-cert-toggle {
+    height: 30px;
+    margin-left: 4px;
+    width: 30px;
   }
 
   .home-page .trust-card--merged p {
@@ -8186,7 +8197,10 @@ body.body-menu-open #footer {
   align-items: center;
   column-gap: 8px;
   display: inline-flex !important;
+  flex-wrap: wrap;
   justify-content: center;
+  row-gap: 4px;
+  white-space: normal;
 }
 
 .trust-title-logo {
@@ -8217,6 +8231,70 @@ body.body-menu-open #footer {
 
 .trust-card-merged-col + .trust-card-merged-col {
   border-left: 1px solid rgb(var(--accent-rgb), 0.25);
+}
+
+.trust-cert-header {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.trust-cert-header h3 {
+  margin-bottom: 0;
+}
+
+.trust-cert-toggle {
+  align-items: center;
+  background: rgb(var(--accent-rgb), 0.12);
+  border: 1px solid rgb(var(--accent-rgb), 0.35);
+  border-radius: 999px;
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 auto;
+  height: 34px;
+  justify-content: center;
+  margin-left: 10px;
+  padding: 0;
+  transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+  width: 34px;
+}
+
+.trust-cert-toggle img {
+  display: block;
+  height: 16px;
+  transform: rotate(0deg);
+  transition: transform 0.2s ease;
+  width: 16px;
+}
+
+.trust-card-merged-col.is-open .trust-cert-toggle img {
+  transform: rotate(180deg);
+}
+
+.trust-cert-content {
+  margin-top: 12px;
+}
+
+/* Titre des cartes certification sans surlignage/soulignement */
+.trust-section .trust-card .trust-title-brand,
+.trust-section .trust-card .trust-title-brand span {
+  background: none !important;
+  color: var(--text-color) !important;
+  text-decoration: none !important;
+  -webkit-text-fill-color: var(--text-color) !important;
+}
+
+[data-theme="dark"] .trust-section .trust-card .trust-title-brand,
+[data-theme="dark"] .trust-section .trust-card .trust-title-brand span {
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+}
+
+[data-theme="light"] .trust-section .trust-card .trust-title-brand,
+[data-theme="light"] .trust-section .trust-card .trust-title-brand span {
+  color: #2f2b5f !important;
+  -webkit-text-fill-color: #2f2b5f !important;
 }
 
 .trust-section .trust-card h3,

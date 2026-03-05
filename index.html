@@ -288,26 +288,40 @@
           <div class="trust-cards-grid">
             <div class="trust-card trust-card--cert trust-card--merged">
               <div class="trust-card-merged-col">
-                <h3>
-                  <a href="https://openclassrooms.com/fr/paths/1030-chef-de-projet-digital" target="_blank" rel="noopener" class="trust-title-brand">
-                    <img src="/assets/images/logo/Openclassrooms-logo.webp" alt="OpenClassrooms logo" class="trust-title-logo" width="18" height="18" loading="lazy" />
-                    <span data-i18n="trust.cert1Title">OpenClassrooms</span>
-                  </a>
-                </h3>
-                <p data-i18n="trust.cert1Desc">
-                  Intégrateur Web (HTML5, CSS3, JavaScript, React, intégration APIs) •<br /><br />
-                  Chef de projet digital :<br />
-                  pilotage de projet, stratégie digitale, coordination d'équipes.
-                </p>
+                <div class="trust-cert-header">
+                  <h3>
+                    <a href="https://openclassrooms.com/fr/paths/1030-chef-de-projet-digital" target="_blank" rel="noopener" class="trust-title-brand">
+                      <img src="/assets/images/logo/Openclassrooms-logo.webp" alt="OpenClassrooms logo" class="trust-title-logo" width="18" height="18" loading="lazy" />
+                      <span data-i18n="trust.cert1Title">OpenClassrooms</span>
+                    </a>
+                  </h3>
+                  <button type="button" class="trust-cert-toggle" aria-expanded="false">
+                    <img src="/assets/images/ui/icons8-chevron-64.png" alt="" aria-hidden="true" />
+                  </button>
+                </div>
+                <div class="trust-cert-content" hidden>
+                  <p data-i18n="trust.cert1Desc">
+                    Intégrateur Web (HTML5, CSS3, JavaScript, React, intégration APIs) •<br /><br />
+                    Chef de projet digital :<br />
+                    pilotage de projet, stratégie digitale, coordination d'équipes.
+                  </p>
+                </div>
               </div>
               <div class="trust-card-merged-col">
-                <h3>
-                  <a href="https://www.studi.com/fr/formation/developpement-web/graduate-developpeur-front-end" target="_blank" rel="noopener" class="trust-title-brand">
-                    <img src="/assets/images/logo/Studi-logo.webp" alt="Studi logo" class="trust-title-logo" width="18" height="18" loading="lazy" />
-                    <span data-i18n="trust.cert2Title">Studi</span>
-                  </a>
-                </h3>
-                <p data-i18n="trust.cert2Desc">Spécialisation Full-Stack : Front-end avancé, Back-end (PHP, Node.js), bases de données (MySQL, MongoDB)</p>
+                <div class="trust-cert-header">
+                  <h3>
+                    <a href="https://www.studi.com/fr/formation/developpement-web/graduate-developpeur-front-end" target="_blank" rel="noopener" class="trust-title-brand">
+                      <img src="/assets/images/logo/Studi-logo.webp" alt="Studi logo" class="trust-title-logo" width="18" height="18" loading="lazy" />
+                      <span data-i18n="trust.cert2Title">Studi</span>
+                    </a>
+                  </h3>
+                  <button type="button" class="trust-cert-toggle" aria-expanded="false">
+                    <img src="/assets/images/ui/icons8-chevron-64.png" alt="" aria-hidden="true" />
+                  </button>
+                </div>
+                <div class="trust-cert-content" hidden>
+                  <p data-i18n="trust.cert2Desc"><span class='trust-highlight'>Graduate Développeur Front-End</span><br><span class='trust-highlight'>Front-end</span> : Interfaces responsives, accessibilité<br><span class='trust-highlight'>Back-end</span> : PHP, Node.js<br><span class='trust-highlight'>Bases de données</span> : MySQL, MongoDB</p>
+                </div>
               </div>
             </div>
           </div>
@@ -607,6 +621,7 @@
     <script src="scripts/parallax.js"></script>
     <script src="scripts/theme-switcher.js"></script>
     <script src="scripts/navbar-dropdown.js"></script>
+    <script src="scripts/trust-certificates-toggle.js"></script>
     <script src="scripts/welcome-animations.js"></script>
     <script src="scripts/scroll-animations.js"></script>
     <script>

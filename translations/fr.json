@@ -272,7 +272,7 @@
     "cert1Title": "OpenClassrooms 100% en ligne",
     "cert1Desc": "<span class='trust-highlight'>Intégrateur Web</span><br>HTML5, CSS3, JavaScript, React, intégration APIs<br><span class='trust-highlight'>Chef de projet digital</span><br>Pilotage de projet, stratégie digitale, coordination d'équipes",
     "cert2Title": "Studi 100% en ligne",
-    "cert2Desc": "<span class='trust-highlight'>Graduate Développeur Front-End</span><br>Front-end : Interfaces responsives, accessibilité<br>Back-end : PHP, Node.js<br>Bases de données : MySQL, MongoDB",
+    "cert2Desc": "<span class='trust-highlight'>Graduate Développeur Front-End</span><br><span class='trust-highlight'>Front-end</span> : Interfaces responsives, accessibilité<br><span class='trust-highlight'>Back-end</span> : PHP, Node.js<br><span class='trust-highlight'>Bases de données</span> : MySQL, MongoDB",
     "projectsTitle": "9 projets réalisés et publiés",
     "projectsDesc": "De la refonte de sites vitrines au e-commerce responsive, jusqu'à des apps interactives avec authentification, API et back-office — un portfolio structuré qui montre la montée en compétences, la qualité d'intégration et l'attention portée à l'UX.",
     "skillsTitle": "Compétences validées",
