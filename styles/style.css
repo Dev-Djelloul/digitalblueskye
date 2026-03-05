@@ -1663,7 +1663,7 @@ section.page-title-container
 
 .page-title-container .main-page-title {
   line-height: 1.15;
-  padding-bottom: 0.08em;
+  padding-bottom: 0.20em;
 }
 
 .page-title-container .news-page-title {
@@ -2212,6 +2212,7 @@ h1.main-title-animated .title-icon {
   font-variation-settings: "wdth" 100;
   font-size: 3.5rem;
   margin-bottom: 20px;
+  padding: 0.25em;
 }
 
 [data-theme="light"] .blog-title {
