@@ -81,7 +81,7 @@
 
   function extractDate(datelineText) {
     // Essaie d'extraire une date depuis un texte comme "Publié le 28 Mai 2025" ou "Published on November 15, 2025"
-    // Formats attendus : "28 Mai 2025", "15 Novembre 2025", "May 28, 2025", "November 15, 2025"
+    // Formats attendus : "28 Mai 2025", "Mai 2025", "May 28, 2025", "May 2025"
     if (!datelineText) return null;
 
     // Mois français
@@ -96,7 +96,7 @@
       'july': '07', 'august': '08', 'september': '09', 'october': '10', 'november': '11', 'december': '12'
     };
 
-    // Essaie format français : "28 Mai 2025"
+    // Essaie format français complet : "28 Mai 2025"
     var frMatch = datelineText.match(/(\d{1,2})\s+(\w+)\s+(\d{4})/i);
     if (frMatch) {
       var day = frMatch[1].padStart(2, '0');
@@ -108,7 +108,18 @@
       }
     }
 
-    // Essaie format anglais : "May 28, 2025"
+    // Essaie format français mois+année : "Mai 2025"
+    var frMonthYearMatch = datelineText.match(/(\b(?:janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)\b)\s+(\d{4})/i);
+    if (frMonthYearMatch) {
+      var frMonthName = frMonthYearMatch[1].toLowerCase();
+      var frYear = frMonthYearMatch[2];
+      var frMonthNum = frMonths[frMonthName];
+      if (frMonthNum) {
+        return frYear + '-' + frMonthNum + '-01T00:00:00Z';
+      }
+    }
+
+    // Essaie format anglais complet : "May 28, 2025"
     var enMatch = datelineText.match(/(\w+)\s+(\d{1,2}),\s+(\d{4})/i);
     if (enMatch) {
       var monthName = enMatch[1].toLowerCase();
@@ -117,6 +128,17 @@
       var monthNum = enMonths[monthName];
       if (monthNum) {
         return year + '-' + monthNum + '-' + day + 'T00:00:00Z';
+      }
+    }
+
+    // Essaie format anglais mois+année : "May 2025"
+    var enMonthYearMatch = datelineText.match(/(\b(?:january|february|march|april|may|june|july|august|september|october|november|december)\b)\s+(\d{4})/i);
+    if (enMonthYearMatch) {
+      var enMonthName = enMonthYearMatch[1].toLowerCase();
+      var enYear = enMonthYearMatch[2];
+      var enMonthNum = enMonths[enMonthName];
+      if (enMonthNum) {
+        return enYear + '-' + enMonthNum + '-01T00:00:00Z';
       }
     }
 
