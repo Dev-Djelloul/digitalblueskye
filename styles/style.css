@@ -6711,7 +6711,7 @@ h1.main-title-animated .title-icon {
 
 [data-theme="light"] .contact-form input,
 [data-theme="light"] .contact-form textarea {
-  background: rgb(11 40 76 / 22%);
+  background: rgb(255 255 255 / 96%);
   border-color: rgb(43 16 82 / 45%);
   color: var(--text-color);
   caret-color: var(--text-color);
@@ -6728,7 +6728,7 @@ h1.main-title-animated .title-icon {
 [data-theme="light"] .contact-form input:-webkit-autofill:focus,
 [data-theme="light"] .contact-form textarea:-webkit-autofill:focus {
   -webkit-text-fill-color: var(--text-color);
-  box-shadow: 0 0 0 1000px rgb(11 40 76 / 22%) inset;
+  box-shadow: 0 0 0 1000px rgb(255 255 255 / 96%) inset;
   caret-color: var(--text-color);
 }
 [data-theme="light"] .contact-form input:focus,
