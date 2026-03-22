@@ -322,7 +322,7 @@ section#skills,
   color: #fff;
   display: inline-flex;
   font-family: "Jura", sans-serif;
-  font-size: 1rem;
+  font-size: 0.8rem;
   font-weight: 600;
   gap: 8px;
   padding: 8px 18px;
@@ -433,7 +433,7 @@ section#skills,
 /* Animations pour le titre, le paragraphe de texte et le bouton de la page d'accueil */
 .intro-text .animated-title {
   display: inline-block;
-  font-size: 4.2rem;
+  font-size: 3.2rem;
   line-height: 1.18;
   margin-bottom: 0;
   margin-top: 40px;
@@ -476,12 +476,12 @@ section#skills,
 
   /* Style de base */
   display: inline-block;
-  font-size: 1.3rem;
+  font-size: 1.1rem;
 
   /* Animation d'apparition */
   margin: 45px;
   opacity: 0;
-  padding: 8px 25px;
+  padding: 12px 25px;
   text-decoration: none;
   transform: translateY(50px);
   transition: opacity 0.8s ease-out, transform 0.8s ease-out;
@@ -1556,7 +1556,7 @@ h3.title-banner {
   justify-content: center;
   margin: 0 auto;
   max-width: min(100%, var(--home-content-max));
-  padding: clamp(130px, 24vh, 250px) 24px 0;
+  padding: clamp(100px, 24vh, 135px) 24px 0;  
   text-align: center;
   width: 100%;
 }
@@ -7119,6 +7119,16 @@ body.body-menu-open #footer {
 
 /* Tablettes et petits ordinateurs */
 @media (width <= 992px) {
+  header {
+    min-height: 68px;
+    padding: 8px 14px;
+  }
+
+  .compact-header {
+    height: 64px;
+    padding: 0 18px;
+  }
+
   section#skills,
   #skills {
     margin-top: 50px;
@@ -7142,7 +7152,13 @@ body.body-menu-open #footer {
   }
 
   .home-page .intro-text .hero-media {
+    margin-top: -40px;
+    min-height: clamp(320px, 56vw, 520px);
     width: 100vw;
+  }
+
+  .home-page .intro-text .hero-media-main {
+    object-position: center 36%;
   }
 
   .intro-text .animated-paragraph {
@@ -7214,13 +7230,13 @@ body.body-menu-open #footer {
 
   /* Ajuster la largeur du menu pour mobile */
   .dropdown-menu {
-    height: calc(95vh - 70px); /* Hauteur restante */
+    height: calc(95vh - 78px); /* Hauteur restante */
     overflow-y: auto; /* ✅ Scroll interne au menu */
     scrollbar-width: thin;
     scrollbar-color: rgb(93 93 255 / 65%) transparent;
     padding: 20px; /* Padding réduit */
     position: fixed; /* ✅ Menu fixe */
-    top: 70px; /* Positionné sous le header compact */
+    top: 78px; /* Positionné sous le header compact */
     width: 100%; /* ✅ Plus large que les 30% actuels pour une meilleure UX */
     z-index: 2000; /* ✅ S'assure qu'il passe au-dessus */
   }
@@ -7239,7 +7255,7 @@ body.body-menu-open #footer {
   }
 
   body {
-    padding-top: 60px;
+    padding-top: 72px;
   } /* Ajuster le padding du body pour le header compact */
 
 
@@ -7262,8 +7278,8 @@ body.body-menu-open #footer {
 
   /* Ajuster le Header Compact pour Mobile */
   header {
-    height: 52px;
-    padding: 0 8px;
+    height: 64px;
+    padding: 0 10px;
   } /* Header compact */
   header h1 {
     font-size: 1rem;
@@ -7283,7 +7299,8 @@ body.body-menu-open #footer {
 
   /* Ajuster le Header Compact pour Mobile */
   .compact-header {
-    padding: 0 15px;
+    height: 64px;
+    padding: 0 16px;
   } /* Header compact */
   .compact-header .header-left {
     gap: 8px;
@@ -7415,9 +7432,9 @@ body.body-menu-open #footer {
 
   .home-page .intro-text .btn-explore {
     display: inline-flex;
-    font-size: 1.05rem;
+    font-size: 0.8rem;
     justify-content: center;
-    margin: 4px auto 0;
+    margin: 25px auto 0;
     min-width: 0;
     padding: 7px 18px;
     width: auto;
@@ -8196,7 +8213,7 @@ body.body-menu-open #footer {
   align-items: center;
   column-gap: 8px;
   display: inline-flex !important;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: center;
   row-gap: 4px;
   white-space: normal;
@@ -8233,10 +8250,13 @@ body.body-menu-open #footer {
 }
 
 .trust-cert-header {
-  align-items: center;
   display: flex;
-  gap: 10px;
-  justify-content: space-between;
+  gap: 15px;
+  justify-content: space-evenly;
+  align-items: flex-end;
+  align-content: center;
+  flex-wrap: wrap;
+  flex-direction: column-reverse;
 }
 
 .trust-cert-header h3 {
@@ -8378,7 +8398,7 @@ body.body-menu-open #footer {
 
 .methodology-item p {
   color: var(--text-color);
-  font-size: 1.05rem;
+  font-size: 0.9rem;
   line-height: 1.7;
   opacity: 0.95;
 }
@@ -8424,13 +8444,13 @@ body.body-menu-open #footer {
   }
 
   .methodology-item h3 {
-    font-size: 1.1rem;
+    font-size: 1.3rem;
   }
 }
 
 @media (width <= 600px) {
   .intro-text .animated-title {
-    font-size: 2.2rem;
+    font-size: 2rem;
   }
 
   .intro-text .animated-paragraph {
@@ -8486,11 +8506,11 @@ body.body-menu-open #footer {
   }
 
   .main-page-title {
-    font-size: 2rem;
+    font-size: 1.5rem;
   }
 
   .page-subtitle {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
   }
 
   .news-card-title {
@@ -8556,11 +8576,11 @@ body.body-menu-open #footer {
   }
 
   .trust-section h2 {
-    font-size: 2.1rem;
+    font-size: 1.9rem;
   }
 
   .trust-section .section-subtitle {
-    font-size: 1.1rem;
+    font-size: 1.05rem;
   }
 
   .testimonial-text {
@@ -9562,22 +9582,22 @@ body.body-menu-open #footer {
 /* Home mobile: cards full-width + hero image reposition */
 @media (width <= 576px) {
   .home-page .intro-text .hero-media {
-    margin-top: -24px;
-    min-height: 0;
+    margin-top: -12px;
+    min-height: 300px;
   }
 
   .home-page .intro-text .hero-media-main {
-    object-position: center 62%;
+    object-position: center 34%;
   }
 
   .home-page .trust-section {
-    padding-inline: 10px;
+    padding-inline: 5px;
   }
 
   .home-page .trust-section .container,
   .home-page .all-news-list .container {
     max-width: 100%;
-    padding-inline: 6px;
+    padding-inline: 15px;
   }
 
   .home-page .trust-cards-grid,
