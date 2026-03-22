@@ -4499,7 +4499,7 @@ h1.main-title-animated .title-icon {
   display: inline-block;
   font-family: inherit; /* Transition, reset bordure, curseur, alignement */
   font-weight: bold;
-  padding: 8px 35px;
+  padding: 8px 16px;
   text-align: center;
   text-decoration: none;
   transition: all 0.3s ease;
@@ -7278,7 +7278,7 @@ body.body-menu-open #footer {
 
   /* Ajuster le Header Compact pour Mobile */
   header {
-    height: 64px;
+    height: 70px;
     padding: 0 10px;
   } /* Header compact */
   header h1 {
@@ -7288,7 +7288,7 @@ body.body-menu-open #footer {
 
   .header-logo img {
     border-radius: 50%;
-    height: 56px;
+    height: 54px;
     margin: 0;
     width: auto;
   }
@@ -8572,7 +8572,7 @@ body.body-menu-open #footer {
   .contact-email a,
   .project-links a,
   .project-detail .project-links a {
-    font-size: 1rem;
+    font-size: 0.8rem;
   }
 
   .trust-section h2 {
@@ -9535,7 +9535,7 @@ body.body-menu-open #footer {
 
 @media (width <= 768px) {
   .ai-assistant-launcher {
-    top: 50%;
+    top: 40%;
     right: 12px;
     transform: translateY(-50%);
   }
