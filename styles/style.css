@@ -1305,7 +1305,7 @@ body.body-menu-open .compact-header {
   align-items: center;
   display: flex;
   flex-wrap: wrap;
-  gap: 18px;
+  gap: 8px;
   margin-top: 30px;
   justify-content: flex-start;
 }
@@ -2515,7 +2515,7 @@ h1.main-title-animated .title-icon {
 .consent-banner__description {
   font-size: 0.82rem;
   line-height: 1.5;
-  margin-bottom: 12px;
+  margin-bottom: 18px;
   opacity: 0.85;
 }
 
@@ -2622,7 +2622,7 @@ h1.main-title-animated .title-icon {
 
 .consent-banner__links {
   display: flex;
-  gap: 18px;
+  gap: 8px;
   justify-content: center;
   text-align: center;
 }
@@ -6408,8 +6408,8 @@ h1.main-title-animated .title-icon {
 
 .skills-grid {
   display: grid;
-  gap: 2px;
-  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(104px, 1fr));
   place-items: center center;
   width: 100%;
 }
@@ -6421,9 +6421,12 @@ h1.main-title-animated .title-icon {
   box-shadow: 0 6px 14px rgb(0 0 0 / 15%);
   display: flex;
   flex-direction: column-reverse;
+  gap: 18px;
   margin: 0 auto;
-  max-width: 90px;
-  padding: 10px 6px;
+  max-width: 110px;
+  min-height: 116px;
+  overflow: visible;
+  padding: 12px 8px;
   transition: all 0.3s ease;
   width: 100%;
 }
@@ -6448,7 +6451,7 @@ h1.main-title-animated .title-icon {
   display: flex;
   height: 48px;
   justify-content: center;
-  margin-bottom: 5px;
+  margin-bottom: 0;
   padding: 4px;
   transition: all 0.3s ease;
   width: 48px;
@@ -6465,11 +6468,18 @@ h1.main-title-animated .title-icon {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
   background-clip: text;
   color: transparent;
+  display: block;
   font-family: "Kaushan Script", "Fruktur", cursive;
   font-size: 1.2rem;
   font-weight: bold;
+  line-height: 1.4;
   margin: 0;
+  max-width: calc(100% - 0.44em);
+  overflow-wrap: anywhere;
+  overflow: visible;
+  padding: 0.06em 0.22em 0;
   text-align: center;
+  white-space: normal;
 }
 
 /* Styles Compétences en thème clair */
@@ -7611,7 +7621,7 @@ body.body-menu-open #footer {
 .skills-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 12px;
   justify-content: center;
   max-width: 100%;
   width: 100%;
@@ -7620,9 +7630,11 @@ body.body-menu-open #footer {
 .skill {
   box-sizing: border-box;
   flex: 1 1 40%;
+  gap: 18px;
   margin-bottom: 10px;
-  max-width: 48%;
-  min-width: 110px;
+  max-width: 160px;
+  min-width: 120px;
+  overflow: visible;
 }
 
 .skill-icon {
@@ -7638,6 +7650,8 @@ body.body-menu-open #footer {
 
 .skill p {
   font-size: 1.1rem;
+  line-height: 1.35;
+  padding: 0.06em 0.22em 0;
 }
 
 .contact-form {

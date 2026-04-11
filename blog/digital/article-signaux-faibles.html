@@ -3,95 +3,63 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" data-i18n="news.article11.metaDescription" content="Lecture pédagogique de la citation de Sam Altman : devenir un connecteur de points plutôt qu'un simple collecteur de faits." />
-    <link rel="canonical" href="https://digitalblueskye.infinityfreeapp.com/blog/digital/article-connector-dots.html" />
+    <meta name="description" data-i18n="news.article12.metaDescription" content="Article de prospective sur cinq signaux faibles qui annoncent déjà les prochains arbitrages produit, IA, infrastructure et expérience utilisateur." />
+    <link rel="canonical" href="https://digitalblueskye.infinityfreeapp.com/blog/digital/article-signaux-faibles.html" />
     <meta property="og:type" content="article" />
-    <meta property="og:title" data-i18n="news.article11.metaTitle" content="Connecter les points" />
-    <meta property="og:description" data-i18n="news.article11.metaDescription" content="Lecture pédagogique de la citation de Sam Altman : devenir un connecteur de points plutôt qu'un simple collecteur de faits." />
-    <meta property="og:image" content="https://digitalblueskye.infinityfreeapp.com/assets/images/blog/Dots-connected/ChatGPT.jpeg" />
-    <meta property="og:url" content="https://digitalblueskye.infinityfreeapp.com/blog/digital/article-connector-dots.html" />
+    <meta property="og:title" data-i18n="news.article12.metaTitle" content="5 signaux faibles à surveiller dans le numérique" />
+    <meta property="og:description" data-i18n="news.article12.metaDescription" content="Article de prospective sur cinq signaux faibles qui annoncent déjà les prochains arbitrages produit, IA, infrastructure et expérience utilisateur." />
+    <meta property="og:image" content="https://digitalblueskye.infinityfreeapp.com/assets/images/backgrounds/City%20of%20Tomorrow.png" />
+    <meta property="og:url" content="https://digitalblueskye.infinityfreeapp.com/blog/digital/article-signaux-faibles.html" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" data-i18n="news.article11.metaTitle" content="Connecter les points" />
-    <meta name="twitter:description" data-i18n="news.article11.metaDescription" content="Lecture pédagogique de la citation de Sam Altman : devenir un connecteur de points plutôt qu'un simple collecteur de faits." />
-    <!-- Google tag (gtag.js) -->
-    <script
-      async
-      src="https://www.googletagmanager.com/gtag/js?id=G-XJ51Y4QD25"
-    ></script>
+    <meta name="twitter:title" data-i18n="news.article12.metaTitle" content="5 signaux faibles à surveiller dans le numérique" />
+    <meta name="twitter:description" data-i18n="news.article12.metaDescription" content="Article de prospective sur cinq signaux faibles qui annoncent déjà les prochains arbitrages produit, IA, infrastructure et expérience utilisateur." />
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XJ51Y4QD25"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag() {
         dataLayer.push(arguments);
       }
       gtag("js", new Date());
-
       gtag("config", "G-XJ51Y4QD25");
     </script>
-    <title data-i18n="news.article11.metaTitle">Connecter les points</title>
+    <title data-i18n="news.article12.metaTitle">5 signaux faibles à surveiller dans le numérique</title>
     <script>
       (function() {
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        document.documentElement.setAttribute('data-theme', savedTheme);
+        const savedTheme = localStorage.getItem("theme") || "dark";
+        document.documentElement.setAttribute("data-theme", savedTheme);
       })();
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
-    <link
-      href="https://fonts.googleapis.com/css2?family=Iceland&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Iceland&display=swap" rel="stylesheet" />
     <link rel="preconnect" href="https://player.canva.com" />
     <link rel="stylesheet" href="/styles/style.css" />
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
     <script src="/scripts/jsonld-injector.js" defer></script>
     <link rel="icon" href="/favicon.ico" sizes="any">
-  <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
-  <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#1f1d2b">
-</head>
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#1f1d2b">
+  </head>
   <body>
-    <!-- Header fixe avec logo et hamburger -->
     <header class="site-header">
       <div class="header-placeholder"></div>
-      <!-- Logo -->
       <div class="header-logo">
         <a href="/index.html" title="Retour à l'accueil">
           <img src="/assets/images/logo/DigitalBlueSkye-Logo.png" alt="Logo Digitalblueskye" width="50" height="50" />
         </a>
       </div>
-      <!-- Contrôles alignés -->
       <div class="menu-controls">
         <div class="language-switch" role="group" aria-label="Changer de langue">
-          <button
-            id="switch-to-en"
-            class="lang-button"
-            type="button"
-            title="Switch to English"
-          >
-            <img
-              src="/assets/images/ui/icons8-uk-flag-48.png"
-              alt="English"
-              width="32"
-              height="32"
-            />
+          <button id="switch-to-en" class="lang-button" type="button" title="Switch to English">
+            <img src="/assets/images/ui/icons8-uk-flag-48.png" alt="English" width="32" height="32" />
           </button>
-          <button
-            id="switch-to-fr"
-            class="lang-button"
-            type="button"
-            style="display: none"
-            title="Passer en français"
-          >
-            <img
-              src="/assets/images/ui/icons8-french-flag-48.png"
-              alt="Français"
-              width="32"
-              height="32"
-            />
+          <button id="switch-to-fr" class="lang-button" type="button" style="display: none" title="Passer en français">
+            <img src="/assets/images/ui/icons8-french-flag-48.png" alt="Français" width="32" height="32" />
           </button>
         </div>
         <button id="theme-switch" aria-label="Changer de thème">
@@ -103,14 +71,13 @@
           </svg>
         </button>
       </div>
-      <!-- Hamburger placé DANS le header -->
       <div class="hamburger" id="hamburger" aria-label="Menu">
         <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M6 9l6 6 6-6" />
         </svg>
       </div>
     </header>
-    <!-- Menu dropdown qui apparaît sous le header -->
+
     <div class="dropdown-menu" id="dropdown-menu">
       <nav class="dropdown-nav">
         <ul>
@@ -124,33 +91,31 @@
               <li><a class="nav-link submenu-link" href="/pages/skills.html" data-i18n="nav.skills">Mes compétences</a></li>
             </ul>
           </li>
-          <li>
-            <a href="/pages/gouvernance-ia.html" data-i18n="nav.aiGovernance"><h2>Gouvernance IA</h2></a>
-          </li>
+          <li><a href="/pages/gouvernance-ia.html" data-i18n="nav.aiGovernance"><h2>Gouvernance IA</h2></a></li>
           <li><a href="/blog/digital/blogArticles.html" data-i18n="nav.blogDigital"><h2>L'actu du Coin Digital</h2></a></li>
           <li><a href="/blog/inspirations/carnets-inspirations.html" data-i18n="nav.blogInspiration"><h2>Mes carnets d’inspirations</h2></a></li>
           <li><a href="/pages/contact.html" data-i18n="nav.contact"><h2>Contactez-moi</h2></a></li>
         </ul>
       </nav>
       <div class="social-media">
-  <a href="https://github.com/Dev-Djelloul" target="_blank" rel="noopener noreferrer" title="GitHub" aria-label="GitHub">
-    <img src="/assets/images/ui/icons8-github-64.png" alt="GitHub" />
-  </a>
-  <a href="https://www.linkedin.com/in/yellowblueskye/" target="_blank" rel="noopener noreferrer" title="LinkedIn" aria-label="LinkedIn">
-    <img src="/assets/images/ui/icons8-linkedin-64.png" alt="LinkedIn" />
-  </a>
-  <a href="https://x.com/digitalblueskye" target="_blank" rel="noopener noreferrer" title="X" aria-label="X">
-    <img src="/assets/images/ui/icons8-x-64.png" alt="X" />
-  </a>
-</div>
+        <a href="https://github.com/Dev-Djelloul" target="_blank" rel="noopener noreferrer" title="GitHub" aria-label="GitHub">
+          <img src="/assets/images/ui/icons8-github-64.png" alt="GitHub" />
+        </a>
+        <a href="https://www.linkedin.com/in/yellowblueskye/" target="_blank" rel="noopener noreferrer" title="LinkedIn" aria-label="LinkedIn">
+          <img src="/assets/images/ui/icons8-linkedin-64.png" alt="LinkedIn" />
+        </a>
+        <a href="https://x.com/digitalblueskye" target="_blank" rel="noopener noreferrer" title="X" aria-label="X">
+          <img src="/assets/images/ui/icons8-x-64.png" alt="X" />
+        </a>
+      </div>
     </div>
     <div class="menu-overlay" id="menu-overlay"></div>
-    <!-- Contenu principal de l'article -->
+
     <main class="article-detail-page">
       <article class="article-content-full section-padding">
         <div class="container">
-          <h1 class="article-title-main" data-i18n="news.article11.title"></h1>
-          <p class="article-dateline-detailed" data-i18n="news.article11.datelineFull"></p>
+          <h1 class="article-title-main" data-i18n="news.article12.title">5 signaux faibles à surveiller dans le numérique</h1>
+          <p class="article-dateline-detailed" data-i18n="news.article12.datelineFull">Publié en Avril 2026 • Catégorie: Prospective</p>
           <div class="article-reactions">
             <div class="article-comment-count" aria-live="polite">
               <img src="/assets/images/ui/icons8-comment-48.png" alt="" class="comment-count-icon" width="24" height="24" loading="lazy" />
@@ -163,20 +128,20 @@
               <span class="like-label" data-like-label>likes</span>
             </button>
           </div>
-          
+        </div>
 
-          </div>
+        <div class="article-image-main" style="text-align:center; margin-bottom:2em;">
+          <a href="/assets/images/backgrounds/City of Tomorrow.png" target="_blank" rel="noopener">
+            <img src="/assets/images/backgrounds/City of Tomorrow.png" alt="Ville du futur et prospective digitale" style="max-width:100%;height:auto;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,0.08);" loading="lazy">
+          </a>
+        </div>
 
-          <div class="article-image-main" style="text-align:center; margin-bottom:2em;">
-            <a href="/assets/images/blog/Dots-connected/ChatGPT.jpeg" target="_blank" rel="noopener">
-              <img src="/assets/images/blog/Dots-connected/ChatGPT.jpeg" alt="Connecter les points - visuel" style="max-width:100%;height:auto;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,0.08);" loading="lazy">
-            </a>
-          </div>
-          <div class="article-body" data-i18n="news.article11.fullContent"></div>
+        <div class="container">
+          <div class="article-body" data-i18n="news.article12.fullContent"></div>
           <div class="article-navigation">
-            <a href="/blog/digital/article-pue-datacenters.html" class="btn-nav-style" data-i18n="news.previousArticle">Article Précédent</a>
+            <a href="/blog/digital/article-connector-dots.html" class="btn-nav-style" data-i18n="news.previousArticle">Article Précédent</a>
             <a href="/blog/digital/blogArticles.html" class="btn-nav-style" data-i18n="news.backToList">Retour</a>
-            <a href="/blog/digital/article-signaux-faibles.html" class="btn-nav-style" data-i18n="news.nextArticle">Article Suivant</a>
+            <a href="/blog/digital/article-ia-gestion-projet.html" class="btn-nav-style" data-i18n="news.nextArticle">Article Suivant</a>
           </div>
 
           <section class="article-share">
@@ -188,6 +153,7 @@
               <button class="share-btn share-copy" data-share="copy" type="button" title="Copier le lien" data-i18n-title="news.copyLink"><img src="/assets/images/ui/icons8-copy-link-48.png" alt="Copier le lien" /></button>
             </div>
           </section>
+
           <section class="article-comments">
             <h2 class="article-section-title" data-i18n="news.commentsTitle">Commentaires</h2>
             <p class="article-section-subtitle" data-i18n="news.commentsSubtitle">Un retour, une question ou une idée ? Laissez un commentaire.</p>
@@ -221,14 +187,12 @@
               <button class="comment-submit" type="submit" data-i18n="contact.send">Envoyer</button>
             </form>
           </section>
-
         </div>
       </article>
     </main>
-    <!-- Footer -->
+
     <footer id="footer">
       <div class="footer-container">
-        <!-- Section Services -->
         <div class="footer-section">
           <h3 data-i18n="footer.services">Services</h3>
           <ul>
@@ -238,8 +202,6 @@
             <li><a href="/pages/contact.html" data-i18n="footer.contact">Formulaire de contact</a></li>
           </ul>
         </div>
-
-        <!-- Section Légal -->
         <div class="footer-section">
           <h3 data-i18n="footer.legal">Légal</h3>
           <ul>
@@ -248,10 +210,9 @@
             <li><a href="/pages/cookies-policy.html" data-i18n="footer.cookies">Gestion des cookies</a></li>
           </ul>
         </div>
-        <!-- Section Réseaux Sociaux -->
         <div class="footer-section">
           <h3 data-i18n="footer.followUs">Suivez-moi</h3>
-<div class="footer-social">
+          <div class="footer-social">
             <a href="https://github.com/Dev-Djelloul" target="_blank" rel="noopener noreferrer" title="GitHub">
               <img src="/assets/images/ui/icons8-github-64.png" alt="GitHub" />
             </a>
@@ -262,18 +223,13 @@
               <img src="/assets/images/ui/icons8-x-64.png" alt="X" />
             </a>
           </div>
-</div>
-
+        </div>
       </div>
-
-      <!-- Copyright -->
       <div class="footer-bottom">
-        <p data-i18n="footer.copyright">
-          &copy; 2026 Digitalblueskye. Tous droits réservés.
-        </p>
+        <p data-i18n="footer.copyright">&copy; 2026 Digitalblueskye. Tous droits réservés.</p>
       </div>
     </footer>
-    <!-- Bouton retour en haut -->
+
     <button id="scroll-to-top" class="scroll-to-top" title="Retour en haut">
       <svg width="20" height="20" viewBox="0 0 24 24">
         <path d="M7 14l5-5 5 5z" fill="currentColor"></path>
@@ -314,5 +270,5 @@
     <script src="/scripts/loader.js"></script>
     <script src="/scripts/welcome-animations.js"></script>
     <script src="/scripts/scroll-animations.js"></script>
-    </body>
+  </body>
 </html>
