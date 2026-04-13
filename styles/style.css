@@ -2253,8 +2253,8 @@ h1.main-title-animated .title-icon {
 .search-box input {
   background: linear-gradient(
     135deg,
-    rgb(93 93 255 / 10%),
-    rgb(216 141 243 / 63.1%)
+    rgb(93 93 255 / 7%),
+    rgb(216 141 243 / 34%)
   );
   border: 1px solid rgb(93 93 255 / 20%);
   border-radius: 8px;
@@ -3784,8 +3784,8 @@ h1.main-title-animated .title-icon {
 
 [data-theme="light"] .article-comments-form input,
 [data-theme="light"] .article-comments-form textarea {
-  background: rgb(11 40 76 / 22%);
-  border-color: rgb(43 16 82 / 45%);
+  background: rgb(255 244 249 / 96%);
+  border-color: rgb(221 178 219 / 72%);
   color: var(--text-color);
   caret-color: var(--text-color);
 }
@@ -3797,7 +3797,7 @@ h1.main-title-animated .title-icon {
 [data-theme="light"] .article-comments-form input:-webkit-autofill:focus,
 [data-theme="light"] .article-comments-form textarea:-webkit-autofill:focus {
   -webkit-text-fill-color: var(--text-color);
-  box-shadow: 0 0 0 1000px rgb(11 40 76 / 22%) inset;
+  box-shadow: 0 0 0 1000px rgb(255 244 249 / 96%) inset;
   caret-color: var(--text-color);
   transition: background-color 9999s ease-in-out 0s;
 }
@@ -4368,6 +4368,11 @@ h1.main-title-animated .title-icon {
 
 [data-theme="light"] .page-about main {
   background: transparent;
+}
+
+[data-theme="light"] .page-about .intro-text .profile-photo-container {
+  background: linear-gradient(135deg, rgb(93 93 255 / 16%), rgb(255 102 196 / 6%));
+  box-shadow: 0 10px 24px rgb(255 102 196 / 10%);
 }
 
 [data-theme="light"] .page-about .about-text-box {
@@ -6722,7 +6727,7 @@ h1.main-title-animated .title-icon {
 [data-theme="light"] .contact-form input,
 [data-theme="light"] .contact-form textarea {
   background: rgb(255 255 255 / 96%);
-  border-color: rgb(43 16 82 / 45%);
+  border-color: rgb(200 34 255 / 52%);
   color: var(--text-color);
   caret-color: var(--text-color);
 } /* Champs de saisie */
