@@ -197,6 +197,89 @@ article {
   font-family: "Jura", sans-serif;
 }
 
+.visually-hidden,
+.seo-only {
+  border: 0;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+.page-intro {
+  margin: 0 auto 36px;
+  max-width: 980px;
+  padding: 0 20px;
+  text-align: center;
+}
+
+.page-intro-kicker {
+  color: #8ea7ff;
+  font-family: "Space Mono", monospace;
+  font-size: 0.82rem;
+  letter-spacing: 0.2em;
+  margin: 0 0 10px;
+  text-transform: uppercase;
+}
+
+.page-intro-title {
+  background: linear-gradient(45deg, var(--accent-color), #c822ff);
+  background-clip: text;
+  color: transparent;
+  display: inline-block;
+  font-family: var(--font-title);
+  font-size: clamp(2.1rem, 4.8vw, 3.6rem);
+  line-height: 1.14;
+  margin: 0 0 14px;
+  padding: 0.12em 0.08em 0.18em;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.page-intro-lead {
+  color: var(--text-color);
+  font-size: 1.1rem;
+  line-height: 1.75;
+  margin: 0 auto;
+  max-width: 760px;
+}
+
+.page-intro-card {
+  background: linear-gradient(145deg, rgb(16 18 34 / 82%), rgb(22 26 44 / 68%));
+  border: 1px solid rgb(93 93 255 / 22%);
+  border-radius: 24px;
+  box-shadow: 0 20px 50px rgb(5 8 20 / 35%);
+  margin: 24px auto 36px;
+  max-width: 980px;
+  overflow: visible;
+  padding: 28px 30px;
+  position: relative;
+  text-align: center;
+}
+
+.page-intro-card::before {
+  background: linear-gradient(90deg, transparent, rgb(200 34 255 / 55%), transparent);
+  content: "";
+  height: 2px;
+  left: 12%;
+  position: absolute;
+  right: 12%;
+  top: 0;
+}
+
+.page-intro-card .page-intro-title {
+  font-size: clamp(1.65rem, 3.4vw, 2.6rem);
+}
+
+.page-intro-card .page-intro-lead {
+  max-width: 720px;
+}
+
 .home-page p,
 .home-page .section-subtitle,
 .home-page .page-subtitle {
@@ -4032,6 +4115,25 @@ h1.main-title-animated .title-icon {
   -webkit-text-fill-color: transparent;
 }
 
+[data-theme="light"] .page-intro-title,
+[data-theme="light"] .page-intro-card .page-intro-title {
+  background: linear-gradient(45deg, #5d5dff, #c822ff);
+  background-clip: text;
+  color: transparent;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+[data-theme="light"] .page-intro-lead {
+  color: #5d5dff;
+}
+
+[data-theme="light"] .page-intro-card {
+  background: rgb(255 255 255 / 82%);
+  border-color: rgb(93 93 255 / 22%);
+  box-shadow: 0 16px 36px rgb(93 93 255 / 10%);
+}
+
 .about-text-box ul {
   margin-bottom: 1.2rem;
   margin-top: 0.8rem;
@@ -7485,6 +7587,17 @@ body.body-menu-open #footer {
   .page-about .about-text-box {
     margin: 20px 12px 28px;
     padding: 24px 18px;
+  }
+
+  .page-intro,
+  .page-intro-card {
+    margin-left: 12px;
+    margin-right: 12px;
+    padding: 20px 18px;
+  }
+
+  .page-intro-lead {
+    font-size: 1rem;
   }
 
   .explorer-layout-container {
