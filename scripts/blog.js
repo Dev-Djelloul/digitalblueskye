@@ -429,6 +429,43 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
       removeNoResultsMessage();
     }
+
+    refreshVisibleCardsAnimations();
+  }
+
+  function refreshVisibleCardsAnimations() {
+    const visibleCards = Array.from(articleCards).filter(
+      (card) => card.style.display !== 'none'
+    );
+
+    if (visibleCards.length === 0) {
+      return;
+    }
+
+    visibleCards.forEach((card) => {
+      card.classList.remove('aos-animate');
+    });
+
+    requestAnimationFrame(() => {
+      if (typeof AOS !== 'undefined') {
+        if (typeof AOS.refreshHard === 'function') {
+          AOS.refreshHard();
+        } else if (typeof AOS.refresh === 'function') {
+          AOS.refresh();
+        }
+      }
+
+      requestAnimationFrame(() => {
+        visibleCards.forEach((card) => {
+          const rect = card.getBoundingClientRect();
+          const inViewport = rect.top < window.innerHeight && rect.bottom > 0;
+
+          if (inViewport) {
+            card.classList.add('aos-animate');
+          }
+        });
+      });
+    });
   }
   
   // Affiche le message "Aucun résultat"
