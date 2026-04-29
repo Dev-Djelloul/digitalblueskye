@@ -1156,7 +1156,7 @@ body.body-menu-open .compact-header {
 }
 
 /* Styles du header en thème clair */
-[data-theme="light"] header,
+[data-theme="light"] header:not(.page-intro-card),
 [data-theme="light"] .compact-header {
   border-bottom-color: transparent;
   border-image: linear-gradient(45deg, #5d5dff, #c822ff) 1;
@@ -3098,6 +3098,19 @@ h1.main-title-animated .title-icon {
   box-shadow: 0 18px 40px rgb(93 93 255 / 15%);
 }
 
+[data-theme="light"] .ia-page .badge {
+  background: linear-gradient(135deg, rgb(255 214 153 / 78%), rgb(255 236 204 / 92%));
+  border-color: rgb(180 95 20 / 35%);
+  box-shadow: 0 8px 18px rgb(180 95 20 / 10%);
+  color: #5f2b00;
+}
+
+[data-theme="light"] .ia-page .badge:hover,
+[data-theme="light"] .ia-page .badge:focus-visible {
+  border-color: rgb(180 95 20 / 48%);
+  color: #4a2200;
+}
+
 [data-theme="light"] .ia-page section {
   background: rgb(245 246 255 / 90%);
   border-color: rgb(93 93 255 / 18%);
@@ -4130,8 +4143,12 @@ h1.main-title-animated .title-icon {
 
 [data-theme="light"] .page-intro-card {
   background: rgb(255 255 255 / 82%);
+  border: 1px solid rgb(93 93 255 / 22%);
+  border-image: none;
   border-color: rgb(93 93 255 / 22%);
   box-shadow: 0 16px 36px rgb(93 93 255 / 10%);
+  border-radius: 24px;
+  overflow: visible;
 }
 
 .about-text-box ul {
