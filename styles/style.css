@@ -3351,9 +3351,11 @@ h1.main-title-animated .title-icon {
   font-family: "Kaushan Script", "Fruktur", cursive;
   gap: 8px;
   justify-content: center;
+  min-width: 132px;
   padding: 8px 16px;
   text-decoration: none;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  white-space: nowrap;
 }
 
 .like-button:hover {
@@ -3377,11 +3379,13 @@ h1.main-title-animated .title-icon {
 }
 
 .like-count {
+  flex: 0 0 auto;
   font-size: 0.95rem;
   font-weight: 700;
 }
 
 .like-label {
+  flex: 0 0 auto;
   font-size: 0.9rem;
 }
 
@@ -5240,6 +5244,17 @@ h1.main-title-animated .title-icon {
   gap: 0.8rem;
   justify-content: center;
   margin-bottom: 1rem;
+}
+
+.detail-eyebrow-row .like-reaction-picker {
+  display: flex;
+  flex: 0 1 100%;
+  justify-content: center;
+  max-width: 100%;
+}
+
+.detail-eyebrow-row .like-reaction-trigger {
+  max-width: 100%;
 }
 
 .detail-tags {
