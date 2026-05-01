@@ -5,10 +5,54 @@ document.addEventListener('DOMContentLoaded', function() {
   const menuOverlay = document.getElementById('menu-overlay');
   const header = document.querySelector('.site-header') || document.querySelector('header');
   const logoVideo = document.getElementById('logo-video');
-  const icon = hamburger.querySelector('i');
 
   // Détection desktop (hover) vs mobile (tap)
   const isDesktop = window.matchMedia('(hover: hover) and (pointer: fine)');
+
+  // Injecte une barre sociale dans le header à partir des liens déjà présents dans le dropdown.
+  function initHeaderSocialStrip() {
+    const menuControls = header ? header.querySelector('.menu-controls') : null;
+    const dropdownSocial = dropdownMenu ? dropdownMenu.querySelector('.social-media') : null;
+
+    if (!header || header.querySelector('.header-social-strip')) {
+      return;
+    }
+
+    const sourceLinks = dropdownSocial ? dropdownSocial.querySelectorAll('a') : [];
+    if (!sourceLinks.length && !menuControls) {
+      return;
+    }
+
+    const strip = document.createElement('div');
+    strip.className = 'header-social-strip';
+    strip.setAttribute('aria-label', 'Liens sociaux et préférences');
+
+    const links = document.createElement('div');
+    links.className = 'header-social-links';
+
+    sourceLinks.forEach((link) => {
+      const clone = link.cloneNode(true);
+      clone.classList.add('header-social-link');
+      const cloneIcon = clone.querySelector('img');
+      if (cloneIcon) {
+        cloneIcon.classList.add('header-social-icon');
+      }
+      links.appendChild(clone);
+    });
+
+    if (links.children.length) {
+      strip.appendChild(links);
+    }
+    if (menuControls) {
+      strip.appendChild(menuControls);
+    }
+    if (dropdownSocial) {
+      dropdownSocial.remove();
+    }
+    header.insertBefore(strip, header.firstElementChild);
+  }
+
+  initHeaderSocialStrip();
 
   // ===== Gestion du menu dropdown =====
   function openMenu() {
@@ -136,18 +180,26 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Ajuster le padding-top du body selon la hauteur du header
   function updateBodyPadding() {
+    const socialStrip = header.querySelector('.header-social-strip');
+    const socialStripHeight = socialStrip ? socialStrip.offsetHeight : 0;
+
+    document.documentElement.style.setProperty('--site-header-height', header.offsetHeight + 'px');
+    document.documentElement.style.setProperty('--site-header-social-height', socialStripHeight + 'px');
+
     if (
       document.body.classList.contains('home-page')
       || document.body.classList.contains('inspirations-page')
     ) {
-      document.body.style.paddingTop = '0px';
+      document.body.style.paddingTop = socialStripHeight + 'px';
       return;
     }
+
     document.body.style.paddingTop = header.offsetHeight + 'px';
   }
   
   // Initialiser le padding et le recalculer au redimensionnement
   updateBodyPadding();
+  window.addEventListener('load', updateBodyPadding);
   window.addEventListener('resize', updateBodyPadding);
   
   // ===== Simuler les comportements des sélecteurs =====
@@ -160,6 +212,7 @@ document.addEventListener('DOMContentLoaded', function() {
       
       // Changer l'icône
       const icon = themeSwitch.querySelector('i');
+      if (!icon) return;
       if (icon.classList.contains('fa-moon')) {
         icon.classList.remove('fa-moon');
         icon.classList.add('fa-sun');
