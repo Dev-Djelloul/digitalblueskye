@@ -190,7 +190,7 @@ document.addEventListener('DOMContentLoaded', function() {
       document.body.classList.contains('home-page')
       || document.body.classList.contains('inspirations-page')
     ) {
-      document.body.style.paddingTop = socialStripHeight + 'px';
+      document.body.style.paddingTop = '0px';
       return;
     }
 

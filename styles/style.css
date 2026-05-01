@@ -144,6 +144,10 @@ body.inspirations-page {
   padding-top: 0;
 }
 
+body.inspirations-page::after {
+  background: rgb(6 12 26 / 42%);
+}
+
 body::before,
 body::after {
   content: "";
@@ -252,14 +256,22 @@ article {
 .page-intro-card {
   background: linear-gradient(145deg, rgb(16 18 34 / 82%), rgb(22 26 44 / 68%));
   border: 1px solid rgb(93 93 255 / 22%);
+  border-image: none;
   border-radius: 24px;
   box-shadow: 0 20px 50px rgb(5 8 20 / 35%);
+  display: block;
+  height: auto;
+  left: auto;
   margin: 24px auto 36px;
   max-width: 920px;
   overflow: visible;
   padding: 28px 30px;
   position: relative;
   text-align: center;
+  top: auto;
+  width: min(100% - 24px, 920px);
+  will-change: auto;
+  z-index: 1;
 }
 
 .page-intro-card::before {
@@ -278,6 +290,7 @@ article {
 
 .page-intro-card .page-intro-lead {
   max-width: 720px;
+  overflow-wrap: break-word;
 }
 
 .home-page p,
@@ -938,7 +951,7 @@ section#skills,
 /* =========================
    HEADER (Normal & Compact)
    ========================= */
-header,
+header:not(.page-intro-card):not(.ai-assistant-header),
 .compact-header {
   /*background: var(--header-bg);/* Dégradé pour le header */
   border-bottom: 3px solid transparent;
@@ -955,30 +968,36 @@ header,
 }
 
 /* Classe pour cacher le header */
-header.header-hidden,
+header:not(.page-intro-card):not(.ai-assistant-header).header-hidden,
 .compact-header.header-hidden {
   transform: translateY(-100%);
 }
 
 /* Styles spécifiques au header normal */
-header {
+header:not(.page-intro-card):not(.ai-assistant-header) {
   align-items: center;
   display: flex;
   gap: 20px;
   justify-content: space-between;
   padding-bottom: 10px;
-  padding-top: 10px;
+  padding-top: 0px;
 }
 
-.site-header {
+header.site-header {
   align-items: stretch;
   backdrop-filter: blur(14px);
   background: var(--header-bg);
-  display: grid;
-  gap: 0 20px;
-  grid-template-columns: auto 1fr auto;
-  grid-template-rows: 34px auto;
-  padding: 0 0 10px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  height: 118px;
+  justify-content: flex-start;
+  left: 0;
+  min-height: 0;
+  padding: 0;
+  right: 0;
+  top: 0;
 }
 
 .header-social-strip {
@@ -986,10 +1005,12 @@ header {
   background: rgb(6 12 26 / 42%);
   border-bottom: 1px solid rgb(255 255 255 / 10%);
   display: flex;
+  flex: 0 0 34px;
   gap: 18px;
-  grid-column: 1 / -1;
+  height: 34px;
   justify-content: flex-end;
-  min-height: 34px;
+  margin: 0;
+  min-height: 0;
   padding: 0 clamp(20px, 4vw, 76px);
   width: 100%;
 }
@@ -1063,36 +1084,39 @@ header {
 }
 
 .header-logo {
-  align-self: center;
-  grid-column: 1;
-  grid-row: 2;
+  align-items: center;
+  align-self: flex-start;
+  display: flex;
+  flex: 1 1 auto;
+  height: auto;
+  justify-content: flex-start;
+  min-height: 0;
+  width: 100%;
 }
 
 .header-placeholder {
   display: none;
-  grid-column: 2;
-  grid-row: 2;
 }
 
 [data-theme="light"] .header-social-strip {
-  background: rgb(255 255 255 / 50%);
+  background: rgb(255 255 255);
   border-bottom-color: rgb(93 93 255 / 16%);
 }
 
-.home-page .site-header,
-.inspirations-page .site-header {
+.home-page header.site-header,
+.inspirations-page header.site-header {
   background: transparent;
 }
 
-.inspirations-page .site-header:not(.nav-scrolled) {
+.inspirations-page header.site-header:not(.nav-scrolled) {
   backdrop-filter: none;
   box-shadow: none;
 }
 
-.home-page .site-header.nav-scrolled,
-.inspirations-page .site-header.nav-scrolled,
-.home-page.body-menu-open .site-header,
-.inspirations-page.body-menu-open .site-header {
+.home-page header.site-header.nav-scrolled,
+.inspirations-page header.site-header.nav-scrolled,
+.home-page.body-menu-open header.site-header,
+.inspirations-page.body-menu-open header.site-header {
   backdrop-filter: blur(14px);
   background: var(--header-bg);
   box-shadow: 0 4px 12px rgb(0 0 0 / 20%);
@@ -1101,8 +1125,8 @@ header {
 /* Centrage du logo et du hamburger */
 .header-logo img {
   border-radius: 50%;
-  height: 80px;
-  margin: 5px 30px 0 45px;
+  height: 60px;
+  margin: 0 30px 10px 30px;
   width: auto;
 }
 
@@ -1224,7 +1248,7 @@ header .social-media a:hover {
   cursor: pointer;
   display: flex;
   font-size: 1.5rem;
-  height: 35px;
+  height: 30px;
   justify-content: center;
   left: 50%;
   line-height: normal;
@@ -1232,7 +1256,7 @@ header .social-media a:hover {
   position: absolute;
   transform: translate(-50%, 50%);
   transition: color 0.3s;
-  width: 35px;
+  width: 30px;
   z-index: 1002;
 }
 
@@ -1265,25 +1289,25 @@ header .social-media a:hover {
 }
 
 /* Classes pour masquer/afficher le header au scroll */
-header.nav-hidden,
+header:not(.page-intro-card):not(.ai-assistant-header).nav-hidden,
 .compact-header.nav-hidden {
   transform: translateY(-100%);
 } /* Cache le header en le déplaçant vers le haut */
 
 /* Style optionnel quand le header est visible après scroll */
-header.nav-scrolled,
+header:not(.page-intro-card):not(.ai-assistant-header).nav-scrolled,
 .compact-header.nav-scrolled {
   background: var(--header-bg);
   box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
 }
 
-body.body-menu-open header,
+body.body-menu-open header:not(.page-intro-card):not(.ai-assistant-header),
 body.body-menu-open .compact-header {
   background: var(--header-bg);
 }
 
 /* Styles du header en thème clair */
-[data-theme="light"] header:not(.page-intro-card),
+[data-theme="light"] header:not(.page-intro-card):not(.ai-assistant-header),
 [data-theme="light"] .compact-header {
   border-bottom-color: transparent;
   border-image: linear-gradient(45deg, #5d5dff, #c822ff) 1;
@@ -1623,8 +1647,6 @@ body.body-menu-open .compact-header {
 /* Overlay sombre affiché derrière le menu déroulant (inchangé) */
 .menu-overlay {
   background-color: rgb(0 0 0 / 0%);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
   display: none;
   height: 100%;
   left: 0;
@@ -7401,23 +7423,32 @@ body.body-menu-open #footer {
 
 /* Tablettes et petits ordinateurs */
 @media (width <= 992px) {
-  header {
+  header:not(.page-intro-card):not(.ai-assistant-header) {
     min-height: 68px;
-    padding: 8px 14px;
+    padding: 0px;
   }
 
-  .site-header {
-    gap: 0 12px;
-    grid-template-rows: 30px auto;
-    min-height: 104px;
-    padding: 0 0 8px;
+  header.site-header {
+    height: 106px;
+    gap: 0;
+    justify-content: flex-start;
+    min-height: 0;
+    padding: 0;
   }
 
   .header-social-strip {
+    flex-basis: 30px;
     gap: 12px;
+    height: 30px;
     justify-content: flex-end;
-    min-height: 30px;
+    min-height: 0;
     padding: 0 14px;
+  }
+
+  .header-logo {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 0;
   }
 
   .header-social-links {
@@ -7603,26 +7634,32 @@ body.body-menu-open #footer {
   }
 
   /* Ajuster le Header Compact pour Mobile */
-  header {
-    height: 70px;
-    padding: 0 10px;
+  header:not(.page-intro-card):not(.ai-assistant-header) {
+    height: 80px;
+    padding: 0px;
   } /* Header compact */
 
-  .site-header {
-    height: auto;
-    min-height: 100px;
-    padding: 0 0 8px;
+  header.site-header {
+    height: 94px;
+    min-height: 0;
+    padding: 0;
   }
 
-  header h1 {
+  .header-logo {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 0;
+  }
+
+  header:not(.page-intro-card):not(.ai-assistant-header) h1 {
     font-size: 1rem;
     margin: 0 10px;
   } /* Titre plus petit */
 
   .header-logo img {
     border-radius: 50%;
-    height: 54px;
-    margin: 0;
+    height: 38px;
+    margin: 0 0 13px 8px;
     width: auto;
   }
 
@@ -7812,8 +7849,13 @@ body.body-menu-open #footer {
     padding: 20px 18px;
   }
 
+  .page-about .page-intro-card {
+    width: calc(100% - 24px);
+  }
+
   .page-intro-lead {
     font-size: 1rem;
+    max-width: 100%;
   }
 
   .explorer-layout-container {
@@ -8849,6 +8891,29 @@ body.body-menu-open #footer {
     padding: 20px 14px;
   }
 
+  .page-about .page-intro-card {
+    display: grid;
+    gap: 10px;
+    margin-left: 4px;
+    margin-right: 4px;
+    overflow: hidden;
+    padding: 18px 14px;
+    width: calc(100% - 8px);
+  }
+
+  .page-about .page-intro-card .page-intro-title,
+  .page-about .page-intro-card .page-intro-lead {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .page-about .page-intro-card .page-intro-lead {
+    font-size: 0.92rem;
+    line-height: 1.7;
+    overflow-wrap: anywhere;
+    text-wrap: pretty;
+  }
+
   .btn-download-cv i {
     margin-right: 10px;
   }
@@ -9262,6 +9327,7 @@ body.body-menu-open #footer {
 
 .ai-assistant-session-label {
   color: rgb(235 240 255 / 85%);
+  display: none;
   font-family: "Jura", monospace;
   font-size: 0.67rem;
   white-space: nowrap;
