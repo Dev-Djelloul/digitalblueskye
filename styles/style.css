@@ -1306,6 +1306,14 @@ body.body-menu-open .compact-header {
   background: var(--header-bg);
 }
 
+body.home-page header.site-header,
+body.home-page header.site-header.nav-scrolled,
+body.home-page.body-menu-open header.site-header {
+  backdrop-filter: none;
+  background: transparent;
+  box-shadow: none;
+}
+
 /* Styles du header en thème clair */
 [data-theme="light"] header:not(.page-intro-card):not(.ai-assistant-header),
 [data-theme="light"] .compact-header {
