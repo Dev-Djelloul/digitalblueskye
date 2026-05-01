@@ -3976,6 +3976,12 @@ h1.main-title-animated .title-icon {
   transform: translateY(-3px);
 }
 
+.btn-nav-style[aria-disabled="true"] {
+  cursor: default;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
 /* =========================
    SECTION "À PROPOS"
    ========================= */
