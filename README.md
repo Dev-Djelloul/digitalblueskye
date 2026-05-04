@@ -56,8 +56,8 @@ Voici un aperçu de quelques projets que vous pouvez retrouver sur ce site :
 
 ## 🚀 Déploiement
 
-Ce siteweb est hébergé sur **InfinityFree**  
-🔗 [https://digitalblueskye.infinityfreeapp.com](https://digitalblueskye.infinityfreeapp.com)
+Ce siteweb est hébergé sur **Netlify**  
+🔗 [https://digitalblueskye.netlify.app](https://digitalblueskye.infinityfreeapp.com)
 
 ---
 
