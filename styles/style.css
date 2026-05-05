@@ -293,6 +293,18 @@ article {
   overflow-wrap: break-word;
 }
 
+.page-about .page-intro-card {
+  max-width: 980px;
+  padding: 32px clamp(24px, 4vw, 44px);
+  width: min(100% - 32px, 980px);
+}
+
+.page-about .page-intro-card .page-intro-lead {
+  line-height: 1.68;
+  max-width: 820px;
+  text-wrap: pretty;
+}
+
 .home-page p,
 .home-page .section-subtitle,
 .home-page .page-subtitle {
@@ -7536,6 +7548,22 @@ body.body-menu-open #footer {
     width: 375px;
   }
 
+  .page-about .page-intro-card {
+    max-width: 820px;
+    padding: 26px 24px;
+    width: calc(100% - 32px);
+  }
+
+  .page-about .page-intro-card .page-intro-title {
+    font-size: clamp(1.55rem, 4vw, 2.2rem);
+  }
+
+  .page-about .page-intro-card .page-intro-lead {
+    font-size: 1.02rem;
+    line-height: 1.65;
+    max-width: 680px;
+  }
+
   .intro-text .profile-photo {
     height: 350px;
     width: 500px;
@@ -8901,12 +8929,12 @@ body.body-menu-open #footer {
 
   .page-about .page-intro-card {
     display: grid;
-    gap: 10px;
-    margin-left: 4px;
-    margin-right: 4px;
+    gap: 8px;
+    margin-left: 12px;
+    margin-right: 12px;
     overflow: hidden;
-    padding: 18px 14px;
-    width: calc(100% - 8px);
+    padding: 18px 16px;
+    width: calc(100% - 24px);
   }
 
   .page-about .page-intro-card .page-intro-title,
@@ -8916,9 +8944,10 @@ body.body-menu-open #footer {
   }
 
   .page-about .page-intro-card .page-intro-lead {
-    font-size: 0.92rem;
-    line-height: 1.7;
-    overflow-wrap: anywhere;
+    font-size: 0.95rem;
+    hyphens: auto;
+    line-height: 1.62;
+    overflow-wrap: break-word;
     text-wrap: pretty;
   }
 
