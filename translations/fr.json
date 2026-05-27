@@ -90,7 +90,7 @@
   "skills": {
     "introKicker": "Expertise",
     "introTitle": "Mes compétences",
-    "introLead": "Front-end, back-end, SEO, UX, performance et déploiement : un socle technique conçu pour transformer un besoin métier en livrable web cohérent, maintenable et visible.",
+    "introLead": "Front-end, back-end, UX, performance et déploiement : un socle technique pensé pour concevoir des expériences web efficaces, maintenables et attractives.",
     "title": "Mes compétences",
     "frontend": "Front-end",
     "backend": "Back-end",
@@ -101,7 +101,7 @@
   "projects": {
     "introKicker": "Portfolio",
     "introTitle": "Mes projets",
-    "introLead": "Une sélection de réalisations allant du site vitrine aux applications plus interactives, avec un même fil conducteur : qualité visuelle, structure technique propre, SEO utile et logique projet claire.",
+    "introLead": "Une sélection de réalisations allant du site vitrine aux applications plus interactives, avec un même fil conducteur : une qualité visuelle et une structure technique propre.",
     "title": "Explorez",
     "allTitle": "Mes projets",
     "viewProject": "Démo en direct",

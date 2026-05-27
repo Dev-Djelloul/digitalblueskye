@@ -95,7 +95,7 @@
   "skills": {
     "introKicker": "Expertise",
     "introTitle": "My skills",
-    "introLead": "Front-end, back-end, SEO, UX, performance and deployment: a technical foundation designed to turn a business need into a coherent, maintainable and visible web deliverable.",
+    "introLead": "Front-end, back-end, UX, performance and deployment: a technical foundation designed to create effective, maintainable and attractive web experiences.",
     "title": "My hard skills",
     "pageTitle": "Skills - Digitalblueskye Blog",
     "frontend": "Front-end",
@@ -107,7 +107,7 @@
   "projects": {
     "introKicker": "Portfolio",
     "introTitle": "My projects",
-    "introLead": "A selection of work ranging from showcase websites to more interactive applications, all built with the same focus: visual quality, clean technical structure, practical SEO and clear project logic.",
+    "introLead": "A selection of work ranging from showcase websites to more interactive applications, all built with the same focus: visual quality and a clean technical structure.",
     "pageTitle": "Projects - Digitalblueskye Blog",
     "allTitle": "My projects",
     "viewLive": "Learn more about this project"
