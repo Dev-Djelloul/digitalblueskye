@@ -54,6 +54,73 @@ document.addEventListener('DOMContentLoaded', function() {
 
   initHeaderSocialStrip();
 
+  function initHeaderPortfolioAvatar() {
+    if (!header || header.querySelector('.header-portfolio-avatar')) {
+      return;
+    }
+
+    const avatarLink = document.createElement('a');
+    avatarLink.className = 'header-portfolio-avatar';
+    avatarLink.href = 'https://djelloul-abid-yxp9kzk.gamma.site/';
+    avatarLink.target = '_blank';
+    avatarLink.rel = 'noopener noreferrer';
+    avatarLink.setAttribute('aria-label', 'Voir le portfolio Gamma');
+    avatarLink.title = 'Portfolio - Chef de projet digital';
+    avatarLink.innerHTML = `
+      <img
+        src="/assets/images/portrait/my-notion-face-transparent.png"
+        alt=""
+        width="60"
+        height="60"
+        loading="lazy"
+        aria-hidden="true"
+      />
+    `;
+
+    header.appendChild(avatarLink);
+  }
+
+  initHeaderPortfolioAvatar();
+
+  function initGammaPortfolioLink() {
+    if (!dropdownMenu || dropdownMenu.querySelector('.dropdown-gamma-item')) {
+      return;
+    }
+
+    const contactLink = dropdownMenu.querySelector('.dropdown-nav a[data-i18n="nav.contact"]');
+    const contactItem = contactLink ? contactLink.closest('li') : null;
+    if (!contactItem) {
+      return;
+    }
+
+    const gammaItem = document.createElement('li');
+    gammaItem.className = 'dropdown-gamma-item';
+    gammaItem.innerHTML = `
+      <a
+        class="dropdown-gamma-link"
+        href="https://djelloul-abid-yxp9kzk.gamma.site/"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Voir le portfolio interactif Gamma"
+      >
+        <img
+          class="dropdown-gamma-avatar"
+          src="/assets/images/portrait/my-notion-face-transparent.png"
+          alt=""
+          width="34"
+          height="34"
+          loading="lazy"
+          aria-hidden="true"
+        />
+        <span data-i18n="nav.gammaPortfolio">Portfolio - Chef de projet digital</span>
+      </a>
+    `;
+
+    contactItem.insertAdjacentElement('afterend', gammaItem);
+  }
+
+  initGammaPortfolioLink();
+
   // ===== Gestion du menu dropdown =====
   function openMenu() {
     header.classList.remove('nav-hidden');

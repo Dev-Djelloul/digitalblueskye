@@ -182,8 +182,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!launcher || !panel) {
       const markup = `
         <button id="ai-assistant-launcher" class="ai-assistant-launcher" type="button">
-          <span class="ai-assistant-launcher__dot"></span>
-          <span>Digital IA</span>
+          <img class="ai-assistant-launcher__robot" src="/assets/images/logo/Robot.png" alt="" width="56" height="56" loading="lazy" aria-hidden="true">
         </button>
         <aside id="ai-assistant-panel" class="ai-assistant-panel" aria-hidden="true">
           <header class="ai-assistant-header">
@@ -314,6 +313,16 @@ document.addEventListener('DOMContentLoaded', function () {
   const conversationStorageKey = 'ai_assistant_conversations_v1';
   const panelPositionStorageKey = 'ai_assistant_panel_position_v1';
   const panelSizeStorageKey = 'ai_assistant_panel_size_v1';
+
+  function setAssistantPanelOpen(open) {
+    if (!panel) return;
+    panel.classList.toggle('is-open', open);
+    panel.setAttribute('aria-hidden', String(!open));
+    if (launcherButton) {
+      launcherButton.classList.toggle('is-panel-open', open);
+      launcherButton.setAttribute('aria-expanded', String(open));
+    }
+  }
 
   function isDesktopPanelDragEnabled() {
     return window.matchMedia('(min-width: 769px)').matches;
@@ -1996,13 +2005,13 @@ document.addEventListener('DOMContentLoaded', function () {
       if (isOpening) {
         placePanelInCurrentViewport();
       }
-      panel.classList.toggle('is-open');
+      setAssistantPanelOpen(isOpening);
     });
   }
 
   if (closeButton && panel) {
     closeButton.addEventListener('click', () => {
-      panel.classList.remove('is-open');
+      setAssistantPanelOpen(false);
     });
   }
 
