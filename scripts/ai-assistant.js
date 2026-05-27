@@ -66,6 +66,7 @@
         sendWithoutTextWithFiles: 'Please analyze the attached files.',
         copy: 'Copy',
         copied: 'Copied',
+        scrollBottom: 'Go to latest message',
         expand: 'Expand',
         collapse: 'Collapse',
         maximizeTitle: 'Expand assistant',
@@ -116,6 +117,7 @@
       sendWithoutTextWithFiles: 'Merci d\u2019analyser les fichiers joints.',
       copy: 'Copier',
       copied: 'Copié',
+      scrollBottom: 'Aller au dernier message',
       expand: 'Dérouler',
       collapse: 'Réduire',
       maximizeTitle: "Agrandir l'assistant IA",
@@ -216,6 +218,9 @@
           </header>
           ${createSessionControlsMarkup()}
           <div id="ai-assistant-messages" class="ai-assistant-messages"></div>
+          <button id="ai-assistant-scroll-bottom" class="ai-assistant-scroll-bottom" type="button" title="${i18n.scrollBottom}" aria-label="${i18n.scrollBottom}" aria-hidden="true">
+            <span aria-hidden="true"></span>
+          </button>
           <div id="ai-assistant-quick-actions" class="ai-assistant-quick-actions"></div>
           <form id="ai-assistant-form" class="ai-assistant-form">
             ${createAttachControlsMarkup()}
@@ -243,6 +248,16 @@
       wrapper.innerHTML = createSessionControlsMarkup().trim();
       if (header && header.parentNode) {
         header.insertAdjacentElement('afterend', wrapper.firstElementChild);
+      }
+    }
+
+    if (!document.getElementById('ai-assistant-scroll-bottom')) {
+      const messages = document.getElementById('ai-assistant-messages');
+      if (messages) {
+        messages.insertAdjacentHTML(
+          'afterend',
+          `<button id="ai-assistant-scroll-bottom" class="ai-assistant-scroll-bottom" type="button" title="${i18n.scrollBottom}" aria-label="${i18n.scrollBottom}" aria-hidden="true"><span aria-hidden="true"></span></button>`
+        );
       }
     }
 
@@ -303,6 +318,7 @@
   const expandButton = document.getElementById('ai-assistant-expand');
   const closeButton = document.getElementById('ai-assistant-close');
   const messagesContainer = document.getElementById('ai-assistant-messages');
+  const scrollBottomButton = document.getElementById('ai-assistant-scroll-bottom');
   const input = document.getElementById('ai-assistant-input');
   const sessionSelect = document.getElementById('ai-assistant-session-select');
   const sessionNewButton = document.getElementById('ai-assistant-session-new');
@@ -362,6 +378,25 @@
       expandButton.setAttribute('aria-label', label);
       expandButton.title = label;
     }
+  }
+
+  function isConversationNearBottom() {
+    if (!messagesContainer) return true;
+    return messagesContainer.scrollHeight - messagesContainer.scrollTop - messagesContainer.clientHeight < 72;
+  }
+
+  function updateScrollBottomButton() {
+    if (!scrollBottomButton || !messagesContainer) return;
+    const shouldShow = panel?.classList.contains('is-open') && !isConversationNearBottom();
+    scrollBottomButton.classList.toggle('is-visible', Boolean(shouldShow));
+    scrollBottomButton.setAttribute('aria-hidden', String(!shouldShow));
+    scrollBottomButton.tabIndex = shouldShow ? 0 : -1;
+  }
+
+  function scrollConversationToBottom(behavior = 'smooth') {
+    if (!messagesContainer) return;
+    messagesContainer.scrollTo({ top: messagesContainer.scrollHeight, behavior });
+    window.setTimeout(updateScrollBottomButton, behavior === 'smooth' ? 260 : 0);
   }
 
   function isDesktopPanelDragEnabled() {
@@ -917,6 +952,10 @@
     if (currentLanguage !== 'en' && currentLanguage !== 'fr') currentLanguage = 'fr';
     i18n = getI18n(currentLanguage);
     if (input) input.placeholder = i18n.inputPlaceholder;
+    if (scrollBottomButton) {
+      scrollBottomButton.title = i18n.scrollBottom;
+      scrollBottomButton.setAttribute('aria-label', i18n.scrollBottom);
+    }
     if (expandButton) {
       const expanded = panel?.classList.contains('is-expanded');
       const label = expanded ? i18n.restoreTitle : i18n.maximizeTitle;
@@ -1170,6 +1209,8 @@
   if (sessionSelect) sessionSelect.addEventListener('change', () => switchSession(sessionSelect.value));
   if (sessionNewButton) sessionNewButton.addEventListener('click', () => createNewSession());
   if (sessionDeleteButton) sessionDeleteButton.addEventListener('click', () => deleteActiveSession());
+  if (messagesContainer) messagesContainer.addEventListener('scroll', updateScrollBottomButton, { passive: true });
+  if (scrollBottomButton) scrollBottomButton.addEventListener('click', () => scrollConversationToBottom('smooth'));
 
   if (!fileInput) {
     const form = document.getElementById('ai-assistant-form');
@@ -1497,7 +1538,7 @@
       bubble.appendChild(p);
     }
     messagesContainer.appendChild(bubble);
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    scrollConversationToBottom('auto');
     return bubble;
   }
 
@@ -1511,7 +1552,7 @@
         <span class="ai-assistant-typing-dots" aria-hidden="true"><span></span><span></span><span></span></span>
       </div>`;
     messagesContainer.appendChild(bubble);
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    scrollConversationToBottom('auto');
     return bubble;
   }
 
@@ -1529,7 +1570,7 @@
       content.innerHTML = formatBotMessageHtml(fullText);
       bubble.classList.remove('is-streaming');
       enhanceBotBubble(bubble);
-      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      scrollConversationToBottom('auto');
       return Promise.resolve(bubble);
     }
     return new Promise((resolve) => {
@@ -1537,7 +1578,7 @@
       const step = () => {
         cursor = Math.min(fullText.length, cursor + Math.max(2, Math.ceil(fullText.length / 85)));
         content.innerHTML = `${formatBotMessageHtml(fullText.slice(0, cursor))}<span class="ai-assistant-stream-caret" aria-hidden="true"></span>`;
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        scrollConversationToBottom('auto');
         if (cursor >= fullText.length) {
           content.innerHTML = formatBotMessageHtml(fullText);
           bubble.classList.remove('is-streaming');
@@ -1958,11 +1999,12 @@
       const isOpening = !panel.classList.contains('is-open');
       if (isOpening) placePanelInCurrentViewport();
       setAssistantPanelOpen(isOpening);
+      updateScrollBottomButton();
     });
   }
 
   if (closeButton && panel) {
-    closeButton.addEventListener('click', () => { setAssistantExpanded(false); setAssistantPanelOpen(false); });
+    closeButton.addEventListener('click', () => { setAssistantExpanded(false); setAssistantPanelOpen(false); updateScrollBottomButton(); });
   }
 
   if (expandButton && panel) {

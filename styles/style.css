@@ -9818,6 +9818,53 @@ body.body-menu-open #footer {
   padding: 28px 26px 12px;
 }
 
+.ai-assistant-scroll-bottom {
+  align-items: center;
+  backdrop-filter: blur(14px);
+  background: linear-gradient(135deg, rgb(93 93 255 / 72%), rgb(200 34 255 / 48%));
+  border: 1px solid rgb(121 230 255 / 34%);
+  border-radius: 50%;
+  bottom: 94px;
+  box-shadow:
+    0 14px 34px rgb(5 8 20 / 42%),
+    0 0 18px rgb(121 230 255 / 18%);
+  cursor: pointer;
+  display: inline-flex;
+  height: 40px;
+  justify-content: center;
+  left: 50%;
+  opacity: 0;
+  padding: 0;
+  pointer-events: none;
+  position: absolute;
+  transform: translate(-50%, 10px) scale(0.96);
+  transition: opacity 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+  width: 40px;
+  z-index: 6;
+}
+
+.ai-assistant-scroll-bottom.is-visible {
+  opacity: 0.86;
+  pointer-events: auto;
+  transform: translate(-50%, 0) scale(1);
+}
+
+.ai-assistant-scroll-bottom:hover {
+  border-color: rgb(121 230 255 / 62%);
+  opacity: 1;
+  transform: translate(-50%, -2px) scale(1.03);
+}
+
+.ai-assistant-scroll-bottom span {
+  border-bottom: 2px solid #fff;
+  border-right: 2px solid #fff;
+  display: block;
+  height: 10px;
+  margin-top: -4px;
+  transform: rotate(45deg);
+  width: 10px;
+}
+
 .ai-assistant-message {
   border-radius: 12px;
   display: block;
@@ -10622,6 +10669,18 @@ body.body-menu-open #footer {
   border-color: rgb(93 93 255 / 48%);
 }
 
+[data-theme="light"] .ai-assistant-scroll-bottom {
+  background: linear-gradient(135deg, rgb(255 255 255 / 86%), rgb(229 224 255 / 74%));
+  border-color: rgb(93 93 255 / 25%);
+  box-shadow:
+    0 14px 28px rgb(88 74 136 / 20%),
+    0 0 16px rgb(93 93 255 / 14%);
+}
+
+[data-theme="light"] .ai-assistant-scroll-bottom span {
+  border-color: #5d5dff;
+}
+
 [data-theme="light"] .ai-assistant-form input,
 [data-theme="light"] .ai-assistant-form textarea {
   background: rgb(0 0 0 / 3%);
@@ -10650,6 +10709,12 @@ body.body-menu-open #footer {
   .ai-assistant-messages {
     gap: 16px;
     padding: 18px 16px 8px;
+  }
+
+  .ai-assistant-scroll-bottom {
+    bottom: 142px;
+    height: 36px;
+    width: 36px;
   }
 
   .ai-assistant-message {
