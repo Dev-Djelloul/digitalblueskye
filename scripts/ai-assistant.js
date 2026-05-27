@@ -67,6 +67,11 @@
         copy: 'Copy',
         copied: 'Copied',
         scrollBottom: 'Go to latest message',
+        exportDocument: 'Export document',
+        downloadMd: 'Download Markdown',
+        downloadHtml: 'Download HTML',
+        downloadPdf: 'Prepare PDF',
+        downloadDocx: 'Download Word document',
         expand: 'Expand',
         collapse: 'Collapse',
         maximizeTitle: 'Expand assistant',
@@ -118,6 +123,11 @@
       copy: 'Copier',
       copied: 'Copié',
       scrollBottom: 'Aller au dernier message',
+      exportDocument: 'Exporter le document',
+      downloadMd: 'Télécharger Markdown',
+      downloadHtml: 'Télécharger HTML',
+      downloadPdf: 'Préparer le PDF',
+      downloadDocx: 'Télécharger Word',
       expand: 'Dérouler',
       collapse: 'Réduire',
       maximizeTitle: "Agrandir l'assistant IA",
@@ -309,6 +319,7 @@
   const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.readonly';
   const DRIVE_PICKER_SCRIPT_URL = 'https://apis.google.com/js/api.js';
   const GOOGLE_IDENTITY_SCRIPT_URL = 'https://accounts.google.com/gsi/client';
+  const HTML2PDF_SCRIPT_URL = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
   const DRIVE_API_KEY = String(window.DBS_GOOGLE_API_KEY || '').trim();
   const DRIVE_CLIENT_ID = String(window.DBS_GOOGLE_CLIENT_ID || '').trim();
   const DRIVE_APP_ID = String(window.DBS_GOOGLE_APP_ID || '').trim();
@@ -652,6 +663,7 @@
   const pdfFileExtensions = new Set(['pdf']);
   let tesseractLoaderPromise = null;
   let pdfJsLoaderPromise = null;
+  let html2PdfLoaderPromise = null;
 
   function getFileExtension(name) {
     const safeName = String(name || '');
@@ -1530,6 +1542,7 @@
     bubble.className = `ai-assistant-message ai-assistant-message--${kind}`;
     bubble.setAttribute('data-role', kind === 'bot' ? 'assistant' : 'user');
     if (kind === 'bot') {
+      bubble._assistantRawText = String(text || '');
       bubble.innerHTML = formatBotMessageHtml(text);
       enhanceBotBubble(bubble);
     } else {
@@ -1563,6 +1576,7 @@
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     bubble.className = 'ai-assistant-message ai-assistant-message--bot is-streaming';
     bubble.setAttribute('data-role', 'assistant');
+    bubble._assistantRawText = fullText;
     content.className = 'ai-assistant-message-content';
     bubble.appendChild(content);
     messagesContainer.appendChild(bubble);
@@ -1608,6 +1622,315 @@
       document.body.removeChild(area);
       return Promise.resolve(!!ok);
     } catch (error) { return Promise.resolve(false); }
+  }
+
+  function slugifyDocumentTitle(text) {
+    const source = String(text || '').split('\n').find((line) => line.trim()) || 'digital-blue-skye-document';
+    return source
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 58) || 'digital-blue-skye-document';
+  }
+
+  function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1200);
+  }
+
+  function buildExportHtml(content, title = 'Digital Blue Skye document') {
+    return `<!doctype html>
+<html lang="${currentLanguage === 'en' ? 'en' : 'fr'}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${escapeHtml(title)}</title>
+  <style>
+    body { color: #1f2140; font-family: Arial, sans-serif; line-height: 1.6; margin: 42px auto; max-width: 860px; padding: 0 24px; }
+    h1, h2, h3 { color: #4c4cff; line-height: 1.25; margin: 1.4em 0 0.55em; }
+    p { margin: 0 0 0.9em; }
+    table { border-collapse: collapse; margin: 1em 0; width: 100%; }
+    th, td { border: 1px solid #d7d8ef; padding: 8px 10px; text-align: left; vertical-align: top; }
+    th { background: #f0f1ff; }
+    code, pre { background: #f6f7ff; border-radius: 6px; font-family: Consolas, monospace; }
+    code { padding: 2px 5px; }
+    pre { overflow-x: auto; padding: 14px; }
+    blockquote { border-left: 4px solid #5d5dff; color: #555779; margin: 1em 0; padding: 0.2em 0 0.2em 1em; }
+    .meta { border-bottom: 1px solid #d7d8ef; color: #6b6d8f; font-size: 0.86rem; margin-bottom: 28px; padding-bottom: 12px; }
+    @media print { body { margin: 24px auto; } }
+  </style>
+</head>
+<body>
+  <div class="meta">Digital Blue Skye AI - ${new Date().toLocaleDateString(currentLanguage === 'en' ? 'en-US' : 'fr-FR')}</div>
+  ${content}
+</body>
+</html>`;
+  }
+
+  function openPrintablePdf(content, title) {
+    const html = buildExportHtml(content, title);
+    const printWindow = window.open('', '_blank', 'noopener,noreferrer,width=900,height=1100');
+    if (!printWindow) {
+      downloadBlob(new Blob([html], { type: 'text/html;charset=utf-8' }), `${slugifyDocumentTitle(title)}.html`);
+      return;
+    }
+    printWindow.document.open();
+    printWindow.document.write(html);
+    printWindow.document.close();
+    printWindow.focus();
+    window.setTimeout(() => printWindow.print(), 350);
+  }
+
+  function createPdfExportElement(content, title = 'Digital Blue Skye document') {
+    const wrapper = document.createElement('section');
+    wrapper.className = 'ai-assistant-pdf-export';
+    wrapper.innerHTML = `
+      <style>
+        .ai-assistant-pdf-export {
+          background: #ffffff !important;
+          background-image: none !important;
+          box-shadow: none !important;
+          color: #1f2140 !important;
+          font-family: Arial, sans-serif;
+          line-height: 1.6;
+          padding: 34px 38px;
+          width: 760px;
+          -webkit-text-fill-color: #1f2140 !important;
+        }
+        .ai-assistant-pdf-export * {
+          background-image: none !important;
+          box-shadow: none !important;
+          color: #1f2140 !important;
+          font-family: Arial, sans-serif !important;
+          opacity: 1 !important;
+          text-shadow: none !important;
+          -webkit-background-clip: border-box !important;
+          -webkit-text-fill-color: #1f2140 !important;
+        }
+        .ai-assistant-pdf-export h1,
+        .ai-assistant-pdf-export h2,
+        .ai-assistant-pdf-export h3 {
+          color: #4c4cff !important;
+          line-height: 1.25;
+          margin: 1.35em 0 0.55em;
+          -webkit-text-fill-color: #4c4cff !important;
+        }
+        .ai-assistant-pdf-export p { margin: 0 0 0.9em; }
+        .ai-assistant-pdf-export table { border-collapse: collapse; margin: 1em 0; width: 100%; }
+        .ai-assistant-pdf-export th,
+        .ai-assistant-pdf-export td { border: 1px solid #d7d8ef; padding: 8px 10px; text-align: left; vertical-align: top; }
+        .ai-assistant-pdf-export th {
+          background: #f0f1ff !important;
+          color: #1f2140 !important;
+          -webkit-text-fill-color: #1f2140 !important;
+        }
+        .ai-assistant-pdf-export code,
+        .ai-assistant-pdf-export pre {
+          background: #f6f7ff !important;
+          border-radius: 6px;
+          color: #1f2140 !important;
+          font-family: Consolas, monospace !important;
+          -webkit-text-fill-color: #1f2140 !important;
+        }
+        .ai-assistant-pdf-export code {
+          padding: 2px 5px;
+          font-family: Consolas, monospace !important;
+        }
+        .ai-assistant-pdf-export pre { overflow-wrap: anywhere; padding: 14px; white-space: pre-wrap; }
+        .ai-assistant-pdf-export blockquote {
+          border-left: 4px solid #5d5dff;
+          color: #555779 !important;
+          margin: 1em 0;
+          padding: 0.2em 0 0.2em 1em;
+          -webkit-text-fill-color: #555779 !important;
+        }
+        .ai-assistant-pdf-export .meta {
+          border-bottom: 1px solid #d7d8ef;
+          color: #6b6d8f !important;
+          font-size: 0.82rem;
+          margin-bottom: 28px;
+          padding-bottom: 12px;
+          -webkit-text-fill-color: #6b6d8f !important;
+        }
+        .ai-assistant-pdf-export .ai-assistant-message-actions,
+        .ai-assistant-pdf-export .ai-assistant-export-actions,
+        .ai-assistant-pdf-export .ai-assistant-code-copy-btn { display: none !important; }
+      </style>
+      <div class="meta">Digital Blue Skye AI - ${new Date().toLocaleDateString(currentLanguage === 'en' ? 'en-US' : 'fr-FR')}</div>
+      ${content}
+    `;
+    wrapper.querySelectorAll('[class]').forEach((node) => {
+      if (!node.classList.contains('meta') && !node.classList.contains('ai-assistant-pdf-export')) {
+        node.removeAttribute('class');
+      }
+    });
+    return wrapper;
+  }
+
+  function ensureHtml2PdfReady() {
+    if (window.html2pdf) return Promise.resolve(window.html2pdf);
+    if (html2PdfLoaderPromise) return html2PdfLoaderPromise;
+    html2PdfLoaderPromise = loadExternalScript(HTML2PDF_SCRIPT_URL).then(() => {
+      if (!window.html2pdf) throw new Error('html2pdf_missing');
+      return window.html2pdf;
+    });
+    return html2PdfLoaderPromise;
+  }
+
+  async function downloadPdfDocument(content, title) {
+    const filename = `${slugifyDocumentTitle(title)}.pdf`;
+    const element = createPdfExportElement(content, title);
+    element.style.left = '-9999px';
+    element.style.position = 'fixed';
+    element.style.top = '0';
+    document.body.appendChild(element);
+    try {
+      const html2pdf = await ensureHtml2PdfReady();
+      await html2pdf()
+        .set({
+          filename,
+          image: { type: 'jpeg', quality: 0.96 },
+          html2canvas: { backgroundColor: '#ffffff', scale: 2, useCORS: true },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+          margin: [10, 10, 10, 10],
+          pagebreak: { mode: ['css', 'legacy'] }
+        })
+        .from(element)
+        .save();
+    } catch (error) {
+      openPrintablePdf(content, title);
+    } finally {
+      element.remove();
+    }
+  }
+
+  function escapeXml(value) {
+    return String(value || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&apos;');
+  }
+
+  function stripMarkdownForDocx(markdown) {
+    return String(markdown || '')
+      .replace(/```[\s\S]*?```/g, (block) => block.replace(/```[a-zA-Z0-9+#.-]*\n?|\n?```/g, ''))
+      .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '$1 ($2)')
+      .replace(/^\s{0,3}#{1,6}\s+/gm, '')
+      .replace(/^\s{0,3}[-*]\s+/gm, '- ')
+      .replace(/\*\*(.*?)\*\*/g, '$1')
+      .replace(/\*(.*?)\*/g, '$1')
+      .replace(/`([^`]+)`/g, '$1')
+      .replace(/^\s*[-*_]{3,}\s*$/gm, '')
+      .trim();
+  }
+
+  function buildDocxDocumentXml(text) {
+    const lines = stripMarkdownForDocx(text).split(/\n+/).map((line) => line.trim()).filter(Boolean);
+    const paragraphs = lines.length ? lines : ['Digital Blue Skye document'];
+    return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:body>
+    ${paragraphs.map((line) => `<w:p><w:r><w:t xml:space="preserve">${escapeXml(line)}</w:t></w:r></w:p>`).join('')}
+    <w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440"/></w:sectPr>
+  </w:body>
+</w:document>`;
+  }
+
+  function makeCrcTable() {
+    const table = new Uint32Array(256);
+    for (let i = 0; i < 256; i += 1) {
+      let c = i;
+      for (let k = 0; k < 8; k += 1) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+      table[i] = c >>> 0;
+    }
+    return table;
+  }
+
+  const crcTable = makeCrcTable();
+
+  function crc32(bytes) {
+    let crc = 0xffffffff;
+    for (let i = 0; i < bytes.length; i += 1) crc = crcTable[(crc ^ bytes[i]) & 0xff] ^ (crc >>> 8);
+    return (crc ^ 0xffffffff) >>> 0;
+  }
+
+  function writeUint16(bytes, offset, value) {
+    bytes[offset] = value & 0xff;
+    bytes[offset + 1] = (value >>> 8) & 0xff;
+  }
+
+  function writeUint32(bytes, offset, value) {
+    bytes[offset] = value & 0xff;
+    bytes[offset + 1] = (value >>> 8) & 0xff;
+    bytes[offset + 2] = (value >>> 16) & 0xff;
+    bytes[offset + 3] = (value >>> 24) & 0xff;
+  }
+
+  function createZip(files) {
+    const encoder = new TextEncoder();
+    const localParts = [], centralParts = [];
+    let offset = 0;
+    const now = new Date();
+    const dosTime = (now.getHours() << 11) | (now.getMinutes() << 5) | Math.floor(now.getSeconds() / 2);
+    const dosDate = ((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate();
+    files.forEach((file) => {
+      const nameBytes = encoder.encode(file.name);
+      const dataBytes = encoder.encode(file.content);
+      const crc = crc32(dataBytes);
+      const local = new Uint8Array(30 + nameBytes.length + dataBytes.length);
+      writeUint32(local, 0, 0x04034b50);
+      writeUint16(local, 4, 20);
+      writeUint16(local, 10, dosTime);
+      writeUint16(local, 12, dosDate);
+      writeUint32(local, 14, crc);
+      writeUint32(local, 18, dataBytes.length);
+      writeUint32(local, 22, dataBytes.length);
+      writeUint16(local, 26, nameBytes.length);
+      local.set(nameBytes, 30);
+      local.set(dataBytes, 30 + nameBytes.length);
+      localParts.push(local);
+
+      const central = new Uint8Array(46 + nameBytes.length);
+      writeUint32(central, 0, 0x02014b50);
+      writeUint16(central, 4, 20);
+      writeUint16(central, 6, 20);
+      writeUint16(central, 12, dosTime);
+      writeUint16(central, 14, dosDate);
+      writeUint32(central, 16, crc);
+      writeUint32(central, 20, dataBytes.length);
+      writeUint32(central, 24, dataBytes.length);
+      writeUint16(central, 28, nameBytes.length);
+      writeUint32(central, 42, offset);
+      central.set(nameBytes, 46);
+      centralParts.push(central);
+      offset += local.length;
+    });
+    const centralOffset = offset;
+    const centralSize = centralParts.reduce((sum, part) => sum + part.length, 0);
+    const end = new Uint8Array(22);
+    writeUint32(end, 0, 0x06054b50);
+    writeUint16(end, 8, files.length);
+    writeUint16(end, 10, files.length);
+    writeUint32(end, 12, centralSize);
+    writeUint32(end, 16, centralOffset);
+    return new Blob([...localParts, ...centralParts, end], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+  }
+
+  function buildDocxBlob(markdown) {
+    return createZip([
+      { name: '[Content_Types].xml', content: '<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>' },
+      { name: '_rels/.rels', content: '<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>' },
+      { name: 'word/document.xml', content: buildDocxDocumentXml(markdown) }
+    ]);
   }
 
   function refreshBubbleActionLabels() {
@@ -1669,6 +1992,46 @@
       bubble.appendChild(content);
     }
     enhanceCodeBlocks(content);
+    const rawText = String(bubble._assistantRawText || content.innerText || '').trim();
+    if (rawText.length > 80) {
+      const exportActions = document.createElement('div');
+      exportActions.className = 'ai-assistant-export-actions';
+      exportActions.setAttribute('aria-label', i18n.exportDocument);
+      const baseName = slugifyDocumentTitle(rawText);
+      const exports = [
+        {
+          label: 'MD',
+          title: i18n.downloadMd,
+          action: () => downloadBlob(new Blob([rawText], { type: 'text/markdown;charset=utf-8' }), `${baseName}.md`)
+        },
+        {
+          label: 'HTML',
+          title: i18n.downloadHtml,
+          action: () => downloadBlob(new Blob([buildExportHtml(content.innerHTML, baseName)], { type: 'text/html;charset=utf-8' }), `${baseName}.html`)
+        },
+        {
+          label: 'PDF',
+          title: i18n.downloadPdf,
+          action: () => downloadPdfDocument(content.innerHTML, baseName)
+        },
+        {
+          label: 'DOCX',
+          title: i18n.downloadDocx,
+          action: () => downloadBlob(buildDocxBlob(rawText), `${baseName}.docx`)
+        }
+      ];
+      exports.forEach((item) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'ai-assistant-export-btn';
+        button.textContent = item.label;
+        button.title = item.title;
+        button.setAttribute('aria-label', item.title);
+        button.addEventListener('click', item.action);
+        exportActions.appendChild(button);
+      });
+      bubble.appendChild(exportActions);
+    }
     const actions = document.createElement('div');
     actions.className = 'ai-assistant-message-actions';
     const copyBtn = document.createElement('button');
