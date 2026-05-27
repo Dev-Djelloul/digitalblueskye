@@ -457,12 +457,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
       requestAnimationFrame(() => {
         visibleCards.forEach((card) => {
-          const rect = card.getBoundingClientRect();
-          const inViewport = rect.top < window.innerHeight && rect.bottom > 0;
-
-          if (inViewport) {
-            card.classList.add('aos-animate');
-          }
+          card.classList.add('aos-animate');
         });
       });
     });

@@ -206,6 +206,10 @@ document.addEventListener('DOMContentLoaded', function () {
             ${createVoiceControlsMarkup(micIconUrl, voiceIconUrl)}
             <button type="submit" class="ai-assistant-send-btn">${i18n.send}</button>
           </form>
+          <span class="ai-assistant-resize-handle ai-assistant-resize-handle--nw" data-resize-corner="nw" aria-hidden="true"></span>
+          <span class="ai-assistant-resize-handle ai-assistant-resize-handle--ne" data-resize-corner="ne" aria-hidden="true"></span>
+          <span class="ai-assistant-resize-handle ai-assistant-resize-handle--sw" data-resize-corner="sw" aria-hidden="true"></span>
+          <span class="ai-assistant-resize-handle ai-assistant-resize-handle--se" data-resize-corner="se" aria-hidden="true"></span>
         </aside>`;
       document.body.insertAdjacentHTML('beforeend', markup);
       return;
@@ -478,6 +482,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!panel) return;
 
     let dragState = null;
+    let resizeState = null;
 
     function autoScrollDuringDrag(event) {
       const edge = 36;
@@ -535,7 +540,73 @@ document.addEventListener('DOMContentLoaded', function () {
       applyPanelPosition(left, top, false);
     });
 
+    panel.querySelectorAll('[data-resize-corner]').forEach((handle) => {
+      handle.addEventListener('mousedown', (event) => {
+        if (!isDesktopPanelDragEnabled()) return;
+        if (!panel.classList.contains('is-open')) return;
+        if (panel.classList.contains('is-expanded')) return;
+        if (event.button !== 0) return;
+
+        const rect = panel.getBoundingClientRect();
+        resizeState = {
+          corner: handle.getAttribute('data-resize-corner') || 'se',
+          startX: event.pageX,
+          startY: event.pageY,
+          startLeft: rect.left + window.scrollX,
+          startTop: rect.top + window.scrollY,
+          startWidth: rect.width,
+          startHeight: rect.height,
+        };
+        panel.classList.add('is-resizing');
+        event.preventDefault();
+        event.stopPropagation();
+      });
+    });
+
+    window.addEventListener('mousemove', (event) => {
+      if (!resizeState || !panel) return;
+      const dx = event.pageX - resizeState.startX;
+      const dy = event.pageY - resizeState.startY;
+      const minWidth = 560;
+      const minHeight = 420;
+      const margin = 8;
+      const maxWidth = Math.max(minWidth, window.innerWidth - (margin * 2));
+      const maxHeight = Math.max(minHeight, window.innerHeight - (margin * 2));
+      const resizeFromLeft = resizeState.corner.includes('w');
+      const resizeFromTop = resizeState.corner.includes('n');
+
+      let width = resizeFromLeft ? resizeState.startWidth - dx : resizeState.startWidth + dx;
+      let height = resizeFromTop ? resizeState.startHeight - dy : resizeState.startHeight + dy;
+      width = Math.min(Math.max(width, minWidth), maxWidth);
+      height = Math.min(Math.max(height, minHeight), maxHeight);
+
+      const left = resizeFromLeft
+        ? resizeState.startLeft + resizeState.startWidth - width
+        : resizeState.startLeft;
+      const top = resizeFromTop
+        ? resizeState.startTop + resizeState.startHeight - height
+        : resizeState.startTop;
+
+      applyPanelSize(width, height, false);
+      applyPanelPosition(left, top, false);
+    });
+
     window.addEventListener('mouseup', () => {
+      if (resizeState && panel) {
+        resizeState = null;
+        panel.classList.remove('is-resizing');
+        const rect = panel.getBoundingClientRect();
+        if (Number.isFinite(rect.width) && Number.isFinite(rect.height)) {
+          applyPanelSize(rect.width, rect.height, true);
+        }
+        const left = Number.parseFloat(panel.style.left);
+        const top = Number.parseFloat(panel.style.top);
+        if (Number.isFinite(left) && Number.isFinite(top)) {
+          applyPanelPosition(left, top, true);
+        }
+        return;
+      }
+
       if (panel && isDesktopPanelDragEnabled()) {
         const rect = panel.getBoundingClientRect();
         if (Number.isFinite(rect.width) && Number.isFinite(rect.height)) {
