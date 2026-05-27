@@ -12,6 +12,7 @@
  */
 
 const DEFAULT_MODEL = 'openrouter/free';
+const FALLBACK_MODEL = 'openrouter/auto';
 
 function buildCorsHeaders(request, env) {
   const fallbackOrigin = env.ALLOWED_ORIGIN || 'https://digitalblueskye.infinityfreeapp.com';
@@ -34,10 +35,30 @@ function jsonResponse(payload, status, corsHeaders) {
   });
 }
 
-function buildSystemPrompt(language) {
+function normalizeDateContext(rawDate) {
+  const fallback = {
+    isoDate: new Date().toISOString().slice(0, 10),
+    timezone: 'Europe/Paris'
+  };
+  if (!rawDate || typeof rawDate !== 'object') return fallback;
+  const isoDate = typeof rawDate.isoDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(rawDate.isoDate)
+    ? rawDate.isoDate
+    : fallback.isoDate;
+  const timezone = typeof rawDate.timezone === 'string' && rawDate.timezone.trim()
+    ? rawDate.timezone.slice(0, 80)
+    : fallback.timezone;
+  return { isoDate, timezone };
+}
+
+function buildSystemPrompt(language, dateContext) {
+  const currentYear = dateContext.isoDate.slice(0, 4);
   if (language === 'en') {
     return [
       'You are the Digital Blue Skye assistant.',
+      `Current date: ${dateContext.isoDate} (${dateContext.timezone}). Treat ${currentYear} as the current year.`,
+      'Never say we are in 2024 unless the user explicitly asks about 2024.',
+      'For latest/current market facts, recent product launches, prices, release dates, rankings, laws, or news: you do not have live web access.',
+      'Do not invent models, examples, dates, specs, prices, citations, or rankings. If no source is provided, say that live verification is required and offer a safe comparison framework using neutral placeholders only, such as "Brand / Model to verify".',
       'Reply in concise, practical, actionable language.',
       'Prefer short sections and bullet points on separate lines.',
       'Limit answers to the essentials unless the user asks for details.'
@@ -46,6 +67,10 @@ function buildSystemPrompt(language) {
 
   return [
     "Tu es l'assistant Digital Blue Skye.",
+    `Date actuelle : ${dateContext.isoDate} (${dateContext.timezone}). Considere ${currentYear} comme l'annee en cours.`,
+    "Ne dis jamais que nous sommes en 2024 sauf si l'utilisateur parle explicitement de 2024.",
+    "Pour les faits recents, les dernieres sorties produit, les prix, dates de sortie, classements, lois ou actualites : tu n'as pas d'acces web temps reel.",
+    'N\'invente jamais de modeles, exemples, dates, fiches techniques, prix, citations ou classements. Si aucune source n\'est fournie, explique qu\'une verification web est necessaire et propose une grille de comparaison fiable avec uniquement des placeholders neutres, par exemple "Marque / modele a verifier".',
     'Reponds en francais de facon concise, pratique et actionnable.',
     'Privilegie des sections courtes et des puces sur des lignes separees.',
     'Reste bref sauf si la personne demande explicitement plus de details.'
@@ -127,52 +152,85 @@ export default {
     }
 
     const model = env.OPENROUTER_MODEL || DEFAULT_MODEL;
-    const systemPrompt = buildSystemPrompt(language);
+    const dateContext = normalizeDateContext(body?.currentDate);
+    const systemPrompt = buildSystemPrompt(language, dateContext);
 
-    const openRouterPayload = {
-      model,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        ...history,
-        { role: 'user', content: message }
-      ],
-      temperature: 0.35,
-      max_tokens: 220
-    };
-
-    const upstream = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${env.OPENROUTER_API_KEY}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': allowedOrigin,
-        'X-Title': 'Digital Blue Skye AI'
-      },
-      body: JSON.stringify(openRouterPayload)
-    });
-
-    const raw = await upstream.text();
-    let parsed = null;
-    try {
-      parsed = raw ? JSON.parse(raw) : null;
-    } catch (error) {
-      // Keep raw payload in diagnostic response below.
+    function buildOpenRouterPayload(modelName) {
+      return {
+        model: modelName,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          ...history,
+          { role: 'user', content: message }
+        ],
+        temperature: 0.35,
+        max_tokens: 220
+      };
     }
 
-    if (!upstream.ok) {
+    async function callOpenRouter(modelName) {
+      const upstream = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${env.OPENROUTER_API_KEY}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': allowedOrigin,
+          'X-Title': 'Digital Blue Skye AI'
+        },
+        body: JSON.stringify(buildOpenRouterPayload(modelName))
+      });
+
+      const raw = await upstream.text();
+      let parsed = null;
+      try {
+        parsed = raw ? JSON.parse(raw) : null;
+      } catch (error) {
+        // Keep raw payload in diagnostic response below.
+      }
+      return { upstream, parsed };
+    }
+
+    const modelsToTry = [model, FALLBACK_MODEL].filter((value, index, array) => value && array.indexOf(value) === index);
+    let lastError = null;
+    let parsed = null;
+    let resolvedModel = model;
+
+    for (const modelName of modelsToTry) {
+      const result = await callOpenRouter(modelName);
+      parsed = result.parsed;
+      resolvedModel = modelName;
+      if (result.upstream.ok) break;
+
       const upstreamError =
         parsed?.error?.message ||
         parsed?.message ||
         'openrouter_request_failed';
 
+      lastError = {
+        model: modelName,
+        status_code: result.upstream.status,
+        upstream_error: upstreamError
+      };
+
+      const msg = upstreamError.toLowerCase();
+      const canFallback =
+        result.upstream.status === 400 ||
+        result.upstream.status === 404 ||
+        result.upstream.status === 429 ||
+        msg.includes('model') ||
+        msg.includes('endpoint') ||
+        msg.includes('provider returned error') ||
+        msg.includes('rate limit');
+
+      if (!canFallback) break;
+    }
+
+    if (lastError && (!parsed || !extractReply(parsed))) {
       return jsonResponse(
         {
           ok: false,
           error: 'openrouter_error',
-          diagnostic: {
-            status_code: upstream.status,
-            upstream_error: upstreamError
-          }
+          diagnostic: lastError
         },
         502,
         corsHeaders
@@ -201,8 +259,8 @@ export default {
         ok: true,
         reply,
         provider: 'openrouter',
-        model,
-        resolved_model: parsed?.model || model
+        model: resolvedModel,
+        resolved_model: parsed?.model || resolvedModel
       },
       200,
       corsHeaders

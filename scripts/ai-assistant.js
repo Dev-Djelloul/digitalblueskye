@@ -18,6 +18,20 @@
       || 'fr';
   }
 
+  function getAssistantCurrentDateContext() {
+    const now = new Date();
+    const isoDate = now.toISOString().slice(0, 10);
+    const formatter = new Intl.DateTimeFormat(currentLanguage === 'en' ? 'en-US' : 'fr-FR', {
+      dateStyle: 'full',
+      timeZone: 'Europe/Paris'
+    });
+    return {
+      isoDate,
+      localeDate: formatter.format(now),
+      timezone: 'Europe/Paris'
+    };
+  }
+
   function getI18n(lang) {
     if (lang === 'en') {
       return {
@@ -62,6 +76,8 @@
         ttsOff: 'Voice playback disabled',
         speechUnsupported: 'Voice dictation is not available on this browser',
         loading: '...',
+        thinking: 'Thinking',
+        rateLimitError: 'The AI provider is temporarily saturated. Please try again in a few moments.',
         friendlyApiError: 'I hit a temporary issue. Please try again in a few seconds.',
         fallbackConnectionError: 'Connection problem',
         assistantDown: 'The assistant is currently unavailable.',
@@ -110,6 +126,8 @@
       ttsOff: 'Lecture vocale désactivée',
       speechUnsupported: 'Dictée vocale non disponible sur ce navigateur',
       loading: '...',
+      thinking: 'Réflexion',
+      rateLimitError: "Le fournisseur IA est temporairement saturé. Réessaie dans quelques instants.",
       friendlyApiError: "Oups, je rencontre un souci temporaire. Réessaie dans quelques secondes.",
       fallbackConnectionError: 'Problème de connexion',
       assistantDown: "L'assistant est indisponible actuellement.",
@@ -1260,6 +1278,51 @@
 
   // ─── FONCTION DE RENDU MARKDOWN AMÉLIORÉE ───────────────────────────────────
   function formatBotMessageHtml(rawText) {
+    const codeBlocks = [];
+
+    function stashCodeBlock(_, lang, code) {
+      const language = String(lang || '').trim().toLowerCase().replace(/[^a-z0-9+#.-]/g, '');
+      const highlighted = highlightCode(code, language);
+      const label = language || 'code';
+      codeBlocks.push(
+        `<figure class="ai-assistant-code-block">
+          <figcaption>${escapeHtml(label)}</figcaption>
+          <pre><code class="language-${escapeHtml(language || 'plain')}">${highlighted}</code></pre>
+        </figure>`
+      );
+      return `__AI_CODE_BLOCK_${codeBlocks.length - 1}__`;
+    }
+
+    function restoreCodeBlocks(html) {
+      return html.replace(/__AI_CODE_BLOCK_(\d+)__/g, (_, idx) => codeBlocks[Number(idx)] || '');
+    }
+
+    function highlightCode(code, language) {
+      let output = escapeHtml(String(code || '').replace(/\n$/, ''));
+      const lang = language.toLowerCase();
+      if (/^(js|javascript|ts|typescript)$/.test(lang)) {
+        output = output
+          .replace(/\b(const|let|var|function|return|async|await|if|else|for|while|switch|case|break|continue|try|catch|class|new|import|from|export|default|throw)\b/g, '<span class="ai-token ai-token--keyword">$1</span>')
+          .replace(/\b(true|false|null|undefined)\b/g, '<span class="ai-token ai-token--literal">$1</span>')
+          .replace(/(&quot;.*?&quot;|&#39;.*?&#39;|`.*?`)/g, '<span class="ai-token ai-token--string">$1</span>')
+          .replace(/(\/\/.*)$/gm, '<span class="ai-token ai-token--comment">$1</span>');
+      } else if (/^(html|xml)$/.test(lang)) {
+        output = output
+          .replace(/(&lt;\/?)([\w-]+)/g, '$1<span class="ai-token ai-token--tag">$2</span>')
+          .replace(/([\w:-]+)=(&quot;.*?&quot;|&#39;.*?&#39;)/g, '<span class="ai-token ai-token--attr">$1</span>=<span class="ai-token ai-token--string">$2</span>');
+      } else if (/^(css|scss)$/.test(lang)) {
+        output = output
+          .replace(/([\w-]+)(\s*:)/g, '<span class="ai-token ai-token--attr">$1</span>$2')
+          .replace(/(#(?:[0-9a-f]{3}){1,2}\b|rgb[a]?\(.*?\))/gi, '<span class="ai-token ai-token--literal">$1</span>');
+      } else if (/^(json)$/.test(lang)) {
+        output = output
+          .replace(/(&quot;[^&]+&quot;)(\s*:)/g, '<span class="ai-token ai-token--attr">$1</span>$2')
+          .replace(/:\s*(&quot;.*?&quot;)/g, ': <span class="ai-token ai-token--string">$1</span>')
+          .replace(/\b(true|false|null)\b/g, '<span class="ai-token ai-token--literal">$1</span>');
+      }
+      return output;
+    }
+
     function linkifyLine(text) {
       const preservedAnchors = [];
       let output = text.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, (_, label, url) => {
@@ -1272,6 +1335,7 @@
         const trailing = url.slice(cleanUrl.length);
         return `<a class="ai-assistant-inline-link" href="${cleanUrl}" target="_blank" rel="noopener noreferrer">${cleanUrl}</a>${trailing}`;
       });
+      output = output.replace(/\[(\d{1,2})\]/g, '<sup class="ai-assistant-citation">[$1]</sup>');
       output = output.replace(/__AI_LINK_(\d+)__/g, (_, idx) => preservedAnchors[Number(idx)] || '');
       return output;
     }
@@ -1288,14 +1352,14 @@
         .ai-assistant-table th { background: rgba(255,255,255,0.1); font-weight: 600; }
         .ai-assistant-table tr:nth-child(even) td { background: rgba(255,255,255,0.04); }
         .ai-assistant-table tr:hover td { background: rgba(255,255,255,0.07); }
-        .ai-assistant-subheading { margin: 6px 0 2px; font-size: 0.95em; font-weight: 700; }
       `;
       document.head.appendChild(style);
     }
 
     injectTableStyles();
 
-    const safe = escapeHtml(String(rawText || ''))
+    const withCodeBlocks = String(rawText || '').replace(/```([a-zA-Z0-9+#.-]*)\n([\s\S]*?)```/g, stashCodeBlock);
+    const safe = escapeHtml(withCodeBlocks)
       .replace(/\r/g, '')
       .replace(/&lt;br\s*\/?&gt;/gi, '\n')
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
@@ -1309,11 +1373,17 @@
     let html = '';
     let inList = false;
     let inOrderedList = false;
+    let orderedListIndex = 1;
     let tableBuffer = [];
+    let pendingBlankLine = false;
 
     function flushLists() {
       if (inList) { html += '</ul>'; inList = false; }
       if (inOrderedList) { html += '</ol>'; inOrderedList = false; }
+    }
+
+    function appendToLastListItem(text) {
+      html = html.replace(/<\/li>$/, `<p class="ai-assistant-list-detail">${linkifyLine(text)}</p></li>`);
     }
 
     function flushTable() {
@@ -1334,6 +1404,7 @@
       // Tableau Markdown
       if (line.startsWith('|') && line.endsWith('|')) {
         flushLists();
+        orderedListIndex = 1;
         tableBuffer.push(line);
         continue;
       }
@@ -1341,7 +1412,13 @@
 
       // Ligne vide
       if (!line) {
-        flushLists();
+        pendingBlankLine = true;
+        continue;
+      }
+
+      // Séparateurs Markdown: on les masque pour éviter les tirets visibles.
+      if (/^[-*_]{3,}$/.test(line)) {
+        pendingBlankLine = false;
         continue;
       }
 
@@ -1349,15 +1426,28 @@
       const headerMatch = line.match(/^(#{1,6})\s+(.+)$/);
       if (headerMatch) {
         flushLists();
-        html += `<p class="ai-assistant-subheading"><strong>${linkifyLine(headerMatch[2])}</strong></p>`;
+        orderedListIndex = 1;
+        pendingBlankLine = false;
+        const level = Math.min(Math.max(headerMatch[1].length, 1), 6);
+        html += `<h${level} class="ai-assistant-heading ai-assistant-heading--h${level}">${linkifyLine(headerMatch[2])}</h${level}>`;
+        continue;
+      }
+
+      if (line.startsWith('&gt; ')) {
+        flushLists();
+        orderedListIndex = 1;
+        pendingBlankLine = false;
+        html += `<blockquote>${linkifyLine(line.slice(5).trim())}</blockquote>`;
         continue;
       }
 
       // Liste à puces
       if (line.startsWith('- ') || line.startsWith('* ')) {
         if (inOrderedList) { html += '</ol>'; inOrderedList = false; }
+        orderedListIndex = 1;
         if (!inList) { html += '<ul>'; inList = true; }
         html += `<li>${linkifyLine(line.slice(2).trim())}</li>`;
+        pendingBlankLine = false;
         continue;
       }
 
@@ -1365,12 +1455,24 @@
       const orderedMatch = line.match(/^\d+[.)]\s+(.+)$/);
       if (orderedMatch) {
         if (inList) { html += '</ul>'; inList = false; }
-        if (!inOrderedList) { html += '<ol>'; inOrderedList = true; }
+        if (!inOrderedList) {
+          html += orderedListIndex > 1 ? `<ol start="${orderedListIndex}">` : '<ol>';
+          inOrderedList = true;
+        }
         html += `<li>${linkifyLine(orderedMatch[1])}</li>`;
+        orderedListIndex += 1;
+        pendingBlankLine = false;
+        continue;
+      }
+
+      if ((inList || inOrderedList) && !pendingBlankLine) {
+        appendToLastListItem(line);
         continue;
       }
 
       flushLists();
+      orderedListIndex = 1;
+      pendingBlankLine = false;
       html += `<p>${linkifyLine(line)}</p>`;
     }
 
@@ -1378,13 +1480,14 @@
     if (inList) html += '</ul>';
     if (inOrderedList) html += '</ol>';
 
-    return html || `<p>${safe}</p>`;
+    return restoreCodeBlocks(html || `<p>${safe}</p>`);
   }
   // ─────────────────────────────────────────────────────────────────────────────
 
   function addMessage(kind, text) {
     const bubble = document.createElement('article');
     bubble.className = `ai-assistant-message ai-assistant-message--${kind}`;
+    bubble.setAttribute('data-role', kind === 'bot' ? 'assistant' : 'user');
     if (kind === 'bot') {
       bubble.innerHTML = formatBotMessageHtml(text);
       enhanceBotBubble(bubble);
@@ -1396,6 +1499,56 @@
     messagesContainer.appendChild(bubble);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
     return bubble;
+  }
+
+  function addTypingMessage() {
+    const bubble = document.createElement('article');
+    bubble.className = 'ai-assistant-message ai-assistant-message--bot ai-assistant-message--typing';
+    bubble.setAttribute('data-role', 'assistant');
+    bubble.innerHTML = `
+      <div class="ai-assistant-message-content">
+        <span class="ai-assistant-thinking-label">${i18n.thinking}</span>
+        <span class="ai-assistant-typing-dots" aria-hidden="true"><span></span><span></span><span></span></span>
+      </div>`;
+    messagesContainer.appendChild(bubble);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    return bubble;
+  }
+
+  function addStreamingBotMessage(text) {
+    const fullText = String(text || '');
+    const bubble = document.createElement('article');
+    const content = document.createElement('div');
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    bubble.className = 'ai-assistant-message ai-assistant-message--bot is-streaming';
+    bubble.setAttribute('data-role', 'assistant');
+    content.className = 'ai-assistant-message-content';
+    bubble.appendChild(content);
+    messagesContainer.appendChild(bubble);
+    if (reducedMotion || fullText.length < 90) {
+      content.innerHTML = formatBotMessageHtml(fullText);
+      bubble.classList.remove('is-streaming');
+      enhanceBotBubble(bubble);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      return Promise.resolve(bubble);
+    }
+    return new Promise((resolve) => {
+      let cursor = 0;
+      const step = () => {
+        cursor = Math.min(fullText.length, cursor + Math.max(2, Math.ceil(fullText.length / 85)));
+        content.innerHTML = `${formatBotMessageHtml(fullText.slice(0, cursor))}<span class="ai-assistant-stream-caret" aria-hidden="true"></span>`;
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        if (cursor >= fullText.length) {
+          content.innerHTML = formatBotMessageHtml(fullText);
+          bubble.classList.remove('is-streaming');
+          enhanceBotBubble(bubble);
+          resolve(bubble);
+          return;
+        }
+        window.setTimeout(step, 18);
+      };
+      step();
+    });
   }
 
   function copyTextToClipboard(text) {
@@ -1424,14 +1577,57 @@
       button.title = label;
       button.setAttribute('aria-label', label);
     });
+    const codeCopyButtons = messagesContainer.querySelectorAll('.ai-assistant-code-copy-btn');
+    codeCopyButtons.forEach((button) => {
+      const isCopied = button.dataset.state === 'copied';
+      const label = isCopied ? i18n.copied : i18n.copy;
+      button.title = label;
+      button.setAttribute('aria-label', label);
+    });
+  }
+
+  function enhanceCodeBlocks(root) {
+    if (!root) return;
+    const codeBlocks = root.querySelectorAll('.ai-assistant-code-block');
+    codeBlocks.forEach((block) => {
+      if (block.querySelector('.ai-assistant-code-copy-btn')) return;
+      const caption = block.querySelector('figcaption');
+      const code = block.querySelector('pre code');
+      if (!caption || !code) return;
+      const copyBtn = document.createElement('button');
+      copyBtn.type = 'button';
+      copyBtn.className = 'ai-assistant-code-copy-btn';
+      copyBtn.innerHTML = `<img src="${copyPasteIconUrl}" alt="" aria-hidden="true">`;
+      copyBtn.title = i18n.copy;
+      copyBtn.setAttribute('aria-label', i18n.copy);
+      copyBtn.addEventListener('click', async () => {
+        const ok = await copyTextToClipboard(code.innerText || code.textContent || '');
+        if (!ok) return;
+        copyBtn.dataset.state = 'copied';
+        copyBtn.classList.add('is-copied');
+        copyBtn.title = i18n.copied;
+        copyBtn.setAttribute('aria-label', i18n.copied);
+        setTimeout(() => {
+          copyBtn.dataset.state = '';
+          copyBtn.classList.remove('is-copied');
+          copyBtn.title = i18n.copy;
+          copyBtn.setAttribute('aria-label', i18n.copy);
+        }, 1400);
+      });
+      caption.appendChild(copyBtn);
+    });
   }
 
   function enhanceBotBubble(bubble) {
     if (!bubble || bubble.querySelector('.ai-assistant-message-actions')) return;
-    const content = document.createElement('div');
-    content.className = 'ai-assistant-message-content';
-    while (bubble.firstChild) content.appendChild(bubble.firstChild);
-    bubble.appendChild(content);
+    let content = bubble.querySelector(':scope > .ai-assistant-message-content');
+    if (!content) {
+      content = document.createElement('div');
+      content.className = 'ai-assistant-message-content';
+      while (bubble.firstChild) content.appendChild(bubble.firstChild);
+      bubble.appendChild(content);
+    }
+    enhanceCodeBlocks(content);
     const actions = document.createElement('div');
     actions.className = 'ai-assistant-message-actions';
     const copyBtn = document.createElement('button');
@@ -1488,14 +1684,22 @@
 
   function cleanAssistantReplyText(rawText) {
     return String(rawText || '')
-      .replace(/^\s{0,3}#{1,6}\s+/gm, '').replace(/\s#{3,}\s+/g, ' ')
       .replace(/[●•◦▪▫]/g, '').replace(/[ \t]{2,}/g, ' ')
       .replace(/\n{3,}/g, '\n\n').trim();
   }
 
   function formatAssistantApiError(apiError) {
-    const normalized = String(apiError || '').toLowerCase();
+    const diagnostic = typeof apiError === 'object' && apiError !== null ? apiError.diagnostic : null;
+    const statusCode = Number(diagnostic?.status_code || diagnostic?.status || 0);
+    const normalized = String(
+      typeof apiError === 'object' && apiError !== null
+        ? `${apiError.error || ''} ${diagnostic?.upstream_error || ''}`
+        : apiError || ''
+    ).toLowerCase();
     if (!normalized) return i18n.fallbackConnectionError;
+    if (statusCode === 429 || normalized.includes('rate limit') || normalized.includes('provider returned error')) {
+      return i18n.rateLimitError;
+    }
     return i18n.friendlyApiError;
   }
 
@@ -1635,11 +1839,25 @@
   }
 
   async function askAI(userText, fileContext = '', attachments = []) {
-    const loading = addMessage('bot', i18n.loading);
+    const loading = addTypingMessage();
     try {
+      const dateContext = getAssistantCurrentDateContext();
+      const styleInstruction = currentLanguage === 'en'
+        ? [
+          `Current date: ${dateContext.isoDate} (${dateContext.timezone}). Treat ${dateContext.isoDate.slice(0, 4)} as the current year.`,
+          'Never say we are in 2024 unless the user explicitly asks about 2024.',
+          'For latest/current market facts, product launches, prices, rankings, laws, or news: you do not have live web access. Do not invent models, examples, dates, specs, prices, citations, or rankings. If no source is provided, say that live verification is required and offer a safe comparison framework using neutral placeholders only, such as "Brand / Model to verify".',
+          'Formatting instructions: answer in clean Markdown, use complete punctuated sentences, avoid standalone "---" separators, and use continuous numbered lists when relevant.'
+        ].join('\n')
+        : [
+          `Date actuelle : ${dateContext.isoDate} (${dateContext.timezone}). Considère ${dateContext.isoDate.slice(0, 4)} comme l'année en cours.`,
+          "Ne dis jamais que nous sommes en 2024 sauf si l'utilisateur parle explicitement de 2024.",
+          "Pour les faits récents, les dernières sorties produit, les prix, classements, lois ou actualités : tu n'as pas d'accès web temps réel. N'invente jamais de modèles, exemples, dates, fiches techniques, prix, citations ou classements. Si aucune source n'est fournie, explique qu'une vérification web est nécessaire et propose une grille de comparaison fiable avec uniquement des placeholders neutres, par exemple \"Marque / modèle à vérifier\".",
+          'Consignes de mise en forme : réponds en Markdown propre, avec des phrases complètes et ponctuées, évite les séparateurs "---" seuls, et utilise des listes numérotées continues quand c’est pertinent.'
+        ].join('\n');
       const composedMessage = fileContext
-        ? `${userText}\n\n---\nContexte de fichiers locaux (ne pas ignorer):\n${fileContext}`
-        : userText;
+        ? `${styleInstruction}\n\n${userText}\n\n---\nContexte de fichiers locaux (ne pas ignorer):\n${fileContext}`
+        : `${styleInstruction}\n\n${userText}`;
       const response = await fetch(API_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1647,6 +1865,7 @@
           message: composedMessage,
           history: chatHistory.slice(-4),
           language: currentLanguage === 'en' ? 'en' : 'fr',
+          currentDate: dateContext,
           mode: 'chat',
           attachments
         })
@@ -1655,12 +1874,12 @@
       loading.remove();
       if (data.ok) {
         const cleanedReply = cleanAssistantReplyText(data.reply);
-        const botBubble = addMessage('bot', cleanedReply);
+        const botBubble = await addStreamingBotMessage(cleanedReply);
         speakText(cleanedReply, botBubble);
         chatHistory.push({ role: 'assistant', content: cleanedReply });
         persistActiveConversation();
       } else {
-        const msg = formatAssistantApiError(data.error);
+        const msg = formatAssistantApiError(data);
         addMessage('bot', msg);
         chatHistory.push({ role: 'assistant', content: msg });
         persistActiveConversation();

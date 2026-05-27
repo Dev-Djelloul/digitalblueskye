@@ -58,6 +58,43 @@ function extractReply(data) {
   return data?.choices?.[0]?.message?.content?.trim() || '';
 }
 
+function normalizeDateContext(rawDate) {
+  const fallback = {
+    isoDate: new Date().toISOString().slice(0, 10),
+    timezone: 'Europe/Paris'
+  };
+  if (!rawDate || typeof rawDate !== 'object') return fallback;
+  const isoDate = typeof rawDate.isoDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(rawDate.isoDate)
+    ? rawDate.isoDate
+    : fallback.isoDate;
+  const timezone = typeof rawDate.timezone === 'string' && rawDate.timezone.trim()
+    ? rawDate.timezone.slice(0, 80)
+    : fallback.timezone;
+  return { isoDate, timezone };
+}
+
+function buildDateAwareSystemPrompt(language, hasImages, dateContext) {
+  const currentYear = dateContext.isoDate.slice(0, 4);
+  const dateRule =
+    language === 'en'
+      ? `Current date: ${dateContext.isoDate} (${dateContext.timezone}). Treat ${currentYear} as the current year. Never say we are in 2024 unless the user explicitly asks about 2024. For latest/current market facts, recent product launches, prices, release dates, rankings, laws, or news: you do not have live web access. Do not invent models, examples, dates, specs, prices, citations, or rankings. If the user asks for current/latest facts and no source is provided, say that live verification is required and offer a safe comparison framework using neutral placeholders only, such as "Brand / Model to verify".`
+      : `Date actuelle : ${dateContext.isoDate} (${dateContext.timezone}). Considere ${currentYear} comme l'annee en cours. Ne dis jamais que nous sommes en 2024 sauf si l'utilisateur parle explicitement de 2024. Pour les faits recents, les dernieres sorties produit, les prix, dates de sortie, classements, lois ou actualites : tu n'as pas d'acces web temps reel. N'invente jamais de modeles, exemples, dates, fiches techniques, prix, citations ou classements. Si l'utilisateur demande des donnees actuelles et qu'aucune source n'est fournie, explique qu'une verification web est necessaire et propose plutot une grille de comparaison fiable avec uniquement des placeholders neutres, par exemple "Marque / modele a verifier".`;
+
+  const basePrompt =
+    language === 'en'
+      ? 'You are the Digital Blue Skye assistant. Be concise, practical, and actionable.'
+      : "Tu es l'assistant Digital Blue Skye. Reponds en francais de facon concise, pratique et actionnable.";
+
+  const visionPrompt =
+    language === 'en'
+      ? 'Strict vision mode: report only what is directly visible. Never invent brands, places, prices, or context. If uncertain, say "Uncertain". Structure image answers as: 1) Observations, 2) Uncertainties, 3) Next useful checks.'
+      : 'Mode vision strict: decris uniquement ce qui est directement visible. N\'invente jamais marque, lieu, prix ou contexte. Si un point est incertain, ecris "Incertain". Structure la reponse image en: 1) Observations, 2) Incertitudes, 3) Verifications utiles.';
+
+  return hasImages
+    ? `${basePrompt} ${dateRule} ${visionPrompt}`
+    : `${basePrompt} ${dateRule}`;
+}
+
 async function callOpenRouter({ apiKey, model, systemPrompt, history, message, attachments, referer }) {
   const userMessage =
     attachments.length > 0
@@ -142,19 +179,8 @@ export default {
     const history = normalizeHistory(body.history);
     const attachments = normalizeAttachments(body.attachments);
     const hasImages = attachments.length > 0;
-
-    const systemPrompt =
-      language === 'en'
-        ? (
-          hasImages
-            ? 'You are the Digital Blue Skye assistant. Be concise, practical, and actionable. Strict vision mode: report only what is directly visible. Never invent brands, places, prices, or context. If uncertain, say "Uncertain". Structure image answers as: 1) Observations, 2) Uncertainties, 3) Next useful checks.'
-            : 'You are the Digital Blue Skye assistant. Be concise, practical, and actionable.'
-        )
-        : (
-          hasImages
-            ? "Tu es l'assistant Digital Blue Skye. Reponds en francais de facon concise, pratique et actionnable. Mode vision strict: decris uniquement ce qui est directement visible. N'invente jamais marque, lieu, prix ou contexte. Si un point est incertain, ecris \"Incertain\". Structure la reponse image en: 1) Observations, 2) Incertitudes, 3) Verifications utiles."
-            : "Tu es l'assistant Digital Blue Skye. Reponds en francais de facon concise, pratique et actionnable."
-        );
+    const dateContext = normalizeDateContext(body.currentDate);
+    const systemPrompt = buildDateAwareSystemPrompt(language, hasImages, dateContext);
 
     const requestedModel = (env.OPENROUTER_MODEL || DEFAULT_MODEL).trim();
     const modelsToTry = [requestedModel, FALLBACK_MODEL].filter((v, i, a) => v && a.indexOf(v) === i);
@@ -193,10 +219,16 @@ export default {
         upstream_error: parsed?.error?.message || parsed?.message || 'openrouter_request_failed'
       };
 
-      // On tente le fallback seulement si erreur de modele / endpoint
+      // On tente le fallback aussi lorsque le provider gratuit est temporairement sature.
       const msg = (lastError.upstream_error || '').toLowerCase();
       const canFallback =
-        resp.status === 400 || resp.status === 404 || msg.includes('model') || msg.includes('endpoint');
+        resp.status === 400 ||
+        resp.status === 404 ||
+        resp.status === 429 ||
+        msg.includes('model') ||
+        msg.includes('endpoint') ||
+        msg.includes('provider returned error') ||
+        msg.includes('rate limit');
 
       if (!canFallback) break;
     }
