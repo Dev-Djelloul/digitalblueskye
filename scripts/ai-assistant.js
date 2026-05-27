@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function () {
+ document.addEventListener('DOMContentLoaded', function () {
   function normalizeLanguage(value) {
     if (!value) return '';
     return value.toString().trim().toLowerCase().split(/[-_]/)[0] || '';
@@ -94,10 +94,10 @@ document.addEventListener('DOMContentLoaded', function () {
       pdfLoading: 'Lecture du contenu PDF...',
       pdfNoText: 'Aucun texte lisible trouvé dans le PDF :',
       pdfReadFailed: 'Impossible de lire le PDF :',
-      ocrLoading: 'Lecture du texte de l’image (OCR)...',
-      ocrNoText: 'Aucun texte lisible trouvé dans l’image :',
+      ocrLoading: 'Lecture du texte de l\u2019image (OCR)...',
+      ocrNoText: 'Aucun texte lisible trouvé dans l\u2019image :',
       ocrUnavailable: 'OCR indisponible dans ce navigateur/session.',
-      sendWithoutTextWithFiles: 'Merci d’analyser les fichiers joints.',
+      sendWithoutTextWithFiles: 'Merci d\u2019analyser les fichiers joints.',
       copy: 'Copier',
       copied: 'Copié',
       expand: 'Dérouler',
@@ -177,7 +177,6 @@ document.addEventListener('DOMContentLoaded', function () {
       </div>`;
   }
 
-  // Injecte l'interface de chat si elle n'est pas déjà présente dans la page.
   function ensureAssistantMarkup() {
     const launcher = document.getElementById('ai-assistant-launcher');
     const panel = document.getElementById('ai-assistant-panel');
@@ -273,7 +272,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
   ensureAssistantMarkup();
 
-  // Point d'entrée de l'API de l'assistant IA.
   const API_ENDPOINT = 'https://digitalblueskye-ai.djelloulabid75.workers.dev';
   const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.readonly';
   const DRIVE_PICKER_SCRIPT_URL = 'https://apis.google.com/js/api.js';
@@ -301,7 +299,6 @@ document.addEventListener('DOMContentLoaded', function () {
   const micButton = document.getElementById('ai-assistant-mic');
   const ttsButton = document.getElementById('ai-assistant-tts');
   let fileInput = document.getElementById('ai-assistant-file-input');
-  // Historique local de conversation envoyé partiellement à l'API.
   let chatHistory = [];
   let sessionsState = { activeSessionId: '', sessions: [] };
   let pendingFileContext = '';
@@ -387,9 +384,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!persist) return;
     try {
       localStorage.setItem(panelSizeStorageKey, JSON.stringify(next));
-    } catch (_) {
-      // ignore storage errors
-    }
+    } catch (_) {}
   }
 
   function loadPanelSize() {
@@ -402,9 +397,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const height = Number(parsed?.height);
       if (!Number.isFinite(width) || !Number.isFinite(height)) return;
       applyPanelSize(width, height, false);
-    } catch (_) {
-      // ignore parse errors
-    }
+    } catch (_) {}
   }
 
   function applyPanelPosition(left, top, persist = true) {
@@ -420,9 +413,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!persist) return;
     try {
       localStorage.setItem(panelPositionStorageKey, JSON.stringify(next));
-    } catch (_) {
-      // ignore storage errors
-    }
+    } catch (_) {}
   }
 
   function loadPanelPosition() {
@@ -435,9 +426,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const top = Number(parsed?.top);
       if (!Number.isFinite(left) || !Number.isFinite(top)) return;
       applyPanelPosition(left, top, false);
-    } catch (_) {
-      // ignore parse errors
-    }
+    } catch (_) {}
   }
 
   function resetPanelPosition(removeSaved = false) {
@@ -448,11 +437,7 @@ document.addEventListener('DOMContentLoaded', function () {
     panel.style.removeProperty('top');
     panel.style.removeProperty('transform');
     if (!removeSaved) return;
-    try {
-      localStorage.removeItem(panelPositionStorageKey);
-    } catch (_) {
-      // ignore storage errors
-    }
+    try { localStorage.removeItem(panelPositionStorageKey); } catch (_) {}
   }
 
   function resetPanelSize(removeSaved = false) {
@@ -462,11 +447,7 @@ document.addEventListener('DOMContentLoaded', function () {
     panel.style.removeProperty('max-width');
     panel.style.removeProperty('max-height');
     if (!removeSaved) return;
-    try {
-      localStorage.removeItem(panelSizeStorageKey);
-    } catch (_) {
-      // ignore storage errors
-    }
+    try { localStorage.removeItem(panelSizeStorageKey); } catch (_) {}
   }
 
   function placePanelInCurrentViewport() {
@@ -480,28 +461,21 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function setupPanelDrag() {
     if (!panel) return;
-
     let dragState = null;
     let resizeState = null;
 
     function autoScrollDuringDrag(event) {
       const edge = 36;
       const speed = 14;
-      if (event.clientY >= window.innerHeight - edge) {
-        window.scrollBy(0, speed);
-      } else if (event.clientY <= edge) {
-        window.scrollBy(0, -speed);
-      }
+      if (event.clientY >= window.innerHeight - edge) window.scrollBy(0, speed);
+      else if (event.clientY <= edge) window.scrollBy(0, -speed);
     }
 
     function isInteractiveDragTarget(target) {
       if (!target || !target.closest) return false;
-      return Boolean(
-        target.closest(
-          'input, textarea, button, select, option, a, label, [contenteditable="true"], ' +
-          '.ai-assistant-attach-menu'
-        )
-      );
+      return Boolean(target.closest(
+        'input, textarea, button, select, option, a, label, [contenteditable="true"], .ai-assistant-attach-menu'
+      ));
     }
 
     panelHeader?.addEventListener('mousedown', (event) => {
@@ -510,24 +484,15 @@ document.addEventListener('DOMContentLoaded', function () {
       if (panel.classList.contains('is-expanded')) return;
       if (event.button !== 0) return;
       if (isInteractiveDragTarget(event.target)) return;
-
       const rect = panel.getBoundingClientRect();
       const panelPageLeft = rect.left + window.scrollX;
       const panelPageTop = rect.top + window.scrollY;
       const offsetX = event.pageX - panelPageLeft;
       const offsetY = event.pageY - panelPageTop;
       const resizeHandleSize = 26;
-      const isOnResizeHandle =
-        offsetX >= rect.width - resizeHandleSize &&
-        offsetY >= rect.height - resizeHandleSize;
-
-      // Preserve native CSS resize behavior in bottom-right corner.
+      const isOnResizeHandle = offsetX >= rect.width - resizeHandleSize && offsetY >= rect.height - resizeHandleSize;
       if (isOnResizeHandle) return;
-
-      dragState = {
-        offsetX,
-        offsetY,
-      };
+      dragState = { offsetX, offsetY };
       panel.classList.add('is-dragging');
       event.preventDefault();
     });
@@ -546,16 +511,13 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!panel.classList.contains('is-open')) return;
         if (panel.classList.contains('is-expanded')) return;
         if (event.button !== 0) return;
-
         const rect = panel.getBoundingClientRect();
         resizeState = {
           corner: handle.getAttribute('data-resize-corner') || 'se',
-          startX: event.pageX,
-          startY: event.pageY,
+          startX: event.pageX, startY: event.pageY,
           startLeft: rect.left + window.scrollX,
           startTop: rect.top + window.scrollY,
-          startWidth: rect.width,
-          startHeight: rect.height,
+          startWidth: rect.width, startHeight: rect.height,
         };
         panel.classList.add('is-resizing');
         event.preventDefault();
@@ -567,26 +529,17 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!resizeState || !panel) return;
       const dx = event.pageX - resizeState.startX;
       const dy = event.pageY - resizeState.startY;
-      const minWidth = 560;
-      const minHeight = 420;
-      const margin = 8;
-      const maxWidth = Math.max(minWidth, window.innerWidth - (margin * 2));
-      const maxHeight = Math.max(minHeight, window.innerHeight - (margin * 2));
+      const minWidth = 560, minHeight = 420, margin = 8;
+      const maxWidth = Math.max(minWidth, window.innerWidth - margin * 2);
+      const maxHeight = Math.max(minHeight, window.innerHeight - margin * 2);
       const resizeFromLeft = resizeState.corner.includes('w');
       const resizeFromTop = resizeState.corner.includes('n');
-
       let width = resizeFromLeft ? resizeState.startWidth - dx : resizeState.startWidth + dx;
       let height = resizeFromTop ? resizeState.startHeight - dy : resizeState.startHeight + dy;
       width = Math.min(Math.max(width, minWidth), maxWidth);
       height = Math.min(Math.max(height, minHeight), maxHeight);
-
-      const left = resizeFromLeft
-        ? resizeState.startLeft + resizeState.startWidth - width
-        : resizeState.startLeft;
-      const top = resizeFromTop
-        ? resizeState.startTop + resizeState.startHeight - height
-        : resizeState.startTop;
-
+      const left = resizeFromLeft ? resizeState.startLeft + resizeState.startWidth - width : resizeState.startLeft;
+      const top = resizeFromTop ? resizeState.startTop + resizeState.startHeight - height : resizeState.startTop;
       applyPanelSize(width, height, false);
       applyPanelPosition(left, top, false);
     });
@@ -596,56 +549,36 @@ document.addEventListener('DOMContentLoaded', function () {
         resizeState = null;
         panel.classList.remove('is-resizing');
         const rect = panel.getBoundingClientRect();
-        if (Number.isFinite(rect.width) && Number.isFinite(rect.height)) {
-          applyPanelSize(rect.width, rect.height, true);
-        }
+        if (Number.isFinite(rect.width) && Number.isFinite(rect.height)) applyPanelSize(rect.width, rect.height, true);
         const left = Number.parseFloat(panel.style.left);
         const top = Number.parseFloat(panel.style.top);
-        if (Number.isFinite(left) && Number.isFinite(top)) {
-          applyPanelPosition(left, top, true);
-        }
+        if (Number.isFinite(left) && Number.isFinite(top)) applyPanelPosition(left, top, true);
         return;
       }
-
       if (panel && isDesktopPanelDragEnabled()) {
         const rect = panel.getBoundingClientRect();
-        if (Number.isFinite(rect.width) && Number.isFinite(rect.height)) {
-          applyPanelSize(rect.width, rect.height, true);
-        }
+        if (Number.isFinite(rect.width) && Number.isFinite(rect.height)) applyPanelSize(rect.width, rect.height, true);
       }
-
       if (!dragState || !panel) return;
       dragState = null;
       panel.classList.remove('is-dragging');
       const left = Number.parseFloat(panel.style.left);
       const top = Number.parseFloat(panel.style.top);
-      if (Number.isFinite(left) && Number.isFinite(top)) {
-        applyPanelPosition(left, top, true);
-      }
+      if (Number.isFinite(left) && Number.isFinite(top)) applyPanelPosition(left, top, true);
     });
 
     window.addEventListener('resize', () => {
       if (!panel) return;
       if (panel.classList.contains('is-expanded')) return;
-      if (!isDesktopPanelDragEnabled()) {
-        resetPanelPosition(false);
-        resetPanelSize(false);
-        return;
-      }
+      if (!isDesktopPanelDragEnabled()) { resetPanelPosition(false); resetPanelSize(false); return; }
       const width = Number.parseFloat(panel.style.width);
       const height = Number.parseFloat(panel.style.height);
-      if (Number.isFinite(width) && Number.isFinite(height)) {
-        applyPanelSize(width, height, false);
-      } else {
-        loadPanelSize();
-      }
+      if (Number.isFinite(width) && Number.isFinite(height)) applyPanelSize(width, height, false);
+      else loadPanelSize();
       const left = Number.parseFloat(panel.style.left);
       const top = Number.parseFloat(panel.style.top);
-      if (Number.isFinite(left) && Number.isFinite(top)) {
-        applyPanelPosition(left, top, false);
-      } else {
-        loadPanelPosition();
-      }
+      if (Number.isFinite(left) && Number.isFinite(top)) applyPanelPosition(left, top, false);
+      else loadPanelPosition();
     });
   }
 
@@ -660,8 +593,9 @@ document.addEventListener('DOMContentLoaded', function () {
       .filter((m) => m.content.length > 0)
       .slice(-16);
   }
-  const readableFileExtensions = new Set(['txt', 'md', 'markdown', 'json', 'csv', 'log', 'xml', 'html', 'htm', 'js', 'ts', 'css', 'py', 'php', 'java', 'c', 'cpp', 'sql', 'yaml', 'yml']);
-  const imageFileExtensions = new Set(['png', 'jpg', 'jpeg', 'webp', 'bmp', 'gif', 'tiff']);
+
+  const readableFileExtensions = new Set(['txt','md','markdown','json','csv','log','xml','html','htm','js','ts','css','py','php','java','c','cpp','sql','yaml','yml']);
+  const imageFileExtensions = new Set(['png','jpg','jpeg','webp','bmp','gif','tiff']);
   const pdfFileExtensions = new Set(['pdf']);
   let tesseractLoaderPromise = null;
   let pdfJsLoaderPromise = null;
@@ -714,46 +648,29 @@ document.addEventListener('DOMContentLoaded', function () {
 
   async function buildVisionAttachments(files) {
     const selected = Array.from(files || []).filter((file) => isImageFile(file)).slice(0, 2);
-    const readyNames = [];
-    const failedNames = [];
-    const attachments = [];
-
+    const readyNames = [], failedNames = [], attachments = [];
     for (const file of selected) {
       try {
         const url = await readFileAsDataUrl(file);
-        if (!url.startsWith('data:image/')) {
-          failedNames.push(file.name);
-          continue;
-        }
+        if (!url.startsWith('data:image/')) { failedNames.push(file.name); continue; }
         attachments.push({ type: 'image_url', name: file.name, url });
         readyNames.push(file.name);
-      } catch (error) {
-        failedNames.push(file.name);
-      }
+      } catch (error) { failedNames.push(file.name); }
     }
-
     return { attachments, readyNames, failedNames };
   }
 
   function loadTesseractLibrary() {
     if (window.Tesseract?.recognize) return Promise.resolve(window.Tesseract);
     if (tesseractLoaderPromise) return tesseractLoaderPromise;
-
     tesseractLoaderPromise = new Promise((resolve, reject) => {
       const script = document.createElement('script');
       script.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
       script.async = true;
-      script.onload = () => {
-        if (window.Tesseract?.recognize) {
-          resolve(window.Tesseract);
-        } else {
-          reject(new Error('ocr_library_missing'));
-        }
-      };
+      script.onload = () => window.Tesseract?.recognize ? resolve(window.Tesseract) : reject(new Error('ocr_library_missing'));
       script.onerror = () => reject(new Error('ocr_library_load_failed'));
       document.head.appendChild(script);
     });
-
     return tesseractLoaderPromise;
   }
 
@@ -767,23 +684,18 @@ document.addEventListener('DOMContentLoaded', function () {
   function loadPdfJsLibrary() {
     if (window.pdfjsLib?.getDocument) return Promise.resolve(window.pdfjsLib);
     if (pdfJsLoaderPromise) return pdfJsLoaderPromise;
-
     pdfJsLoaderPromise = new Promise((resolve, reject) => {
       const script = document.createElement('script');
       script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
       script.async = true;
       script.onload = () => {
-        if (!window.pdfjsLib?.getDocument) {
-          reject(new Error('pdfjs_missing'));
-          return;
-        }
+        if (!window.pdfjsLib?.getDocument) { reject(new Error('pdfjs_missing')); return; }
         window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
         resolve(window.pdfjsLib);
       };
       script.onerror = () => reject(new Error('pdfjs_load_failed'));
       document.head.appendChild(script);
     });
-
     return pdfJsLoaderPromise;
   }
 
@@ -793,20 +705,14 @@ document.addEventListener('DOMContentLoaded', function () {
     const pdfDoc = await pdfjsLib.getDocument({ data }).promise;
     const maxPages = Math.min(pdfDoc.numPages, 8);
     const textChunks = [];
-
     for (let pageNum = 1; pageNum <= maxPages; pageNum += 1) {
       const page = await pdfDoc.getPage(pageNum);
       const textContent = await page.getTextContent();
       const pageText = textContent.items.map((item) => item.str).join(' ').replace(/\s+/g, ' ').trim();
-      if (pageText) {
-        textChunks.push(`Page ${pageNum}: ${pageText}`);
-      }
+      if (pageText) textChunks.push(`Page ${pageNum}: ${pageText}`);
     }
-
     const extractedText = textChunks.join('\n\n').trim();
     if (extractedText) return extractedText;
-
-    // Fallback OCR for scanned PDFs: render first pages to canvas, then OCR.
     const ocrPages = Math.min(pdfDoc.numPages, 3);
     const ocrChunks = [];
     for (let pageNum = 1; pageNum <= ocrPages; pageNum += 1) {
@@ -819,60 +725,36 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!context) continue;
       await page.render({ canvasContext: context, viewport }).promise;
       const ocrText = await extractTextFromImage(canvas, lang);
-      if (ocrText) {
-        ocrChunks.push(`Page ${pageNum}: ${ocrText}`);
-      }
+      if (ocrText) ocrChunks.push(`Page ${pageNum}: ${ocrText}`);
     }
-
     return ocrChunks.join('\n\n').trim();
   }
 
   async function buildLocalFileContext(files) {
-    const maxFiles = 4;
-    const maxCharsPerFile = 5000;
+    const maxFiles = 4, maxCharsPerFile = 5000;
     const selected = Array.from(files || []).slice(0, maxFiles);
-    const readableNames = [];
-    const unsupportedNames = [];
-    const failedNames = [];
-    const noTextNames = [];
-    const snippets = [];
-
+    const readableNames = [], unsupportedNames = [], failedNames = [], noTextNames = [], snippets = [];
     for (const file of selected) {
       if (!isReadableTextFile(file)) {
         if (isPdfFile(file)) {
           try {
             const pdfText = await extractTextFromPdf(file, currentLanguage);
-            if (!pdfText) {
-              noTextNames.push(file.name);
-              continue;
-            }
+            if (!pdfText) { noTextNames.push(file.name); continue; }
             const excerpt = pdfText.length > maxCharsPerFile ? `${pdfText.slice(0, maxCharsPerFile)}\n...[truncated]` : pdfText;
             snippets.push(`Fichier PDF: ${file.name}\n${excerpt}`);
             readableNames.push(file.name);
             continue;
-          } catch (error) {
-            failedNames.push(file.name);
-            continue;
-          }
+          } catch (error) { failedNames.push(file.name); continue; }
         }
-        if (!isImageFile(file)) {
-          unsupportedNames.push(file.name);
-          continue;
-        }
+        if (!isImageFile(file)) { unsupportedNames.push(file.name); continue; }
         try {
           const ocrText = await extractTextFromImage(file, currentLanguage);
-          if (!ocrText) {
-            noTextNames.push(file.name);
-            continue;
-          }
+          if (!ocrText) { noTextNames.push(file.name); continue; }
           const excerpt = ocrText.length > maxCharsPerFile ? `${ocrText.slice(0, maxCharsPerFile)}\n...[truncated]` : ocrText;
           snippets.push(`Fichier image (OCR): ${file.name}\n${excerpt}`);
           readableNames.push(file.name);
           continue;
-        } catch (error) {
-          failedNames.push(file.name);
-          continue;
-        }
+        } catch (error) { failedNames.push(file.name); continue; }
       }
       try {
         const raw = await readFileAsText(file);
@@ -880,28 +762,16 @@ document.addEventListener('DOMContentLoaded', function () {
         const excerpt = trimmed.length > maxCharsPerFile ? `${trimmed.slice(0, maxCharsPerFile)}\n...[truncated]` : trimmed;
         snippets.push(`Fichier: ${file.name}\n${excerpt || '[empty file]'}`);
         readableNames.push(file.name);
-      } catch (error) {
-        failedNames.push(file.name);
-      }
+      } catch (error) { failedNames.push(file.name); }
     }
-
-    return {
-      context: snippets.join('\n\n'),
-      readableNames,
-      unsupportedNames,
-      failedNames,
-      noTextNames
-    };
+    return { context: snippets.join('\n\n'), readableNames, unsupportedNames, failedNames, noTextNames };
   }
 
   function loadExternalScript(src) {
     return new Promise((resolve, reject) => {
       const existing = document.querySelector(`script[src="${src}"]`);
       if (existing) {
-        if (existing.dataset.loaded === 'true') {
-          resolve();
-          return;
-        }
+        if (existing.dataset.loaded === 'true') { resolve(); return; }
         existing.addEventListener('load', () => resolve(), { once: true });
         existing.addEventListener('error', () => reject(new Error('script_load_failed')), { once: true });
         return;
@@ -909,10 +779,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const script = document.createElement('script');
       script.src = src;
       script.async = true;
-      script.onload = () => {
-        script.dataset.loaded = 'true';
-        resolve();
-      };
+      script.onload = () => { script.dataset.loaded = 'true'; resolve(); };
       script.onerror = () => reject(new Error('script_load_failed'));
       document.head.appendChild(script);
     });
@@ -922,10 +789,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (pickerReadyPromise) return pickerReadyPromise;
     pickerReadyPromise = loadExternalScript(DRIVE_PICKER_SCRIPT_URL)
       .then(() => new Promise((resolve, reject) => {
-        if (!window.gapi?.load) {
-          reject(new Error('gapi_missing'));
-          return;
-        }
+        if (!window.gapi?.load) { reject(new Error('gapi_missing')); return; }
         window.gapi.load('picker', {
           callback: () => resolve(),
           onerror: () => reject(new Error('picker_load_failed')),
@@ -939,9 +803,7 @@ document.addEventListener('DOMContentLoaded', function () {
   function ensureIdentityReady() {
     if (identityReadyPromise) return identityReadyPromise;
     identityReadyPromise = loadExternalScript(GOOGLE_IDENTITY_SCRIPT_URL).then(() => {
-      if (!window.google?.accounts?.oauth2?.initTokenClient) {
-        throw new Error('google_identity_missing');
-      }
+      if (!window.google?.accounts?.oauth2?.initTokenClient) throw new Error('google_identity_missing');
     });
     return identityReadyPromise;
   }
@@ -954,24 +816,15 @@ document.addEventListener('DOMContentLoaded', function () {
     await ensureIdentityReady();
     if (!driveTokenClient) {
       driveTokenClient = window.google.accounts.oauth2.initTokenClient({
-        client_id: DRIVE_CLIENT_ID,
-        scope: DRIVE_SCOPE,
-        callback: () => {},
+        client_id: DRIVE_CLIENT_ID, scope: DRIVE_SCOPE, callback: () => {},
       });
     }
-
     return new Promise((resolve, reject) => {
       driveTokenClient.callback = (response) => {
-        if (response?.access_token) {
-          driveAccessToken = response.access_token;
-          resolve(response.access_token);
-          return;
-        }
+        if (response?.access_token) { driveAccessToken = response.access_token; resolve(response.access_token); return; }
         reject(new Error('drive_token_missing'));
       };
-      driveTokenClient.requestAccessToken({
-        prompt: forcePrompt || !driveAccessToken ? 'consent' : '',
-      });
+      driveTokenClient.requestAccessToken({ prompt: forcePrompt || !driveAccessToken ? 'consent' : '' });
     });
   }
 
@@ -996,74 +849,46 @@ document.addEventListener('DOMContentLoaded', function () {
     const name = sanitizeFilename(doc?.name || 'drive-file');
     const mimeType = String(doc?.mimeType || '').trim();
     if (!id) throw new Error('drive_missing_id');
-
     const exportConf = mapGoogleDocExport({ mimeType });
-    let url = '';
-    let resolvedMime = mimeType || 'application/octet-stream';
-    let resolvedName = name;
-
+    let url = '', resolvedMime = mimeType || 'application/octet-stream', resolvedName = name;
     if (exportConf) {
       url = `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(id)}/export?mimeType=${encodeURIComponent(exportConf.mimeType)}`;
       resolvedMime = exportConf.mimeType;
-      if (!/\.[a-z0-9]{2,5}$/i.test(resolvedName)) {
-        resolvedName = `${resolvedName}.${exportConf.ext}`;
-      }
+      if (!/\.[a-z0-9]{2,5}$/i.test(resolvedName)) resolvedName = `${resolvedName}.${exportConf.ext}`;
     } else {
       url = `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(id)}?alt=media`;
     }
-
-    const response = await fetch(url, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const response = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
     if (!response.ok) throw new Error(`drive_download_failed_${response.status}`);
     const blob = await response.blob();
-    const finalMime = blob.type || resolvedMime;
-    return new File([blob], resolvedName, { type: finalMime, lastModified: Date.now() });
+    return new File([blob], resolvedName, { type: blob.type || resolvedMime, lastModified: Date.now() });
   }
 
   async function openDrivePicker() {
     await ensurePickerReady();
     const token = await ensureDriveToken(false).catch(() => ensureDriveToken(true));
-
     return new Promise((resolve, reject) => {
       const docsView = new window.google.picker.DocsView(window.google.picker.ViewId.DOCS)
-        .setIncludeFolders(false)
-        .setSelectFolderEnabled(false);
-
+        .setIncludeFolders(false).setSelectFolderEnabled(false);
       const pickerBuilder = new window.google.picker.PickerBuilder()
-        .setDeveloperKey(DRIVE_API_KEY)
-        .setOAuthToken(token)
+        .setDeveloperKey(DRIVE_API_KEY).setOAuthToken(token)
         .setOrigin(window.location.origin || `${window.location.protocol}//${window.location.host}`)
         .setTitle('Google Drive')
         .enableFeature(window.google.picker.Feature.MULTISELECT_ENABLED)
         .addView(docsView)
         .setCallback((data) => {
           if (!data?.action) return;
-          if (data.action === window.google.picker.Action.PICKED) {
-            resolve(Array.isArray(data.docs) ? data.docs : []);
-            return;
-          }
-          if (data.action === window.google.picker.Action.CANCEL) {
-            resolve([]);
-            return;
-          }
-          // Ignore intermediate Picker events (e.g. loaded/view-changed).
+          if (data.action === window.google.picker.Action.PICKED) { resolve(Array.isArray(data.docs) ? data.docs : []); return; }
+          if (data.action === window.google.picker.Action.CANCEL) { resolve([]); return; }
         });
-
-      if (DRIVE_APP_ID) {
-        pickerBuilder.setAppId(DRIVE_APP_ID);
-      }
-
-      const picker = pickerBuilder.build();
-      picker.setVisible(true);
+      if (DRIVE_APP_ID) pickerBuilder.setAppId(DRIVE_APP_ID);
+      pickerBuilder.build().setVisible(true);
     });
   }
 
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   const speechRecognition = SpeechRecognition ? new SpeechRecognition() : null;
-
   if (speechRecognition) {
-    // Définit automatiquement la langue de dictée selon la langue de la page.
     speechRecognition.lang = currentLanguage === 'en' ? 'en-US' : 'fr-FR';
     speechRecognition.interimResults = false;
     speechRecognition.maxAlternatives = 1;
@@ -1071,9 +896,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function applyAssistantLanguage(lang) {
     currentLanguage = normalizeLanguage(lang) || getPreferredLanguage();
-    if (currentLanguage !== 'en' && currentLanguage !== 'fr') {
-      currentLanguage = 'fr';
-    }
+    if (currentLanguage !== 'en' && currentLanguage !== 'fr') currentLanguage = 'fr';
     i18n = getI18n(currentLanguage);
     if (input) input.placeholder = i18n.inputPlaceholder;
     if (expandButton) {
@@ -1082,56 +905,32 @@ document.addEventListener('DOMContentLoaded', function () {
       expandButton.title = label;
       expandButton.setAttribute('aria-label', label);
     }
-    if (attachToggle) {
-      attachToggle.title = i18n.attach;
-      attachToggle.setAttribute('aria-label', i18n.attach);
-    }
-    if (attachMenu) {
-      attachMenu.setAttribute('aria-label', i18n.attachMenu);
-    }
+    if (attachToggle) { attachToggle.title = i18n.attach; attachToggle.setAttribute('aria-label', i18n.attach); }
+    if (attachMenu) attachMenu.setAttribute('aria-label', i18n.attachMenu);
     const attachFileLabel = attachFileButton?.querySelector('span');
     if (attachFileLabel) attachFileLabel.textContent = i18n.attachFiles;
     const attachDriveLabel = attachDriveButton?.querySelector('span');
     if (attachDriveLabel) attachDriveLabel.textContent = i18n.attachDrive;
     if (sessionLabel) sessionLabel.textContent = i18n.historyLabel;
     if (sessionSelect) sessionSelect.setAttribute('aria-label', i18n.historyLabel);
-    if (sessionNewButton) {
-      sessionNewButton.title = i18n.newChat;
-      sessionNewButton.setAttribute('aria-label', i18n.newChat);
-    }
-    if (sessionDeleteButton) {
-      sessionDeleteButton.title = i18n.deleteChat;
-      sessionDeleteButton.setAttribute('aria-label', i18n.deleteChat);
-    }
+    if (sessionNewButton) { sessionNewButton.title = i18n.newChat; sessionNewButton.setAttribute('aria-label', i18n.newChat); }
+    if (sessionDeleteButton) { sessionDeleteButton.title = i18n.deleteChat; sessionDeleteButton.setAttribute('aria-label', i18n.deleteChat); }
     const sendButton = document.querySelector('#ai-assistant-form .ai-assistant-send-btn');
     if (sendButton) sendButton.textContent = i18n.send;
-    if (voiceSelect) {
-      voiceSelect.title = i18n.voiceSelectLabel;
-      voiceSelect.setAttribute('aria-label', i18n.voiceSelectLabel);
-    }
+    if (voiceSelect) { voiceSelect.title = i18n.voiceSelectLabel; voiceSelect.setAttribute('aria-label', i18n.voiceSelectLabel); }
     refreshBubbleActionLabels();
     renderSessionOptions();
     setMicState(isListening);
     setTtsState(isVoiceOutputEnabled);
-    if (speechRecognition) {
-      speechRecognition.lang = currentLanguage === 'en' ? 'en-US' : 'fr-FR';
-    }
+    if (speechRecognition) speechRecognition.lang = currentLanguage === 'en' ? 'en-US' : 'fr-FR';
     populateVoiceSelect(currentLanguage);
     renderCurrentConversation();
   }
 
-  function buildSessionId() {
-    return `s_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
-  }
+  function buildSessionId() { return `s_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`; }
 
   function makeDefaultSession() {
-    return {
-      id: buildSessionId(),
-      title: i18n.sessionDefault,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-      history: []
-    };
+    return { id: buildSessionId(), title: i18n.sessionDefault, createdAt: Date.now(), updatedAt: Date.now(), history: [] };
   }
 
   function loadSessionsState() {
@@ -1140,30 +939,19 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!raw) return null;
       const parsed = JSON.parse(raw);
       if (!Array.isArray(parsed?.sessions)) return null;
-      const sessions = parsed.sessions
-        .map((s) => ({
-          id: typeof s?.id === 'string' ? s.id : buildSessionId(),
-          title: typeof s?.title === 'string' && s.title.trim() ? s.title : i18n.sessionDefault,
-          createdAt: Number(s?.createdAt) || Date.now(),
-          updatedAt: Number(s?.updatedAt) || Date.now(),
-          history: normalizeHistory(Array.isArray(s?.history) ? s.history : [])
-        }))
-        .slice(-20);
-      return {
-        activeSessionId: typeof parsed?.activeSessionId === 'string' ? parsed.activeSessionId : '',
-        sessions
-      };
-    } catch (error) {
-      return null;
-    }
+      const sessions = parsed.sessions.map((s) => ({
+        id: typeof s?.id === 'string' ? s.id : buildSessionId(),
+        title: typeof s?.title === 'string' && s.title.trim() ? s.title : i18n.sessionDefault,
+        createdAt: Number(s?.createdAt) || Date.now(),
+        updatedAt: Number(s?.updatedAt) || Date.now(),
+        history: normalizeHistory(Array.isArray(s?.history) ? s.history : [])
+      })).slice(-20);
+      return { activeSessionId: typeof parsed?.activeSessionId === 'string' ? parsed.activeSessionId : '', sessions };
+    } catch (error) { return null; }
   }
 
   function saveSessionsState() {
-    try {
-      localStorage.setItem(conversationStorageKey, JSON.stringify(sessionsState));
-    } catch (error) {
-      // Ignore storage failures.
-    }
+    try { localStorage.setItem(conversationStorageKey, JSON.stringify(sessionsState)); } catch (error) {}
   }
 
   function getActiveSession() {
@@ -1186,7 +974,6 @@ document.addEventListener('DOMContentLoaded', function () {
       sessionsState = { activeSessionId: first.id, sessions: [first] };
       saveSessionsState();
     }
-
     if (!sessionsState.sessions.some((s) => s.id === sessionsState.activeSessionId)) {
       sessionsState.activeSessionId = sessionsState.sessions[0]?.id || makeDefaultSession().id;
     }
@@ -1202,9 +989,7 @@ document.addEventListener('DOMContentLoaded', function () {
       option.textContent = session.title || i18n.sessionDefault;
       sessionSelect.appendChild(option);
     }
-    if (sessionsState.activeSessionId) {
-      sessionSelect.value = sessionsState.activeSessionId;
-    }
+    if (sessionsState.activeSessionId) sessionSelect.value = sessionsState.activeSessionId;
   }
 
   function renderCurrentConversation() {
@@ -1212,13 +997,8 @@ document.addEventListener('DOMContentLoaded', function () {
     messagesContainer.innerHTML = '';
     const active = getActiveSession();
     chatHistory = active?.history ? [...active.history] : [];
-    if (!chatHistory.length) {
-      addMessage('bot', i18n.greeting);
-      return;
-    }
-    for (const msg of chatHistory) {
-      addMessage(msg.role === 'assistant' ? 'bot' : 'user', msg.content);
-    }
+    if (!chatHistory.length) { addMessage('bot', i18n.greeting); return; }
+    for (const msg of chatHistory) addMessage(msg.role === 'assistant' ? 'bot' : 'user', msg.content);
   }
 
   function persistActiveConversation() {
@@ -1270,29 +1050,17 @@ document.addEventListener('DOMContentLoaded', function () {
       const raw = localStorage.getItem(voicePreferenceStorageKey);
       if (!raw) return { fr: '', en: '' };
       const parsed = JSON.parse(raw);
-      return {
-        fr: typeof parsed.fr === 'string' ? parsed.fr : '',
-        en: typeof parsed.en === 'string' ? parsed.en : ''
-      };
-    } catch (error) {
-      return { fr: '', en: '' };
-    }
+      return { fr: typeof parsed.fr === 'string' ? parsed.fr : '', en: typeof parsed.en === 'string' ? parsed.en : '' };
+    } catch (error) { return { fr: '', en: '' }; }
   }
 
   function setStoredVoicePreference(lang, voiceURI) {
     const current = getStoredVoicePreferences();
     current[lang] = typeof voiceURI === 'string' ? voiceURI : '';
-    try {
-      localStorage.setItem(voicePreferenceStorageKey, JSON.stringify(current));
-    } catch (error) {
-      // Ignore storage failures.
-    }
+    try { localStorage.setItem(voicePreferenceStorageKey, JSON.stringify(current)); } catch (error) {}
   }
 
-  function getStoredVoicePreference(lang) {
-    const prefs = getStoredVoicePreferences();
-    return prefs[lang] || '';
-  }
+  function getStoredVoicePreference(lang) { return getStoredVoicePreferences()[lang] || ''; }
 
   function chooseBestTtsVoice(lang) {
     const candidates = availableTtsVoices.filter((voice) => {
@@ -1300,30 +1068,18 @@ document.addEventListener('DOMContentLoaded', function () {
       return lang === 'en' ? voiceLang === 'en' : voiceLang === 'fr';
     });
     if (!candidates.length) return null;
-
     const preferredNames = preferredVoiceNames[lang] || [];
-    let bestVoice = candidates[0];
-    let bestScore = -Infinity;
-
+    let bestVoice = candidates[0], bestScore = -Infinity;
     for (const voice of candidates) {
       const name = (voice.name || '').toLowerCase();
       let score = 0;
-
       const preferredIndex = preferredNames.findIndex((needle) => name.includes(needle.toLowerCase()));
-      if (preferredIndex >= 0) {
-        score += 150 - preferredIndex * 12;
-      }
-
+      if (preferredIndex >= 0) score += 150 - preferredIndex * 12;
       if (/enhanced|premium|neural|natural/.test(name)) score += 40;
       if (/compact/.test(name)) score -= 25;
       if (voice.default) score += 8;
-
-      if (score > bestScore) {
-        bestScore = score;
-        bestVoice = voice;
-      }
+      if (score > bestScore) { bestScore = score; bestVoice = voice; }
     }
-
     return bestVoice;
   }
 
@@ -1350,28 +1106,22 @@ document.addEventListener('DOMContentLoaded', function () {
     const preferredVoiceURI = getStoredVoicePreference(lang);
     const bestVoice = chooseBestTtsVoice(lang);
     const selectedVoice = selectedTtsVoices[lang] || bestVoice;
-
     voiceSelect.innerHTML = '';
     const autoOption = document.createElement('option');
     autoOption.value = '';
     autoOption.textContent = i18n.voiceSelectAuto;
     voiceSelect.appendChild(autoOption);
-
     candidates.forEach((voice) => {
       const option = document.createElement('option');
       option.value = voice.voiceURI;
       option.textContent = voice.name || voice.voiceURI;
       voiceSelect.appendChild(option);
     });
-
     if (preferredVoiceURI && candidates.some((voice) => voice.voiceURI === preferredVoiceURI)) {
-      voiceSelect.value = preferredVoiceURI;
-      return;
+      voiceSelect.value = preferredVoiceURI; return;
     }
     voiceSelect.value = '';
-    if (selectedVoice && selectedVoice.voiceURI !== (bestVoice?.voiceURI || '')) {
-      voiceSelect.value = selectedVoice.voiceURI;
-    }
+    if (selectedVoice && selectedVoice.voiceURI !== (bestVoice?.voiceURI || '')) voiceSelect.value = selectedVoice.voiceURI;
   }
 
   function refreshTtsVoices() {
@@ -1399,23 +1149,9 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  if (sessionSelect) {
-    sessionSelect.addEventListener('change', () => {
-      switchSession(sessionSelect.value);
-    });
-  }
-
-  if (sessionNewButton) {
-    sessionNewButton.addEventListener('click', () => {
-      createNewSession();
-    });
-  }
-
-  if (sessionDeleteButton) {
-    sessionDeleteButton.addEventListener('click', () => {
-      deleteActiveSession();
-    });
-  }
+  if (sessionSelect) sessionSelect.addEventListener('change', () => switchSession(sessionSelect.value));
+  if (sessionNewButton) sessionNewButton.addEventListener('click', () => createNewSession());
+  if (sessionDeleteButton) sessionDeleteButton.addEventListener('click', () => deleteActiveSession());
 
   if (!fileInput) {
     const form = document.getElementById('ai-assistant-form');
@@ -1442,55 +1178,30 @@ document.addEventListener('DOMContentLoaded', function () {
     attachToggle.setAttribute('aria-expanded', String(nextOpen));
   }
 
-  if (attachToggle) {
-    attachToggle.addEventListener('click', () => {
-      toggleAttachMenu();
-    });
-  }
+  if (attachToggle) attachToggle.addEventListener('click', () => toggleAttachMenu());
 
   if (attachFileButton && fileInput) {
-    attachFileButton.addEventListener('click', () => {
-      closeAttachMenu();
-      fileInput.click();
-    });
+    attachFileButton.addEventListener('click', () => { closeAttachMenu(); fileInput.click(); });
 
     async function processSelectedFiles(files) {
       const normalizedFiles = Array.from(files || []);
       if (!normalizedFiles.length) return;
       const hasImages = normalizedFiles.some((file) => isImageFile(file));
       const hasPdf = normalizedFiles.some((file) => isPdfFile(file));
-      let ocrLoadingBubble = null;
-      if (hasImages) {
-        ocrLoadingBubble = addMessage('bot', i18n.ocrLoading);
-      }
-      let pdfLoadingBubble = null;
-      if (hasPdf) {
-        pdfLoadingBubble = addMessage('bot', i18n.pdfLoading);
-      }
+      let ocrLoadingBubble = null, pdfLoadingBubble = null;
+      if (hasImages) ocrLoadingBubble = addMessage('bot', i18n.ocrLoading);
+      if (hasPdf) pdfLoadingBubble = addMessage('bot', i18n.pdfLoading);
       const result = await buildLocalFileContext(normalizedFiles);
       const vision = await buildVisionAttachments(normalizedFiles);
-      if (ocrLoadingBubble) {
-        ocrLoadingBubble.remove();
-      }
-      if (pdfLoadingBubble) {
-        pdfLoadingBubble.remove();
-      }
+      if (ocrLoadingBubble) ocrLoadingBubble.remove();
+      if (pdfLoadingBubble) pdfLoadingBubble.remove();
       pendingFileContext = result.context;
       pendingFileNames = result.readableNames;
       pendingVisionAttachments = vision.attachments;
-
-      if (result.readableNames.length) {
-        addMessage('bot', `${i18n.fileReady} ${result.readableNames.join(', ')}`);
-      }
-      if (vision.readyNames.length) {
-        addMessage('bot', `${i18n.imageReady} ${vision.readyNames.join(', ')}`);
-      }
-      if (vision.failedNames.length) {
-        addMessage('bot', `${i18n.imageReadFailed} ${vision.failedNames.join(', ')}`);
-      }
-      if (result.unsupportedNames.length) {
-        addMessage('bot', `${i18n.fileUnsupported} ${result.unsupportedNames.join(', ')}`);
-      }
+      if (result.readableNames.length) addMessage('bot', `${i18n.fileReady} ${result.readableNames.join(', ')}`);
+      if (vision.readyNames.length) addMessage('bot', `${i18n.imageReady} ${vision.readyNames.join(', ')}`);
+      if (vision.failedNames.length) addMessage('bot', `${i18n.imageReadFailed} ${vision.failedNames.join(', ')}`);
+      if (result.unsupportedNames.length) addMessage('bot', `${i18n.fileUnsupported} ${result.unsupportedNames.join(', ')}`);
       if (result.failedNames.length) {
         const failedLabel = hasPdf ? i18n.pdfReadFailed : (hasImages ? i18n.ocrUnavailable : i18n.fileReadFailed);
         addMessage('bot', `${failedLabel} ${result.failedNames.join(', ')}`);
@@ -1499,7 +1210,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const noTextLabel = hasPdf ? i18n.pdfNoText : i18n.ocrNoText;
         addMessage('bot', `${noTextLabel} ${result.noTextNames.join(', ')}`);
       }
-
       input.focus();
     }
 
@@ -1512,54 +1222,33 @@ document.addEventListener('DOMContentLoaded', function () {
     if (attachDriveButton) {
       attachDriveButton.addEventListener('click', async () => {
         closeAttachMenu();
-        if (!isDriveConfigured()) {
-          addMessage('bot', i18n.driveNotConfigured);
-          return;
-        }
-
+        if (!isDriveConfigured()) { addMessage('bot', i18n.driveNotConfigured); return; }
         try {
           const docs = await openDrivePicker();
           if (!docs.length) return;
-          const files = [];
-          const failed = [];
+          const files = [], failed = [];
           const token = driveAccessToken || await ensureDriveToken(false);
           for (const doc of docs.slice(0, 4)) {
-            try {
-              const file = await downloadDriveFile(doc, token);
-              files.push(file);
-            } catch (error) {
-              failed.push(doc?.name || doc?.id || 'file');
-            }
+            try { files.push(await downloadDriveFile(doc, token)); }
+            catch (error) { failed.push(doc?.name || doc?.id || 'file'); }
           }
-
-          if (failed.length) {
-            addMessage('bot', `${i18n.driveDownloadFailed} ${failed.join(', ')}`);
-          }
-
+          if (failed.length) addMessage('bot', `${i18n.driveDownloadFailed} ${failed.join(', ')}`);
           await processSelectedFiles(files);
         } catch (error) {
-          const msg = /token|auth|oauth/i.test(String(error?.message || ''))
-            ? i18n.driveAuthFailed
-            : i18n.drivePickerFailed;
+          const msg = /token|auth|oauth/i.test(String(error?.message || '')) ? i18n.driveAuthFailed : i18n.drivePickerFailed;
           addMessage('bot', msg);
         }
       });
     }
   } else if (attachDriveButton) {
-    attachDriveButton.addEventListener('click', () => {
-      closeAttachMenu();
-      addMessage('bot', i18n.driveNotConfigured);
-    });
+    attachDriveButton.addEventListener('click', () => { closeAttachMenu(); addMessage('bot', i18n.driveNotConfigured); });
   }
 
   document.addEventListener('click', (event) => {
     if (!attachRoot || !attachMenu?.classList.contains('is-open')) return;
-    if (!attachRoot.contains(event.target)) {
-      closeAttachMenu();
-    }
+    if (!attachRoot.contains(event.target)) closeAttachMenu();
   });
 
-  // Échappe les caractères HTML pour éviter l'injection dans le rendu des messages.
   function escapeHtml(value) {
     return value
       .replace(/&/g, '&amp;')
@@ -1569,6 +1258,7 @@ document.addEventListener('DOMContentLoaded', function () {
       .replace(/'/g, '&#39;');
   }
 
+  // ─── FONCTION DE RENDU MARKDOWN AMÉLIORÉE ───────────────────────────────────
   function formatBotMessageHtml(rawText) {
     function linkifyLine(text) {
       const preservedAnchors = [];
@@ -1577,65 +1267,124 @@ document.addEventListener('DOMContentLoaded', function () {
         preservedAnchors.push(anchor);
         return `__AI_LINK_${preservedAnchors.length - 1}__`;
       });
-
       output = output.replace(/(https?:\/\/[^\s<]+)/g, (url) => {
         const cleanUrl = url.replace(/[),.;!?]+$/, '');
         const trailing = url.slice(cleanUrl.length);
         return `<a class="ai-assistant-inline-link" href="${cleanUrl}" target="_blank" rel="noopener noreferrer">${cleanUrl}</a>${trailing}`;
       });
-
       output = output.replace(/__AI_LINK_(\d+)__/g, (_, idx) => preservedAnchors[Number(idx)] || '');
       return output;
     }
 
+    function injectTableStyles() {
+      if (document.getElementById('ai-assistant-table-styles')) return;
+      const style = document.createElement('style');
+      style.id = 'ai-assistant-table-styles';
+      style.textContent = `
+        .ai-assistant-table-wrap { overflow-x: auto; margin: 8px 0; border-radius: 6px; }
+        .ai-assistant-table { border-collapse: collapse; width: 100%; font-size: 0.83em; }
+        .ai-assistant-table th,
+        .ai-assistant-table td { border: 1px solid rgba(255,255,255,0.15); padding: 6px 10px; text-align: left; vertical-align: top; line-height: 1.4; }
+        .ai-assistant-table th { background: rgba(255,255,255,0.1); font-weight: 600; }
+        .ai-assistant-table tr:nth-child(even) td { background: rgba(255,255,255,0.04); }
+        .ai-assistant-table tr:hover td { background: rgba(255,255,255,0.07); }
+        .ai-assistant-subheading { margin: 6px 0 2px; font-size: 0.95em; font-weight: 700; }
+      `;
+      document.head.appendChild(style);
+    }
+
+    injectTableStyles();
+
     const safe = escapeHtml(String(rawText || ''))
       .replace(/\r/g, '')
+      .replace(/&lt;br\s*\/?&gt;/gi, '\n')
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
       .replace(/(\p{Extended_Pictographic}(?:\uFE0F|\uFE0E)?(?:\u200D\p{Extended_Pictographic}(?:\uFE0F|\uFE0E)?)*)/gu, '<span class="ai-assistant-emoji">$1</span>');
 
-    // Si le modèle enchaîne des puces sur une même ligne, on les sépare.
     const normalizedBullets = safe.replace(/\s+-\s+/g, '\n- ');
     const lines = normalizedBullets.split('\n').map((line) => line.trim());
 
     let html = '';
     let inList = false;
+    let inOrderedList = false;
+    let tableBuffer = [];
+
+    function flushLists() {
+      if (inList) { html += '</ul>'; inList = false; }
+      if (inOrderedList) { html += '</ol>'; inOrderedList = false; }
+    }
+
+    function flushTable() {
+      if (!tableBuffer.length) return;
+      const rows = tableBuffer.filter((row) => !/^\|[\s\-:| ]+\|$/.test(row));
+      if (!rows.length) { tableBuffer = []; return; }
+      html += '<div class="ai-assistant-table-wrap"><table class="ai-assistant-table">';
+      rows.forEach((row, idx) => {
+        const cells = row.split('|').slice(1, -1);
+        const tag = idx === 0 ? 'th' : 'td';
+        html += '<tr>' + cells.map((cell) => `<${tag}>${linkifyLine(cell.trim())}</${tag}>`).join('') + '</tr>';
+      });
+      html += '</table></div>';
+      tableBuffer = [];
+    }
 
     for (const line of lines) {
+      // Tableau Markdown
+      if (line.startsWith('|') && line.endsWith('|')) {
+        flushLists();
+        tableBuffer.push(line);
+        continue;
+      }
+      if (tableBuffer.length) flushTable();
+
+      // Ligne vide
       if (!line) {
-        if (inList) {
-          html += '</ul>';
-          inList = false;
-        }
+        flushLists();
         continue;
       }
 
-      if (line.startsWith('- ')) {
-        if (!inList) {
-          html += '<ul>';
-          inList = true;
-        }
+      // Titres ## ###
+      const headerMatch = line.match(/^(#{1,6})\s+(.+)$/);
+      if (headerMatch) {
+        flushLists();
+        html += `<p class="ai-assistant-subheading"><strong>${linkifyLine(headerMatch[2])}</strong></p>`;
+        continue;
+      }
+
+      // Liste à puces
+      if (line.startsWith('- ') || line.startsWith('* ')) {
+        if (inOrderedList) { html += '</ol>'; inOrderedList = false; }
+        if (!inList) { html += '<ul>'; inList = true; }
         html += `<li>${linkifyLine(line.slice(2).trim())}</li>`;
         continue;
       }
 
-      if (inList) {
-        html += '</ul>';
-        inList = false;
+      // Liste numérotée
+      const orderedMatch = line.match(/^\d+[.)]\s+(.+)$/);
+      if (orderedMatch) {
+        if (inList) { html += '</ul>'; inList = false; }
+        if (!inOrderedList) { html += '<ol>'; inOrderedList = true; }
+        html += `<li>${linkifyLine(orderedMatch[1])}</li>`;
+        continue;
       }
+
+      flushLists();
       html += `<p>${linkifyLine(line)}</p>`;
     }
 
-    if (inList) {
-      html += '</ul>';
-    }
+    if (tableBuffer.length) flushTable();
+    if (inList) html += '</ul>';
+    if (inOrderedList) html += '</ol>';
 
     return html || `<p>${safe}</p>`;
   }
+  // ─────────────────────────────────────────────────────────────────────────────
 
   function addMessage(kind, text) {
     const bubble = document.createElement('article');
     bubble.className = `ai-assistant-message ai-assistant-message--${kind}`;
-
     if (kind === 'bot') {
       bubble.innerHTML = formatBotMessageHtml(text);
       enhanceBotBubble(bubble);
@@ -1644,7 +1393,6 @@ document.addEventListener('DOMContentLoaded', function () {
       p.textContent = text;
       bubble.appendChild(p);
     }
-
     messagesContainer.appendChild(bubble);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
     return bubble;
@@ -1653,9 +1401,7 @@ document.addEventListener('DOMContentLoaded', function () {
   function copyTextToClipboard(text) {
     const safeText = String(text || '').trim();
     if (!safeText) return Promise.resolve(false);
-    if (navigator.clipboard?.writeText) {
-      return navigator.clipboard.writeText(safeText).then(() => true).catch(() => false);
-    }
+    if (navigator.clipboard?.writeText) return navigator.clipboard.writeText(safeText).then(() => true).catch(() => false);
     try {
       const area = document.createElement('textarea');
       area.value = safeText;
@@ -1667,9 +1413,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const ok = document.execCommand('copy');
       document.body.removeChild(area);
       return Promise.resolve(!!ok);
-    } catch (error) {
-      return Promise.resolve(false);
-    }
+    } catch (error) { return Promise.resolve(false); }
   }
 
   function refreshBubbleActionLabels() {
@@ -1684,17 +1428,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function enhanceBotBubble(bubble) {
     if (!bubble || bubble.querySelector('.ai-assistant-message-actions')) return;
-
     const content = document.createElement('div');
     content.className = 'ai-assistant-message-content';
-    while (bubble.firstChild) {
-      content.appendChild(bubble.firstChild);
-    }
+    while (bubble.firstChild) content.appendChild(bubble.firstChild);
     bubble.appendChild(content);
-
     const actions = document.createElement('div');
     actions.className = 'ai-assistant-message-actions';
-
     const copyBtn = document.createElement('button');
     copyBtn.type = 'button';
     copyBtn.className = 'ai-assistant-bubble-btn ai-assistant-copy-btn';
@@ -1715,7 +1454,6 @@ document.addEventListener('DOMContentLoaded', function () {
         copyBtn.setAttribute('aria-label', i18n.copy);
       }, 1400);
     });
-
     actions.appendChild(copyBtn);
     bubble.appendChild(actions);
   }
@@ -1738,37 +1476,26 @@ document.addEventListener('DOMContentLoaded', function () {
     return String(rawText || '')
       .replace(/\r/g, ' ')
       .replace(/(\p{Extended_Pictographic}(?:\uFE0F|\uFE0E)?(?:\u200D\p{Extended_Pictographic}(?:\uFE0F|\uFE0E)?)*)/gu, ' ')
-      .replace(/\*\*(.+?)\*\*/g, '$1')
-      .replace(/\*(.+?)\*/g, '$1')
-      .replace(/__(.+?)__/g, '$1')
-      .replace(/_(.+?)_/g, '$1')
-      .replace(/`(.+?)`/g, '$1')
-      .replace(/\[(.*?)\]\((.*?)\)/g, '$1')
-      .replace(/!\[(.*?)\]\((.*?)\)/g, '$1')
-      .replace(/#{1,6}\s*/g, '')
-      .replace(/^>\s?/gm, '')
-      .replace(/[*_~`|]/g, ' ')
+      .replace(/\*\*(.+?)\*\*/g, '$1').replace(/\*(.+?)\*/g, '$1')
+      .replace(/__(.+?)__/g, '$1').replace(/_(.+?)_/g, '$1')
+      .replace(/`(.+?)`/g, '$1').replace(/\[(.*?)\]\((.*?)\)/g, '$1')
+      .replace(/!\[(.*?)\]\((.*?)\)/g, '$1').replace(/#{1,6}\s*/g, '')
+      .replace(/^>\s?/gm, '').replace(/[*_~`|]/g, ' ')
       .replace(/[→←↑↓↔↕↗↘↙↖➜➤➝➞➟➠➡]/g, ' ')
       .replace(/[\u2190-\u21ff\u2300-\u23ff\u2460-\u24ff\u25a0-\u27bf\u2900-\u297f]/g, ' ')
-      .replace(/[●•◦▪▫]/g, '')
-      .replace(/\s+/g, ' ')
-      .trim();
+      .replace(/[●•◦▪▫]/g, '').replace(/\s+/g, ' ').trim();
   }
 
   function cleanAssistantReplyText(rawText) {
     return String(rawText || '')
-      .replace(/^\s{0,3}#{1,6}\s+/gm, '')
-      .replace(/\s#{3,}\s+/g, ' ')
-      .replace(/[●•◦▪▫]/g, '')
-      .replace(/[ \t]{2,}/g, ' ')
-      .replace(/\n{3,}/g, '\n\n')
-      .trim();
+      .replace(/^\s{0,3}#{1,6}\s+/gm, '').replace(/\s#{3,}\s+/g, ' ')
+      .replace(/[●•◦▪▫]/g, '').replace(/[ \t]{2,}/g, ' ')
+      .replace(/\n{3,}/g, '\n\n').trim();
   }
 
   function formatAssistantApiError(apiError) {
     const normalized = String(apiError || '').toLowerCase();
     if (!normalized) return i18n.fallbackConnectionError;
-    if (normalized.includes('openrouter')) return i18n.friendlyApiError;
     return i18n.friendlyApiError;
   }
 
@@ -1776,55 +1503,38 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!bubble) return [];
     const content = bubble.querySelector('.ai-assistant-message-content');
     if (!content) return [];
-
     const existing = Array.from(content.querySelectorAll('.ai-assistant-tts-segment'));
     if (existing.length) return existing;
-
     const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT, {
       acceptNode(node) {
         if (!node?.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
         return NodeFilter.FILTER_ACCEPT;
       }
     });
-
     const textNodes = [];
     let current = walker.nextNode();
-    while (current) {
-      textNodes.push(current);
-      current = walker.nextNode();
-    }
-
+    while (current) { textNodes.push(current); current = walker.nextNode(); }
     textNodes.forEach((node) => {
       const parts = node.nodeValue.match(/[^.!?…\n]+[.!?…]?[\s\n]*/g) || [node.nodeValue];
       const frag = document.createDocumentFragment();
-
       parts.forEach((part) => {
         if (!part) return;
-        if (!part.trim()) {
-          frag.appendChild(document.createTextNode(part));
-          return;
-        }
+        if (!part.trim()) { frag.appendChild(document.createTextNode(part)); return; }
         const segment = document.createElement('span');
         segment.className = 'ai-assistant-tts-segment';
         segment.textContent = part;
         frag.appendChild(segment);
       });
-
       node.parentNode?.replaceChild(frag, node);
     });
-
     return Array.from(content.querySelectorAll('.ai-assistant-tts-segment'));
   }
 
   function clearSpeechTrackingVisual() {
     if (!activeSpeechTracking) return;
     const { bubble, segmentSpans, fallbackTimerId, fallbackStartTimeoutId } = activeSpeechTracking;
-    if (fallbackTimerId) {
-      clearTimeout(fallbackTimerId);
-    }
-    if (fallbackStartTimeoutId) {
-      clearTimeout(fallbackStartTimeoutId);
-    }
+    if (fallbackTimerId) clearTimeout(fallbackTimerId);
+    if (fallbackStartTimeoutId) clearTimeout(fallbackStartTimeoutId);
     bubble?.classList.remove('is-speaking');
     segmentSpans?.forEach((span) => span.classList.remove('is-speaking'));
     activeSpeechTracking = null;
@@ -1834,9 +1544,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!activeSpeechTracking || segmentIndex < 0) return;
     const { segmentSpans, bubble, activeSegmentIndex } = activeSpeechTracking;
     if (!segmentSpans.length || segmentIndex === activeSegmentIndex) return;
-    if (activeSegmentIndex >= 0 && segmentSpans[activeSegmentIndex]) {
-      segmentSpans[activeSegmentIndex].classList.remove('is-speaking');
-    }
+    if (activeSegmentIndex >= 0 && segmentSpans[activeSegmentIndex]) segmentSpans[activeSegmentIndex].classList.remove('is-speaking');
     const next = segmentSpans[segmentIndex];
     if (!next) return;
     bubble.classList.add('is-speaking');
@@ -1861,10 +1569,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function buildSpeechTextFromSegments(segmentSpans) {
     if (!segmentSpans?.length) return '';
-    const chunks = segmentSpans
-      .map((span) => sanitizeTextForSpeech(span.textContent || ''))
-      .filter(Boolean);
-    return chunks.join(' ').trim();
+    return segmentSpans.map((span) => sanitizeTextForSpeech(span.textContent || '')).filter(Boolean).join(' ').trim();
   }
 
   function getSegmentIndexForChar(segments, charIndex) {
@@ -1881,73 +1586,42 @@ document.addEventListener('DOMContentLoaded', function () {
     const baseCharsPerSecond = currentLanguage === 'en' ? 15.5 : 14.5;
     const charsPerSecond = baseCharsPerSecond * safeRate;
     const startedAt = performance.now();
-
     const tick = () => {
       if (!activeSpeechTracking) return;
       const elapsedMs = performance.now() - startedAt;
       const charIndex = Math.floor((elapsedMs / 1000) * charsPerSecond);
       const segmentIndex = getSegmentIndexForChar(activeSpeechTracking.speechSegments, charIndex);
-      if (segmentIndex >= 0) {
-        updateSpeechTrackingAtIndex(segmentIndex);
-      }
+      if (segmentIndex >= 0) updateSpeechTrackingAtIndex(segmentIndex);
       activeSpeechTracking.fallbackTimerId = window.setTimeout(tick, 33);
     };
-
     tick();
   }
 
-  // Lit la réponse de l'assistant via la synthèse vocale si activée.
   function speakText(text, bubble = null) {
     if (!isVoiceOutputEnabled || !window.speechSynthesis || !text) return;
-
     speechTrackingToken += 1;
     clearSpeechTrackingVisual();
     window.speechSynthesis.cancel();
-
     const segmentSpans = ensureSpeechSegmentSpans(bubble);
     const speechSegments = buildSpeechSegmentMap(segmentSpans);
     const speechText = buildSpeechTextFromSegments(segmentSpans) || sanitizeTextForSpeech(text);
     if (!speechText) return;
-
     if (bubble && segmentSpans.length) {
-      activeSpeechTracking = {
-        bubble,
-        segmentSpans,
-        speechSegments,
-        activeSegmentIndex: -1,
-        hasRealBoundaryEvent: false,
-        fallbackTimerId: 0,
-        fallbackStartTimeoutId: 0
-      };
+      activeSpeechTracking = { bubble, segmentSpans, speechSegments, activeSegmentIndex: -1, hasRealBoundaryEvent: false, fallbackTimerId: 0, fallbackStartTimeoutId: 0 };
     }
-
     const activeLang = currentLanguage === 'en' ? 'en' : 'fr';
-    const speechOptions = {
-      lang: activeLang === 'en' ? 'en-US' : 'fr-FR',
-      voice: selectedTtsVoices[activeLang] || null,
-      rate: activeLang === 'en' ? 1.03 : 1.03,
-      pitch: activeLang === 'en' ? 1.02 : 0.98
-    };
-
     const utterance = new SpeechSynthesisUtterance(speechText);
-    utterance.lang = speechOptions.lang;
-    utterance.voice = speechOptions.voice;
-    utterance.rate = speechOptions.rate;
-    utterance.pitch = speechOptions.pitch;
-
+    utterance.lang = activeLang === 'en' ? 'en-US' : 'fr-FR';
+    utterance.voice = selectedTtsVoices[activeLang] || null;
+    utterance.rate = 1.03;
+    utterance.pitch = activeLang === 'en' ? 1.02 : 0.98;
     utterance.onboundary = (event) => {
-      if (!activeSpeechTracking) return;
-      if (typeof event?.charIndex !== 'number') return;
+      if (!activeSpeechTracking || typeof event?.charIndex !== 'number') return;
       activeSpeechTracking.hasRealBoundaryEvent = true;
-      if (activeSpeechTracking.fallbackTimerId) {
-        clearTimeout(activeSpeechTracking.fallbackTimerId);
-        activeSpeechTracking.fallbackTimerId = 0;
-      }
+      if (activeSpeechTracking.fallbackTimerId) { clearTimeout(activeSpeechTracking.fallbackTimerId); activeSpeechTracking.fallbackTimerId = 0; }
       const segmentIndex = getSegmentIndexForChar(activeSpeechTracking.speechSegments, event.charIndex);
-      if (segmentIndex < 0) return;
-      updateSpeechTrackingAtIndex(segmentIndex);
+      if (segmentIndex >= 0) updateSpeechTrackingAtIndex(segmentIndex);
     };
-
     utterance.onstart = () => {
       if (!activeSpeechTracking) return;
       activeSpeechTracking.fallbackStartTimeoutId = window.setTimeout(() => {
@@ -1955,26 +1629,17 @@ document.addEventListener('DOMContentLoaded', function () {
         startEstimatedSpeechTracking(utterance.rate || 1);
       }, 420);
     };
-
-    utterance.onend = () => {
-      clearSpeechTrackingVisual();
-    };
-
-    utterance.onerror = () => {
-      clearSpeechTrackingVisual();
-    };
-
+    utterance.onend = () => clearSpeechTrackingVisual();
+    utterance.onerror = () => clearSpeechTrackingVisual();
     window.speechSynthesis.speak(utterance);
   }
 
-  // Envoie le message utilisateur au backend, affiche la réponse et met à jour l'historique.
   async function askAI(userText, fileContext = '', attachments = []) {
     const loading = addMessage('bot', i18n.loading);
     try {
       const composedMessage = fileContext
         ? `${userText}\n\n---\nContexte de fichiers locaux (ne pas ignorer):\n${fileContext}`
         : userText;
-
       const response = await fetch(API_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1986,10 +1651,8 @@ document.addEventListener('DOMContentLoaded', function () {
           attachments
         })
       });
-
       const data = await response.json();
       loading.remove();
-
       if (data.ok) {
         const cleanedReply = cleanAssistantReplyText(data.reply);
         const botBubble = addMessage('bot', cleanedReply);
@@ -2003,7 +1666,7 @@ document.addEventListener('DOMContentLoaded', function () {
         persistActiveConversation();
       }
     } catch (e) {
-      if(loading) loading.remove();
+      if (loading) loading.remove();
       addMessage('bot', i18n.assistantDown);
       chatHistory.push({ role: 'assistant', content: i18n.assistantDown });
       persistActiveConversation();
@@ -2029,22 +1692,17 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   if (input) {
-    // Enter = send, Shift+Enter = newline in the resizable textarea.
     input.addEventListener('keydown', (event) => {
       if (event.key === 'Enter' && !event.shiftKey) {
         event.preventDefault();
         const form = document.getElementById('ai-assistant-form');
-        if (form?.requestSubmit) {
-          form.requestSubmit();
-        } else {
-          form?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
-        }
+        if (form?.requestSubmit) form.requestSubmit();
+        else form?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
       }
     });
   }
 
   if (ttsButton) {
-    // Active/désactive la lecture vocale.
     ttsButton.addEventListener('click', () => {
       isVoiceOutputEnabled = !isVoiceOutputEnabled;
       setTtsState(isVoiceOutputEnabled);
@@ -2059,37 +1717,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
   if (micButton) {
     if (!speechRecognition) {
-      // Navigateur incompatible avec la reconnaissance vocale.
       micButton.disabled = true;
       micButton.title = i18n.speechUnsupported;
       micButton.setAttribute('aria-label', i18n.speechUnsupported);
     } else {
-      // Démarre/arrête l'écoute micro.
-      micButton.addEventListener('click', () => {
-        if (isListening) {
-          speechRecognition.stop();
-          return;
-        }
-        speechRecognition.start();
-      });
-
-      speechRecognition.onstart = () => {
-        isListening = true;
-        setMicState(true);
-      };
-
-      speechRecognition.onend = () => {
-        isListening = false;
-        setMicState(false);
-      };
-
-      speechRecognition.onerror = () => {
-        isListening = false;
-        setMicState(false);
-      };
-
+      micButton.addEventListener('click', () => { if (isListening) speechRecognition.stop(); else speechRecognition.start(); });
+      speechRecognition.onstart = () => { isListening = true; setMicState(true); };
+      speechRecognition.onend = () => { isListening = false; setMicState(false); };
+      speechRecognition.onerror = () => { isListening = false; setMicState(false); };
       speechRecognition.onresult = (event) => {
-        // Place automatiquement le texte dicté dans le champ de saisie.
         const transcript = event.results?.[0]?.[0]?.transcript?.trim();
         if (!transcript) return;
         input.value = transcript;
@@ -2098,33 +1734,23 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  // Ouvre/ferme le panneau de chat.
   if (launcherButton && panel) {
     launcherButton.addEventListener('click', () => {
       const isOpening = !panel.classList.contains('is-open');
-      if (isOpening) {
-        placePanelInCurrentViewport();
-      }
+      if (isOpening) placePanelInCurrentViewport();
       setAssistantPanelOpen(isOpening);
     });
   }
 
   if (closeButton && panel) {
-    closeButton.addEventListener('click', () => {
-      setAssistantExpanded(false);
-      setAssistantPanelOpen(false);
-    });
+    closeButton.addEventListener('click', () => { setAssistantExpanded(false); setAssistantPanelOpen(false); });
   }
 
   if (expandButton && panel) {
-    expandButton.addEventListener('click', () => {
-      setAssistantExpanded(!panel.classList.contains('is-expanded'));
-    });
+    expandButton.addEventListener('click', () => setAssistantExpanded(!panel.classList.contains('is-expanded')));
   }
 
-  document.addEventListener('translationCompleted', (event) => {
-    applyAssistantLanguage(event.detail?.language);
-  });
+  document.addEventListener('translationCompleted', (event) => applyAssistantLanguage(event.detail?.language));
 
   applyAssistantLanguage(currentLanguage);
   setupPanelDrag();
