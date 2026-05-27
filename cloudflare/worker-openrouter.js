@@ -201,7 +201,8 @@ export default {
         ok: true,
         reply,
         provider: 'openrouter',
-        model
+        model,
+        resolved_model: parsed?.model || model
       },
       200,
       corsHeaders

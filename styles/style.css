@@ -2136,42 +2136,41 @@ section.page-title-container
 }
 
 .home-page .news-card {
-  aspect-ratio: 1 / 1;
-  min-height: 0;
+  aspect-ratio: auto;
+  min-height: 470px;
 }
 
 .home-page .news-card-link {
-  min-height: 0;
+  min-height: 100%;
 }
 
 .home-page .news-card-image-container {
-  flex: 0 0 46%;
-  height: auto;
+  flex: 0 0 200px;
+  height: 200px;
   min-height: 0;
 }
 
 .home-page .news-card-content {
   flex: 1 1 auto;
   min-height: 0;
-  overflow: hidden;
-  padding: 16px 14px;
+  overflow: visible;
+  padding: 25px;
 }
 
 .home-page .news-card-title {
-  display: -webkit-box;
-  font-size: clamp(1.25rem, 2vw, 1.65rem);
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
+  display: block;
+  font-size: 1.5rem;
+  line-height: 1.2;
+  overflow: visible;
 }
 
 .home-page .news-card-summary {
   display: -webkit-box;
-  font-size: 0.92rem;
-  line-height: 1.45;
-  margin-bottom: 10px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 20px;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   overflow: hidden;
 }
 

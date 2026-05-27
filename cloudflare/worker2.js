@@ -179,7 +179,8 @@ export default {
             ok: true,
             reply: reply || (language === 'en' ? 'No reply generated.' : 'Aucune reponse generee.'),
             provider: 'openrouter',
-            model
+            model,
+            resolved_model: parsed?.model || model
           },
           200,
           corsHeaders
