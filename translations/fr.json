@@ -119,6 +119,8 @@
     "inputPlaceholder": "Posez votre question...",
     "send": "Envoyer",
     "openTitle": "Ouvrir l'assistant IA",
+    "maximizeTitle": "Agrandir l'assistant IA",
+    "restoreTitle": "Réduire l'assistant IA",
     "closeTitle": "Fermer l'assistant IA"
   },
   "news": {

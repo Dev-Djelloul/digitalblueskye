@@ -121,6 +121,8 @@
     "inputPlaceholder": "Ask your question...",
     "send": "Send",
     "openTitle": "Open AI assistant",
+    "maximizeTitle": "Expand AI assistant",
+    "restoreTitle": "Restore AI assistant",
     "closeTitle": "Close AI assistant"
   },
   "news": {

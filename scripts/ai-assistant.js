@@ -54,6 +54,8 @@ document.addEventListener('DOMContentLoaded', function () {
         copied: 'Copied',
         expand: 'Expand',
         collapse: 'Collapse',
+        maximizeTitle: 'Expand assistant',
+        restoreTitle: 'Restore assistant',
         micOn: 'Enable microphone',
         micOff: 'Stop microphone',
         ttsOn: 'Voice playback enabled',
@@ -100,6 +102,8 @@ document.addEventListener('DOMContentLoaded', function () {
       copied: 'Copié',
       expand: 'Dérouler',
       collapse: 'Réduire',
+      maximizeTitle: "Agrandir l'assistant IA",
+      restoreTitle: "Réduire l'assistant IA",
       micOn: 'Activer le micro',
       micOff: 'Arrêter le micro',
       ttsOn: 'Lecture vocale activée',
@@ -190,6 +194,7 @@ document.addEventListener('DOMContentLoaded', function () {
             <div class="ai-assistant-title-wrap">
               <h2 class="ai-assistant-title">Digital Blue Skye AI</h2>
             </div>
+            <button id="ai-assistant-expand" class="ai-assistant-expand" type="button" title="${i18n.maximizeTitle}" aria-label="${i18n.maximizeTitle}" aria-pressed="false"><span aria-hidden="true"></span></button>
             <button id="ai-assistant-close" class="ai-assistant-close" type="button">&times;</button>
           </header>
           ${createSessionControlsMarkup()}
@@ -275,6 +280,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const panel = document.getElementById('ai-assistant-panel');
   const panelHeader = panel ? panel.querySelector('.ai-assistant-header') : null;
   const launcherButton = document.getElementById('ai-assistant-launcher');
+  const expandButton = document.getElementById('ai-assistant-expand');
   const closeButton = document.getElementById('ai-assistant-close');
   const messagesContainer = document.getElementById('ai-assistant-messages');
   const input = document.getElementById('ai-assistant-input');
@@ -324,6 +330,18 @@ document.addEventListener('DOMContentLoaded', function () {
     if (launcherButton) {
       launcherButton.classList.toggle('is-panel-open', open);
       launcherButton.setAttribute('aria-expanded', String(open));
+    }
+  }
+
+  function setAssistantExpanded(expanded) {
+    if (!panel) return;
+    panel.classList.toggle('is-expanded', expanded);
+    if (expandButton) {
+      const label = expanded ? i18n.restoreTitle : i18n.maximizeTitle;
+      expandButton.classList.toggle('is-active', expanded);
+      expandButton.setAttribute('aria-pressed', String(expanded));
+      expandButton.setAttribute('aria-label', label);
+      expandButton.title = label;
     }
   }
 
@@ -484,6 +502,7 @@ document.addEventListener('DOMContentLoaded', function () {
     panelHeader?.addEventListener('mousedown', (event) => {
       if (!isDesktopPanelDragEnabled()) return;
       if (!panel.classList.contains('is-open')) return;
+      if (panel.classList.contains('is-expanded')) return;
       if (event.button !== 0) return;
       if (isInteractiveDragTarget(event.target)) return;
 
@@ -536,6 +555,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     window.addEventListener('resize', () => {
       if (!panel) return;
+      if (panel.classList.contains('is-expanded')) return;
       if (!isDesktopPanelDragEnabled()) {
         resetPanelPosition(false);
         resetPanelSize(false);
@@ -985,6 +1005,12 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     i18n = getI18n(currentLanguage);
     if (input) input.placeholder = i18n.inputPlaceholder;
+    if (expandButton) {
+      const expanded = panel?.classList.contains('is-expanded');
+      const label = expanded ? i18n.restoreTitle : i18n.maximizeTitle;
+      expandButton.title = label;
+      expandButton.setAttribute('aria-label', label);
+    }
     if (attachToggle) {
       attachToggle.title = i18n.attach;
       attachToggle.setAttribute('aria-label', i18n.attach);
@@ -2014,7 +2040,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
   if (closeButton && panel) {
     closeButton.addEventListener('click', () => {
+      setAssistantExpanded(false);
       setAssistantPanelOpen(false);
+    });
+  }
+
+  if (expandButton && panel) {
+    expandButton.addEventListener('click', () => {
+      setAssistantExpanded(!panel.classList.contains('is-expanded'));
     });
   }
 
