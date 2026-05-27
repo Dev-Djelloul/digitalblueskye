@@ -1575,21 +1575,14 @@ body.body-menu-open .compact-header {
 }
 
 .dropdown-nav .dropdown-gamma-item {
-  margin-top: 6px;
-  padding-top: 22px;
+  margin-top: 10px;
+  padding-top: 0;
   position: relative;
 }
 
 .dropdown-nav .dropdown-gamma-item::before {
-  background: linear-gradient(90deg, transparent, var(--accent-color), #c822ff, transparent);
-  border-radius: 999px;
   content: "";
-  height: 3px;
-  left: 0;
-  opacity: 0.85;
-  position: absolute;
-  top: 0;
-  width: min(100%, 320px);
+  display: none;
 }
 
 .dropdown-nav .dropdown-gamma-link {
@@ -4326,8 +4319,16 @@ h1.main-title-animated .title-icon {
   font-size: 1.8rem;
   font-weight: 600;
   line-height: 1.4;
-  margin-bottom: 1.2rem;
-  margin-top: 2rem;
+  margin-bottom: 1.45rem;
+  margin-top: 2.8rem;
+}
+
+.page-about .about-text-box h2 {
+  margin-top: clamp(3.6rem, 6vw, 5.2rem);
+}
+
+.page-about .about-text-box h2:first-child {
+  margin-top: 0;
 }
 
 .page-about .about-text-box h2::after {
@@ -4481,6 +4482,11 @@ h1.main-title-animated .title-icon {
   -webkit-text-fill-color: transparent;
 }
 
+.page-about .about-values {
+  margin-bottom: clamp(2.8rem, 5vw, 4.2rem);
+  margin-top: 24px;
+}
+
 .page-about .consent-floating {
   display: none;
 }
@@ -4489,7 +4495,7 @@ h1.main-title-animated .title-icon {
 .page-about .about-timeline {
   display: grid;
   gap: 24px;
-  margin: 28px 0 12px;
+  margin: 34px 0 clamp(3.2rem, 5vw, 4.6rem);
   padding-left: 24px;
   position: relative;
 }
@@ -4604,7 +4610,8 @@ h1.main-title-animated .title-icon {
 .page-about .skill-grid {
   display: grid;
   gap: 22px;
-  margin-top: 12px;
+  margin-bottom: clamp(3.2rem, 5vw, 4.6rem);
+  margin-top: 24px;
 }
 
 .page-about .skill-group {
@@ -4655,7 +4662,8 @@ h1.main-title-animated .title-icon {
 .page-about .process-steps {
   display: grid;
   gap: 18px;
-  margin-top: 12px;
+  margin-bottom: clamp(3.2rem, 5vw, 4.6rem);
+  margin-top: 24px;
 }
 
 .page-about .process-step {
@@ -4709,7 +4717,7 @@ h1.main-title-animated .title-icon {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  margin-top: 32px;
+  margin-top: clamp(3rem, 5vw, 4.4rem);
   padding-top: 24px;
   text-align: center;
 }
@@ -9049,6 +9057,21 @@ body.body-menu-open #footer {
   .page-about .about-text-box {
     margin: 20px 4px 28px;
     padding: 20px 14px;
+  }
+
+  .page-about .about-text-box h2 {
+    margin-top: 2.7rem;
+  }
+
+  .page-about .about-timeline,
+  .page-about .skill-grid,
+  .page-about .process-steps,
+  .page-about .about-values {
+    margin-bottom: 2.6rem;
+  }
+
+  .page-about .about-cta {
+    margin-top: 2.5rem;
   }
 
   .page-about .page-intro-card {

@@ -87,9 +87,8 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
 
-    const contactLink = dropdownMenu.querySelector('.dropdown-nav a[data-i18n="nav.contact"]');
-    const contactItem = contactLink ? contactLink.closest('li') : null;
-    if (!contactItem) {
+    const navList = dropdownMenu.querySelector('.dropdown-nav > ul');
+    if (!navList) {
       return;
     }
 
@@ -103,6 +102,7 @@ document.addEventListener('DOMContentLoaded', function() {
         rel="noopener noreferrer"
         aria-label="Voir le portfolio interactif Gamma"
       >
+        <span data-i18n="nav.gammaPortfolio">Portfolio métier</span>
         <img
           class="dropdown-gamma-avatar"
           src="/assets/images/portrait/my-notion-face-transparent.png"
@@ -112,11 +112,10 @@ document.addEventListener('DOMContentLoaded', function() {
           loading="lazy"
           aria-hidden="true"
         />
-        <span data-i18n="nav.gammaPortfolio">Portfolio - Chef de projet digital</span>
       </a>
     `;
 
-    contactItem.insertAdjacentElement('afterend', gammaItem);
+    navList.appendChild(gammaItem);
   }
 
   initGammaPortfolioLink();
