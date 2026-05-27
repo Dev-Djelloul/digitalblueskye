@@ -186,7 +186,10 @@ document.addEventListener('DOMContentLoaded', function () {
         </button>
         <aside id="ai-assistant-panel" class="ai-assistant-panel" aria-hidden="true">
           <header class="ai-assistant-header">
-            <h2 class="ai-assistant-title">Digital Blue Skye AI</h2>
+            <img class="ai-assistant-header-icon" src="/assets/images/logo/AI.png" alt="" width="42" height="46" loading="lazy" aria-hidden="true">
+            <div class="ai-assistant-title-wrap">
+              <h2 class="ai-assistant-title">Digital Blue Skye AI</h2>
+            </div>
             <button id="ai-assistant-close" class="ai-assistant-close" type="button">&times;</button>
           </header>
           ${createSessionControlsMarkup()}
@@ -478,7 +481,7 @@ document.addEventListener('DOMContentLoaded', function () {
       );
     }
 
-    panel.addEventListener('mousedown', (event) => {
+    panelHeader?.addEventListener('mousedown', (event) => {
       if (!isDesktopPanelDragEnabled()) return;
       if (!panel.classList.contains('is-open')) return;
       if (event.button !== 0) return;

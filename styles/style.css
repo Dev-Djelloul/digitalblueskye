@@ -9409,6 +9409,18 @@ body.body-menu-open #footer {
   text-align: center;
 }
 
+.ai-assistant-header-icon {
+  display: block;
+  height: 46px;
+  left: 14px;
+  object-fit: contain;
+  pointer-events: none;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 42px;
+}
+
 .ai-assistant-panel.is-dragging .ai-assistant-header {
   cursor: grabbing;
   user-select: none;
@@ -9426,6 +9438,8 @@ body.body-menu-open #footer {
 @media (width <= 768px) {
   .ai-assistant-header {
     cursor: default;
+    min-height: 58px;
+    padding-left: 62px;
   }
 
   .ai-assistant-panel {
