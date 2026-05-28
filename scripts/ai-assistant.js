@@ -988,6 +988,7 @@
     if (sendButton) sendButton.textContent = i18n.send;
     if (voiceSelect) { voiceSelect.title = i18n.voiceSelectLabel; voiceSelect.setAttribute('aria-label', i18n.voiceSelectLabel); }
     refreshBubbleActionLabels();
+    if (syncDefaultSessionTitles()) saveSessionsState();
     renderSessionOptions();
     setMicState(isListening);
     setTtsState(isVoiceOutputEnabled);
@@ -1002,19 +1003,45 @@
     return { id: buildSessionId(), title: i18n.sessionDefault, createdAt: Date.now(), updatedAt: Date.now(), history: [] };
   }
 
+  function isDefaultSessionTitle(title) {
+    const normalized = typeof title === 'string' ? title.trim() : '';
+    if (!normalized) return true;
+    return normalized === getI18n('fr').sessionDefault || normalized === getI18n('en').sessionDefault;
+  }
+
+  function getSessionDisplayTitle(session) {
+    const title = typeof session?.title === 'string' ? session.title.trim() : '';
+    return isDefaultSessionTitle(title) ? i18n.sessionDefault : title;
+  }
+
+  function syncDefaultSessionTitles() {
+    if (!sessionsState?.sessions?.length) return false;
+    let hasChanged = false;
+    sessionsState.sessions.forEach((session) => {
+      if (isDefaultSessionTitle(session.title) && session.title !== i18n.sessionDefault) {
+        session.title = i18n.sessionDefault;
+        hasChanged = true;
+      }
+    });
+    return hasChanged;
+  }
+
   function loadSessionsState() {
     try {
       const raw = localStorage.getItem(conversationStorageKey);
       if (!raw) return null;
       const parsed = JSON.parse(raw);
       if (!Array.isArray(parsed?.sessions)) return null;
-      const sessions = parsed.sessions.map((s) => ({
-        id: typeof s?.id === 'string' ? s.id : buildSessionId(),
-        title: typeof s?.title === 'string' && s.title.trim() ? s.title : i18n.sessionDefault,
-        createdAt: Number(s?.createdAt) || Date.now(),
-        updatedAt: Number(s?.updatedAt) || Date.now(),
-        history: normalizeHistory(Array.isArray(s?.history) ? s.history : [])
-      })).slice(-20);
+      const sessions = parsed.sessions.map((s) => {
+        const title = typeof s?.title === 'string' ? s.title.trim() : '';
+        return {
+          id: typeof s?.id === 'string' ? s.id : buildSessionId(),
+          title: isDefaultSessionTitle(title) ? i18n.sessionDefault : title,
+          createdAt: Number(s?.createdAt) || Date.now(),
+          updatedAt: Number(s?.updatedAt) || Date.now(),
+          history: normalizeHistory(Array.isArray(s?.history) ? s.history : [])
+        };
+      }).slice(-20);
       return { activeSessionId: typeof parsed?.activeSessionId === 'string' ? parsed.activeSessionId : '', sessions };
     } catch (error) { return null; }
   }
@@ -1055,7 +1082,7 @@
     for (const session of sorted) {
       const option = document.createElement('option');
       option.value = session.id;
-      option.textContent = session.title || i18n.sessionDefault;
+      option.textContent = getSessionDisplayTitle(session);
       sessionSelect.appendChild(option);
     }
     if (sessionsState.activeSessionId) sessionSelect.value = sessionsState.activeSessionId;

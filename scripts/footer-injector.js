@@ -23,7 +23,7 @@ function injectFooter() {
         <div class="footer-section">
           <h3 data-i18n="footer.services">Services</h3>
           <ul>
-            <li><a href="/pages/projects.html" data-i18n="footer.projects">Nos projets</a></li>
+            <li><a href="/pages/projects.html" data-i18n="footer.projects">Mes projets web</a></li>
             <li><a href="/blog/digital/blogArticles.html" data-i18n="footer.blog">Blog & Articles</a></li>
             <li><a href="/pages/about.html" data-i18n="footer.expertise">Mon expertise</a></li>
             <li><a href="/pages/contact.html" data-i18n="footer.contact">Formulaire de contact</a></li>

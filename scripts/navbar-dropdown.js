@@ -82,6 +82,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
   initHeaderPortfolioAvatar();
 
+  function initDropdownCloseButton() {
+    if (!dropdownMenu || dropdownMenu.querySelector('.dropdown-close')) {
+      return;
+    }
+
+    const closeButton = document.createElement('button');
+    closeButton.className = 'dropdown-close';
+    closeButton.type = 'button';
+    closeButton.setAttribute('aria-label', 'Fermer le menu');
+    closeButton.innerHTML = '<span aria-hidden="true"></span>';
+    closeButton.addEventListener('click', closeMenu);
+    dropdownMenu.insertBefore(closeButton, dropdownMenu.firstElementChild);
+  }
+
+  initDropdownCloseButton();
+
   function initGammaPortfolioLink() {
     if (!dropdownMenu || dropdownMenu.querySelector('.dropdown-gamma-item')) {
       return;
@@ -154,27 +170,14 @@ document.addEventListener('DOMContentLoaded', function() {
     menuOverlay.addEventListener('click', closeMenu);
   }
 
-  // Ouvrir/fermer au survol sur desktop (menu reste ouvert tant que hamburger/menu/overlay est survolé)
-  let hoverCloseTimer = null;
+  // Ouvrir au survol sur desktop. La fermeture reste volontairement explicite.
   if (hamburger && dropdownMenu && menuOverlay && isDesktop.matches) {
     const onEnter = () => {
-      if (hoverCloseTimer) { clearTimeout(hoverCloseTimer); hoverCloseTimer = null; }
       openMenu();
     };
-    const onLeave = () => {
-      if (hoverCloseTimer) clearTimeout(hoverCloseTimer);
-      hoverCloseTimer = setTimeout(() => {
-        if (!hamburger.matches(':hover') &&
-            !dropdownMenu.matches(':hover') &&
-            !menuOverlay.matches(':hover')) {
-          closeMenu();
-        }
-      }, 200); // délai anti-clignotement
-    };
 
-    [hamburger, dropdownMenu, menuOverlay].forEach(el => {
+    [hamburger, dropdownMenu].forEach(el => {
       el.addEventListener('mouseenter', onEnter);
-      el.addEventListener('mouseleave', onLeave);
     });
   }
 
