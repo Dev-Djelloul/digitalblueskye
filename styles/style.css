@@ -39,7 +39,7 @@
   - RESPONSIVE BLOG + ARTICLES (line 7373)
   - SECTION CONFIANCE (TRUST) - TESTIMONIES & PARTNERS (line 7486)
 */
-@import url("https://fonts.googleapis.com/css2?family=Lato:wght@400;500;700&family=Jura:wght@300..700&family=Space+Mono:wght@400;700&family=Fruktur:ital@0;1&family=Kaushan+Script&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@6..144,1..1000&family=Indie+Flower&family=Space+Mono:wght@400;700&display=swap");
 
 /* =========================
    VARIABLES & THÈMES
@@ -77,7 +77,8 @@
   --skill-text-color: #b8c2cc; /* Couleur du texte des compétences */
   --transition-speed: 0.3s; /* Vitesse de transition générale */
   --accent-rgb: 93, 93, 255; /* Valeur RGB de #5d5dff pour les ombres */
-  --font-title: "Kaushan Script", "Fruktur", cursive;
+  --font-title: "Indie Flower", cursive;
+  --font-body: "Google Sans Flex", sans-serif;
 }
 
 [data-theme="light"] {
@@ -110,8 +111,9 @@
 body {
   background-color: transparent !important;
   color: var(--text-color);
-  font-family: "Jura", sans-serif;
+  font-family: var(--font-body);
   font-optical-sizing: auto;
+  font-variation-settings: "slnt" 0, "wdth" 100, "GRAD" 0, "ROND" 0;
   line-height: 1.6;
   overflow-x: clip;
   padding-top: 90px;
@@ -187,7 +189,7 @@ h1 {
 }
 
 h2 {
-  font-family: "Kaushan Script", "Fruktur", cursive;
+  font-family: var(--font-title);
   font-optical-sizing: auto;
   font-style: normal;
   font-variation-settings: "wdth" 100;
@@ -202,7 +204,31 @@ h2 {
 p,
 li,
 article {
-  font-family: "Jura", sans-serif;
+  font-family: var(--font-body);
+  font-weight: 400;
+}
+
+body :where(
+  p,
+  li,
+  article,
+  a,
+  button,
+  input,
+  textarea,
+  select,
+  label,
+  td,
+  th,
+  figcaption,
+  blockquote,
+  strong,
+  b,
+  .btn-view-more,
+  .ai-assistant-message,
+  .ai-assistant-message *
+) {
+  font-weight: 400 !important;
 }
 
 .visually-hidden,
@@ -312,7 +338,7 @@ article {
 .home-page p,
 .home-page .section-subtitle,
 .home-page .page-subtitle {
-  font-family: "Jura", sans-serif;
+  font-family: var(--font-body);
   font-weight: 400;
   font-style: normal;
 }
@@ -431,9 +457,9 @@ section#skills,
   box-shadow: 0 10px 24px rgb(93 93 255 / 25%);
   color: #fff;
   display: inline-flex;
-  font-family: "Kaushan Script", "Fruktur", cursive;
+  font-family: var(--font-body);
   font-size: 1.05rem;
-  font-weight: 600;
+  font-weight: 400;
   gap: 8px;
   padding: 8px 18px;
   text-decoration: none;
@@ -543,6 +569,7 @@ section#skills,
 /* Animations pour le titre, le paragraphe de texte et le bouton de la page d'accueil */
 .intro-text .animated-title {
   display: inline-block;
+  font-family: var(--font-title);
   font-size: 3.2rem;
   line-height: 1.18;
   margin-bottom: 0;
@@ -1550,9 +1577,9 @@ body.body-menu-open .compact-header {
   background-origin: border-box;
   color: var(--accent-color);
   display: inline-block;
-  font-family: "Kaushan Script", "Fruktur", cursive;
+  font-family: var(--font-body);
   font-size: 1.9rem;
-  font-weight: bolder;
+  font-weight: 400;
   padding: 10px 15px 10px 0;
   text-decoration: none;
   -webkit-text-fill-color: transparent;
@@ -1568,7 +1595,7 @@ body.body-menu-open .compact-header {
 .dropdown-nav .nav-link {
   color: var(--accent-color);
   display: block;
-  font-family: "Kaushan Script", "Fruktur", cursive;
+  font-family: var(--font-body);
   font-size: 1.2rem;
   padding: 0;
   width: 100%;
@@ -1590,6 +1617,7 @@ body.body-menu-open .compact-header {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
   background-clip: text;
   display: inline-flex;
+  font-family: var(--font-title);
   font-size: 1.35rem;
   gap: 10px;
   padding: 4px 15px 4px 0;
@@ -1767,7 +1795,7 @@ body.body-menu-open .compact-header {
 
 .dynapuff-title,
 .dynapuff {
-  font-family: "Kaushan Script", "Fruktur", cursive;
+  font-family: var(--font-title);
   font-optical-sizing: auto;
   font-weight: 400;
   font-style: normal;
@@ -1775,7 +1803,7 @@ body.body-menu-open .compact-header {
 }
 
 .delius-regular {
-  font-family: "Jura", sans-serif;
+  font-family: var(--font-body);
   font-weight: 400;
   font-style: normal;
 }
@@ -1988,7 +2016,7 @@ section.page-title-container
 }
 
 .page-title-container .news-page-subtitle {
-  font-family: "Jura", sans-serif;
+  font-family: var(--font-body);
 }
 
 .news-teaser-section,
@@ -2095,7 +2123,7 @@ section.page-title-container
   background-clip: text;
   color: transparent;
   display: inline-block;
-  font-family: "Kaushan Script", "Fruktur", cursive;
+  font-family: var(--font-title);
   font-size: 1.8rem;
   font-weight: bold;
   line-height: 1.18;
@@ -2116,7 +2144,7 @@ section.page-title-container
 .news-card-dateline {
   color: var(--accent-color);
   display: inline-block;
-  font-family: "Kaushan Script", "Fruktur", cursive;
+  font-family: var(--font-title);
   font-size: 1rem;
   margin-top: auto; /* Pousse la dateline en bas de la carte */
   padding-bottom: 0.12em;
@@ -2308,7 +2336,7 @@ h1.main-title-animated .title-icon {
 /* Styles pour les titres et catégories dans la liste */
 #explorerProjectList li .project-list-title {
   display: block;
-  font-family: "Kaushan Script", "Fruktur", cursive;
+  font-family: var(--font-title);
   font-size: 1.3rem;
   font-weight: bold;
   margin-bottom: 4px;
@@ -2606,7 +2634,7 @@ h1.main-title-animated .title-icon {
   border: 1px solid rgb(93 93 255 / 20%);
   border-radius: 8px;
   color: var(--text-color);
-  font-family: "Jura", sans-serif;
+  font-family: var(--font-body);
   padding: 12px 45px 12px 15px;
   width: 100%;
 }
@@ -2633,7 +2661,7 @@ h1.main-title-animated .title-icon {
   border-radius: 8px;
   color: var(--text-color);
   cursor: pointer;
-  font-family: "Jura", sans-serif;
+  font-family: var(--font-body);
   padding: 12px 35px 12px 15px;
 }
 
@@ -2704,7 +2732,7 @@ h1.main-title-animated .title-icon {
   border-radius: 20px;
   color: white;
   font-size: 0.8rem;
-  font-family: "Kaushan Script", "Fruktur", cursive;
+  font-family: var(--font-title);
   font-weight: 500;
   padding: 6px 12px;
   position: absolute;
@@ -2719,7 +2747,7 @@ h1.main-title-animated .title-icon {
 .blog-card-title {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
   background-clip: text;
-  font-family: "Kaushan Script", "Fruktur", cursive;
+  font-family: var(--font-title);
   font-size: 1.5rem;
   margin-bottom: 15px;
   -webkit-background-clip: text;
@@ -2754,7 +2782,7 @@ h1.main-title-animated .title-icon {
 
 .blog-card-date {
   color: #c822ff;
-  font-family: "Kaushan Script", "Fruktur", cursive;
+  font-family: var(--font-title);
   text-shadow: 0 0 10px rgb(200 34 255 / 25%);
 }
 
@@ -2857,7 +2885,7 @@ h1.main-title-animated .title-icon {
 .consent-banner__title {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
   background-clip: text;
-  font-family: "Kaushan Script", "Fruktur", cursive;
+  font-family: var(--font-title);
   font-size: 1.35rem;
   margin-bottom: 8px;
   -webkit-background-clip: text;
@@ -3140,7 +3168,7 @@ h1.main-title-animated .title-icon {
 .legal-container h2 {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
   background-clip: text;
-  font-family: "Kaushan Script", "Fruktur", cursive;
+  font-family: var(--font-title);
   font-size: 1.35rem;
   margin-bottom: 10px;
   -webkit-background-clip: text;
@@ -3278,8 +3306,14 @@ h1.main-title-animated .title-icon {
   margin-bottom: 10px;
 }
 
+.ia-page section h2[data-i18n="ia.whyTitle"],
+.ia-page section h2[data-i18n="ia.roleTitle"] {
+  font-family: var(--font-body);
+  font-weight: 400;
+}
+
 .ia-page .ia-code-title {
-  font-family: 'Jura';
+  font-family: "Space Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
   background-clip: text;
   color: transparent;
@@ -3301,7 +3335,7 @@ h1.main-title-animated .title-icon {
   border-radius: 16px;
   box-shadow: inset 0 0 0 1px rgb(255 255 255 / 2%);
   color: #e5e7eb;
-  font-family: "Jura", "Space Mono", "Roboto Condensed", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: "Space Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   padding: 20px 22px;
   text-align: center;
 }
@@ -3313,7 +3347,7 @@ h1.main-title-animated .title-icon {
 }
 
 .ia-page .code-box li {
-  font-family: "Jura", "Space Mono", "Roboto Condensed", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: "Space Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   margin-bottom: 0.6rem;
   padding-left: 0;
 }
@@ -3480,8 +3514,9 @@ h1.main-title-animated .title-icon {
 
 .article-dateline-detailed {
   color: var(--text-color-light);
-  font-family: "Kaushan Script", "Fruktur", cursive;
+  font-family: var(--font-body);
   font-size: 1.2rem;
+  font-weight: 400;
   margin-bottom: 30px;
 }
 
@@ -3497,7 +3532,7 @@ h1.main-title-animated .title-icon {
   align-items: center;
   color: var(--text-color-light);
   display: inline-flex;
-  font-family: "Kaushan Script", "Fruktur", cursive;
+  font-family: var(--font-title);
   font-size: 1.05rem;
   gap: 8px;
   justify-content: center;
@@ -3617,7 +3652,7 @@ h1.main-title-animated .title-icon {
   color: #fff;
   cursor: pointer;
   display: inline-flex;
-  font-family: "Kaushan Script", "Fruktur", cursive;
+  font-family: var(--font-title);
   gap: 8px;
   justify-content: center;
   min-width: 132px;
@@ -3788,7 +3823,7 @@ h1.main-title-animated .title-icon {
 }
 
 .article-section-title {
-  font-family: "Kaushan Script", "Fruktur", cursive;
+  font-family: var(--font-title);
   font-size: 1.9rem;
   margin-bottom: 12px;
 }
@@ -3813,7 +3848,7 @@ h1.main-title-animated .title-icon {
   border-radius: 999px;
   color: #fff;
   display: inline-flex;
-  font-family: "Kaushan Script", "Fruktur", cursive;
+  font-family: var(--font-title);
   justify-content: center;
   padding: 10px 16px;
   text-decoration: none;
@@ -3909,7 +3944,7 @@ h1.main-title-animated .title-icon {
 }
 
 .comment-author {
-  font-family: "Kaushan Script", "Fruktur", cursive;
+  font-family: var(--font-title);
 }
 
 .comment-date {
@@ -3941,7 +3976,7 @@ h1.main-title-animated .title-icon {
   color: var(--text-color);
   cursor: pointer;
   display: inline-flex;
-  font-family: "Jura", sans-serif;
+  font-family: var(--font-body);
   font-size: 0.92rem;
   gap: 6px;
   line-height: 1;
@@ -4018,7 +4053,7 @@ h1.main-title-animated .title-icon {
   border-radius: 999px;
   color: var(--text-color);
   cursor: pointer;
-  font-family: "Jura", sans-serif;
+  font-family: var(--font-body);
   font-size: 0.9rem;
   padding: 6px 12px;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -4078,7 +4113,7 @@ h1.main-title-animated .title-icon {
   border-radius: 999px;
   color: var(--text-color);
   cursor: pointer;
-  font-family: "Jura", sans-serif;
+  font-family: var(--font-body);
   font-size: 0.86rem;
   padding: 6px 14px;
 }
@@ -4137,7 +4172,7 @@ h1.main-title-animated .title-icon {
   border-radius: 12px;
   color: var(--text-color);
   caret-color: var(--text-color);
-  font-family: "Jura", sans-serif;
+  font-family: var(--font-body);
   padding: 12px 14px;
 }
 
@@ -4182,7 +4217,7 @@ h1.main-title-animated .title-icon {
   border-radius: 999px;
   color: #fff;
   cursor: pointer;
-  font-family: "Jura", sans-serif;
+  font-family: var(--font-body);
   font-size: 0.9rem;
   padding: 6px 18px;
 }
@@ -4316,11 +4351,17 @@ h1.main-title-animated .title-icon {
 }
 
 .about-text-box h2 {
-  font-size: 1.8rem;
-  font-weight: 600;
-  line-height: 1.4;
+  background: linear-gradient(45deg, var(--accent-color), #c822ff);
+  background-clip: text;
+  color: transparent;
+  display: inline-block;
+  font-size: clamp(2rem, 3.2vw, 2.35rem);
+  font-weight: 400;
+  line-height: 1.18;
   margin-bottom: 1.45rem;
   margin-top: 2.8rem;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .page-about .about-text-box h2 {
@@ -4332,7 +4373,7 @@ h1.main-title-animated .title-icon {
 }
 
 .page-about .about-text-box h2::after {
-  background: linear-gradient(90deg, var(--accent-color), #ff8c42);
+  background: linear-gradient(90deg, var(--accent-color), #c822ff);
   border-radius: 999px;
   content: "";
   display: block;
@@ -4342,11 +4383,17 @@ h1.main-title-animated .title-icon {
 }
 
 .about-text-box h3 {
-  font-size: 1.4rem;
-  font-weight: 600;
+  background: linear-gradient(45deg, var(--accent-color), #c822ff);
+  background-clip: text;
+  color: transparent;
+  display: inline-block;
+  font-size: 1.55rem;
+  font-weight: 400;
   line-height: 1.4;
   margin-bottom: 1rem;
   margin-top: 1.5rem;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .about-text-box p {
@@ -4539,7 +4586,10 @@ h1.main-title-animated .title-icon {
 }
 
 .page-about .timeline-content h3 {
+  background: none;
+  color: #ff8c42;
   margin: 0;
+  -webkit-text-fill-color: currentcolor;
 }
 
 .page-about .timeline-content p {
@@ -4547,9 +4597,11 @@ h1.main-title-animated .title-icon {
 }
 
 .page-about .timeline-mention {
+  color: #ff8c42;
   display: inline-block;
   font-size: 0.92rem;
   font-style: italic;
+  -webkit-text-fill-color: currentcolor;
 }
 
 .page-about .timeline-org {
@@ -4568,13 +4620,16 @@ h1.main-title-animated .title-icon {
   margin: 0;
 }
 
-.page-about .timeline-org,
+.page-about .timeline-org {
+  background: none;
+  color: #fff;
+  -webkit-text-fill-color: currentcolor;
+}
+
 .page-about .skill-group h3 {
-  background: linear-gradient(90deg, #c9a7ff, #ffb6d9);
-  background-clip: text;
-  color: transparent;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  background: none;
+  color: #79e6ff;
+  -webkit-text-fill-color: currentcolor;
 }
 
 .page-about .timeline-link {
@@ -4659,6 +4714,62 @@ h1.main-title-animated .title-icon {
   box-shadow: 0 0 10px rgb(93 93 255 / 45%);
 }
 
+.page-about .about-ai-tools {
+  background: linear-gradient(140deg, rgb(10 12 24 / 55%), rgb(16 20 40 / 65%));
+  border: 1px solid rgb(93 93 255 / 18%);
+  border-radius: 22px;
+  box-shadow: none;
+  margin: 8px auto clamp(3.2rem, 5vw, 4.6rem);
+  max-width: 760px;
+  padding: 18px 22px;
+}
+
+.page-about .about-ai-tools h3 {
+  background: linear-gradient(45deg, #79e6ff, #c822ff);
+  background-clip: text;
+  color: transparent;
+  display: inline-block;
+  font-size: 1.55rem;
+  margin: 0 0 12px;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.page-about .about-ai-tools p {
+  color: var(--text-color);
+  font-size: 0.94rem;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.page-about .ai-tools-grid {
+  display: grid;
+  gap: 0;
+}
+
+.page-about .ai-tool-item {
+  display: grid;
+  gap: 8px 14px;
+  grid-template-columns: minmax(130px, 1fr) auto;
+  padding: 12px 0;
+  text-align: left;
+}
+
+.page-about .ai-tool-item + .ai-tool-item {
+  border-top: 1px dashed rgb(93 93 255 / 22%);
+}
+
+.page-about .ai-tool-name {
+  color: #79e6ff;
+  font-size: 1rem;
+  font-weight: 400;
+  -webkit-text-fill-color: currentcolor;
+}
+
+.page-about .ai-tool-item p {
+  grid-column: 1 / -1;
+}
+
 .page-about .process-steps {
   display: grid;
   gap: 18px;
@@ -4690,8 +4801,13 @@ h1.main-title-animated .title-icon {
 }
 
 .page-about .process-body h3 {
-  color: #ff8c42;
+  background: linear-gradient(45deg, var(--accent-color), #c822ff);
+  background-clip: text;
+  color: transparent;
+  display: inline-block;
   margin: 0 0 6px;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .page-about .process-body p {
@@ -4831,6 +4947,12 @@ h1.main-title-animated .title-icon {
 [data-theme="light"] .page-about .skill-group {
   background: linear-gradient(140deg, rgb(245 246 255 / 95%), rgb(255 255 255 / 90%));
   border-color: rgb(93 93 255 / 20%);
+}
+
+[data-theme="light"] .page-about .about-ai-tools {
+  background: linear-gradient(140deg, rgb(245 246 255 / 95%), rgb(255 255 255 / 90%));
+  border-color: rgb(93 93 255 / 20%);
+  box-shadow: 0 14px 35px rgb(93 93 255 / 18%);
 }
 
 [data-theme="light"] .page-about .skill-item + .skill-item {
@@ -5321,7 +5443,7 @@ h1.main-title-animated .title-icon {
 
 .inspiration-filters-label {
   color: #efe7ff;
-  font-family: "Kaushan Script", "Fruktur", cursive;
+  font-family: var(--font-title);
   font-size: 0.95rem;
   font-weight: 600;
   letter-spacing: 0.08rem;
@@ -5349,7 +5471,7 @@ h1.main-title-animated .title-icon {
   border-radius: 999px;
   color: #2d3a4a;
   cursor: pointer;
-  font-family: "Kaushan Script", "Fruktur", cursive;
+  font-family: var(--font-title);
   font-size: 0.95rem;
   font-weight: 600;
   padding: 0.45rem 1.2rem;
@@ -5820,7 +5942,7 @@ h1.main-title-animated .title-icon {
 }
 
 .inspirations-gallery h2 {
-  font-family: "Kaushan Script", "Fruktur", cursive;
+  font-family: var(--font-title);
   font-size: 2rem;
   margin-bottom: 5rem;
   text-align: center;
@@ -5857,7 +5979,7 @@ h1.main-title-animated .title-icon {
 
 .story-placeholder h3 {
   color: #0288d1;
-  font-family: "Kaushan Script", "Fruktur", cursive;
+  font-family: var(--font-title);
   font-size: 1.4rem;
   margin: 0;
 }
@@ -5877,7 +5999,7 @@ h1.main-title-animated .title-icon {
 
 .inspirations-share h3 {
   color: #0288d1;
-  font-family: "Kaushan Script", "Fruktur", cursive;
+  font-family: var(--font-title);
   font-size: 1.5rem;
   letter-spacing: 1px;
   margin-bottom: 1.2rem;
@@ -5897,7 +6019,7 @@ h1.main-title-animated .title-icon {
   color: #fff;
   cursor: pointer;
   display: inline-block;
-  font-family: Lato, Arial, sans-serif;
+  font-family: var(--font-body);
   font-size: 1.15rem;
   font-weight: bold;
   letter-spacing: 1px;
@@ -5957,7 +6079,7 @@ h1.main-title-animated .title-icon {
 }
 
 .cover-caption h2 {
-  font-family: "Kaushan Script", "Fruktur", cursive;
+  font-family: var(--font-title);
   font-size: 2rem;
   letter-spacing: 1px;
   margin-bottom: 0.5rem;
@@ -5982,7 +6104,7 @@ h1.main-title-animated .title-icon {
 
 .story-block h3 {
   color: #0288d1;
-  font-family: "Kaushan Script", "Fruktur", cursive;
+  font-family: var(--font-title);
   margin-bottom: 0.7rem;
 }
 
@@ -6136,7 +6258,7 @@ h1.main-title-animated .title-icon {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
   background-clip: text;
   color: transparent;
-  font-family: "Kaushan Script", "Fruktur", cursive;
+  font-family: var(--font-title);
   font-size: 2.1rem;
   font-weight: bold;
   margin: 0 0 15px;
@@ -6163,7 +6285,7 @@ h1.main-title-animated .title-icon {
   border: 1px solid rgb(93 93 255 / 30%);
   border-radius: 15%;
   color: var(--text-color);
-  font-family: "Kaushan Script", "Fruktur", cursive;
+  font-family: var(--font-title);
   font-size: 0.9rem;
   font-weight: 600;
   padding: 5px 10px;
@@ -6786,28 +6908,17 @@ h1.main-title-animated .title-icon {
 
 .skills-categories {
   display: grid;
-  gap: 100px;
-  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+  gap: 18px;
+  grid-template-columns: repeat(5, minmax(128px, 1fr));
   margin: 0 auto;
+  max-width: 980px;
   padding: 30px 0;
   place-items: stretch center;
   width: 100%;
 }
 
 .skills-category {
-  align-items: center;
-  background-color: rgb(0 0 0 / 2%);
-  border-radius: 25px;
-  box-shadow: 0 8px 20px var(--shadow-color);
-  display: flex;
-  flex-direction: column;
-  height: auto;
-  justify-content: flex-start;
-  max-width: 600px;
-  min-width: 320px;
-  padding: 24px 32px;
-  transition: all 0.3s ease;
-  width: 100%;
+  display: contents;
 }
 
 :root:not([data-theme="light"]) .home-page .skills-category {
@@ -6817,30 +6928,19 @@ h1.main-title-animated .title-icon {
 }
 
 .skills-category:hover {
-  box-shadow: 0 12px 35px rgb(93 93 255 / 30%);
-  transform: translateY(-5px);
+  transform: none;
 }
 
 .category-title {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
   background-clip: text;
   color: transparent;
-  font-family: "Kaushan Script", "Fruktur", cursive;
-  font-size: 1.6rem;
-  font-weight: 700;
-  margin-bottom: 50px;
-  padding-bottom: 8px;
-  text-align: center;
-  text-decoration: none;
-  transition: transform 0.3s;
+  font-family: var(--font-title);
+  display: none;
 }
 
 .skills-grid {
-  display: grid;
-  gap: 10px;
-  grid-template-columns: repeat(auto-fit, minmax(104px, 1fr));
-  place-items: center center;
-  width: 100%;
+  display: contents;
 }
 
 .skill {
@@ -6852,8 +6952,8 @@ h1.main-title-animated .title-icon {
   flex-direction: column-reverse;
   gap: 18px;
   margin: 0 auto;
-  max-width: 110px;
-  min-height: 116px;
+  max-width: 150px;
+  min-height: 128px;
   overflow: visible;
   padding: 12px 8px;
   transition: all 0.3s ease;
@@ -6898,9 +6998,9 @@ h1.main-title-animated .title-icon {
   background-clip: text;
   color: transparent;
   display: block;
-  font-family: "Kaushan Script", "Fruktur", cursive;
+  font-family: var(--font-body);
   font-size: 1.2rem;
-  font-weight: bold;
+  font-weight: 400;
   line-height: 1.4;
   margin: 0;
   max-width: calc(100% - 0.44em);
@@ -7671,7 +7771,7 @@ body.body-menu-open #footer {
   }
 
   .page-about .page-intro-card .page-intro-title {
-    font-size: clamp(1.55rem, 4vw, 2.2rem);
+    font-size: clamp(2.1rem, 6vw, 3rem);
   }
 
   .page-about .page-intro-card .page-intro-lead {
@@ -8135,29 +8235,18 @@ body.body-menu-open #footer {
 }
 
 .skills-categories {
-  gap: 100px;
-  grid-template-columns: 1fr;
+  gap: 18px;
+  grid-template-columns: repeat(5, minmax(128px, 1fr));
   margin-bottom: 50px;
   padding: 5px;
 }
 
 .skills-category {
-  align-items: stretch;
-  box-sizing: border-box;
-  flex-direction: column;
-  height: auto;
-  max-width: 100%;
-  padding: 30px 2vw;
-  width: 100%;
+  display: contents;
 }
 
 .skills-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  justify-content: center;
-  max-width: 100%;
-  width: 100%;
+  display: contents;
 }
 
 .skill {
@@ -8185,6 +8274,17 @@ body.body-menu-open #footer {
   font-size: 1.1rem;
   line-height: 1.35;
   padding: 0.06em 0.22em 0;
+}
+
+@media (width <= 700px) {
+  .skills-categories {
+    gap: 28px;
+    grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+  }
+
+  .skills-category {
+    display: contents;
+  }
 }
 
 .contact-form {
@@ -8558,7 +8658,7 @@ body.body-menu-open #footer {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
   background-clip: text;
   color: transparent;
-  font-family: "Kaushan Script", "Fruktur", cursive;
+  font-family: var(--font-title);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -8574,7 +8674,7 @@ body.body-menu-open #footer {
 
 .trust-section .section-subtitle {
   font-size: 1.35rem;
-  font-family: "Jura", sans-serif;
+  font-family: var(--font-body);
   font-weight: 400;
   font-style: normal;
 }
@@ -8888,7 +8988,7 @@ body.body-menu-open #footer {
 .trust-section .section-subtitle,
 .trust-section .trust-card p,
 .trust-section .methodology-item p {
-  font-family: "Jura", sans-serif;
+  font-family: var(--font-body);
 }
 
 [data-theme="dark"] .trust-section .section-subtitle,
@@ -8896,7 +8996,7 @@ body.body-menu-open #footer {
 [data-theme="dark"] .trust-section .methodology-item p {
   background: none;
   color: #fff !important;
-  font-family: "Jura", sans-serif;
+  font-family: var(--font-body);
   -webkit-text-fill-color: #fff;
 }
 
@@ -9088,6 +9188,11 @@ body.body-menu-open #footer {
   .page-about .page-intro-card .page-intro-lead {
     max-width: 100%;
     min-width: 0;
+  }
+
+  .page-about .page-intro-card .page-intro-title {
+    font-size: clamp(2.25rem, 11vw, 3.15rem);
+    line-height: 1.08;
   }
 
   .page-about .page-intro-card .page-intro-lead {
@@ -9632,7 +9737,7 @@ body.body-menu-open #footer {
 .ai-assistant-session-label {
   color: rgb(235 240 255 / 85%);
   display: none;
-  font-family: "Jura", monospace;
+  font-family: var(--font-body);
   font-size: 0.67rem;
   white-space: nowrap;
 }
@@ -9643,7 +9748,7 @@ body.body-menu-open #footer {
   border-radius: 8px;
   color: #fff;
   flex: 1;
-  font-family: "Jura", monospace;
+  font-family: var(--font-body);
   font-size: 0.68rem;
   min-width: 0;
   padding: 6px 8px;
@@ -9655,7 +9760,7 @@ body.body-menu-open #footer {
   border-radius: 8px;
   color: #fff;
   cursor: pointer;
-  font-family: "Jura", monospace;
+  font-family: var(--font-body);
   font-size: 0.86rem;
   font-weight: 700;
   height: 28px;
@@ -9693,7 +9798,7 @@ body.body-menu-open #footer {
   background: linear-gradient(92deg, #9ec4ff 0%, #9d7dff 45%, #e086ff 100%);
   background-clip: text;
   color: transparent;
-  font-family: "Jura", monospace;
+  font-family: var(--font-body);
   font-size: 1.08rem;
   letter-spacing: 0.02em;
   line-height: 1.2;
@@ -9769,7 +9874,7 @@ body.body-menu-open #footer {
   border: 1px solid rgb(255 255 255 / 18%);
   border-radius: 10px;
   color: #fff;
-  font-family: "Jura", monospace;
+  font-family: var(--font-body);
   font-size: 0.7rem;
   height: 38px;
   max-width: 194px;
@@ -9869,7 +9974,7 @@ body.body-menu-open #footer {
   border-radius: 12px;
   display: block;
   flex-shrink: 0;
-  font-family: "Jura", monospace;
+  font-family: var(--font-body);
   font-size: 0.86rem;
   height: auto;
   max-width: 92%;
@@ -9892,7 +9997,7 @@ body.body-menu-open #footer {
 .ai-assistant-message h4,
 .ai-assistant-message strong,
 .ai-assistant-message span {
-  font-family: "Jura", monospace !important;
+  font-family: var(--font-body) !important;
 }
 
 .ai-assistant-message-content {
@@ -9940,7 +10045,7 @@ body.body-menu-open #footer {
   border-radius: 999px;
   color: #dfe8ff;
   cursor: pointer;
-  font-family: "Jura", monospace;
+  font-family: var(--font-body);
   font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -10263,7 +10368,7 @@ body.body-menu-open #footer {
 .ai-assistant-link {
   color: #9ec4ff;
   display: inline-block;
-  font-family: "Jura", monospace;
+  font-family: var(--font-body);
   margin-top: 7px;
   text-decoration: underline;
 }
@@ -10300,7 +10405,7 @@ body.body-menu-open #footer {
   border-radius: 999px;
   color: rgb(236 239 255 / 94%);
   cursor: pointer;
-  font-family: "Jura", sans-serif;
+  font-family: var(--font-body);
   font-size: 0.73rem;
   padding: 7px 10px;
 }
@@ -10328,7 +10433,7 @@ body.body-menu-open #footer {
   border-radius: 10px;
   color: #e2e8ff;
   cursor: pointer;
-  font-family: "Jura", monospace;
+  font-family: var(--font-body);
   font-size: 1rem;
   font-weight: 700;
   height: 38px;
@@ -10381,7 +10486,7 @@ body.body-menu-open #footer {
 }
 
 .ai-assistant-attach-item span {
-  font-family: "Jura", monospace;
+  font-family: var(--font-body);
   font-size: 0.72rem;
 }
 
@@ -10396,7 +10501,7 @@ body.body-menu-open #footer {
   border-radius: 10px;
   color: #fff;
   flex: 2 1 420px;
-  font-family: "Jura", monospace;
+  font-family: var(--font-body);
   font-size: 0.85rem;
   min-width: 280px;
   padding: 10px;
@@ -10419,7 +10524,7 @@ body.body-menu-open #footer {
   border-radius: 10px;
   color: #fff;
   cursor: pointer;
-  font-family: "Jura", monospace;
+  font-family: var(--font-body);
   font-size: 0.83rem;
   font-weight: 600;
   min-width: 96px;
