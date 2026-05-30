@@ -123,6 +123,10 @@ function shouldTryFallback(statusCode, upstreamError) {
   );
 }
 
+function hasUsableOpenRouterKey(env) {
+  return typeof env.OPENROUTER_API_KEY === 'string' && env.OPENROUTER_API_KEY.trim().length > 0;
+}
+
 function extractReply(openRouterJson) {
   const firstChoice = openRouterJson?.choices?.[0];
   const messageText = firstChoice?.message?.content;
@@ -180,7 +184,7 @@ export default {
       return jsonResponse({ ok: false, error: 'empty_message' }, 400, corsHeaders);
     }
 
-    if (!env.OPENROUTER_API_KEY) {
+    if (!hasUsableOpenRouterKey(env)) {
       return jsonResponse({ ok: false, error: 'missing_openrouter_key' }, 500, corsHeaders);
     }
 
@@ -210,7 +214,7 @@ export default {
         upstream = await fetch('https://openrouter.ai/api/v1/chat/completions', {
           method: 'POST',
           headers: {
-            Authorization: `Bearer ${env.OPENROUTER_API_KEY}`,
+            Authorization: `Bearer ${env.OPENROUTER_API_KEY.trim()}`,
             'Content-Type': 'application/json',
             'HTTP-Referer': allowedOrigin,
             'X-Title': 'Digital Blue Skye AI'
@@ -250,7 +254,8 @@ export default {
         lastError = {
           model: modelName,
           status_code: 0,
-          upstream_error: result.transportError || 'openrouter_fetch_failed'
+          upstream_error: result.transportError || 'openrouter_fetch_failed',
+          openrouter_key_configured: hasUsableOpenRouterKey(env)
         };
         attempts.push(lastError);
         console.warn('openrouter_attempt_failed', lastError);
@@ -271,7 +276,8 @@ export default {
       lastError = {
         model: modelName,
         status_code: result.upstream.status,
-        upstream_error: upstreamError
+        upstream_error: upstreamError,
+        openrouter_key_configured: hasUsableOpenRouterKey(env)
       };
       attempts.push(lastError);
       console.warn('openrouter_attempt_failed', lastError);
