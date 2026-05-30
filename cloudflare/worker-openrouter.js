@@ -154,24 +154,67 @@ function hasAuthorizationHeader(headers) {
   return Boolean(headers && typeof headers.Authorization === 'string' && headers.Authorization.startsWith('Bearer '));
 }
 
-function extractReply(openRouterJson) {
-  const firstChoice = openRouterJson?.choices?.[0];
-  const messageText = firstChoice?.message?.content;
+function extractTextFromContent(content) {
+  if (typeof content === 'string') return content.trim();
 
-  if (typeof messageText === 'string' && messageText.trim()) {
-    return messageText.trim();
+  if (Array.isArray(content)) {
+    return content
+      .map((part) => extractTextFromContent(part))
+      .filter(Boolean)
+      .join('\n')
+      .trim();
   }
 
-  if (Array.isArray(messageText)) {
-    const textParts = messageText
-      .map((part) => (typeof part?.text === 'string' ? part.text : ''))
-      .join(' ')
-      .trim();
+  if (content && typeof content === 'object') {
+    const directText =
+      content.text ||
+      content.content ||
+      content.value ||
+      content.output_text ||
+      content.message;
 
-    if (textParts) return textParts;
+    if (typeof directText === 'string' && directText.trim()) return directText.trim();
+
+    if (Array.isArray(directText)) return extractTextFromContent(directText);
+
+    if (content.type && typeof content.text === 'object') return extractTextFromContent(content.text);
   }
 
   return '';
+}
+
+function extractReply(openRouterJson) {
+  const firstChoice = openRouterJson?.choices?.[0];
+  const candidates = [
+    firstChoice?.message?.content,
+    firstChoice?.message?.text,
+    firstChoice?.message?.output_text,
+    firstChoice?.text,
+    firstChoice?.delta?.content,
+    firstChoice?.delta?.text,
+    openRouterJson?.output_text,
+    openRouterJson?.message?.content
+  ];
+
+  for (const candidate of candidates) {
+    const text = extractTextFromContent(candidate);
+    if (text) return text;
+  }
+
+  return '';
+}
+
+function buildEmptyReplyDiagnostic(openRouterJson) {
+  const firstChoice = openRouterJson?.choices?.[0] || null;
+  const message = firstChoice?.message || null;
+  const content = message?.content;
+  return {
+    has_choices: Array.isArray(openRouterJson?.choices),
+    choices_length: Array.isArray(openRouterJson?.choices) ? openRouterJson.choices.length : 0,
+    first_choice_keys: firstChoice && typeof firstChoice === 'object' ? Object.keys(firstChoice) : [],
+    message_keys: message && typeof message === 'object' ? Object.keys(message) : [],
+    content_type: Array.isArray(content) ? 'array' : typeof content
+  };
 }
 
 export default {
@@ -335,7 +378,8 @@ export default {
               ? 'I could not generate a complete answer right now. Please try again.'
               : "Je n'ai pas pu generer une reponse complete pour le moment. Reessayez dans un instant.",
           fallback: true,
-          fallback_reason: 'empty_openrouter_reply'
+          fallback_reason: 'empty_openrouter_reply',
+          diagnostic: buildEmptyReplyDiagnostic(parsed)
         },
         200,
         corsHeaders
