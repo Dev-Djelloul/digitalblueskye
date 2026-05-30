@@ -13,6 +13,7 @@
 
 const DEFAULT_MODEL = 'openrouter/free';
 const FALLBACK_MODEL = 'openrouter/auto';
+const DEFAULT_MAX_TOKENS = 220;
 
 function buildCorsHeaders(request, env) {
   const fallbackOrigin = env.ALLOWED_ORIGIN || 'https://digitalblueskye.infinityfreeapp.com';
@@ -90,6 +91,38 @@ function normalizeHistory(history) {
     .filter((entry) => entry.content.length > 0);
 }
 
+function getModelFallbackChain(env) {
+  const configuredFallbacks = String(env.OPENROUTER_FALLBACK_MODELS || '')
+    .split(',')
+    .map((model) => model.trim())
+    .filter(Boolean);
+
+  return [
+    env.OPENROUTER_MODEL || DEFAULT_MODEL,
+    ...configuredFallbacks,
+    FALLBACK_MODEL
+  ].filter((value, index, array) => value && array.indexOf(value) === index);
+}
+
+function shouldTryFallback(statusCode, upstreamError) {
+  const msg = String(upstreamError || '').toLowerCase();
+  return (
+    !statusCode ||
+    statusCode === 400 ||
+    statusCode === 404 ||
+    statusCode === 408 ||
+    statusCode === 409 ||
+    statusCode === 429 ||
+    statusCode >= 500 ||
+    msg.includes('model') ||
+    msg.includes('endpoint') ||
+    msg.includes('provider returned error') ||
+    msg.includes('rate limit') ||
+    msg.includes('timeout') ||
+    msg.includes('unavailable')
+  );
+}
+
 function extractReply(openRouterJson) {
   const firstChoice = openRouterJson?.choices?.[0];
   const messageText = firstChoice?.message?.content;
@@ -151,9 +184,12 @@ export default {
       return jsonResponse({ ok: false, error: 'missing_openrouter_key' }, 500, corsHeaders);
     }
 
-    const model = env.OPENROUTER_MODEL || DEFAULT_MODEL;
+    const primaryModel = env.OPENROUTER_MODEL || DEFAULT_MODEL;
     const dateContext = normalizeDateContext(body?.currentDate);
     const systemPrompt = buildSystemPrompt(language, dateContext);
+    const maxTokens = Number(env.OPENROUTER_MAX_TOKENS) > 0
+      ? Math.min(Number(env.OPENROUTER_MAX_TOKENS), 1200)
+      : DEFAULT_MAX_TOKENS;
 
     function buildOpenRouterPayload(modelName) {
       return {
@@ -164,21 +200,30 @@ export default {
           { role: 'user', content: message }
         ],
         temperature: 0.35,
-        max_tokens: 220
+        max_tokens: maxTokens
       };
     }
 
     async function callOpenRouter(modelName) {
-      const upstream = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${env.OPENROUTER_API_KEY}`,
-          'Content-Type': 'application/json',
-          'HTTP-Referer': allowedOrigin,
-          'X-Title': 'Digital Blue Skye AI'
-        },
-        body: JSON.stringify(buildOpenRouterPayload(modelName))
-      });
+      let upstream;
+      try {
+        upstream = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${env.OPENROUTER_API_KEY}`,
+            'Content-Type': 'application/json',
+            'HTTP-Referer': allowedOrigin,
+            'X-Title': 'Digital Blue Skye AI'
+          },
+          body: JSON.stringify(buildOpenRouterPayload(modelName))
+        });
+      } catch (error) {
+        return {
+          upstream: null,
+          parsed: null,
+          transportError: error instanceof Error ? error.message : 'openrouter_fetch_failed'
+        };
+      }
 
       const raw = await upstream.text();
       let parsed = null;
@@ -190,16 +235,33 @@ export default {
       return { upstream, parsed };
     }
 
-    const modelsToTry = [model, FALLBACK_MODEL].filter((value, index, array) => value && array.indexOf(value) === index);
+    const modelsToTry = getModelFallbackChain(env);
     let lastError = null;
     let parsed = null;
-    let resolvedModel = model;
+    let resolvedModel = primaryModel;
+    const attempts = [];
+    let upstreamSucceeded = false;
 
     for (const modelName of modelsToTry) {
       const result = await callOpenRouter(modelName);
       parsed = result.parsed;
       resolvedModel = modelName;
-      if (result.upstream.ok) break;
+      if (!result.upstream) {
+        lastError = {
+          model: modelName,
+          status_code: 0,
+          upstream_error: result.transportError || 'openrouter_fetch_failed'
+        };
+        attempts.push(lastError);
+        console.warn('openrouter_attempt_failed', lastError);
+        if (!shouldTryFallback(0, lastError.upstream_error)) break;
+        continue;
+      }
+
+      if (result.upstream.ok) {
+        upstreamSucceeded = true;
+        break;
+      }
 
       const upstreamError =
         parsed?.error?.message ||
@@ -211,26 +273,21 @@ export default {
         status_code: result.upstream.status,
         upstream_error: upstreamError
       };
+      attempts.push(lastError);
+      console.warn('openrouter_attempt_failed', lastError);
 
-      const msg = upstreamError.toLowerCase();
-      const canFallback =
-        result.upstream.status === 400 ||
-        result.upstream.status === 404 ||
-        result.upstream.status === 429 ||
-        msg.includes('model') ||
-        msg.includes('endpoint') ||
-        msg.includes('provider returned error') ||
-        msg.includes('rate limit');
-
-      if (!canFallback) break;
+      if (!shouldTryFallback(result.upstream.status, upstreamError)) break;
     }
 
-    if (lastError && (!parsed || !extractReply(parsed))) {
+    if (!upstreamSucceeded && lastError && (!parsed || !extractReply(parsed))) {
       return jsonResponse(
         {
           ok: false,
           error: 'openrouter_error',
-          diagnostic: lastError
+          diagnostic: {
+            ...lastError,
+            attempts
+          }
         },
         502,
         corsHeaders
@@ -260,7 +317,8 @@ export default {
         reply,
         provider: 'openrouter',
         model: resolvedModel,
-        resolved_model: parsed?.model || resolvedModel
+        resolved_model: parsed?.model || resolvedModel,
+        fallback_model_used: resolvedModel !== primaryModel
       },
       200,
       corsHeaders

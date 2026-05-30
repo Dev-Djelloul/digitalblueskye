@@ -15,6 +15,8 @@ Ajouter ces variables dans `Settings > Variables`:
   - `OPENROUTER_API_KEY` = votre cle OpenRouter
 - Texte:
   - `OPENROUTER_MODEL` = `google/gemma-2-9b-it:free`
+  - `OPENROUTER_FALLBACK_MODELS` = `mistralai/mistral-7b-instruct:free,google/gemma-2-9b-it:free` (optionnel, liste separee par des virgules)
+  - `OPENROUTER_MAX_TOKENS` = `220` (optionnel)
   - `ALLOWED_ORIGIN` = `https://digitalblueskye.infinityfreeapp.com`
 
 ## 3) Frontend
@@ -71,3 +73,18 @@ Reponse attendue:
 - `missing_openrouter_key`: secret absent.
 - `openrouter_error`: verifier modele `:free` et cle.
 - Erreur CORS: verifier `ALLOWED_ORIGIN`.
+
+## 6) Logs propres
+- Le Worker journalise chaque tentative OpenRouter echouee avec `openrouter_attempt_failed`.
+- Le frontend journalise les erreurs utiles uniquement.
+- Pour activer les logs debug frontend dans la console navigateur:
+
+```js
+localStorage.setItem('ai_assistant_debug', 'true')
+```
+
+Pour les desactiver:
+
+```js
+localStorage.removeItem('ai_assistant_debug')
+```

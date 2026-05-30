@@ -366,8 +366,27 @@
     en: ['Samantha', 'Karen', 'Allison', 'Ava', 'Serena', 'Moira', 'Daniel']
   };
   const conversationStorageKey = 'ai_assistant_conversations_v1';
+  const conversationCorruptStorageKey = 'ai_assistant_conversations_corrupt_v1';
   const panelPositionStorageKey = 'ai_assistant_panel_position_v1';
   const panelSizeStorageKey = 'ai_assistant_panel_size_v1';
+  const assistantDebugStorageKey = 'ai_assistant_debug';
+  const maxStoredSessions = 20;
+  const maxStoredMessagesPerSession = 24;
+  const maxStoredMessageLength = 8000;
+  const apiHistoryWindow = 8;
+
+  function isAssistantDebugEnabled() {
+    try { return localStorage.getItem(assistantDebugStorageKey) === 'true'; } catch (error) { return false; }
+  }
+
+  function assistantLog(level, eventName, details = {}) {
+    if (!isAssistantDebugEnabled() && level !== 'warn' && level !== 'error') return;
+    const logger = typeof console?.[level] === 'function' ? console[level] : console.log;
+    logger.call(console, '[Digital Blue Skye AI]', eventName, {
+      at: new Date().toISOString(),
+      ...details
+    });
+  }
 
   function setAssistantPanelOpen(open) {
     if (!panel) return;
@@ -652,10 +671,10 @@
       .map((entry) => {
         const role = entry?.role === 'assistant' ? 'assistant' : 'user';
         const content = typeof entry?.content === 'string' ? entry.content : String(entry?.content ?? '');
-        return { role, content: content.trim() };
+        return { role, content: content.trim().slice(0, maxStoredMessageLength) };
       })
       .filter((m) => m.content.length > 0)
-      .slice(-16);
+      .slice(-maxStoredMessagesPerSession);
   }
 
   const readableFileExtensions = new Set(['txt','md','markdown','json','csv','log','xml','html','htm','js','ts','css','py','php','java','c','cpp','sql','yaml','yml']);
@@ -1027,8 +1046,9 @@
   }
 
   function loadSessionsState() {
+    let raw = '';
     try {
-      const raw = localStorage.getItem(conversationStorageKey);
+      raw = localStorage.getItem(conversationStorageKey);
       if (!raw) return null;
       const parsed = JSON.parse(raw);
       if (!Array.isArray(parsed?.sessions)) return null;
@@ -1041,13 +1061,48 @@
           updatedAt: Number(s?.updatedAt) || Date.now(),
           history: normalizeHistory(Array.isArray(s?.history) ? s.history : [])
         };
-      }).slice(-20);
+      }).slice(-maxStoredSessions);
       return { activeSessionId: typeof parsed?.activeSessionId === 'string' ? parsed.activeSessionId : '', sessions };
-    } catch (error) { return null; }
+    } catch (error) {
+      assistantLog('warn', 'history_load_failed', { reason: error?.message || 'invalid_local_storage_history' });
+      try {
+        if (raw) localStorage.setItem(conversationCorruptStorageKey, raw.slice(0, 250000));
+        localStorage.removeItem(conversationStorageKey);
+      } catch (storageError) {
+        assistantLog('warn', 'history_corrupt_backup_failed', { reason: storageError?.message || 'local_storage_unavailable' });
+      }
+      return null;
+    }
   }
 
   function saveSessionsState() {
-    try { localStorage.setItem(conversationStorageKey, JSON.stringify(sessionsState)); } catch (error) {}
+    try {
+      const compactState = {
+        activeSessionId: sessionsState.activeSessionId,
+        sessions: sessionsState.sessions.slice(0, maxStoredSessions).map((session) => ({
+          ...session,
+          title: typeof session.title === 'string' ? session.title.slice(0, 120) : i18n.sessionDefault,
+          history: normalizeHistory(session.history)
+        }))
+      };
+      localStorage.setItem(conversationStorageKey, JSON.stringify(compactState));
+      sessionsState = compactState;
+    } catch (error) {
+      assistantLog('warn', 'history_save_failed', { reason: error?.message || 'local_storage_unavailable' });
+      try {
+        const emergencyState = {
+          activeSessionId: sessionsState.activeSessionId,
+          sessions: sessionsState.sessions.slice(0, 5).map((session) => ({
+            ...session,
+            history: normalizeHistory(session.history).slice(-8)
+          }))
+        };
+        localStorage.setItem(conversationStorageKey, JSON.stringify(emergencyState));
+        sessionsState = emergencyState;
+      } catch (fallbackError) {
+        assistantLog('error', 'history_emergency_save_failed', { reason: fallbackError?.message || 'local_storage_unavailable' });
+      }
+    }
   }
 
   function getActiveSession() {
@@ -1118,7 +1173,7 @@
   function createNewSession() {
     const next = makeDefaultSession();
     sessionsState.sessions.unshift(next);
-    sessionsState.sessions = sessionsState.sessions.slice(0, 20);
+    sessionsState.sessions = sessionsState.sessions.slice(0, maxStoredSessions);
     sessionsState.activeSessionId = next.id;
     saveSessionsState();
     renderSessionOptions();
@@ -2134,6 +2189,36 @@
     return i18n.friendlyApiError;
   }
 
+  async function sendAssistantRequest(payload) {
+    const startedAt = performance.now();
+    const response = await fetch(API_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const raw = await response.text();
+    let data = null;
+    try {
+      data = raw ? JSON.parse(raw) : {};
+    } catch (error) {
+      const invalidResponseError = new Error('invalid_assistant_response');
+      invalidResponseError.status = response.status;
+      invalidResponseError.rawLength = raw.length;
+      throw invalidResponseError;
+    }
+    assistantLog(response.ok && data?.ok ? 'debug' : 'warn', 'api_response', {
+      ok: Boolean(data?.ok),
+      httpStatus: response.status,
+      model: data?.resolved_model || data?.model || '',
+      fallbackModelUsed: Boolean(data?.fallback_model_used),
+      durationMs: Math.round(performance.now() - startedAt)
+    });
+    return {
+      ...data,
+      httpStatus: response.status
+    };
+  }
+
   function ensureSpeechSegmentSpans(bubble) {
     if (!bubble) return [];
     const content = bubble.querySelector('.ai-assistant-message-content');
@@ -2289,19 +2374,20 @@
       const composedMessage = fileContext
         ? `${styleInstruction}\n\n${userText}\n\n---\nContexte de fichiers locaux (ne pas ignorer):\n${fileContext}`
         : `${styleInstruction}\n\n${userText}`;
-      const response = await fetch(API_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: composedMessage,
-          history: chatHistory.slice(-4),
-          language: currentLanguage === 'en' ? 'en' : 'fr',
-          currentDate: dateContext,
-          mode: 'chat',
-          attachments
-        })
+      const payload = {
+        message: composedMessage,
+        history: chatHistory.slice(-apiHistoryWindow),
+        language: currentLanguage === 'en' ? 'en' : 'fr',
+        currentDate: dateContext,
+        mode: 'chat',
+        attachments
+      };
+      assistantLog('debug', 'api_request', {
+        historyMessages: payload.history.length,
+        hasFileContext: Boolean(fileContext),
+        attachments: attachments.length
       });
-      const data = await response.json();
+      const data = await sendAssistantRequest(payload);
       loading.remove();
       if (data.ok) {
         const cleanedReply = cleanAssistantReplyText(data.reply);
@@ -2310,12 +2396,21 @@
         chatHistory.push({ role: 'assistant', content: cleanedReply });
         persistActiveConversation();
       } else {
+        assistantLog('warn', 'api_error', {
+          httpStatus: data.httpStatus || 0,
+          error: data.error || 'unknown_api_error',
+          diagnostic: data.diagnostic || null
+        });
         const msg = formatAssistantApiError(data);
         addMessage('bot', msg);
         chatHistory.push({ role: 'assistant', content: msg });
         persistActiveConversation();
       }
     } catch (e) {
+      assistantLog('error', 'api_request_failed', {
+        reason: e?.message || 'network_error',
+        status: e?.status || 0
+      });
       if (loading) loading.remove();
       addMessage('bot', i18n.assistantDown);
       chatHistory.push({ role: 'assistant', content: i18n.assistantDown });
