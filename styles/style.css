@@ -2262,7 +2262,7 @@ body.explorer-page {
 /* Titre animé de la page Explorer */
 .main-page-title-container {
   grid-area: explorer-title;
-  margin-bottom: 8px;
+  margin-bottom: 34px;
   margin-top: 0;
   overflow: hidden;
   padding: 12px 0;
@@ -2302,9 +2302,9 @@ h1.main-title-animated .title-icon {
   box-shadow: 0 5px 20px var(--shadow-color);
   display: grid;
   grid-template-areas:
-    "explorer-title explorer-title"
-    "explorer-list explorer-display";
-  grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+    "explorer-title"
+    "explorer-display";
+  grid-template-columns: minmax(0, 1fr);
   padding-bottom: 96px;
   overflow: hidden; /* Pour coins arrondis et contenu qui dépasse */
   padding-top: 42px;
@@ -2433,8 +2433,45 @@ h1.main-title-animated .title-icon {
   grid-area: explorer-display;
   margin: 0;
   overflow: hidden; /* Empêche le défilement */
-  padding: 30px;
+  padding: 30px 0 34px;
   position: relative;
+  width: 100%;
+}
+
+.explorer-project-display-panel::before,
+.explorer-project-display-panel::after {
+  content: "";
+  height: 100%;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  width: min(120px, 12vw);
+  z-index: 3;
+}
+
+.explorer-project-display-panel::before {
+  background: linear-gradient(90deg, var(--background-color), transparent);
+  left: 0;
+}
+
+.explorer-project-display-panel::after {
+  background: linear-gradient(270deg, var(--background-color), transparent);
+  right: 0;
+}
+
+.explorer-project-marquee-track {
+  align-items: stretch;
+  animation: explorer-project-marquee 58s linear infinite;
+  display: flex;
+  gap: 0;
+  padding: 8px clamp(18px, 4vw, 70px) 16px;
+  width: max-content;
+  will-change: transform;
+}
+
+.explorer-project-display-panel:hover .explorer-project-marquee-track,
+.explorer-project-display-panel:focus-within .explorer-project-marquee-track {
+  animation-play-state: paused;
 }
 
 .project-display-content {
@@ -2443,6 +2480,12 @@ h1.main-title-animated .title-icon {
   /* Conteneur pour la carte du projet affiché */
   display: none; /* Caché par défaut */
   text-align: center; /* Centre la carte si elle est plus petite */
+}
+
+.explorer-project-marquee-track .project-display-content {
+  display: block;
+  flex: 0 0 clamp(250px, 25vw, 350px);
+  margin-right: clamp(18px, 2vw, 30px);
 }
 
 .project-display-content.active {
@@ -2454,8 +2497,8 @@ h1.main-title-animated .title-icon {
   background-color: var(--card-bg);
   border-radius: 10px;
   box-shadow: 0 4px 15px var(--shadow-color);
-  margin: 0 auto;
-  max-width: 460px;
+  margin: 0;
+  max-width: none;
   overflow: hidden;
   position: relative; /* Important pour positionner .project-card-overlay et .project-view-icon */
   transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -2510,7 +2553,7 @@ h1.main-title-animated .title-icon {
 
   /* Positionné pour être sous l'icône oeil */
   top: calc(
-    50% + 30px + 10px
+    50% + 24px + 8px
   ); /* 50% (centre carte) + moitié hauteur oeil (30px) + espace (10px) */
 
   transform: translateX(-50%); /* Centré horizontalement */
@@ -2531,9 +2574,9 @@ h1.main-title-animated .title-icon {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
   background-clip: text;
   color: transparent;
-  font-size: 1.8rem;
+  font-size: clamp(1.05rem, 1.7vw, 1.35rem);
   font-weight: bold;
-  line-height: 1.3;
+  line-height: 1.15;
   margin: 0;
   max-width: 100%; /* S'assure qu'il ne dépasse pas son conteneur .project-card-overlay */
   overflow: hidden;
@@ -2553,8 +2596,8 @@ h1.main-title-animated .title-icon {
   box-shadow: 0 4px 10px rgb(0 0 0 / 30%);
   color: transparent;
   display: flex;
-  font-size: 1.8rem;
-  height: 60px;
+  font-size: 1.45rem;
+  height: 48px;
   justify-content: center;
   left: 50%;
   opacity: 0; /* Caché par défaut */
@@ -2563,7 +2606,7 @@ h1.main-title-animated .title-icon {
   top: 50%;
   transform: translate(-50%, -50%) scale(0.8);
   transition: transform 0.3s;
-  width: 60px;
+  width: 48px;
   z-index: 10;
 }
 
@@ -2576,6 +2619,29 @@ h1.main-title-animated .title-icon {
   box-shadow: 0 0 20px var(--accent-color);
   outline: 3px solid var(--accent-color);
   transition: outline 0.3s, box-shadow 0.3s;
+}
+
+@keyframes explorer-project-marquee {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .explorer-project-marquee-track {
+    animation: none;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    width: 100%;
+  }
+
+  .explorer-project-marquee-track .project-display-content {
+    scroll-snap-align: center;
+  }
 }
 
 /* =========================
@@ -8172,7 +8238,6 @@ body.body-menu-open #footer {
   .explorer-layout-container {
     grid-template-areas:
       "explorer-title"
-      "explorer-list"
       "explorer-display";
     grid-template-columns: minmax(0, 1fr);
     padding-bottom: 68px;
@@ -8180,7 +8245,7 @@ body.body-menu-open #footer {
   }
 
   .main-page-title-container {
-    margin-bottom: 8px;
+    margin-bottom: 26px;
     margin-top: 0;
     padding: 8px 0;
   }
@@ -8197,13 +8262,37 @@ body.body-menu-open #footer {
   }
 
   .explorer-project-display-panel {
-    padding: 40px; /* Réduit le padding */
+    padding: 26px 0 30px;
+  }
 
-    /* S'assure qu'il prend la largeur nécessaire, flex-grow: 1; devrait déjà le faire */
+  .explorer-project-display-panel::before,
+  .explorer-project-display-panel::after {
+    width: 44px;
+  }
+
+  .explorer-project-marquee-track {
+    animation-duration: 42s;
+    padding: 6px 18px 14px;
+  }
+
+  .explorer-project-marquee-track .project-display-content {
+    flex-basis: clamp(220px, 72vw, 300px);
+    margin-right: 16px;
   }
 
   .project-card-link {
     aspect-ratio: 4 / 3;
+  }
+
+  .project-card-overlay h3 {
+    font-size: clamp(0.95rem, 5vw, 1.2rem);
+    line-height: 1.12;
+  }
+
+  .project-view-icon {
+    font-size: 1.25rem;
+    height: 42px;
+    width: 42px;
   }
 
   #explorerProjectList li {

@@ -253,79 +253,11 @@
             Galerie de réalisations web<i></i>
           </h1>
         </div>
-        <aside class="explorer-projects-list-panel">
-          <div class="scrollable-project-list-container">
-            <ul id="explorerProjectList">
-              <li data-project-target="riding-cities">
-                <span
-                  class="project-list-title"
-                  data-i18n="explorerNames.ridingCities"
-                  >RIDING CITIES</span
-                >
-              </li>
-              <li data-project-target="booki">
-                <span class="project-list-title" data-i18n="explorerNames.booki"
-                  >BOOKI</span
-                >
-              </li>
-              <li data-project-target="ohmyfood">
-                <span
-                  class="project-list-title"
-                  data-i18n="explorerNames.ohmyfood"
-                  >OHMYFOOD</span
-                >
-              </li>
-              <li data-project-target="print-it">
-                <span
-                  class="project-list-title"
-                  data-i18n="explorerNames.printIt"
-                  >PRINT IT</span
-                >
-              </li>
-              <li data-project-target="sophie-bluel">
-                <span
-                  class="project-list-title"
-                  data-i18n="explorerNames.sophieBluel"
-                  >SOPHIE BLUEL</span
-                >
-              </li>
-              <li data-project-target="memory-game">
-                <span
-                  class="project-list-title"
-                  data-i18n="explorerNames.memoryGame"
-                  >MEMORY GAME</span
-                >
-              </li>
-              <li data-project-target="arcadia-zoo">
-                <span
-                  class="project-list-title"
-                  data-i18n="explorerNames.arcadiaZoo"
-                  >ARCADIA ZOO</span
-                >
-              </li>
-              <li data-project-target="budget-buddy">
-                <span
-                  class="project-list-title"
-                  data-i18n="explorerNames.budgetBuddy"
-                  >BUDGET BUDDY</span
-                >
-              </li>
-              <li data-project-target="tetris-windsurf">
-                <span
-                  class="project-list-title"
-                  data-i18n="explorerNames.tetrisWindsurf"
-                  >TETRIS WINDSURF</span
-                >
-              </li>
-            </ul>
-          </div>
-        </aside>
-
         <section class="explorer-project-display-panel">
+          <div class="explorer-project-marquee-track">
           <div
             id="riding-cities"
             class="project-display-content project-card-style"
-            aria-hidden="true"
           >
             <a href="/projects/riding-cities.html" class="project-card-link">
               <img
@@ -344,7 +276,6 @@
           <div
             id="booki"
             class="project-display-content project-card-style"
-            aria-hidden="true"
           >
             <a href="/projects/booki.html" class="project-card-link">
               <img
@@ -363,7 +294,6 @@
           <div
             id="ohmyfood"
             class="project-display-content project-card-style"
-            aria-hidden="true"
           >
             <a href="/projects/ohmyfood.html" class="project-card-link">
               <img
@@ -382,7 +312,6 @@
           <div
             id="print-it"
             class="project-display-content project-card-style"
-            aria-hidden="true"
           >
             <a href="/projects/print-it.html" class="project-card-link">
               <img
@@ -401,7 +330,6 @@
           <div
             id="sophie-bluel"
             class="project-display-content project-card-style"
-            aria-hidden="true"
           >
             <a href="/projects/sophie-bluel.html" class="project-card-link">
               <img
@@ -420,7 +348,6 @@
           <div
             id="memory-game"
             class="project-display-content project-card-style"
-            aria-hidden="true"
           >
             <a href="/projects/memory-game.html" class="project-card-link">
               <img
@@ -439,7 +366,6 @@
           <div
             id="arcadia-zoo"
             class="project-display-content project-card-style"
-            aria-hidden="true"
           >
             <a href="/projects/arcadia-zoo.html" class="project-card-link">
               <img
@@ -458,7 +384,6 @@
           <div
             id="budget-buddy"
             class="project-display-content project-card-style"
-            aria-hidden="true"
           >
             <a href="/projects/budget-buddy.html" class="project-card-link">
               <img
@@ -477,7 +402,6 @@
           <div
             id="tetris-windsurf"
             class="project-display-content project-card-style"
-            aria-hidden="true"
           >
             <a href="/projects/tetris-windsurf.html" class="project-card-link">
               <img
@@ -492,6 +416,7 @@
                 <h3 data-i18n="projectNames.tetrisWindsurf">Tetris Windsurf</h3>
               </div>
             </a>
+          </div>
           </div>
         </section>
       </div>
@@ -549,35 +474,5 @@
         </p>
       </div>
     </footer>
-
-<script>
-      document.addEventListener("DOMContentLoaded", function () {
-        // Seulement sur mobile (largeur <= 768px)
-        if (window.innerWidth <= 768) {
-          document
-            .querySelectorAll("#explorerProjectList li")
-            .forEach(function (li) {
-              li.addEventListener("click", function () {
-                var targetId = li.getAttribute("data-project-target");
-                var target = document.getElementById(targetId);
-                if (target) {
-                  target.scrollIntoView({
-                    behavior: "smooth",
-                    block: "center",
-                  });
-                  // Optionnel : effet visuel temporaire
-                  target.classList.add("highlight-project");
-                  setTimeout(function () {
-                    target.classList.remove("highlight-project");
-                  }, 1200);
-                }
-              });
-            });
-        }
-      });
-    </script>
-
-    
-
   </body>
 </html>
