@@ -11,7 +11,7 @@
  *   Example: https://digitalblueskye.infinityfreeapp.com
  */
 
-const DEFAULT_MODEL = 'openrouter/free';
+const DEFAULT_MODEL = 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free';
 const FALLBACK_MODEL = 'openrouter/auto';
 const DEFAULT_MAX_TOKENS = 220;
 
@@ -124,7 +124,19 @@ function shouldTryFallback(statusCode, upstreamError) {
 }
 
 function hasUsableOpenRouterKey(env) {
-  return typeof env.OPENROUTER_API_KEY === 'string' && env.OPENROUTER_API_KEY.trim().length > 0;
+  return normalizeOpenRouterApiKey(env).length > 0;
+}
+
+function normalizeOpenRouterApiKey(env) {
+  return String(env.OPENROUTER_API_KEY || '')
+    .trim()
+    .replace(/^["']|["']$/g, '')
+    .replace(/^Bearer\s+/i, '')
+    .trim();
+}
+
+function buildAuthorizationHeader(env) {
+  return `Bearer ${normalizeOpenRouterApiKey(env)}`;
 }
 
 function extractReply(openRouterJson) {
@@ -214,7 +226,7 @@ export default {
         upstream = await fetch('https://openrouter.ai/api/v1/chat/completions', {
           method: 'POST',
           headers: {
-            Authorization: `Bearer ${env.OPENROUTER_API_KEY.trim()}`,
+            Authorization: buildAuthorizationHeader(env),
             'Content-Type': 'application/json',
             'HTTP-Referer': allowedOrigin,
             'X-Title': 'Digital Blue Skye AI'
