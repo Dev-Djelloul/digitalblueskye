@@ -131,12 +131,27 @@ function normalizeOpenRouterApiKey(env) {
   return String(env.OPENROUTER_API_KEY || '')
     .trim()
     .replace(/^["']|["']$/g, '')
+    .replace(/^OPENROUTER_API_KEY\s*=\s*/i, '')
     .replace(/^Bearer\s+/i, '')
+    .replace(/\s+/g, '')
     .trim();
 }
 
 function buildAuthorizationHeader(env) {
   return `Bearer ${normalizeOpenRouterApiKey(env)}`;
+}
+
+function buildOpenRouterHeaders(env, allowedOrigin) {
+  return {
+    Authorization: buildAuthorizationHeader(env),
+    'Content-Type': 'application/json',
+    'HTTP-Referer': allowedOrigin,
+    'X-Title': 'Digital Blue Skye AI'
+  };
+}
+
+function hasAuthorizationHeader(headers) {
+  return Boolean(headers && typeof headers.Authorization === 'string' && headers.Authorization.startsWith('Bearer '));
 }
 
 function extractReply(openRouterJson) {
@@ -222,15 +237,11 @@ export default {
 
     async function callOpenRouter(modelName) {
       let upstream;
+      const openRouterHeaders = buildOpenRouterHeaders(env, allowedOrigin);
       try {
         upstream = await fetch('https://openrouter.ai/api/v1/chat/completions', {
           method: 'POST',
-          headers: {
-            Authorization: buildAuthorizationHeader(env),
-            'Content-Type': 'application/json',
-            'HTTP-Referer': allowedOrigin,
-            'X-Title': 'Digital Blue Skye AI'
-          },
+          headers: openRouterHeaders,
           body: JSON.stringify(buildOpenRouterPayload(modelName))
         });
       } catch (error) {
@@ -267,7 +278,8 @@ export default {
           model: modelName,
           status_code: 0,
           upstream_error: result.transportError || 'openrouter_fetch_failed',
-          openrouter_key_configured: hasUsableOpenRouterKey(env)
+          openrouter_key_configured: hasUsableOpenRouterKey(env),
+          authorization_header_built: true
         };
         attempts.push(lastError);
         console.warn('openrouter_attempt_failed', lastError);
@@ -289,7 +301,8 @@ export default {
         model: modelName,
         status_code: result.upstream.status,
         upstream_error: upstreamError,
-        openrouter_key_configured: hasUsableOpenRouterKey(env)
+        openrouter_key_configured: hasUsableOpenRouterKey(env),
+        authorization_header_built: hasAuthorizationHeader(buildOpenRouterHeaders(env, allowedOrigin))
       };
       attempts.push(lastError);
       console.warn('openrouter_attempt_failed', lastError);
