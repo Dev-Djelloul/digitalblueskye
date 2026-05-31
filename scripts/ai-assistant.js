@@ -333,6 +333,7 @@
   const DRIVE_PICKER_SCRIPT_URL = 'https://apis.google.com/js/api.js';
   const GOOGLE_IDENTITY_SCRIPT_URL = 'https://accounts.google.com/gsi/client';
   const HTML2PDF_SCRIPT_URL = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+  const JSPDF_SCRIPT_URL = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
   const DRIVE_API_KEY = String(window.DBS_GOOGLE_API_KEY || '').trim();
   const DRIVE_CLIENT_ID = String(window.DBS_GOOGLE_CLIENT_ID || '').trim();
   const DRIVE_APP_ID = String(window.DBS_GOOGLE_APP_ID || '').trim();
@@ -706,6 +707,7 @@
   let pdfJsLoaderPromise = null;
   let mammothLoaderPromise = null;
   let html2PdfLoaderPromise = null;
+  let jsPdfLoaderPromise = null;
   const maxLocalFilesPerPrompt = 4;
   const maxTextCharsPerFile = 12000;
   const maxDocumentCharsPerFile = 60000;
@@ -1641,12 +1643,31 @@
   });
 
   function escapeHtml(value) {
-    return value
+    return String(value || '')
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#39;');
+  }
+
+  function normalizeAssistantMarkdown(markdown) {
+    const lines = String(markdown || '').replace(/\r\n?/g, '\n').split('\n');
+    let inCodeBlock = false;
+    let topLevelOrderedIndex = 1;
+    return lines.map((line) => {
+      const trimmed = line.trim();
+      if (/^```/.test(trimmed)) {
+        inCodeBlock = !inCodeBlock;
+        return line;
+      }
+      if (inCodeBlock || trimmed.startsWith('|')) return line;
+      const ordered = line.match(/^(\s*)(\d+)([.)])\s+(.+)$/);
+      if (!ordered || ordered[1]) return line;
+      const normalized = `${topLevelOrderedIndex}${ordered[3]} ${ordered[4]}`;
+      topLevelOrderedIndex += 1;
+      return normalized;
+    }).join('\n');
   }
 
   // ─── FONCTION DE RENDU MARKDOWN AMÉLIORÉE ───────────────────────────────────
@@ -1713,7 +1734,7 @@
       return output;
     }
 
-    function injectTableStyles() {
+  function injectTableStyles() {
       if (document.getElementById('ai-assistant-table-styles')) return;
       const style = document.createElement('style');
       style.id = 'ai-assistant-table-styles';
@@ -1731,7 +1752,7 @@
 
     injectTableStyles();
 
-    const withCodeBlocks = String(rawText || '').replace(/```([a-zA-Z0-9+#.-]*)\n([\s\S]*?)```/g, stashCodeBlock);
+    const withCodeBlocks = normalizeAssistantMarkdown(rawText).replace(/```([a-zA-Z0-9+#.-]*)\n([\s\S]*?)```/g, stashCodeBlock);
     const safe = escapeHtml(withCodeBlocks)
       .replace(/\r/g, '')
       .replace(/&lt;br\s*\/?&gt;/gi, '\n')
@@ -1828,12 +1849,13 @@
       const orderedMatch = line.match(/^\d+[.)]\s+(.+)$/);
       if (orderedMatch) {
         if (inList) { html += '</ul>'; inList = false; }
+        const markerIndex = Number(line.match(/^(\d+)/)?.[1] || orderedListIndex);
         if (!inOrderedList) {
-          html += orderedListIndex > 1 ? `<ol start="${orderedListIndex}">` : '<ol>';
+          html += markerIndex > 1 ? `<ol start="${markerIndex}">` : '<ol>';
           inOrderedList = true;
         }
         html += `<li>${linkifyLine(orderedMatch[1])}</li>`;
-        orderedListIndex += 1;
+        orderedListIndex = markerIndex + 1;
         pendingBlankLine = false;
         continue;
       }
@@ -1862,8 +1884,9 @@
     bubble.className = `ai-assistant-message ai-assistant-message--${kind}`;
     bubble.setAttribute('data-role', kind === 'bot' ? 'assistant' : 'user');
     if (kind === 'bot') {
-      bubble._assistantRawText = String(text || '');
-      bubble.innerHTML = formatBotMessageHtml(text);
+      const normalizedText = normalizeAssistantMarkdown(text);
+      bubble._assistantRawText = normalizedText;
+      bubble.innerHTML = formatBotMessageHtml(normalizedText);
       enhanceBotBubble(bubble);
     } else {
       const p = document.createElement('p');
@@ -1890,7 +1913,7 @@
   }
 
   function addStreamingBotMessage(text) {
-    const fullText = String(text || '');
+    const fullText = normalizeAssistantMarkdown(text);
     const bubble = document.createElement('article');
     const content = document.createElement('div');
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -2016,15 +2039,19 @@
         .ai-assistant-pdf-export {
           background: #ffffff !important;
           background-image: none !important;
+          box-sizing: border-box !important;
           box-shadow: none !important;
           color: #1f2140 !important;
           font-family: Arial, sans-serif;
           line-height: 1.6;
-          padding: 34px 38px;
-          width: 760px;
+          max-width: 100%;
+          overflow-wrap: break-word;
+          padding: 32px 34px;
+          width: 720px;
           -webkit-text-fill-color: #1f2140 !important;
         }
         .ai-assistant-pdf-export * {
+          box-sizing: border-box !important;
           background-image: none !important;
           box-shadow: none !important;
           color: #1f2140 !important;
@@ -2043,9 +2070,22 @@
           -webkit-text-fill-color: #4c4cff !important;
         }
         .ai-assistant-pdf-export p { margin: 0 0 0.9em; }
-        .ai-assistant-pdf-export table { border-collapse: collapse; margin: 1em 0; width: 100%; }
+        .ai-assistant-pdf-export table {
+          border-collapse: collapse;
+          margin: 1em 0;
+          max-width: 100%;
+          table-layout: fixed;
+          width: 100%;
+        }
         .ai-assistant-pdf-export th,
-        .ai-assistant-pdf-export td { border: 1px solid #d7d8ef; padding: 8px 10px; text-align: left; vertical-align: top; }
+        .ai-assistant-pdf-export td {
+          border: 1px solid #d7d8ef;
+          overflow-wrap: anywhere;
+          padding: 8px 10px;
+          text-align: left;
+          vertical-align: top;
+          word-break: break-word;
+        }
         .ai-assistant-pdf-export th {
           background: #f0f1ff !important;
           color: #1f2140 !important;
@@ -2104,30 +2144,212 @@
     return html2PdfLoaderPromise;
   }
 
-  async function downloadPdfDocument(content, title) {
+  async function ensureJsPdfReady() {
+    let JsPdf = window.jspdf?.jsPDF || window.jsPDF;
+    if (!JsPdf) {
+      if (!jsPdfLoaderPromise) {
+        jsPdfLoaderPromise = loadExternalScript(JSPDF_SCRIPT_URL).then(() => {
+          const LoadedJsPdf = window.jspdf?.jsPDF || window.jsPDF;
+          if (!LoadedJsPdf) throw new Error('jspdf_missing');
+          return LoadedJsPdf;
+        });
+      }
+      JsPdf = await jsPdfLoaderPromise;
+    }
+    if (!JsPdf) throw new Error('jspdf_missing');
+    return JsPdf;
+  }
+
+  function cleanPdfText(value) {
+    return String(value || '')
+      .replace(/\u202f|\u00a0/g, ' ')
+      .replace(/[“”]/g, '"')
+      .replace(/[‘’]/g, "'")
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function stripMarkdownForPdf(value) {
+    return cleanPdfText(value)
+      .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '$1 ($2)')
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
+      .replace(/\*([^*]+)\*/g, '$1')
+      .replace(/`([^`]+)`/g, '$1');
+  }
+
+  function parseMarkdownTableRowForPdf(row) {
+    return row.split('|').slice(1, -1).map((cell) => stripMarkdownForPdf(cell));
+  }
+
+  function drawPdfWrappedText(doc, text, x, y, maxWidth, options = {}) {
+    const fontSize = options.fontSize || 10;
+    const lineHeight = options.lineHeight || fontSize * 0.45;
+    doc.setFont('helvetica', options.bold ? 'bold' : options.italic ? 'italic' : 'normal');
+    doc.setFontSize(fontSize);
+    doc.setTextColor(options.color || '#171833');
+    const lines = doc.splitTextToSize(stripMarkdownForPdf(text), maxWidth);
+    doc.text(lines, x, y);
+    return y + (lines.length * lineHeight);
+  }
+
+  function drawPdfTable(doc, rows, state) {
+    const cleanRows = rows.filter((row) => !/^\|[\s\-:|]+\|$/.test(row)).map(parseMarkdownTableRowForPdf).filter((row) => row.length);
+    if (!cleanRows.length) return state.y;
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const columnCount = Math.max(...cleanRows.map((row) => row.length));
+    const weights = Array.from({ length: columnCount }, (_, columnIndex) => {
+      const maxLength = Math.max(...cleanRows.map((row) => String(row[columnIndex] || '').length));
+      return Math.min(Math.max(maxLength, 8), 36);
+    });
+    const totalWeight = weights.reduce((sum, weight) => sum + weight, 0) || 1;
+    const widths = weights.map((weight) => Math.max(24, (state.contentWidth * weight) / totalWeight));
+    const widthTotal = widths.reduce((sum, width) => sum + width, 0);
+    widths[widths.length - 1] += state.contentWidth - widthTotal;
+    let y = state.y + 3;
+
+    cleanRows.forEach((row, rowIndex) => {
+      const filledRow = Array.from({ length: columnCount }, (_, index) => row[index] || '');
+      doc.setFontSize(8.4);
+      const cellLines = filledRow.map((cell, index) => doc.splitTextToSize(cell, widths[index] - 5));
+      const rowHeight = Math.max(11, ...cellLines.map((lines) => lines.length * 4.4 + 6));
+      if (y + rowHeight > pageHeight - state.margin) {
+        doc.addPage();
+        y = state.margin;
+      }
+      let x = state.margin;
+      filledRow.forEach((cell, index) => {
+        const width = widths[index];
+        doc.setDrawColor('#d7d8ef');
+        doc.setLineWidth(0.2);
+        doc.setFillColor(rowIndex === 0 ? '#f0f1ff' : '#ffffff');
+        doc.rect(x, y, width, rowHeight, 'FD');
+        doc.setFont('helvetica', rowIndex === 0 ? 'bold' : 'normal');
+        doc.setFontSize(8.4);
+        doc.setTextColor('#171833');
+        doc.text(cellLines[index], x + 2.5, y + 5.2);
+        x += width;
+      });
+      y += rowHeight;
+    });
+    return y + 5;
+  }
+
+  async function downloadPdfDocument(markdown, title) {
     const filename = `${slugifyDocumentTitle(title)}.pdf`;
-    const element = createPdfExportElement(content, title);
-    element.style.left = '-9999px';
-    element.style.position = 'fixed';
-    element.style.top = '0';
-    document.body.appendChild(element);
+    const source = normalizeAssistantMarkdown(markdown).replace(/\r\n?/g, '\n').trim();
     try {
-      const html2pdf = await ensureHtml2PdfReady();
-      await html2pdf()
-        .set({
-          filename,
-          image: { type: 'jpeg', quality: 0.96 },
-          html2canvas: { backgroundColor: '#ffffff', scale: 2, useCORS: true },
-          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-          margin: [10, 10, 10, 10],
-          pagebreak: { mode: ['css', 'legacy'] }
-        })
-        .from(element)
-        .save();
+      const JsPdf = await ensureJsPdfReady();
+      const doc = new JsPdf({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+      const margin = 18;
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const contentWidth = doc.internal.pageSize.getWidth() - (margin * 2);
+      const state = { margin, contentWidth, y: margin };
+      let tableRows = [];
+      let codeRows = [];
+      let inCode = false;
+
+      function addPageIfNeeded(extra = 8) {
+        if (state.y + extra > pageHeight - margin) {
+          doc.addPage();
+          state.y = margin;
+        }
+      }
+
+      function flushTableRows() {
+        if (!tableRows.length) return;
+        state.y = drawPdfTable(doc, tableRows, state);
+        tableRows = [];
+      }
+
+      function flushCodeRows() {
+        if (!codeRows.length) return;
+        const lines = codeRows.join('\n').split('\n');
+        doc.setFillColor('#f6f7ff');
+        doc.setDrawColor('#d7d8ef');
+        const wrapped = lines.flatMap((line) => doc.splitTextToSize(line || ' ', contentWidth - 8));
+        const height = Math.max(12, wrapped.length * 4.2 + 7);
+        addPageIfNeeded(height);
+        doc.roundedRect(margin, state.y, contentWidth, height, 2, 2, 'FD');
+        doc.setFont('courier', 'normal');
+        doc.setFontSize(8.5);
+        doc.setTextColor('#171833');
+        doc.text(wrapped, margin + 4, state.y + 5.5);
+        state.y += height + 5;
+        codeRows = [];
+      }
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8.5);
+      doc.setTextColor('#5b5f84');
+      doc.text(`Digital Blue Skye AI - ${new Date().toLocaleDateString(currentLanguage === 'en' ? 'en-US' : 'fr-FR')}`, margin, state.y);
+      state.y += 7;
+      doc.setDrawColor('#d7d8ef');
+      doc.line(margin, state.y, margin + contentWidth, state.y);
+      state.y += 10;
+
+      const lines = source ? source.split('\n') : ['Digital Blue Skye document'];
+      lines.forEach((rawLine) => {
+        const line = rawLine.trimEnd();
+        const trimmed = line.trim();
+        if (/^```/.test(trimmed)) {
+          flushTableRows();
+          if (inCode) flushCodeRows();
+          inCode = !inCode;
+          return;
+        }
+        if (inCode) {
+          codeRows.push(line);
+          return;
+        }
+        if (trimmed.startsWith('|') && trimmed.endsWith('|')) {
+          tableRows.push(trimmed);
+          return;
+        }
+        flushTableRows();
+        if (!trimmed || /^[-*_]{3,}$/.test(trimmed)) {
+          state.y += 2;
+          return;
+        }
+        const heading = trimmed.match(/^(#{1,6})\s+(.+)$/);
+        const bullet = trimmed.match(/^[-*]\s+(.+)$/);
+        const ordered = trimmed.match(/^(\d+)[.)]\s+(.+)$/);
+        addPageIfNeeded(12);
+        if (heading) {
+          const level = Math.min(heading[1].length, 3);
+          state.y = drawPdfWrappedText(doc, heading[2], margin, state.y, contentWidth, {
+            bold: true,
+            color: '#4c4cff',
+            fontSize: level === 1 ? 16 : level === 2 ? 13 : 11,
+            lineHeight: level === 1 ? 7 : 6
+          }) + 2;
+          return;
+        }
+        if (bullet) {
+          state.y = drawPdfWrappedText(doc, `• ${bullet[1]}`, margin + 4, state.y, contentWidth - 4, { fontSize: 10, lineHeight: 5 }) + 1;
+          return;
+        }
+        if (ordered) {
+          state.y = drawPdfWrappedText(doc, `${ordered[1]}. ${ordered[2]}`, margin + 4, state.y, contentWidth - 4, { fontSize: 10, lineHeight: 5 }) + 1;
+          return;
+        }
+        if (trimmed.startsWith('> ')) {
+          doc.setDrawColor('#5d5dff');
+          doc.line(margin, state.y - 3, margin, state.y + 5);
+          state.y = drawPdfWrappedText(doc, trimmed.slice(2), margin + 4, state.y, contentWidth - 4, {
+            italic: true,
+            color: '#555779',
+            fontSize: 10,
+            lineHeight: 5
+          }) + 2;
+          return;
+        }
+        state.y = drawPdfWrappedText(doc, trimmed, margin, state.y, contentWidth, { fontSize: 10, lineHeight: 5 }) + 2;
+      });
+      flushTableRows();
+      flushCodeRows();
+      doc.save(filename);
     } catch (error) {
-      openPrintablePdf(content, title);
-    } finally {
-      element.remove();
+      openPrintablePdf(formatBotMessageHtml(source), title);
     }
   }
 
@@ -2140,27 +2362,194 @@
       .replace(/'/g, '&apos;');
   }
 
-  function stripMarkdownForDocx(markdown) {
-    return String(markdown || '')
-      .replace(/```[\s\S]*?```/g, (block) => block.replace(/```[a-zA-Z0-9+#.-]*\n?|\n?```/g, ''))
-      .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '$1 ($2)')
-      .replace(/^\s{0,3}#{1,6}\s+/gm, '')
-      .replace(/^\s{0,3}[-*]\s+/gm, '- ')
-      .replace(/\*\*(.*?)\*\*/g, '$1')
-      .replace(/\*(.*?)\*/g, '$1')
-      .replace(/`([^`]+)`/g, '$1')
-      .replace(/^\s*[-*_]{3,}\s*$/gm, '')
-      .trim();
+  function buildDocxTextRun(text, options = {}) {
+    const props = [];
+    if (options.bold) props.push('<w:b/>');
+    if (options.italic) props.push('<w:i/>');
+    if (options.code) props.push('<w:rFonts w:ascii="Consolas" w:hAnsi="Consolas"/><w:sz w:val="20"/>');
+    if (options.size && !options.code) props.push(`<w:sz w:val="${options.size}"/>`);
+    if (options.color) props.push(`<w:color w:val="${options.color}"/>`);
+    const properties = props.length ? `<w:rPr>${props.join('')}</w:rPr>` : '';
+    return `<w:r>${properties}<w:t xml:space="preserve">${escapeXml(text)}</w:t></w:r>`;
   }
 
-  function buildDocxDocumentXml(text) {
-    const lines = stripMarkdownForDocx(text).split(/\n+/).map((line) => line.trim()).filter(Boolean);
-    const paragraphs = lines.length ? lines : ['Digital Blue Skye document'];
+  function buildDocxRuns(text, baseOptions = {}) {
+    const source = String(text || '').replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '$1 ($2)');
+    const pattern = /(`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*)/g;
+    const runs = [];
+    let cursor = 0;
+    source.replace(pattern, (match, token, offset) => {
+      if (offset > cursor) runs.push(buildDocxTextRun(source.slice(cursor, offset), baseOptions));
+      if (match.startsWith('`')) {
+        runs.push(buildDocxTextRun(match.slice(1, -1), { ...baseOptions, code: true }));
+      } else if (match.startsWith('**')) {
+        runs.push(buildDocxTextRun(match.slice(2, -2), { ...baseOptions, bold: true }));
+      } else {
+        runs.push(buildDocxTextRun(match.slice(1, -1), { ...baseOptions, italic: true }));
+      }
+      cursor = offset + match.length;
+      return match;
+    });
+    if (cursor < source.length) runs.push(buildDocxTextRun(source.slice(cursor), baseOptions));
+    return runs.length ? runs.join('') : buildDocxTextRun(source, baseOptions);
+  }
+
+  function buildDocxParagraph(text, options = {}) {
+    const pProps = [];
+    const rOptions = { bold: !!options.bold };
+    if (options.compact) rOptions.size = 19;
+    if (options.heading) {
+      const level = Math.min(Math.max(options.heading, 1), 3);
+      const sizes = { 1: 34, 2: 28, 3: 24 };
+      pProps.push(`<w:spacing w:before="${level === 1 ? 360 : 260}" w:after="140"/>`);
+      pProps.push(`<w:outlineLvl w:val="${level - 1}"/>`);
+      rOptions.bold = true;
+      rOptions.color = level === 1 ? '4C4CFF' : '5D5DFF';
+      rOptions.size = sizes[level];
+    } else if (options.bullet || options.ordered) {
+      pProps.push('<w:spacing w:before="80" w:after="80"/>');
+      pProps.push('<w:ind w:left="720" w:hanging="360"/>');
+    } else if (options.quote) {
+      pProps.push('<w:spacing w:before="120" w:after="120"/>');
+      pProps.push('<w:ind w:left="520"/>');
+      pProps.push('<w:pBdr><w:left w:val="single" w:sz="12" w:space="8" w:color="5D5DFF"/></w:pBdr>');
+      rOptions.italic = true;
+      rOptions.color = '555779';
+    } else if (options.code) {
+      pProps.push('<w:spacing w:before="80" w:after="80"/>');
+      pProps.push('<w:shd w:fill="F6F7FF"/>');
+      rOptions.code = true;
+    } else if (options.compact) {
+      pProps.push('<w:spacing w:before="40" w:after="40" w:line="240" w:lineRule="auto"/>');
+    } else {
+      pProps.push('<w:spacing w:after="140"/>');
+    }
+    const prefix = options.bullet ? '• ' : options.ordered ? `${options.ordered}. ` : '';
+    return `<w:p>${pProps.length ? `<w:pPr>${pProps.join('')}</w:pPr>` : ''}${buildDocxRuns(`${prefix}${text}`, rOptions)}</w:p>`;
+  }
+
+  function parseMarkdownTableRow(row) {
+    return row.split('|').slice(1, -1).map((cell) => cell.trim());
+  }
+
+  function buildDocxTable(rows) {
+    const cleanRows = rows.filter((row) => !/^\|[\s\-:|]+\|$/.test(row)).map(parseMarkdownTableRow).filter((row) => row.length);
+    if (!cleanRows.length) return '';
+    const columnCount = Math.max(...cleanRows.map((row) => row.length));
+    const usableWidth = 9000;
+    const weights = Array.from({ length: columnCount }, (_, columnIndex) => {
+      const maxLength = Math.max(...cleanRows.map((row) => String(row[columnIndex] || '').length));
+      return Math.min(Math.max(maxLength, 8), 34);
+    });
+    const weightTotal = weights.reduce((sum, weight) => sum + weight, 0) || 1;
+    const widths = weights.map((weight, index) => {
+      const minWidth = columnCount >= 4 ? 1550 : 1900;
+      const raw = Math.round((usableWidth * weight) / weightTotal);
+      if (index === weights.length - 1) {
+        const usedWidth = weights.slice(0, -1).reduce((sum, _, usedIndex) => {
+          const usedRaw = Math.round((usableWidth * weights[usedIndex]) / weightTotal);
+          return sum + Math.max(minWidth, usedRaw);
+        }, 0);
+        return Math.max(minWidth, usableWidth - usedWidth);
+      }
+      return Math.max(minWidth, raw);
+    });
+    const normalizedTotal = widths.reduce((sum, width) => sum + width, 0);
+    if (normalizedTotal > usableWidth) {
+      const ratio = usableWidth / normalizedTotal;
+      widths.forEach((width, index) => { widths[index] = Math.floor(width * ratio); });
+      widths[widths.length - 1] += usableWidth - widths.reduce((sum, width) => sum + width, 0);
+    }
+    const borders = ['top', 'left', 'bottom', 'right', 'insideH', 'insideV']
+      .map((border) => `<w:${border} w:val="single" w:sz="6" w:space="0" w:color="D7D8EF"/>`).join('');
+    const grid = widths.map((width) => `<w:gridCol w:w="${width}"/>`).join('');
+    const tableRows = cleanRows.map((row, rowIndex) => {
+      const filledRow = Array.from({ length: columnCount }, (_, index) => row[index] || '');
+      const cells = filledRow.map((cell, columnIndex) => {
+        const shade = rowIndex === 0 ? '<w:shd w:fill="F0F1FF"/>' : '';
+        const verticalAlign = '<w:vAlign w:val="center"/>';
+        return `<w:tc><w:tcPr><w:tcW w:w="${widths[columnIndex]}" w:type="dxa"/>${shade}${verticalAlign}</w:tcPr>${buildDocxParagraph(cell, { bold: rowIndex === 0, compact: true })}</w:tc>`;
+      }).join('');
+      return `<w:tr>${cells}</w:tr>`;
+    }).join('');
+    return `<w:tbl><w:tblPr><w:tblW w:w="${usableWidth}" w:type="dxa"/><w:tblLayout w:type="fixed"/><w:tblInd w:w="0" w:type="dxa"/><w:tblBorders>${borders}</w:tblBorders><w:tblCellMar><w:top w:w="120" w:type="dxa"/><w:left w:w="140" w:type="dxa"/><w:bottom w:w="120" w:type="dxa"/><w:right w:w="140" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid>${grid}</w:tblGrid>${tableRows}</w:tbl>`;
+  }
+
+  function buildDocxDocumentXml(markdown) {
+    const source = normalizeAssistantMarkdown(markdown).replace(/\r\n?/g, '\n').trim();
+    const lines = source ? source.split('\n') : ['Digital Blue Skye document'];
+    const blocks = [];
+    let tableRows = [];
+    let codeRows = [];
+    let inCode = false;
+    let orderedIndex = 1;
+
+    function flushTableRows() {
+      if (tableRows.length) {
+        blocks.push(buildDocxTable(tableRows));
+        tableRows = [];
+      }
+    }
+
+    function flushCodeRows() {
+      if (codeRows.length) {
+        codeRows.join('\n').split('\n').forEach((line) => blocks.push(buildDocxParagraph(line || ' ', { code: true })));
+        codeRows = [];
+      }
+    }
+
+    lines.forEach((rawLine) => {
+      const line = rawLine.trimEnd();
+      if (/^```/.test(line.trim())) {
+        flushTableRows();
+        if (inCode) flushCodeRows();
+        inCode = !inCode;
+        return;
+      }
+      if (inCode) {
+        codeRows.push(line);
+        return;
+      }
+      if (line.trim().startsWith('|') && line.trim().endsWith('|')) {
+        tableRows.push(line.trim());
+        return;
+      }
+      flushTableRows();
+      const trimmed = line.trim();
+      if (!trimmed || /^[-*_]{3,}$/.test(trimmed)) return;
+      const heading = trimmed.match(/^(#{1,6})\s+(.+)$/);
+      if (heading) {
+        orderedIndex = 1;
+        blocks.push(buildDocxParagraph(heading[2], { heading: Math.min(heading[1].length, 3) }));
+        return;
+      }
+      const bullet = trimmed.match(/^[-*]\s+(.+)$/);
+      if (bullet) {
+        orderedIndex = 1;
+        blocks.push(buildDocxParagraph(bullet[1], { bullet: true }));
+        return;
+      }
+      const ordered = trimmed.match(/^\d+[.)]\s+(.+)$/);
+      if (ordered) {
+        blocks.push(buildDocxParagraph(ordered[1], { ordered: orderedIndex }));
+        orderedIndex += 1;
+        return;
+      }
+      if (trimmed.startsWith('> ')) {
+        orderedIndex = 1;
+        blocks.push(buildDocxParagraph(trimmed.slice(2), { quote: true }));
+        return;
+      }
+      orderedIndex = 1;
+      blocks.push(buildDocxParagraph(trimmed));
+    });
+    flushTableRows();
+    flushCodeRows();
     return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
   <w:body>
-    ${paragraphs.map((line) => `<w:p><w:r><w:t xml:space="preserve">${escapeXml(line)}</w:t></w:r></w:p>`).join('')}
-    <w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440"/></w:sectPr>
+    ${blocks.filter(Boolean).join('')}
+    <w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1134" w:right="1134" w:bottom="1134" w:left="1134"/></w:sectPr>
   </w:body>
 </w:document>`;
   }
@@ -2332,7 +2721,7 @@
         {
           label: 'PDF',
           title: i18n.downloadPdf,
-          action: () => downloadPdfDocument(content.innerHTML, baseName)
+          action: () => downloadPdfDocument(rawText, baseName)
         },
         {
           label: 'DOCX',
