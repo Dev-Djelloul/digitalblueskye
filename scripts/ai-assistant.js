@@ -715,6 +715,7 @@
 
   function isReadableTextFile(file) {
     if (!file) return false;
+    if (isDocxFile(file) || isPdfFile(file) || isImageFile(file)) return false;
     const mime = String(file.type || '').toLowerCase();
     if (mime.startsWith('text/')) return true;
     if (mime.includes('json') || mime.includes('xml') || mime.includes('csv') || mime.includes('javascript')) return true;
@@ -2343,6 +2344,7 @@
 
   function cleanAssistantReplyText(rawText) {
     return String(rawText || '')
+      .replace(/<\/?(assistant|user|system)\s*>/gi, '')
       .replace(/[●•◦▪▫]/g, '').replace(/[ \t]{2,}/g, ' ')
       .replace(/\n{3,}/g, '\n\n').trim();
   }
