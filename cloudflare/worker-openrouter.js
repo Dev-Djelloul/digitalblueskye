@@ -83,12 +83,16 @@ function normalizeHistory(history) {
 
   return history
     .filter((entry) => entry && typeof entry.content === 'string')
-    .slice(-4)
+    .slice(-16)
     .map((entry) => ({
       role: entry.role === 'assistant' ? 'assistant' : 'user',
-      content: entry.content.trim().slice(0, 700)
+      content: entry.content.trim().slice(0, 1200)
     }))
     .filter((entry) => entry.content.length > 0);
+}
+
+function normalizeConversationSummary(summary) {
+  return typeof summary === 'string' ? summary.replace(/\s+/g, ' ').trim().slice(0, 1800) : '';
 }
 
 function getModelFallbackChain(env) {
@@ -249,6 +253,7 @@ export default {
     const message = typeof body?.message === 'string' ? body.message.trim() : '';
     const language = body?.language === 'en' ? 'en' : 'fr';
     const history = normalizeHistory(body?.history);
+    const conversationSummary = normalizeConversationSummary(body?.conversationSummary);
 
     if (!message) {
       return jsonResponse({ ok: false, error: 'empty_message' }, 400, corsHeaders);
@@ -266,10 +271,20 @@ export default {
       : DEFAULT_MAX_TOKENS;
 
     function buildOpenRouterPayload(modelName) {
+      const memoryMessage = conversationSummary
+        ? [{
+          role: 'system',
+          content: language === 'en'
+            ? `Conversation memory from previous turns. Use it only for continuity and do not mention it explicitly:\n${conversationSummary}`
+            : `Memoire de conversation issue des echanges precedents. Utilise-la uniquement pour assurer la continuite et ne la mentionne pas explicitement :\n${conversationSummary}`
+        }]
+        : [];
+
       return {
         model: modelName,
         messages: [
           { role: 'system', content: systemPrompt },
+          ...memoryMessage,
           ...history,
           { role: 'user', content: message }
         ],

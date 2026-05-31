@@ -371,9 +371,10 @@
   const panelSizeStorageKey = 'ai_assistant_panel_size_v1';
   const assistantDebugStorageKey = 'ai_assistant_debug';
   const maxStoredSessions = 20;
-  const maxStoredMessagesPerSession = 24;
+  const maxStoredMessagesPerSession = 40;
   const maxStoredMessageLength = 8000;
-  const apiHistoryWindow = 8;
+  const maxConversationSummaryLength = 1800;
+  const apiHistoryWindow = 16;
 
   function isAssistantDebugEnabled() {
     try { return localStorage.getItem(assistantDebugStorageKey) === 'true'; } catch (error) { return false; }
@@ -675,6 +676,12 @@
       })
       .filter((m) => m.content.length > 0)
       .slice(-maxStoredMessagesPerSession);
+  }
+
+  function compactTextForMemory(text, limit = 260) {
+    const compact = String(text || '').replace(/\s+/g, ' ').trim();
+    if (compact.length <= limit) return compact;
+    return `${compact.slice(0, limit - 3).trim()}...`;
   }
 
   const readableFileExtensions = new Set(['txt','md','markdown','json','csv','log','xml','html','htm','js','ts','css','py','php','java','c','cpp','sql','yaml','yml']);
@@ -1019,7 +1026,7 @@
   function buildSessionId() { return `s_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`; }
 
   function makeDefaultSession() {
-    return { id: buildSessionId(), title: i18n.sessionDefault, createdAt: Date.now(), updatedAt: Date.now(), history: [] };
+    return { id: buildSessionId(), title: i18n.sessionDefault, summary: '', createdAt: Date.now(), updatedAt: Date.now(), history: [] };
   }
 
   function isDefaultSessionTitle(title) {
@@ -1045,6 +1052,38 @@
     return hasChanged;
   }
 
+  function normalizeSessionSummary(summary) {
+    return typeof summary === 'string' ? summary.replace(/\s+/g, ' ').trim().slice(0, maxConversationSummaryLength) : '';
+  }
+
+  function buildConversationSummary(history) {
+    const normalized = normalizeHistory(history);
+    const userMessages = normalized.filter((entry) => entry.role === 'user');
+    if (!userMessages.length) return '';
+
+    const firstUser = userMessages[0]?.content || '';
+    const latestUser = userMessages[userMessages.length - 1]?.content || '';
+    const recentUserMessages = userMessages.slice(-5).map((entry) => compactTextForMemory(entry.content, 190));
+    const assistantMessages = normalized.filter((entry) => entry.role === 'assistant');
+    const latestAssistant = assistantMessages[assistantMessages.length - 1]?.content || '';
+
+    const lines = currentLanguage === 'en'
+      ? [
+        `Initial user goal: ${compactTextForMemory(firstUser, 260)}`,
+        `Latest user request: ${compactTextForMemory(latestUser, 260)}`,
+        `Recent user topics: ${recentUserMessages.join(' | ')}`,
+        latestAssistant ? `Last assistant answer summary: ${compactTextForMemory(latestAssistant, 260)}` : ''
+      ]
+      : [
+        `Objectif initial utilisateur : ${compactTextForMemory(firstUser, 260)}`,
+        `Dernière demande utilisateur : ${compactTextForMemory(latestUser, 260)}`,
+        `Sujets récents utilisateur : ${recentUserMessages.join(' | ')}`,
+        latestAssistant ? `Dernière réponse assistant, en bref : ${compactTextForMemory(latestAssistant, 260)}` : ''
+      ];
+
+    return lines.filter(Boolean).join('\n').slice(0, maxConversationSummaryLength);
+  }
+
   function loadSessionsState() {
     let raw = '';
     try {
@@ -1057,6 +1096,7 @@
         return {
           id: typeof s?.id === 'string' ? s.id : buildSessionId(),
           title: isDefaultSessionTitle(title) ? i18n.sessionDefault : title,
+          summary: normalizeSessionSummary(s?.summary),
           createdAt: Number(s?.createdAt) || Date.now(),
           updatedAt: Number(s?.updatedAt) || Date.now(),
           history: normalizeHistory(Array.isArray(s?.history) ? s.history : [])
@@ -1082,6 +1122,7 @@
         sessions: sessionsState.sessions.slice(0, maxStoredSessions).map((session) => ({
           ...session,
           title: typeof session.title === 'string' ? session.title.slice(0, 120) : i18n.sessionDefault,
+          summary: normalizeSessionSummary(session.summary),
           history: normalizeHistory(session.history)
         }))
       };
@@ -1094,6 +1135,7 @@
           activeSessionId: sessionsState.activeSessionId,
           sessions: sessionsState.sessions.slice(0, 5).map((session) => ({
             ...session,
+            summary: normalizeSessionSummary(session.summary),
             history: normalizeHistory(session.history).slice(-8)
           }))
         };
@@ -1112,8 +1154,12 @@
   function titleFromHistory(history) {
     const firstUser = history.find((h) => h.role === 'user');
     if (!firstUser?.content) return i18n.sessionDefault;
-    const compact = firstUser.content.replace(/\s+/g, ' ').trim();
-    return compact.length > 42 ? `${compact.slice(0, 42)}...` : compact;
+    const compact = firstUser.content
+      .replace(/\s+/g, ' ')
+      .replace(/^(bonjour|hello|salut|coucou|ok|parfait|merci)[,!\s]*/i, '')
+      .trim();
+    const fallback = compact || firstUser.content.replace(/\s+/g, ' ').trim();
+    return fallback.length > 54 ? `${fallback.slice(0, 54).trim()}...` : fallback;
   }
 
   function ensureSessionState() {
@@ -1158,6 +1204,7 @@
     active.history = normalizeHistory(chatHistory);
     active.updatedAt = Date.now();
     active.title = titleFromHistory(active.history);
+    active.summary = buildConversationSummary(active.history);
     saveSessionsState();
     renderSessionOptions();
   }
@@ -2377,6 +2424,7 @@
       const payload = {
         message: composedMessage,
         history: chatHistory.slice(-apiHistoryWindow),
+        conversationSummary: normalizeSessionSummary(getActiveSession()?.summary),
         language: currentLanguage === 'en' ? 'en' : 'fr',
         currentDate: dateContext,
         mode: 'chat',
@@ -2384,6 +2432,7 @@
       };
       assistantLog('debug', 'api_request', {
         historyMessages: payload.history.length,
+        hasConversationSummary: Boolean(payload.conversationSummary),
         hasFileContext: Boolean(fileContext),
         attachments: attachments.length
       });
