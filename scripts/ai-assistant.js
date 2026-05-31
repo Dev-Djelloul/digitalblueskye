@@ -884,6 +884,11 @@
         if (isDocxFile(file)) {
           try {
             const docxText = await extractTextFromDocx(file);
+            assistantLog('debug', 'docx_extract_result', {
+              fileName: file.name,
+              extractedTextLength: docxText.length,
+              extractedTextPreview: docxText.slice(0, 300)
+            });
             if (!docxText) { noTextNames.push(file.name); continue; }
             const excerpt = docxText.length > maxCharsPerFile ? `${docxText.slice(0, maxCharsPerFile)}\n...[truncated]` : docxText;
             snippets.push(`Fichier Word DOCX: ${file.name}\n${excerpt}`);
@@ -1511,6 +1516,14 @@
       pendingFileContext = result.context;
       pendingFileNames = result.readableNames;
       pendingVisionAttachments = vision.attachments;
+      if (hasDocx) {
+        assistantLog('debug', 'docx_context_ready', {
+          docxFileNames: normalizedFiles.filter((file) => isDocxFile(file)).map((file) => file.name),
+          pendingFileContextLength: pendingFileContext.length,
+          pendingFileContextPreview: pendingFileContext.slice(0, 300),
+          visionAttachmentsCount: pendingVisionAttachments.length
+        });
+      }
       if (result.readableNames.length) addMessage('bot', `${i18n.fileReady} ${result.readableNames.join(', ')}`);
       if (vision.readyNames.length) addMessage('bot', `${i18n.imageReady} ${vision.readyNames.join(', ')}`);
       if (vision.failedNames.length) addMessage('bot', `${i18n.imageReadFailed} ${vision.failedNames.join(', ')}`);
@@ -2532,7 +2545,7 @@
           'Consignes de mise en forme : réponds en Markdown propre, avec des phrases complètes et ponctuées, évite les séparateurs "---" seuls, et utilise des listes numérotées continues quand c’est pertinent.'
         ].join('\n');
       const composedMessage = fileContext
-        ? `${styleInstruction}\n\n${userText}\n\n---\nContexte de fichiers locaux (ne pas ignorer):\n${fileContext}`
+        ? `${styleInstruction}\n\n${userText}\n\n---\nContexte de fichiers locaux extrait côté navigateur (texte uniquement, aucun binaire brut n'est envoyé au modèle). Analyse ce contenu texte et ne réponds pas que tu as reçu un fichier binaire :\n${fileContext}`
         : `${styleInstruction}\n\n${userText}`;
       const payload = {
         message: composedMessage,
@@ -2547,6 +2560,8 @@
         historyMessages: payload.history.length,
         hasConversationSummary: Boolean(payload.conversationSummary),
         hasFileContext: Boolean(fileContext),
+        fileContextLength: fileContext.length,
+        fileContextPreview: fileContext.slice(0, 300),
         attachments: attachments.length
       });
       const data = await sendAssistantRequest(payload);
