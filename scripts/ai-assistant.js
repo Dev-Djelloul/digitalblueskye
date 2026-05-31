@@ -706,6 +706,10 @@
   let pdfJsLoaderPromise = null;
   let mammothLoaderPromise = null;
   let html2PdfLoaderPromise = null;
+  const maxLocalFilesPerPrompt = 4;
+  const maxTextCharsPerFile = 12000;
+  const maxDocumentCharsPerFile = 60000;
+  const maxImageOcrCharsPerFile = 8000;
 
   function getFileExtension(name) {
     const safeName = String(name || '');
@@ -814,11 +818,31 @@
     return pdfJsLoaderPromise;
   }
 
+  function buildDocumentContextBlock({ label, fileName, text, maxChars, meta = [] }) {
+    const cleanText = String(text || '').replace(/\r/g, '').replace(/\n{4,}/g, '\n\n\n').trim();
+    const truncated = cleanText.length > maxChars;
+    const excerpt = truncated ? cleanText.slice(0, maxChars).trim() : cleanText;
+    const chunkSize = 6000;
+    const chunks = [];
+    for (let start = 0; start < excerpt.length; start += chunkSize) {
+      const chunk = excerpt.slice(start, start + chunkSize).trim();
+      if (chunk) chunks.push(`--- Chunk ${chunks.length + 1} ---\n${chunk}`);
+    }
+    const metaLines = [
+      `Fichier: ${fileName}`,
+      `Type: ${label}`,
+      `Caractères extraits: ${cleanText.length}`,
+      truncated ? `Statut: contexte tronqué à ${maxChars} caractères` : 'Statut: contexte complet extrait côté navigateur',
+      ...meta
+    ];
+    return `${metaLines.join('\n')}\n\n${chunks.join('\n\n') || '[empty file]'}`;
+  }
+
   async function extractTextFromPdf(file, lang) {
     const pdfjsLib = await loadPdfJsLibrary();
     const data = await file.arrayBuffer();
     const pdfDoc = await pdfjsLib.getDocument({ data }).promise;
-    const maxPages = Math.min(pdfDoc.numPages, 8);
+    const maxPages = Math.min(pdfDoc.numPages, 40);
     const textChunks = [];
     for (let pageNum = 1; pageNum <= maxPages; pageNum += 1) {
       const page = await pdfDoc.getPage(pageNum);
@@ -827,8 +851,15 @@
       if (pageText) textChunks.push(`Page ${pageNum}: ${pageText}`);
     }
     const extractedText = textChunks.join('\n\n').trim();
-    if (extractedText) return extractedText;
-    const ocrPages = Math.min(pdfDoc.numPages, 3);
+    if (extractedText) {
+      return {
+        text: extractedText,
+        totalPages: pdfDoc.numPages,
+        extractedPages: maxPages,
+        ocrUsed: false
+      };
+    }
+    const ocrPages = Math.min(pdfDoc.numPages, 6);
     const ocrChunks = [];
     for (let pageNum = 1; pageNum <= ocrPages; pageNum += 1) {
       const page = await pdfDoc.getPage(pageNum);
@@ -842,7 +873,12 @@
       const ocrText = await extractTextFromImage(canvas, lang);
       if (ocrText) ocrChunks.push(`Page ${pageNum}: ${ocrText}`);
     }
-    return ocrChunks.join('\n\n').trim();
+    return {
+      text: ocrChunks.join('\n\n').trim(),
+      totalPages: pdfDoc.numPages,
+      extractedPages: ocrPages,
+      ocrUsed: true
+    };
   }
 
   function loadMammothLibrary() {
@@ -867,17 +903,33 @@
   }
 
   async function buildLocalFileContext(files) {
-    const maxFiles = 4, maxCharsPerFile = 5000;
-    const selected = Array.from(files || []).slice(0, maxFiles);
+    const selected = Array.from(files || []).slice(0, maxLocalFilesPerPrompt);
     const readableNames = [], unsupportedNames = [], failedNames = [], noTextNames = [], snippets = [];
     for (const file of selected) {
       if (!isReadableTextFile(file)) {
         if (isPdfFile(file)) {
           try {
-            const pdfText = await extractTextFromPdf(file, currentLanguage);
-            if (!pdfText) { noTextNames.push(file.name); continue; }
-            const excerpt = pdfText.length > maxCharsPerFile ? `${pdfText.slice(0, maxCharsPerFile)}\n...[truncated]` : pdfText;
-            snippets.push(`Fichier PDF: ${file.name}\n${excerpt}`);
+            const pdfResult = await extractTextFromPdf(file, currentLanguage);
+            if (!pdfResult.text) { noTextNames.push(file.name); continue; }
+            assistantLog('debug', 'pdf_extract_result', {
+              fileName: file.name,
+              totalPages: pdfResult.totalPages,
+              extractedPages: pdfResult.extractedPages,
+              ocrUsed: pdfResult.ocrUsed,
+              extractedTextLength: pdfResult.text.length,
+              extractedTextPreview: pdfResult.text.slice(0, 300)
+            });
+            snippets.push(buildDocumentContextBlock({
+              label: 'PDF',
+              fileName: file.name,
+              text: pdfResult.text,
+              maxChars: maxDocumentCharsPerFile,
+              meta: [
+                `Pages du PDF: ${pdfResult.totalPages}`,
+                `Pages extraites: ${pdfResult.extractedPages}`,
+                `OCR utilisé: ${pdfResult.ocrUsed ? 'oui' : 'non'}`
+              ]
+            }));
             readableNames.push(file.name);
             continue;
           } catch (error) { failedNames.push(file.name); continue; }
@@ -891,8 +943,12 @@
               extractedTextPreview: docxText.slice(0, 300)
             });
             if (!docxText) { noTextNames.push(file.name); continue; }
-            const excerpt = docxText.length > maxCharsPerFile ? `${docxText.slice(0, maxCharsPerFile)}\n...[truncated]` : docxText;
-            snippets.push(`Fichier Word DOCX: ${file.name}\n${excerpt}`);
+            snippets.push(buildDocumentContextBlock({
+              label: 'Word DOCX',
+              fileName: file.name,
+              text: docxText,
+              maxChars: maxDocumentCharsPerFile
+            }));
             readableNames.push(file.name);
             continue;
           } catch (error) { failedNames.push(file.name); continue; }
@@ -901,7 +957,7 @@
         try {
           const ocrText = await extractTextFromImage(file, currentLanguage);
           if (!ocrText) { noTextNames.push(file.name); continue; }
-          const excerpt = ocrText.length > maxCharsPerFile ? `${ocrText.slice(0, maxCharsPerFile)}\n...[truncated]` : ocrText;
+          const excerpt = ocrText.length > maxImageOcrCharsPerFile ? `${ocrText.slice(0, maxImageOcrCharsPerFile)}\n...[truncated]` : ocrText;
           snippets.push(`Fichier image (OCR): ${file.name}\n${excerpt}`);
           readableNames.push(file.name);
           continue;
@@ -910,7 +966,7 @@
       try {
         const raw = await readFileAsText(file);
         const trimmed = raw.replace(/\r/g, '').trim();
-        const excerpt = trimmed.length > maxCharsPerFile ? `${trimmed.slice(0, maxCharsPerFile)}\n...[truncated]` : trimmed;
+        const excerpt = trimmed.length > maxTextCharsPerFile ? `${trimmed.slice(0, maxTextCharsPerFile)}\n...[truncated]` : trimmed;
         snippets.push(`Fichier: ${file.name}\n${excerpt || '[empty file]'}`);
         readableNames.push(file.name);
       } catch (error) { failedNames.push(file.name); }
@@ -1520,6 +1576,14 @@
       if (hasDocx) {
         assistantLog('debug', 'docx_context_ready', {
           docxFileNames: normalizedFiles.filter((file) => isDocxFile(file)).map((file) => file.name),
+          pendingFileContextLength: pendingFileContext.length,
+          pendingFileContextPreview: pendingFileContext.slice(0, 300),
+          visionAttachmentsCount: pendingVisionAttachments.length
+        });
+      }
+      if (hasPdf) {
+        assistantLog('debug', 'pdf_context_ready', {
+          pdfFileNames: normalizedFiles.filter((file) => isPdfFile(file)).map((file) => file.name),
           pendingFileContextLength: pendingFileContext.length,
           pendingFileContextPreview: pendingFileContext.slice(0, 300),
           visionAttachmentsCount: pendingVisionAttachments.length
@@ -2547,7 +2611,7 @@
           'Consignes de mise en forme : réponds en Markdown propre, avec des phrases complètes et ponctuées, évite les séparateurs "---" seuls, et utilise des listes numérotées continues quand c’est pertinent.'
         ].join('\n');
       const composedMessage = fileContext
-        ? `${styleInstruction}\n\n${userText}\n\n---\nContexte de fichiers locaux extrait côté navigateur (texte uniquement, aucun binaire brut n'est envoyé au modèle). Analyse ce contenu texte et ne réponds pas que tu as reçu un fichier binaire :\n${fileContext}`
+        ? `${styleInstruction}\n\n${userText}\n\n---\nContexte de fichiers locaux extrait côté navigateur (texte uniquement, aucun binaire brut n'est envoyé au modèle). Le contenu peut être découpé en chunks et contenir des métadonnées de pages : analyse l'ensemble du contexte fourni, cite les limites si le contexte indique une troncature, et ne réponds pas que tu as reçu un fichier binaire :\n${fileContext}`
         : `${styleInstruction}\n\n${userText}`;
       const payload = {
         message: composedMessage,
