@@ -62,6 +62,9 @@
         pdfLoading: 'Reading PDF content...',
         pdfNoText: 'No readable text found in PDF:',
         pdfReadFailed: 'Unable to read PDF:',
+        docxLoading: 'Reading Word document...',
+        docxNoText: 'No readable text found in Word document:',
+        docxReadFailed: 'Unable to read Word document:',
         ocrLoading: 'Reading image text (OCR)...',
         ocrNoText: 'No readable text found in image:',
         ocrUnavailable: 'OCR unavailable in this browser/session.',
@@ -120,6 +123,9 @@
       pdfLoading: 'Lecture du contenu PDF...',
       pdfNoText: 'Aucun texte lisible trouvé dans le PDF :',
       pdfReadFailed: 'Impossible de lire le PDF :',
+      docxLoading: 'Lecture du document Word...',
+      docxNoText: 'Aucun texte lisible trouvé dans le document Word :',
+      docxReadFailed: 'Impossible de lire le document Word :',
       ocrLoading: 'Lecture du texte de l\u2019image (OCR)...',
       ocrNoText: 'Aucun texte lisible trouvé dans l\u2019image :',
       ocrUnavailable: 'OCR indisponible dans ce navigateur/session.',
@@ -695,8 +701,10 @@
   const readableFileExtensions = new Set(['txt','md','markdown','json','csv','log','xml','html','htm','js','ts','css','py','php','java','c','cpp','sql','yaml','yml']);
   const imageFileExtensions = new Set(['png','jpg','jpeg','webp','bmp','gif','tiff']);
   const pdfFileExtensions = new Set(['pdf']);
+  const docxFileExtensions = new Set(['docx']);
   let tesseractLoaderPromise = null;
   let pdfJsLoaderPromise = null;
+  let mammothLoaderPromise = null;
   let html2PdfLoaderPromise = null;
 
   function getFileExtension(name) {
@@ -707,6 +715,7 @@
 
   function isReadableTextFile(file) {
     if (!file) return false;
+    if (isDocxFile(file) || isPdfFile(file) || isImageFile(file)) return false;
     const mime = String(file.type || '').toLowerCase();
     if (mime.startsWith('text/')) return true;
     if (mime.includes('json') || mime.includes('xml') || mime.includes('csv') || mime.includes('javascript')) return true;
@@ -725,6 +734,13 @@
     const mime = String(file.type || '').toLowerCase();
     if (mime === 'application/pdf') return true;
     return pdfFileExtensions.has(getFileExtension(file.name));
+  }
+
+  function isDocxFile(file) {
+    if (!file) return false;
+    const mime = String(file.type || '').toLowerCase();
+    if (mime === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') return true;
+    return docxFileExtensions.has(getFileExtension(file.name));
   }
 
   function readFileAsText(file) {
@@ -829,6 +845,27 @@
     return ocrChunks.join('\n\n').trim();
   }
 
+  function loadMammothLibrary() {
+    if (window.mammoth?.extractRawText) return Promise.resolve(window.mammoth);
+    if (mammothLoaderPromise) return mammothLoaderPromise;
+    mammothLoaderPromise = new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js';
+      script.async = true;
+      script.onload = () => window.mammoth?.extractRawText ? resolve(window.mammoth) : reject(new Error('mammoth_missing'));
+      script.onerror = () => reject(new Error('mammoth_load_failed'));
+      document.head.appendChild(script);
+    });
+    return mammothLoaderPromise;
+  }
+
+  async function extractTextFromDocx(file) {
+    const mammoth = await loadMammothLibrary();
+    const arrayBuffer = await file.arrayBuffer();
+    const result = await mammoth.extractRawText({ arrayBuffer });
+    return String(result?.value || '').replace(/\r/g, '').replace(/\n{3,}/g, '\n\n').trim();
+  }
+
   async function buildLocalFileContext(files) {
     const maxFiles = 4, maxCharsPerFile = 5000;
     const selected = Array.from(files || []).slice(0, maxFiles);
@@ -841,6 +878,21 @@
             if (!pdfText) { noTextNames.push(file.name); continue; }
             const excerpt = pdfText.length > maxCharsPerFile ? `${pdfText.slice(0, maxCharsPerFile)}\n...[truncated]` : pdfText;
             snippets.push(`Fichier PDF: ${file.name}\n${excerpt}`);
+            readableNames.push(file.name);
+            continue;
+          } catch (error) { failedNames.push(file.name); continue; }
+        }
+        if (isDocxFile(file)) {
+          try {
+            const docxText = await extractTextFromDocx(file);
+            assistantLog('debug', 'docx_extract_result', {
+              fileName: file.name,
+              extractedTextLength: docxText.length,
+              extractedTextPreview: docxText.slice(0, 300)
+            });
+            if (!docxText) { noTextNames.push(file.name); continue; }
+            const excerpt = docxText.length > maxCharsPerFile ? `${docxText.slice(0, maxCharsPerFile)}\n...[truncated]` : docxText;
+            snippets.push(`Fichier Word DOCX: ${file.name}\n${excerpt}`);
             readableNames.push(file.name);
             continue;
           } catch (error) { failedNames.push(file.name); continue; }
@@ -1452,26 +1504,37 @@
       if (!normalizedFiles.length) return;
       const hasImages = normalizedFiles.some((file) => isImageFile(file));
       const hasPdf = normalizedFiles.some((file) => isPdfFile(file));
-      let ocrLoadingBubble = null, pdfLoadingBubble = null;
+      const hasDocx = normalizedFiles.some((file) => isDocxFile(file));
+      let ocrLoadingBubble = null, pdfLoadingBubble = null, docxLoadingBubble = null;
       if (hasImages) ocrLoadingBubble = addMessage('bot', i18n.ocrLoading);
       if (hasPdf) pdfLoadingBubble = addMessage('bot', i18n.pdfLoading);
+      if (hasDocx) docxLoadingBubble = addMessage('bot', i18n.docxLoading);
       const result = await buildLocalFileContext(normalizedFiles);
       const vision = await buildVisionAttachments(normalizedFiles);
       if (ocrLoadingBubble) ocrLoadingBubble.remove();
       if (pdfLoadingBubble) pdfLoadingBubble.remove();
+      if (docxLoadingBubble) docxLoadingBubble.remove();
       pendingFileContext = result.context;
       pendingFileNames = result.readableNames;
       pendingVisionAttachments = vision.attachments;
+      if (hasDocx) {
+        assistantLog('debug', 'docx_context_ready', {
+          docxFileNames: normalizedFiles.filter((file) => isDocxFile(file)).map((file) => file.name),
+          pendingFileContextLength: pendingFileContext.length,
+          pendingFileContextPreview: pendingFileContext.slice(0, 300),
+          visionAttachmentsCount: pendingVisionAttachments.length
+        });
+      }
       if (result.readableNames.length) addMessage('bot', `${i18n.fileReady} ${result.readableNames.join(', ')}`);
       if (vision.readyNames.length) addMessage('bot', `${i18n.imageReady} ${vision.readyNames.join(', ')}`);
       if (vision.failedNames.length) addMessage('bot', `${i18n.imageReadFailed} ${vision.failedNames.join(', ')}`);
       if (result.unsupportedNames.length) addMessage('bot', `${i18n.fileUnsupported} ${result.unsupportedNames.join(', ')}`);
       if (result.failedNames.length) {
-        const failedLabel = hasPdf ? i18n.pdfReadFailed : (hasImages ? i18n.ocrUnavailable : i18n.fileReadFailed);
+        const failedLabel = hasDocx ? i18n.docxReadFailed : (hasPdf ? i18n.pdfReadFailed : (hasImages ? i18n.ocrUnavailable : i18n.fileReadFailed));
         addMessage('bot', `${failedLabel} ${result.failedNames.join(', ')}`);
       }
       if (result.noTextNames?.length) {
-        const noTextLabel = hasPdf ? i18n.pdfNoText : i18n.ocrNoText;
+        const noTextLabel = hasDocx ? i18n.docxNoText : (hasPdf ? i18n.pdfNoText : i18n.ocrNoText);
         addMessage('bot', `${noTextLabel} ${result.noTextNames.join(', ')}`);
       }
       input.focus();
@@ -2281,6 +2344,7 @@
 
   function cleanAssistantReplyText(rawText) {
     return String(rawText || '')
+      .replace(/<\/?(assistant|user|system)\s*>/gi, '')
       .replace(/[●•◦▪▫]/g, '').replace(/[ \t]{2,}/g, ' ')
       .replace(/\n{3,}/g, '\n\n').trim();
   }
@@ -2483,7 +2547,7 @@
           'Consignes de mise en forme : réponds en Markdown propre, avec des phrases complètes et ponctuées, évite les séparateurs "---" seuls, et utilise des listes numérotées continues quand c’est pertinent.'
         ].join('\n');
       const composedMessage = fileContext
-        ? `${styleInstruction}\n\n${userText}\n\n---\nContexte de fichiers locaux (ne pas ignorer):\n${fileContext}`
+        ? `${styleInstruction}\n\n${userText}\n\n---\nContexte de fichiers locaux extrait côté navigateur (texte uniquement, aucun binaire brut n'est envoyé au modèle). Analyse ce contenu texte et ne réponds pas que tu as reçu un fichier binaire :\n${fileContext}`
         : `${styleInstruction}\n\n${userText}`;
       const payload = {
         message: composedMessage,
@@ -2498,6 +2562,8 @@
         historyMessages: payload.history.length,
         hasConversationSummary: Boolean(payload.conversationSummary),
         hasFileContext: Boolean(fileContext),
+        fileContextLength: fileContext.length,
+        fileContextPreview: fileContext.slice(0, 300),
         attachments: attachments.length
       });
       const data = await sendAssistantRequest(payload);
