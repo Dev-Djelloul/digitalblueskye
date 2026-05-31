@@ -9978,10 +9978,9 @@ body.body-menu-open .ai-assistant-launcher {
   padding: 0;
 }
 
+.ai-assistant-session-export,
 .ai-assistant-session-delete {
   align-items: center;
-  background: rgb(255 93 124 / 16%);
-  border: 1px solid rgb(255 93 124 / 45%);
   border-radius: 8px;
   cursor: pointer;
   display: inline-flex;
@@ -9991,6 +9990,17 @@ body.body-menu-open .ai-assistant-launcher {
   padding: 0;
 }
 
+.ai-assistant-session-export {
+  background: rgb(116 99 255 / 18%);
+  border: 1px solid rgb(116 99 255 / 42%);
+}
+
+.ai-assistant-session-delete {
+  background: rgb(255 93 124 / 16%);
+  border: 1px solid rgb(255 93 124 / 45%);
+}
+
+.ai-assistant-session-export img,
 .ai-assistant-session-delete img {
   display: block;
   height: 14px;
@@ -10868,6 +10878,11 @@ body.body-menu-open .ai-assistant-launcher {
 [data-theme="light"] .ai-assistant-session-delete {
   background: rgb(255 93 124 / 12%);
   border-color: rgb(255 93 124 / 30%);
+}
+
+[data-theme="light"] .ai-assistant-session-export {
+  background: rgb(93 93 255 / 12%);
+  border-color: rgb(93 93 255 / 28%);
 }
 
 [data-theme="light"] .ai-assistant-subtitle,

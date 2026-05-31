@@ -49,6 +49,8 @@
         driveDownloadFailed: 'Unable to import file from Google Drive:',
         historyLabel: 'Conversations',
         newChat: 'New',
+        exportChat: 'Export conversation',
+        exportChatEmpty: 'No conversation to export yet.',
         deleteChat: 'Delete',
         sessionDefault: 'New conversation',
         selectedFiles: 'Selected files:',
@@ -105,6 +107,8 @@
       driveDownloadFailed: "Impossible d'importer le fichier Google Drive :",
       historyLabel: 'Conversations',
       newChat: 'Nouveau',
+      exportChat: 'Exporter la conversation',
+      exportChatEmpty: 'Aucune conversation à exporter pour le moment.',
       deleteChat: 'Supprimer',
       sessionDefault: 'Nouvelle conversation',
       selectedFiles: 'Fichiers sélectionnés :',
@@ -188,6 +192,9 @@
         <label class="ai-assistant-session-label" for="ai-assistant-session-select">${i18n.historyLabel}</label>
         <select id="ai-assistant-session-select" class="ai-assistant-session-select" aria-label="${i18n.historyLabel}"></select>
         <button id="ai-assistant-session-new" class="ai-assistant-session-new" type="button" title="${i18n.newChat}" aria-label="${i18n.newChat}">+</button>
+        <button id="ai-assistant-session-export" class="ai-assistant-session-export" type="button" title="${i18n.exportChat}" aria-label="${i18n.exportChat}">
+          <img src="${filesIconUrl}" alt="" aria-hidden="true">
+        </button>
         <button id="ai-assistant-session-delete" class="ai-assistant-session-delete" type="button" title="${i18n.deleteChat}" aria-label="${i18n.deleteChat}">
           <img src="${deleteIconUrl}" alt="" aria-hidden="true">
         </button>
@@ -333,6 +340,7 @@
   const input = document.getElementById('ai-assistant-input');
   const sessionSelect = document.getElementById('ai-assistant-session-select');
   const sessionNewButton = document.getElementById('ai-assistant-session-new');
+  const sessionExportButton = document.getElementById('ai-assistant-session-export');
   const sessionDeleteButton = document.getElementById('ai-assistant-session-delete');
   const sessionLabel = document.querySelector('.ai-assistant-session-label');
   const attachRoot = document.getElementById('ai-assistant-attach');
@@ -1009,6 +1017,7 @@
     if (sessionLabel) sessionLabel.textContent = i18n.historyLabel;
     if (sessionSelect) sessionSelect.setAttribute('aria-label', i18n.historyLabel);
     if (sessionNewButton) { sessionNewButton.title = i18n.newChat; sessionNewButton.setAttribute('aria-label', i18n.newChat); }
+    if (sessionExportButton) { sessionExportButton.title = i18n.exportChat; sessionExportButton.setAttribute('aria-label', i18n.exportChat); }
     if (sessionDeleteButton) { sessionDeleteButton.title = i18n.deleteChat; sessionDeleteButton.setAttribute('aria-label', i18n.deleteChat); }
     const sendButton = document.querySelector('#ai-assistant-form .ai-assistant-send-btn');
     if (sendButton) sendButton.textContent = i18n.send;
@@ -1118,6 +1127,8 @@
   function saveSessionsState() {
     try {
       const compactState = {
+        version: 2,
+        savedAt: new Date().toISOString(),
         activeSessionId: sessionsState.activeSessionId,
         sessions: sessionsState.sessions.slice(0, maxStoredSessions).map((session) => ({
           ...session,
@@ -1132,6 +1143,8 @@
       assistantLog('warn', 'history_save_failed', { reason: error?.message || 'local_storage_unavailable' });
       try {
         const emergencyState = {
+          version: 2,
+          savedAt: new Date().toISOString(),
           activeSessionId: sessionsState.activeSessionId,
           sessions: sessionsState.sessions.slice(0, 5).map((session) => ({
             ...session,
@@ -1225,6 +1238,56 @@
     saveSessionsState();
     renderSessionOptions();
     renderCurrentConversation();
+  }
+
+  function formatExportDate(value) {
+    const date = new Date(value || Date.now());
+    if (Number.isNaN(date.getTime())) return new Date().toISOString();
+    return date.toISOString();
+  }
+
+  function buildConversationMarkdown(session) {
+    const title = getSessionDisplayTitle(session);
+    const history = normalizeHistory(session?.history || []);
+    const exportedAt = formatExportDate(Date.now());
+    const languageLabel = currentLanguage === 'en' ? 'English' : 'Français';
+    const lines = [
+      `# ${title}`,
+      '',
+      `- Export: ${exportedAt}`,
+      `- Language: ${languageLabel}`,
+      `- Messages: ${history.length}`,
+      ''
+    ];
+
+    const summary = normalizeSessionSummary(session?.summary);
+    if (summary) {
+      lines.push('## Memoire de conversation', '', summary, '');
+    }
+
+    lines.push('## Echanges', '');
+    history.forEach((entry, index) => {
+      const label = entry.role === 'assistant'
+        ? (currentLanguage === 'en' ? 'Assistant' : 'Assistant')
+        : (currentLanguage === 'en' ? 'User' : 'Utilisateur');
+      lines.push(`### ${index + 1}. ${label}`, '', entry.content, '');
+    });
+
+    return lines.join('\n').trim() + '\n';
+  }
+
+  function exportActiveConversation() {
+    const active = getActiveSession();
+    const history = normalizeHistory(active?.history || []);
+    if (!active || !history.length) {
+      addMessage('bot', i18n.exportChatEmpty);
+      return;
+    }
+    active.history = history;
+    active.summary = buildConversationSummary(active.history);
+    saveSessionsState();
+    const baseName = slugifyDocumentTitle(`digital-blue-skye-ai-${getSessionDisplayTitle(active)}`);
+    downloadBlob(new Blob([buildConversationMarkdown(active)], { type: 'text/markdown;charset=utf-8' }), `${baseName}.md`);
   }
 
   function deleteActiveSession() {
@@ -1349,6 +1412,7 @@
 
   if (sessionSelect) sessionSelect.addEventListener('change', () => switchSession(sessionSelect.value));
   if (sessionNewButton) sessionNewButton.addEventListener('click', () => createNewSession());
+  if (sessionExportButton) sessionExportButton.addEventListener('click', () => exportActiveConversation());
   if (sessionDeleteButton) sessionDeleteButton.addEventListener('click', () => deleteActiveSession());
   if (messagesContainer) messagesContainer.addEventListener('scroll', updateScrollBottomButton, { passive: true });
   if (scrollBottomButton) scrollBottomButton.addEventListener('click', () => scrollConversationToBottom('smooth'));
