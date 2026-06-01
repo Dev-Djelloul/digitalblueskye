@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const avatarLink = document.createElement('a');
     avatarLink.className = 'header-portfolio-avatar';
-    avatarLink.href = 'https://djelloul-abid-yxp9kzk.gamma.site/';
+    avatarLink.href = 'https://gamma.app/docs/Djelloul-ABID-0qnry3fypmgwui3?mode=doc';
     avatarLink.target = '_blank';
     avatarLink.rel = 'noopener noreferrer';
     avatarLink.setAttribute('aria-label', 'Voir le portfolio Gamma');
@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', function() {
     gammaItem.innerHTML = `
       <a
         class="dropdown-gamma-link"
-        href="https://djelloul-abid-yxp9kzk.gamma.site/"
+        href="https://gamma.app/docs/Djelloul-ABID-0qnry3fypmgwui3?mode=doc"
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Voir le portfolio interactif Gamma"
