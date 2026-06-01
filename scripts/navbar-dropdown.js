@@ -9,6 +9,30 @@ document.addEventListener('DOMContentLoaded', function() {
   // Détection desktop (hover) vs mobile (tap)
   const isDesktop = window.matchMedia('(hover: hover) and (pointer: fine)');
 
+  // URLs du portfolio par langue
+  const portfolioUrls = {
+    fr: 'https://gamma.app/docs/Djelloul-ABID-0qnry3fypmgwui3?mode=doc',
+    en: 'https://gamma.app/docs/Djelloul-ABID-Professional-Portfolio-v8mrtkftqc53rg5?mode=doc'
+  };
+
+  // Fonction pour mettre à jour l'URL du portfolio selon la langue
+  function updatePortfolioLinks(language) {
+    const lang = language || document.documentElement.lang || localStorage.getItem('language') || 'fr';
+    const portfolioUrl = portfolioUrls[lang] || portfolioUrls.fr;
+
+    // Mettre à jour le lien avatar du header
+    const avatarLink = header.querySelector('.header-portfolio-avatar');
+    if (avatarLink) {
+      avatarLink.href = portfolioUrl;
+    }
+
+    // Mettre à jour le lien dans le menu dropdown
+    const gammaLink = dropdownMenu.querySelector('.dropdown-gamma-link');
+    if (gammaLink) {
+      gammaLink.href = portfolioUrl;
+    }
+  }
+
   // Injecte une barre sociale dans le header à partir des liens déjà présents dans le dropdown.
   function initHeaderSocialStrip() {
     const menuControls = header ? header.querySelector('.menu-controls') : null;
@@ -59,9 +83,12 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
 
+    const lang = document.documentElement.lang || localStorage.getItem('language') || 'fr';
+    const portfolioUrl = portfolioUrls[lang] || portfolioUrls.fr;
+
     const avatarLink = document.createElement('a');
     avatarLink.className = 'header-portfolio-avatar';
-    avatarLink.href = 'https://gamma.app/docs/Djelloul-ABID-0qnry3fypmgwui3?mode=doc';
+    avatarLink.href = portfolioUrl;
     avatarLink.target = '_blank';
     avatarLink.rel = 'noopener noreferrer';
     avatarLink.setAttribute('aria-label', 'Voir le portfolio Gamma');
@@ -108,12 +135,15 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
 
+    const lang = document.documentElement.lang || localStorage.getItem('language') || 'fr';
+    const portfolioUrl = portfolioUrls[lang] || portfolioUrls.fr;
+
     const gammaItem = document.createElement('li');
     gammaItem.className = 'dropdown-gamma-item';
     gammaItem.innerHTML = `
       <a
         class="dropdown-gamma-link"
-        href="https://gamma.app/docs/Djelloul-ABID-0qnry3fypmgwui3?mode=doc"
+        href="${portfolioUrl}"
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Voir le portfolio interactif Gamma"
@@ -135,6 +165,12 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   initGammaPortfolioLink();
+
+  // Écouter les changements de langue depuis translator.js
+  document.addEventListener('translationCompleted', function(event) {
+    const language = event.detail?.language || document.documentElement.lang || 'fr';
+    updatePortfolioLinks(language);
+  });
 
   // ===== Gestion du menu dropdown =====
   function openMenu() {
