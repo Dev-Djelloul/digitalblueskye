@@ -65,6 +65,9 @@
         docxLoading: 'Reading Word document...',
         docxNoText: 'No readable text found in Word document:',
         docxReadFailed: 'Unable to read Word document:',
+        excelLoading: 'Reading Excel file...',
+        excelNoText: 'No readable content found in Excel file:',
+        excelReadFailed: 'Unable to read Excel file:',
         ocrLoading: 'Reading image text (OCR)...',
         ocrNoText: 'No readable text found in image:',
         ocrUnavailable: 'OCR unavailable in this browser/session.',
@@ -92,7 +95,10 @@
         friendlyApiError: 'I hit a temporary issue. Please try again in a few seconds.',
         fallbackConnectionError: 'Connection problem',
         assistantDown: 'The assistant is currently unavailable.',
-        greeting: 'Hello! How can I help you?'
+        greeting: 'Hello! How can I help you?',
+        webSearch: 'Search the web',
+        webSearching: 'Searching...',
+        webNoResults: 'No web results found.'
       };
     }
     return {
@@ -126,6 +132,9 @@
       docxLoading: 'Lecture du document Word...',
       docxNoText: 'Aucun texte lisible trouvé dans le document Word :',
       docxReadFailed: 'Impossible de lire le document Word :',
+      excelLoading: 'Lecture du fichier Excel...',
+      excelNoText: 'Aucun contenu lisible trouvé dans le fichier Excel :',
+      excelReadFailed: 'Impossible de lire le fichier Excel :',
       ocrLoading: 'Lecture du texte de l\u2019image (OCR)...',
       ocrNoText: 'Aucun texte lisible trouvé dans l\u2019image :',
       ocrUnavailable: 'OCR indisponible dans ce navigateur/session.',
@@ -153,7 +162,10 @@
       friendlyApiError: "Oups, je rencontre un souci temporaire. Réessaie dans quelques secondes.",
       fallbackConnectionError: 'Problème de connexion',
       assistantDown: "L'assistant est indisponible actuellement.",
-      greeting: 'Bonjour ! Comment puis-je vous aider ?'
+      greeting: 'Bonjour ! Comment puis-je vous aider ?',
+      webSearch: 'Rechercher sur le web',
+      webSearching: 'Recherche...',
+      webNoResults: 'Aucun résultat web trouvé.'
     };
   }
 
@@ -179,6 +191,9 @@
     return `
       <div class="ai-assistant-attach" id="ai-assistant-attach">
         <button id="ai-assistant-attach-toggle" class="ai-assistant-attach-toggle" type="button" aria-haspopup="true" aria-expanded="false" title="${i18n.attach}" aria-label="${i18n.attach}">+</button>
+        <button id="ai-assistant-web-search" class="ai-assistant-web-search-btn" type="button" title="${i18n.webSearch}" aria-label="${i18n.webSearch}" aria-pressed="false">
+          <img src="/assets/images/ui/icons8-web.gif" alt="" width="18" height="18">
+        </button>
         <div id="ai-assistant-attach-menu" class="ai-assistant-attach-menu" role="menu" aria-label="${i18n.attachMenu}">
           <button id="ai-assistant-attach-file" class="ai-assistant-attach-item" type="button" role="menuitem">
             <img src="${filesIconUrl}" alt="" aria-hidden="true">
@@ -328,7 +343,7 @@
 
   ensureAssistantMarkup();
 
-  const API_ENDPOINT = 'https://digitalblueskye-ai.djelloulabid75.workers.dev';
+  const API_ENDPOINT = 'https://digitalblueskye-ai.digitalblueskye.workers.dev';
   const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.readonly';
   const DRIVE_PICKER_SCRIPT_URL = 'https://apis.google.com/js/api.js';
   const GOOGLE_IDENTITY_SCRIPT_URL = 'https://accounts.google.com/gsi/client';
@@ -358,6 +373,7 @@
   const voiceSelect = document.getElementById('ai-assistant-voice-select');
   const micButton = document.getElementById('ai-assistant-mic');
   const ttsButton = document.getElementById('ai-assistant-tts');
+  const webSearchButton = document.getElementById('ai-assistant-web-search');
   let fileInput = document.getElementById('ai-assistant-file-input');
   let chatHistory = [];
   let sessionsState = { activeSessionId: '', sessions: [] };
@@ -703,14 +719,17 @@
   const imageFileExtensions = new Set(['png','jpg','jpeg','webp','bmp','gif','tiff']);
   const pdfFileExtensions = new Set(['pdf']);
   const docxFileExtensions = new Set(['docx']);
+  const excelFileExtensions = new Set(['xlsx','xls']);
   let tesseractLoaderPromise = null;
   let pdfJsLoaderPromise = null;
   let mammothLoaderPromise = null;
+  let sheetJsLoaderPromise = null;
   let html2PdfLoaderPromise = null;
   let jsPdfLoaderPromise = null;
   const maxLocalFilesPerPrompt = 4;
   const maxTextCharsPerFile = 12000;
   const maxDocumentCharsPerFile = 60000;
+  const maxExcelContextCharsPerFile = 14000;
   const maxImageOcrCharsPerFile = 8000;
 
   function getFileExtension(name) {
@@ -721,7 +740,7 @@
 
   function isReadableTextFile(file) {
     if (!file) return false;
-    if (isDocxFile(file) || isPdfFile(file) || isImageFile(file)) return false;
+    if (isDocxFile(file) || isPdfFile(file) || isImageFile(file) || isExcelFile(file)) return false;
     const mime = String(file.type || '').toLowerCase();
     if (mime.startsWith('text/')) return true;
     if (mime.includes('json') || mime.includes('xml') || mime.includes('csv') || mime.includes('javascript')) return true;
@@ -747,6 +766,15 @@
     const mime = String(file.type || '').toLowerCase();
     if (mime === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') return true;
     return docxFileExtensions.has(getFileExtension(file.name));
+  }
+
+  function isExcelFile(file) {
+    if (!file) return false;
+    const mime = String(file.type || '').toLowerCase();
+    if (mime === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') return true;
+    if (mime === 'application/vnd.ms-excel') return true;
+    if (mime === 'application/x-excel') return true;
+    return excelFileExtensions.has(getFileExtension(file.name));
   }
 
   function readFileAsText(file) {
@@ -897,11 +925,109 @@
     return mammothLoaderPromise;
   }
 
+  function loadSheetJsLibrary() {
+    if (window.XLSX?.read) return Promise.resolve(window.XLSX);
+    if (sheetJsLoaderPromise) return sheetJsLoaderPromise;
+    sheetJsLoaderPromise = new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+      script.async = true;
+      script.onload = () => window.XLSX?.read ? resolve(window.XLSX) : reject(new Error('xlsx_missing'));
+      script.onerror = () => reject(new Error('xlsx_load_failed'));
+      document.head.appendChild(script);
+    });
+    return sheetJsLoaderPromise;
+  }
+
   async function extractTextFromDocx(file) {
     const mammoth = await loadMammothLibrary();
     const arrayBuffer = await file.arrayBuffer();
     const result = await mammoth.extractRawText({ arrayBuffer });
     return String(result?.value || '').replace(/\r/g, '').replace(/\n{3,}/g, '\n\n').trim();
+  }
+
+  async function extractTextFromExcel(file, language) {
+    const XLSX = await loadSheetJsLibrary();
+    const arrayBuffer = await file.arrayBuffer();
+    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+
+    const sheetNames = workbook.SheetNames || [];
+    if (!sheetNames.length) {
+      return { text: '', sheetNames: [], sheetCount: 0 };
+    }
+
+    const maxSheetsToRead = 5;
+    const maxRowsPerSheet = 25;
+    const maxColumnsPerSheet = 12;
+    const sheetTexts = [];
+
+    for (let i = 0; i < Math.min(sheetNames.length, maxSheetsToRead); i++) {
+      const sheetName = sheetNames[i];
+      const sheet = workbook.Sheets[sheetName];
+      if (!sheet) continue;
+
+      const sheetData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+      if (!sheetData.length) continue;
+
+      const nonEmptyRows = sheetData.filter((row) => Array.isArray(row) && row.some((cell) => String(cell ?? '').trim()));
+      const columnCount = nonEmptyRows.reduce((max, row) => Math.max(max, row.length), 0);
+      const firstRow = sheetData[0] || [];
+      const columnLabels = firstRow
+        .map((col, idx) => String(col ?? '').trim() || `Col${idx + 1}`)
+        .slice(0, maxColumnsPerSheet);
+      const numericStats = [];
+
+      for (let colIdx = 0; colIdx < Math.min(columnCount, maxColumnsPerSheet); colIdx += 1) {
+        const values = sheetData
+          .slice(1)
+          .map((row) => Number(String(row?.[colIdx] ?? '').replace(',', '.')))
+          .filter((value) => Number.isFinite(value));
+        if (values.length < 2) continue;
+        const sum = values.reduce((total, value) => total + value, 0);
+        const min = Math.min(...values);
+        const max = Math.max(...values);
+        numericStats.push(`${columnLabels[colIdx] || `Col${colIdx + 1}`}: n=${values.length}, min=${min}, max=${max}, moyenne=${Number((sum / values.length).toFixed(2))}`);
+      }
+
+      let sheetText = [
+        `${language === 'en' ? 'Sheet' : 'Feuille'}: ${sheetName}`,
+        `${language === 'en' ? 'Size' : 'Taille'}: ${nonEmptyRows.length} ${language === 'en' ? 'non-empty rows' : 'lignes non vides'}, ${columnCount} ${language === 'en' ? 'columns' : 'colonnes'}`,
+        `${language === 'en' ? 'Columns' : 'Colonnes'}: ${columnLabels.join(' | ') || '[non détectées]'}`,
+        numericStats.length ? `${language === 'en' ? 'Numeric summary' : 'Synthèse numérique'}: ${numericStats.join(' ; ')}` : '',
+        `${language === 'en' ? 'Sample rows' : 'Lignes échantillon'}:`
+      ].filter(Boolean).join('\n');
+
+      const rowsToRead = Math.min(sheetData.length, maxRowsPerSheet + 1);
+      for (let rowIdx = 1; rowIdx < rowsToRead; rowIdx++) {
+        const row = sheetData[rowIdx] || [];
+        if (!row.some((cell) => String(cell ?? '').trim())) continue;
+
+        const rowText = row
+          .slice(0, maxColumnsPerSheet)
+          .map((cell) => String(cell ?? '').trim())
+          .join(' | ');
+        sheetText += `\n${rowIdx}. ${rowText}`;
+      }
+
+      if (sheetData.length > maxRowsPerSheet + 1) {
+        sheetText += `\n... [${language === 'en' ? 'sample truncated' : 'échantillon tronqué'}: ${sheetData.length - maxRowsPerSheet - 1} ${language === 'en' ? 'additional rows' : 'lignes supplémentaires'}]`;
+      }
+
+      sheetTexts.push(sheetText);
+    }
+
+    if (sheetNames.length > maxSheetsToRead) {
+      const remaining = sheetNames.length - maxSheetsToRead;
+      sheetTexts.push(`... [${language === 'en' ? `${remaining} more sheet(s)` : `${remaining} feuille(s) supplémentaire(s)`}]`);
+    }
+
+    const fullText = sheetTexts.join('\n\n');
+    return {
+      text: fullText,
+      sheetNames,
+      sheetCount: sheetNames.length,
+      extractedText: fullText.length
+    };
   }
 
   async function buildLocalFileContext(files) {
@@ -952,6 +1078,35 @@
               maxChars: maxDocumentCharsPerFile
             }));
             readableNames.push(file.name);
+            continue;
+          } catch (error) { failedNames.push(file.name); continue; }
+        }
+        if (isExcelFile(file)) {
+          try {
+            const excelResult = await extractTextFromExcel(file, currentLanguage);
+            assistantLog('debug', 'excel_extract_result', {
+              fileName: file.name,
+              sheetCount: excelResult.sheetCount,
+              sheetNames: excelResult.sheetNames,
+              extractedTextLength: excelResult.text.length,
+              extractedTextPreview: excelResult.text.slice(0, 300)
+            });
+            if (!excelResult.text) { noTextNames.push(file.name); continue; }
+            snippets.push(buildDocumentContextBlock({
+              label: `Excel ${getFileExtension(file.name).toUpperCase()}`,
+              fileName: file.name,
+              text: excelResult.text,
+              maxChars: maxExcelContextCharsPerFile,
+              meta: [
+                `${currentLanguage === 'en' ? 'Sheets' : 'Feuilles'}: ${excelResult.sheetCount}`,
+                `${currentLanguage === 'en' ? 'Sheet names' : 'Noms des feuilles'}: ${excelResult.sheetNames.join(', ')}`
+              ]
+            }));
+            readableNames.push(file.name);
+            assistantLog('debug', 'excel_context_ready', {
+              fileName: file.name,
+              pendingFileContextLength: snippets.join('\n\n').length
+            });
             continue;
           } catch (error) { failedNames.push(file.name); continue; }
         }
@@ -1563,15 +1718,18 @@
       const hasImages = normalizedFiles.some((file) => isImageFile(file));
       const hasPdf = normalizedFiles.some((file) => isPdfFile(file));
       const hasDocx = normalizedFiles.some((file) => isDocxFile(file));
-      let ocrLoadingBubble = null, pdfLoadingBubble = null, docxLoadingBubble = null;
+      const hasExcel = normalizedFiles.some((file) => isExcelFile(file));
+      let ocrLoadingBubble = null, pdfLoadingBubble = null, docxLoadingBubble = null, excelLoadingBubble = null;
       if (hasImages) ocrLoadingBubble = addMessage('bot', i18n.ocrLoading);
       if (hasPdf) pdfLoadingBubble = addMessage('bot', i18n.pdfLoading);
       if (hasDocx) docxLoadingBubble = addMessage('bot', i18n.docxLoading);
+      if (hasExcel) excelLoadingBubble = addMessage('bot', i18n.excelLoading);
       const result = await buildLocalFileContext(normalizedFiles);
       const vision = await buildVisionAttachments(normalizedFiles);
       if (ocrLoadingBubble) ocrLoadingBubble.remove();
       if (pdfLoadingBubble) pdfLoadingBubble.remove();
       if (docxLoadingBubble) docxLoadingBubble.remove();
+      if (excelLoadingBubble) excelLoadingBubble.remove();
       pendingFileContext = result.context;
       pendingFileNames = result.readableNames;
       pendingVisionAttachments = vision.attachments;
@@ -1596,11 +1754,11 @@
       if (vision.failedNames.length) addMessage('bot', `${i18n.imageReadFailed} ${vision.failedNames.join(', ')}`);
       if (result.unsupportedNames.length) addMessage('bot', `${i18n.fileUnsupported} ${result.unsupportedNames.join(', ')}`);
       if (result.failedNames.length) {
-        const failedLabel = hasDocx ? i18n.docxReadFailed : (hasPdf ? i18n.pdfReadFailed : (hasImages ? i18n.ocrUnavailable : i18n.fileReadFailed));
+        const failedLabel = hasExcel ? i18n.excelReadFailed : (hasDocx ? i18n.docxReadFailed : (hasPdf ? i18n.pdfReadFailed : (hasImages ? i18n.ocrUnavailable : i18n.fileReadFailed)));
         addMessage('bot', `${failedLabel} ${result.failedNames.join(', ')}`);
       }
       if (result.noTextNames?.length) {
-        const noTextLabel = hasDocx ? i18n.docxNoText : (hasPdf ? i18n.pdfNoText : i18n.ocrNoText);
+        const noTextLabel = hasExcel ? i18n.excelNoText : (hasDocx ? i18n.docxNoText : (hasPdf ? i18n.pdfNoText : i18n.ocrNoText));
         addMessage('bot', `${noTextLabel} ${result.noTextNames.join(', ')}`);
       }
       input.focus();
@@ -2802,6 +2960,201 @@
       .replace(/\n{3,}/g, '\n\n').trim();
   }
 
+  function stripModelSourcesSection(rawText) {
+    const lines = String(rawText || '').replace(/\r/g, '').split('\n');
+    const sourceHeadingPattern = /^\s{0,3}(?:#{1,6}\s*)?(?:\*\*)?\s*(sources?|références?|references?)\s*:?\s*(?:\*\*)?\s*$/i;
+    const sourceIntroPattern = /^\s{0,3}(?:sources?|références?|references?)\s+(?:trouvées?|found)\s*:?\s*$/i;
+    let sourceStartIndex = -1;
+
+    for (let index = lines.length - 1; index >= 0; index -= 1) {
+      const line = lines[index].trim();
+      if (sourceHeadingPattern.test(line) || sourceIntroPattern.test(line)) {
+        sourceStartIndex = index;
+        break;
+      }
+    }
+
+    if (sourceStartIndex < 0) return String(rawText || '').trim();
+    return lines.slice(0, sourceStartIndex).join('\n').replace(/\n{3,}/g, '\n\n').trim();
+  }
+
+  function escapeMarkdownLinkText(text) {
+    return String(text || '')
+      .replace(/\\/g, '\\\\')
+      .replace(/\[/g, '\\[')
+      .replace(/\]/g, '\\]')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function normalizeWebSearchResults(results) {
+    if (!Array.isArray(results)) return [];
+    const seen = new Set();
+    return results
+      .map((result, index) => ({
+        index: Number(result?.index) > 0 ? Number(result.index) : index + 1,
+        title: String(result?.title || result?.link || '').trim(),
+        link: String(result?.link || '').trim(),
+        snippet: String(result?.snippet || '').replace(/\s+/g, ' ').trim(),
+        score: result?.score ?? null
+      }))
+      .filter((result) => result.title && /^https?:\/\//i.test(result.link))
+      .filter((result) => {
+        const key = result.link.replace(/\/$/, '').toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+  }
+
+  function getWebSourceDomain(url) {
+    try {
+      return new URL(url).hostname.replace(/^www\./, '');
+    } catch (error) {
+      return '';
+    }
+  }
+
+  function getReadableSourceName(source) {
+    const domain = getWebSourceDomain(source.link);
+    if (!domain) return source.title;
+    return domain
+      .split('.')
+      .slice(0, -1)
+      .join('.')
+      .replace(/(^|[-.])\w/g, (match) => match.toUpperCase())
+      .replace(/[-.]/g, ' ');
+  }
+
+  function truncateSourceText(text, maxLength = 210) {
+    const value = String(text || '')
+      .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '$1')
+      .replace(/https?:\/\/\S+/g, '')
+      .replace(/[#*_`|[\]()]/g, ' ')
+      .replace(/\s*[-•]\s*/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (value.length <= maxLength) return value;
+    return `${value.slice(0, maxLength).trim()}...`;
+  }
+
+  function appendWebSearchSources(bubble, results, debugWeb = false) {
+    const sources = normalizeWebSearchResults(results);
+    const content = bubble?.querySelector('.ai-assistant-message-content');
+    if (!content || !sources.length) return;
+
+    bubble.classList.add('has-web-sources');
+
+    const sourceByIndex = new Map(sources.map((source, index) => [index + 1, source]));
+    content.querySelectorAll('.ai-assistant-citation').forEach((citation) => {
+      const sourceIndex = Number((citation.textContent || '').match(/\d+/)?.[0] || 0);
+      const source = sourceByIndex.get(sourceIndex);
+      if (!source || citation.querySelector('a')) return;
+      const link = document.createElement('a');
+      link.href = source.link;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.textContent = `[${sourceIndex}]`;
+      link.title = source.title;
+      citation.textContent = '';
+      citation.appendChild(link);
+    });
+
+    const section = document.createElement('section');
+    section.className = 'web-sources-section';
+    section.setAttribute('aria-label', currentLanguage === 'en' ? 'Verified web sources' : 'Sources web vérifiées');
+
+    const badge = document.createElement('div');
+    badge.className = 'web-search-badge';
+    badge.textContent = currentLanguage === 'en' ? 'Verified web search' : 'Sources vérifiées';
+    section.appendChild(badge);
+
+    const title = document.createElement('h3');
+    title.className = 'web-sources-title';
+    title.textContent = currentLanguage === 'en' ? 'Sources consulted' : 'Sources consultées';
+    section.appendChild(title);
+
+    const cards = document.createElement('div');
+    cards.className = 'web-sources-grid';
+
+    sources.forEach((source, index) => {
+      const domain = getWebSourceDomain(source.link);
+      const card = document.createElement('article');
+      card.className = 'web-source-card';
+
+      const sourceTitle = document.createElement('strong');
+      sourceTitle.className = 'web-source-title';
+      sourceTitle.textContent = `[${index + 1}] ${source.title}`;
+      card.appendChild(sourceTitle);
+
+      if (domain) {
+        const domainNode = document.createElement('span');
+        domainNode.className = 'web-source-domain';
+        domainNode.textContent = domain;
+        card.appendChild(domainNode);
+      }
+
+      if (source.snippet) {
+        const snippet = document.createElement('p');
+        snippet.className = 'web-source-snippet';
+        snippet.textContent = truncateSourceText(source.snippet);
+        card.appendChild(snippet);
+      }
+
+      const link = document.createElement('a');
+      link.className = 'web-source-link';
+      link.href = source.link;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.textContent = currentLanguage === 'en' ? 'Read source' : 'Lire la source';
+      card.appendChild(link);
+
+      const details = document.createElement('details');
+      details.className = 'web-source-details';
+      details.open = Boolean(debugWeb);
+      const summary = document.createElement('summary');
+      summary.textContent = currentLanguage === 'en' ? 'Technical details' : 'Voir les détails techniques';
+      details.appendChild(summary);
+
+      const technical = document.createElement('dl');
+      [
+        [currentLanguage === 'en' ? 'Index' : 'Index', String(index + 1)],
+        ['URL', source.link],
+        ['Snippet', source.snippet || ''],
+        ['Score', source.score == null ? '' : String(source.score)]
+      ].forEach(([label, value]) => {
+        if (!value) return;
+        const dt = document.createElement('dt');
+        dt.textContent = label;
+        const dd = document.createElement('dd');
+        dd.textContent = value;
+        technical.append(dt, dd);
+      });
+      details.appendChild(technical);
+      card.appendChild(details);
+
+      cards.appendChild(card);
+    });
+
+    section.appendChild(cards);
+
+    const compactSources = document.createElement('p');
+    compactSources.className = 'web-sources-compact';
+    compactSources.textContent = currentLanguage === 'en' ? 'Sources consulted: ' : 'Sources consultées : ';
+    sources.forEach((source, index) => {
+      if (index > 0) compactSources.appendChild(document.createTextNode(' · '));
+      const link = document.createElement('a');
+      link.href = source.link;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.textContent = `[${index + 1}] ${getReadableSourceName(source)} — ${currentLanguage === 'en' ? 'Read article' : 'Lire l’article'}`;
+      compactSources.appendChild(link);
+    });
+    section.appendChild(compactSources);
+
+    content.appendChild(section);
+  }
+
   function formatAssistantApiError(apiError) {
     const diagnostic = typeof apiError === 'object' && apiError !== null ? apiError.diagnostic : null;
     const statusCode = Number(diagnostic?.status_code || diagnostic?.status || 0);
@@ -2982,34 +3335,87 @@
     window.speechSynthesis.speak(utterance);
   }
 
+  function shouldUseWebSearchForPrompt(text) {
+    const value = String(text || '').toLowerCase();
+    if (!value.trim()) return false;
+    const explicitTriggers = [
+      'recherche web',
+      'cherche sur le web',
+      'rechercher sur le web',
+      'recherche internet',
+      'cherche sur internet',
+      'search the web',
+      'web search',
+      'browse the web'
+    ];
+    if (explicitTriggers.some((trigger) => value.includes(trigger))) return true;
+    const currentInfoTriggers = [
+      'dernières annonces',
+      'derniere annonce',
+      'dernières actualités',
+      'derniere actualite',
+      'actualité',
+      'actualités',
+      'aujourd’hui',
+      "aujourd'hui",
+      'en temps réel',
+      'temps reel',
+      'latest news',
+      'latest announcement',
+      'recent announcement',
+      'current news',
+      'real time'
+    ];
+    return currentInfoTriggers.some((trigger) => value.includes(trigger));
+  }
+
   async function askAI(userText, fileContext = '', attachments = []) {
     const loading = addTypingMessage();
     try {
       const dateContext = getAssistantCurrentDateContext();
+      const effectiveWebSearch = isWebSearchActive || shouldUseWebSearchForPrompt(userText);
+
+      // Activer le statut "recherche en cours" si recherche web activée
+      if (effectiveWebSearch) {
+        setWebSearchInProgress(true);
+      }
+
+      const webAccessInstruction = effectiveWebSearch
+        ? (currentLanguage === 'en'
+          ? 'A live web search will be requested through the backend for this message. Use the returned sources when available, cite them with [1], [2], etc., and clearly indicate only if the search fails or returns insufficient results.'
+          : 'Une recherche web temps réel va être demandée au backend pour ce message. Utilise les sources retournées quand elles sont disponibles, cite-les avec [1], [2], etc., et indique seulement si la recherche échoue ou si les résultats sont insuffisants.')
+        : (currentLanguage === 'en'
+          ? 'For latest/current market facts, product launches, prices, rankings, laws, or news: you do not have live web access. Do not invent models, examples, dates, specs, prices, citations, or rankings. If no source is provided, say that live verification is required and offer a safe comparison framework using neutral placeholders only.'
+          : "Pour les faits récents, les dernières sorties produit, les prix, classements, lois ou actualités : tu n’as pas d’accès web temps réel. N’invente jamais de modèles, exemples, dates, fiches techniques, prix, citations ou classements. Si aucune source n’est fournie, explique qu’une vérification web est nécessaire et propose une grille de comparaison fiable avec uniquement des placeholders neutres.");
+
       const styleInstruction = currentLanguage === 'en'
         ? [
           `Current date: ${dateContext.isoDate} (${dateContext.timezone}). Treat ${dateContext.isoDate.slice(0, 4)} as the current year.`,
           'Never say we are in 2024 unless the user explicitly asks about 2024.',
-          'For latest/current market facts, product launches, prices, rankings, laws, or news: you do not have live web access. Do not invent models, examples, dates, specs, prices, citations, or rankings. If no source is provided, say that live verification is required and offer a safe comparison framework using neutral placeholders only, such as "Brand / Model to verify".',
-          'Formatting instructions: answer in clean Markdown, use complete punctuated sentences, avoid standalone "---" separators, and use continuous numbered lists when relevant.'
-        ].join('\n')
+          webAccessInstruction,
+          'Formatting instructions: answer in clean Markdown, use complete punctuated sentences, avoid standalone "---" separators, and use continuous numbered lists when relevant.',
+          fileContext ? 'When a local file context is provided, analyze only the extracted text. For spreadsheets, summarize workbook structure, key columns, visible trends, anomalies, and concrete next actions. If the sample is truncated, state the limitation clearly.' : ''
+        ].filter(Boolean).join('\n')
         : [
-          `Date actuelle : ${dateContext.isoDate} (${dateContext.timezone}). Considère ${dateContext.isoDate.slice(0, 4)} comme l'année en cours.`,
-          "Ne dis jamais que nous sommes en 2024 sauf si l'utilisateur parle explicitement de 2024.",
-          "Pour les faits récents, les dernières sorties produit, les prix, classements, lois ou actualités : tu n'as pas d'accès web temps réel. N'invente jamais de modèles, exemples, dates, fiches techniques, prix, citations ou classements. Si aucune source n'est fournie, explique qu'une vérification web est nécessaire et propose une grille de comparaison fiable avec uniquement des placeholders neutres, par exemple \"Marque / modèle à vérifier\".",
-          'Consignes de mise en forme : réponds en Markdown propre, avec des phrases complètes et ponctuées, évite les séparateurs "---" seuls, et utilise des listes numérotées continues quand c’est pertinent.'
-        ].join('\n');
+          `Date actuelle : ${dateContext.isoDate} (${dateContext.timezone}). Considère ${dateContext.isoDate.slice(0, 4)} comme l’année en cours.`,
+          "Ne dis jamais que nous sommes en 2024 sauf si l’utilisateur parle explicitement de 2024.",
+          webAccessInstruction,
+          'Consignes de mise en forme : réponds en Markdown propre, avec des phrases complètes et ponctuées, évite les séparateurs "---" seuls, et utilise des listes numérotées continues quand c’est pertinent.',
+          fileContext ? 'Quand un contexte de fichier local est fourni, analyse uniquement le texte extrait. Pour un tableur, présente la structure du classeur, les colonnes clés, les tendances visibles, les anomalies et les prochaines actions concrètes. Si l’échantillon est tronqué, indique clairement cette limite.' : ''
+        ].filter(Boolean).join('\n');
       const composedMessage = fileContext
-        ? `${styleInstruction}\n\n${userText}\n\n---\nContexte de fichiers locaux extrait côté navigateur (texte uniquement, aucun binaire brut n'est envoyé au modèle). Le contenu peut être découpé en chunks et contenir des métadonnées de pages : analyse l'ensemble du contexte fourni, cite les limites si le contexte indique une troncature, et ne réponds pas que tu as reçu un fichier binaire :\n${fileContext}`
+        ? `${styleInstruction}\n\n${userText}\n\n---\nContexte de fichiers locaux extrait côté navigateur (texte uniquement, aucun binaire brut n’est envoyé au modèle). Le contenu peut être découpé en chunks et contenir des métadonnées de pages : analyse l’ensemble du contexte fourni, cite les limites si le contexte indique une troncature, et ne réponds pas que tu as reçu un fichier binaire :\n${fileContext}`
         : `${styleInstruction}\n\n${userText}`;
       const payload = {
         message: composedMessage,
-        history: chatHistory.slice(-apiHistoryWindow),
-        conversationSummary: normalizeSessionSummary(getActiveSession()?.summary),
+        history: fileContext ? [] : chatHistory.slice(-apiHistoryWindow),
+        conversationSummary: fileContext ? '' : normalizeSessionSummary(getActiveSession()?.summary),
         language: currentLanguage === 'en' ? 'en' : 'fr',
         currentDate: dateContext,
         mode: 'chat',
-        attachments
+        attachments,
+        searchWeb: effectiveWebSearch,
+        webSearchQuery: userText
       };
       assistantLog('debug', 'api_request', {
         historyMessages: payload.history.length,
@@ -3017,13 +3423,43 @@
         hasFileContext: Boolean(fileContext),
         fileContextLength: fileContext.length,
         fileContextPreview: fileContext.slice(0, 300),
-        attachments: attachments.length
+        attachments: attachments.length,
+        webSearchActive: effectiveWebSearch,
+        webSearchManualToggle: isWebSearchActive
       });
       const data = await sendAssistantRequest(payload);
+
+      // Désactiver le statut "recherche en cours"
+      if (effectiveWebSearch) {
+        setWebSearchInProgress(false);
+      }
+
       loading.remove();
       if (data.ok) {
-        const cleanedReply = cleanAssistantReplyText(data.reply);
+        let cleanedReply = cleanAssistantReplyText(data.reply);
+        if (data.web_search_performed && data.web_search_results?.length) {
+          cleanedReply = stripModelSourcesSection(cleanedReply);
+          assistantLog('debug', 'web_search_results', {
+            count: normalizeWebSearchResults(data.web_search_results).length,
+            result1Title: data.web_search_results[0]?.title,
+            result1Link: data.web_search_results[0]?.link,
+            result2Title: data.web_search_results[1]?.title,
+            result2Link: data.web_search_results[1]?.link,
+            deterministicWebReply: Boolean(data.deterministic_web_reply),
+            debugWeb: Boolean(data.debug_web)
+          });
+        }
+        if (data.web_search_requested && !data.web_search_performed && data.web_search_error) {
+          const searchErrorNote = currentLanguage === 'en'
+            ? `\n\n**Web search status**\nThe live web search could not be completed: ${data.web_search_error}.`
+            : `\n\n**Statut recherche web**\nLa recherche web temps réel n’a pas pu aboutir : ${data.web_search_error}.`;
+          cleanedReply += searchErrorNote;
+        }
         const botBubble = await addStreamingBotMessage(cleanedReply);
+        if (data.web_search_performed && data.web_search_results?.length) {
+          appendWebSearchSources(botBubble, data.web_search_results, Boolean(data.debug_web));
+          scrollConversationToBottom('smooth');
+        }
         speakText(cleanedReply, botBubble);
         chatHistory.push({ role: 'assistant', content: cleanedReply });
         persistActiveConversation();
@@ -3044,6 +3480,12 @@
         status: e?.status || 0
       });
       if (loading) loading.remove();
+
+      // S’assurer que le statut est désactivé en cas d’erreur
+      if (isWebSearchActive || shouldUseWebSearchForPrompt(userText)) {
+        setWebSearchInProgress(false);
+      }
+
       addMessage('bot', i18n.assistantDown);
       chatHistory.push({ role: 'assistant', content: i18n.assistantDown });
       persistActiveConversation();
@@ -3126,6 +3568,46 @@
 
   if (expandButton && panel) {
     expandButton.addEventListener('click', () => setAssistantExpanded(!panel.classList.contains('is-expanded')));
+  }
+
+  let isWebSearchActive = false;
+  let isWebSearchInProgress = false;
+
+  function setWebSearchState(active) {
+    isWebSearchActive = active;
+    if (webSearchButton) {
+      webSearchButton.classList.toggle('is-active', active);
+      webSearchButton.setAttribute('aria-pressed', String(active));
+      updateWebSearchButtonLabel();
+    }
+  }
+
+  function setWebSearchInProgress(inProgress) {
+    isWebSearchInProgress = inProgress;
+    if (webSearchButton) {
+      webSearchButton.classList.toggle('is-loading', inProgress);
+      webSearchButton.disabled = inProgress;
+      updateWebSearchButtonLabel();
+    }
+  }
+
+  function updateWebSearchButtonLabel() {
+    if (!webSearchButton) return;
+    if (isWebSearchInProgress) {
+      webSearchButton.title = i18n.webSearching;
+      webSearchButton.setAttribute('aria-label', i18n.webSearching);
+    } else {
+      webSearchButton.title = i18n.webSearch;
+      webSearchButton.setAttribute('aria-label', i18n.webSearch);
+    }
+  }
+
+  if (webSearchButton) {
+    webSearchButton.addEventListener('click', () => {
+      if (!isWebSearchInProgress) {
+        setWebSearchState(!isWebSearchActive);
+      }
+    });
   }
 
   document.addEventListener('translationCompleted', (event) => applyAssistantLanguage(event.detail?.language));
