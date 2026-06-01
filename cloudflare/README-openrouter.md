@@ -14,9 +14,9 @@ Ajouter ces variables dans `Settings > Variables`:
 - Secret:
   - `OPENROUTER_API_KEY` = votre cle OpenRouter
 - Texte:
-  - `OPENROUTER_MODEL` = `google/gemma-2-9b-it:free`
+  - `OPENROUTER_MODEL` = `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free`
   - `OPENROUTER_FALLBACK_MODELS` = `mistralai/mistral-7b-instruct:free,google/gemma-2-9b-it:free` (optionnel, liste separee par des virgules)
-  - `OPENROUTER_MAX_TOKENS` = `220` (optionnel)
+  - `OPENROUTER_MAX_TOKENS` = `700` (optionnel, minimum applique par le Worker)
   - `ALLOWED_ORIGIN` = `https://digitalblueskye.infinityfreeapp.com`
 
 ## 3) Frontend
@@ -53,7 +53,7 @@ Si non configure, l'assistant affiche: `Google Drive n'est pas encore configuré
 
 ## 4) Test rapide (console navigateur)
 ```js
-fetch('https://digitalblueskye-ai.djelloulabid75.workers.dev', {
+fetch('https://digitalblueskye-ai.digitalblueskye.workers.dev', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({

@@ -4,16 +4,23 @@
  * Required secrets/vars:
  * - OPENROUTER_API_KEY (secret)
  * - OPENROUTER_MODEL (text, optional but recommended)
- *   Example: google/gemma-2-9b-it:free
+ *   Example: nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free
  *
  * Optional vars:
  * - ALLOWED_ORIGIN (text)
  *   Example: https://digitalblueskye.infinityfreeapp.com
+ * - TAVILY_API_KEY (secret) - for real-time web search capability
  */
 
 const DEFAULT_MODEL = 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free';
 const FALLBACK_MODEL = 'openrouter/auto';
-const DEFAULT_MAX_TOKENS = 220;
+const DEFAULT_MAX_TOKENS = 700;
+const WEB_SEARCH_TIMEOUT = 8000; // 8 secondes max par recherche web
+const WEB_SEARCH_CACHE_TTL = 3600000; // 1 heure de cache
+
+// Cache simple pour débounce et réutilisation des résultats
+const webSearchCache = new Map();
+const webSearchDebounce = new Map();
 
 function buildCorsHeaders(request, env) {
   const fallbackOrigin = env.ALLOWED_ORIGIN || 'https://digitalblueskye.infinityfreeapp.com';
@@ -208,6 +215,425 @@ function extractReply(openRouterJson) {
   return '';
 }
 
+function extractSnippet(result, maxTokens = 300) {
+  const text = String(result?.snippet || result?.description || '');
+  if (text.length <= maxTokens) return text;
+  return text.slice(0, maxTokens).trim() + '...';
+}
+
+function cleanSnippetForDisplay(text, maxTokens = 260) {
+  const cleaned = String(text || '')
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '$1')
+    .replace(/https?:\/\/\S+/g, '')
+    .replace(/[#*_`|[\]()]/g, ' ')
+    .replace(/\s*[-•]\s*/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (cleaned.length <= maxTokens) return cleaned;
+  return `${cleaned.slice(0, maxTokens).trim()}...`;
+}
+
+function normalizeTavilyApiKey(apiKey) {
+  return String(apiKey || '')
+    .trim()
+    .replace(/^["']|["']$/g, '')
+    .replace(/^TAVILY_API_KEY\s*=\s*/i, '')
+    .replace(/^Bearer\s+/i, '')
+    .replace(/\s+/g, '')
+    .trim();
+}
+
+function shouldUseNewsTopic(query) {
+  const lower = String(query || '').toLowerCase();
+  return [
+    'news',
+    'latest',
+    'announcement',
+    'annonce',
+    'annonces',
+    'actualité',
+    'actualités',
+    'aujourd',
+    'temps réel',
+    'recent',
+    'récent'
+  ].some((keyword) => lower.includes(keyword));
+}
+
+function buildWebContextPrompt(language, searchResults, query, answer = '') {
+  const sources = searchResults.map((r, i) => `${i + 1}. ${r.title || r.link} - ${r.link}`);
+  const snippets = searchResults.map((r, i) => `${i + 1}. "${extractSnippet(r)}"`).join('\n');
+  const answerBlock = answer ? `\nTavily answer:\n${answer}\n` : '';
+
+  if (language === 'en') {
+    return [
+      'Live web search has been performed for this request.',
+      'You must use the sources below for recent facts. Do not say that you have no real-time web access when these results are present.',
+      'Do not output tool calls, XML tags, JSON tool syntax, or placeholders such as <tool_call>. The search is already complete.',
+      `Query: ${query}`,
+      answerBlock,
+      '',
+      'Sources found:',
+      sources.join('\n'),
+      '',
+      'Key information from sources:',
+      snippets,
+      '',
+      'Provide an answer based on these sources. Be concise and cite facts with [1], [2], etc.',
+      'Do not write a final Sources or References section and do not generate source URLs yourself; the frontend will append verified links from structured search results.'
+    ].join('\n');
+  }
+
+  return [
+    'Une recherche web temps reel a ete effectuee pour cette requete.',
+    "Tu dois utiliser les sources ci-dessous pour les faits recents. Ne dis pas que tu n'as pas d'acces web temps reel lorsque ces resultats sont presents.",
+    "N'ecris jamais d'appel outil, de balises XML, de syntaxe JSON d'outil ou de placeholder comme <tool_call>. La recherche est deja terminee.",
+    `Requete : ${query}`,
+    answerBlock,
+    '',
+    'Sources trouvees :',
+    sources.join('\n'),
+    '',
+    'Informations cles des sources :',
+    snippets,
+    '',
+    'Fournis une reponse concise basee sur ces sources et cite les faits avec [1], [2], etc.',
+    "N'ecris pas de section finale Sources ou References et ne genere pas toi-meme les URLs ; le frontend ajoutera les liens verifies depuis les resultats structures."
+  ].join('\n');
+}
+
+function looksLikeToolCall(text) {
+  const value = String(text || '').toLowerCase();
+  return (
+    value.includes('<tool_call') ||
+    value.includes('</tool_call') ||
+    value.includes('<arg_key>') ||
+    value.includes('"tool_call"') ||
+    value.includes('web_search')
+  );
+}
+
+function isDebugWebEnabled(env, body) {
+  return body?.debugWeb === true || String(env.DEBUG_WEB || '').toLowerCase() === 'true';
+}
+
+function buildDeterministicWebReply(language, searchResults, query, answer = '', rawResults = [], debugWeb = false) {
+  const safeResults = Array.isArray(searchResults) ? searchResults.slice(0, 5) : [];
+  const safeRawResults = Array.isArray(rawResults) ? rawResults.slice(0, 5) : [];
+  if (!debugWeb) {
+    const heading = language === 'en'
+      ? `## Web search: ${query}`
+      : `## Recherche web : ${query}`;
+    const summaryTitle = language === 'en' ? '**Short summary**' : '**Résumé court**';
+    const summary = answer || (language === 'en'
+      ? 'Here are the most relevant current results found online.'
+      : 'Voici les résultats récents les plus pertinents trouvés en ligne.');
+    const resultsTitle = language === 'en' ? '**Key results**' : '**Résultats clés**';
+    const resultLines = safeResults.map((result, index) => {
+      const title = result.title || result.link || (language === 'en' ? 'Source' : 'Source');
+      const snippet = cleanSnippetForDisplay(result.snippet || result.description || '', 240);
+      return `${index + 1}. **${title}**${snippet ? ` — ${snippet}` : ''} [${index + 1}]`;
+    });
+    return [
+      heading,
+      '',
+      summaryTitle,
+      summary,
+      '',
+      resultsTitle,
+      resultLines.join('\n')
+    ].join('\n').trim();
+  }
+
+  const resultBlocks = safeResults.map((result, index) => {
+    const rawResult = safeRawResults[index] || {};
+    const title = result.title || rawResult.title || result.link || rawResult.url || '';
+    const url = result.link || rawResult.url || '';
+    const snippet = result.snippet || rawResult.content || result.description || '';
+    const baseLines = [
+      `${index + 1}. **Titre**`,
+      title,
+      '',
+      '**URL**',
+      url,
+      '',
+      '**Résumé/snippet**',
+      snippet || (language === 'en' ? 'No snippet returned.' : 'Aucun snippet retourne.')
+    ];
+
+    if (debugWeb && rawResult && Object.keys(rawResult).length) {
+      const score = rawResult.score !== undefined ? String(rawResult.score) : '';
+      const publishedDate = rawResult.published_date || rawResult.publishedDate || '';
+      if (score) baseLines.push('', '**Score Tavily**', score);
+      if (publishedDate) baseLines.push('', '**Date Tavily**', String(publishedDate));
+    }
+
+    return baseLines.join('\n');
+  });
+
+  if (language === 'en') {
+    const heading = `## DEBUG_WEB - Tavily results for "${query}"`;
+    const tavilyAnswer = answer ? `\n\n**Tavily answer**\n${answer}` : '';
+    return `${heading}${tavilyAnswer}\n\n${resultBlocks.join('\n\n')}`.trim();
+  }
+
+  const heading = `## DEBUG_WEB - Resultats Tavily pour "${query}"`;
+  const tavilyAnswer = answer ? `\n\n**Réponse Tavily**\n${answer}` : '';
+  return `${heading}${tavilyAnswer}\n\n${resultBlocks.join('\n\n')}`.trim();
+}
+function isFinancialQuery(query) {
+  const lower = query.toLowerCase();
+  const financialKeywords = ['action', 'cours', 'stock', 'bourse', 'nasdaq', 'nyse', 'ticker'];
+  return financialKeywords.some(k => lower.includes(k));
+}
+
+function extractTicker(query) {
+  const map = {
+    'nvidia': 'NVDA',
+    'apple': 'AAPL',
+    'microsoft': 'MSFT',
+    'google': 'GOOGL',
+    'alphabet': 'GOOGL',
+    'amazon': 'AMZN',
+    'tesla': 'TSLA',
+    'meta': 'META',
+    'facebook': 'META',
+    'netflix': 'NFLX',
+    'intel': 'INTC',
+    'amd': 'AMD',
+    'oracle': 'ORCL',
+    'cisco': 'CSCO',
+    'adobe': 'ADBE',
+    'salesforce': 'CRM',
+    'ibm': 'IBM',
+    'qualcomm': 'QCOM',
+    'broadcom': 'AVGO',
+    'texas instruments': 'TXN',
+    'intuit': 'INTU',
+    'paypal': 'PYPL',
+    'shopify': 'SHOP',
+    'snowflake': 'SNOW',
+    'zoom': 'ZM',
+    'uber': 'UBER',
+    'lyft': 'LYFT',
+    'spotify': 'SPOT',
+    'airbnb': 'ABNB',
+    'doordash': 'DASH',
+    'palantir': 'PLTR',
+    // common lowercase tickers
+    'nvda': 'NVDA',
+    'aapl': 'AAPL',
+    'msft': 'MSFT',
+    'googl': 'GOOGL',
+    'goog': 'GOOGL',
+    'amzn': 'AMZN',
+    'tsla': 'TSLA',
+    'nflx': 'NFLX',
+    'intc': 'INTC',
+    'orcl': 'ORCL',
+    'csco': 'CSCO',
+    'adbe': 'ADBE',
+    'crm': 'CRM',
+    'qcom': 'QCOM',
+    'avgo': 'AVGO',
+    'txn': 'TXN',
+    'intu': 'INTU',
+    'pypl': 'PYPL',
+    'shop': 'SHOP',
+    'snow': 'SNOW',
+    'zm': 'ZM',
+    'spot': 'SPOT',
+    'abnb': 'ABNB',
+    'dash': 'DASH',
+    'pltr': 'PLTR'
+  };
+  const words = query.split(/\s+/);
+  for (const w of words) {
+    const low = w.toLowerCase();
+    if (map[low]) return map[low];
+  }
+  // detect uppercase ticker pattern
+  const maybeTicker = query.match(/\b[A-Z]{1,5}\b/);
+  if (maybeTicker) return maybeTicker[0];
+  return null;
+}
+
+function buildFinancialQuery(originalQuery) {
+  if (!isFinancialQuery(originalQuery)) return originalQuery;
+  let ticker = extractTicker(originalQuery);
+  let base = ticker ? `${ticker} stock price today` : originalQuery;
+  const lower = originalQuery.toLowerCase();
+  const nasdaqTickers = new Set(['NVDA','AAPL','MSFT','GOOGL','AMZN','TSLA','META','NFLX','INTC','AMD','CSCO','ADBE','CBMG','ORCL','IBM','QCOM','AVGO','TXN','INTU','PYPL','SHOP','SNOW','ZM','UBER','LYFT','SPOT','ABNB','DASH','PLTR']);
+  const addNasdaq = lower.includes('nasdaq') || (ticker && nasdaqTickers.has(ticker));
+  if (addNasdaq && !base.toLowerCase().includes('nasdaq')) {
+    base += ' NASDAQ';
+  }
+  return base;
+}
+
+function normalizeWebSearchQuery(rawQuery, fallbackMessage = '') {
+  const original = String(rawQuery || fallbackMessage || '').trim();
+  if (!original) return '';
+
+  let query = original
+    .replace(/^recherche\s+web\s*:?\s*/i, '')
+    .replace(/^web\s+search\s*:?\s*/i, '')
+    .replace(/\r/g, '\n');
+
+  const instructionMarkers = [
+    '\n\nje veux',
+    '\nje veux',
+    '\n\nj’aimerais',
+    '\nj’aimerais',
+    '\n\nj aimerais',
+    '\nj aimerais',
+    '\n\nne m’invente',
+    '\nne m’invente',
+    '\n\nne m invente',
+    '\nne m invente',
+    '\n\ni want',
+    '\ni want',
+    '\n\ndo not',
+    '\ndo not'
+  ];
+  const lower = query.toLowerCase();
+  const cutIndex = instructionMarkers
+    .map((marker) => lower.indexOf(marker))
+    .filter((index) => index >= 0)
+    .sort((a, b) => a - b)[0];
+
+  if (cutIndex >= 0) query = query.slice(0, cutIndex);
+
+  query = query
+    .replace(/^\s*[-*]?\s*\d+[.)]\s+/gm, ' ')
+    .replace(/[“”"']/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (query.length > 240) {
+    const sentenceEnd = query.slice(0, 240).search(/[?!。]\s*[^?!。]*$/);
+    query = sentenceEnd > 40 ? query.slice(0, sentenceEnd + 1) : query.slice(0, 240);
+  }
+
+  return query.trim();
+}
+
+function hashQuery(query) {
+  // Simple hash pour le cache
+  let hash = 0;
+  for (let i = 0; i < query.length; i++) {
+    const char = query.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return Math.abs(hash).toString(36);
+}
+
+function safeLogJson(label, value, maxLength = 6000) {
+  try {
+    const serialized = JSON.stringify(value, null, 2);
+    console.log(label, serialized.length > maxLength ? `${serialized.slice(0, maxLength)}... [truncated]` : serialized);
+  } catch (error) {
+    console.log(label, '[unserializable]', error instanceof Error ? error.message : String(error));
+  }
+}
+
+async function performWebSearch(query, apiKey) {
+  const normalizedApiKey = normalizeTavilyApiKey(apiKey);
+  if (!normalizedApiKey) return { results: [], answer: '', error: 'missing_tavily_key', transformedQuery: query };
+  const normalizedQuery = normalizeWebSearchQuery(query);
+  if (!normalizedQuery) return { results: [], answer: '', error: 'empty_web_search_query', transformedQuery: query };
+  const transformedQuery = buildFinancialQuery(normalizedQuery);
+  const cacheKey = hashQuery(transformedQuery);
+
+  // Vérifier le cache
+  const cached = webSearchCache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < WEB_SEARCH_CACHE_TTL) {
+    console.log('web_search_cache_hit', { originalQuery: query, transformedQuery, cacheAge: Date.now() - cached.timestamp });
+    return { ...cached, error: '', transformedQuery };
+  }
+
+  // Vérifier le debounce (éviter recherches identiques trop rapides)
+  const debounceKey = cacheKey;
+  const lastSearch = webSearchDebounce.get(debounceKey);
+  if (lastSearch && Date.now() - lastSearch < 30000) {
+    console.log('web_search_debounce', { originalQuery: query, transformedQuery, timeSinceLastSearch: Date.now() - lastSearch });
+    return cached ? { ...cached, error: '', transformedQuery } : { results: [], answer: '', error: 'web_search_debounced', transformedQuery };
+  }
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), WEB_SEARCH_TIMEOUT);
+
+    const response = await fetch('https://api.tavily.com/search', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${normalizedApiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        query: transformedQuery,
+        max_results: 5,
+        search_depth: 'basic',
+        topic: shouldUseNewsTopic(transformedQuery) ? 'news' : 'general',
+        include_answer: 'basic',
+        include_raw_content: false
+      }),
+      signal: controller.signal
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => '');
+      console.warn('web_search_error', { status: response.status, statusText: response.statusText, errorText: errorText.slice(0, 240) });
+      return { results: [], answer: '', error: `tavily_${response.status}`, transformedQuery };
+    }
+
+    const data = await response.json();
+    safeLogJson('TAVILY_RAW', data);
+    const results = data?.results || [];
+    const answer = typeof data?.answer === 'string' ? data.answer.trim() : '';
+
+    // Format Tavily → format attendu (compatible ancien code)
+    const formattedResults = results.map(r => ({
+      title: r.title,
+      link: r.url,
+      snippet: r.content,
+      description: r.content
+    }));
+
+    // Mettre en cache
+    webSearchCache.set(cacheKey, {
+      results: formattedResults,
+      answer,
+      rawResults: results,
+      timestamp: Date.now()
+    });
+
+    // Enregistrer dernier search pour debounce
+    webSearchDebounce.set(debounceKey, Date.now());
+
+    console.log('web_search_success', {
+      originalQuery: query,
+      transformedQuery,
+      resultsCount: formattedResults.length,
+      result1: formattedResults[0] ? { title: formattedResults[0].title, link: formattedResults[0].link } : null,
+      result2: formattedResults[1] ? { title: formattedResults[1].title, link: formattedResults[1].link } : null
+    });
+
+    return { results: formattedResults, answer, rawResults: results, error: '', transformedQuery };
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      console.warn('web_search_timeout', { originalQuery: query, transformedQuery, timeoutMs: WEB_SEARCH_TIMEOUT });
+      return { results: [], answer: '', error: 'web_search_timeout', transformedQuery };
+    } else {
+      console.warn('web_search_failed', { error: error.message, originalQuery: query });
+      return { results: [], answer: '', error: 'web_search_failed', transformedQuery };
+    }
+  }
+}
+
 function buildEmptyReplyDiagnostic(openRouterJson) {
   const firstChoice = openRouterJson?.choices?.[0] || null;
   const message = firstChoice?.message || null;
@@ -254,6 +680,11 @@ export default {
     const language = body?.language === 'en' ? 'en' : 'fr';
     const history = normalizeHistory(body?.history);
     const conversationSummary = normalizeConversationSummary(body?.conversationSummary);
+    const shouldSearchWeb = body?.searchWeb === true || body?.searchWeb === 'true';
+    const debugWeb = isDebugWebEnabled(env, body);
+    const webSearchQuery = typeof body?.webSearchQuery === 'string' && body.webSearchQuery.trim()
+      ? body.webSearchQuery.trim().slice(0, 500)
+      : message.slice(0, 500);
 
     if (!message) {
       return jsonResponse({ ok: false, error: 'empty_message' }, 400, corsHeaders);
@@ -266,9 +697,95 @@ export default {
     const primaryModel = env.OPENROUTER_MODEL || DEFAULT_MODEL;
     const dateContext = normalizeDateContext(body?.currentDate);
     const systemPrompt = buildSystemPrompt(language, dateContext);
-    const maxTokens = Number(env.OPENROUTER_MAX_TOKENS) > 0
-      ? Math.min(Number(env.OPENROUTER_MAX_TOKENS), 1200)
+    const configuredMaxTokens = Number(env.OPENROUTER_MAX_TOKENS);
+    const maxTokens = Number.isFinite(configuredMaxTokens) && configuredMaxTokens > 0
+      ? Math.min(Math.max(configuredMaxTokens, DEFAULT_MAX_TOKENS), 1800)
       : DEFAULT_MAX_TOKENS;
+
+    let finalSystemPrompt = systemPrompt;
+    let webSearchResults = [];
+    let webSearchRawResults = [];
+    let webSearchAnswer = '';
+    let webSearchError = '';
+    let webSearchResolvedQuery = webSearchQuery;
+    let webSearchPerformed = false;
+
+    if (shouldSearchWeb) {
+      const webSearch = await performWebSearch(webSearchQuery, env.TAVILY_API_KEY);
+      webSearchResults = webSearch.results || [];
+      webSearchRawResults = webSearch.rawResults || [];
+      webSearchAnswer = webSearch.answer || '';
+      webSearchError = webSearch.error || '';
+      webSearchResolvedQuery = webSearch.transformedQuery || webSearchQuery;
+      webSearchPerformed = webSearchResults.length > 0;
+      console.log('web_search_debug', {
+        shouldSearchWeb,
+        tavilyApiKey: env.TAVILY_API_KEY ? 'configured' : 'missing',
+        searchQuery: webSearchQuery,
+        resolvedQuery: webSearchResolvedQuery,
+        error: webSearchError || null,
+        resultsCount: webSearchResults.length,
+        result1: webSearchResults[0] ? { title: webSearchResults[0].title, link: webSearchResults[0].link } : null,
+        result2: webSearchResults[1] ? { title: webSearchResults[1].title, link: webSearchResults[1].link } : null
+      });
+      if (webSearchPerformed) {
+        finalSystemPrompt = buildWebContextPrompt(language, webSearchResults, webSearchResolvedQuery, webSearchAnswer);
+        safeLogJson('WEB_CONTEXT', {
+          performed: true,
+          query: webSearchResolvedQuery,
+          answerLength: webSearchAnswer.length,
+          resultsCount: webSearchResults.length,
+          sources: webSearchResults.map((result, index) => ({
+            index: index + 1,
+            title: result.title,
+            link: result.link,
+            snippetLength: String(result.snippet || '').length
+          })),
+          prompt: finalSystemPrompt
+        });
+        return jsonResponse(
+          {
+            ok: true,
+            reply: buildDeterministicWebReply(language, webSearchResults, webSearchResolvedQuery, webSearchAnswer, webSearchRawResults, debugWeb),
+            provider: 'tavily',
+            model: null,
+            resolved_model: null,
+            fallback_model_used: false,
+            fallback: false,
+            deterministic_web_reply: true,
+            debug_web: debugWeb,
+            web_search_requested: true,
+            web_search_performed: true,
+            web_search_error: '',
+            web_search_query: webSearchResolvedQuery,
+            web_search_sources_in_reply: true,
+            web_search_results: webSearchResults.map((r, i) => ({
+              index: i + 1,
+              title: r.title,
+              link: r.link,
+              snippet: r.snippet || r.description || '',
+              score: webSearchRawResults[i]?.score ?? null
+            })),
+            web_search_raw_results: debugWeb ? webSearchRawResults : undefined
+          },
+          200,
+          corsHeaders
+        );
+      } else {
+        finalSystemPrompt = [
+          systemPrompt,
+          language === 'en'
+            ? `Live web search was requested, but it did not return usable results. Technical status: ${webSearchError || 'no_results'}. Be transparent about this search failure; do not invent current facts.`
+            : `Une recherche web temps reel a ete demandee, mais elle n'a pas retourne de resultats exploitables. Statut technique : ${webSearchError || 'no_results'}. Sois transparent sur cet echec de recherche ; n'invente pas de faits recents.`
+        ].join('\n\n');
+        safeLogJson('WEB_CONTEXT', {
+          performed: false,
+          query: webSearchResolvedQuery,
+          error: webSearchError || 'no_results',
+          prompt: finalSystemPrompt
+        });
+      }
+    }
 
     function buildOpenRouterPayload(modelName) {
       const memoryMessage = conversationSummary
@@ -283,7 +800,7 @@ export default {
       return {
         model: modelName,
         messages: [
-          { role: 'system', content: systemPrompt },
+          { role: 'system', content: finalSystemPrompt },
           ...memoryMessage,
           ...history,
           { role: 'user', content: message }
@@ -345,9 +862,23 @@ export default {
         continue;
       }
 
-      if (result.upstream.ok) {
+      if (result.upstream.ok && extractReply(parsed)) {
         upstreamSucceeded = true;
         break;
+      }
+
+      if (result.upstream.ok) {
+        lastError = {
+          model: modelName,
+          status_code: result.upstream.status,
+          upstream_error: 'empty_openrouter_reply',
+          openrouter_key_configured: hasUsableOpenRouterKey(env),
+          authorization_header_built: hasAuthorizationHeader(buildOpenRouterHeaders(env, allowedOrigin)),
+          diagnostic: buildEmptyReplyDiagnostic(parsed)
+        };
+        attempts.push(lastError);
+        console.warn('openrouter_attempt_empty_reply', lastError);
+        continue;
       }
 
       const upstreamError =
@@ -368,7 +899,7 @@ export default {
       if (!shouldTryFallback(result.upstream.status, upstreamError)) break;
     }
 
-    if (!upstreamSucceeded && lastError && (!parsed || !extractReply(parsed))) {
+    if (!upstreamSucceeded && lastError && lastError.upstream_error !== 'empty_openrouter_reply' && (!parsed || !extractReply(parsed))) {
       return jsonResponse(
         {
           ok: false,
@@ -383,35 +914,69 @@ export default {
       );
     }
 
-    const reply = extractReply(parsed);
+    let reply = extractReply(parsed);
+    if (webSearchPerformed && looksLikeToolCall(reply)) {
+      console.warn('openrouter_returned_tool_call_for_web_search', {
+        resolvedModel,
+        webSearchQuery: webSearchResolvedQuery,
+        replyPreview: String(reply || '').slice(0, 300)
+      });
+      reply = buildDeterministicWebReply(language, webSearchResults, webSearchResolvedQuery, webSearchAnswer);
+    }
+
     if (!reply) {
+      const deterministicWebReply = webSearchPerformed
+        ? buildDeterministicWebReply(language, webSearchResults, webSearchResolvedQuery, webSearchAnswer)
+        : '';
       return jsonResponse(
         {
           ok: true,
-          reply:
+          reply: deterministicWebReply || (
             language === 'en'
               ? 'I could not generate a complete answer right now. Please try again.'
-              : "Je n'ai pas pu generer une reponse complete pour le moment. Reessayez dans un instant.",
+              : "Je n'ai pas pu generer une reponse complete pour le moment. Reessayez dans un instant."
+          ),
           fallback: true,
-          fallback_reason: 'empty_openrouter_reply',
-          diagnostic: buildEmptyReplyDiagnostic(parsed)
+          fallback_reason: deterministicWebReply ? 'deterministic_web_reply' : 'empty_openrouter_reply',
+          diagnostic: buildEmptyReplyDiagnostic(parsed),
+          web_search_requested: shouldSearchWeb,
+          web_search_performed: webSearchPerformed,
+          web_search_error: webSearchError || '',
+          web_search_query: webSearchResolvedQuery,
+          web_search_results: webSearchResults.map((r, i) => ({
+            index: i + 1,
+            title: r.title,
+            link: r.link,
+            snippet: extractSnippet(r)
+          }))
         },
         200,
         corsHeaders
       );
     }
 
-    return jsonResponse(
-      {
-        ok: true,
-        reply,
-        provider: 'openrouter',
-        model: resolvedModel,
-        resolved_model: parsed?.model || resolvedModel,
-        fallback_model_used: resolvedModel !== primaryModel
-      },
-      200,
-      corsHeaders
-    );
+    const responseBody = {
+      ok: true,
+      reply,
+      provider: 'openrouter',
+      model: resolvedModel,
+      resolved_model: parsed?.model || resolvedModel,
+      fallback_model_used: resolvedModel !== primaryModel
+    };
+
+    if (shouldSearchWeb) {
+      responseBody.web_search_requested = true;
+      responseBody.web_search_performed = webSearchPerformed;
+      responseBody.web_search_error = webSearchError || '';
+      responseBody.web_search_query = webSearchResolvedQuery;
+      responseBody.web_search_results = webSearchResults.map((r, i) => ({
+        index: i + 1,
+        title: r.title,
+        link: r.link,
+        snippet: extractSnippet(r)
+      }));
+    }
+
+    return jsonResponse(responseBody, 200, corsHeaders);
   }
 };
