@@ -186,14 +186,20 @@
   const filesIconUrl = resolveUiIconUrl('icons8-files-64.png');
   const driveIconUrl = resolveUiIconUrl('icons8-google-drive-64.png');
   const deleteIconUrl = resolveUiIconUrl('icons8-delete-48.png');
+  const webIconUrl = resolveUiIconUrl('icons8-web.gif');
+
+  function createWebSearchButtonMarkup() {
+    return `
+      <button id="ai-assistant-web-search" class="ai-assistant-web-search-btn" type="button" title="${i18n.webSearch}" aria-label="${i18n.webSearch}" aria-pressed="false">
+        <img src="${webIconUrl}" alt="" width="18" height="18">
+      </button>`;
+  }
 
   function createAttachControlsMarkup() {
     return `
       <div class="ai-assistant-attach" id="ai-assistant-attach">
         <button id="ai-assistant-attach-toggle" class="ai-assistant-attach-toggle" type="button" aria-haspopup="true" aria-expanded="false" title="${i18n.attach}" aria-label="${i18n.attach}">+</button>
-        <button id="ai-assistant-web-search" class="ai-assistant-web-search-btn" type="button" title="${i18n.webSearch}" aria-label="${i18n.webSearch}" aria-pressed="false">
-          <img src="/assets/images/ui/icons8-web.gif" alt="" width="18" height="18">
-        </button>
+        ${createWebSearchButtonMarkup()}
         <div id="ai-assistant-attach-menu" class="ai-assistant-attach-menu" role="menu" aria-label="${i18n.attachMenu}">
           <button id="ai-assistant-attach-file" class="ai-assistant-attach-item" type="button" role="menuitem">
             <img src="${filesIconUrl}" alt="" aria-hidden="true">
@@ -312,6 +318,21 @@
           form.insertBefore(attach, reference);
         } else {
           form.appendChild(attach);
+        }
+      }
+    }
+
+    if (!document.getElementById('ai-assistant-web-search')) {
+      const attach = document.getElementById('ai-assistant-attach');
+      const attachMenu = document.getElementById('ai-assistant-attach-menu');
+      const wrapper = document.createElement('div');
+      wrapper.innerHTML = createWebSearchButtonMarkup().trim();
+      const webButton = wrapper.firstElementChild;
+      if (attach && webButton) {
+        if (attachMenu) {
+          attach.insertBefore(webButton, attachMenu);
+        } else {
+          attach.appendChild(webButton);
         }
       }
     }
