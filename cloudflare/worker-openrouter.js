@@ -698,9 +698,14 @@ export default {
     const dateContext = normalizeDateContext(body?.currentDate);
     const systemPrompt = buildSystemPrompt(language, dateContext);
     const configuredMaxTokens = Number(env.OPENROUTER_MAX_TOKENS);
+    const requestedMaxTokens = Number(body?.maxTokens);
+    const maxTokensFloor = Math.max(
+      DEFAULT_MAX_TOKENS,
+      Number.isFinite(requestedMaxTokens) && requestedMaxTokens > 0 ? requestedMaxTokens : 0
+    );
     const maxTokens = Number.isFinite(configuredMaxTokens) && configuredMaxTokens > 0
-      ? Math.min(Math.max(configuredMaxTokens, DEFAULT_MAX_TOKENS), 1800)
-      : DEFAULT_MAX_TOKENS;
+      ? Math.min(Math.max(configuredMaxTokens, maxTokensFloor), 1800)
+      : Math.min(maxTokensFloor, 1800);
 
     let finalSystemPrompt = systemPrompt;
     let webSearchResults = [];

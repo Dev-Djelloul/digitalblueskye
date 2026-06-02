@@ -48,7 +48,15 @@
         drivePickerFailed: 'Unable to open Google Drive picker.',
         driveDownloadFailed: 'Unable to import file from Google Drive:',
         historyLabel: 'Conversations',
-        newChat: 'New',
+        historyToggle: 'Conversation history',
+        searchConversations: 'Search',
+        newChat: 'New conversation',
+        library: 'Library',
+        discussions: 'Discussions',
+        noMatchingDiscussions: 'No conversation found.',
+        resizeSidebar: 'Resize sidebar',
+        exportDiscussion: 'Export conversation',
+        deleteDiscussion: 'Delete conversation',
         exportChat: 'Export conversation',
         exportChatEmpty: 'No conversation to export yet.',
         deleteChat: 'Delete',
@@ -72,6 +80,9 @@
         ocrNoText: 'No readable text found in image:',
         ocrUnavailable: 'OCR unavailable in this browser/session.',
         sendWithoutTextWithFiles: 'Please analyze the attached files.',
+        stop: 'Stop',
+        stopRequest: 'Stop current request',
+        requestStopped: 'Request stopped.',
         copy: 'Copy',
         copied: 'Copied',
         scrollBottom: 'Go to latest message',
@@ -115,7 +126,15 @@
       drivePickerFailed: "Impossible d'ouvrir le sélecteur Google Drive.",
       driveDownloadFailed: "Impossible d'importer le fichier Google Drive :",
       historyLabel: 'Conversations',
-      newChat: 'Nouveau',
+      historyToggle: 'Historique des conversations',
+      searchConversations: 'Rechercher',
+      newChat: 'Nouvelle discussion',
+      library: 'Bibliothèque',
+      discussions: 'Discussions',
+      noMatchingDiscussions: 'Aucune discussion trouvée.',
+      resizeSidebar: 'Redimensionner le volet',
+      exportDiscussion: 'Exporter la discussion',
+      deleteDiscussion: 'Supprimer la discussion',
       exportChat: 'Exporter la conversation',
       exportChatEmpty: 'Aucune conversation à exporter pour le moment.',
       deleteChat: 'Supprimer',
@@ -139,6 +158,9 @@
       ocrNoText: 'Aucun texte lisible trouvé dans l\u2019image :',
       ocrUnavailable: 'OCR indisponible dans ce navigateur/session.',
       sendWithoutTextWithFiles: 'Merci d\u2019analyser les fichiers joints.',
+      stop: 'Stop',
+      stopRequest: 'Stopper la demande en cours',
+      requestStopped: 'Demande stoppée.',
       copy: 'Copier',
       copied: 'Copié',
       scrollBottom: 'Aller au dernier message',
@@ -187,6 +209,10 @@
   const driveIconUrl = resolveUiIconUrl('icons8-google-drive-64.png');
   const deleteIconUrl = resolveUiIconUrl('icons8-delete-48.png');
   const webIconUrl = resolveUiIconUrl('icons8-web.gif');
+  const sidebarIconUrl = resolveUiIconUrl('icons8-sidebar-50.png');
+  const createNewIconUrl = resolveUiIconUrl('icons8-create-new-64.png');
+  const newFolderIconUrl = resolveUiIconUrl('icons8-new-folder-64.png');
+  const libraryIconUrl = resolveUiIconUrl('icons8-library-64.png');
 
   function createWebSearchButtonMarkup() {
     return `
@@ -215,17 +241,58 @@
 
   function createSessionControlsMarkup() {
     return `
-      <div class="ai-assistant-session-bar">
-        <label class="ai-assistant-session-label" for="ai-assistant-session-select">${i18n.historyLabel}</label>
-        <select id="ai-assistant-session-select" class="ai-assistant-session-select" aria-label="${i18n.historyLabel}"></select>
-        <button id="ai-assistant-session-new" class="ai-assistant-session-new" type="button" title="${i18n.newChat}" aria-label="${i18n.newChat}">+</button>
-        <button id="ai-assistant-session-export" class="ai-assistant-session-export" type="button" title="${i18n.exportChat}" aria-label="${i18n.exportChat}">
-          <img src="${filesIconUrl}" alt="" aria-hidden="true">
-        </button>
-        <button id="ai-assistant-session-delete" class="ai-assistant-session-delete" type="button" title="${i18n.deleteChat}" aria-label="${i18n.deleteChat}">
-          <img src="${deleteIconUrl}" alt="" aria-hidden="true">
-        </button>
+      <div id="ai-assistant-history-panel" class="ai-assistant-session-bar" aria-label="${i18n.historyLabel}">
+        <div class="ai-assistant-sidebar-nav">
+          <label class="ai-assistant-session-search-wrap" for="ai-assistant-session-search">
+            <span class="ai-assistant-session-search-icon" aria-hidden="true"></span>
+            <input id="ai-assistant-session-search" class="ai-assistant-session-search" type="search" autocomplete="off" placeholder="${i18n.searchConversations}" aria-label="${i18n.searchConversations}">
+          </label>
+          <button id="ai-assistant-session-new" class="ai-assistant-session-new ai-assistant-sidebar-action" type="button" title="${i18n.newChat}" aria-label="${i18n.newChat}">
+            <img src="${createNewIconUrl}" alt="" aria-hidden="true">
+            <span>${i18n.newChat}</span>
+          </button>
+          <button id="ai-assistant-session-library" class="ai-assistant-session-library ai-assistant-sidebar-action" type="button" title="${i18n.library}" aria-label="${i18n.library}">
+            <img src="${libraryIconUrl}" alt="" aria-hidden="true">
+            <span>${i18n.library}</span>
+          </button>
+        </div>
+        <div class="ai-assistant-session-heading">
+          <img src="${newFolderIconUrl}" alt="" aria-hidden="true">
+          <span class="ai-assistant-session-label">${i18n.discussions}</span>
+        </div>
+        <select id="ai-assistant-session-select" class="ai-assistant-session-select" aria-label="${i18n.historyLabel}" hidden></select>
+        <div id="ai-assistant-session-list" class="ai-assistant-session-list" role="listbox" aria-label="${i18n.historyLabel}"></div>
+        <div class="ai-assistant-session-tools">
+          <button id="ai-assistant-session-export" class="ai-assistant-session-export" type="button" title="${i18n.exportChat}" aria-label="${i18n.exportChat}">
+            <img src="${filesIconUrl}" alt="" aria-hidden="true">
+          </button>
+          <button id="ai-assistant-session-delete" class="ai-assistant-session-delete" type="button" title="${i18n.deleteChat}" aria-label="${i18n.deleteChat}">
+            <img src="${deleteIconUrl}" alt="" aria-hidden="true">
+          </button>
+        </div>
+        <span id="ai-assistant-sidebar-resize" class="ai-assistant-sidebar-resize" role="separator" aria-orientation="vertical" tabindex="0" title="${i18n.resizeSidebar}" aria-label="${i18n.resizeSidebar}"></span>
+        <div id="ai-assistant-session-menu" class="ai-assistant-session-context-menu" role="menu" aria-hidden="true">
+          <button id="ai-assistant-session-menu-export" type="button" role="menuitem">
+            <img src="${filesIconUrl}" alt="" aria-hidden="true">
+            <span>${i18n.exportDiscussion}</span>
+          </button>
+          <button id="ai-assistant-session-menu-delete" type="button" role="menuitem">
+            <img src="${deleteIconUrl}" alt="" aria-hidden="true">
+            <span>${i18n.deleteDiscussion}</span>
+          </button>
+        </div>
       </div>`;
+  }
+
+  function createHistoryToggleMarkup() {
+    return `
+      <button id="ai-assistant-history-toggle" class="ai-assistant-history-toggle" type="button" title="${i18n.historyToggle}" aria-label="${i18n.historyToggle}" aria-expanded="true" aria-controls="ai-assistant-history-panel">
+        <img src="${sidebarIconUrl}" alt="" aria-hidden="true">
+      </button>`;
+  }
+
+  function createStopButtonMarkup() {
+    return `<button id="ai-assistant-stop" class="ai-assistant-stop-btn" type="button" title="${i18n.stopRequest}" aria-label="${i18n.stopRequest}" hidden><span aria-hidden="true"></span>${i18n.stop}</button>`;
   }
 
   function createVoiceControlsMarkup(micIconUrl, voiceIconUrl) {
@@ -253,10 +320,8 @@
         </button>
         <aside id="ai-assistant-panel" class="ai-assistant-panel" aria-hidden="true">
           <header class="ai-assistant-header">
-            <img class="ai-assistant-header-icon" src="/assets/images/logo/AI.png" alt="" width="42" height="46" loading="lazy" aria-hidden="true">
-            <div class="ai-assistant-title-wrap">
-              <h2 class="ai-assistant-title">Digital Blue Skye AI</h2>
-            </div>
+            ${createHistoryToggleMarkup()}
+            <img class="ai-assistant-header-logo" src="/assets/images/logo/AI.png" alt="" width="42" height="46" loading="lazy" aria-hidden="true">
             <button id="ai-assistant-expand" class="ai-assistant-expand" type="button" title="${i18n.maximizeTitle}" aria-label="${i18n.maximizeTitle}" aria-pressed="false"><span aria-hidden="true"></span></button>
             <button id="ai-assistant-close" class="ai-assistant-close" type="button">&times;</button>
           </header>
@@ -270,6 +335,7 @@
             ${createAttachControlsMarkup()}
             <textarea id="ai-assistant-input" autocomplete="off" placeholder="${i18n.inputPlaceholder}" rows="1"></textarea>
             ${createVoiceControlsMarkup(micIconUrl, voiceIconUrl)}
+            ${createStopButtonMarkup()}
             <button type="submit" class="ai-assistant-send-btn">${i18n.send}</button>
           </form>
           <span class="ai-assistant-resize-handle ai-assistant-resize-handle--nw" data-resize-corner="nw" aria-hidden="true"></span>
@@ -283,16 +349,48 @@
 
     const form = document.getElementById('ai-assistant-form');
     const closeBtn = document.getElementById('ai-assistant-close');
+    const header = document.querySelector('#ai-assistant-panel .ai-assistant-header');
     if (closeBtn) closeBtn.classList.add('ai-assistant-close');
     if (!form) return;
 
+    if (header) {
+      const oldTitleWrap = header.querySelector('.ai-assistant-title-wrap');
+      if (oldTitleWrap) oldTitleWrap.remove();
+      const oldHeaderIcon = header.querySelector('.ai-assistant-header-icon');
+      if (oldHeaderIcon) oldHeaderIcon.className = 'ai-assistant-header-logo';
+      if (!header.querySelector('.ai-assistant-header-logo')) {
+        const logo = document.createElement('img');
+        logo.className = 'ai-assistant-header-logo';
+        logo.src = '/assets/images/logo/AI.png';
+        logo.alt = '';
+        logo.width = 42;
+        logo.height = 46;
+        logo.loading = 'lazy';
+        logo.setAttribute('aria-hidden', 'true');
+        header.appendChild(logo);
+      }
+    }
+
     if (!document.getElementById('ai-assistant-session-select')) {
-      const header = document.querySelector('#ai-assistant-panel .ai-assistant-header');
       const wrapper = document.createElement('div');
       wrapper.innerHTML = createSessionControlsMarkup().trim();
       if (header && header.parentNode) {
         header.insertAdjacentElement('afterend', wrapper.firstElementChild);
       }
+    }
+    const sessionBar = document.querySelector('#ai-assistant-panel .ai-assistant-session-bar');
+    if (sessionBar) {
+      if (!sessionBar.id) sessionBar.id = 'ai-assistant-history-panel';
+      sessionBar.setAttribute('aria-label', i18n.historyLabel);
+      if (!document.getElementById('ai-assistant-session-list')) {
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = createSessionControlsMarkup().trim();
+        sessionBar.replaceWith(wrapper.firstElementChild);
+      }
+    }
+
+    if (!document.getElementById('ai-assistant-history-toggle') && header) {
+      header.insertAdjacentHTML('beforeend', createHistoryToggleMarkup().trim());
     }
 
     if (!document.getElementById('ai-assistant-scroll-bottom')) {
@@ -360,6 +458,17 @@
         form.appendChild(select);
       }
     }
+
+    if (!document.getElementById('ai-assistant-stop')) {
+      const submitButton = form.querySelector('.ai-assistant-send-btn') || form.querySelector('button[type="submit"]');
+      const wrapper = document.createElement('div');
+      wrapper.innerHTML = createStopButtonMarkup().trim();
+      const stopButton = wrapper.firstElementChild;
+      if (stopButton) {
+        if (submitButton) form.insertBefore(stopButton, submitButton);
+        else form.appendChild(stopButton);
+      }
+    }
   }
 
   ensureAssistantMarkup();
@@ -386,6 +495,15 @@
   const sessionExportButton = document.getElementById('ai-assistant-session-export');
   const sessionDeleteButton = document.getElementById('ai-assistant-session-delete');
   const sessionLabel = document.querySelector('.ai-assistant-session-label');
+  const sessionSearchInput = document.getElementById('ai-assistant-session-search');
+  const sessionList = document.getElementById('ai-assistant-session-list');
+  const sessionLibraryButton = document.getElementById('ai-assistant-session-library');
+  const sidebarResizeHandle = document.getElementById('ai-assistant-sidebar-resize');
+  const sessionContextMenu = document.getElementById('ai-assistant-session-menu');
+  const sessionMenuExportButton = document.getElementById('ai-assistant-session-menu-export');
+  const sessionMenuDeleteButton = document.getElementById('ai-assistant-session-menu-delete');
+  const historyPanel = document.getElementById('ai-assistant-history-panel');
+  const historyToggleButton = document.getElementById('ai-assistant-history-toggle');
   const attachRoot = document.getElementById('ai-assistant-attach');
   const attachToggle = document.getElementById('ai-assistant-attach-toggle');
   const attachMenu = document.getElementById('ai-assistant-attach-menu');
@@ -395,6 +513,8 @@
   const micButton = document.getElementById('ai-assistant-mic');
   const ttsButton = document.getElementById('ai-assistant-tts');
   const webSearchButton = document.getElementById('ai-assistant-web-search');
+  const stopButton = document.getElementById('ai-assistant-stop');
+  const assistantSendButton = document.querySelector('#ai-assistant-form .ai-assistant-send-btn');
   let fileInput = document.getElementById('ai-assistant-file-input');
   let chatHistory = [];
   let sessionsState = { activeSessionId: '', sessions: [] };
@@ -407,6 +527,11 @@
   let driveTokenClient = null;
   let isVoiceOutputEnabled = true;
   let isListening = false;
+  let activeAssistantRequestController = null;
+  let activeContextSessionId = '';
+  let isSidebarResizing = false;
+  let sidebarResizeStartX = 0;
+  let sidebarResizeStartWidth = 0;
   let availableTtsVoices = [];
   let activeSpeechTracking = null;
   let speechTrackingToken = 0;
@@ -421,6 +546,8 @@
   const conversationCorruptStorageKey = 'ai_assistant_conversations_corrupt_v1';
   const panelPositionStorageKey = 'ai_assistant_panel_position_v1';
   const panelSizeStorageKey = 'ai_assistant_panel_size_v1';
+  const historyPanelStorageKey = 'ai_assistant_history_panel_open_v1';
+  const historyPanelWidthStorageKey = 'ai_assistant_history_panel_width_v1';
   const assistantDebugStorageKey = 'ai_assistant_debug';
   const maxStoredSessions = 20;
   const maxStoredMessagesPerSession = 40;
@@ -448,6 +575,108 @@
     if (launcherButton) {
       launcherButton.classList.toggle('is-panel-open', open);
       launcherButton.setAttribute('aria-expanded', String(open));
+    }
+  }
+
+  function getDefaultHistoryPanelOpen() {
+    try {
+      const saved = localStorage.getItem(historyPanelStorageKey);
+      if (saved === 'true') return true;
+      if (saved === 'false') return false;
+    } catch (error) {
+      // Ignore storage restrictions and fall back to viewport defaults.
+    }
+    return window.matchMedia('(min-width: 769px)').matches;
+  }
+
+  function setHistoryPanelOpen(open, persist = true) {
+    if (!panel || !historyToggleButton) return;
+    panel.classList.toggle('has-history-open', open);
+    historyToggleButton.classList.toggle('is-active', open);
+    historyToggleButton.setAttribute('aria-expanded', String(open));
+    historyToggleButton.title = i18n.historyToggle;
+    historyToggleButton.setAttribute('aria-label', i18n.historyToggle);
+    if (historyPanel) historyPanel.setAttribute('aria-hidden', String(!open));
+    if (persist) {
+      try { localStorage.setItem(historyPanelStorageKey, String(open)); } catch (error) { /* noop */ }
+    }
+    window.setTimeout(updateScrollBottomButton, 220);
+  }
+
+  function clampHistoryPanelWidth(width) {
+    const panelWidth = panel?.getBoundingClientRect().width || window.innerWidth || 940;
+    const isNarrow = panelWidth < 760;
+    const min = isNarrow ? 228 : 252;
+    const max = isNarrow
+      ? Math.min(340, Math.max(min, panelWidth * 0.9))
+      : Math.min(440, Math.max(min, panelWidth - 420));
+    const parsed = Number(width);
+    if (!Number.isFinite(parsed)) return Math.min(Math.max(isNarrow ? 292 : 318, min), max);
+    return Math.min(Math.max(parsed, min), max);
+  }
+
+  function getStoredHistoryPanelWidth() {
+    try {
+      const saved = Number(localStorage.getItem(historyPanelWidthStorageKey));
+      return Number.isFinite(saved) ? saved : null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function setHistoryPanelWidth(width, persist = true) {
+    if (!panel) return;
+    const next = clampHistoryPanelWidth(width);
+    panel.style.setProperty('--ai-history-width', `${Math.round(next)}px`);
+    if (persist) {
+      try { localStorage.setItem(historyPanelWidthStorageKey, String(Math.round(next))); } catch (error) { /* noop */ }
+    }
+    window.setTimeout(updateScrollBottomButton, 0);
+  }
+
+  function getSessionById(sessionId) {
+    return sessionsState.sessions.find((session) => session.id === sessionId) || null;
+  }
+
+  function closeSessionContextMenu() {
+    if (!sessionContextMenu) return;
+    sessionContextMenu.classList.remove('is-open');
+    sessionContextMenu.setAttribute('aria-hidden', 'true');
+    activeContextSessionId = '';
+  }
+
+  function openSessionContextMenu(event, sessionId) {
+    if (!sessionContextMenu || !historyPanel || !getSessionById(sessionId)) return;
+    event.preventDefault();
+    activeContextSessionId = sessionId;
+    sessionContextMenu.classList.add('is-open');
+    sessionContextMenu.setAttribute('aria-hidden', 'false');
+    const panelRect = historyPanel.getBoundingClientRect();
+    const ownerRect = panel?.getBoundingClientRect() || panelRect;
+    const menuRect = sessionContextMenu.getBoundingClientRect();
+    const maxLeft = Math.max(10, ownerRect.right - panelRect.left - menuRect.width - 12);
+    const left = Math.min(
+      Math.max(event.clientX - panelRect.left, 10),
+      maxLeft
+    );
+    const top = Math.min(
+      Math.max(event.clientY - panelRect.top, 10),
+      Math.max(10, panelRect.height - menuRect.height - 10)
+    );
+    sessionContextMenu.style.left = `${left}px`;
+    sessionContextMenu.style.top = `${top}px`;
+  }
+
+  function setAssistantRequestRunning(active) {
+    if (panel) panel.classList.toggle('is-requesting', active);
+    if (stopButton) {
+      stopButton.hidden = !active;
+      stopButton.disabled = !active;
+      stopButton.classList.toggle('is-visible', active);
+    }
+    if (assistantSendButton) {
+      assistantSendButton.disabled = active;
+      assistantSendButton.setAttribute('aria-disabled', String(active));
     }
   }
 
@@ -1300,13 +1529,46 @@
     if (attachFileLabel) attachFileLabel.textContent = i18n.attachFiles;
     const attachDriveLabel = attachDriveButton?.querySelector('span');
     if (attachDriveLabel) attachDriveLabel.textContent = i18n.attachDrive;
-    if (sessionLabel) sessionLabel.textContent = i18n.historyLabel;
+    if (sessionLabel) sessionLabel.textContent = i18n.discussions;
+    if (sessionSearchInput) {
+      sessionSearchInput.placeholder = i18n.searchConversations;
+      sessionSearchInput.setAttribute('aria-label', i18n.searchConversations);
+    }
     if (sessionSelect) sessionSelect.setAttribute('aria-label', i18n.historyLabel);
-    if (sessionNewButton) { sessionNewButton.title = i18n.newChat; sessionNewButton.setAttribute('aria-label', i18n.newChat); }
+    if (sessionList) sessionList.setAttribute('aria-label', i18n.historyLabel);
+    if (historyPanel) historyPanel.setAttribute('aria-label', i18n.historyLabel);
+    if (historyToggleButton) {
+      historyToggleButton.title = i18n.historyToggle;
+      historyToggleButton.setAttribute('aria-label', i18n.historyToggle);
+    }
+    if (sessionNewButton) {
+      sessionNewButton.title = i18n.newChat;
+      sessionNewButton.setAttribute('aria-label', i18n.newChat);
+      const label = sessionNewButton.querySelector('span');
+      if (label) label.textContent = i18n.newChat;
+    }
+    if (sessionLibraryButton) {
+      sessionLibraryButton.title = i18n.library;
+      sessionLibraryButton.setAttribute('aria-label', i18n.library);
+      const label = sessionLibraryButton.querySelector('span');
+      if (label) label.textContent = i18n.library;
+    }
+    if (sidebarResizeHandle) {
+      sidebarResizeHandle.title = i18n.resizeSidebar;
+      sidebarResizeHandle.setAttribute('aria-label', i18n.resizeSidebar);
+    }
+    if (sessionMenuExportButton) {
+      const label = sessionMenuExportButton.querySelector('span');
+      if (label) label.textContent = i18n.exportDiscussion;
+    }
+    if (sessionMenuDeleteButton) {
+      const label = sessionMenuDeleteButton.querySelector('span');
+      if (label) label.textContent = i18n.deleteDiscussion;
+    }
     if (sessionExportButton) { sessionExportButton.title = i18n.exportChat; sessionExportButton.setAttribute('aria-label', i18n.exportChat); }
     if (sessionDeleteButton) { sessionDeleteButton.title = i18n.deleteChat; sessionDeleteButton.setAttribute('aria-label', i18n.deleteChat); }
-    const sendButton = document.querySelector('#ai-assistant-form .ai-assistant-send-btn');
-    if (sendButton) sendButton.textContent = i18n.send;
+    if (stopButton) { stopButton.title = i18n.stopRequest; stopButton.setAttribute('aria-label', i18n.stopRequest); stopButton.lastChild.textContent = i18n.stop; }
+    if (assistantSendButton) assistantSendButton.textContent = i18n.send;
     if (voiceSelect) { voiceSelect.title = i18n.voiceSelectLabel; voiceSelect.setAttribute('aria-label', i18n.voiceSelectLabel); }
     refreshBubbleActionLabels();
     if (syncDefaultSessionTitles()) saveSessionsState();
@@ -1476,16 +1738,61 @@
   }
 
   function renderSessionOptions() {
-    if (!sessionSelect) return;
-    sessionSelect.innerHTML = '';
+    if (sessionSelect) sessionSelect.innerHTML = '';
+    if (sessionList) sessionList.innerHTML = '';
     const sorted = [...sessionsState.sessions].sort((a, b) => b.updatedAt - a.updatedAt);
+    const searchTerm = sessionSearchInput?.value?.trim().toLowerCase() || '';
+    const filtered = sorted.filter((session) => {
+      if (!searchTerm) return true;
+      const title = getSessionDisplayTitle(session).toLowerCase();
+      const summary = normalizeSessionSummary(session.summary).toLowerCase();
+      return title.includes(searchTerm) || summary.includes(searchTerm);
+    });
     for (const session of sorted) {
-      const option = document.createElement('option');
-      option.value = session.id;
-      option.textContent = getSessionDisplayTitle(session);
-      sessionSelect.appendChild(option);
+      if (sessionSelect) {
+        const option = document.createElement('option');
+        option.value = session.id;
+        option.textContent = getSessionDisplayTitle(session);
+        sessionSelect.appendChild(option);
+      }
     }
-    if (sessionsState.activeSessionId) sessionSelect.value = sessionsState.activeSessionId;
+    if (sessionSelect && sessionsState.activeSessionId) sessionSelect.value = sessionsState.activeSessionId;
+    if (!sessionList) return;
+    if (!filtered.length) {
+      const empty = document.createElement('p');
+      empty.className = 'ai-assistant-session-empty';
+      empty.textContent = i18n.noMatchingDiscussions;
+      sessionList.appendChild(empty);
+      return;
+    }
+    for (const session of filtered) {
+      const button = document.createElement('button');
+      const title = getSessionDisplayTitle(session);
+      button.type = 'button';
+      button.className = 'ai-assistant-session-item';
+      button.dataset.sessionId = session.id;
+      button.setAttribute('role', 'option');
+      button.setAttribute('aria-selected', String(session.id === sessionsState.activeSessionId));
+      button.title = title;
+      if (session.id === sessionsState.activeSessionId) button.classList.add('is-active');
+
+      const titleNode = document.createElement('span');
+      titleNode.className = 'ai-assistant-session-item-title';
+      titleNode.textContent = title;
+      button.appendChild(titleNode);
+
+      const metaNode = document.createElement('span');
+      metaNode.className = 'ai-assistant-session-item-meta';
+      const messageCount = normalizeHistory(session.history).length;
+      const date = new Date(session.updatedAt || Date.now());
+      const dateLabel = Number.isNaN(date.getTime())
+        ? ''
+        : date.toLocaleDateString(currentLanguage === 'en' ? 'en-US' : 'fr-FR', { month: 'short', day: 'numeric' });
+      metaNode.textContent = [dateLabel, messageCount ? `${messageCount} msg` : ''].filter(Boolean).join(' · ');
+      button.appendChild(metaNode);
+
+      sessionList.appendChild(button);
+    }
   }
 
   function renderCurrentConversation() {
@@ -1562,34 +1869,42 @@
     return lines.join('\n').trim() + '\n';
   }
 
-  function exportActiveConversation() {
-    const active = getActiveSession();
-    const history = normalizeHistory(active?.history || []);
-    if (!active || !history.length) {
+  function exportConversationById(sessionId = sessionsState.activeSessionId) {
+    const session = getSessionById(sessionId);
+    const history = normalizeHistory(session?.history || []);
+    if (!session || !history.length) {
       addMessage('bot', i18n.exportChatEmpty);
       return;
     }
-    active.history = history;
-    active.summary = buildConversationSummary(active.history);
+    session.history = history;
+    session.summary = buildConversationSummary(session.history);
     saveSessionsState();
-    const baseName = slugifyDocumentTitle(`digital-blue-skye-ai-${getSessionDisplayTitle(active)}`);
-    downloadBlob(new Blob([buildConversationMarkdown(active)], { type: 'text/markdown;charset=utf-8' }), `${baseName}.md`);
+    const baseName = slugifyDocumentTitle(`digital-blue-skye-ai-${getSessionDisplayTitle(session)}`);
+    downloadBlob(new Blob([buildConversationMarkdown(session)], { type: 'text/markdown;charset=utf-8' }), `${baseName}.md`);
   }
 
-  function deleteActiveSession() {
+  function exportActiveConversation() {
+    exportConversationById(sessionsState.activeSessionId);
+  }
+
+  function deleteSessionById(sessionId = sessionsState.activeSessionId) {
     if (!sessionsState.sessions.length) return;
-    const currentId = sessionsState.activeSessionId;
-    sessionsState.sessions = sessionsState.sessions.filter((s) => s.id !== currentId);
+    const wasActive = sessionId === sessionsState.activeSessionId;
+    sessionsState.sessions = sessionsState.sessions.filter((s) => s.id !== sessionId);
     if (!sessionsState.sessions.length) {
       const fallback = makeDefaultSession();
       sessionsState.sessions = [fallback];
       sessionsState.activeSessionId = fallback.id;
-    } else {
+    } else if (wasActive || !getSessionById(sessionsState.activeSessionId)) {
       sessionsState.activeSessionId = sessionsState.sessions[0].id;
     }
     saveSessionsState();
     renderSessionOptions();
-    renderCurrentConversation();
+    if (wasActive) renderCurrentConversation();
+  }
+
+  function deleteActiveSession() {
+    deleteSessionById(sessionsState.activeSessionId);
   }
 
   function getStoredVoicePreferences() {
@@ -1700,6 +2015,92 @@
   if (sessionNewButton) sessionNewButton.addEventListener('click', () => createNewSession());
   if (sessionExportButton) sessionExportButton.addEventListener('click', () => exportActiveConversation());
   if (sessionDeleteButton) sessionDeleteButton.addEventListener('click', () => deleteActiveSession());
+  if (sessionSearchInput) sessionSearchInput.addEventListener('input', () => renderSessionOptions());
+  if (sessionList) {
+    sessionList.addEventListener('click', (event) => {
+      closeSessionContextMenu();
+      const item = event.target?.closest?.('.ai-assistant-session-item');
+      if (!item?.dataset?.sessionId) return;
+      switchSession(item.dataset.sessionId);
+    });
+    sessionList.addEventListener('contextmenu', (event) => {
+      const item = event.target?.closest?.('.ai-assistant-session-item');
+      if (!item?.dataset?.sessionId) return;
+      openSessionContextMenu(event, item.dataset.sessionId);
+    });
+  }
+  if (sessionLibraryButton) {
+    sessionLibraryButton.addEventListener('click', () => {
+      setHistoryPanelOpen(true);
+      sessionLibraryButton.classList.add('is-active');
+      window.setTimeout(() => sessionLibraryButton.classList.remove('is-active'), 900);
+      if (fileInput) fileInput.click();
+    });
+  }
+  if (sessionMenuExportButton) {
+    sessionMenuExportButton.addEventListener('click', () => {
+      if (activeContextSessionId) exportConversationById(activeContextSessionId);
+      closeSessionContextMenu();
+    });
+  }
+  if (sessionMenuDeleteButton) {
+    sessionMenuDeleteButton.addEventListener('click', () => {
+      if (activeContextSessionId) deleteSessionById(activeContextSessionId);
+      closeSessionContextMenu();
+    });
+  }
+  if (sessionContextMenu) {
+    document.addEventListener('click', (event) => {
+      if (!sessionContextMenu.classList.contains('is-open')) return;
+      if (sessionContextMenu.contains(event.target)) return;
+      closeSessionContextMenu();
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') closeSessionContextMenu();
+    });
+  }
+  if (sidebarResizeHandle && historyPanel) {
+    setHistoryPanelWidth(getStoredHistoryPanelWidth(), false);
+    sidebarResizeHandle.addEventListener('pointerdown', (event) => {
+      if (event.button !== 0) return;
+      event.preventDefault();
+      isSidebarResizing = true;
+      sidebarResizeStartX = event.clientX;
+      sidebarResizeStartWidth = historyPanel.getBoundingClientRect().width;
+      panel?.classList.add('is-sidebar-resizing');
+      document.body.classList.add('ai-assistant-sidebar-is-resizing');
+      sidebarResizeHandle.setPointerCapture?.(event.pointerId);
+    });
+    window.addEventListener('pointermove', (event) => {
+      if (!isSidebarResizing) return;
+      setHistoryPanelWidth(sidebarResizeStartWidth + (event.clientX - sidebarResizeStartX), false);
+    });
+    window.addEventListener('pointerup', () => {
+      if (!isSidebarResizing) return;
+      isSidebarResizing = false;
+      panel?.classList.remove('is-sidebar-resizing');
+      document.body.classList.remove('ai-assistant-sidebar-is-resizing');
+      setHistoryPanelWidth(historyPanel.getBoundingClientRect().width, true);
+    });
+    sidebarResizeHandle.addEventListener('keydown', (event) => {
+      if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+      event.preventDefault();
+      const delta = event.key === 'ArrowRight' ? 16 : -16;
+      setHistoryPanelWidth(historyPanel.getBoundingClientRect().width + delta, true);
+    });
+  }
+  if (historyToggleButton) {
+    historyToggleButton.addEventListener('click', () => {
+      setHistoryPanelOpen(!panel?.classList.contains('has-history-open'));
+    });
+    setHistoryPanelOpen(getDefaultHistoryPanelOpen(), false);
+  }
+  if (stopButton) {
+    stopButton.addEventListener('click', () => {
+      if (activeAssistantRequestController) activeAssistantRequestController.abort();
+    });
+    setAssistantRequestRunning(false);
+  }
   if (messagesContainer) messagesContainer.addEventListener('scroll', updateScrollBottomButton, { passive: true });
   if (scrollBottomButton) scrollBottomButton.addEventListener('click', () => scrollConversationToBottom('smooth'));
 
@@ -1996,13 +2397,14 @@
       }
 
       // Titres ## ###
-      const headerMatch = line.match(/^(#{1,6})\s+(.+)$/);
+      const headerMatch = line.match(/^(#{1,6})\s*(.+)$/);
       if (headerMatch) {
         flushLists();
         orderedListIndex = 1;
         pendingBlankLine = false;
         const level = Math.min(Math.max(headerMatch[1].length, 1), 6);
-        html += `<h${level} class="ai-assistant-heading ai-assistant-heading--h${level}">${linkifyLine(headerMatch[2])}</h${level}>`;
+        const headingText = headerMatch[2].replace(/^#+\s*/, '').trim();
+        html += `<h${level} class="ai-assistant-heading ai-assistant-heading--h${level}">${linkifyLine(headingText)}</h${level}>`;
         continue;
       }
 
@@ -2175,23 +2577,62 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${escapeHtml(title)}</title>
   <style>
-    body { color: #1f2140; font-family: Arial, sans-serif; line-height: 1.6; margin: 42px auto; max-width: 860px; padding: 0 24px; }
-    h1, h2, h3 { color: #4c4cff; line-height: 1.25; margin: 1.4em 0 0.55em; }
+    :root { color-scheme: light; }
+    body {
+      background: #f6f7ff;
+      color: #1f2140;
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.62;
+      margin: 0;
+      padding: 42px 24px;
+    }
+    main {
+      background: #ffffff;
+      border: 1px solid #dddff7;
+      border-radius: 18px;
+      box-shadow: 0 20px 55px rgb(42 46 92 / 12%);
+      margin: 0 auto;
+      max-width: 860px;
+      padding: 42px 48px;
+    }
+    h1 {
+      color: #2929d8;
+      font-size: 1.72rem;
+      line-height: 1.18;
+      margin: 0 0 1.1em;
+    }
+    h2 {
+      border-left: 4px solid #5d5dff;
+      color: #4c4cff;
+      font-size: 1.18rem;
+      line-height: 1.28;
+      margin: 1.7em 0 0.65em;
+      padding-left: 0.65em;
+    }
+    h3 { color: #3638b8; font-size: 1rem; line-height: 1.3; margin: 1.3em 0 0.5em; }
+    p, li { font-size: 0.96rem; }
     p { margin: 0 0 0.9em; }
-    table { border-collapse: collapse; margin: 1em 0; width: 100%; }
-    th, td { border: 1px solid #d7d8ef; padding: 8px 10px; text-align: left; vertical-align: top; }
-    th { background: #f0f1ff; }
+    ul, ol { margin: 0.4em 0 1em 1.35em; padding: 0; }
+    li { margin: 0.28em 0; }
+    table { border-collapse: collapse; margin: 1.2em 0; table-layout: fixed; width: 100%; }
+    th, td { border: 1px solid #d7d8ef; padding: 9px 11px; text-align: left; vertical-align: top; word-break: break-word; }
+    th { background: #f0f1ff; color: #25275a; }
     code, pre { background: #f6f7ff; border-radius: 6px; font-family: Consolas, monospace; }
     code { padding: 2px 5px; }
     pre { overflow-x: auto; padding: 14px; }
     blockquote { border-left: 4px solid #5d5dff; color: #555779; margin: 1em 0; padding: 0.2em 0 0.2em 1em; }
     .meta { border-bottom: 1px solid #d7d8ef; color: #6b6d8f; font-size: 0.86rem; margin-bottom: 28px; padding-bottom: 12px; }
-    @media print { body { margin: 24px auto; } }
+    @media print {
+      body { background: #ffffff; padding: 0; }
+      main { border: 0; border-radius: 0; box-shadow: none; padding: 24px 0; }
+    }
   </style>
 </head>
 <body>
-  <div class="meta">Digital Blue Skye AI - ${new Date().toLocaleDateString(currentLanguage === 'en' ? 'en-US' : 'fr-FR')}</div>
-  ${content}
+  <main>
+    <div class="meta">Digital Blue Skye AI - ${new Date().toLocaleDateString(currentLanguage === 'en' ? 'en-US' : 'fr-FR')}</div>
+    ${content}
+  </main>
 </body>
 </html>`;
   }
@@ -2348,12 +2789,59 @@
       .trim();
   }
 
+  function normalizeLetterSpacedLineForExport(line) {
+    const source = String(line || '');
+    const compactSingleCharacterRuns = (value) => String(value || '').replace(
+      /(^|[^\p{L}\p{N}])((?:[\p{L}\p{N}]\s+){1,}[\p{L}\p{N}])(?=$|[^\p{L}\p{N}])/gu,
+      (match, prefix, sequence) => {
+        const tokens = sequence.trim().split(/\s+/).filter(Boolean);
+        if (tokens.length < 2 || !tokens.every((token) => /^[\p{L}\p{N}]$/u.test(token))) return match;
+        return `${prefix}${tokens.join('')}`;
+      }
+    );
+    const compactPart = (part) => {
+      const tokens = part.trim().split(/\s+/).filter(Boolean);
+      const meaningfulTokens = tokens.filter((token) => /[\p{L}\p{N}]/u.test(token));
+      if (meaningfulTokens.length < 2) return part;
+      const compactableTokens = meaningfulTokens.filter((token) => /^[([{']?[\p{L}\p{N}][\])}',.;:!?]?$/u.test(token)).length;
+      if (compactableTokens !== meaningfulTokens.length) return part;
+      return part
+        .replace(/([([{])\s+(?=[\p{L}\p{N}])/gu, '$1')
+        .replace(/\s*'\s*/g, "'")
+        .replace(/(?<=[\p{L}\p{N}])\s+(?=[\p{L}\p{N}])/gu, '')
+        .replace(/(?<=[\p{L}\p{N}])\s+(?=[,.;:!?])/gu, '')
+        .replace(/\s+([)\]}])/g, '$1')
+        .trim();
+    };
+
+    return compactSingleCharacterRuns(source
+      .split(/(\s{2,})/)
+      .map((part) => /\s{2,}/.test(part) ? ' ' : compactPart(part))
+      .join('')
+      .replace(/\s+([)\]}])/g, '$1')
+      .replace(/\s+([,.;:!?])/g, '$1')
+      .replace(/\s{2,}/g, ' ')
+      .trim())
+      .replace(/\b(20\d{2})\s+(\d{2})\s+(\d{2})\b/g, '$1-$2-$3')
+      .replace(/\b(20\d{2})(\d{2})(\d{2})\b/g, '$1-$2-$3');
+  }
+
+  function normalizeDocumentExportSource(markdown) {
+    return normalizeAssistantMarkdown(markdown)
+      .replace(/\r\n?/g, '\n')
+      .split('\n')
+      .map((line) => line.replace(/^(#{1,6})(\S)/, '$1 $2'))
+      .join('\n')
+      .trim();
+  }
+
   function stripMarkdownForPdf(value) {
-    return cleanPdfText(value)
+    const markdownFree = String(value || '')
       .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '$1 ($2)')
       .replace(/\*\*([^*]+)\*\*/g, '$1')
       .replace(/\*([^*]+)\*/g, '$1')
       .replace(/`([^`]+)`/g, '$1');
+    return cleanPdfText(normalizeLetterSpacedLineForExport(markdownFree));
   }
 
   function parseMarkdownTableRowForPdf(row) {
@@ -2362,11 +2850,13 @@
 
   function drawPdfWrappedText(doc, text, x, y, maxWidth, options = {}) {
     const fontSize = options.fontSize || 10;
-    const lineHeight = options.lineHeight || fontSize * 0.45;
+    const lineHeight = options.lineHeight || fontSize * 0.48;
     doc.setFont('helvetica', options.bold ? 'bold' : options.italic ? 'italic' : 'normal');
     doc.setFontSize(fontSize);
     doc.setTextColor(options.color || '#171833');
-    const lines = doc.splitTextToSize(stripMarkdownForPdf(text), maxWidth);
+    const cleanedText = stripMarkdownForPdf(text);
+    if (!/[\p{L}\p{N}]/u.test(cleanedText)) return y;
+    const lines = doc.splitTextToSize(cleanedText, maxWidth);
     doc.text(lines, x, y);
     return y + (lines.length * lineHeight);
   }
@@ -2403,7 +2893,7 @@
         doc.setFillColor(rowIndex === 0 ? '#f0f1ff' : '#ffffff');
         doc.rect(x, y, width, rowHeight, 'FD');
         doc.setFont('helvetica', rowIndex === 0 ? 'bold' : 'normal');
-        doc.setFontSize(8.4);
+        doc.setFontSize(8.2);
         doc.setTextColor('#171833');
         doc.text(cellLines[index], x + 2.5, y + 5.2);
         x += width;
@@ -2415,11 +2905,11 @@
 
   async function downloadPdfDocument(markdown, title) {
     const filename = `${slugifyDocumentTitle(title)}.pdf`;
-    const source = normalizeAssistantMarkdown(markdown).replace(/\r\n?/g, '\n').trim();
+    const source = normalizeDocumentExportSource(markdown);
     try {
       const JsPdf = await ensureJsPdfReady();
       const doc = new JsPdf({ unit: 'mm', format: 'a4', orientation: 'portrait' });
-      const margin = 18;
+      const margin = 17;
       const pageHeight = doc.internal.pageSize.getHeight();
       const contentWidth = doc.internal.pageSize.getWidth() - (margin * 2);
       const state = { margin, contentWidth, y: margin };
@@ -2430,7 +2920,7 @@
       function addPageIfNeeded(extra = 8) {
         if (state.y + extra > pageHeight - margin) {
           doc.addPage();
-          state.y = margin;
+          state.y = margin + 4;
         }
       }
 
@@ -2464,7 +2954,7 @@
       state.y += 7;
       doc.setDrawColor('#d7d8ef');
       doc.line(margin, state.y, margin + contentWidth, state.y);
-      state.y += 10;
+      state.y += 12;
 
       const lines = source ? source.split('\n') : ['Digital Blue Skye document'];
       lines.forEach((rawLine) => {
@@ -2489,26 +2979,32 @@
           state.y += 2;
           return;
         }
-        const heading = trimmed.match(/^(#{1,6})\s+(.+)$/);
+        const heading = trimmed.match(/^(#{1,6})\s*(.+)$/);
         const bullet = trimmed.match(/^[-*]\s+(.+)$/);
         const ordered = trimmed.match(/^(\d+)[.)]\s+(.+)$/);
         addPageIfNeeded(12);
         if (heading) {
           const level = Math.min(heading[1].length, 3);
-          state.y = drawPdfWrappedText(doc, heading[2], margin, state.y, contentWidth, {
+          const headingText = heading[2].replace(/^#+\s*/, '').trim();
+          if (level > 1) {
+            doc.setDrawColor('#5d5dff');
+            doc.setLineWidth(0.8);
+            doc.line(margin, state.y - 2.4, margin, state.y + 4.8);
+          }
+          state.y = drawPdfWrappedText(doc, headingText, margin, state.y, contentWidth, {
             bold: true,
-            color: '#4c4cff',
-            fontSize: level === 1 ? 16 : level === 2 ? 13 : 11,
-            lineHeight: level === 1 ? 7 : 6
-          }) + 2;
+            color: level === 1 ? '#2929d8' : '#4c4cff',
+            fontSize: level === 1 ? 15.4 : level === 2 ? 12.4 : 10.8,
+            lineHeight: level === 1 ? 7.2 : 6
+          }) + (level === 1 ? 3 : 2);
           return;
         }
         if (bullet) {
-          state.y = drawPdfWrappedText(doc, `• ${bullet[1]}`, margin + 4, state.y, contentWidth - 4, { fontSize: 10, lineHeight: 5 }) + 1;
+          state.y = drawPdfWrappedText(doc, `• ${bullet[1]}`, margin + 4, state.y, contentWidth - 4, { fontSize: 9.6, lineHeight: 4.9 }) + 1.2;
           return;
         }
         if (ordered) {
-          state.y = drawPdfWrappedText(doc, `${ordered[1]}. ${ordered[2]}`, margin + 4, state.y, contentWidth - 4, { fontSize: 10, lineHeight: 5 }) + 1;
+          state.y = drawPdfWrappedText(doc, `${ordered[1]}. ${ordered[2]}`, margin + 4, state.y, contentWidth - 4, { fontSize: 9.6, lineHeight: 4.9 }) + 1.2;
           return;
         }
         if (trimmed.startsWith('> ')) {
@@ -2522,7 +3018,7 @@
           }) + 2;
           return;
         }
-        state.y = drawPdfWrappedText(doc, trimmed, margin, state.y, contentWidth, { fontSize: 10, lineHeight: 5 }) + 2;
+        state.y = drawPdfWrappedText(doc, trimmed, margin, state.y, contentWidth, { fontSize: 9.6, lineHeight: 4.9 }) + 2.2;
       });
       flushTableRows();
       flushCodeRows();
@@ -2655,7 +3151,7 @@
   }
 
   function buildDocxDocumentXml(markdown) {
-    const source = normalizeAssistantMarkdown(markdown).replace(/\r\n?/g, '\n').trim();
+    const source = normalizeDocumentExportSource(markdown);
     const lines = source ? source.split('\n') : ['Digital Blue Skye document'];
     const blocks = [];
     let tableRows = [];
@@ -2696,10 +3192,10 @@
       flushTableRows();
       const trimmed = line.trim();
       if (!trimmed || /^[-*_]{3,}$/.test(trimmed)) return;
-      const heading = trimmed.match(/^(#{1,6})\s+(.+)$/);
+      const heading = trimmed.match(/^(#{1,6})\s*(.+)$/);
       if (heading) {
         orderedIndex = 1;
-        blocks.push(buildDocxParagraph(heading[2], { heading: Math.min(heading[1].length, 3) }));
+        blocks.push(buildDocxParagraph(heading[2].replace(/^#+\s*/, '').trim(), { heading: Math.min(heading[1].length, 3) }));
         return;
       }
       const bullet = trimmed.match(/^[-*]\s+(.+)$/);
@@ -2977,6 +3473,9 @@
   function cleanAssistantReplyText(rawText) {
     return String(rawText || '')
       .replace(/<\/?(assistant|user|system)\s*>/gi, '')
+      .split('\n')
+      .map((line) => normalizeLetterSpacedLineForExport(line))
+      .join('\n')
       .replace(/[●•◦▪▫]/g, '').replace(/[ \t]{2,}/g, ' ')
       .replace(/\n{3,}/g, '\n\n').trim();
   }
@@ -3191,11 +3690,12 @@
     return i18n.friendlyApiError;
   }
 
-  async function sendAssistantRequest(payload) {
+  async function sendAssistantRequest(payload, signal) {
     const startedAt = performance.now();
     const response = await fetch(API_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      signal,
       body: JSON.stringify(payload)
     });
     const raw = await response.text();
@@ -3390,11 +3890,116 @@
     return currentInfoTriggers.some((trigger) => value.includes(trigger));
   }
 
+  function getDocumentGenerationProfile(text) {
+    const value = String(text || '').toLowerCase();
+    if (!value.trim()) return null;
+    const documentTriggers = [
+      'génère un document',
+      'genere un document',
+      'produis un document',
+      'crée un document',
+      'cree un document',
+      'livrable',
+      'cahier des charges',
+      'note de cadrage',
+      'roadmap',
+      'swot',
+      'raci',
+      'gantt',
+      'audit',
+      'compte rendu',
+      'documentation technique',
+      'stratégie ia',
+      'strategie ia',
+      'plan projet',
+      'fiche projet',
+      'brief',
+      'generate a document',
+      'create a document',
+      'project brief',
+      'requirements document',
+      'technical documentation'
+    ];
+    if (!documentTriggers.some((trigger) => value.includes(trigger))) return null;
+
+    const profiles = [
+      { key: 'cahier_des_charges', label: 'cahier des charges', match: ['cahier des charges', 'requirements document'] },
+      { key: 'note_cadrage', label: 'note de cadrage', match: ['note de cadrage', 'project brief', 'fiche projet', 'brief'] },
+      { key: 'roadmap', label: 'roadmap', match: ['roadmap', 'plan projet'] },
+      { key: 'swot', label: 'SWOT', match: ['swot'] },
+      { key: 'raci', label: 'RACI', match: ['raci'] },
+      { key: 'gantt', label: 'planning Gantt', match: ['gantt'] },
+      { key: 'audit', label: 'audit', match: ['audit'] },
+      { key: 'compte_rendu', label: 'compte rendu', match: ['compte rendu', 'meeting notes'] },
+      { key: 'strategie_ia', label: 'stratégie IA', match: ['stratégie ia', 'strategie ia', 'ai strategy'] },
+      { key: 'documentation_technique', label: 'documentation technique', match: ['documentation technique', 'technical documentation'] }
+    ];
+    return profiles.find((profile) => profile.match.some((item) => value.includes(item))) || { key: 'document', label: 'livrable projet' };
+  }
+
+  function buildDocumentGenerationInstruction(profile, language) {
+    if (!profile) return '';
+    const commonFr = [
+      `Mode génération documentaire activé : produis un ${profile.label} directement exploitable.`,
+      'Réponds comme un livrable professionnel, pas comme une conversation.',
+      'Commence par un titre H1 clair, puis une courte fiche de cadrage avec date, objectif, périmètre, hypothèses et limites.',
+      'Structure le document avec des titres H2/H3, des tableaux Markdown lisibles quand ils apportent une vraie valeur, et des listes homogènes.',
+      'Si des informations manquent, ne bloque pas : ajoute une section "Hypothèses à valider" et formule des hypothèses prudentes.',
+      'Ajoute une section "Prochaines actions" avec priorités, responsables suggérés, échéance indicative et niveau de risque.',
+      'Évite les séparateurs "---", les URLs inventées, les placeholders vagues et les paragraphes trop longs.',
+      'Le document doit être compatible avec l’export MD, HTML, PDF et DOCX.'
+    ];
+    const commonEn = [
+      `Document generation mode enabled: produce a directly usable ${profile.label}.`,
+      'Write as a professional deliverable, not as a conversational answer.',
+      'Start with a clear H1 title, then a short framing sheet with date, objective, scope, assumptions, and limits.',
+      'Structure the document with H2/H3 headings, readable Markdown tables when useful, and consistent lists.',
+      'If information is missing, do not block: add an "Assumptions to validate" section and make careful assumptions.',
+      'Add a "Next actions" section with priorities, suggested owners, indicative deadline, and risk level.',
+      'Avoid standalone "---" separators, invented URLs, vague placeholders, and overly long paragraphs.',
+      'The document must remain export-ready for MD, HTML, PDF, and DOCX.'
+    ];
+    const templatesFr = {
+      cahier_des_charges: 'Sections attendues : contexte, objectifs, utilisateurs, périmètre fonctionnel, exigences non fonctionnelles, contenus/données, intégrations, accessibilité, sécurité/RGPD, critères d’acceptation, planning, risques.',
+      note_cadrage: 'Sections attendues : contexte, problème à résoudre, objectifs SMART, périmètre, parties prenantes, contraintes, livrables, jalons, risques, décisions à prendre.',
+      roadmap: 'Sections attendues : vision, objectifs, lots, jalons, dépendances, priorités, risques, KPIs, calendrier synthétique.',
+      swot: 'Sections attendues : synthèse, matrice SWOT, enseignements clés, recommandations stratégiques, actions prioritaires.',
+      raci: 'Sections attendues : périmètre, rôles, matrice RACI, points de vigilance, gouvernance de suivi.',
+      gantt: 'Sections attendues : hypothèses de planning, phases, tâches, dépendances, jalons, tableau chronologique.',
+      audit: 'Sections attendues : résumé exécutif, méthode, constats, impacts, recommandations, quick wins, plan d’action priorisé.',
+      compte_rendu: 'Sections attendues : contexte, participants, sujets traités, décisions, actions, responsables, échéances, points ouverts.',
+      strategie_ia: 'Sections attendues : objectifs métier, cas d’usage IA, gains attendus, risques, données, gouvernance, roadmap, KPIs.',
+      documentation_technique: 'Sections attendues : objectif, architecture, prérequis, composants, flux, configuration, sécurité, tests, maintenance.'
+    };
+    const templatesEn = {
+      cahier_des_charges: 'Expected sections: context, goals, users, functional scope, non-functional requirements, content/data, integrations, accessibility, security/privacy, acceptance criteria, timeline, risks.',
+      note_cadrage: 'Expected sections: context, problem to solve, SMART goals, scope, stakeholders, constraints, deliverables, milestones, risks, decisions needed.',
+      roadmap: 'Expected sections: vision, goals, workstreams, milestones, dependencies, priorities, risks, KPIs, synthetic timeline.',
+      swot: 'Expected sections: summary, SWOT matrix, key takeaways, strategic recommendations, priority actions.',
+      raci: 'Expected sections: scope, roles, RACI matrix, watch points, follow-up governance.',
+      gantt: 'Expected sections: planning assumptions, phases, tasks, dependencies, milestones, chronological table.',
+      audit: 'Expected sections: executive summary, method, findings, impacts, recommendations, quick wins, prioritized action plan.',
+      compte_rendu: 'Expected sections: context, attendees, topics, decisions, actions, owners, deadlines, open points.',
+      strategie_ia: 'Expected sections: business objectives, AI use cases, expected gains, risks, data, governance, roadmap, KPIs.',
+      documentation_technique: 'Expected sections: objective, architecture, prerequisites, components, flows, configuration, security, tests, maintenance.'
+    };
+    return [
+      ...(language === 'en' ? commonEn : commonFr),
+      (language === 'en' ? templatesEn : templatesFr)[profile.key] || ''
+    ].filter(Boolean).join('\n');
+  }
+
   async function askAI(userText, fileContext = '', attachments = []) {
     const loading = addTypingMessage();
+    const requestController = new AbortController();
+    let effectiveWebSearch = false;
+    activeAssistantRequestController = requestController;
+    setAssistantRequestRunning(true);
     try {
       const dateContext = getAssistantCurrentDateContext();
-      const effectiveWebSearch = isWebSearchActive || shouldUseWebSearchForPrompt(userText);
+      effectiveWebSearch = isWebSearchActive || shouldUseWebSearchForPrompt(userText);
+      const documentProfile = getDocumentGenerationProfile(userText);
+      const documentGenerationInstruction = buildDocumentGenerationInstruction(documentProfile, currentLanguage === 'en' ? 'en' : 'fr');
 
       // Activer le statut "recherche en cours" si recherche web activée
       if (effectiveWebSearch) {
@@ -3415,6 +4020,7 @@
           'Never say we are in 2024 unless the user explicitly asks about 2024.',
           webAccessInstruction,
           'Formatting instructions: answer in clean Markdown, use complete punctuated sentences, avoid standalone "---" separators, and use continuous numbered lists when relevant.',
+          documentGenerationInstruction,
           fileContext ? 'When a local file context is provided, analyze only the extracted text. For spreadsheets, summarize workbook structure, key columns, visible trends, anomalies, and concrete next actions. If the sample is truncated, state the limitation clearly.' : ''
         ].filter(Boolean).join('\n')
         : [
@@ -3422,6 +4028,7 @@
           "Ne dis jamais que nous sommes en 2024 sauf si l’utilisateur parle explicitement de 2024.",
           webAccessInstruction,
           'Consignes de mise en forme : réponds en Markdown propre, avec des phrases complètes et ponctuées, évite les séparateurs "---" seuls, et utilise des listes numérotées continues quand c’est pertinent.',
+          documentGenerationInstruction,
           fileContext ? 'Quand un contexte de fichier local est fourni, analyse uniquement le texte extrait. Pour un tableur, présente la structure du classeur, les colonnes clés, les tendances visibles, les anomalies et les prochaines actions concrètes. Si l’échantillon est tronqué, indique clairement cette limite.' : ''
         ].filter(Boolean).join('\n');
       const composedMessage = fileContext
@@ -3436,7 +4043,8 @@
         mode: 'chat',
         attachments,
         searchWeb: effectiveWebSearch,
-        webSearchQuery: userText
+        webSearchQuery: userText,
+        maxTokens: documentProfile ? 1500 : undefined
       };
       assistantLog('debug', 'api_request', {
         historyMessages: payload.history.length,
@@ -3446,9 +4054,11 @@
         fileContextPreview: fileContext.slice(0, 300),
         attachments: attachments.length,
         webSearchActive: effectiveWebSearch,
-        webSearchManualToggle: isWebSearchActive
+        webSearchManualToggle: isWebSearchActive,
+        documentGeneration: Boolean(documentProfile),
+        documentProfile: documentProfile?.key || ''
       });
-      const data = await sendAssistantRequest(payload);
+      const data = await sendAssistantRequest(payload, requestController.signal);
 
       // Désactiver le statut "recherche en cours"
       if (effectiveWebSearch) {
@@ -3496,25 +4106,33 @@
         persistActiveConversation();
       }
     } catch (e) {
+      const wasAborted = e?.name === 'AbortError';
       assistantLog('error', 'api_request_failed', {
-        reason: e?.message || 'network_error',
+        reason: wasAborted ? 'request_aborted' : (e?.message || 'network_error'),
         status: e?.status || 0
       });
       if (loading) loading.remove();
 
-      // S’assurer que le statut est désactivé en cas d’erreur
-      if (isWebSearchActive || shouldUseWebSearchForPrompt(userText)) {
+      // S’assurer que le statut est désactivé en cas d’erreur ou d'annulation.
+      if (effectiveWebSearch) {
         setWebSearchInProgress(false);
       }
 
-      addMessage('bot', i18n.assistantDown);
-      chatHistory.push({ role: 'assistant', content: i18n.assistantDown });
+      const message = wasAborted ? i18n.requestStopped : i18n.assistantDown;
+      addMessage('bot', message);
+      chatHistory.push({ role: 'assistant', content: message });
       persistActiveConversation();
+    } finally {
+      if (activeAssistantRequestController === requestController) {
+        activeAssistantRequestController = null;
+      }
+      setAssistantRequestRunning(false);
     }
   }
 
   document.getElementById('ai-assistant-form').addEventListener('submit', (e) => {
     e.preventDefault();
+    if (activeAssistantRequestController) return;
     const text = input.value.trim();
     if (!text && !pendingFileContext) return;
     const visibleText = text || i18n.sendWithoutTextWithFiles;
