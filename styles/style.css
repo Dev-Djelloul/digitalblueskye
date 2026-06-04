@@ -10140,7 +10140,7 @@ body.body-menu-open #footer {
   color: #fff;
   cursor: pointer;
   display: inline-flex;
-  height: 68px;
+  height: 56px;
   justify-content: center;
   left: auto;
   padding: 0;
@@ -10149,7 +10149,7 @@ body.body-menu-open #footer {
   top: 36%;
   transform: translateY(-50%);
   transition: right 0.25s ease, transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
-  width: 68px;
+  width: 56px;
   z-index: 2100;
 }
 
@@ -10162,9 +10162,9 @@ body.body-menu-open #footer {
 
 .ai-assistant-launcher__robot {
   display: block;
-  height: 56px;
+  height: 40px;
   object-fit: contain;
-  width: 56px;
+  width: 40px;
 }
 
 .ai-assistant-launcher.is-panel-open {
@@ -13316,13 +13316,13 @@ body.ai-assistant-sidebar-is-resizing * {
   }
 
   .home-page .intro-text .animated-title {
-    font-size: clamp(3.55rem, 17vw, 4.65rem);
+    font-size: clamp(3.55rem, 14vw, 4.65rem);
     line-height: 1.04;
     padding: 14px 8px;
   }
 
   .home-page .intro-text .btn-explore {
-    font-size: 1.08rem;
+    font-size: 1rem;
     padding: 13px 22px;
   }
 }
