@@ -1645,19 +1645,9 @@ body.body-menu-open .compact-header {
 
 .dropdown-nav .nav-link-with-submenu {
   align-items: center;
+  cursor: pointer;
   display: inline-flex;
   gap: 8px;
-}
-
-.dropdown-nav .nav-link-with-submenu::before {
-  color: initial;
-  content: "☝️";
-  display: inline-block;
-  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
-  font-size: 0.95em;
-  line-height: 1;
-  transform: translateY(-1px);
-  -webkit-text-fill-color: initial;
 }
 
 .dropdown-nav .dropdown-gamma-item {
