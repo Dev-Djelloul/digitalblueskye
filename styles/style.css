@@ -13210,3 +13210,118 @@ body.ai-assistant-sidebar-is-resizing * {
     padding: 20px 14px;
   }
 }
+
+/* Mobile app polish: stronger brand background and larger header/hero affordances. */
+@media (width <= 576px) {
+  :root {
+    --mobile-favicon-bg: #101052;
+  }
+
+  html,
+  body,
+  #loader-wrapper {
+    background-color: var(--mobile-favicon-bg);
+  }
+
+  body::after,
+  #loader-wrapper {
+    background:
+      radial-gradient(circle at 50% 18%, rgb(32 32 144 / 45%), transparent 32%),
+      linear-gradient(180deg, #101052 0%, #0b0d3e 55%, #080a2f 100%);
+  }
+
+  body::after {
+    position: fixed;
+  }
+
+  body {
+    padding-top: 112px;
+  }
+
+  body.home-page,
+  body.inspirations-page {
+    padding-top: 0;
+  }
+
+  #loader-video {
+    height: min(430px, 84vw);
+    width: min(430px, 84vw);
+  }
+
+  header.site-header,
+  header:not(.page-intro-card):not(.ai-assistant-header) {
+    height: 124px;
+  }
+
+  .header-social-strip {
+    flex-basis: 42px;
+    height: 42px;
+    padding-inline: 14px;
+  }
+
+  .header-social-links {
+    gap: 15px;
+  }
+
+  .header-social-link,
+  .header-social-strip .lang-button,
+  .header-social-strip #theme-switch {
+    height: 34px;
+    width: 34px;
+  }
+
+  .header-social-icon,
+  .header-social-strip .lang-button img,
+  .header-social-strip #theme-switch svg {
+    height: 27px;
+    width: 27px;
+  }
+
+  .header-social-strip .menu-controls {
+    gap: 16px;
+  }
+
+  .header-logo img {
+    height: 58px;
+    margin: 0 0 13px 16px;
+  }
+
+  .header-portfolio-avatar,
+  .header-portfolio-avatar img {
+    height: 58px;
+    width: 58px;
+  }
+
+  .header-portfolio-avatar {
+    right: 14px;
+    top: calc(var(--site-header-social-height, 42px) + 10px);
+  }
+
+  .dropdown-menu {
+    height: calc(100dvh - var(--site-header-height, 124px));
+    top: var(--site-header-height, 124px);
+  }
+
+  .home-page .intro-text .hero-media {
+    min-height: min(72dvh, 640px);
+  }
+
+  .home-page .intro-text .content-wrapper {
+    padding: clamp(82px, 16dvh, 136px) 18px 18px;
+  }
+
+  .home-page .intro-text .text-content {
+    gap: 18px;
+  }
+
+  .home-page .intro-text .animated-title {
+    font-size: clamp(3.55rem, 17vw, 4.65rem);
+    line-height: 1.04;
+    padding: 14px 8px;
+  }
+
+  .home-page .intro-text .btn-explore {
+    font-size: 1.08rem;
+    padding: 13px 22px;
+  }
+}
