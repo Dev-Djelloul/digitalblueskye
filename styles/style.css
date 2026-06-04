@@ -8914,7 +8914,7 @@ body.body-menu-open #footer {
 
 /* Ajustements dropdown pour mobile */
   .dropdown-nav ul {
-    gap: 15px;
+    gap: 13px;
     margin-bottom: 0px;
     padding-left: 25px;
     margin-top: 10px;
@@ -8933,8 +8933,8 @@ body.body-menu-open #footer {
   }
 
   .dropdown-submenu > .submenu-list {
-    align-items: center;
-    padding: 0;
+    align-items: flex-start;
+    padding-left: 20px;
   }
 
   .dropdown-submenu .submenu-link {
