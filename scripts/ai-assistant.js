@@ -52,6 +52,32 @@
         searchConversations: 'Search',
         newChat: 'New conversation',
         library: 'Library',
+        libraryLocal: 'Local library',
+        libraryImporting: 'Indexing document library...',
+        libraryReady: 'Document(s) indexed in the local library:',
+        libraryEmpty: '',
+        libraryClear: 'Clear',
+        libraryClearTitle: 'Clear local library',
+        libraryImportFailed: 'Unable to index document:',
+        libraryContextUsed: 'Local library context used',
+        libraryMediaTitle: 'Media contents',
+        libraryImportAction: 'Import media',
+        libraryEmptyView: 'Choose a local file to add it to the library.',
+        libraryImportSuccessView: 'Content imported into the library.',
+        libraryImportErrorView: 'Import failed. Try another file or check the console diagnostics.',
+        libraryLayoutGrid: 'Grid',
+        libraryLayoutList: 'List',
+        libraryStoredLocally: 'Stored locally',
+        libraryShowInChat: 'Show in chat',
+        libraryShownInChat: 'Displayed from the library',
+        libraryShare: 'Share',
+        libraryDownload: 'Download',
+        libraryCopy: 'Copy',
+        libraryCopied: 'Copied.',
+        libraryCopyFailed: 'Unable to copy this media.',
+        libraryDelete: 'Remove from library',
+        libraryDeleted: 'Content removed from the library.',
+        libraryPreviewClose: 'Close preview',
         discussions: 'Discussions',
         noMatchingDiscussions: 'No conversation found.',
         resizeSidebar: 'Resize sidebar',
@@ -130,6 +156,32 @@
       searchConversations: 'Rechercher',
       newChat: 'Nouvelle discussion',
       library: 'Bibliothèque',
+      libraryLocal: 'Bibliothèque locale',
+      libraryImporting: 'Indexation de la bibliothèque documentaire...',
+      libraryReady: 'Document(s) indexé(s) dans la bibliothèque locale :',
+      libraryEmpty: '',
+      libraryClear: 'Vider',
+      libraryClearTitle: 'Vider la bibliothèque locale',
+      libraryImportFailed: "Impossible d'indexer le document :",
+      libraryContextUsed: 'Contexte bibliothèque locale utilisé',
+      libraryMediaTitle: 'Contenus multimédias',
+      libraryImportAction: 'Importer des contenus',
+      libraryEmptyView: 'Choisissez un fichier local pour l’ajouter à la bibliothèque.',
+      libraryImportSuccessView: 'Contenu importé dans la bibliothèque.',
+      libraryImportErrorView: "L'import a échoué. Essayez un autre fichier ou consultez les diagnostics console.",
+      libraryLayoutGrid: 'Grille',
+      libraryLayoutList: 'Liste',
+      libraryStoredLocally: 'Stocké localement',
+      libraryShowInChat: 'Afficher dans le chat',
+      libraryShownInChat: 'Affiché depuis la bibliothèque',
+      libraryShare: 'Partager',
+      libraryDownload: 'Télécharger',
+      libraryCopy: 'Copier',
+      libraryCopied: 'Copié.',
+      libraryCopyFailed: 'Impossible de copier ce média.',
+      libraryDelete: 'Supprimer de la bibliothèque',
+      libraryDeleted: 'Contenu supprimé de la bibliothèque.',
+      libraryPreviewClose: "Fermer l'aperçu",
       discussions: 'Discussions',
       noMatchingDiscussions: 'Aucune discussion trouvée.',
       resizeSidebar: 'Redimensionner le volet',
@@ -284,6 +336,61 @@
       </div>`;
   }
 
+  function createLibraryViewMarkup() {
+    return `
+      <section id="ai-assistant-library-view" class="ai-assistant-library-view" aria-label="${i18n.library}" hidden>
+        <div class="ai-assistant-library-view-inner">
+          <div class="ai-assistant-library-view-head">
+            <h3 id="ai-assistant-library-view-title">${i18n.libraryMediaTitle}</h3>
+            <div class="ai-assistant-library-view-tools">
+              <span id="ai-assistant-library-count" class="ai-assistant-library-count">${i18n.libraryEmpty}</span>
+              <div class="ai-assistant-library-layout-toggle" role="group" aria-label="${i18n.library}">
+                <button id="ai-assistant-library-layout-grid" class="is-active" type="button">${i18n.libraryLayoutGrid}</button>
+                <button id="ai-assistant-library-layout-list" type="button">${i18n.libraryLayoutList}</button>
+              </div>
+              <button id="ai-assistant-library-import" class="ai-assistant-library-import" type="button">
+                <img src="${newFolderIconUrl}" alt="" aria-hidden="true">
+                <span>${i18n.libraryImportAction}</span>
+              </button>
+              <button id="ai-assistant-library-clear" class="ai-assistant-library-clear" type="button" title="${i18n.libraryClearTitle}" aria-label="${i18n.libraryClearTitle}" hidden>${i18n.libraryClear}</button>
+            </div>
+          </div>
+          <div id="ai-assistant-library-grid" class="ai-assistant-library-grid"></div>
+          <p id="ai-assistant-library-empty" class="ai-assistant-library-empty">${i18n.libraryEmptyView}</p>
+        </div>
+        <div id="ai-assistant-library-card-menu" class="ai-assistant-library-card-menu" role="menu" aria-hidden="true">
+          <button id="ai-assistant-library-menu-share" type="button" role="menuitem">
+            <span aria-hidden="true">↥</span>
+            <span>${i18n.libraryShare}</span>
+          </button>
+          <button id="ai-assistant-library-menu-chat" type="button" role="menuitem">
+            <span aria-hidden="true">▱</span>
+            <span>${i18n.libraryShowInChat}</span>
+          </button>
+          <button id="ai-assistant-library-menu-delete" type="button" role="menuitem" class="ai-assistant-library-menu-delete">
+            <span aria-hidden="true">×</span>
+            <span>${i18n.libraryDelete}</span>
+          </button>
+        </div>
+      </section>`;
+  }
+
+  function createMediaPreviewMarkup() {
+    return `
+      <div id="ai-assistant-media-preview" class="ai-assistant-media-preview" aria-hidden="true" hidden>
+        <div class="ai-assistant-media-preview-panel" role="dialog" aria-modal="true" aria-label="${i18n.libraryMediaTitle}">
+          <div class="ai-assistant-media-preview-toolbar">
+            <span id="ai-assistant-media-preview-title" class="ai-assistant-media-preview-title"></span>
+            <button id="ai-assistant-media-preview-copy" type="button">${i18n.libraryCopy}</button>
+            <button id="ai-assistant-media-preview-share" type="button">${i18n.libraryShare}</button>
+            <button id="ai-assistant-media-preview-download" type="button">${i18n.libraryDownload}</button>
+            <button id="ai-assistant-media-preview-close" type="button" aria-label="${i18n.libraryPreviewClose}">×</button>
+          </div>
+          <div id="ai-assistant-media-preview-body" class="ai-assistant-media-preview-body"></div>
+        </div>
+      </div>`;
+  }
+
   function createHistoryToggleMarkup() {
     return `
       <button id="ai-assistant-history-toggle" class="ai-assistant-history-toggle" type="button" title="${i18n.historyToggle}" aria-label="${i18n.historyToggle}" aria-expanded="true" aria-controls="ai-assistant-history-panel">
@@ -327,6 +434,7 @@
           </header>
           ${createSessionControlsMarkup()}
           <div id="ai-assistant-messages" class="ai-assistant-messages"></div>
+          ${createLibraryViewMarkup()}
           <button id="ai-assistant-scroll-bottom" class="ai-assistant-scroll-bottom" type="button" title="${i18n.scrollBottom}" aria-label="${i18n.scrollBottom}" aria-hidden="true">
             <span aria-hidden="true"></span>
           </button>
@@ -342,6 +450,7 @@
           <span class="ai-assistant-resize-handle ai-assistant-resize-handle--ne" data-resize-corner="ne" aria-hidden="true"></span>
           <span class="ai-assistant-resize-handle ai-assistant-resize-handle--sw" data-resize-corner="sw" aria-hidden="true"></span>
           <span class="ai-assistant-resize-handle ai-assistant-resize-handle--se" data-resize-corner="se" aria-hidden="true"></span>
+          ${createMediaPreviewMarkup()}
         </aside>`;
       document.body.insertAdjacentHTML('beforeend', markup);
       return;
@@ -401,6 +510,15 @@
           `<button id="ai-assistant-scroll-bottom" class="ai-assistant-scroll-bottom" type="button" title="${i18n.scrollBottom}" aria-label="${i18n.scrollBottom}" aria-hidden="true"><span aria-hidden="true"></span></button>`
         );
       }
+    }
+
+    if (!document.getElementById('ai-assistant-library-view')) {
+      const messages = document.getElementById('ai-assistant-messages');
+      if (messages) messages.insertAdjacentHTML('afterend', createLibraryViewMarkup().trim());
+    }
+
+    if (!document.getElementById('ai-assistant-media-preview')) {
+      panel.insertAdjacentHTML('beforeend', createMediaPreviewMarkup().trim());
     }
 
     const submitBtn = form.querySelector('button[type="submit"]');
@@ -498,6 +616,28 @@
   const sessionSearchInput = document.getElementById('ai-assistant-session-search');
   const sessionList = document.getElementById('ai-assistant-session-list');
   const sessionLibraryButton = document.getElementById('ai-assistant-session-library');
+  const libraryPanel = document.getElementById('ai-assistant-library-panel');
+  const libraryCount = document.getElementById('ai-assistant-library-count');
+  const libraryList = document.getElementById('ai-assistant-library-list');
+  const libraryClearButton = document.getElementById('ai-assistant-library-clear');
+  const libraryView = document.getElementById('ai-assistant-library-view');
+  const libraryViewTitle = document.getElementById('ai-assistant-library-view-title');
+  const libraryImportButton = document.getElementById('ai-assistant-library-import');
+  const libraryGrid = document.getElementById('ai-assistant-library-grid');
+  const libraryEmpty = document.getElementById('ai-assistant-library-empty');
+  const libraryLayoutGridButton = document.getElementById('ai-assistant-library-layout-grid');
+  const libraryLayoutListButton = document.getElementById('ai-assistant-library-layout-list');
+  const libraryCardMenu = document.getElementById('ai-assistant-library-card-menu');
+  const libraryMenuShareButton = document.getElementById('ai-assistant-library-menu-share');
+  const libraryMenuChatButton = document.getElementById('ai-assistant-library-menu-chat');
+  const libraryMenuDeleteButton = document.getElementById('ai-assistant-library-menu-delete');
+  const mediaPreview = document.getElementById('ai-assistant-media-preview');
+  const mediaPreviewTitle = document.getElementById('ai-assistant-media-preview-title');
+  const mediaPreviewBody = document.getElementById('ai-assistant-media-preview-body');
+  const mediaPreviewCopyButton = document.getElementById('ai-assistant-media-preview-copy');
+  const mediaPreviewShareButton = document.getElementById('ai-assistant-media-preview-share');
+  const mediaPreviewDownloadButton = document.getElementById('ai-assistant-media-preview-download');
+  const mediaPreviewCloseButton = document.getElementById('ai-assistant-media-preview-close');
   const sidebarResizeHandle = document.getElementById('ai-assistant-sidebar-resize');
   const sessionContextMenu = document.getElementById('ai-assistant-session-menu');
   const sessionMenuExportButton = document.getElementById('ai-assistant-session-menu-export');
@@ -520,6 +660,7 @@
   let sessionsState = { activeSessionId: '', sessions: [] };
   let pendingFileContext = '';
   let pendingFileNames = [];
+  let pendingLibraryDocumentNames = [];
   let pendingVisionAttachments = [];
   let driveAccessToken = '';
   let pickerReadyPromise = null;
@@ -530,8 +671,17 @@
   let activeAssistantRequestController = null;
   let activeContextSessionId = '';
   let isSidebarResizing = false;
+  let isLibraryImportMode = false;
+  let isLibraryViewOpen = false;
+  let activeLibraryMenuDocId = '';
+  let activePreviewDocId = '';
+  let activeLibraryStatus = '';
+  let knowledgeLibraryDbPromise = null;
+  const knowledgeOriginalFileMemoryStore = new Map();
+  let libraryLayoutMode = 'grid';
   let sidebarResizeStartX = 0;
   let sidebarResizeStartWidth = 0;
+  let knowledgeLibrary = { version: 1, documents: [] };
   let availableTtsVoices = [];
   let activeSpeechTracking = null;
   let speechTrackingToken = 0;
@@ -548,16 +698,34 @@
   const panelSizeStorageKey = 'ai_assistant_panel_size_v1';
   const historyPanelStorageKey = 'ai_assistant_history_panel_open_v1';
   const historyPanelWidthStorageKey = 'ai_assistant_history_panel_width_v1';
+  const knowledgeLibraryStorageKey = 'ai_assistant_knowledge_library_v1';
+  const knowledgeLibraryLayoutStorageKey = 'ai_assistant_library_layout_v1';
+  const knowledgeLibraryDbName = 'digital_blue_skye_ai_library_v1';
+  const knowledgeLibraryFileStoreName = 'original_files';
   const assistantDebugStorageKey = 'ai_assistant_debug';
   const maxStoredSessions = 20;
   const maxStoredMessagesPerSession = 40;
   const maxStoredMessageLength = 8000;
   const maxConversationSummaryLength = 1800;
   const apiHistoryWindow = 16;
+  const maxKnowledgeDocuments = 10;
+  const maxKnowledgeCharsPerDocument = 250000;
+  const maxKnowledgeChunksPerDocument = 140;
+  const knowledgeChunkSize = 2200;
+  const knowledgeChunkOverlap = 180;
+  const maxRetrievedKnowledgeChunks = 8;
+  const maxStoredMediaDataUrlLength = 1500000;
+  const libraryImagePreviewSize = 720;
+  const libraryDocumentPreviewSize = 760;
 
   function isAssistantDebugEnabled() {
     try { return localStorage.getItem(assistantDebugStorageKey) === 'true'; } catch (error) { return false; }
   }
+
+  try {
+    const storedLibraryLayout = localStorage.getItem(knowledgeLibraryLayoutStorageKey);
+    if (storedLibraryLayout === 'list') libraryLayoutMode = 'list';
+  } catch (error) {}
 
   function assistantLog(level, eventName, details = {}) {
     if (!isAssistantDebugEnabled() && level !== 'warn' && level !== 'error') return;
@@ -965,21 +1133,30 @@
     return `${compact.slice(0, limit - 3).trim()}...`;
   }
 
+  function truncateText(text, limit = 220) {
+    const compact = String(text || '').replace(/\s+/g, ' ').trim();
+    const max = Math.max(12, Number(limit) || 220);
+    if (compact.length <= max) return compact;
+    return `${compact.slice(0, max - 3).trim()}...`;
+  }
+
   const readableFileExtensions = new Set(['txt','md','markdown','json','csv','log','xml','html','htm','js','ts','css','py','php','java','c','cpp','sql','yaml','yml']);
   const imageFileExtensions = new Set(['png','jpg','jpeg','webp','bmp','gif','tiff']);
   const pdfFileExtensions = new Set(['pdf']);
   const docxFileExtensions = new Set(['docx']);
   const excelFileExtensions = new Set(['xlsx','xls']);
+  const powerPointFileExtensions = new Set(['pptx','ppt']);
   let tesseractLoaderPromise = null;
   let pdfJsLoaderPromise = null;
   let mammothLoaderPromise = null;
   let sheetJsLoaderPromise = null;
+  let jsZipLoaderPromise = null;
   let html2PdfLoaderPromise = null;
   let jsPdfLoaderPromise = null;
   const maxLocalFilesPerPrompt = 4;
   const maxTextCharsPerFile = 12000;
   const maxDocumentCharsPerFile = 60000;
-  const maxExcelContextCharsPerFile = 14000;
+  const maxExcelContextCharsPerFile = 120000;
   const maxImageOcrCharsPerFile = 8000;
 
   function getFileExtension(name) {
@@ -990,7 +1167,7 @@
 
   function isReadableTextFile(file) {
     if (!file) return false;
-    if (isDocxFile(file) || isPdfFile(file) || isImageFile(file) || isExcelFile(file)) return false;
+    if (isDocxFile(file) || isPdfFile(file) || isImageFile(file) || isExcelFile(file) || isPowerPointFile(file)) return false;
     const mime = String(file.type || '').toLowerCase();
     if (mime.startsWith('text/')) return true;
     if (mime.includes('json') || mime.includes('xml') || mime.includes('csv') || mime.includes('javascript')) return true;
@@ -1027,6 +1204,15 @@
     return excelFileExtensions.has(getFileExtension(file.name));
   }
 
+  function isPowerPointFile(file) {
+    if (!file) return false;
+    const mime = String(file.type || '').toLowerCase();
+    if (mime === 'application/vnd.openxmlformats-officedocument.presentationml.presentation') return true;
+    if (mime === 'application/vnd.ms-powerpoint') return true;
+    if (mime.includes('presentationml') || mime.includes('powerpoint')) return true;
+    return powerPointFileExtensions.has(getFileExtension(file.name));
+  }
+
   function readFileAsText(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -1043,6 +1229,277 @@
       reader.onerror = () => reject(new Error('file_dataurl_error'));
       reader.readAsDataURL(file);
     });
+  }
+
+  function fileSizeLabel(bytes) {
+    const size = Number(bytes) || 0;
+    if (!size) return '';
+    if (size < 1024) return `${size} o`;
+    if (size < 1024 * 1024) return `${Math.round(size / 102.4) / 10} Ko`;
+    return `${Math.round(size / (1024 * 102.4)) / 10} Mo`;
+  }
+
+  function createImageThumbnailDataUrl(dataUrl, maxSide = libraryImagePreviewSize) {
+    return new Promise((resolve) => {
+      if (!String(dataUrl || '').startsWith('data:image/')) { resolve(''); return; }
+      const image = new Image();
+      image.onload = () => {
+        const scale = Math.min(1, maxSide / Math.max(image.naturalWidth || image.width, image.naturalHeight || image.height));
+        const width = Math.max(1, Math.round((image.naturalWidth || image.width) * scale));
+        const height = Math.max(1, Math.round((image.naturalHeight || image.height) * scale));
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) { resolve(''); return; }
+        ctx.drawImage(image, 0, 0, width, height);
+        try {
+          resolve(canvas.toDataURL('image/jpeg', 0.82));
+        } catch (error) {
+          resolve('');
+        }
+      };
+      image.onerror = () => resolve('');
+      image.src = dataUrl;
+    });
+  }
+
+  function dataUrlToBlob(dataUrl) {
+    const match = String(dataUrl || '').match(/^data:([^;,]+)?(;base64)?,(.*)$/);
+    if (!match) return null;
+    const mimeType = match[1] || 'application/octet-stream';
+    const isBase64 = Boolean(match[2]);
+    const payload = match[3] || '';
+    try {
+      const binary = isBase64 ? atob(payload) : decodeURIComponent(payload);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+      return new Blob([bytes], { type: mimeType });
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function openKnowledgeLibraryDb() {
+    if (!window.indexedDB) return Promise.resolve(null);
+    if (knowledgeLibraryDbPromise) return knowledgeLibraryDbPromise;
+    knowledgeLibraryDbPromise = new Promise((resolve) => {
+      const request = indexedDB.open(knowledgeLibraryDbName, 1);
+      request.onupgradeneeded = () => {
+        const db = request.result;
+        if (!db.objectStoreNames.contains(knowledgeLibraryFileStoreName)) {
+          db.createObjectStore(knowledgeLibraryFileStoreName, { keyPath: 'id' });
+        }
+      };
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => {
+        assistantLog('warn', 'library_indexeddb_open_failed', { reason: request.error?.message || 'indexeddb_open_failed' });
+        resolve(null);
+      };
+    });
+    return knowledgeLibraryDbPromise;
+  }
+
+  async function putKnowledgeOriginalFile(docId, file) {
+    if (!docId || !file) return false;
+    const storedFile = {
+      id: docId,
+      name: file.name || 'document',
+      mimeType: file.type || 'application/octet-stream',
+      size: file.size || 0,
+      savedAt: new Date().toISOString(),
+      blob: file.slice(0, file.size, file.type || 'application/octet-stream')
+    };
+    knowledgeOriginalFileMemoryStore.set(docId, storedFile);
+    const db = await openKnowledgeLibraryDb();
+    if (!db) return true;
+    return new Promise((resolve) => {
+      const tx = db.transaction(knowledgeLibraryFileStoreName, 'readwrite');
+      tx.objectStore(knowledgeLibraryFileStoreName).put(storedFile);
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = () => {
+        assistantLog('warn', 'library_original_file_save_failed', {
+          fileName: file?.name || 'document',
+          reason: tx.error?.message || 'indexeddb_put_failed'
+        });
+        resolve(false);
+      };
+    });
+  }
+
+  async function getKnowledgeOriginalFile(doc) {
+    if (doc?.id && knowledgeOriginalFileMemoryStore.has(doc.id)) {
+      return knowledgeOriginalFileMemoryStore.get(doc.id);
+    }
+    const db = await openKnowledgeLibraryDb();
+    if (!db || !doc?.id) return null;
+    return new Promise((resolve) => {
+      const tx = db.transaction(knowledgeLibraryFileStoreName, 'readonly');
+      const request = tx.objectStore(knowledgeLibraryFileStoreName).get(doc.id);
+      request.onsuccess = () => resolve(request.result || null);
+      request.onerror = () => resolve(null);
+    });
+  }
+
+  async function clearKnowledgeOriginalFiles() {
+    knowledgeOriginalFileMemoryStore.clear();
+    const db = await openKnowledgeLibraryDb();
+    if (!db) return;
+    await new Promise((resolve) => {
+      const tx = db.transaction(knowledgeLibraryFileStoreName, 'readwrite');
+      tx.objectStore(knowledgeLibraryFileStoreName).clear();
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => resolve();
+    });
+  }
+
+  async function deleteKnowledgeOriginalFile(docId) {
+    if (!docId) return;
+    knowledgeOriginalFileMemoryStore.delete(docId);
+    const db = await openKnowledgeLibraryDb();
+    if (!db) return;
+    await new Promise((resolve) => {
+      const tx = db.transaction(knowledgeLibraryFileStoreName, 'readwrite');
+      tx.objectStore(knowledgeLibraryFileStoreName).delete(docId);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => resolve();
+    });
+  }
+
+  function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight, maxLines) {
+    const words = String(text || '').replace(/\s+/g, ' ').trim().split(' ').filter(Boolean);
+    const lines = [];
+    let line = '';
+    words.forEach((word) => {
+      const testLine = line ? `${line} ${word}` : word;
+      if (ctx.measureText(testLine).width > maxWidth && line) {
+        lines.push(line);
+        line = word;
+      } else {
+        line = testLine;
+      }
+    });
+    if (line) lines.push(line);
+    lines.slice(0, maxLines).forEach((item, index) => {
+      const suffix = index === maxLines - 1 && lines.length > maxLines ? '...' : '';
+      ctx.fillText(`${item}${suffix}`, x, y + index * lineHeight);
+    });
+    return Math.min(lines.length, maxLines) * lineHeight;
+  }
+
+  function createDocumentCanvasPreview({ title, type, kind, text }) {
+    const canvas = document.createElement('canvas');
+    canvas.width = libraryDocumentPreviewSize;
+    canvas.height = libraryDocumentPreviewSize;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return '';
+
+    const gradients = {
+      pdf: ['#ff776b', '#6d2cff'],
+      excel: ['#1fb779', '#4f7cff'],
+      powerpoint: ['#f06b31', '#a837ff'],
+      docx: ['#3f8cff', '#763cff'],
+      html: ['#ff9b45', '#5f7dff'],
+      text: ['#65d6ff', '#7a4dff'],
+      document: ['#65d6ff', '#c35cff']
+    };
+    const kindLabels = {
+      excel: 'EXCEL',
+      powerpoint: 'PRESENTATION',
+      docx: 'DOCUMENT',
+      html: 'PAGE WEB',
+      text: 'TEXTE',
+      pdf: 'PDF',
+      document: 'DOCUMENT'
+    };
+    const [start, end] = gradients[kind] || gradients.document;
+    const bg = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+    bg.addColorStop(0, '#202840');
+    bg.addColorStop(0.45, '#2d2559');
+    bg.addColorStop(1, '#161029');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const accent = ctx.createLinearGradient(120, 100, 640, 640);
+    accent.addColorStop(0, start);
+    accent.addColorStop(1, end);
+    ctx.fillStyle = accent;
+    ctx.globalAlpha = 0.26;
+    ctx.beginPath();
+    ctx.roundRect?.(64, 64, 632, 632, 46);
+    if (!ctx.roundRect) ctx.rect(64, 64, 632, 632);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+
+    ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(72, 72, 616, 616);
+
+    ctx.fillStyle = '#f7f7ff';
+    ctx.font = '700 64px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(String(type || 'DOC').toUpperCase().slice(0, 5), 380, 185);
+
+    ctx.fillStyle = '#79e6ff';
+    ctx.font = '700 24px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.fillText(kindLabels[kind] || String(kind || 'DOCUMENT').toUpperCase(), 380, 228);
+
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '700 34px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+    wrapCanvasText(ctx, title, 120, 330, 520, 42, 3);
+
+    ctx.fillStyle = 'rgba(235,240,255,0.78)';
+    ctx.font = '500 24px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+    wrapCanvasText(ctx, text, 120, 480, 520, 34, 5);
+
+    try {
+      return canvas.toDataURL('image/jpeg', 0.84);
+    } catch (error) {
+      return '';
+    }
+  }
+
+  function createHtmlCanvasPreview({ title, text }) {
+    const cleaned = String(text || '')
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/&nbsp;/gi, ' ')
+      .replace(/&amp;/gi, '&')
+      .replace(/&lt;/gi, '<')
+      .replace(/&gt;/gi, '>')
+      .replace(/\s+/g, ' ')
+      .trim();
+    return createDocumentCanvasPreview({
+      title,
+      type: 'HTML',
+      kind: 'html',
+      text: cleaned || 'Page HTML conservée dans la bibliothèque locale.'
+    });
+  }
+
+  async function createPdfPreviewDataUrl(file) {
+    try {
+      const pdfjsLib = await loadPdfJsLibrary();
+      const data = await file.arrayBuffer();
+      const pdfDoc = await pdfjsLib.getDocument({ data }).promise;
+      const page = await pdfDoc.getPage(1);
+      const viewport = page.getViewport({ scale: 1 });
+      const targetWidth = libraryDocumentPreviewSize;
+      const scale = targetWidth / viewport.width;
+      const scaledViewport = page.getViewport({ scale });
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.ceil(scaledViewport.width);
+      canvas.height = Math.ceil(scaledViewport.height);
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return '';
+      await page.render({ canvasContext: ctx, viewport: scaledViewport }).promise;
+      return canvas.toDataURL('image/jpeg', 0.82);
+    } catch (error) {
+      assistantLog('warn', 'library_pdf_preview_failed', { fileName: file?.name || 'pdf', reason: error?.message || 'pdf_preview_failed' });
+      return '';
+    }
   }
 
   async function buildVisionAttachments(files) {
@@ -1189,6 +1646,20 @@
     return sheetJsLoaderPromise;
   }
 
+  function loadJsZipLibrary() {
+    if (window.JSZip?.loadAsync) return Promise.resolve(window.JSZip);
+    if (jsZipLoaderPromise) return jsZipLoaderPromise;
+    jsZipLoaderPromise = new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js';
+      script.async = true;
+      script.onload = () => window.JSZip?.loadAsync ? resolve(window.JSZip) : reject(new Error('jszip_missing'));
+      script.onerror = () => reject(new Error('jszip_load_failed'));
+      document.head.appendChild(script);
+    });
+    return jsZipLoaderPromise;
+  }
+
   async function extractTextFromDocx(file) {
     const mammoth = await loadMammothLibrary();
     const arrayBuffer = await file.arrayBuffer();
@@ -1196,22 +1667,125 @@
     return String(result?.value || '').replace(/\r/g, '').replace(/\n{3,}/g, '\n\n').trim();
   }
 
+  async function extractTextFromPowerPoint(file, language) {
+    const JSZip = await loadJsZipLibrary();
+    const zip = await JSZip.loadAsync(await file.arrayBuffer());
+    const slideFiles = Object.keys(zip.files || {})
+      .filter((name) => /^ppt\/slides\/slide\d+\.xml$/i.test(name))
+      .sort((a, b) => Number(a.match(/slide(\d+)\.xml/i)?.[1] || 0) - Number(b.match(/slide(\d+)\.xml/i)?.[1] || 0));
+    const parser = new DOMParser();
+    const slideTexts = [];
+    for (const slideName of slideFiles.slice(0, 20)) {
+      const xml = await zip.file(slideName)?.async('text');
+      if (!xml) continue;
+      const doc = parser.parseFromString(xml, 'application/xml');
+      const texts = Array.from(doc.getElementsByTagName('a:t'))
+        .map((node) => node.textContent || '')
+        .map((value) => value.replace(/\s+/g, ' ').trim())
+        .filter(Boolean);
+      if (texts.length) {
+        const slideNumber = Number(slideName.match(/slide(\d+)\.xml/i)?.[1] || slideTexts.length + 1);
+        slideTexts.push(`${language === 'en' ? 'Slide' : 'Diapositive'} ${slideNumber}: ${texts.join(' | ')}`);
+      }
+    }
+    return {
+      text: slideTexts.join('\n\n').trim(),
+      slideCount: slideFiles.length,
+      extractedSlides: slideTexts.length
+    };
+  }
+
+  function excelCellToText(value) {
+    if (value === null || value === undefined) return '';
+    if (value instanceof Date && !Number.isNaN(value.getTime())) return value.toISOString().slice(0, 10);
+    if (typeof value === 'number') return Number.isFinite(value) ? String(value) : '';
+    if (typeof value === 'boolean') return value ? 'true' : 'false';
+    return String(value).replace(/\r/g, ' ').replace(/\s+/g, ' ').trim();
+  }
+
+  function isExcelRowEmpty(row) {
+    return !Array.isArray(row) || !row.some((cell) => excelCellToText(cell));
+  }
+
+  function excelNumberFromCell(value) {
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+    const text = excelCellToText(value)
+      .replace(/\s/g, '')
+      .replace(/[€$£%]/g, '')
+      .replace(/,/g, '.');
+    if (!text || !/^-?\d+(\.\d+)?$/.test(text)) return null;
+    const number = Number(text);
+    return Number.isFinite(number) ? number : null;
+  }
+
+  function formatExcelNumber(value) {
+    if (!Number.isFinite(value)) return '';
+    return String(Number(value.toFixed(4))).replace(/\.0+$/, '');
+  }
+
+  function makeExcelColumnLabels(headerRow, columnCount) {
+    const seen = new Map();
+    const labels = [];
+    for (let index = 0; index < columnCount; index += 1) {
+      const raw = excelCellToText(headerRow?.[index]) || `Col${index + 1}`;
+      const base = raw.slice(0, 80);
+      const count = seen.get(base) || 0;
+      seen.set(base, count + 1);
+      labels.push(count ? `${base}_${count + 1}` : base);
+    }
+    return labels;
+  }
+
+  function buildExcelRowText(rowNumber, row, columnLabels, maxColumns = 24) {
+    const values = [];
+    for (let index = 0; index < Math.min(columnLabels.length, maxColumns); index += 1) {
+      const value = excelCellToText(row?.[index]);
+      if (value) values.push(`${columnLabels[index]}=${value.slice(0, 140)}`);
+    }
+    const overflow = columnLabels.length > maxColumns ? ` | ... ${columnLabels.length - maxColumns} colonne(s) non affichée(s)` : '';
+    return `L${rowNumber}: ${values.join(' | ') || '[ligne vide]'}${overflow}`;
+  }
+
+  function pickExcelWindowIndexes(dataRows, maxRows = 32) {
+    const total = dataRows.length;
+    if (total <= maxRows) return dataRows.map((entry) => entry.index);
+    const selected = new Set();
+    const first = Math.min(12, total);
+    const last = Math.min(12, total - first);
+    for (let i = 0; i < first; i += 1) selected.add(dataRows[i].index);
+    const middleStart = Math.max(first, Math.floor(total / 2) - 4);
+    for (let i = middleStart; i < Math.min(total - last, middleStart + 8); i += 1) selected.add(dataRows[i].index);
+    for (let i = Math.max(first, total - last); i < total; i += 1) selected.add(dataRows[i].index);
+    return Array.from(selected).sort((a, b) => a - b);
+  }
+
+  function appendExcelSection(lines, section, budget) {
+    const currentLength = lines.reduce((sum, line) => sum + line.length + 1, 0);
+    if (currentLength + section.length + 1 > budget) return false;
+    lines.push(section);
+    return true;
+  }
+
   async function extractTextFromExcel(file, language) {
     const XLSX = await loadSheetJsLibrary();
     const arrayBuffer = await file.arrayBuffer();
-    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+    const workbook = XLSX.read(arrayBuffer, { type: 'array', cellDates: true });
 
     const sheetNames = workbook.SheetNames || [];
     if (!sheetNames.length) {
-      return { text: '', sheetNames: [], sheetCount: 0 };
+      return { text: '', sheetNames: [], sheetCount: 0, totalRows: 0 };
     }
 
-    const maxSheetsToRead = 5;
-    const maxRowsPerSheet = 25;
-    const maxColumnsPerSheet = 12;
+    const isEnglish = language === 'en';
+    const maxDetailedColumns = 80;
+    const maxColumnsInRows = 24;
+    const maxDetailedRowsCharsPerSheet = 65000;
     const sheetTexts = [];
+    let totalRows = 0;
+    let totalNonEmptyRows = 0;
+    let detailedRowsWereLimited = false;
 
-    for (let i = 0; i < Math.min(sheetNames.length, maxSheetsToRead); i++) {
+    for (let i = 0; i < sheetNames.length; i += 1) {
       const sheetName = sheetNames[i];
       const sheet = workbook.Sheets[sheetName];
       if (!sheet) continue;
@@ -1219,63 +1793,118 @@
       const sheetData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
       if (!sheetData.length) continue;
 
-      const nonEmptyRows = sheetData.filter((row) => Array.isArray(row) && row.some((cell) => String(cell ?? '').trim()));
-      const columnCount = nonEmptyRows.reduce((max, row) => Math.max(max, row.length), 0);
-      const firstRow = sheetData[0] || [];
-      const columnLabels = firstRow
-        .map((col, idx) => String(col ?? '').trim() || `Col${idx + 1}`)
-        .slice(0, maxColumnsPerSheet);
+      const nonEmptyEntries = sheetData
+        .map((row, index) => ({ row, index }))
+        .filter((entry) => !isExcelRowEmpty(entry.row));
+      if (!nonEmptyEntries.length) continue;
+
+      totalRows += sheetData.length;
+      totalNonEmptyRows += nonEmptyEntries.length;
+      const headerEntry = nonEmptyEntries.find((entry) => entry.index < 20) || nonEmptyEntries[0];
+      const dataEntries = nonEmptyEntries.filter((entry) => entry.index > headerEntry.index);
+      const columnCount = nonEmptyEntries.reduce((max, entry) => Math.max(max, Array.isArray(entry.row) ? entry.row.length : 0), 0);
+      const columnLabels = makeExcelColumnLabels(headerEntry.row || [], columnCount);
+      const analyzedColumnCount = Math.min(columnCount, maxDetailedColumns);
       const numericStats = [];
+      const textStats = [];
+      const emptyStats = [];
+      const seenRows = new Set();
+      let duplicateRows = 0;
 
-      for (let colIdx = 0; colIdx < Math.min(columnCount, maxColumnsPerSheet); colIdx += 1) {
-        const values = sheetData
-          .slice(1)
-          .map((row) => Number(String(row?.[colIdx] ?? '').replace(',', '.')))
-          .filter((value) => Number.isFinite(value));
-        if (values.length < 2) continue;
-        const sum = values.reduce((total, value) => total + value, 0);
-        const min = Math.min(...values);
-        const max = Math.max(...values);
-        numericStats.push(`${columnLabels[colIdx] || `Col${colIdx + 1}`}: n=${values.length}, min=${min}, max=${max}, moyenne=${Number((sum / values.length).toFixed(2))}`);
+      for (const entry of dataEntries) {
+        const normalized = (entry.row || []).slice(0, columnCount).map(excelCellToText).join('\u001f');
+        if (!normalized.trim()) continue;
+        if (seenRows.has(normalized)) duplicateRows += 1;
+        else seenRows.add(normalized);
       }
 
-      let sheetText = [
-        `${language === 'en' ? 'Sheet' : 'Feuille'}: ${sheetName}`,
-        `${language === 'en' ? 'Size' : 'Taille'}: ${nonEmptyRows.length} ${language === 'en' ? 'non-empty rows' : 'lignes non vides'}, ${columnCount} ${language === 'en' ? 'columns' : 'colonnes'}`,
-        `${language === 'en' ? 'Columns' : 'Colonnes'}: ${columnLabels.join(' | ') || '[non détectées]'}`,
-        numericStats.length ? `${language === 'en' ? 'Numeric summary' : 'Synthèse numérique'}: ${numericStats.join(' ; ')}` : '',
-        `${language === 'en' ? 'Sample rows' : 'Lignes échantillon'}:`
-      ].filter(Boolean).join('\n');
-
-      const rowsToRead = Math.min(sheetData.length, maxRowsPerSheet + 1);
-      for (let rowIdx = 1; rowIdx < rowsToRead; rowIdx++) {
-        const row = sheetData[rowIdx] || [];
-        if (!row.some((cell) => String(cell ?? '').trim())) continue;
-
-        const rowText = row
-          .slice(0, maxColumnsPerSheet)
-          .map((cell) => String(cell ?? '').trim())
-          .join(' | ');
-        sheetText += `\n${rowIdx}. ${rowText}`;
+      for (let colIdx = 0; colIdx < analyzedColumnCount; colIdx += 1) {
+        const label = columnLabels[colIdx] || `Col${colIdx + 1}`;
+        const values = dataEntries.map((entry) => entry.row?.[colIdx]);
+        const nonEmptyValues = values.map(excelCellToText).filter(Boolean);
+        const emptyCount = Math.max(0, dataEntries.length - nonEmptyValues.length);
+        if (emptyCount) emptyStats.push(`${label}: ${emptyCount}`);
+        const numericValues = values.map(excelNumberFromCell).filter((value) => value !== null);
+        if (numericValues.length >= 2 && numericValues.length >= Math.max(2, Math.floor(nonEmptyValues.length * 0.55))) {
+          const sorted = [...numericValues].sort((a, b) => a - b);
+          const sum = numericValues.reduce((total, value) => total + value, 0);
+          const average = sum / numericValues.length;
+          const median = sorted[Math.floor(sorted.length / 2)];
+          numericStats.push(`${label}: n=${numericValues.length}, min=${formatExcelNumber(sorted[0])}, max=${formatExcelNumber(sorted[sorted.length - 1])}, moyenne=${formatExcelNumber(average)}, médiane=${formatExcelNumber(median)}`);
+          continue;
+        }
+        if (nonEmptyValues.length >= 2) {
+          const counts = new Map();
+          for (const value of nonEmptyValues) {
+            const key = value.slice(0, 90);
+            counts.set(key, (counts.get(key) || 0) + 1);
+            if (counts.size > 500) break;
+          }
+          const topValues = Array.from(counts.entries())
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 4)
+            .map(([value, count]) => `${value} (${count})`)
+            .join(', ');
+          const distinctCount = new Set(nonEmptyValues.map((value) => value.slice(0, 90))).size;
+          textStats.push(`${label}: ${distinctCount} valeur(s) distincte(s)${topValues ? `, fréquentes: ${topValues}` : ''}`);
+        }
       }
 
-      if (sheetData.length > maxRowsPerSheet + 1) {
-        sheetText += `\n... [${language === 'en' ? 'sample truncated' : 'échantillon tronqué'}: ${sheetData.length - maxRowsPerSheet - 1} ${language === 'en' ? 'additional rows' : 'lignes supplémentaires'}]`;
+      const rowWindowIndexes = new Set(pickExcelWindowIndexes(dataEntries, 32));
+      const previewRows = dataEntries
+        .filter((entry) => rowWindowIndexes.has(entry.index))
+        .map((entry) => buildExcelRowText(entry.index + 1, entry.row, columnLabels, maxColumnsInRows));
+
+      const detailLines = [];
+      let detailedRowsIncluded = 0;
+      for (const entry of dataEntries) {
+        const rowText = buildExcelRowText(entry.index + 1, entry.row, columnLabels, maxColumnsInRows);
+        if (!appendExcelSection(detailLines, rowText, maxDetailedRowsCharsPerSheet)) {
+          detailedRowsWereLimited = true;
+          break;
+        }
+        detailedRowsIncluded += 1;
       }
 
-      sheetTexts.push(sheetText);
+      const sheetLines = [
+        `${isEnglish ? 'Sheet' : 'Feuille'}: ${sheetName}`,
+        `${isEnglish ? 'Analysis status' : 'Statut analyse'}: ${isEnglish ? 'all rows in this sheet were read in the browser before summarization' : 'toutes les lignes de cette feuille ont été parcourues côté navigateur avant synthèse'}`,
+        `${isEnglish ? 'Size' : 'Taille'}: ${nonEmptyEntries.length} ${isEnglish ? 'non-empty rows' : 'lignes non vides'} (${dataEntries.length} ${isEnglish ? 'data rows after header' : 'lignes de données après en-tête'}), ${columnCount} ${isEnglish ? 'columns' : 'colonnes'}`,
+        `${isEnglish ? 'Header row' : 'Ligne d’en-tête'}: L${headerEntry.index + 1}`,
+        `${isEnglish ? 'Columns' : 'Colonnes'}: ${columnLabels.slice(0, maxDetailedColumns).join(' | ') || '[non détectées]'}${columnCount > maxDetailedColumns ? ` | ... ${columnCount - maxDetailedColumns} colonne(s) supplémentaire(s)` : ''}`,
+        duplicateRows ? `${isEnglish ? 'Duplicate data rows' : 'Lignes de données doublonnées'}: ${duplicateRows}` : `${isEnglish ? 'Duplicate data rows' : 'Lignes de données doublonnées'}: 0`,
+        numericStats.length ? `${isEnglish ? 'Numeric columns, calculated on all data rows' : 'Colonnes numériques, calculées sur toutes les lignes'}:\n- ${numericStats.join('\n- ')}` : '',
+        textStats.length ? `${isEnglish ? 'Text/categorical columns, calculated on all data rows' : 'Colonnes texte/catégorielles, calculées sur toutes les lignes'}:\n- ${textStats.slice(0, 40).join('\n- ')}` : '',
+        emptyStats.length ? `${isEnglish ? 'Empty cells by column' : 'Cellules vides par colonne'}:\n- ${emptyStats.slice(0, 40).join('\n- ')}` : '',
+        previewRows.length ? `${isEnglish ? 'Representative rows (beginning, middle, end)' : 'Lignes représentatives (début, milieu, fin)'}:\n${previewRows.join('\n')}` : '',
+        detailLines.length ? `${isEnglish ? 'Indexed detailed rows for retrieval' : 'Lignes détaillées indexées pour recherche'} (${detailedRowsIncluded}/${dataEntries.length}):\n${detailLines.join('\n')}` : ''
+      ].filter(Boolean);
+
+      sheetTexts.push(sheetLines.join('\n'));
     }
 
-    if (sheetNames.length > maxSheetsToRead) {
-      const remaining = sheetNames.length - maxSheetsToRead;
-      sheetTexts.push(`... [${language === 'en' ? `${remaining} more sheet(s)` : `${remaining} feuille(s) supplémentaire(s)`}]`);
-    }
+    const fullText = [
+      `${isEnglish ? 'Workbook analysis' : 'Analyse du classeur'}: ${file.name}`,
+      `${isEnglish ? 'Sheets read' : 'Feuilles lues'}: ${sheetNames.length}`,
+      `${isEnglish ? 'Rows read before summarization' : 'Lignes parcourues avant synthèse'}: ${totalRows} (${totalNonEmptyRows} ${isEnglish ? 'non-empty' : 'non vides'})`,
+      detailedRowsWereLimited
+        ? (isEnglish
+          ? 'Note: detailed row listing was reduced to stay within the prompt/storage budget; all row counts and column summaries above were still calculated from the full workbook.'
+          : 'Note : la liste détaillée des lignes a été réduite pour rester dans le budget de contexte/stockage ; les comptages et synthèses de colonnes ci-dessus restent calculés sur le classeur complet.')
+        : (isEnglish
+          ? 'Note: detailed rows fit within the extraction budget.'
+          : 'Note : les lignes détaillées tiennent dans le budget d’extraction.'),
+      '',
+      sheetTexts.join('\n\n')
+    ].filter(Boolean).join('\n');
 
-    const fullText = sheetTexts.join('\n\n');
     return {
       text: fullText,
       sheetNames,
       sheetCount: sheetNames.length,
+      totalRows,
+      totalNonEmptyRows,
+      detailedRowsWereLimited,
       extractedText: fullText.length
     };
   }
@@ -1349,7 +1978,10 @@
               maxChars: maxExcelContextCharsPerFile,
               meta: [
                 `${currentLanguage === 'en' ? 'Sheets' : 'Feuilles'}: ${excelResult.sheetCount}`,
-                `${currentLanguage === 'en' ? 'Sheet names' : 'Noms des feuilles'}: ${excelResult.sheetNames.join(', ')}`
+                `${currentLanguage === 'en' ? 'Sheet names' : 'Noms des feuilles'}: ${excelResult.sheetNames.join(', ')}`,
+                `${currentLanguage === 'en' ? 'Rows read before summarization' : 'Lignes parcourues avant synthèse'}: ${excelResult.totalRows || 0}`,
+                `${currentLanguage === 'en' ? 'Non-empty rows' : 'Lignes non vides'}: ${excelResult.totalNonEmptyRows || 0}`,
+                `${currentLanguage === 'en' ? 'Detailed row listing limited' : 'Liste détaillée des lignes limitée'}: ${excelResult.detailedRowsWereLimited ? 'oui' : 'non'}`
               ]
             }));
             readableNames.push(file.name);
@@ -1357,6 +1989,31 @@
               fileName: file.name,
               pendingFileContextLength: snippets.join('\n\n').length
             });
+            continue;
+          } catch (error) { failedNames.push(file.name); continue; }
+        }
+        if (isPowerPointFile(file)) {
+          try {
+            const pptResult = await extractTextFromPowerPoint(file, currentLanguage);
+            assistantLog('debug', 'pptx_extract_result', {
+              fileName: file.name,
+              slideCount: pptResult.slideCount,
+              extractedSlides: pptResult.extractedSlides,
+              extractedTextLength: pptResult.text.length,
+              extractedTextPreview: pptResult.text.slice(0, 300)
+            });
+            if (!pptResult.text) { noTextNames.push(file.name); continue; }
+            snippets.push(buildDocumentContextBlock({
+              label: `PowerPoint ${getFileExtension(file.name).toUpperCase()}`,
+              fileName: file.name,
+              text: pptResult.text,
+              maxChars: maxDocumentCharsPerFile,
+              meta: [
+                `${currentLanguage === 'en' ? 'Slides' : 'Diapositives'}: ${pptResult.slideCount}`,
+                `${currentLanguage === 'en' ? 'Slides extracted' : 'Diapositives extraites'}: ${pptResult.extractedSlides}`
+              ]
+            }));
+            readableNames.push(file.name);
             continue;
           } catch (error) { failedNames.push(file.name); continue; }
         }
@@ -1379,6 +2036,500 @@
       } catch (error) { failedNames.push(file.name); }
     }
     return { context: snippets.join('\n\n'), readableNames, unsupportedNames, failedNames, noTextNames };
+  }
+
+  function normalizeKnowledgeText(text) {
+    return String(text || '')
+      .replace(/\r/g, '')
+      .replace(/\t/g, ' ')
+      .replace(/[ \u00a0]{2,}/g, ' ')
+      .replace(/\n{4,}/g, '\n\n\n')
+      .trim();
+  }
+
+  function buildKnowledgeDocumentId(fileName) {
+    return `k_${Date.now().toString(36)}_${String(fileName || 'doc').replace(/[^a-z0-9]+/gi, '-').slice(0, 24).toLowerCase()}_${Math.random().toString(36).slice(2, 6)}`;
+  }
+
+  function chunkKnowledgeText(text) {
+    const source = normalizeKnowledgeText(text).slice(0, maxKnowledgeCharsPerDocument);
+    const chunks = [];
+    let start = 0;
+    while (start < source.length && chunks.length < maxKnowledgeChunksPerDocument) {
+      const hardEnd = Math.min(start + knowledgeChunkSize, source.length);
+      let end = hardEnd;
+      const nextBreak = source.slice(start, hardEnd).lastIndexOf('\n\n');
+      if (nextBreak > 520) end = start + nextBreak;
+      const chunk = source.slice(start, end).trim();
+      if (chunk) chunks.push(chunk);
+      if (end >= source.length) break;
+      start = Math.max(end - knowledgeChunkOverlap, start + 1);
+    }
+    return chunks;
+  }
+
+  function normalizeKnowledgeLibraryShape(value) {
+    const documents = Array.isArray(value?.documents) ? value.documents : [];
+    return {
+      version: 1,
+      savedAt: value?.savedAt || '',
+      documents: documents
+        .map((doc) => ({
+          id: typeof doc?.id === 'string' ? doc.id : buildKnowledgeDocumentId(doc?.name),
+          name: String(doc?.name || 'document').slice(0, 160),
+          type: String(doc?.type || 'Document').slice(0, 48),
+          kind: String(doc?.kind || 'document').slice(0, 32),
+          mimeType: String(doc?.mimeType || '').slice(0, 96),
+          size: Number(doc?.size) || 0,
+          importedAt: Number(doc?.importedAt) || Date.now(),
+          textLength: Number(doc?.textLength) || 0,
+          hasOriginalFile: Boolean(doc?.hasOriginalFile),
+          previewText: String(doc?.previewText || '').slice(0, 360),
+          previewDataUrl: String(doc?.previewDataUrl || '').startsWith('data:image/') && String(doc?.previewDataUrl || '').length <= maxStoredMediaDataUrlLength
+            ? String(doc.previewDataUrl)
+            : '',
+          downloadDataUrl: String(doc?.downloadDataUrl || '').startsWith('data:image/') && String(doc?.downloadDataUrl || '').length <= maxStoredMediaDataUrlLength
+            ? String(doc.downloadDataUrl)
+            : '',
+          chunks: Array.isArray(doc?.chunks)
+            ? doc.chunks.map((chunk) => String(chunk || '').slice(0, knowledgeChunkSize + 200)).filter(Boolean).slice(0, maxKnowledgeChunksPerDocument)
+            : []
+        }))
+        .filter((doc) => doc.name && (doc.chunks.length || doc.previewDataUrl || doc.downloadDataUrl))
+        .slice(0, maxKnowledgeDocuments)
+    };
+  }
+
+  function loadKnowledgeLibrary() {
+    try {
+      const raw = localStorage.getItem(knowledgeLibraryStorageKey);
+      knowledgeLibrary = raw ? normalizeKnowledgeLibraryShape(JSON.parse(raw)) : { version: 1, documents: [] };
+    } catch (error) {
+      assistantLog('warn', 'knowledge_library_load_failed', { reason: error?.message || 'invalid_local_storage_library' });
+      knowledgeLibrary = { version: 1, documents: [] };
+    }
+    renderKnowledgeLibrary();
+  }
+
+  function saveKnowledgeLibrary() {
+    try {
+      knowledgeLibrary = normalizeKnowledgeLibraryShape({
+        ...knowledgeLibrary,
+        savedAt: new Date().toISOString()
+      });
+      localStorage.setItem(knowledgeLibraryStorageKey, JSON.stringify(knowledgeLibrary));
+    } catch (error) {
+      assistantLog('warn', 'knowledge_library_save_failed', { reason: error?.message || 'local_storage_unavailable' });
+    }
+    renderKnowledgeLibrary();
+  }
+
+  function getKnowledgeDocumentById(docId) {
+    return (knowledgeLibrary.documents || []).find((doc) => doc.id === docId) || null;
+  }
+
+  function getLibraryDocumentMeta(doc) {
+    return [doc.type, fileSizeLabel(doc.size), i18n.libraryStoredLocally].filter(Boolean).join(' · ');
+  }
+
+  function getLibraryDocumentPreviewText(doc) {
+    return doc.previewText || truncateText(doc.chunks?.[0] || '', 150);
+  }
+
+  function ensureKnowledgeDocumentPreview(doc) {
+    if (!doc || doc.previewDataUrl) return;
+    if (doc.kind === 'image') return;
+    const type = doc.type || 'Document';
+    const kind = doc.kind || 'document';
+    const previewText = getLibraryDocumentPreviewText(doc);
+    doc.previewDataUrl = kind === 'html' || String(type).toLowerCase() === 'html'
+      ? createHtmlCanvasPreview({ title: doc.name, text: (doc.chunks || []).join('\n\n') || previewText })
+      : createDocumentCanvasPreview({ title: doc.name, type, kind, text: previewText });
+  }
+
+  function renderLibraryDocumentThumb(doc, container) {
+    container.innerHTML = '';
+    ensureKnowledgeDocumentPreview(doc);
+    container.classList.toggle('has-preview', Boolean(doc.previewDataUrl));
+    if (doc.previewDataUrl) {
+      const image = document.createElement('img');
+      image.src = doc.previewDataUrl;
+      image.alt = doc.name;
+      image.loading = 'lazy';
+      container.appendChild(image);
+      return;
+    }
+    const icon = document.createElement('img');
+    icon.src = doc.kind === 'image' ? filesIconUrl : libraryIconUrl;
+    icon.alt = '';
+    icon.setAttribute('aria-hidden', 'true');
+    const type = document.createElement('span');
+    type.textContent = doc.type || 'Document';
+    container.append(icon, type);
+  }
+
+  function createLibraryDocumentCard(doc) {
+    const card = document.createElement('button');
+    card.type = 'button';
+    card.className = 'ai-assistant-media-card';
+    card.dataset.docId = doc.id;
+    card.title = doc.name;
+
+    const thumb = document.createElement('span');
+    thumb.className = `ai-assistant-media-card-thumb ai-assistant-media-card-thumb--${doc.kind || 'document'}`;
+    renderLibraryDocumentThumb(doc, thumb);
+
+    const body = document.createElement('span');
+    body.className = 'ai-assistant-media-card-body';
+
+    const title = document.createElement('strong');
+    title.textContent = doc.name;
+
+    const meta = document.createElement('span');
+    meta.textContent = getLibraryDocumentMeta(doc);
+
+    const excerpt = document.createElement('span');
+    excerpt.className = 'ai-assistant-media-card-excerpt';
+    excerpt.textContent = getLibraryDocumentPreviewText(doc);
+
+    body.append(title, meta, excerpt);
+    card.append(thumb, body);
+    return card;
+  }
+
+  function renderKnowledgeLibraryView() {
+    if (!libraryGrid || !libraryEmpty) return;
+    const docs = (knowledgeLibrary.documents || []).slice().sort((a, b) => b.importedAt - a.importedAt);
+    libraryGrid.innerHTML = '';
+    libraryGrid.classList.toggle('is-list', libraryLayoutMode === 'list');
+    if (libraryLayoutGridButton) libraryLayoutGridButton.classList.toggle('is-active', libraryLayoutMode === 'grid');
+    if (libraryLayoutListButton) libraryLayoutListButton.classList.toggle('is-active', libraryLayoutMode === 'list');
+    libraryEmpty.textContent = activeLibraryStatus || i18n.libraryEmptyView;
+    libraryEmpty.hidden = Boolean(docs.length) && !activeLibraryStatus;
+    docs.forEach((doc) => libraryGrid.appendChild(createLibraryDocumentCard(doc)));
+  }
+
+  function setKnowledgeLibraryLayout(mode) {
+    libraryLayoutMode = mode === 'list' ? 'list' : 'grid';
+    try { localStorage.setItem(knowledgeLibraryLayoutStorageKey, libraryLayoutMode); } catch (error) {}
+    renderKnowledgeLibraryView();
+  }
+
+  function renderKnowledgeLibrary() {
+    const docs = knowledgeLibrary.documents || [];
+    if (!docs.length) {
+      if (libraryCount) libraryCount.textContent = i18n.libraryEmpty;
+      if (libraryPanel) libraryPanel.hidden = true;
+      if (libraryClearButton) libraryClearButton.hidden = true;
+      renderKnowledgeLibraryView();
+      return;
+    }
+    if (libraryPanel) libraryPanel.hidden = false;
+    const chunkCount = docs.reduce((sum, doc) => sum + doc.chunks.length, 0);
+    if (libraryCount) libraryCount.textContent = `${docs.length} doc${docs.length > 1 ? 's' : ''} · ${chunkCount} chunks`;
+    if (libraryClearButton) libraryClearButton.hidden = false;
+    renderKnowledgeLibraryView();
+  }
+
+  async function deleteKnowledgeDocument(docId) {
+    if (!docId) return;
+    knowledgeLibrary.documents = (knowledgeLibrary.documents || []).filter((doc) => doc.id !== docId);
+    if (activePreviewDocId === docId) closeMediaPreview();
+    if (activeLibraryMenuDocId === docId) closeLibraryCardMenu();
+    activeLibraryStatus = i18n.libraryDeleted;
+    await deleteKnowledgeOriginalFile(docId);
+    saveKnowledgeLibrary();
+  }
+
+  function getKnowledgeFileTypeLabel(file) {
+    const extension = getFileExtension(file?.name).toUpperCase();
+    if (isPdfFile(file)) return 'PDF';
+    if (isDocxFile(file)) return 'DOCX';
+    if (isExcelFile(file)) return extension || 'Excel';
+    if (isPowerPointFile(file)) return extension || 'PowerPoint';
+    if (isImageFile(file)) return 'Image';
+    if (isReadableTextFile(file)) return extension || 'Texte';
+    return extension || 'Document';
+  }
+
+  function getKnowledgeFileKind(file) {
+    if (isPdfFile(file)) return 'pdf';
+    if (isDocxFile(file)) return 'docx';
+    if (isExcelFile(file)) return 'excel';
+    if (isPowerPointFile(file)) return 'powerpoint';
+    if (isImageFile(file)) return 'image';
+    if (isReadableTextFile(file)) {
+      const extension = getFileExtension(file?.name);
+      if (extension === 'html' || extension === 'htm') return 'html';
+      return 'text';
+    }
+    return 'document';
+  }
+
+  function buildFallbackKnowledgeExtraction(file, error) {
+    const name = file?.name || 'document';
+    const reason = String(error?.message || error || '').slice(0, 160);
+    const kind = getKnowledgeFileKind(file);
+    const type = getKnowledgeFileTypeLabel(file);
+    return {
+      name,
+      mimeType: String(file?.type || ''),
+      size: Number(file?.size) || 0,
+      type,
+      kind,
+      text: '',
+      previewDataUrl: createDocumentCanvasPreview({
+        title: name,
+        type,
+        kind,
+        text: reason || 'Fichier conservé dans la bibliothèque locale.'
+      }),
+      downloadDataUrl: '',
+      importWarning: reason
+    };
+  }
+
+  function createStoredKnowledgeDocument(file, extracted) {
+    const text = normalizeKnowledgeText(extracted?.text);
+    const fallbackText = [
+      `Document importé dans la bibliothèque locale: ${extracted?.name || file?.name || 'document'}`,
+      `Type: ${extracted?.type || getKnowledgeFileTypeLabel(file)}`,
+      extracted?.size ? `Taille: ${fileSizeLabel(extracted.size)}` : '',
+      extracted?.importWarning ? `Note technique: ${extracted.importWarning}` : '',
+      !text ? 'Aucun texte exploitable n’a été extrait, mais le contenu reste disponible dans la galerie.' : ''
+    ].filter(Boolean).join('\n');
+    const chunks = chunkKnowledgeText(text || fallbackText);
+    return {
+      id: buildKnowledgeDocumentId(file?.name),
+      name: extracted?.name || file?.name || 'document',
+      type: extracted?.type || getKnowledgeFileTypeLabel(file),
+      importedAt: Date.now(),
+      textLength: text.length,
+      kind: extracted?.kind || getKnowledgeFileKind(file),
+      mimeType: extracted?.mimeType || String(file?.type || ''),
+      size: Number(extracted?.size) || Number(file?.size) || 0,
+      hasOriginalFile: Boolean(extracted?.hasOriginalFile),
+      previewText: truncateText(text || fallbackText, 220),
+      previewDataUrl: extracted?.previewDataUrl || '',
+      downloadDataUrl: extracted?.downloadDataUrl || '',
+      chunks
+    };
+  }
+
+  async function extractKnowledgeDocumentFromFile(file) {
+    const name = file?.name || 'document';
+    const base = {
+      name,
+      mimeType: String(file?.type || ''),
+      size: Number(file?.size) || 0
+    };
+    if (isPdfFile(file)) {
+      const previewDataUrl = await createPdfPreviewDataUrl(file);
+      try {
+        const result = await extractTextFromPdf(file, currentLanguage);
+        return { ...base, type: 'PDF', kind: 'pdf', text: result.text, previewDataUrl };
+      } catch (error) {
+        assistantLog('warn', 'library_pdf_extract_failed', { fileName: name, reason: error?.message || 'pdf_extract_failed' });
+        return {
+          ...base,
+          type: 'PDF',
+          kind: 'pdf',
+          text: '',
+          previewDataUrl: previewDataUrl || createDocumentCanvasPreview({ title: name, type: 'PDF', kind: 'pdf', text: 'PDF conservé dans la bibliothèque locale.' })
+        };
+      }
+    }
+    if (isDocxFile(file)) {
+      try {
+        const text = await extractTextFromDocx(file);
+        return {
+          ...base,
+          type: 'DOCX',
+          kind: 'docx',
+          text,
+          previewDataUrl: createDocumentCanvasPreview({ title: name, type: 'DOCX', kind: 'docx', text })
+        };
+      } catch (error) {
+        assistantLog('warn', 'library_docx_extract_failed', { fileName: name, reason: error?.message || 'docx_extract_failed' });
+        return { ...base, type: 'DOCX', kind: 'docx', text: '', previewDataUrl: createDocumentCanvasPreview({ title: name, type: 'DOCX', kind: 'docx', text: 'Document Word conservé dans la bibliothèque locale.' }) };
+      }
+    }
+    if (isExcelFile(file)) {
+      try {
+        const result = await extractTextFromExcel(file, currentLanguage);
+        const type = getFileExtension(name).toUpperCase() || 'Excel';
+        return {
+          ...base,
+          type,
+          kind: 'excel',
+          text: result.text,
+          previewDataUrl: createDocumentCanvasPreview({ title: name, type, kind: 'excel', text: result.text })
+        };
+      } catch (error) {
+        assistantLog('warn', 'library_excel_extract_failed', { fileName: name, reason: error?.message || 'excel_extract_failed' });
+        const type = getFileExtension(name).toUpperCase() || 'Excel';
+        return { ...base, type, kind: 'excel', text: '', previewDataUrl: createDocumentCanvasPreview({ title: name, type, kind: 'excel', text: 'Classeur conservé dans la bibliothèque locale.' }) };
+      }
+    }
+    if (isPowerPointFile(file)) {
+      const type = getFileExtension(name).toUpperCase() || 'PPTX';
+      try {
+        const result = await extractTextFromPowerPoint(file, currentLanguage);
+        return {
+          ...base,
+          type,
+          kind: 'powerpoint',
+          text: result.text,
+          previewDataUrl: createDocumentCanvasPreview({ title: name, type, kind: 'powerpoint', text: result.text || `${result.slideCount || 0} diapositives` })
+        };
+      } catch (error) {
+        assistantLog('warn', 'library_pptx_extract_failed', { fileName: name, reason: error?.message || 'pptx_extract_failed' });
+        return { ...base, type, kind: 'powerpoint', text: '', previewDataUrl: createDocumentCanvasPreview({ title: name, type, kind: 'powerpoint', text: 'Présentation conservée dans la bibliothèque locale.' }) };
+      }
+    }
+    if (isImageFile(file)) {
+      const dataUrl = await readFileAsDataUrl(file);
+      const previewDataUrl = await createImageThumbnailDataUrl(dataUrl);
+      let ocrText = '';
+      try {
+        ocrText = await extractTextFromImage(file, currentLanguage);
+      } catch (error) {
+        assistantLog('warn', 'library_image_ocr_failed', { fileName: name, reason: error?.message || 'ocr_failed' });
+      }
+      return {
+        ...base,
+        type: 'Image OCR',
+        kind: 'image',
+        text: ocrText,
+        previewDataUrl: previewDataUrl || dataUrl,
+        downloadDataUrl: dataUrl.length <= maxStoredMediaDataUrlLength ? dataUrl : ''
+      };
+    }
+    if (isReadableTextFile(file)) {
+      const text = await readFileAsText(file);
+      const kind = getKnowledgeFileKind(file);
+      const type = getFileExtension(name).toUpperCase() || 'Texte';
+      return {
+        ...base,
+        type,
+        kind,
+        text,
+        previewDataUrl: kind === 'html'
+          ? createHtmlCanvasPreview({ title: name, text })
+          : createDocumentCanvasPreview({ title: name, type, kind, text })
+      };
+    }
+    return buildFallbackKnowledgeExtraction(file, new Error('unsupported_library_file'));
+  }
+
+  async function importFilesToKnowledgeLibrary(files) {
+    const selected = Array.from(files || []).slice(0, maxLocalFilesPerPrompt);
+    if (!selected.length) return;
+    activeLibraryStatus = i18n.libraryImporting;
+    renderKnowledgeLibraryView();
+    assistantLog('debug', 'library_import_start', {
+      fileCount: selected.length,
+      fileNames: selected.map((file) => file.name)
+    });
+    const loadingBubble = addMessage('bot', i18n.libraryImporting);
+    const importedNames = [];
+    const failedNames = [];
+    try {
+      for (const file of selected) {
+        try {
+          let extracted;
+          try {
+            extracted = await extractKnowledgeDocumentFromFile(file);
+          } catch (error) {
+            assistantLog('warn', 'library_extract_total_failed', {
+              fileName: file?.name || 'document',
+              reason: error?.message || 'extract_failed'
+            });
+            extracted = buildFallbackKnowledgeExtraction(file, error);
+          }
+          const doc = createStoredKnowledgeDocument(file, extracted);
+          doc.hasOriginalFile = await putKnowledgeOriginalFile(doc.id, file);
+          knowledgeLibrary.documents = [
+            doc,
+            ...(knowledgeLibrary.documents || []).filter((existing) => existing.name !== doc.name)
+          ].slice(0, maxKnowledgeDocuments);
+          importedNames.push(file.name);
+        } catch (error) {
+          assistantLog('error', 'library_import_document_failed', {
+            fileName: file?.name || 'document',
+            reason: error?.message || 'import_failed'
+          });
+          failedNames.push(file?.name || 'document');
+        }
+      }
+      saveKnowledgeLibrary();
+    } finally {
+      loadingBubble?.remove?.();
+    }
+    assistantLog('debug', 'library_import_done', {
+      importedCount: importedNames.length,
+      failedCount: failedNames.length,
+      storedDocuments: knowledgeLibrary.documents?.length || 0
+    });
+    activeLibraryStatus = importedNames.length
+      ? `${i18n.libraryImportSuccessView} ${importedNames.join(', ')}`
+      : i18n.libraryImportErrorView;
+    renderKnowledgeLibrary();
+    if (!isLibraryViewOpen && importedNames.length) addMessage('bot', `${i18n.libraryReady} ${importedNames.join(', ')}`);
+    if (!isLibraryViewOpen && failedNames.length) addMessage('bot', `${i18n.libraryImportFailed} ${failedNames.join(', ')}`);
+  }
+
+  function normalizeKnowledgeTerms(text) {
+    const stopWords = new Set([
+      'les','des','une','est','dans','pour','avec','que','qui','sur','par','aux','du','de','la','le','un','en','et','ou','au','ce','ces','mes','mon',
+      'the','and','for','with','from','that','this','these','you','your','are','was','were','into','about','what','which','who','how'
+    ]);
+    return String(text || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .match(/[a-z0-9]{3,}/g)
+      ?.filter((term) => !stopWords.has(term))
+      .slice(0, 40) || [];
+  }
+
+  function scoreKnowledgeChunk(queryTerms, chunk, docName) {
+    if (!queryTerms.length) return 0;
+    const haystack = `${docName}\n${chunk}`.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    let score = 0;
+    queryTerms.forEach((term) => {
+      const occurrences = haystack.split(term).length - 1;
+      if (occurrences > 0) score += Math.min(occurrences, 5);
+    });
+    return score;
+  }
+
+  function buildKnowledgeContextForPrompt(userText) {
+    const docs = knowledgeLibrary.documents || [];
+    if (!docs.length) return '';
+    const queryTerms = normalizeKnowledgeTerms(userText);
+    if (!queryTerms.length) return '';
+    const candidates = [];
+    docs.forEach((doc) => {
+      doc.chunks.forEach((chunk, chunkIndex) => {
+        const score = scoreKnowledgeChunk(queryTerms, chunk, doc.name);
+        if (score > 0) candidates.push({ doc, chunk, chunkIndex, score });
+      });
+    });
+    const selected = candidates
+      .sort((a, b) => b.score - a.score)
+      .slice(0, maxRetrievedKnowledgeChunks);
+    if (!selected.length) return '';
+    return [
+      'Contexte documentaire récupéré depuis la bibliothèque locale du navigateur. Utilise uniquement ces extraits si la question concerne ces documents. Cite les documents par leur nom quand c’est utile.',
+      ...selected.map((item, index) => [
+        `\n[Extrait bibliothèque ${index + 1}]`,
+        `Document: ${item.doc.name}`,
+        `Type: ${item.doc.type}`,
+        `Chunk: ${item.chunkIndex + 1}`,
+        item.chunk
+      ].join('\n'))
+    ].join('\n\n');
   }
 
   function loadExternalScript(src) {
@@ -1553,6 +2704,36 @@
       const label = sessionLibraryButton.querySelector('span');
       if (label) label.textContent = i18n.library;
     }
+    if (libraryView) libraryView.setAttribute('aria-label', i18n.library);
+    if (libraryViewTitle) libraryViewTitle.textContent = i18n.libraryMediaTitle;
+    if (libraryImportButton) {
+      const label = libraryImportButton.querySelector('span');
+      if (label) label.textContent = i18n.libraryImportAction;
+    }
+    if (libraryLayoutGridButton) libraryLayoutGridButton.textContent = i18n.libraryLayoutGrid;
+    if (libraryLayoutListButton) libraryLayoutListButton.textContent = i18n.libraryLayoutList;
+    if (libraryEmpty) libraryEmpty.textContent = i18n.libraryEmptyView;
+    if (libraryClearButton) {
+      libraryClearButton.title = i18n.libraryClearTitle;
+      libraryClearButton.setAttribute('aria-label', i18n.libraryClearTitle);
+      libraryClearButton.textContent = i18n.libraryClear;
+    }
+    if (libraryMenuShareButton) {
+      const label = libraryMenuShareButton.querySelector('span:last-child');
+      if (label) label.textContent = i18n.libraryShare;
+    }
+    if (libraryMenuChatButton) {
+      const label = libraryMenuChatButton.querySelector('span:last-child');
+      if (label) label.textContent = i18n.libraryShowInChat;
+    }
+    if (libraryMenuDeleteButton) {
+      const label = libraryMenuDeleteButton.querySelector('span:last-child');
+      if (label) label.textContent = i18n.libraryDelete;
+    }
+    if (mediaPreviewCopyButton) mediaPreviewCopyButton.textContent = i18n.libraryCopy;
+    if (mediaPreviewShareButton) mediaPreviewShareButton.textContent = i18n.libraryShare;
+    if (mediaPreviewDownloadButton) mediaPreviewDownloadButton.textContent = i18n.libraryDownload;
+    if (mediaPreviewCloseButton) mediaPreviewCloseButton.setAttribute('aria-label', i18n.libraryPreviewClose);
     if (sidebarResizeHandle) {
       sidebarResizeHandle.title = i18n.resizeSidebar;
       sidebarResizeHandle.setAttribute('aria-label', i18n.resizeSidebar);
@@ -1573,6 +2754,7 @@
     refreshBubbleActionLabels();
     if (syncDefaultSessionTitles()) saveSessionsState();
     renderSessionOptions();
+    renderKnowledgeLibrary();
     setMicState(isListening);
     setTtsState(isVoiceOutputEnabled);
     if (speechRecognition) speechRecognition.lang = currentLanguage === 'en' ? 'en-US' : 'fr-FR';
@@ -1804,6 +2986,53 @@
     for (const msg of chatHistory) addMessage(msg.role === 'assistant' ? 'bot' : 'user', msg.content);
   }
 
+  function closeLibraryCardMenu() {
+    if (!libraryCardMenu) return;
+    libraryCardMenu.classList.remove('is-open');
+    libraryCardMenu.setAttribute('aria-hidden', 'true');
+    activeLibraryMenuDocId = '';
+  }
+
+  function openLibraryCardMenu(event, docId) {
+    if (!libraryCardMenu || !docId) return;
+    event.preventDefault();
+    activeLibraryMenuDocId = docId;
+    libraryCardMenu.classList.add('is-open');
+    libraryCardMenu.setAttribute('aria-hidden', 'false');
+    const rect = libraryView?.getBoundingClientRect();
+    const left = rect ? event.clientX - rect.left : event.clientX;
+    const top = rect ? event.clientY - rect.top : event.clientY;
+    libraryCardMenu.style.left = `${Math.max(14, Math.min(left, (rect?.width || 360) - 190))}px`;
+    libraryCardMenu.style.top = `${Math.max(14, top)}px`;
+  }
+
+  function closeMediaPreview() {
+    if (!mediaPreview) return;
+    mediaPreview.hidden = true;
+    mediaPreview.setAttribute('aria-hidden', 'true');
+    activePreviewDocId = '';
+    if (mediaPreviewBody) mediaPreviewBody.innerHTML = '';
+  }
+
+  function setLibraryViewOpen(open) {
+    isLibraryViewOpen = Boolean(open);
+    if (panel) panel.classList.toggle('is-library-view', isLibraryViewOpen);
+    if (libraryView) {
+      libraryView.hidden = !isLibraryViewOpen;
+      libraryView.setAttribute('aria-hidden', String(!isLibraryViewOpen));
+    }
+    if (sessionLibraryButton) sessionLibraryButton.classList.toggle('is-active', isLibraryViewOpen);
+    if (isLibraryViewOpen) {
+      closeAttachMenu();
+      closeSessionContextMenu();
+      renderKnowledgeLibraryView();
+    } else {
+      closeLibraryCardMenu();
+      closeMediaPreview();
+    }
+    updateScrollBottomButton();
+  }
+
   function persistActiveConversation() {
     const active = getActiveSession();
     if (!active) return;
@@ -1817,6 +3046,7 @@
 
   function switchSession(sessionId) {
     if (!sessionsState.sessions.some((s) => s.id === sessionId)) return;
+    setLibraryViewOpen(false);
     sessionsState.activeSessionId = sessionId;
     saveSessionsState();
     renderSessionOptions();
@@ -1824,6 +3054,7 @@
   }
 
   function createNewSession() {
+    setLibraryViewOpen(false);
     const next = makeDefaultSession();
     sessionsState.sessions.unshift(next);
     sessionsState.sessions = sessionsState.sessions.slice(0, maxStoredSessions);
@@ -2011,6 +3242,65 @@
     });
   }
 
+  function ensureAssistantFileInput() {
+    if (fileInput && document.contains(fileInput)) {
+      const target = panel || document.body;
+      if (target && fileInput.parentElement !== target) target.appendChild(fileInput);
+      return fileInput;
+    }
+    fileInput = document.getElementById('ai-assistant-file-input');
+    if (fileInput) {
+      const target = panel || document.body;
+      if (target && fileInput.parentElement !== target) target.appendChild(fileInput);
+      return fileInput;
+    }
+    fileInput = document.createElement('input');
+    fileInput.id = 'ai-assistant-file-input';
+    fileInput.type = 'file';
+    fileInput.multiple = true;
+    fileInput.className = 'ai-assistant-file-input';
+    (panel || document.body).appendChild(fileInput);
+    return fileInput;
+  }
+
+  function openAssistantFilePicker(libraryMode = false) {
+    const inputEl = ensureAssistantFileInput();
+    if (!inputEl) return;
+    isLibraryImportMode = Boolean(libraryMode);
+    inputEl.value = '';
+    assistantLog('debug', 'file_picker_open', { libraryMode: isLibraryImportMode });
+    inputEl.click();
+  }
+
+  function openLibraryFilePicker() {
+    const inputEl = document.createElement('input');
+    inputEl.type = 'file';
+    inputEl.multiple = true;
+    inputEl.className = 'ai-assistant-file-input';
+    inputEl.setAttribute('aria-hidden', 'true');
+    inputEl.addEventListener('change', async () => {
+      const files = Array.from(inputEl.files || []);
+      assistantLog('debug', 'library_transient_file_picker_change', {
+        fileCount: files.length,
+        fileNames: files.map((file) => file.name)
+      });
+      try {
+        if (files.length) {
+          await importFilesToKnowledgeLibrary(files);
+          setLibraryViewOpen(true);
+        }
+      } finally {
+        inputEl.remove();
+      }
+    }, { once: true });
+    (panel || document.body).appendChild(inputEl);
+    assistantLog('debug', 'library_transient_file_picker_open', {});
+    inputEl.click();
+    window.setTimeout(() => {
+      if (document.contains(inputEl) && !(inputEl.files || []).length) inputEl.remove();
+    }, 60000);
+  }
+
   if (sessionSelect) sessionSelect.addEventListener('change', () => switchSession(sessionSelect.value));
   if (sessionNewButton) sessionNewButton.addEventListener('click', () => createNewSession());
   if (sessionExportButton) sessionExportButton.addEventListener('click', () => exportActiveConversation());
@@ -2031,10 +3321,93 @@
   }
   if (sessionLibraryButton) {
     sessionLibraryButton.addEventListener('click', () => {
+      activeLibraryStatus = '';
       setHistoryPanelOpen(true);
-      sessionLibraryButton.classList.add('is-active');
-      window.setTimeout(() => sessionLibraryButton.classList.remove('is-active'), 900);
-      if (fileInput) fileInput.click();
+      setLibraryViewOpen(true);
+    });
+  }
+  if (libraryImportButton) {
+    libraryImportButton.addEventListener('click', () => {
+      activeLibraryStatus = '';
+      openLibraryFilePicker();
+    });
+  }
+  if (libraryLayoutGridButton) libraryLayoutGridButton.addEventListener('click', () => setKnowledgeLibraryLayout('grid'));
+  if (libraryLayoutListButton) libraryLayoutListButton.addEventListener('click', () => setKnowledgeLibraryLayout('list'));
+  if (libraryClearButton) {
+    libraryClearButton.addEventListener('click', async () => {
+      knowledgeLibrary = { version: 1, documents: [] };
+      activeLibraryStatus = '';
+      await clearKnowledgeOriginalFiles();
+      saveKnowledgeLibrary();
+    });
+  }
+  if (libraryGrid) {
+    libraryGrid.addEventListener('click', (event) => {
+      const card = event.target?.closest?.('.ai-assistant-media-card');
+      if (!card?.dataset?.docId) return;
+      const doc = getKnowledgeDocumentById(card.dataset.docId);
+      if (doc) openKnowledgeDocumentPreview(doc);
+    });
+    libraryGrid.addEventListener('contextmenu', (event) => {
+      const card = event.target?.closest?.('.ai-assistant-media-card');
+      if (!card?.dataset?.docId) return;
+      openLibraryCardMenu(event, card.dataset.docId);
+    });
+  }
+  if (libraryMenuShareButton) {
+    libraryMenuShareButton.addEventListener('click', () => {
+      const doc = getKnowledgeDocumentById(activeLibraryMenuDocId);
+      closeLibraryCardMenu();
+      if (doc) shareKnowledgeDocument(doc);
+    });
+  }
+  if (libraryMenuChatButton) {
+    libraryMenuChatButton.addEventListener('click', () => {
+      const doc = getKnowledgeDocumentById(activeLibraryMenuDocId);
+      closeLibraryCardMenu();
+      if (doc) showKnowledgeDocumentInChat(doc);
+    });
+  }
+  if (libraryMenuDeleteButton) {
+    libraryMenuDeleteButton.addEventListener('click', async () => {
+      const docId = activeLibraryMenuDocId;
+      closeLibraryCardMenu();
+      await deleteKnowledgeDocument(docId);
+    });
+  }
+  if (libraryView) {
+    libraryView.addEventListener('click', (event) => {
+      if (!libraryCardMenu?.classList.contains('is-open')) return;
+      if (libraryCardMenu.contains(event.target)) return;
+      closeLibraryCardMenu();
+    });
+  }
+  if (mediaPreviewCloseButton) mediaPreviewCloseButton.addEventListener('click', () => closeMediaPreview());
+  if (mediaPreview) {
+    mediaPreview.addEventListener('click', (event) => {
+      if (event.target === mediaPreview) closeMediaPreview();
+    });
+  }
+  if (mediaPreviewDownloadButton) {
+    mediaPreviewDownloadButton.addEventListener('click', () => {
+      const doc = getKnowledgeDocumentById(activePreviewDocId);
+      if (doc) downloadKnowledgeDocument(doc);
+    });
+  }
+  if (mediaPreviewShareButton) {
+    mediaPreviewShareButton.addEventListener('click', () => {
+      const doc = getKnowledgeDocumentById(activePreviewDocId);
+      if (doc) shareKnowledgeDocument(doc);
+    });
+  }
+  if (mediaPreviewCopyButton) {
+    mediaPreviewCopyButton.addEventListener('click', async () => {
+      const doc = getKnowledgeDocumentById(activePreviewDocId);
+      if (!doc) return;
+      const ok = await copyKnowledgeDocument(doc);
+      mediaPreviewCopyButton.textContent = ok ? i18n.libraryCopied : i18n.libraryCopyFailed;
+      window.setTimeout(() => { mediaPreviewCopyButton.textContent = i18n.libraryCopy; }, 1200);
     });
   }
   if (sessionMenuExportButton) {
@@ -2057,6 +3430,10 @@
     });
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') closeSessionContextMenu();
+      if (event.key === 'Escape') {
+        closeLibraryCardMenu();
+        closeMediaPreview();
+      }
     });
   }
   if (sidebarResizeHandle && historyPanel) {
@@ -2104,17 +3481,7 @@
   if (messagesContainer) messagesContainer.addEventListener('scroll', updateScrollBottomButton, { passive: true });
   if (scrollBottomButton) scrollBottomButton.addEventListener('click', () => scrollConversationToBottom('smooth'));
 
-  if (!fileInput) {
-    const form = document.getElementById('ai-assistant-form');
-    if (form) {
-      fileInput = document.createElement('input');
-      fileInput.id = 'ai-assistant-file-input';
-      fileInput.type = 'file';
-      fileInput.multiple = true;
-      fileInput.className = 'ai-assistant-file-input';
-      form.appendChild(fileInput);
-    }
-  }
+  ensureAssistantFileInput();
 
   function closeAttachMenu() {
     if (!attachMenu || !attachToggle) return;
@@ -2131,8 +3498,13 @@
 
   if (attachToggle) attachToggle.addEventListener('click', () => toggleAttachMenu());
 
-  if (attachFileButton && fileInput) {
-    attachFileButton.addEventListener('click', () => { closeAttachMenu(); fileInput.click(); });
+  if (fileInput) {
+    if (attachFileButton) {
+      attachFileButton.addEventListener('click', () => {
+        closeAttachMenu();
+        openAssistantFilePicker(false);
+      });
+    }
 
     async function processSelectedFiles(files) {
       const normalizedFiles = Array.from(files || []);
@@ -2188,8 +3560,21 @@
 
     fileInput.addEventListener('change', async () => {
       const files = Array.from(fileInput.files || []);
+      assistantLog('debug', 'file_picker_change', {
+        fileCount: files.length,
+        libraryMode: isLibraryImportMode,
+        fileNames: files.map((file) => file.name)
+      });
       if (!files.length) return;
+      if (isLibraryImportMode) {
+        isLibraryImportMode = false;
+        await importFilesToKnowledgeLibrary(files);
+        setLibraryViewOpen(true);
+        fileInput.value = '';
+        return;
+      }
       await processSelectedFiles(files);
+      fileInput.value = '';
     });
 
     if (attachDriveButton) {
@@ -2567,6 +3952,195 @@
     link.click();
     link.remove();
     window.setTimeout(() => URL.revokeObjectURL(url), 1200);
+  }
+
+  function getKnowledgeDownloadDataUrl(doc) {
+    return doc?.downloadDataUrl || '';
+  }
+
+  function getKnowledgeDownloadFilename(doc) {
+    const extension = getFileExtension(doc?.name) || (doc?.kind === 'image' ? 'jpg' : 'txt');
+    const baseName = sanitizeFilename(String(doc?.name || 'bibliotheque').replace(/\.[^.]+$/, ''), 'bibliotheque');
+    return `${baseName}.${extension}`;
+  }
+
+  function getKnowledgeFallbackText(doc) {
+    return [
+      `${i18n.libraryShownInChat}: ${doc?.name || 'document'}`,
+      getLibraryDocumentMeta(doc || {}),
+      '',
+      (doc?.chunks || []).join('\n\n')
+    ].filter(Boolean).join('\n');
+  }
+
+  function buildKnowledgeDocumentContextBlock(doc) {
+    if (!doc) return '';
+    const chunks = Array.isArray(doc.chunks) ? doc.chunks.filter(Boolean) : [];
+    const content = chunks.length ? chunks.join('\n\n---\n\n') : getKnowledgeFallbackText(doc);
+    return [
+      `Document affiché dans le chat depuis la bibliothèque locale.`,
+      `Fichier: ${doc.name || 'document'}`,
+      `Type: ${doc.type || 'Document'}`,
+      `Taille: ${fileSizeLabel(doc.size) || 'non précisée'}`,
+      `Caractères indexés: ${doc.textLength || content.length || 0}`,
+      '',
+      content || '[Aucun texte exploitable extrait. Utilise les métadonnées et signale cette limite.]'
+    ].join('\n');
+  }
+
+  function addKnowledgeDocumentToPendingContext(doc) {
+    if (!doc) return;
+    const contextBlock = buildKnowledgeDocumentContextBlock(doc);
+    if (!contextBlock) return;
+    const alreadySelected = pendingLibraryDocumentNames.includes(doc.name);
+    if (!alreadySelected) pendingLibraryDocumentNames.push(doc.name);
+    pendingFileNames = Array.from(new Set([...pendingFileNames, doc.name].filter(Boolean)));
+    pendingFileContext = [
+      pendingFileContext,
+      alreadySelected ? '' : contextBlock
+    ].filter(Boolean).join('\n\n');
+  }
+
+  async function getKnowledgeDownloadBlob(doc) {
+    if (!doc) return;
+    const original = await getKnowledgeOriginalFile(doc);
+    if (original?.blob) {
+      return {
+        blob: original.blob,
+        filename: original.name || getKnowledgeDownloadFilename(doc)
+      };
+    }
+    const dataUrl = getKnowledgeDownloadDataUrl(doc);
+    const blob = dataUrl ? dataUrlToBlob(dataUrl) : null;
+    if (blob) {
+      return { blob, filename: getKnowledgeDownloadFilename(doc) };
+    }
+    return {
+      blob: new Blob([getKnowledgeFallbackText(doc)], { type: 'text/plain;charset=utf-8' }),
+      filename: `${sanitizeFilename(doc.name, 'document')}.txt`
+    };
+  }
+
+  async function downloadKnowledgeDocument(doc) {
+    const file = await getKnowledgeDownloadBlob(doc);
+    if (file?.blob) downloadBlob(file.blob, file.filename);
+  }
+
+  async function copyKnowledgeDocument(doc) {
+    if (!doc) return false;
+    const file = await getKnowledgeDownloadBlob(doc);
+    const blob = file?.blob || null;
+    if (blob && doc.kind === 'image' && window.ClipboardItem && navigator.clipboard?.write) {
+      try {
+        await navigator.clipboard.write([new ClipboardItem({ [blob.type || 'image/png']: blob })]);
+        return true;
+      } catch (error) {
+        assistantLog('warn', 'library_image_copy_failed', { reason: error?.message || 'clipboard_image_unavailable' });
+      }
+    }
+    return copyTextToClipboard(getKnowledgeFallbackText(doc));
+  }
+
+  async function shareKnowledgeDocument(doc) {
+    if (!doc) return false;
+    const fileData = await getKnowledgeDownloadBlob(doc);
+    const blob = fileData?.blob || null;
+    if (blob && navigator.canShare && navigator.share) {
+      try {
+        const file = new File([blob], fileData.filename || getKnowledgeDownloadFilename(doc), { type: blob.type || doc.mimeType || 'application/octet-stream' });
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({ title: doc.name, files: [file] });
+          return true;
+        }
+      } catch (error) {
+        assistantLog('warn', 'library_file_share_failed', { reason: error?.message || 'share_file_unavailable' });
+      }
+    }
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: doc.name, text: getKnowledgeFallbackText(doc) });
+        return true;
+      } catch (error) {
+        assistantLog('warn', 'library_text_share_failed', { reason: error?.message || 'share_text_unavailable' });
+      }
+    }
+    return copyKnowledgeDocument(doc);
+  }
+
+  function addLibraryDocumentMessage(doc) {
+    if (!doc || !messagesContainer) return null;
+    const bubble = document.createElement('article');
+    bubble.className = 'ai-assistant-message ai-assistant-message--bot ai-assistant-message--library-media';
+    bubble.setAttribute('data-role', 'assistant');
+
+    const card = document.createElement('div');
+    card.className = 'ai-assistant-chat-media-card';
+
+    const thumb = document.createElement('button');
+    thumb.type = 'button';
+    thumb.className = `ai-assistant-chat-media-thumb ai-assistant-chat-media-thumb--${doc.kind || 'document'}`;
+    thumb.title = doc.name;
+    renderLibraryDocumentThumb(doc, thumb);
+    thumb.addEventListener('click', () => openKnowledgeDocumentPreview(doc));
+
+    const body = document.createElement('div');
+    body.className = 'ai-assistant-chat-media-body';
+    const title = document.createElement('strong');
+    title.textContent = doc.name;
+    const meta = document.createElement('span');
+    meta.textContent = getLibraryDocumentMeta(doc);
+    const text = document.createElement('p');
+    text.textContent = getLibraryDocumentPreviewText(doc);
+    body.append(title, meta, text);
+
+    const actions = document.createElement('div');
+    actions.className = 'ai-assistant-chat-media-actions';
+    [
+      [i18n.libraryDownload, () => downloadKnowledgeDocument(doc)],
+      [i18n.libraryCopy, async () => { if (await copyKnowledgeDocument(doc)) addMessage('bot', i18n.libraryCopied); }],
+      [i18n.libraryShare, () => shareKnowledgeDocument(doc)]
+    ].forEach(([label, handler]) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = label;
+      button.addEventListener('click', handler);
+      actions.appendChild(button);
+    });
+
+    card.append(thumb, body, actions);
+    bubble.appendChild(card);
+    messagesContainer.appendChild(bubble);
+    scrollConversationToBottom('smooth');
+    return bubble;
+  }
+
+  function showKnowledgeDocumentInChat(doc) {
+    if (!doc) return;
+    setLibraryViewOpen(false);
+    addLibraryDocumentMessage(doc);
+    addKnowledgeDocumentToPendingContext(doc);
+    const historyText = `${i18n.libraryShownInChat}: ${doc.name}\n${getLibraryDocumentMeta(doc)}`;
+    chatHistory.push({ role: 'assistant', content: historyText });
+    persistActiveConversation();
+  }
+
+  function openKnowledgeDocumentPreview(doc) {
+    if (!doc || !mediaPreview || !mediaPreviewBody) return;
+    activePreviewDocId = doc.id;
+    if (mediaPreviewTitle) mediaPreviewTitle.textContent = doc.name;
+    mediaPreviewBody.innerHTML = '';
+    if (doc.previewDataUrl) {
+      const image = document.createElement('img');
+      image.src = doc.previewDataUrl;
+      image.alt = doc.name;
+      mediaPreviewBody.appendChild(image);
+    } else {
+      const pre = document.createElement('pre');
+      pre.textContent = getKnowledgeFallbackText(doc);
+      mediaPreviewBody.appendChild(pre);
+    }
+    mediaPreview.hidden = false;
+    mediaPreview.setAttribute('aria-hidden', 'false');
   }
 
   function buildExportHtml(content, title = 'Digital Blue Skye document') {
@@ -4000,6 +5574,7 @@
       effectiveWebSearch = isWebSearchActive || shouldUseWebSearchForPrompt(userText);
       const documentProfile = getDocumentGenerationProfile(userText);
       const documentGenerationInstruction = buildDocumentGenerationInstruction(documentProfile, currentLanguage === 'en' ? 'en' : 'fr');
+      const knowledgeContext = fileContext ? '' : buildKnowledgeContextForPrompt(userText);
 
       // Activer le statut "recherche en cours" si recherche web activée
       if (effectiveWebSearch) {
@@ -4013,6 +5588,11 @@
         : (currentLanguage === 'en'
           ? 'For latest/current market facts, product launches, prices, rankings, laws, or news: you do not have live web access. Do not invent models, examples, dates, specs, prices, citations, or rankings. If no source is provided, say that live verification is required and offer a safe comparison framework using neutral placeholders only.'
           : "Pour les faits récents, les dernières sorties produit, les prix, classements, lois ou actualités : tu n’as pas d’accès web temps réel. N’invente jamais de modèles, exemples, dates, fiches techniques, prix, citations ou classements. Si aucune source n’est fournie, explique qu’une vérification web est nécessaire et propose une grille de comparaison fiable avec uniquement des placeholders neutres.");
+      const knowledgeContextInstruction = knowledgeContext
+        ? (currentLanguage === 'en'
+          ? 'When local library context is provided, use it as retrieved document context. Cite document names when useful, and do not claim that a persistent cloud RAG/vector index exists.'
+          : "Quand un contexte de bibliothèque locale est fourni, utilise-le comme contexte documentaire récupéré. Cite les noms de documents quand c’est utile, et ne prétends pas disposer d’un RAG cloud/vectoriel persistant.")
+        : '';
 
       const styleInstruction = currentLanguage === 'en'
         ? [
@@ -4021,7 +5601,8 @@
           webAccessInstruction,
           'Formatting instructions: answer in clean Markdown, use complete punctuated sentences, avoid standalone "---" separators, and use continuous numbered lists when relevant.',
           documentGenerationInstruction,
-          fileContext ? 'When a local file context is provided, analyze only the extracted text. For spreadsheets, summarize workbook structure, key columns, visible trends, anomalies, and concrete next actions. If the sample is truncated, state the limitation clearly.' : ''
+          knowledgeContextInstruction,
+          fileContext ? 'When local file context is provided, analyze only the extracted text. For spreadsheets, treat workbook/sheet totals and column summaries as calculated from the full browser-side extraction. Do not say the workbook is unreadable merely because the detailed row listing is budget-limited; mention that limit only when the user asks for row-by-row completeness.' : ''
         ].filter(Boolean).join('\n')
         : [
           `Date actuelle : ${dateContext.isoDate} (${dateContext.timezone}). Considère ${dateContext.isoDate.slice(0, 4)} comme l’année en cours.`,
@@ -4029,15 +5610,26 @@
           webAccessInstruction,
           'Consignes de mise en forme : réponds en Markdown propre, avec des phrases complètes et ponctuées, évite les séparateurs "---" seuls, et utilise des listes numérotées continues quand c’est pertinent.',
           documentGenerationInstruction,
-          fileContext ? 'Quand un contexte de fichier local est fourni, analyse uniquement le texte extrait. Pour un tableur, présente la structure du classeur, les colonnes clés, les tendances visibles, les anomalies et les prochaines actions concrètes. Si l’échantillon est tronqué, indique clairement cette limite.' : ''
+          knowledgeContextInstruction,
+          fileContext ? "Quand un contexte de fichier local est fourni, analyse uniquement le texte extrait. Pour un tableur, considère les totaux du classeur, les totaux des feuilles et les synthèses de colonnes comme calculés depuis l’extraction complète côté navigateur. Ne dis pas que le classeur est illisible simplement parce que la liste détaillée des lignes est limitée par budget ; mentionne cette limite seulement si l’utilisateur demande une complétude ligne par ligne." : ''
         ].filter(Boolean).join('\n');
-      const composedMessage = fileContext
-        ? `${styleInstruction}\n\n${userText}\n\n---\nContexte de fichiers locaux extrait côté navigateur (texte uniquement, aucun binaire brut n’est envoyé au modèle). Le contenu peut être découpé en chunks et contenir des métadonnées de pages : analyse l’ensemble du contexte fourni, cite les limites si le contexte indique une troncature, et ne réponds pas que tu as reçu un fichier binaire :\n${fileContext}`
-        : `${styleInstruction}\n\n${userText}`;
+      const contextSections = [];
+      if (fileContext) {
+        contextSections.push(`Contexte de fichiers locaux extrait côté navigateur (texte uniquement, aucun binaire brut n’est envoyé au modèle). Le contenu peut être découpé en chunks et contenir des métadonnées de pages : analyse l’ensemble du contexte fourni, cite les limites si le contexte indique une troncature, et ne réponds pas que tu as reçu un fichier binaire :\n${fileContext}`);
+      }
+      if (knowledgeContext) {
+        contextSections.push(`${i18n.libraryContextUsed} :\n${knowledgeContext}`);
+      }
+      const composedMessage = [
+        styleInstruction,
+        userText,
+        ...contextSections
+      ].filter(Boolean).join('\n\n');
+      const hasFileContext = Boolean(fileContext);
       const payload = {
         message: composedMessage,
-        history: fileContext ? [] : chatHistory.slice(-apiHistoryWindow),
-        conversationSummary: fileContext ? '' : normalizeSessionSummary(getActiveSession()?.summary),
+        history: hasFileContext ? [] : chatHistory.slice(-apiHistoryWindow),
+        conversationSummary: hasFileContext ? '' : normalizeSessionSummary(getActiveSession()?.summary),
         language: currentLanguage === 'en' ? 'en' : 'fr',
         currentDate: dateContext,
         mode: 'chat',
@@ -4049,9 +5641,11 @@
       assistantLog('debug', 'api_request', {
         historyMessages: payload.history.length,
         hasConversationSummary: Boolean(payload.conversationSummary),
-        hasFileContext: Boolean(fileContext),
+        hasFileContext,
         fileContextLength: fileContext.length,
         fileContextPreview: fileContext.slice(0, 300),
+        hasKnowledgeContext: Boolean(knowledgeContext),
+        knowledgeContextLength: knowledgeContext.length,
         attachments: attachments.length,
         webSearchActive: effectiveWebSearch,
         webSearchManualToggle: isWebSearchActive,
@@ -4135,6 +5729,7 @@
     if (activeAssistantRequestController) return;
     const text = input.value.trim();
     if (!text && !pendingFileContext) return;
+    setLibraryViewOpen(false);
     const visibleText = text || i18n.sendWithoutTextWithFiles;
     addMessage('user', visibleText);
     chatHistory.push({ role: 'user', content: visibleText });
@@ -4144,6 +5739,7 @@
     const attachments = pendingVisionAttachments.slice(0, 2);
     pendingFileContext = '';
     pendingFileNames = [];
+    pendingLibraryDocumentNames = [];
     pendingVisionAttachments = [];
     if (fileInput) fileInput.value = '';
     askAI(visibleText, fileContext, attachments);
@@ -4252,6 +5848,7 @@
   document.addEventListener('translationCompleted', (event) => applyAssistantLanguage(event.detail?.language));
 
   applyAssistantLanguage(currentLanguage);
+  loadKnowledgeLibrary();
   setupPanelDrag();
   loadPanelSize();
   loadPanelPosition();
