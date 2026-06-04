@@ -1761,8 +1761,8 @@ body.body-menu-open .compact-header {
   visibility: hidden;
 }
 
-/* Ouvrir au survol (desktop) ET quand un enfant a le focus (clavier/tactile) */
-.dropdown-submenu:hover > .submenu-list,
+/* Ouvrir uniquement au focus/clic clavier/tactile, sans déclenchement au survol. */
+.dropdown-submenu.is-open > .submenu-list,
 .dropdown-submenu:focus-within > .submenu-list,
 /* Fallback: focus direct sur le lien parent */
 .dropdown-submenu > a:focus + .submenu-list {
@@ -1787,8 +1787,8 @@ body.body-menu-open .compact-header {
   transition: transform 0.25s ease;
 }
 
-/* Rotation de la flèche quand ouvert (hover ou focus-within) */
-.dropdown-submenu:hover .submenu-chevron,
+/* Rotation de la flèche quand ouvert au focus/clic. */
+.dropdown-submenu.is-open .submenu-chevron,
 .dropdown-submenu:focus-within .submenu-chevron,
 .dropdown-submenu > a:focus .submenu-chevron {
   transform: rotate(180deg);

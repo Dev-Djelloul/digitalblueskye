@@ -6,9 +6,6 @@ document.addEventListener('DOMContentLoaded', function() {
   const header = document.querySelector('.site-header') || document.querySelector('header');
   const logoVideo = document.getElementById('logo-video');
 
-  // Détection desktop (hover) vs mobile (tap)
-  const isDesktop = window.matchMedia('(hover: hover) and (pointer: fine)');
-
   // URLs du portfolio par langue
   const portfolioUrls = {
     fr: 'https://gamma.app/docs/Djelloul-ABID-0qnry3fypmgwui3?mode=doc',
@@ -189,13 +186,17 @@ document.addEventListener('DOMContentLoaded', function() {
     menuOverlay.classList.remove('active');
     hamburger.classList.remove('active');
     document.body.classList.remove('body-menu-open');
+    document.querySelectorAll('.dropdown-submenu.is-open').forEach(submenu => {
+      submenu.classList.remove('is-open');
+      const submenuTrigger = submenu.querySelector('.nav-link-with-submenu');
+      if (submenuTrigger) submenuTrigger.setAttribute('aria-expanded', 'false');
+    });
     // a11y
     hamburger.setAttribute('aria-expanded', 'false');
   }
 
-  // Clic hamburger: uniquement sur mobile/tablette (sur desktop → hover gère)
+  // Clic hamburger: comportement unique sur tous les supports.
   hamburger.addEventListener('click', function(e) {
-    if (isDesktop.matches) return; // desktop: ignorer le clic
     e.preventDefault();
     if (dropdownMenu.classList.contains('active')) closeMenu();
     else openMenu();
@@ -206,22 +207,22 @@ document.addEventListener('DOMContentLoaded', function() {
     menuOverlay.addEventListener('click', closeMenu);
   }
 
-  // Ouvrir au survol sur desktop. La fermeture reste volontairement explicite.
-  if (hamburger && dropdownMenu && menuOverlay && isDesktop.matches) {
-    const onEnter = () => {
-      openMenu();
-    };
-
-    [hamburger, dropdownMenu].forEach(el => {
-      el.addEventListener('mouseenter', onEnter);
-    });
-  }
-
-  // Fermer le sous-menu quand la souris sort (évite le focus collé au clic)
+  // Nettoyer le focus du sous-menu quand la souris sort, sans ouverture au survol.
   const dropdownSubmenus = document.querySelectorAll('.dropdown-submenu');
   dropdownSubmenus.forEach(submenu => {
+    const submenuTrigger = submenu.querySelector('.nav-link-with-submenu');
+    if (submenuTrigger) {
+      submenuTrigger.setAttribute('role', 'button');
+      submenuTrigger.setAttribute('aria-expanded', 'false');
+      submenuTrigger.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const isOpen = submenu.classList.toggle('is-open');
+        submenuTrigger.setAttribute('aria-expanded', String(isOpen));
+      });
+    }
+
     submenu.addEventListener('mouseleave', () => {
-      if (!isDesktop.matches) return;
       const active = document.activeElement;
       if (active && submenu.contains(active)) {
         active.blur();
@@ -230,7 +231,7 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   
   // Fermer le menu en cliquant sur les liens de navigation (sauf liens de langue)
-  const navLinks = document.querySelectorAll('.dropdown-nav a:not(#switch-to-en):not(#switch-to-fr)');
+  const navLinks = document.querySelectorAll('.dropdown-nav a:not(#switch-to-en):not(#switch-to-fr):not(.nav-link-with-submenu)');
   navLinks.forEach(link => {
     link.addEventListener('click', closeMenu);
   });
