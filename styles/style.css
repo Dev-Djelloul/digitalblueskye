@@ -8472,8 +8472,8 @@ body.body-menu-open #footer {
   }
 
   .dropdown-close {
-    right: 9px;
-    top: 22px;
+    right: 18px;
+    top: 36px
   }
 
   .hamburger {
@@ -8914,12 +8914,13 @@ body.body-menu-open #footer {
 
 /* Ajustements dropdown pour mobile */
   .dropdown-nav ul {
-    gap: 12px;
-    margin-bottom: 24px;
-    margin-top: 0;
-    align-items: center;
-    text-align: center;
-  }
+    gap: 15px;
+    margin-bottom: 0px;
+    padding-left: 25px;
+    margin-top: 10px;
+    align-items: flex-start;
+    text-align: start;
+}
 
   .dropdown-nav a {
     font-size: 1.1rem;
