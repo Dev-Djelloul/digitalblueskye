@@ -2068,33 +2068,129 @@
     return chunks;
   }
 
+  function stripKnowledgeDiacritics(value) {
+    return String(value || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+  }
+
+  function getKnowledgeStopWords() {
+    return new Set([
+      'afin','ainsi','alors','apres','avec','avoir','cela','celle','celui','ces','cette','chez','comme','dans','des','donc','dont','elle','elles','entre','est','etre','eux','faire','fait','faut','ici','ils','les','leur','leurs','mais','mes','mon','nos','notre','nous','par','pas','peut','plus','pour','que','quel','quelle','quels','qui','quoi','sans','ses','son','sont','sur','tes','toi','ton','tous','tout','une','vos','votre','vous',
+      'about','after','also','and','are','because','been','before','being','between','both','can','could','did','does','doing','each','for','from','had','has','have','how','into','its','more','most','not','our','out','should','such','than','that','the','their','them','then','there','these','they','this','those','through','was','were','what','when','where','which','who','will','with','would','you','your'
+    ]);
+  }
+
+  function tokenizeKnowledgeText(text, limit = 1200) {
+    const stopWords = getKnowledgeStopWords();
+    const terms = stripKnowledgeDiacritics(text)
+      .replace(/['’]/g, ' ')
+      .match(/[a-z0-9]{3,}/g) || [];
+    const filtered = [];
+    for (const term of terms) {
+      if (stopWords.has(term)) continue;
+      filtered.push(term);
+      if (filtered.length >= limit) break;
+    }
+    return filtered;
+  }
+
+  function getKnowledgeDocChunks(doc) {
+    if (!Array.isArray(doc?.chunks)) return [];
+    return doc.chunks.map((chunk) => String(chunk || '')).filter(Boolean);
+  }
+
+  function extractKnowledgeChunkLocator(chunk, kind, chunkIndex) {
+    const text = String(chunk || '');
+    const lowerKind = String(kind || '').toLowerCase();
+    const pageMatch = text.match(/\bPage\s+(\d{1,5})\b/i);
+    if (pageMatch) return `page ${pageMatch[1]}`;
+    const slideMatch = text.match(/\b(?:Diapositive|Slide)\s+(\d{1,5})\b/i);
+    if (slideMatch) return currentLanguage === 'en' ? `slide ${slideMatch[1]}` : `diapositive ${slideMatch[1]}`;
+    const sheetMatch = text.match(/\b(?:Feuille|Sheet)\s*:\s*([^\n\r]{1,90})/i);
+    if (sheetMatch) {
+      const rowMatches = [...text.matchAll(/\bL(\d{1,7})\b/g)].map((match) => Number(match[1])).filter(Number.isFinite);
+      const rowLabel = rowMatches.length
+        ? `, L${Math.min(...rowMatches)}-${Math.max(...rowMatches)}`
+        : '';
+      return `${currentLanguage === 'en' ? 'sheet' : 'feuille'} ${sheetMatch[1].trim()}${rowLabel}`;
+    }
+    if (lowerKind === 'pdf') return `${currentLanguage === 'en' ? 'PDF chunk' : 'extrait PDF'} ${chunkIndex + 1}`;
+    if (lowerKind === 'powerpoint') return `${currentLanguage === 'en' ? 'slide chunk' : 'extrait diaporama'} ${chunkIndex + 1}`;
+    if (lowerKind === 'excel') return `${currentLanguage === 'en' ? 'workbook chunk' : 'extrait classeur'} ${chunkIndex + 1}`;
+    return `${currentLanguage === 'en' ? 'chunk' : 'extrait'} ${chunkIndex + 1}`;
+  }
+
+  function buildKnowledgeRagIndex(chunks, doc = {}) {
+    return (chunks || []).map((chunk, chunkIndex) => {
+      const terms = tokenizeKnowledgeText(chunk, 900);
+      const frequencies = new Map();
+      terms.forEach((term) => frequencies.set(term, (frequencies.get(term) || 0) + 1));
+      const topTerms = [...frequencies.entries()]
+        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+        .slice(0, 36)
+        .map(([term, count]) => ({ term, count }));
+      return {
+        chunkIndex,
+        locator: extractKnowledgeChunkLocator(chunk, doc.kind || doc.type, chunkIndex),
+        termCount: terms.length,
+        topTerms
+      };
+    });
+  }
+
+  function normalizeKnowledgeRagIndex(index, chunks, doc) {
+    const normalized = Array.isArray(index)
+      ? index.slice(0, maxKnowledgeChunksPerDocument).map((item, fallbackIndex) => ({
+        chunkIndex: Number.isFinite(Number(item?.chunkIndex)) ? Number(item.chunkIndex) : fallbackIndex,
+        locator: String(item?.locator || '').slice(0, 120),
+        termCount: Number(item?.termCount) || 0,
+        topTerms: Array.isArray(item?.topTerms)
+          ? item.topTerms.slice(0, 36).map((termItem) => ({
+            term: String(termItem?.term || '').slice(0, 48),
+            count: Math.max(1, Math.min(999, Number(termItem?.count) || 1))
+          })).filter((termItem) => termItem.term)
+          : []
+      }))
+      : [];
+    if (normalized.length !== chunks.length || normalized.some((item, indexPosition) => item.chunkIndex !== indexPosition || !item.topTerms.length)) {
+      return buildKnowledgeRagIndex(chunks, doc);
+    }
+    return normalized;
+  }
+
   function normalizeKnowledgeLibraryShape(value) {
     const documents = Array.isArray(value?.documents) ? value.documents : [];
     return {
       version: 1,
       savedAt: value?.savedAt || '',
       documents: documents
-        .map((doc) => ({
-          id: typeof doc?.id === 'string' ? doc.id : buildKnowledgeDocumentId(doc?.name),
-          name: String(doc?.name || 'document').slice(0, 160),
-          type: String(doc?.type || 'Document').slice(0, 48),
-          kind: String(doc?.kind || 'document').slice(0, 32),
-          mimeType: String(doc?.mimeType || '').slice(0, 96),
-          size: Number(doc?.size) || 0,
-          importedAt: Number(doc?.importedAt) || Date.now(),
-          textLength: Number(doc?.textLength) || 0,
-          hasOriginalFile: Boolean(doc?.hasOriginalFile),
-          previewText: String(doc?.previewText || '').slice(0, 360),
-          previewDataUrl: String(doc?.previewDataUrl || '').startsWith('data:image/') && String(doc?.previewDataUrl || '').length <= maxStoredMediaDataUrlLength
-            ? String(doc.previewDataUrl)
-            : '',
-          downloadDataUrl: String(doc?.downloadDataUrl || '').startsWith('data:image/') && String(doc?.downloadDataUrl || '').length <= maxStoredMediaDataUrlLength
-            ? String(doc.downloadDataUrl)
-            : '',
-          chunks: Array.isArray(doc?.chunks)
-            ? doc.chunks.map((chunk) => String(chunk || '').slice(0, knowledgeChunkSize + 200)).filter(Boolean).slice(0, maxKnowledgeChunksPerDocument)
-            : []
-        }))
+        .map((doc) => {
+          const normalizedDoc = {
+            id: typeof doc?.id === 'string' ? doc.id : buildKnowledgeDocumentId(doc?.name),
+            name: String(doc?.name || 'document').slice(0, 160),
+            type: String(doc?.type || 'Document').slice(0, 48),
+            kind: String(doc?.kind || 'document').slice(0, 32),
+            mimeType: String(doc?.mimeType || '').slice(0, 96),
+            size: Number(doc?.size) || 0,
+            importedAt: Number(doc?.importedAt) || Date.now(),
+            textLength: Number(doc?.textLength) || 0,
+            hasOriginalFile: Boolean(doc?.hasOriginalFile),
+            previewText: String(doc?.previewText || '').slice(0, 360),
+            previewDataUrl: String(doc?.previewDataUrl || '').startsWith('data:image/') && String(doc?.previewDataUrl || '').length <= maxStoredMediaDataUrlLength
+              ? String(doc.previewDataUrl)
+              : '',
+            downloadDataUrl: String(doc?.downloadDataUrl || '').startsWith('data:image/') && String(doc?.downloadDataUrl || '').length <= maxStoredMediaDataUrlLength
+              ? String(doc.downloadDataUrl)
+              : '',
+            chunks: Array.isArray(doc?.chunks)
+              ? doc.chunks.map((chunk) => String(chunk || '').slice(0, knowledgeChunkSize + 200)).filter(Boolean).slice(0, maxKnowledgeChunksPerDocument)
+              : []
+          };
+          normalizedDoc.ragIndex = normalizeKnowledgeRagIndex(doc?.ragIndex, normalizedDoc.chunks, normalizedDoc);
+          return normalizedDoc;
+        })
         .filter((doc) => doc.name && (doc.chunks.length || doc.previewDataUrl || doc.downloadDataUrl))
         .slice(0, maxKnowledgeDocuments)
     };
@@ -2299,7 +2395,7 @@
       !text ? 'Aucun texte exploitable n’a été extrait, mais le contenu reste disponible dans la galerie.' : ''
     ].filter(Boolean).join('\n');
     const chunks = chunkKnowledgeText(text || fallbackText);
-    return {
+    const doc = {
       id: buildKnowledgeDocumentId(file?.name),
       name: extracted?.name || file?.name || 'document',
       type: extracted?.type || getKnowledgeFileTypeLabel(file),
@@ -2314,6 +2410,8 @@
       downloadDataUrl: extracted?.downloadDataUrl || '',
       chunks
     };
+    doc.ragIndex = buildKnowledgeRagIndex(chunks, doc);
+    return doc;
   }
 
   async function extractKnowledgeDocumentFromFile(file) {
@@ -2480,53 +2578,138 @@
   }
 
   function normalizeKnowledgeTerms(text) {
-    const stopWords = new Set([
-      'les','des','une','est','dans','pour','avec','que','qui','sur','par','aux','du','de','la','le','un','en','et','ou','au','ce','ces','mes','mon',
-      'the','and','for','with','from','that','this','these','you','your','are','was','were','into','about','what','which','who','how'
-    ]);
-    return String(text || '')
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .match(/[a-z0-9]{3,}/g)
-      ?.filter((term) => !stopWords.has(term))
-      .slice(0, 40) || [];
+    return tokenizeKnowledgeText(text, 48);
   }
 
-  function scoreKnowledgeChunk(queryTerms, chunk, docName) {
-    if (!queryTerms.length) return 0;
-    const haystack = `${docName}\n${chunk}`.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  function extractKnowledgePhrases(text) {
+    const normalized = stripKnowledgeDiacritics(text)
+      .replace(/['’]/g, ' ')
+      .replace(/[^a-z0-9\s-]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (!normalized) return [];
+    const words = normalized.split(' ').filter(Boolean);
+    const phrases = [];
+    for (let size = 4; size >= 2; size -= 1) {
+      for (let index = 0; index <= words.length - size; index += 1) {
+        const phrase = words.slice(index, index + size).join(' ');
+        const meaningfulTerms = tokenizeKnowledgeText(phrase, 8);
+        if (meaningfulTerms.length >= Math.min(2, size)) phrases.push(phrase);
+        if (phrases.length >= 12) return [...new Set(phrases)];
+      }
+    }
+    return [...new Set(phrases)];
+  }
+
+  function countKnowledgeOccurrences(haystack, needle) {
+    if (!haystack || !needle) return 0;
+    let count = 0;
+    let position = haystack.indexOf(needle);
+    while (position !== -1 && count < 12) {
+      count += 1;
+      position = haystack.indexOf(needle, position + needle.length);
+    }
+    return count;
+  }
+
+  function scoreKnowledgeChunk(query, chunk, doc, ragMeta) {
+    if (!query.terms.length) return null;
+    const normalizedChunk = stripKnowledgeDiacritics(chunk).replace(/['’]/g, ' ');
+    const normalizedDocName = stripKnowledgeDiacritics(doc?.name || '').replace(/['’]/g, ' ');
+    const normalizedLocator = stripKnowledgeDiacritics(ragMeta?.locator || '');
+    const topTermCounts = new Map((ragMeta?.topTerms || []).map((item) => [item.term, Number(item.count) || 1]));
+    const matchedTerms = [];
     let score = 0;
-    queryTerms.forEach((term) => {
-      const occurrences = haystack.split(term).length - 1;
-      if (occurrences > 0) score += Math.min(occurrences, 5);
+
+    query.uniqueTerms.forEach((term) => {
+      const indexedCount = topTermCounts.get(term) || 0;
+      const chunkOccurrences = indexedCount || countKnowledgeOccurrences(normalizedChunk, term);
+      const nameOccurrences = countKnowledgeOccurrences(normalizedDocName, term);
+      const locatorOccurrences = countKnowledgeOccurrences(normalizedLocator, term);
+      if (chunkOccurrences || nameOccurrences || locatorOccurrences) {
+        matchedTerms.push(term);
+        score += Math.min(chunkOccurrences, 8) * 2.2;
+        score += Math.min(nameOccurrences, 3) * 3.5;
+        score += Math.min(locatorOccurrences, 2) * 2.5;
+      }
     });
-    return score;
+
+    query.phrases.forEach((phrase) => {
+      const phraseHits = countKnowledgeOccurrences(`${normalizedDocName}\n${normalizedLocator}\n${normalizedChunk}`, phrase);
+      if (phraseHits) score += Math.min(phraseHits, 3) * (phrase.split(' ').length + 2);
+    });
+
+    if (!matchedTerms.length && score <= 0) return null;
+    const coverage = matchedTerms.length / Math.max(1, query.uniqueTerms.length);
+    const density = score / Math.max(1, Math.log((ragMeta?.termCount || 1) + 8));
+    return {
+      score: Number((density + coverage * 10).toFixed(3)),
+      matchedTerms
+    };
   }
 
-  function buildKnowledgeContextForPrompt(userText) {
+  function retrieveKnowledgeContext(userText) {
     const docs = knowledgeLibrary.documents || [];
-    if (!docs.length) return '';
-    const queryTerms = normalizeKnowledgeTerms(userText);
-    if (!queryTerms.length) return '';
+    const terms = normalizeKnowledgeTerms(userText);
+    if (!docs.length || !terms.length) return { selected: [], query: { terms: [], uniqueTerms: [], phrases: [] } };
+    const query = {
+      terms,
+      uniqueTerms: [...new Set(terms)].slice(0, 36),
+      phrases: extractKnowledgePhrases(userText)
+    };
     const candidates = [];
     docs.forEach((doc) => {
-      doc.chunks.forEach((chunk, chunkIndex) => {
-        const score = scoreKnowledgeChunk(queryTerms, chunk, doc.name);
-        if (score > 0) candidates.push({ doc, chunk, chunkIndex, score });
+      const chunks = getKnowledgeDocChunks(doc);
+      const ragIndex = normalizeKnowledgeRagIndex(doc.ragIndex, chunks, doc);
+      if (!Array.isArray(doc.ragIndex) || doc.ragIndex.length !== ragIndex.length) doc.ragIndex = ragIndex;
+      chunks.forEach((chunk, chunkIndex) => {
+        const ragMeta = ragIndex[chunkIndex] || {};
+        const result = scoreKnowledgeChunk(query, chunk, doc, ragMeta);
+        if (!result) return;
+        candidates.push({
+          doc,
+          chunk,
+          chunkIndex,
+          locator: ragMeta.locator || extractKnowledgeChunkLocator(chunk, doc.kind || doc.type, chunkIndex),
+          score: result.score,
+          matchedTerms: result.matchedTerms
+        });
       });
     });
     const selected = candidates
-      .sort((a, b) => b.score - a.score)
+      .sort((a, b) => b.score - a.score || a.doc.name.localeCompare(b.doc.name) || a.chunkIndex - b.chunkIndex)
       .slice(0, maxRetrievedKnowledgeChunks);
+    return { selected, query };
+  }
+
+  function buildKnowledgeContextForPrompt(userText) {
+    const { selected, query } = retrieveKnowledgeContext(userText);
     if (!selected.length) return '';
+    const intro = currentLanguage === 'en'
+      ? [
+        'Retrieved local document context from the browser library.',
+        'Use these excerpts only when they answer the question.',
+        'Cite used evidence with the bracket id [D1], [D2], etc. Include document names and locators when relevant.',
+        'If the answer is not supported by these excerpts, say what is missing instead of inventing it.',
+        `Query terms: ${query.uniqueTerms.slice(0, 18).join(', ')}`
+      ].join('\n')
+      : [
+        'Contexte documentaire récupéré depuis la bibliothèque locale du navigateur.',
+        'Utilise ces extraits uniquement quand ils répondent à la question.',
+        'Cite les preuves utilisées avec les identifiants [D1], [D2], etc. Ajoute le nom du document et la localisation quand c’est pertinent.',
+        'Si la réponse n’est pas étayée par ces extraits, indique ce qui manque au lieu de l’inventer.',
+        `Termes de requête : ${query.uniqueTerms.slice(0, 18).join(', ')}`
+      ].join('\n');
     return [
-      'Contexte documentaire récupéré depuis la bibliothèque locale du navigateur. Utilise uniquement ces extraits si la question concerne ces documents. Cite les documents par leur nom quand c’est utile.',
+      intro,
       ...selected.map((item, index) => [
-        `\n[Extrait bibliothèque ${index + 1}]`,
+        `\n[D${index + 1}]`,
         `Document: ${item.doc.name}`,
         `Type: ${item.doc.type}`,
-        `Chunk: ${item.chunkIndex + 1}`,
+        `Localisation: ${item.locator}`,
+        `Chunk: ${item.chunkIndex + 1}/${getKnowledgeDocChunks(item.doc).length}`,
+        `Score: ${item.score}`,
+        `Mots-clés trouvés: ${item.matchedTerms.slice(0, 10).join(', ')}`,
         item.chunk
       ].join('\n'))
     ].join('\n\n');
