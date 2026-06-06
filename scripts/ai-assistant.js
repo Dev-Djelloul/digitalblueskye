@@ -5299,8 +5299,28 @@
       .replace(/[●•◦▪▫]/g, '').replace(/\s+/g, ' ').trim();
   }
 
+  function stripModelScratchPreamble(rawText) {
+    let text = String(rawText || '')
+      .replace(/<h([1-6])[^>]*>\s*([^<\n]+?)\s*<\/h\1>/gi, (_, level, content) => `${'#'.repeat(Number(level))} ${content.trim()}`)
+      .replace(/<h([1-6])[^>]*>[^#\n\r]*(?=#{1,6}\s)/gi, '')
+      .replace(/<\/?h[1-6][^>]*>/gi, '');
+    const lines = text.replace(/\r/g, '').split('\n');
+    const firstHeadingIndex = lines.findIndex((line) => /^\s{0,3}#{1,6}\s+\S/.test(line));
+    if (firstHeadingIndex <= 0) return text;
+    const preamble = lines.slice(0, firstHeadingIndex).join('\n').trim();
+    const scratchPattern = /\b(we need|we must|now produce|we'll produce|ensure punctuation|must state|none provided|not allowed|produce\.?)\b/i;
+    const hasRawTag = /<\/?[a-z][\s\S]*?>/i.test(preamble);
+    const mostlyShortScratchLines = lines.slice(0, firstHeadingIndex)
+      .filter((line) => line.trim())
+      .every((line) => line.trim().length < 140 && !/[.!?]\s+[A-ZÀ-ÖØ-Þ]/.test(line.trim()));
+    if (!scratchPattern.test(preamble) && !hasRawTag && !mostlyShortScratchLines) return text;
+    text = lines.slice(firstHeadingIndex).join('\n');
+    assistantLog('debug', 'assistant_scratch_preamble_removed', { removedChars: preamble.length });
+    return text;
+  }
+
   function cleanAssistantReplyText(rawText) {
-    return String(rawText || '')
+    return stripModelScratchPreamble(rawText)
       .replace(/<\/?(assistant|user|system)\s*>/gi, '')
       .split('\n')
       .map((line) => normalizeLetterSpacedLineForExport(line))
@@ -5710,10 +5730,33 @@
       "aujourd'hui",
       'en temps réel',
       'temps reel',
+      'benchmark concurrentiel',
+      'benchmark concurrentielle',
+      'benchmark marché',
+      'benchmark marche',
+      'analyse concurrentielle',
+      'concurrentiel',
+      'concurrents',
+      'applications concurrentes',
+      'part de marché',
+      'parts de marché',
+      'part de marche',
+      'classement',
+      'classements',
+      'prix abonnement',
+      'tarifs',
+      'comparatif marché',
+      'comparatif marche',
       'latest news',
       'latest announcement',
       'recent announcement',
       'current news',
+      'competitive benchmark',
+      'competitive analysis',
+      'market benchmark',
+      'market share',
+      'market ranking',
+      'pricing comparison',
       'real time'
     ];
     return currentInfoTriggers.some((trigger) => value.includes(trigger));
@@ -5735,8 +5778,8 @@
       match: ['benchmark', 'comparatif', 'comparaison', 'comparison matrix'],
       sectionsFr: ['Résumé exécutif', 'Objectif du benchmark', 'Critères d’évaluation', 'Matrice comparative', 'Analyse par solution', 'Forces et limites', 'Recommandation', 'Risques', 'Prochaines actions'],
       sectionsEn: ['Executive summary', 'Benchmark objective', 'Evaluation criteria', 'Comparison matrix', 'Solution-by-solution analysis', 'Strengths and limits', 'Recommendation', 'Risks', 'Next actions'],
-      guidanceFr: 'Construis une matrice comparative claire avec critères pondérés si possible. N’invente pas de prix, dates, performances ou classements récents sans source.',
-      guidanceEn: 'Build a clear comparison matrix with weighted criteria when possible. Do not invent recent prices, dates, performance claims, or rankings without sources.'
+      guidanceFr: 'Construis une matrice comparative claire avec critères pondérés si possible. Pour un benchmark concurrentiel, utilise la recherche web si elle est disponible. N’invente pas de prix, dates, performances, classements ou citations. N’utilise jamais des références fictives comme [D1] ou [D2] : cite uniquement les sources réellement fournies.',
+      guidanceEn: 'Build a clear comparison matrix with weighted criteria when possible. For a competitive benchmark, use web search when available. Do not invent prices, dates, performance claims, rankings, or citations. Never use fictional references such as [D1] or [D2]: cite only actually provided sources.'
     },
     swot: {
       labelFr: 'SWOT',
