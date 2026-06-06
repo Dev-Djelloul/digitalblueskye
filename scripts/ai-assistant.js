@@ -5719,6 +5719,99 @@
     return currentInfoTriggers.some((trigger) => value.includes(trigger));
   }
 
+  const documentGenerationTemplates = {
+    fiche_projet: {
+      labelFr: 'fiche projet',
+      labelEn: 'project sheet',
+      match: ['fiche projet', 'note de cadrage', 'project sheet', 'project brief', 'brief projet'],
+      sectionsFr: ['Résumé exécutif', 'Contexte', 'Objectifs SMART', 'Périmètre', 'Utilisateurs et parties prenantes', 'Livrables', 'Jalons', 'Risques', 'KPIs', 'Prochaines actions'],
+      sectionsEn: ['Executive summary', 'Context', 'SMART goals', 'Scope', 'Users and stakeholders', 'Deliverables', 'Milestones', 'Risks', 'KPIs', 'Next actions'],
+      guidanceFr: 'Produit une fiche synthétique, décisionnelle et actionnable. Termine par un tableau des arbitrages à valider.',
+      guidanceEn: 'Produce a concise, decision-ready and actionable project sheet. End with a table of decisions to validate.'
+    },
+    benchmark: {
+      labelFr: 'benchmark',
+      labelEn: 'benchmark',
+      match: ['benchmark', 'comparatif', 'comparaison', 'comparison matrix'],
+      sectionsFr: ['Résumé exécutif', 'Objectif du benchmark', 'Critères d’évaluation', 'Matrice comparative', 'Analyse par solution', 'Forces et limites', 'Recommandation', 'Risques', 'Prochaines actions'],
+      sectionsEn: ['Executive summary', 'Benchmark objective', 'Evaluation criteria', 'Comparison matrix', 'Solution-by-solution analysis', 'Strengths and limits', 'Recommendation', 'Risks', 'Next actions'],
+      guidanceFr: 'Construis une matrice comparative claire avec critères pondérés si possible. N’invente pas de prix, dates, performances ou classements récents sans source.',
+      guidanceEn: 'Build a clear comparison matrix with weighted criteria when possible. Do not invent recent prices, dates, performance claims, or rankings without sources.'
+    },
+    swot: {
+      labelFr: 'SWOT',
+      labelEn: 'SWOT',
+      match: ['swot'],
+      sectionsFr: ['Synthèse', 'Contexte', 'Matrice SWOT', 'Enseignements clés', 'Scénarios stratégiques', 'Recommandations', 'Plan d’action priorisé'],
+      sectionsEn: ['Summary', 'Context', 'SWOT matrix', 'Key takeaways', 'Strategic scenarios', 'Recommendations', 'Prioritized action plan'],
+      guidanceFr: 'Présente la matrice en tableau 2x2, puis transforme les constats en décisions concrètes.',
+      guidanceEn: 'Present the matrix as a 2x2 table, then convert findings into concrete decisions.'
+    },
+    raci: {
+      labelFr: 'RACI',
+      labelEn: 'RACI',
+      match: ['raci', 'matrice raci', 'roles responsibilities'],
+      sectionsFr: ['Périmètre', 'Rôles', 'Activités', 'Matrice RACI', 'Règles de gouvernance', 'Points de vigilance', 'Prochaines actions'],
+      sectionsEn: ['Scope', 'Roles', 'Activities', 'RACI matrix', 'Governance rules', 'Watch points', 'Next actions'],
+      guidanceFr: 'Utilise une matrice Markdown lisible avec R, A, C, I et précise les ambiguïtés de responsabilité.',
+      guidanceEn: 'Use a readable Markdown matrix with R, A, C, I and call out responsibility ambiguities.'
+    },
+    cahier_des_charges: {
+      labelFr: 'cahier des charges',
+      labelEn: 'requirements document',
+      match: ['cahier des charges', 'appel d’offre', "appel d'offre", 'requirements document', 'specification'],
+      sectionsFr: ['Contexte', 'Objectifs', 'Utilisateurs', 'Périmètre fonctionnel', 'Exigences non fonctionnelles', 'Contenus et données', 'Intégrations', 'Accessibilité', 'Sécurité et RGPD', 'Critères d’acceptation', 'Planning', 'Risques'],
+      sectionsEn: ['Context', 'Goals', 'Users', 'Functional scope', 'Non-functional requirements', 'Content and data', 'Integrations', 'Accessibility', 'Security and privacy', 'Acceptance criteria', 'Timeline', 'Risks'],
+      guidanceFr: 'Rédige comme un document contractuel clair, avec exigences vérifiables et critères d’acceptation.',
+      guidanceEn: 'Write as a clear contractual document, with verifiable requirements and acceptance criteria.'
+    },
+    note_veille: {
+      labelFr: 'note de veille',
+      labelEn: 'watch note',
+      match: ['note de veille', 'veille', 'note prospective', 'watch note', 'market watch'],
+      sectionsFr: ['Synthèse', 'Signal observé', 'Contexte', 'Sources disponibles', 'Impacts potentiels', 'Opportunités', 'Risques', 'Recommandations', 'Actions de suivi'],
+      sectionsEn: ['Summary', 'Observed signal', 'Context', 'Available sources', 'Potential impacts', 'Opportunities', 'Risks', 'Recommendations', 'Follow-up actions'],
+      guidanceFr: 'Distingue clairement faits, interprétations et hypothèses. Pour l’actualité récente, demande ou utilise une recherche web.',
+      guidanceEn: 'Clearly separate facts, interpretations, and assumptions. For recent news, request or use web search.'
+    },
+    strategie_editoriale: {
+      labelFr: 'stratégie éditoriale',
+      labelEn: 'editorial strategy',
+      match: ['stratégie éditoriale', 'strategie editoriale', 'ligne éditoriale', 'editorial strategy', 'content strategy'],
+      sectionsFr: ['Objectifs', 'Audiences', 'Positionnement', 'Piliers éditoriaux', 'Formats', 'Calendrier', 'Canaux', 'Ton et style', 'KPIs', 'Gouvernance éditoriale'],
+      sectionsEn: ['Goals', 'Audiences', 'Positioning', 'Editorial pillars', 'Formats', 'Calendar', 'Channels', 'Tone and style', 'KPIs', 'Editorial governance'],
+      guidanceFr: 'Transforme la stratégie en calendrier exploitable et en règles de production concrètes.',
+      guidanceEn: 'Turn the strategy into an actionable calendar and concrete production rules.'
+    },
+    audit_ux: {
+      labelFr: 'audit UX',
+      labelEn: 'UX audit',
+      match: ['audit ux', 'audit ergonomique', 'audit expérience utilisateur', 'ux audit', 'heuristic audit'],
+      sectionsFr: ['Résumé exécutif', 'Méthode', 'Parcours audité', 'Constats', 'Impacts utilisateurs', 'Recommandations', 'Quick wins', 'Plan d’action priorisé'],
+      sectionsEn: ['Executive summary', 'Method', 'Audited journey', 'Findings', 'User impacts', 'Recommendations', 'Quick wins', 'Prioritized action plan'],
+      guidanceFr: 'Classe les constats par sévérité, effort et impact. Propose des corrections observables et testables.',
+      guidanceEn: 'Rank findings by severity, effort, and impact. Propose observable and testable fixes.'
+    },
+    support_soutenance: {
+      labelFr: 'support de soutenance',
+      labelEn: 'presentation support',
+      match: ['support de soutenance', 'soutenance', 'présentation', 'presentation support', 'defense deck'],
+      sectionsFr: ['Titre', 'Problématique', 'Contexte', 'Méthode', 'Réalisations', 'Résultats', 'Difficultés', 'Apprentissages', 'Conclusion', 'Questions'],
+      sectionsEn: ['Title', 'Problem statement', 'Context', 'Method', 'Deliverables', 'Results', 'Difficulties', 'Learnings', 'Conclusion', 'Questions'],
+      guidanceFr: 'Structure le contenu comme un plan de slides, avec message clé et intention orale pour chaque slide.',
+      guidanceEn: 'Structure the content as a slide plan, with key message and speaking intent for each slide.'
+    },
+    portfolio: {
+      labelFr: 'portfolio',
+      labelEn: 'portfolio',
+      match: ['portfolio', 'portfolio métier', 'book projet', 'case study'],
+      sectionsFr: ['Accroche', 'Contexte', 'Problème', 'Rôle', 'Méthode', 'Réalisations', 'Résultats', 'Compétences mobilisées', 'Preuves', 'Améliorations futures'],
+      sectionsEn: ['Hook', 'Context', 'Problem', 'Role', 'Method', 'Deliverables', 'Results', 'Skills used', 'Evidence', 'Future improvements'],
+      guidanceFr: 'Rédige comme une étude de cas valorisable, concrète, orientée preuves et résultats.',
+      guidanceEn: 'Write as a concrete, evidence-based case study focused on results.'
+    }
+  };
+
   function getDocumentGenerationProfile(text) {
     const value = String(text || '').toLowerCase();
     if (!value.trim()) return null;
@@ -5729,34 +5822,49 @@
       'crée un document',
       'cree un document',
       'livrable',
+      'benchmark',
       'cahier des charges',
       'note de cadrage',
+      'note de veille',
       'roadmap',
       'swot',
       'raci',
       'gantt',
       'audit',
+      'audit ux',
       'compte rendu',
       'documentation technique',
+      'stratégie éditoriale',
+      'strategie editoriale',
       'stratégie ia',
       'strategie ia',
       'plan projet',
       'fiche projet',
+      'support de soutenance',
+      'soutenance',
+      'portfolio',
       'brief',
       'generate a document',
       'create a document',
+      'benchmark',
       'project brief',
       'requirements document',
+      'watch note',
+      'editorial strategy',
+      'ux audit',
+      'presentation support',
+      'portfolio',
       'technical documentation'
     ];
     if (!documentTriggers.some((trigger) => value.includes(trigger))) return null;
 
     const profiles = [
-      { key: 'cahier_des_charges', label: 'cahier des charges', match: ['cahier des charges', 'requirements document'] },
-      { key: 'note_cadrage', label: 'note de cadrage', match: ['note de cadrage', 'project brief', 'fiche projet', 'brief'] },
+      ...Object.entries(documentGenerationTemplates).map(([key, template]) => ({
+        key,
+        label: currentLanguage === 'en' ? template.labelEn : template.labelFr,
+        match: template.match
+      })),
       { key: 'roadmap', label: 'roadmap', match: ['roadmap', 'plan projet'] },
-      { key: 'swot', label: 'SWOT', match: ['swot'] },
-      { key: 'raci', label: 'RACI', match: ['raci'] },
       { key: 'gantt', label: 'planning Gantt', match: ['gantt'] },
       { key: 'audit', label: 'audit', match: ['audit'] },
       { key: 'compte_rendu', label: 'compte rendu', match: ['compte rendu', 'meeting notes'] },
@@ -5764,6 +5872,20 @@
       { key: 'documentation_technique', label: 'documentation technique', match: ['documentation technique', 'technical documentation'] }
     ];
     return profiles.find((profile) => profile.match.some((item) => value.includes(item))) || { key: 'document', label: 'livrable projet' };
+  }
+
+  function formatDocumentTemplateInstruction(profile, language) {
+    const template = documentGenerationTemplates[profile?.key];
+    if (!template) return '';
+    const sections = language === 'en' ? template.sectionsEn : template.sectionsFr;
+    const guidance = language === 'en' ? template.guidanceEn : template.guidanceFr;
+    const sectionLine = language === 'en'
+      ? `Template sections to produce in this order: ${sections.join(' > ')}.`
+      : `Sections du template à produire dans cet ordre : ${sections.join(' > ')}.`;
+    const qualityLine = language === 'en'
+      ? 'Quality gate: the result must be ready to export, with explicit assumptions, decision points, and next actions.'
+      : 'Contrôle qualité : le résultat doit être prêt à exporter, avec hypothèses explicites, points de décision et prochaines actions.';
+    return [sectionLine, guidance, qualityLine].filter(Boolean).join('\n');
   }
 
   function buildDocumentGenerationInstruction(profile, language) {
@@ -5814,6 +5936,7 @@
     };
     return [
       ...(language === 'en' ? commonEn : commonFr),
+      formatDocumentTemplateInstruction(profile, language),
       (language === 'en' ? templatesEn : templatesFr)[profile.key] || ''
     ].filter(Boolean).join('\n');
   }
