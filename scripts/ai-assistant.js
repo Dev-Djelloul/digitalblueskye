@@ -2726,17 +2726,11 @@
     if (!selected.length) return '';
     const intro = currentLanguage === 'en'
       ? [
-        'Retrieved local document context from the browser library.',
-        'Use these excerpts only when they answer the question.',
-        'Cite used evidence with the bracket id [D1], [D2], etc. Include document names and locators when relevant.',
-        'If the answer is not supported by these excerpts, say what is missing instead of inventing it.',
+        'Local document context available from the browser library.',
         `Query terms: ${query.uniqueTerms.slice(0, 18).join(', ')}`
       ].join('\n')
       : [
-        'Contexte documentaire récupéré depuis la bibliothèque locale du navigateur.',
-        'Utilise ces extraits uniquement quand ils répondent à la question.',
-        'Cite les preuves utilisées avec les identifiants [D1], [D2], etc. Ajoute le nom du document et la localisation quand c’est pertinent.',
-        'Si la réponse n’est pas étayée par ces extraits, indique ce qui manque au lieu de l’inventer.',
+        'Contexte documentaire disponible depuis la bibliothèque locale du navigateur.',
         `Termes de requête : ${query.uniqueTerms.slice(0, 18).join(', ')}`
       ].join('\n');
     return [
@@ -2746,9 +2740,7 @@
         `Document: ${item.doc.name}`,
         `Type: ${item.doc.type}`,
         `Localisation: ${item.locator}`,
-        `Chunk: ${item.chunkIndex + 1}/${getKnowledgeDocChunks(item.doc).length}`,
-        `Score: ${item.score}`,
-        `Mots-clés trouvés: ${item.matchedTerms.slice(0, 10).join(', ')}`,
+        currentLanguage === 'en' ? 'Excerpt:' : 'Extrait :',
         item.chunk
       ].join('\n'))
     ].join('\n\n');
@@ -5395,18 +5387,6 @@
       .replace(/[-.]/g, ' ');
   }
 
-  function truncateSourceText(text, maxLength = 210) {
-    const value = String(text || '')
-      .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '$1')
-      .replace(/https?:\/\/\S+/g, '')
-      .replace(/[#*_`|[\]()]/g, ' ')
-      .replace(/\s*[-•]\s*/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
-    if (value.length <= maxLength) return value;
-    return `${value.slice(0, maxLength).trim()}...`;
-  }
-
   function appendWebSearchSources(bubble, results, debugWeb = false) {
     const sources = normalizeWebSearchResults(results);
     const content = bubble?.querySelector('.ai-assistant-message-content');
@@ -5440,7 +5420,7 @@
 
     const title = document.createElement('h3');
     title.className = 'web-sources-title';
-    title.textContent = currentLanguage === 'en' ? 'Sources consulted' : 'Sources consultées';
+    title.textContent = currentLanguage === 'en' ? 'Web references' : 'Références web';
     section.appendChild(title);
 
     const cards = document.createElement('div');
@@ -5463,13 +5443,6 @@
         card.appendChild(domainNode);
       }
 
-      if (source.snippet) {
-        const snippet = document.createElement('p');
-        snippet.className = 'web-source-snippet';
-        snippet.textContent = truncateSourceText(source.snippet);
-        card.appendChild(snippet);
-      }
-
       const link = document.createElement('a');
       link.className = 'web-source-link';
       link.href = source.link;
@@ -5489,7 +5462,6 @@
       [
         [currentLanguage === 'en' ? 'Index' : 'Index', String(index + 1)],
         ['URL', source.link],
-        ['Snippet', source.snippet || ''],
         ['Score', source.score == null ? '' : String(source.score)]
       ].forEach(([label, value]) => {
         if (!value) return;
@@ -5509,7 +5481,7 @@
 
     const compactSources = document.createElement('p');
     compactSources.className = 'web-sources-compact';
-    compactSources.textContent = currentLanguage === 'en' ? 'Sources consulted: ' : 'Sources consultées : ';
+    compactSources.textContent = currentLanguage === 'en' ? 'Web references: ' : 'Références web : ';
     sources.forEach((source, index) => {
       if (index > 0) compactSources.appendChild(document.createTextNode(' · '));
       const link = document.createElement('a');
@@ -5762,276 +5734,6 @@
     return currentInfoTriggers.some((trigger) => value.includes(trigger));
   }
 
-  const documentGenerationTemplates = {
-    fiche_projet: {
-      labelFr: 'fiche projet',
-      labelEn: 'project sheet',
-      match: ['fiche projet', 'note de cadrage', 'project sheet', 'project brief', 'brief projet'],
-      sectionsFr: ['Résumé exécutif', 'Contexte', 'Objectifs SMART', 'Périmètre', 'Utilisateurs et parties prenantes', 'Livrables', 'Jalons', 'Risques', 'KPIs', 'Prochaines actions'],
-      sectionsEn: ['Executive summary', 'Context', 'SMART goals', 'Scope', 'Users and stakeholders', 'Deliverables', 'Milestones', 'Risks', 'KPIs', 'Next actions'],
-      guidanceFr: 'Produit une fiche synthétique, décisionnelle et actionnable. Termine par un tableau des arbitrages à valider.',
-      guidanceEn: 'Produce a concise, decision-ready and actionable project sheet. End with a table of decisions to validate.'
-    },
-    benchmark: {
-      labelFr: 'benchmark',
-      labelEn: 'benchmark',
-      match: ['benchmark', 'comparatif', 'comparaison', 'comparison matrix'],
-      sectionsFr: ['Résumé exécutif', 'Objectif du benchmark', 'Critères d’évaluation', 'Matrice comparative', 'Analyse par solution', 'Forces et limites', 'Recommandation', 'Risques', 'Prochaines actions'],
-      sectionsEn: ['Executive summary', 'Benchmark objective', 'Evaluation criteria', 'Comparison matrix', 'Solution-by-solution analysis', 'Strengths and limits', 'Recommendation', 'Risks', 'Next actions'],
-      guidanceFr: 'Construis une matrice comparative claire avec critères pondérés si possible. Pour un benchmark concurrentiel, utilise la recherche web si elle est disponible. N’invente pas de prix, dates, performances, classements ou citations. N’utilise jamais des références fictives comme [D1] ou [D2] : cite uniquement les sources réellement fournies.',
-      guidanceEn: 'Build a clear comparison matrix with weighted criteria when possible. For a competitive benchmark, use web search when available. Do not invent prices, dates, performance claims, rankings, or citations. Never use fictional references such as [D1] or [D2]: cite only actually provided sources.'
-    },
-    swot: {
-      labelFr: 'SWOT',
-      labelEn: 'SWOT',
-      match: ['swot'],
-      sectionsFr: ['Synthèse', 'Contexte', 'Matrice SWOT', 'Enseignements clés', 'Scénarios stratégiques', 'Recommandations', 'Plan d’action priorisé'],
-      sectionsEn: ['Summary', 'Context', 'SWOT matrix', 'Key takeaways', 'Strategic scenarios', 'Recommendations', 'Prioritized action plan'],
-      guidanceFr: 'Présente la matrice en tableau 2x2, puis transforme les constats en décisions concrètes.',
-      guidanceEn: 'Present the matrix as a 2x2 table, then convert findings into concrete decisions.'
-    },
-    raci: {
-      labelFr: 'RACI',
-      labelEn: 'RACI',
-      match: ['raci', 'matrice raci', 'roles responsibilities'],
-      sectionsFr: ['Périmètre', 'Rôles', 'Activités', 'Matrice RACI', 'Règles de gouvernance', 'Points de vigilance', 'Prochaines actions'],
-      sectionsEn: ['Scope', 'Roles', 'Activities', 'RACI matrix', 'Governance rules', 'Watch points', 'Next actions'],
-      guidanceFr: 'Utilise une matrice Markdown lisible avec R, A, C, I et précise les ambiguïtés de responsabilité.',
-      guidanceEn: 'Use a readable Markdown matrix with R, A, C, I and call out responsibility ambiguities.'
-    },
-    cahier_des_charges: {
-      labelFr: 'cahier des charges',
-      labelEn: 'requirements document',
-      match: ['cahier des charges', 'appel d’offre', "appel d'offre", 'requirements document', 'specification'],
-      sectionsFr: ['Contexte', 'Objectifs', 'Utilisateurs', 'Périmètre fonctionnel', 'Exigences non fonctionnelles', 'Contenus et données', 'Intégrations', 'Accessibilité', 'Sécurité et RGPD', 'Critères d’acceptation', 'Planning', 'Risques'],
-      sectionsEn: ['Context', 'Goals', 'Users', 'Functional scope', 'Non-functional requirements', 'Content and data', 'Integrations', 'Accessibility', 'Security and privacy', 'Acceptance criteria', 'Timeline', 'Risks'],
-      guidanceFr: 'Rédige comme un document contractuel clair, avec exigences vérifiables et critères d’acceptation.',
-      guidanceEn: 'Write as a clear contractual document, with verifiable requirements and acceptance criteria.'
-    },
-    note_veille: {
-      labelFr: 'note de veille',
-      labelEn: 'watch note',
-      match: ['note de veille', 'veille', 'note prospective', 'watch note', 'market watch'],
-      sectionsFr: ['Synthèse', 'Signal observé', 'Contexte', 'Sources disponibles', 'Impacts potentiels', 'Opportunités', 'Risques', 'Recommandations', 'Actions de suivi'],
-      sectionsEn: ['Summary', 'Observed signal', 'Context', 'Available sources', 'Potential impacts', 'Opportunities', 'Risks', 'Recommendations', 'Follow-up actions'],
-      guidanceFr: 'Distingue clairement faits, interprétations et hypothèses. Pour l’actualité récente, demande ou utilise une recherche web.',
-      guidanceEn: 'Clearly separate facts, interpretations, and assumptions. For recent news, request or use web search.'
-    },
-    strategie_editoriale: {
-      labelFr: 'stratégie éditoriale',
-      labelEn: 'editorial strategy',
-      match: ['stratégie éditoriale', 'strategie editoriale', 'ligne éditoriale', 'editorial strategy', 'content strategy'],
-      sectionsFr: ['Objectifs', 'Audiences', 'Positionnement', 'Piliers éditoriaux', 'Formats', 'Calendrier', 'Canaux', 'Ton et style', 'KPIs', 'Gouvernance éditoriale'],
-      sectionsEn: ['Goals', 'Audiences', 'Positioning', 'Editorial pillars', 'Formats', 'Calendar', 'Channels', 'Tone and style', 'KPIs', 'Editorial governance'],
-      guidanceFr: 'Transforme la stratégie en calendrier exploitable et en règles de production concrètes.',
-      guidanceEn: 'Turn the strategy into an actionable calendar and concrete production rules.'
-    },
-    audit_ux: {
-      labelFr: 'audit UX',
-      labelEn: 'UX audit',
-      match: ['audit ux', 'audit ergonomique', 'audit expérience utilisateur', 'ux audit', 'heuristic audit'],
-      sectionsFr: ['Résumé exécutif', 'Méthode', 'Parcours audité', 'Constats', 'Impacts utilisateurs', 'Recommandations', 'Quick wins', 'Plan d’action priorisé'],
-      sectionsEn: ['Executive summary', 'Method', 'Audited journey', 'Findings', 'User impacts', 'Recommendations', 'Quick wins', 'Prioritized action plan'],
-      guidanceFr: 'Classe les constats par sévérité, effort et impact. Propose des corrections observables et testables.',
-      guidanceEn: 'Rank findings by severity, effort, and impact. Propose observable and testable fixes.'
-    },
-    support_soutenance: {
-      labelFr: 'support de soutenance',
-      labelEn: 'presentation support',
-      match: ['support de soutenance', 'soutenance', 'présentation', 'presentation support', 'defense deck'],
-      sectionsFr: ['Titre', 'Problématique', 'Contexte', 'Méthode', 'Réalisations', 'Résultats', 'Difficultés', 'Apprentissages', 'Conclusion', 'Questions'],
-      sectionsEn: ['Title', 'Problem statement', 'Context', 'Method', 'Deliverables', 'Results', 'Difficulties', 'Learnings', 'Conclusion', 'Questions'],
-      guidanceFr: 'Structure le contenu comme un plan de slides, avec message clé et intention orale pour chaque slide.',
-      guidanceEn: 'Structure the content as a slide plan, with key message and speaking intent for each slide.'
-    },
-    portfolio: {
-      labelFr: 'portfolio',
-      labelEn: 'portfolio',
-      match: ['portfolio', 'portfolio métier', 'book projet', 'case study'],
-      sectionsFr: ['Accroche', 'Contexte', 'Problème', 'Rôle', 'Méthode', 'Réalisations', 'Résultats', 'Compétences mobilisées', 'Preuves', 'Améliorations futures'],
-      sectionsEn: ['Hook', 'Context', 'Problem', 'Role', 'Method', 'Deliverables', 'Results', 'Skills used', 'Evidence', 'Future improvements'],
-      guidanceFr: 'Rédige comme une étude de cas valorisable, concrète, orientée preuves et résultats.',
-      guidanceEn: 'Write as a concrete, evidence-based case study focused on results.'
-    }
-  };
-
-  function getDocumentGenerationProfile(text) {
-    const value = String(text || '').toLowerCase();
-    if (!value.trim()) return null;
-    const documentTriggers = [
-      'génère un document',
-      'genere un document',
-      'produis un document',
-      'crée un document',
-      'cree un document',
-      'livrable',
-      'benchmark',
-      'cahier des charges',
-      'note de cadrage',
-      'note de veille',
-      'roadmap',
-      'swot',
-      'raci',
-      'gantt',
-      'audit',
-      'audit ux',
-      'compte rendu',
-      'documentation technique',
-      'stratégie éditoriale',
-      'strategie editoriale',
-      'stratégie ia',
-      'strategie ia',
-      'plan projet',
-      'fiche projet',
-      'support de soutenance',
-      'soutenance',
-      'portfolio',
-      'brief',
-      'generate a document',
-      'create a document',
-      'benchmark',
-      'project brief',
-      'requirements document',
-      'watch note',
-      'editorial strategy',
-      'ux audit',
-      'presentation support',
-      'portfolio',
-      'technical documentation'
-    ];
-    if (!documentTriggers.some((trigger) => value.includes(trigger))) return null;
-
-    const profiles = [
-      ...Object.entries(documentGenerationTemplates).map(([key, template]) => ({
-        key,
-        label: currentLanguage === 'en' ? template.labelEn : template.labelFr,
-        match: template.match
-      })),
-      { key: 'roadmap', label: 'roadmap', match: ['roadmap', 'plan projet'] },
-      { key: 'gantt', label: 'planning Gantt', match: ['gantt'] },
-      { key: 'audit', label: 'audit', match: ['audit'] },
-      { key: 'compte_rendu', label: 'compte rendu', match: ['compte rendu', 'meeting notes'] },
-      { key: 'strategie_ia', label: 'stratégie IA', match: ['stratégie ia', 'strategie ia', 'ai strategy'] },
-      { key: 'documentation_technique', label: 'documentation technique', match: ['documentation technique', 'technical documentation'] }
-    ];
-    return profiles.find((profile) => profile.match.some((item) => value.includes(item))) || { key: 'document', label: 'livrable projet' };
-  }
-
-  function shouldUseDeliverableMode(text, profile = null) {
-    if (profile) return true;
-    const value = String(text || '').toLowerCase();
-    if (!value.trim()) return false;
-    const deliverableKeywords = [
-      'benchmark',
-      'veille',
-      'audit',
-      'swot',
-      'roadmap',
-      'cahier des charges',
-      'business model',
-      'analyse concurrentielle',
-      'fiche projet',
-      'persona',
-      'user story',
-      'user stories',
-      "plan d'action",
-      'plan action',
-      'stratégie digitale',
-      'strategie digitale',
-      'comparaison',
-      'comparatif',
-      'matrice',
-      'rapport',
-      'livrable'
-    ];
-    return deliverableKeywords.some((keyword) => value.includes(keyword));
-  }
-
-  function buildDeliverableModeInstruction(enabled, language) {
-    if (!enabled) return '';
-    if (language === 'en') {
-      return [
-        'DELIVERABLE MODE: the user expects a professional deliverable.',
-        'Do not answer like a search engine. Answer like a consultant, analyst, or digital project manager.',
-        'The response must be directly usable without rework.',
-        'When relevant, use tables, matrices, comparisons, syntheses, recommendations, risks, assumptions, and next actions.'
-      ].join('\n');
-    }
-    return [
-      "MODE LIVRABLE : l'utilisateur attend un livrable professionnel.",
-      'Ne réponds pas comme un moteur de recherche. Réponds comme un consultant, un analyste ou un chef de projet digital.',
-      'La réponse doit être directement exploitable sans retraitement.',
-      'Lorsque c’est pertinent, utilise des tableaux, matrices, comparatifs, synthèses, recommandations, risques, hypothèses et prochaines actions.'
-    ].join('\n');
-  }
-
-  function formatDocumentTemplateInstruction(profile, language) {
-    const template = documentGenerationTemplates[profile?.key];
-    if (!template) return '';
-    const sections = language === 'en' ? template.sectionsEn : template.sectionsFr;
-    const guidance = language === 'en' ? template.guidanceEn : template.guidanceFr;
-    const sectionLine = language === 'en'
-      ? `Template sections to produce in this order: ${sections.join(' > ')}.`
-      : `Sections du template à produire dans cet ordre : ${sections.join(' > ')}.`;
-    const qualityLine = language === 'en'
-      ? 'Quality gate: the result must be ready to export, with explicit assumptions, decision points, and next actions.'
-      : 'Contrôle qualité : le résultat doit être prêt à exporter, avec hypothèses explicites, points de décision et prochaines actions.';
-    return [sectionLine, guidance, qualityLine].filter(Boolean).join('\n');
-  }
-
-  function buildDocumentGenerationInstruction(profile, language) {
-    if (!profile) return '';
-    const commonFr = [
-      `Mode génération documentaire activé : produis un ${profile.label} directement exploitable.`,
-      'Réponds comme un livrable professionnel, pas comme une conversation.',
-      'Commence par un titre H1 clair, puis une courte fiche de cadrage avec date, objectif, périmètre, hypothèses et limites.',
-      'Structure le document avec des titres H2/H3, des tableaux Markdown lisibles quand ils apportent une vraie valeur, et des listes homogènes.',
-      'Si des informations manquent, ne bloque pas : ajoute une section "Hypothèses à valider" et formule des hypothèses prudentes.',
-      'Ajoute une section "Prochaines actions" avec priorités, responsables suggérés, échéance indicative et niveau de risque.',
-      'Évite les séparateurs "---", les URLs inventées, les placeholders vagues et les paragraphes trop longs.',
-      'Le document doit être compatible avec l’export MD, HTML, PDF et DOCX.'
-    ];
-    const commonEn = [
-      `Document generation mode enabled: produce a directly usable ${profile.label}.`,
-      'Write as a professional deliverable, not as a conversational answer.',
-      'Start with a clear H1 title, then a short framing sheet with date, objective, scope, assumptions, and limits.',
-      'Structure the document with H2/H3 headings, readable Markdown tables when useful, and consistent lists.',
-      'If information is missing, do not block: add an "Assumptions to validate" section and make careful assumptions.',
-      'Add a "Next actions" section with priorities, suggested owners, indicative deadline, and risk level.',
-      'Avoid standalone "---" separators, invented URLs, vague placeholders, and overly long paragraphs.',
-      'The document must remain export-ready for MD, HTML, PDF, and DOCX.'
-    ];
-    const templatesFr = {
-      cahier_des_charges: 'Sections attendues : contexte, objectifs, utilisateurs, périmètre fonctionnel, exigences non fonctionnelles, contenus/données, intégrations, accessibilité, sécurité/RGPD, critères d’acceptation, planning, risques.',
-      note_cadrage: 'Sections attendues : contexte, problème à résoudre, objectifs SMART, périmètre, parties prenantes, contraintes, livrables, jalons, risques, décisions à prendre.',
-      roadmap: 'Sections attendues : vision, objectifs, lots, jalons, dépendances, priorités, risques, KPIs, calendrier synthétique.',
-      swot: 'Sections attendues : synthèse, matrice SWOT, enseignements clés, recommandations stratégiques, actions prioritaires.',
-      raci: 'Sections attendues : périmètre, rôles, matrice RACI, points de vigilance, gouvernance de suivi.',
-      gantt: 'Sections attendues : hypothèses de planning, phases, tâches, dépendances, jalons, tableau chronologique.',
-      audit: 'Sections attendues : résumé exécutif, méthode, constats, impacts, recommandations, quick wins, plan d’action priorisé.',
-      compte_rendu: 'Sections attendues : contexte, participants, sujets traités, décisions, actions, responsables, échéances, points ouverts.',
-      strategie_ia: 'Sections attendues : objectifs métier, cas d’usage IA, gains attendus, risques, données, gouvernance, roadmap, KPIs.',
-      documentation_technique: 'Sections attendues : objectif, architecture, prérequis, composants, flux, configuration, sécurité, tests, maintenance.'
-    };
-    const templatesEn = {
-      cahier_des_charges: 'Expected sections: context, goals, users, functional scope, non-functional requirements, content/data, integrations, accessibility, security/privacy, acceptance criteria, timeline, risks.',
-      note_cadrage: 'Expected sections: context, problem to solve, SMART goals, scope, stakeholders, constraints, deliverables, milestones, risks, decisions needed.',
-      roadmap: 'Expected sections: vision, goals, workstreams, milestones, dependencies, priorities, risks, KPIs, synthetic timeline.',
-      swot: 'Expected sections: summary, SWOT matrix, key takeaways, strategic recommendations, priority actions.',
-      raci: 'Expected sections: scope, roles, RACI matrix, watch points, follow-up governance.',
-      gantt: 'Expected sections: planning assumptions, phases, tasks, dependencies, milestones, chronological table.',
-      audit: 'Expected sections: executive summary, method, findings, impacts, recommendations, quick wins, prioritized action plan.',
-      compte_rendu: 'Expected sections: context, attendees, topics, decisions, actions, owners, deadlines, open points.',
-      strategie_ia: 'Expected sections: business objectives, AI use cases, expected gains, risks, data, governance, roadmap, KPIs.',
-      documentation_technique: 'Expected sections: objective, architecture, prerequisites, components, flows, configuration, security, tests, maintenance.'
-    };
-    return [
-      ...(language === 'en' ? commonEn : commonFr),
-      formatDocumentTemplateInstruction(profile, language),
-      (language === 'en' ? templatesEn : templatesFr)[profile.key] || ''
-    ].filter(Boolean).join('\n');
-  }
-
   async function askAI(userText, fileContext = '', attachments = []) {
     const loading = addTypingMessage();
     const requestController = new AbortController();
@@ -6041,11 +5743,6 @@
     try {
       const dateContext = getAssistantCurrentDateContext();
       effectiveWebSearch = isWebSearchActive || shouldUseWebSearchForPrompt(userText);
-      const documentProfile = getDocumentGenerationProfile(userText);
-      const responseLanguage = currentLanguage === 'en' ? 'en' : 'fr';
-      const deliverableMode = shouldUseDeliverableMode(userText, documentProfile);
-      const deliverableModeInstruction = buildDeliverableModeInstruction(deliverableMode, responseLanguage);
-      const documentGenerationInstruction = buildDocumentGenerationInstruction(documentProfile, responseLanguage);
       const knowledgeContext = fileContext ? '' : buildKnowledgeContextForPrompt(userText);
 
       // Activer le statut "recherche en cours" si recherche web activée
@@ -6053,51 +5750,25 @@
         setWebSearchInProgress(true);
       }
 
-      const webAccessInstruction = effectiveWebSearch
-        ? (currentLanguage === 'en'
-          ? 'A live web search will be requested through the backend for this message. Use the returned sources when available, cite them with [1], [2], etc., and clearly indicate only if the search fails or returns insufficient results.'
-          : 'Une recherche web temps réel va être demandée au backend pour ce message. Utilise les sources retournées quand elles sont disponibles, cite-les avec [1], [2], etc., et indique seulement si la recherche échoue ou si les résultats sont insuffisants.')
-        : (currentLanguage === 'en'
-          ? 'For latest/current market facts, product launches, prices, rankings, laws, or news: you do not have live web access. Do not invent models, examples, dates, specs, prices, citations, or rankings. If no source is provided, say that live verification is required and offer a safe comparison framework using neutral placeholders only.'
-          : "Pour les faits récents, les dernières sorties produit, les prix, classements, lois ou actualités : tu n’as pas d’accès web temps réel. N’invente jamais de modèles, exemples, dates, fiches techniques, prix, citations ou classements. Si aucune source n’est fournie, explique qu’une vérification web est nécessaire et propose une grille de comparaison fiable avec uniquement des placeholders neutres.");
-      const knowledgeContextInstruction = knowledgeContext
-        ? (currentLanguage === 'en'
-          ? 'When local library context is provided, use it as retrieved document context. Cite document names when useful, and do not claim that a persistent cloud RAG/vector index exists.'
-          : "Quand un contexte de bibliothèque locale est fourni, utilise-le comme contexte documentaire récupéré. Cite les noms de documents quand c’est utile, et ne prétends pas disposer d’un RAG cloud/vectoriel persistant.")
-        : '';
-
-      const styleInstruction = currentLanguage === 'en'
-        ? [
-          `Current date: ${dateContext.isoDate} (${dateContext.timezone}). Treat ${dateContext.isoDate.slice(0, 4)} as the current year.`,
-          'Never say we are in 2024 unless the user explicitly asks about 2024.',
-          webAccessInstruction,
-          'Formatting instructions: answer in clean Markdown, use complete punctuated sentences, avoid standalone "---" separators, and use continuous numbered lists when relevant.',
-          deliverableModeInstruction,
-          documentGenerationInstruction,
-          knowledgeContextInstruction,
-          fileContext ? 'When local file context is provided, analyze only the extracted text. For spreadsheets, treat workbook/sheet totals and column summaries as calculated from the full browser-side extraction. Do not say the workbook is unreadable merely because the detailed row listing is budget-limited; mention that limit only when the user asks for row-by-row completeness.' : ''
-        ].filter(Boolean).join('\n')
-        : [
-          `Date actuelle : ${dateContext.isoDate} (${dateContext.timezone}). Considère ${dateContext.isoDate.slice(0, 4)} comme l’année en cours.`,
-          "Ne dis jamais que nous sommes en 2024 sauf si l’utilisateur parle explicitement de 2024.",
-          webAccessInstruction,
-          'Consignes de mise en forme : réponds en Markdown propre, avec des phrases complètes et ponctuées, évite les séparateurs "---" seuls, et utilise des listes numérotées continues quand c’est pertinent.',
-          deliverableModeInstruction,
-          documentGenerationInstruction,
-          knowledgeContextInstruction,
-          fileContext ? "Quand un contexte de fichier local est fourni, analyse uniquement le texte extrait. Pour un tableur, considère les totaux du classeur, les totaux des feuilles et les synthèses de colonnes comme calculés depuis l’extraction complète côté navigateur. Ne dis pas que le classeur est illisible simplement parce que la liste détaillée des lignes est limitée par budget ; mentionne cette limite seulement si l’utilisateur demande une complétude ligne par ligne." : ''
-        ].filter(Boolean).join('\n');
       const contextSections = [];
       if (fileContext) {
-        contextSections.push(`Contexte de fichiers locaux extrait côté navigateur (texte uniquement, aucun binaire brut n’est envoyé au modèle). Le contenu peut être découpé en chunks et contenir des métadonnées de pages : analyse l’ensemble du contexte fourni, cite les limites si le contexte indique une troncature, et ne réponds pas que tu as reçu un fichier binaire :\n${fileContext}`);
+        const fileContextLabel = currentLanguage === 'en'
+          ? 'Data extracted from local files:'
+          : 'Donnees extraites de fichiers locaux :';
+        contextSections.push(`${fileContextLabel}\n${fileContext}`);
       }
       if (knowledgeContext) {
-        contextSections.push(`${i18n.libraryContextUsed} :\n${knowledgeContext}`);
+        const knowledgeContextLabel = currentLanguage === 'en'
+          ? 'Available document context:'
+          : 'Contexte documentaire disponible :';
+        contextSections.push(`${knowledgeContextLabel}\n${knowledgeContext}`);
       }
+      const userRequest = currentLanguage === 'en'
+        ? `User request:\n${userText}`
+        : `Demande utilisateur :\n${userText}`;
       const composedMessage = [
-        styleInstruction,
-        userText,
-        ...contextSections
+        ...contextSections,
+        userRequest
       ].filter(Boolean).join('\n\n');
       const hasFileContext = Boolean(fileContext);
       const payload = {
@@ -6109,8 +5780,7 @@
         mode: 'chat',
         attachments,
         searchWeb: effectiveWebSearch,
-        webSearchQuery: userText,
-        maxTokens: deliverableMode ? 1600 : undefined
+        webSearchQuery: userText
       };
       assistantLog('debug', 'api_request', {
         historyMessages: payload.history.length,
@@ -6122,9 +5792,7 @@
         knowledgeContextLength: knowledgeContext.length,
         attachments: attachments.length,
         webSearchActive: effectiveWebSearch,
-        webSearchManualToggle: isWebSearchActive,
-        documentGeneration: Boolean(documentProfile),
-        documentProfile: documentProfile?.key || ''
+        webSearchManualToggle: isWebSearchActive
       });
       const data = await sendAssistantRequest(payload, requestController.signal);
 

@@ -14,7 +14,7 @@
 
 const DEFAULT_MODEL = 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free';
 const FALLBACK_MODEL = 'openrouter/auto';
-const DEFAULT_MAX_TOKENS = 700;
+const DEFAULT_MAX_TOKENS = 1400;
 const WEB_SEARCH_TIMEOUT = 8000; // 8 secondes max par recherche web
 const WEB_SEARCH_CACHE_TTL = 3600000; // 1 heure de cache
 
@@ -64,24 +64,20 @@ function buildSystemPrompt(language, dateContext) {
     return [
       'You are the Digital Blue Skye assistant.',
       `Current date: ${dateContext.isoDate} (${dateContext.timezone}). Treat ${currentYear} as the current year.`,
-      'Never say we are in 2024 unless the user explicitly asks about 2024.',
-      'For latest/current market facts, recent product launches, prices, release dates, rankings, laws, or news: you do not have live web access.',
-      'Do not invent models, examples, dates, specs, prices, citations, or rankings. If no source is provided, say that live verification is required and offer a safe comparison framework using neutral placeholders only, such as "Brand / Model to verify".',
-      'Adapt answer depth to the user request. For benchmarks, competitive studies, watch notes, audits, requirements documents, roadmaps, SWOT, project sheets, digital strategy, and comparisons, favor completeness, structure, and analysis.',
-      'For simple questions, stay concise. Response length must be determined by the expected value of the deliverable, not by an arbitrary brevity rule.',
-      'Reply in practical, actionable language.'
+      'Objective: help the user analyze, understand, research, compare, plan, write, and produce professional deliverables.',
+      'Principles: answer precisely, stay factual, be transparent about information limits, adapt detail level to the request, favor directly usable answers, structure with headings, tables, and lists when useful, avoid unnecessary repetition, and never invent facts, figures, citations, or sources.',
+      'When external data is provided, use it as raw material to build the answer.',
+      'The format requested by the user always has priority over the format of received data.'
     ].join(' ');
   }
 
   return [
     "Tu es l'assistant Digital Blue Skye.",
     `Date actuelle : ${dateContext.isoDate} (${dateContext.timezone}). Considere ${currentYear} comme l'annee en cours.`,
-    "Ne dis jamais que nous sommes en 2024 sauf si l'utilisateur parle explicitement de 2024.",
-    "Pour les faits recents, les dernieres sorties produit, les prix, dates de sortie, classements, lois ou actualites : tu n'as pas d'acces web temps reel.",
-    'N\'invente jamais de modeles, exemples, dates, fiches techniques, prix, citations ou classements. Si aucune source n\'est fournie, explique qu\'une verification web est necessaire et propose une grille de comparaison fiable avec uniquement des placeholders neutres, par exemple "Marque / modele a verifier".',
-    'Adapte la profondeur de reponse a la demande. Pour les benchmarks, etudes concurrentielles, veilles, audits, cahiers des charges, roadmaps, SWOT, fiches projet, strategies digitales et comparaisons, privilegie l\'exhaustivite utile, la structuration et l\'analyse.',
-    'Pour les questions simples, privilegie la concision. La longueur de reponse doit etre determinee par la valeur attendue du livrable et non par une limite arbitraire de brievete.',
-    'Reponds en francais de facon pratique et actionnable.'
+    "Objectif : aider l'utilisateur a analyser, comprendre, rechercher, comparer, planifier, rediger et produire des livrables professionnels.",
+    'Principes : repondre avec precision, etre factuel, etre transparent sur les limites des informations disponibles, adapter le niveau de detail a la demande, privilegier les reponses directement exploitables, structurer avec des titres, tableaux et listes quand cela ameliore la lisibilite, eviter les repetitions inutiles, et ne jamais inventer des faits, chiffres, citations ou sources.',
+    'Lorsque des donnees externes sont fournies, les utiliser comme matiere premiere pour construire la reponse.',
+    "Le format demande par l'utilisateur est toujours prioritaire sur le format des donnees recues."
   ].join(' ');
 }
 
@@ -221,18 +217,6 @@ function extractSnippet(result, maxTokens = 300) {
   return text.slice(0, maxTokens).trim() + '...';
 }
 
-function cleanSnippetForDisplay(text, maxTokens = 260) {
-  const cleaned = String(text || '')
-    .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '$1')
-    .replace(/https?:\/\/\S+/g, '')
-    .replace(/[#*_`|[\]()]/g, ' ')
-    .replace(/\s*[-•]\s*/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-  if (cleaned.length <= maxTokens) return cleaned;
-  return `${cleaned.slice(0, maxTokens).trim()}...`;
-}
-
 function normalizeTavilyApiKey(apiKey) {
   return String(apiKey || '')
     .trim()
@@ -263,54 +247,54 @@ function shouldUseNewsTopic(query) {
 function buildWebContextPrompt(language, searchResults, query, answer = '') {
   const sources = searchResults.map((r, i) => `${i + 1}. ${r.title || r.link} - ${r.link}`);
   const snippets = searchResults.map((r, i) => `${i + 1}. "${extractSnippet(r)}"`).join('\n');
-  const answerBlock = answer ? `\nTavily answer:\n${answer}\n` : '';
+  const answerBlock = answer ? `\nInternal synthesized search answer:\n${answer}\n` : '';
 
   if (language === 'en') {
     return [
-      'Live web search has been performed for this request.',
-      'The web results below are internal working data, not the final answer.',
-      'Do not output tool calls, XML tags, JSON tool syntax, or placeholders such as <tool_call>. The search is already complete.',
-      'Imperative rules: never reproduce raw search results, never display raw snippets, never produce a list of links, and never answer with a simple summary of sources.',
-      'Required workflow: analyze the information, cross-check data, identify relevant elements, remove duplicates, structure the answer, then build the requested business deliverable.',
-      'Absolute priorities: respect the business objective requested by the user, produce the requested format, use web data as justification, and mention sources only when useful.',
-      'If the user asks for a benchmark, produce a benchmark. If the user asks for a table, SWOT, requirements document, watch note, project sheet, roadmap, or complete HTML document, produce that format.',
-      'Forbidden final-answer patterns: "Short summary", "Key results", "Sources consulted", raw search-engine output, or copied snippets.',
-      'The final answer must look like a professional deliverable written by a consultant, digital project manager, or business analyst.',
+      'A web search has already been performed.',
+      'The following information is internal working data.',
+      'Never reproduce raw search results.',
+      'Never reproduce snippets.',
+      'Never reproduce links.',
+      'Analyze the information.',
+      'Synthesize the data.',
+      'Cross-check the sources.',
+      'Build the requested answer.',
+      'The web results are not the final answer.',
+      'The final answer must be produced from these data.',
+      'You may cite sources by identifier such as [1] only when useful; never print the URLs.',
       `Query: ${query}`,
       answerBlock,
       '',
-      'Internal source index for citation only:',
+      'Internal source index:',
       sources.join('\n'),
       '',
-      'Internal raw snippets to analyze, not to reproduce:',
-      snippets,
-      '',
-      'Use citations like [1], [2], etc. for important factual claims inside the deliverable.',
-      'Do not write a final Sources or References section and do not generate source URLs yourself; the frontend will append verified links from structured search results.'
+      'Internal excerpts:',
+      snippets
     ].join('\n');
   }
 
   return [
-    'Une recherche web temps reel a ete effectuee pour cette requete.',
-    'Les resultats web ci-dessous constituent des donnees de travail internes, pas la reponse finale.',
-    "N'ecris jamais d'appel outil, de balises XML, de syntaxe JSON d'outil ou de placeholder comme <tool_call>. La recherche est deja terminee.",
-    'Regles imperatives : ne jamais reproduire les resultats de recherche, ne jamais afficher les snippets bruts, ne jamais produire une liste de liens et ne jamais repondre avec un simple resume des sources.',
-    'Deroule obligatoirement ce processus : analyser les informations, recouper les donnees, identifier les elements pertinents, eliminer les doublons, structurer la reponse, puis construire le livrable metier demande.',
-    "Priorite absolue : respecter l'objectif metier demande par l'utilisateur, produire le format demande, utiliser les donnees web comme justification et mentionner les sources uniquement lorsque cela apporte de la valeur.",
-    "Si l'utilisateur demande un benchmark, produis un benchmark. S'il demande un tableau, une SWOT, un cahier des charges, une note de veille, une fiche projet, une roadmap ou un document HTML complet, produis ce format.",
-    'Formats de reponse interdits : "Resume court", "Resultats cles", "Sources consultees", restitution brute du moteur de recherche ou copier-coller des snippets.',
-    'La reponse finale doit ressembler a un livrable professionnel redige par un consultant, un chef de projet digital ou un analyste metier.',
+    'Une recherche web a deja ete effectuee.',
+    'Les informations suivantes sont des donnees de travail internes.',
+    'Ne reproduis jamais les resultats bruts.',
+    'Ne reproduis jamais les snippets.',
+    'Ne reproduis jamais les liens.',
+    'Analyse les informations.',
+    'Synthetise les donnees.',
+    'Recoupe les sources.',
+    'Construis la reponse demandee.',
+    'Les resultats web ne constituent pas la reponse finale.',
+    'La reponse finale doit etre produite a partir de ces donnees.',
+    'Tu peux citer les sources par identifiant comme [1] uniquement lorsque cela apporte de la valeur ; ne reproduis jamais les URLs.',
     `Requete : ${query}`,
     answerBlock,
     '',
-    'Index interne des sources pour citation uniquement :',
+    'Index interne des sources :',
     sources.join('\n'),
     '',
-    'Snippets bruts internes a analyser, pas a reproduire :',
-    snippets,
-    '',
-    'Utilise des citations comme [1], [2], etc. pour les faits importants dans le livrable.',
-    "N'ecris pas de section finale Sources ou References et ne genere pas toi-meme les URLs ; le frontend ajoutera les liens verifies depuis les resultats structures."
+    'Extraits internes :',
+    snippets
   ].join('\n');
 }
 
@@ -333,44 +317,21 @@ function buildDeterministicWebReply(language, searchResults, query, answer = '',
   const safeResults = Array.isArray(searchResults) ? searchResults.slice(0, 5) : [];
   const safeRawResults = Array.isArray(rawResults) ? rawResults.slice(0, 5) : [];
   if (!debugWeb) {
-    const heading = language === 'en'
-      ? `## Web search: ${query}`
-      : `## Recherche web : ${query}`;
-    const summaryTitle = language === 'en' ? '**Short summary**' : '**Résumé court**';
-    const summary = answer || (language === 'en'
-      ? 'Here are the most relevant current results found online.'
-      : 'Voici les résultats récents les plus pertinents trouvés en ligne.');
-    const resultsTitle = language === 'en' ? '**Key results**' : '**Résultats clés**';
-    const resultLines = safeResults.map((result, index) => {
-      const title = result.title || result.link || (language === 'en' ? 'Source' : 'Source');
-      const snippet = cleanSnippetForDisplay(result.snippet || result.description || '', 240);
-      return `${index + 1}. **${title}**${snippet ? ` — ${snippet}` : ''} [${index + 1}]`;
-    });
-    return [
-      heading,
-      '',
-      summaryTitle,
-      summary,
-      '',
-      resultsTitle,
-      resultLines.join('\n')
-    ].join('\n').trim();
+    return language === 'en'
+      ? 'I could not produce a complete answer from the web search in this attempt. Please retry the request or specify the expected format.'
+      : "Je n'ai pas pu produire une reponse complete a partir de la recherche web dans cette tentative. Relance la demande ou precise le format attendu.";
   }
 
   const resultBlocks = safeResults.map((result, index) => {
     const rawResult = safeRawResults[index] || {};
     const title = result.title || rawResult.title || result.link || rawResult.url || '';
     const url = result.link || rawResult.url || '';
-    const snippet = result.snippet || rawResult.content || result.description || '';
     const baseLines = [
       `${index + 1}. **Titre**`,
       title,
       '',
       '**URL**',
-      url,
-      '',
-      '**Résumé/snippet**',
-      snippet || (language === 'en' ? 'No snippet returned.' : 'Aucun snippet retourne.')
+      url
     ];
 
     if (debugWeb && rawResult && Object.keys(rawResult).length) {
@@ -746,7 +707,10 @@ export default {
         result2: webSearchResults[1] ? { title: webSearchResults[1].title, link: webSearchResults[1].link } : null
       });
       if (webSearchPerformed) {
-        finalSystemPrompt = buildWebContextPrompt(language, webSearchResults, webSearchResolvedQuery, webSearchAnswer);
+        finalSystemPrompt = [
+          systemPrompt,
+          buildWebContextPrompt(language, webSearchResults, webSearchResolvedQuery, webSearchAnswer)
+        ].join('\n\n');
         safeLogJson('WEB_CONTEXT', {
           performed: true,
           query: webSearchResolvedQuery,
@@ -760,34 +724,6 @@ export default {
           })),
           prompt: finalSystemPrompt
         });
-        return jsonResponse(
-          {
-            ok: true,
-            reply: buildDeterministicWebReply(language, webSearchResults, webSearchResolvedQuery, webSearchAnswer, webSearchRawResults, debugWeb),
-            provider: 'tavily',
-            model: null,
-            resolved_model: null,
-            fallback_model_used: false,
-            fallback: false,
-            deterministic_web_reply: true,
-            debug_web: debugWeb,
-            web_search_requested: true,
-            web_search_performed: true,
-            web_search_error: '',
-            web_search_query: webSearchResolvedQuery,
-            web_search_sources_in_reply: true,
-            web_search_results: webSearchResults.map((r, i) => ({
-              index: i + 1,
-              title: r.title,
-              link: r.link,
-              snippet: r.snippet || r.description || '',
-              score: webSearchRawResults[i]?.score ?? null
-            })),
-            web_search_raw_results: debugWeb ? webSearchRawResults : undefined
-          },
-          200,
-          corsHeaders
-        );
       } else {
         finalSystemPrompt = [
           systemPrompt,
@@ -963,8 +899,7 @@ export default {
           web_search_results: webSearchResults.map((r, i) => ({
             index: i + 1,
             title: r.title,
-            link: r.link,
-            snippet: extractSnippet(r)
+            link: r.link
           }))
         },
         200,
@@ -989,8 +924,7 @@ export default {
       responseBody.web_search_results = webSearchResults.map((r, i) => ({
         index: i + 1,
         title: r.title,
-        link: r.link,
-        snippet: extractSnippet(r)
+        link: r.link
       }));
     }
 
