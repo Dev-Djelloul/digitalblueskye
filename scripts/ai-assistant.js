@@ -81,6 +81,8 @@
         discussions: 'Discussions',
         noMatchingDiscussions: 'No conversation found.',
         resizeSidebar: 'Resize sidebar',
+        renameDiscussion: 'Rename conversation',
+        renameDiscussionPrompt: 'Conversation name',
         exportDiscussion: 'Export conversation',
         deleteDiscussion: 'Delete conversation',
         exportChat: 'Export conversation',
@@ -185,6 +187,8 @@
       discussions: 'Discussions',
       noMatchingDiscussions: 'Aucune discussion trouvée.',
       resizeSidebar: 'Redimensionner le volet',
+      renameDiscussion: 'Renommer la discussion',
+      renameDiscussionPrompt: 'Nom de la discussion',
       exportDiscussion: 'Exporter la discussion',
       deleteDiscussion: 'Supprimer la discussion',
       exportChat: 'Exporter la conversation',
@@ -324,6 +328,10 @@
         </div>
         <span id="ai-assistant-sidebar-resize" class="ai-assistant-sidebar-resize" role="separator" aria-orientation="vertical" tabindex="0" title="${i18n.resizeSidebar}" aria-label="${i18n.resizeSidebar}"></span>
         <div id="ai-assistant-session-menu" class="ai-assistant-session-context-menu" role="menu" aria-hidden="true">
+          <button id="ai-assistant-session-menu-rename" type="button" role="menuitem">
+            <img src="${createNewIconUrl}" alt="" aria-hidden="true">
+            <span>${i18n.renameDiscussion}</span>
+          </button>
           <button id="ai-assistant-session-menu-export" type="button" role="menuitem">
             <img src="${filesIconUrl}" alt="" aria-hidden="true">
             <span>${i18n.exportDiscussion}</span>
@@ -640,6 +648,7 @@
   const mediaPreviewCloseButton = document.getElementById('ai-assistant-media-preview-close');
   const sidebarResizeHandle = document.getElementById('ai-assistant-sidebar-resize');
   const sessionContextMenu = document.getElementById('ai-assistant-session-menu');
+  const sessionMenuRenameButton = document.getElementById('ai-assistant-session-menu-rename');
   const sessionMenuExportButton = document.getElementById('ai-assistant-session-menu-export');
   const sessionMenuDeleteButton = document.getElementById('ai-assistant-session-menu-delete');
   const historyPanel = document.getElementById('ai-assistant-history-panel');
@@ -2284,11 +2293,7 @@
     const meta = document.createElement('span');
     meta.textContent = getLibraryDocumentMeta(doc);
 
-    const excerpt = document.createElement('span');
-    excerpt.className = 'ai-assistant-media-card-excerpt';
-    excerpt.textContent = getLibraryDocumentPreviewText(doc);
-
-    body.append(title, meta, excerpt);
+    body.append(title, meta);
     card.append(thumb, body);
     return card;
   }
@@ -2921,6 +2926,10 @@
       sidebarResizeHandle.title = i18n.resizeSidebar;
       sidebarResizeHandle.setAttribute('aria-label', i18n.resizeSidebar);
     }
+    if (sessionMenuRenameButton) {
+      const label = sessionMenuRenameButton.querySelector('span');
+      if (label) label.textContent = i18n.renameDiscussion;
+    }
     if (sessionMenuExportButton) {
       const label = sessionMenuExportButton.querySelector('span');
       if (label) label.textContent = i18n.exportDiscussion;
@@ -2948,7 +2957,7 @@
   function buildSessionId() { return `s_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`; }
 
   function makeDefaultSession() {
-    return { id: buildSessionId(), title: i18n.sessionDefault, summary: '', createdAt: Date.now(), updatedAt: Date.now(), history: [] };
+    return { id: buildSessionId(), title: i18n.sessionDefault, customTitle: false, summary: '', createdAt: Date.now(), updatedAt: Date.now(), history: [] };
   }
 
   function isDefaultSessionTitle(title) {
@@ -3018,6 +3027,7 @@
         return {
           id: typeof s?.id === 'string' ? s.id : buildSessionId(),
           title: isDefaultSessionTitle(title) ? i18n.sessionDefault : title,
+          customTitle: Boolean(s?.customTitle && !isDefaultSessionTitle(title)),
           summary: normalizeSessionSummary(s?.summary),
           createdAt: Number(s?.createdAt) || Date.now(),
           updatedAt: Number(s?.updatedAt) || Date.now(),
@@ -3046,6 +3056,7 @@
         sessions: sessionsState.sessions.slice(0, maxStoredSessions).map((session) => ({
           ...session,
           title: typeof session.title === 'string' ? session.title.slice(0, 120) : i18n.sessionDefault,
+          customTitle: Boolean(session.customTitle && !isDefaultSessionTitle(session.title)),
           summary: normalizeSessionSummary(session.summary),
           history: normalizeHistory(session.history)
         }))
@@ -3221,8 +3232,23 @@
     if (!active) return;
     active.history = normalizeHistory(chatHistory);
     active.updatedAt = Date.now();
-    active.title = titleFromHistory(active.history);
+    if (!active.customTitle) active.title = titleFromHistory(active.history);
     active.summary = buildConversationSummary(active.history);
+    saveSessionsState();
+    renderSessionOptions();
+  }
+
+  function renameSessionById(sessionId) {
+    const session = getSessionById(sessionId);
+    if (!session) return;
+    const currentTitle = getSessionDisplayTitle(session);
+    const nextTitle = window.prompt(i18n.renameDiscussionPrompt, currentTitle);
+    if (nextTitle === null) return;
+    const cleanTitle = nextTitle.replace(/\s+/g, ' ').trim().slice(0, 120);
+    if (!cleanTitle) return;
+    session.title = cleanTitle;
+    session.customTitle = true;
+    session.updatedAt = Date.now();
     saveSessionsState();
     renderSessionOptions();
   }
@@ -3501,6 +3527,11 @@
       if (!item?.dataset?.sessionId) return;
       openSessionContextMenu(event, item.dataset.sessionId);
     });
+    sessionList.addEventListener('dblclick', (event) => {
+      const item = event.target?.closest?.('.ai-assistant-session-item');
+      if (!item?.dataset?.sessionId) return;
+      renameSessionById(item.dataset.sessionId);
+    });
   }
   if (sessionLibraryButton) {
     sessionLibraryButton.addEventListener('click', () => {
@@ -3591,6 +3622,13 @@
       const ok = await copyKnowledgeDocument(doc);
       mediaPreviewCopyButton.textContent = ok ? i18n.libraryCopied : i18n.libraryCopyFailed;
       window.setTimeout(() => { mediaPreviewCopyButton.textContent = i18n.libraryCopy; }, 1200);
+    });
+  }
+  if (sessionMenuRenameButton) {
+    sessionMenuRenameButton.addEventListener('click', () => {
+      const sessionId = activeContextSessionId;
+      closeSessionContextMenu();
+      if (sessionId) renameSessionById(sessionId);
     });
   }
   if (sessionMenuExportButton) {
