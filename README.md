@@ -20,18 +20,18 @@ Voici un aperçu de quelques projets que vous pouvez retrouver sur ce site :
 - 🎨 **Sites vitrines** réalisés en HTML5, CSS3, JavaScript
 - ⚙️ **Applications web dynamiques** développées avec des frameworks modernes
 - 📱 **Pages responsive** optimisées pour tous les écrans
-- 🔧 Intégrations à partir de maquettes Figma ou Adobe XD
-- 🔜 Projets à venir dans le cadre de ma formation de chef de projet digital
+- 🔧 Intégrations à partir de maquettes Figma
+- 🔜  Portfolio projets dans le cadre de ma formation de chef de projet digital
 
 ---
 
 ## 🛠️ Technologies utilisées
 
 - HTML5 / CSS3 / JavaScript (ES6+)
-- SASS / Bootstrap / Tailwind
+- Bootstrap
 - Git / GitHub
-- Outils de maquettage (Figma, Adobe XD)
-- CMS (WordPress, etc.)
+- Outils de maquettage (Figma)
+- CMS (WordPress)
 - Méthodologies agiles (SCRUM, Kanban)
 
 ---
@@ -57,7 +57,7 @@ Voici un aperçu de quelques projets que vous pouvez retrouver sur ce site :
 ## 🚀 Déploiement
 
 Ce siteweb est hébergé sur **Netlify**  
-🔗 [https://digitalblueskye.netlify.app](https://digitalblueskye.infinityfreeapp.com)
+🔗 [https://digitalblueskye.netlify.app]
 
 ---
 
