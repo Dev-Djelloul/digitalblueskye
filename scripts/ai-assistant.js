@@ -5917,6 +5917,54 @@
     return profiles.find((profile) => profile.match.some((item) => value.includes(item))) || { key: 'document', label: 'livrable projet' };
   }
 
+  function shouldUseDeliverableMode(text, profile = null) {
+    if (profile) return true;
+    const value = String(text || '').toLowerCase();
+    if (!value.trim()) return false;
+    const deliverableKeywords = [
+      'benchmark',
+      'veille',
+      'audit',
+      'swot',
+      'roadmap',
+      'cahier des charges',
+      'business model',
+      'analyse concurrentielle',
+      'fiche projet',
+      'persona',
+      'user story',
+      'user stories',
+      "plan d'action",
+      'plan action',
+      'stratégie digitale',
+      'strategie digitale',
+      'comparaison',
+      'comparatif',
+      'matrice',
+      'rapport',
+      'livrable'
+    ];
+    return deliverableKeywords.some((keyword) => value.includes(keyword));
+  }
+
+  function buildDeliverableModeInstruction(enabled, language) {
+    if (!enabled) return '';
+    if (language === 'en') {
+      return [
+        'DELIVERABLE MODE: the user expects a professional deliverable.',
+        'Do not answer like a search engine. Answer like a consultant, analyst, or digital project manager.',
+        'The response must be directly usable without rework.',
+        'When relevant, use tables, matrices, comparisons, syntheses, recommendations, risks, assumptions, and next actions.'
+      ].join('\n');
+    }
+    return [
+      "MODE LIVRABLE : l'utilisateur attend un livrable professionnel.",
+      'Ne réponds pas comme un moteur de recherche. Réponds comme un consultant, un analyste ou un chef de projet digital.',
+      'La réponse doit être directement exploitable sans retraitement.',
+      'Lorsque c’est pertinent, utilise des tableaux, matrices, comparatifs, synthèses, recommandations, risques, hypothèses et prochaines actions.'
+    ].join('\n');
+  }
+
   function formatDocumentTemplateInstruction(profile, language) {
     const template = documentGenerationTemplates[profile?.key];
     if (!template) return '';
@@ -5994,7 +6042,10 @@
       const dateContext = getAssistantCurrentDateContext();
       effectiveWebSearch = isWebSearchActive || shouldUseWebSearchForPrompt(userText);
       const documentProfile = getDocumentGenerationProfile(userText);
-      const documentGenerationInstruction = buildDocumentGenerationInstruction(documentProfile, currentLanguage === 'en' ? 'en' : 'fr');
+      const responseLanguage = currentLanguage === 'en' ? 'en' : 'fr';
+      const deliverableMode = shouldUseDeliverableMode(userText, documentProfile);
+      const deliverableModeInstruction = buildDeliverableModeInstruction(deliverableMode, responseLanguage);
+      const documentGenerationInstruction = buildDocumentGenerationInstruction(documentProfile, responseLanguage);
       const knowledgeContext = fileContext ? '' : buildKnowledgeContextForPrompt(userText);
 
       // Activer le statut "recherche en cours" si recherche web activée
@@ -6021,6 +6072,7 @@
           'Never say we are in 2024 unless the user explicitly asks about 2024.',
           webAccessInstruction,
           'Formatting instructions: answer in clean Markdown, use complete punctuated sentences, avoid standalone "---" separators, and use continuous numbered lists when relevant.',
+          deliverableModeInstruction,
           documentGenerationInstruction,
           knowledgeContextInstruction,
           fileContext ? 'When local file context is provided, analyze only the extracted text. For spreadsheets, treat workbook/sheet totals and column summaries as calculated from the full browser-side extraction. Do not say the workbook is unreadable merely because the detailed row listing is budget-limited; mention that limit only when the user asks for row-by-row completeness.' : ''
@@ -6030,6 +6082,7 @@
           "Ne dis jamais que nous sommes en 2024 sauf si l’utilisateur parle explicitement de 2024.",
           webAccessInstruction,
           'Consignes de mise en forme : réponds en Markdown propre, avec des phrases complètes et ponctuées, évite les séparateurs "---" seuls, et utilise des listes numérotées continues quand c’est pertinent.',
+          deliverableModeInstruction,
           documentGenerationInstruction,
           knowledgeContextInstruction,
           fileContext ? "Quand un contexte de fichier local est fourni, analyse uniquement le texte extrait. Pour un tableur, considère les totaux du classeur, les totaux des feuilles et les synthèses de colonnes comme calculés depuis l’extraction complète côté navigateur. Ne dis pas que le classeur est illisible simplement parce que la liste détaillée des lignes est limitée par budget ; mentionne cette limite seulement si l’utilisateur demande une complétude ligne par ligne." : ''
@@ -6057,7 +6110,7 @@
         attachments,
         searchWeb: effectiveWebSearch,
         webSearchQuery: userText,
-        maxTokens: documentProfile ? 1500 : undefined
+        maxTokens: deliverableMode ? 1600 : undefined
       };
       assistantLog('debug', 'api_request', {
         historyMessages: payload.history.length,

@@ -60,9 +60,6 @@ function normalizeDateContext(rawDate) {
 
 function buildSystemPrompt(language, dateContext) {
   const currentYear = dateContext.isoDate.slice(0, 4);
-  const envDetails = `\nEnvironment details:\n- Current time: 2026-06-06T02:56:59+02:00\n- Working directory: /Users/digitalblueskye/Devspace/Digitalblueskye\n- Workspace root folder: /Users/digitalblueskye/Devspace/Digitalblueskye`;
-function buildSystemPrompt(language, dateContext) {
-  const currentYear = dateContext.isoDate.slice(0, 4);
   if (language === 'en') {
     return [
       'You are the Digital Blue Skye assistant.',
@@ -70,9 +67,9 @@ function buildSystemPrompt(language, dateContext) {
       'Never say we are in 2024 unless the user explicitly asks about 2024.',
       'For latest/current market facts, recent product launches, prices, release dates, rankings, laws, or news: you do not have live web access.',
       'Do not invent models, examples, dates, specs, prices, citations, or rankings. If no source is provided, say that live verification is required and offer a safe comparison framework using neutral placeholders only, such as "Brand / Model to verify".',
-      'Reply in concise, practical, actionable language.',
-      'Prefer short sections and bullet points on separate lines.',
-      'Limit answers to the essentials unless the user asks for details.'
+      'Adapt answer depth to the user request. For benchmarks, competitive studies, watch notes, audits, requirements documents, roadmaps, SWOT, project sheets, digital strategy, and comparisons, favor completeness, structure, and analysis.',
+      'For simple questions, stay concise. Response length must be determined by the expected value of the deliverable, not by an arbitrary brevity rule.',
+      'Reply in practical, actionable language.'
     ].join(' ');
   }
 
@@ -82,9 +79,9 @@ function buildSystemPrompt(language, dateContext) {
     "Ne dis jamais que nous sommes en 2024 sauf si l'utilisateur parle explicitement de 2024.",
     "Pour les faits recents, les dernieres sorties produit, les prix, dates de sortie, classements, lois ou actualites : tu n'as pas d'acces web temps reel.",
     'N\'invente jamais de modeles, exemples, dates, fiches techniques, prix, citations ou classements. Si aucune source n\'est fournie, explique qu\'une verification web est necessaire et propose une grille de comparaison fiable avec uniquement des placeholders neutres, par exemple "Marque / modele a verifier".',
-    'Reponds en francais de facon concise, pratique et actionnable.',
-    'Privilegie des sections courtes et des puces sur des lignes separees.',
-    'Reste bref sauf si la personne demande explicitement plus de details.'
+    'Adapte la profondeur de reponse a la demande. Pour les benchmarks, etudes concurrentielles, veilles, audits, cahiers des charges, roadmaps, SWOT, fiches projet, strategies digitales et comparaisons, privilegie l\'exhaustivite utile, la structuration et l\'analyse.',
+    'Pour les questions simples, privilegie la concision. La longueur de reponse doit etre determinee par la valeur attendue du livrable et non par une limite arbitraire de brievete.',
+    'Reponds en francais de facon pratique et actionnable.'
   ].join(' ');
 }
 
@@ -271,36 +268,48 @@ function buildWebContextPrompt(language, searchResults, query, answer = '') {
   if (language === 'en') {
     return [
       'Live web search has been performed for this request.',
-      'You must use the sources below for recent facts. Do not say that you have no real-time web access when these results are present.',
+      'The web results below are internal working data, not the final answer.',
       'Do not output tool calls, XML tags, JSON tool syntax, or placeholders such as <tool_call>. The search is already complete.',
+      'Imperative rules: never reproduce raw search results, never display raw snippets, never produce a list of links, and never answer with a simple summary of sources.',
+      'Required workflow: analyze the information, cross-check data, identify relevant elements, remove duplicates, structure the answer, then build the requested business deliverable.',
+      'Absolute priorities: respect the business objective requested by the user, produce the requested format, use web data as justification, and mention sources only when useful.',
+      'If the user asks for a benchmark, produce a benchmark. If the user asks for a table, SWOT, requirements document, watch note, project sheet, roadmap, or complete HTML document, produce that format.',
+      'Forbidden final-answer patterns: "Short summary", "Key results", "Sources consulted", raw search-engine output, or copied snippets.',
+      'The final answer must look like a professional deliverable written by a consultant, digital project manager, or business analyst.',
       `Query: ${query}`,
       answerBlock,
       '',
-      'Sources found:',
+      'Internal source index for citation only:',
       sources.join('\n'),
       '',
-      'Key information from sources:',
+      'Internal raw snippets to analyze, not to reproduce:',
       snippets,
       '',
-      'Provide an answer based on these sources. Be concise and cite facts with [1], [2], etc.',
+      'Use citations like [1], [2], etc. for important factual claims inside the deliverable.',
       'Do not write a final Sources or References section and do not generate source URLs yourself; the frontend will append verified links from structured search results.'
     ].join('\n');
   }
 
   return [
     'Une recherche web temps reel a ete effectuee pour cette requete.',
-    "Tu dois utiliser les sources ci-dessous pour les faits recents. Ne dis pas que tu n'as pas d'acces web temps reel lorsque ces resultats sont presents.",
+    'Les resultats web ci-dessous constituent des donnees de travail internes, pas la reponse finale.',
     "N'ecris jamais d'appel outil, de balises XML, de syntaxe JSON d'outil ou de placeholder comme <tool_call>. La recherche est deja terminee.",
+    'Regles imperatives : ne jamais reproduire les resultats de recherche, ne jamais afficher les snippets bruts, ne jamais produire une liste de liens et ne jamais repondre avec un simple resume des sources.',
+    'Deroule obligatoirement ce processus : analyser les informations, recouper les donnees, identifier les elements pertinents, eliminer les doublons, structurer la reponse, puis construire le livrable metier demande.',
+    "Priorite absolue : respecter l'objectif metier demande par l'utilisateur, produire le format demande, utiliser les donnees web comme justification et mentionner les sources uniquement lorsque cela apporte de la valeur.",
+    "Si l'utilisateur demande un benchmark, produis un benchmark. S'il demande un tableau, une SWOT, un cahier des charges, une note de veille, une fiche projet, une roadmap ou un document HTML complet, produis ce format.",
+    'Formats de reponse interdits : "Resume court", "Resultats cles", "Sources consultees", restitution brute du moteur de recherche ou copier-coller des snippets.',
+    'La reponse finale doit ressembler a un livrable professionnel redige par un consultant, un chef de projet digital ou un analyste metier.',
     `Requete : ${query}`,
     answerBlock,
     '',
-    'Sources trouvees :',
+    'Index interne des sources pour citation uniquement :',
     sources.join('\n'),
     '',
-    'Informations cles des sources :',
+    'Snippets bruts internes a analyser, pas a reproduire :',
     snippets,
     '',
-    'Fournis une reponse concise basee sur ces sources et cite les faits avec [1], [2], etc.',
+    'Utilise des citations comme [1], [2], etc. pour les faits importants dans le livrable.',
     "N'ecris pas de section finale Sources ou References et ne genere pas toi-meme les URLs ; le frontend ajoutera les liens verifies depuis les resultats structures."
   ].join('\n');
 }
@@ -707,8 +716,8 @@ export default {
       Number.isFinite(requestedMaxTokens) && requestedMaxTokens > 0 ? requestedMaxTokens : 0
     );
     const maxTokens = Number.isFinite(configuredMaxTokens) && configuredMaxTokens > 0
-      ? Math.min(Math.max(configuredMaxTokens, maxTokensFloor), 1800)
-      : Math.min(maxTokensFloor, 1800);
+      ? Math.min(Math.max(configuredMaxTokens, maxTokensFloor), 2200)
+      : Math.min(maxTokensFloor, 2200);
 
     let finalSystemPrompt = systemPrompt;
     let webSearchResults = [];
