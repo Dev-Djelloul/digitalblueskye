@@ -726,6 +726,7 @@
   const maxStoredMediaDataUrlLength = 1500000;
   const libraryImagePreviewSize = 720;
   const libraryDocumentPreviewSize = 760;
+  const simplifiedPreviewVersion = 2;
 
   function isAssistantDebugEnabled() {
     try { return localStorage.getItem(assistantDebugStorageKey) === 'true'; } catch (error) { return false; }
@@ -1421,6 +1422,12 @@
       pdf: 'PDF',
       document: 'DOCUMENT'
     };
+    const formatDescriptions = {
+      excel: 'TABLEUR EXCEL',
+      powerpoint: 'PRESENTATION POWERPOINT',
+      html: 'PAGE WEB HTML'
+    };
+    const isSimplifiedPreview = shouldUseSimplifiedDocumentPreview(kind, type);
     const [start, end] = gradients[kind] || gradients.document;
     const bg = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
     bg.addColorStop(0, '#202840');
@@ -1445,22 +1452,32 @@
     ctx.strokeRect(72, 72, 616, 616);
 
     ctx.fillStyle = '#f7f7ff';
-    ctx.font = '700 64px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.font = isSimplifiedPreview
+      ? '800 86px system-ui, -apple-system, BlinkMacSystemFont, sans-serif'
+      : '700 64px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(String(type || 'DOC').toUpperCase().slice(0, 5), 380, 185);
+    ctx.fillText(String(type || 'DOC').toUpperCase().slice(0, 5), 380, isSimplifiedPreview ? 300 : 185);
 
     ctx.fillStyle = '#79e6ff';
-    ctx.font = '700 24px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
-    ctx.fillText(kindLabels[kind] || String(kind || 'DOCUMENT').toUpperCase(), 380, 228);
+    ctx.font = isSimplifiedPreview
+      ? '800 34px system-ui, -apple-system, BlinkMacSystemFont, sans-serif'
+      : '700 24px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.fillText(kindLabels[kind] || String(kind || 'DOCUMENT').toUpperCase(), 380, isSimplifiedPreview ? 352 : 228);
 
-    ctx.textAlign = 'left';
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '700 34px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
-    wrapCanvasText(ctx, title, 120, 330, 520, 42, 3);
+    if (isSimplifiedPreview) {
+      ctx.fillStyle = 'rgba(247,247,255,0.76)';
+      ctx.font = '650 28px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+      ctx.fillText(formatDescriptions[kind] || String(type || 'DOCUMENT').toUpperCase(), 380, 430);
+    } else {
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '700 34px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+      wrapCanvasText(ctx, title, 120, 330, 520, 42, 3);
 
-    ctx.fillStyle = 'rgba(235,240,255,0.78)';
-    ctx.font = '500 24px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
-    wrapCanvasText(ctx, text, 120, 480, 520, 34, 5);
+      ctx.fillStyle = 'rgba(235,240,255,0.78)';
+      ctx.font = '500 24px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+      wrapCanvasText(ctx, text, 120, 480, 520, 34, 5);
+    }
 
     try {
       return canvas.toDataURL('image/jpeg', 0.84);
@@ -2186,6 +2203,7 @@
             importedAt: Number(doc?.importedAt) || Date.now(),
             textLength: Number(doc?.textLength) || 0,
             hasOriginalFile: Boolean(doc?.hasOriginalFile),
+            previewVersion: Number(doc?.previewVersion) || 1,
             previewText: String(doc?.previewText || '').slice(0, 360),
             previewDataUrl: String(doc?.previewDataUrl || '').startsWith('data:image/') && String(doc?.previewDataUrl || '').length <= maxStoredMediaDataUrlLength
               ? String(doc.previewDataUrl)
@@ -2197,6 +2215,9 @@
               ? doc.chunks.map((chunk) => String(chunk || '').slice(0, knowledgeChunkSize + 200)).filter(Boolean).slice(0, maxKnowledgeChunksPerDocument)
               : []
           };
+          if (shouldUseSimplifiedDocumentPreview(normalizedDoc.kind, normalizedDoc.type) && normalizedDoc.previewVersion < simplifiedPreviewVersion) {
+            normalizedDoc.previewDataUrl = '';
+          }
           normalizedDoc.ragIndex = normalizeKnowledgeRagIndex(doc?.ragIndex, normalizedDoc.chunks, normalizedDoc);
           return normalizedDoc;
         })
@@ -2233,6 +2254,15 @@
     return (knowledgeLibrary.documents || []).find((doc) => doc.id === docId) || null;
   }
 
+  function shouldUseSimplifiedDocumentPreview(kind, type) {
+    const normalizedKind = String(kind || '').toLowerCase();
+    const normalizedType = String(type || '').toLowerCase();
+    return normalizedKind === 'excel'
+      || normalizedKind === 'powerpoint'
+      || normalizedKind === 'html'
+      || normalizedType === 'html';
+  }
+
   function getLibraryDocumentMeta(doc) {
     return [doc.type, fileSizeLabel(doc.size), i18n.libraryStoredLocally].filter(Boolean).join(' · ');
   }
@@ -2250,6 +2280,7 @@
     doc.previewDataUrl = kind === 'html' || String(type).toLowerCase() === 'html'
       ? createHtmlCanvasPreview({ title: doc.name, text: (doc.chunks || []).join('\n\n') || previewText })
       : createDocumentCanvasPreview({ title: doc.name, type, kind, text: previewText });
+    if (shouldUseSimplifiedDocumentPreview(kind, type)) doc.previewVersion = simplifiedPreviewVersion;
   }
 
   function renderLibraryDocumentThumb(doc, container) {
@@ -2410,6 +2441,9 @@
       mimeType: extracted?.mimeType || String(file?.type || ''),
       size: Number(extracted?.size) || Number(file?.size) || 0,
       hasOriginalFile: Boolean(extracted?.hasOriginalFile),
+      previewVersion: shouldUseSimplifiedDocumentPreview(extracted?.kind || getKnowledgeFileKind(file), extracted?.type || getKnowledgeFileTypeLabel(file))
+        ? simplifiedPreviewVersion
+        : 1,
       previewText: truncateText(text || fallbackText, 220),
       previewDataUrl: extracted?.previewDataUrl || '',
       downloadDataUrl: extracted?.downloadDataUrl || '',
