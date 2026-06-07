@@ -3380,7 +3380,7 @@ h1.main-title-animated .title-icon {
   font-family: "Space Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   font-optical-sizing: auto;
   font-variation-settings: "wdth" 100;
-  font-size: clamp(2.2rem, 3vw, 3rem);
+  font-size: 1.75rem;
   margin-bottom: 10px;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -6686,7 +6686,7 @@ h1.main-title-animated .title-icon {
   }
 
   .inspirations-hero h1 {
-    font-size: 2.2rem;
+    font-size: 1.85rem;
   }
 
   .inspirations-subnav {
