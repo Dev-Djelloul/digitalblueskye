@@ -13062,8 +13062,8 @@ body.ai-assistant-sidebar-is-resizing * {
 
 @media (width <= 768px) {
   .ai-assistant-launcher {
-    top: 46%;
-    right: 12px;
+    top: 60%;
+    right: 15px;
     transform: translateY(-50%);
   }
 
