@@ -7706,7 +7706,7 @@ h1.main-title-animated .title-icon {
 
 .contact-consent__label span {
   display: inline;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   line-height: 1.2;
 }
 
@@ -7958,7 +7958,7 @@ h1.main-title-animated .title-icon {
 #footer .footer-section a {
   color: #b0b0c3;
   display: inline-block;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   padding-left: 0;
   text-decoration: none;
   transition: color 0.3s ease, padding-left 0.3s ease;
@@ -9097,7 +9097,7 @@ body.body-menu-open #footer {
   .articles-grid {
     gap: 50px;
     grid-template-columns: 1fr;
-    padding: 20px;
+    padding: 0px;
   }
 
   .page-title-container {
@@ -9774,11 +9774,11 @@ body.body-menu-open #footer {
   }
 
   .contact-container .title-banner {
-    font-size: 1.6rem;
+    font-size: 2.1rem;
   }
 
   .contact-container h3.title-banner {
-    font-size: 1.3rem;
+    font-size: 1.5rem;
   }
 
   .page-about .btn-download-cv {
@@ -9852,7 +9852,7 @@ body.body-menu-open #footer {
   }
 
   .page-subtitle {
-    font-size: 0.9rem;
+    font-size: 0.95rem;
   }
 
   .news-card-title {
@@ -9864,7 +9864,7 @@ body.body-menu-open #footer {
   }
 
   .blog-card-title {
-    font-size: 1.15rem;
+    font-size: 1.35rem;
   }
 
   .article-title-main {
@@ -9914,7 +9914,7 @@ body.body-menu-open #footer {
   .contact-email a,
   .project-links a,
   .project-detail .project-links a {
-    font-size: 0.8rem;
+    font-size: 1rem;
   }
 
   .trust-section h2 {
@@ -13318,7 +13318,7 @@ body.ai-assistant-sidebar-is-resizing * {
   }
 
   .home-page .intro-text .animated-title {
-    font-size: clamp(3.2rem, 10vw, 4.65rem);
+    font-size: clamp(2.9rem, 10vw, 4.15rem);
     line-height: 1.04;
     padding: 14px 8px;
   }
