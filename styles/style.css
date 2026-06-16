@@ -3393,6 +3393,11 @@ h1.main-title-animated .title-icon {
 }
 
 .ia-page .badge-group {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem 0.65rem;
+  justify-content: center;
   margin: 0.8rem 0 1.5rem;
 }
 
@@ -3404,7 +3409,7 @@ h1.main-title-animated .title-icon {
   display: inline-block;
   font-size: 0.75rem;
   font-weight: 500;
-  margin-right: 0.4rem;
+  line-height: 1.25;
   padding: 0.35rem 0.75rem;
   text-decoration: none;
 }
@@ -3558,6 +3563,16 @@ h1.main-title-animated .title-icon {
   .ia-page .hero {
     padding: 28px 22px;
     text-align: center;
+  }
+
+  .ia-page .badge-group {
+    gap: 0.75rem 0.7rem;
+    margin: 1.05rem auto 1.7rem;
+    max-width: 280px;
+  }
+
+  .ia-page .badge {
+    padding: 0.48rem 0.85rem;
   }
 
   .ia-page section {
@@ -4455,6 +4470,7 @@ h1.main-title-animated .title-icon {
   display: grid;
   gap: 16px;
   margin-top: 10px;
+  min-width: 0;
   text-align: left;
 }
 
@@ -4479,33 +4495,49 @@ h1.main-title-animated .title-icon {
   gap: 16px;
   margin: 0 auto 24px;
   max-width: 760px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  width: 100%;
 }
 
 .comment-item {
   background: rgb(24 25 38 / 70%);
   border: 1px solid rgb(93 93 255 / 30%);
   border-radius: 14px;
+  max-width: 100%;
+  min-width: 0;
   padding: 14px 18px;
   text-align: left;
+  width: 100%;
 }
 
 .comment-header {
   display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
   justify-content: space-between;
   margin-bottom: 8px;
+  min-width: 0;
 }
 
 .comment-author {
   font-family: var(--font-title);
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .comment-date {
+  flex: 0 1 auto;
   font-size: 0.85rem;
   opacity: 0.7;
+  overflow-wrap: anywhere;
 }
 
 .comment-message {
   margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .comment-actions {
@@ -4517,6 +4549,7 @@ h1.main-title-animated .title-icon {
 }
 
 .comment-reaction-picker {
+  max-width: 100%;
   position: relative;
 }
 
@@ -4564,8 +4597,10 @@ h1.main-title-animated .title-icon {
   border-radius: 999px;
   box-shadow: 0 16px 28px rgb(0 0 0 / 28%);
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   left: 0;
+  max-width: min(360px, calc(100vw - 48px));
   opacity: 0;
   padding: 8px 10px;
   pointer-events: none;
@@ -4628,6 +4663,7 @@ h1.main-title-animated .title-icon {
   display: grid;
   gap: 12px;
   margin-top: 12px;
+  min-width: 0;
   padding-left: 14px;
 }
 
@@ -4635,14 +4671,21 @@ h1.main-title-animated .title-icon {
   background: rgb(17 18 30 / 72%);
 }
 
+.comment-item-reply .comment-replies {
+  padding-left: 0;
+}
+
 .reply-form-wrap {
   margin-top: 12px;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .reply-form {
   background: rgb(15 17 30 / 70%);
   border: 1px solid rgb(93 93 255 / 22%);
   border-radius: 12px;
+  min-width: 0;
   padding: 12px;
 }
 
@@ -4715,6 +4758,7 @@ h1.main-title-animated .title-icon {
 .comment-field {
   display: grid;
   gap: 6px;
+  min-width: 0;
 }
 
 .article-comments-form input,
@@ -4725,7 +4769,9 @@ h1.main-title-animated .title-icon {
   color: var(--text-color);
   caret-color: var(--text-color);
   font-family: var(--font-body);
+  min-width: 0;
   padding: 12px 14px;
+  width: 100%;
 }
 
 .article-comments-form input::placeholder,
@@ -10023,6 +10069,26 @@ body.body-menu-open #footer {
     width: 100%;
   }
 
+  .comment-item {
+    border-radius: 12px;
+    padding: 13px 12px;
+  }
+
+  .comment-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .comment-date {
+    font-size: 0.78rem;
+    line-height: 1.35;
+  }
+
+  .comment-message {
+    font-size: 0.95rem;
+    line-height: 1.55;
+  }
+
   .comment-actions {
     flex-wrap: wrap;
   }
@@ -10039,7 +10105,9 @@ body.body-menu-open #footer {
   }
 
   .comment-reaction-palette {
+    border-radius: 16px;
     gap: 6px;
+    max-width: calc(100vw - 56px);
     padding: 7px 8px;
     top: -48px;
   }
@@ -10049,13 +10117,27 @@ body.body-menu-open #footer {
   }
 
   .comment-replies {
-    padding-left: 10px;
+    margin-top: 10px;
+    padding-left: 8px;
+  }
+
+  .comment-item-reply {
+    padding: 12px 10px;
+  }
+
+  .comment-item-reply .comment-replies {
+    border-left: 0;
+    padding-left: 0;
   }
 
   .comment-actions-row {
     flex-wrap: wrap;
     justify-content: flex-end;
     gap: 7px;
+  }
+
+  .reply-form {
+    padding: 10px;
   }
 
   .detail-title-row {
