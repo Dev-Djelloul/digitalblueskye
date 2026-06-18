@@ -599,7 +599,7 @@
 
   ensureAssistantMarkup();
 
-  const API_ENDPOINT = 'https://digitalblueskye-ai.digitalblueskye.workers.dev';
+  const API_ENDPOINT = 'https://digitalblueskye-ai.djelloulabid75.workers.dev';
   const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.readonly';
   const DRIVE_PICKER_SCRIPT_URL = 'https://apis.google.com/js/api.js';
   const GOOGLE_IDENTITY_SCRIPT_URL = 'https://accounts.google.com/gsi/client';

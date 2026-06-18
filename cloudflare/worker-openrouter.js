@@ -14,6 +14,8 @@
 
 const DEFAULT_MODEL = 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free';
 const FALLBACK_MODEL = 'openrouter/auto';
+const WORKER_BUILD = '2026-06-18-web-search-openrouter-v3';
+const LEGACY_WEB_SEARCH_ENDPOINT = 'https://digitalblueskye-ai.digitalblueskye.workers.dev';
 const DEFAULT_MAX_TOKENS = 1400;
 const WEB_SEARCH_TIMEOUT = 8000; // 8 secondes max par recherche web
 const WEB_SEARCH_CACHE_TTL = 3600000; // 1 heure de cache
@@ -511,9 +513,61 @@ function safeLogJson(label, value, maxLength = 6000) {
   }
 }
 
-async function performWebSearch(query, apiKey) {
-  const normalizedApiKey = normalizeTavilyApiKey(apiKey);
-  if (!normalizedApiKey) return { results: [], answer: '', error: 'missing_tavily_key', transformedQuery: query };
+async function performLegacyWebSearch(query, endpoint = LEGACY_WEB_SEARCH_ENDPOINT) {
+  const normalizedEndpoint = String(endpoint || '').trim();
+  if (!normalizedEndpoint) return { results: [], answer: '', error: 'missing_tavily_key', transformedQuery: query };
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), WEB_SEARCH_TIMEOUT);
+  try {
+    const response = await fetch(normalizedEndpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      signal: controller.signal,
+      body: JSON.stringify({
+        mode: 'chat',
+        language: 'fr',
+        message: query,
+        searchWeb: true,
+        webSearchQuery: query
+      })
+    });
+    clearTimeout(timeoutId);
+    if (!response.ok) {
+      return { results: [], answer: '', error: `legacy_search_${response.status}`, transformedQuery: query };
+    }
+    const data = await response.json();
+    const results = Array.isArray(data?.web_search_results)
+      ? data.web_search_results
+        .filter((result) => result && (result.link || result.url))
+        .slice(0, 5)
+        .map((result, index) => ({
+          title: result.title || result.link || result.url || `Source ${index + 1}`,
+          link: result.link || result.url,
+          snippet: result.snippet || result.description || result.content || ''
+        }))
+      : [];
+    return {
+      results,
+      rawResults: [],
+      answer: '',
+      error: results.length ? '' : (data?.web_search_error || 'legacy_search_no_results'),
+      transformedQuery: data?.web_search_query || query
+    };
+  } catch (error) {
+    clearTimeout(timeoutId);
+    return {
+      results: [],
+      answer: '',
+      error: error?.name === 'AbortError' ? 'legacy_search_timeout' : 'legacy_search_failed',
+      transformedQuery: query
+    };
+  }
+}
+
+async function performWebSearch(query, env) {
+  const normalizedApiKey = normalizeTavilyApiKey(env?.TAVILY_API_KEY);
+  if (!normalizedApiKey) return performLegacyWebSearch(query, env?.TAVILY_FALLBACK_ENDPOINT);
   const normalizedQuery = normalizeWebSearchQuery(query);
   if (!normalizedQuery) return { results: [], answer: '', error: 'empty_web_search_query', transformedQuery: query };
   const transformedQuery = buildFinancialQuery(normalizedQuery);
@@ -632,6 +686,14 @@ export default {
       });
     }
 
+    if (request.method === 'GET') {
+      return jsonResponse({
+        ok: true,
+        service: 'digitalblueskye-ai',
+        worker_build: WORKER_BUILD
+      }, 200, corsHeaders);
+    }
+
     if (request.method !== 'POST') {
       return jsonResponse({ ok: false, error: 'method_not_allowed' }, 405, corsHeaders);
     }
@@ -689,7 +751,7 @@ export default {
     let webSearchPerformed = false;
 
     if (shouldSearchWeb) {
-      const webSearch = await performWebSearch(webSearchQuery, env.TAVILY_API_KEY);
+      const webSearch = await performWebSearch(webSearchQuery, env);
       webSearchResults = webSearch.results || [];
       webSearchRawResults = webSearch.rawResults || [];
       webSearchAnswer = webSearch.answer || '';
@@ -884,6 +946,7 @@ export default {
       return jsonResponse(
         {
           ok: true,
+          worker_build: WORKER_BUILD,
           reply: deterministicWebReply || (
             language === 'en'
               ? 'I could not generate a complete answer right now. Please try again.'
@@ -909,6 +972,7 @@ export default {
 
     const responseBody = {
       ok: true,
+      worker_build: WORKER_BUILD,
       reply,
       provider: 'openrouter',
       model: resolvedModel,

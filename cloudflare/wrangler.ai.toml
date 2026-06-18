@@ -1,0 +1,5 @@
+name = "digitalblueskye-ai"
+main = "worker-openrouter.js"
+compatibility_date = "2026-06-18"
+workers_dev = true
+keep_vars = true
