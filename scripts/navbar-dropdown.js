@@ -50,11 +50,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const adminLink = document.createElement('a');
     adminLink.className = 'header-admin-link header-social-link';
-    adminLink.href = '/pages/admin.html';
+    adminLink.href = '/admin/';
     adminLink.target = '_blank';
     adminLink.rel = 'noopener noreferrer';
-    adminLink.setAttribute('aria-label', 'Accès admin');
-    adminLink.title = 'Admin DigitalBlueSkye';
+    adminLink.setAttribute('aria-label', 'Ouvrir le back-office admin');
+    adminLink.title = 'Back-office DigitalBlueSkye';
     adminLink.innerHTML = `
       <img
         class="header-social-icon"
