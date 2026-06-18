@@ -742,6 +742,24 @@ async function handleAdminConsentLogs(request, env, url) {
   return jsonResponse(request, env, { ok: true, items: rows.results || [], limit, offset });
 }
 
+async function handleAdminConsentLogDelete(request, env) {
+  if (request.method !== "POST") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+
+  const input = await readJsonBody(request);
+  const id = Number(input?.id || 0);
+  if (!Number.isInteger(id) || id <= 0) {
+    return jsonResponse(request, env, { ok: false, error: "Invalid payload" }, 422);
+  }
+
+  const result = await env.DB.prepare("DELETE FROM consent_logs WHERE id = ?").bind(id).run();
+  if (!result.success || result.meta.changes === 0) {
+    return jsonResponse(request, env, { ok: false, error: "Consent log not found" }, 404);
+  }
+  return jsonResponse(request, env, { ok: true });
+}
+
 async function handleAdminAiEvents(request, env, url) {
   if (request.method !== "GET") {
     return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
@@ -840,6 +858,7 @@ async function handleAdmin(request, env, url) {
   if (pathname === "/admin/contact-messages") return await handleAdminContactMessages(request, env, url);
   if (pathname === "/admin/contact-messages/delete") return await handleAdminContactMessageDelete(request, env);
   if (pathname === "/admin/consent-logs") return await handleAdminConsentLogs(request, env, url);
+  if (pathname === "/admin/consent-logs/delete") return await handleAdminConsentLogDelete(request, env);
   if (pathname === "/admin/ai-events") return await handleAdminAiEvents(request, env, url);
   if (pathname === "/admin/ai-events/delete") return await handleAdminAiEventDelete(request, env);
   if (pathname === "/admin/export") return await handleAdminExport(request, env, url);

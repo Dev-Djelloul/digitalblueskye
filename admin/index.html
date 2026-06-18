@@ -525,7 +525,7 @@
         label: "Consentements",
         endpoint: "/admin/consent-logs",
         exportTable: "consent_logs",
-        columns: ["id", "consent_id", "consent_given", "analytics", "marketing", "language", "created_at", "ip_address", "page_url"],
+        columns: ["id", "consent_id", "consent_given", "analytics", "marketing", "language", "created_at", "ip_address", "page_url", "actions"],
       },
       ai: {
         label: "Logs IA",
@@ -708,7 +708,7 @@
           </div>
         `;
       }
-      if (state.tab === "contact" || state.tab === "ai") {
+      if (state.tab === "contact" || state.tab === "consent" || state.tab === "ai") {
         return `<button class="danger" type="button" data-action="delete" data-id="${row.id}">Supprimer</button>`;
       }
       return "";
@@ -779,13 +779,20 @@
     }
 
     async function deleteRow(id) {
-      const labels = { comments: "ce commentaire et ses réponses", contact: "ce message", ai: "ce log IA" };
+      const labels = {
+        comments: "ce commentaire et ses réponses",
+        contact: "ce message",
+        consent: "ce consentement",
+        ai: "ce log IA",
+      };
       if (!confirm(`Supprimer ${labels[state.tab]} ?`)) return;
       const endpoint = state.tab === "comments"
         ? "/admin/comments/delete"
         : state.tab === "contact"
           ? "/admin/contact-messages/delete"
-          : "/admin/ai-events/delete";
+          : state.tab === "consent"
+            ? "/admin/consent-logs/delete"
+            : "/admin/ai-events/delete";
       await apiFetch(endpoint, {
         method: "POST",
         body: JSON.stringify({ id: Number(id) }),
