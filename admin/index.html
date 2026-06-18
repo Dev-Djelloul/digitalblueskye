@@ -1,0 +1,941 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Admin DigitalBlueSkye</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f8fb;
+      --surface: #ffffff;
+      --surface-2: #eef3f8;
+      --text: #172033;
+      --muted: #5d6b82;
+      --border: #d7e0ea;
+      --brand: #1659d8;
+      --brand-dark: #0d3f9f;
+      --danger: #b42318;
+      --success: #087443;
+      --warning: #a15c07;
+      --shadow: 0 18px 45px rgba(23, 32, 51, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      min-height: 40px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 700;
+      transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+    }
+
+    button:hover {
+      border-color: #aebed0;
+      background: #f9fbfd;
+    }
+
+    button.primary {
+      border-color: var(--brand);
+      background: var(--brand);
+      color: #fff;
+    }
+
+    button.primary:hover {
+      background: var(--brand-dark);
+    }
+
+    button.danger {
+      border-color: #f1c6c2;
+      color: var(--danger);
+    }
+
+    button.icon {
+      width: 40px;
+      padding: 0;
+      display: inline-grid;
+      place-items: center;
+    }
+
+    input,
+    select {
+      min-height: 40px;
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--surface);
+      color: var(--text);
+      padding: 8px 10px;
+    }
+
+    label {
+      display: grid;
+      gap: 5px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .shell {
+      width: min(1440px, 100%);
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .back-link {
+      position: fixed;
+      top: 22px;
+      left: 22px;
+      z-index: 10;
+      width: 44px;
+      height: 44px;
+      display: inline-grid;
+      place-items: center;
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      background: var(--surface);
+      color: var(--text);
+      box-shadow: 0 12px 30px rgba(23, 32, 51, 0.1);
+      text-decoration: none;
+    }
+
+    .back-link:hover {
+      border-color: #aebed0;
+      background: #f9fbfd;
+    }
+
+    .back-link svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 26px;
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+
+    .brand p {
+      margin: 5px 0 0;
+      color: var(--muted);
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .login {
+      max-width: 760px;
+      margin: 9vh auto 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      padding: 24px;
+    }
+
+    .login h1 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 8px;
+      font-size: 24px;
+    }
+
+    .login h1 img {
+      width: 42px;
+      height: 42px;
+    }
+
+    .login p {
+      margin: 0 0 18px;
+      color: var(--muted);
+    }
+
+    .login-grid,
+    .filters {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr auto;
+      gap: 12px;
+      align-items: end;
+    }
+
+    .notice {
+      display: none;
+      margin: 0 0 16px;
+      padding: 11px 13px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      font-weight: 700;
+    }
+
+    .notice.show {
+      display: block;
+    }
+
+    .notice.error {
+      border-color: #f1c6c2;
+      color: var(--danger);
+      background: #fff4f2;
+    }
+
+    .notice.success {
+      border-color: #bfe6d4;
+      color: var(--success);
+      background: #f0fbf6;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(120px, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .metric {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 4px;
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .tab {
+      padding: 0 14px;
+    }
+
+    .tab.active {
+      border-color: var(--brand);
+      background: #edf4ff;
+      color: var(--brand-dark);
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px;
+      border-bottom: 1px solid var(--border);
+      background: #fbfcfe;
+    }
+
+    .filters {
+      flex: 1;
+      grid-template-columns: repeat(4, minmax(120px, 1fr)) auto;
+    }
+
+    .table-wrap {
+      width: 100%;
+      overflow: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 980px;
+    }
+
+    th,
+    td {
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: var(--surface-2);
+      color: #36445a;
+      font-size: 12px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    td {
+      color: #253149;
+    }
+
+    .cell-text {
+      max-width: 360px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 13px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: #eef3f8;
+      color: #334155;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .badge.approved {
+      background: #eaf8f0;
+      color: var(--success);
+    }
+
+    .badge.pending {
+      background: #fff5df;
+      color: var(--warning);
+    }
+
+    .badge.hidden {
+      background: #fff0f0;
+      color: var(--danger);
+    }
+
+    .actions {
+      display: flex;
+      gap: 7px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .pager {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 14px;
+      color: var(--muted);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 1100px) {
+      .summary {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .filters,
+      .login-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .shell {
+        padding: 16px;
+      }
+
+      .topbar,
+      .panel-head,
+      .pager {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .summary,
+      .filters,
+      .login-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .toolbar,
+      .actions {
+        width: 100%;
+      }
+
+      .toolbar button,
+      .actions button,
+      .filters button,
+      .login-grid button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a class="back-link" href="/pages/admin.html" aria-label="Retour à la page admin" title="Retour">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path>
+    </svg>
+  </a>
+  <main class="shell">
+    <section id="loginView" class="login">
+      <h1>
+        <img src="/assets/images/ui/icons8-admin-48.png" alt="" width="42" height="42">
+        Admin DigitalBlueSkye
+      </h1>
+      <p>Connexion au back-office par token administrateur.</p>
+      <div id="loginNotice" class="notice"></div>
+      <form id="loginForm" class="login-grid">
+        <label>
+          URL API
+          <input id="apiBaseInput" type="url" placeholder="https://digitalblueskye-api...workers.dev">
+        </label>
+        <label>
+          Token admin
+          <input id="tokenInput" type="password" autocomplete="current-password" required>
+        </label>
+        <button class="primary" type="submit">Connexion</button>
+      </form>
+    </section>
+
+    <section id="appView" class="hidden">
+      <header class="topbar">
+        <div class="brand">
+          <h1>Back-office global</h1>
+          <p id="apiLabel"></p>
+        </div>
+        <div class="toolbar">
+          <button id="toggleSensitive" type="button">Afficher détails</button>
+          <button id="refreshAll" type="button">Actualiser</button>
+          <button id="logoutBtn" type="button">Déconnexion</button>
+        </div>
+      </header>
+
+      <div id="appNotice" class="notice"></div>
+
+      <section id="summary" class="summary" aria-label="Compteurs"></section>
+
+      <nav class="tabs" aria-label="Sections admin">
+        <button class="tab active" type="button" data-tab="comments">Commentaires</button>
+        <button class="tab" type="button" data-tab="contact">Messages contact</button>
+        <button class="tab" type="button" data-tab="consent">Consentements</button>
+        <button class="tab" type="button" data-tab="ai">Logs IA</button>
+      </nav>
+
+      <section class="panel">
+        <div class="panel-head">
+          <form id="filters" class="filters"></form>
+          <div class="actions">
+            <button id="exportBtn" type="button">Export JSON</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead id="tableHead"></thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+        <div class="pager">
+          <span id="pagerInfo"></span>
+          <div class="actions">
+            <button id="prevBtn" type="button">Précédent</button>
+            <button id="nextBtn" type="button">Suivant</button>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const TABLES = {
+      comments: {
+        label: "Commentaires",
+        endpoint: "/admin/comments",
+        exportTable: "article_comments",
+        columns: ["id", "article_slug", "author_name", "author_email", "message", "status", "created_at", "ip_address", "actions"],
+      },
+      contact: {
+        label: "Messages contact",
+        endpoint: "/admin/contact-messages",
+        exportTable: "contact_messages",
+        columns: ["id", "name", "email", "message", "contact_consent", "submitted_at", "ip_address", "actions"],
+      },
+      consent: {
+        label: "Consentements",
+        endpoint: "/admin/consent-logs",
+        exportTable: "consent_logs",
+        columns: ["id", "consent_id", "consent_given", "analytics", "marketing", "language", "created_at", "ip_address", "page_url"],
+      },
+      ai: {
+        label: "Logs IA",
+        endpoint: "/admin/ai-events",
+        exportTable: "ai_assistant_events",
+        columns: ["id", "session_id", "event_type", "event_value", "language", "created_at", "ip_address", "actions"],
+      },
+    };
+
+    const state = {
+      apiBase: localStorage.getItem("dbs_admin_api_base") || window.DBS_API_BASE || location.origin,
+      token: sessionStorage.getItem("dbs_admin_token") || "",
+      tab: "comments",
+      limit: 50,
+      offset: 0,
+      showSensitive: false,
+      rows: [],
+    };
+
+    const $ = (selector) => document.querySelector(selector);
+
+    function setNotice(target, message, type) {
+      const node = $(target);
+      node.textContent = message || "";
+      node.className = message ? `notice show ${type || ""}` : "notice";
+    }
+
+    function adminHeaders() {
+      return {
+        "Authorization": `Bearer ${state.token}`,
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+      };
+    }
+
+    async function apiFetch(path, options = {}) {
+      const response = await fetch(`${state.apiBase}${path}`, {
+        ...options,
+        headers: { ...adminHeaders(), ...(options.headers || {}) },
+      });
+      const isJson = (response.headers.get("Content-Type") || "").includes("application/json");
+      const payload = isJson ? await response.json() : await response.text();
+      if (!response.ok || payload.ok === false) {
+        const error = payload.error || payload.message || `Erreur HTTP ${response.status}`;
+        throw new Error(error);
+      }
+      return payload;
+    }
+
+    function maskEmail(value) {
+      if (!value || state.showSensitive) return value || "";
+      const [name, domain] = String(value).split("@");
+      if (!domain) return "••••";
+      return `${name.slice(0, 2)}•••@${domain}`;
+    }
+
+    function maskIp(value) {
+      if (!value || state.showSensitive) return value || "";
+      const raw = String(value);
+      if (raw.includes(":")) return `${raw.slice(0, 9)}•••`;
+      const parts = raw.split(".");
+      return parts.length === 4 ? `${parts[0]}.${parts[1]}.•••.•••` : "••••";
+    }
+
+    function text(value) {
+      return value == null ? "" : String(value);
+    }
+
+    function escapeHtml(value) {
+      return text(value).replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;",
+      })[char]);
+    }
+
+    function badge(value) {
+      const safe = escapeHtml(value);
+      return `<span class="badge ${safe}">${safe}</span>`;
+    }
+
+    function renderSummary(summary) {
+      const items = [
+        ["Commentaires", summary.comments_total],
+        ["En attente", summary.comments_pending],
+        ["Approuvés", summary.comments_approved],
+        ["Masqués", summary.comments_hidden],
+        ["Contacts", summary.contact_messages],
+        ["Consentements", summary.consent_logs],
+        ["Logs IA", summary.ai_assistant_events],
+      ];
+      $("#summary").innerHTML = items.map(([label, value]) => `
+        <article class="metric">
+          <span>${escapeHtml(label)}</span>
+          <strong>${Number(value || 0)}</strong>
+        </article>
+      `).join("");
+    }
+
+    async function loadSummary() {
+      const payload = await apiFetch("/admin/summary");
+      renderSummary(payload.summary || {});
+    }
+
+    function renderFilters() {
+      const form = $("#filters");
+      if (state.tab === "comments") {
+        form.innerHTML = `
+          <label>Article slug<input name="article_slug" type="search" placeholder="rgpd"></label>
+          <label>Statut<select name="status">
+            <option value="">Tous</option>
+            <option value="approved">approved</option>
+            <option value="pending">pending</option>
+            <option value="hidden">hidden</option>
+          </select></label>
+          <label>Limite<input name="limit" type="number" min="1" max="200" value="${state.limit}"></label>
+          <span></span>
+          <button class="primary" type="submit">Filtrer</button>
+        `;
+        return;
+      }
+      if (state.tab === "contact") {
+        form.innerHTML = `
+          <label>Recherche<input name="q" type="search" placeholder="nom, email, message"></label>
+          <label>Limite<input name="limit" type="number" min="1" max="200" value="${state.limit}"></label>
+          <span></span><span></span>
+          <button class="primary" type="submit">Filtrer</button>
+        `;
+        return;
+      }
+      if (state.tab === "consent") {
+        form.innerHTML = `
+          <label>Consentement<select name="consent_given">
+            <option value="">Tous</option>
+            <option value="yes">yes</option>
+            <option value="no">no</option>
+          </select></label>
+          <label>Langue<select name="language">
+            <option value="">Toutes</option>
+            <option value="fr">fr</option>
+            <option value="en">en</option>
+          </select></label>
+          <label>Limite<input name="limit" type="number" min="1" max="200" value="${state.limit}"></label>
+          <span></span>
+          <button class="primary" type="submit">Filtrer</button>
+        `;
+        return;
+      }
+      form.innerHTML = `
+        <label>Type événement<input name="event_type" type="search" placeholder="open, click..."></label>
+        <label>Session<input name="session_id" type="search" placeholder="session id"></label>
+        <label>Langue<select name="language">
+          <option value="">Toutes</option>
+          <option value="fr">fr</option>
+          <option value="en">en</option>
+        </select></label>
+        <label>Limite<input name="limit" type="number" min="1" max="200" value="${state.limit}"></label>
+        <button class="primary" type="submit">Filtrer</button>
+      `;
+    }
+
+    function rowValue(row, column) {
+      if (column === "name") return `${text(row.first_name)} ${text(row.last_name)}`.trim();
+      if (column === "author_email" || column === "email") return maskEmail(row[column]);
+      if (column === "ip_address") return maskIp(row[column]);
+      if (column === "status") return badge(row.status);
+      if (["message", "event_value", "page_url"].includes(column)) return `<div class="cell-text">${escapeHtml(row[column])}</div>`;
+      return escapeHtml(row[column]);
+    }
+
+    function actionCell(row) {
+      if (state.tab === "comments") {
+        return `
+          <div class="actions">
+            <button type="button" data-action="status" data-id="${row.id}" data-status="approved">Approuver</button>
+            <button type="button" data-action="status" data-id="${row.id}" data-status="hidden">Masquer</button>
+            <button class="danger" type="button" data-action="delete" data-id="${row.id}">Supprimer</button>
+          </div>
+        `;
+      }
+      if (state.tab === "contact" || state.tab === "ai") {
+        return `<button class="danger" type="button" data-action="delete" data-id="${row.id}">Supprimer</button>`;
+      }
+      return "";
+    }
+
+    function renderTable() {
+      const config = TABLES[state.tab];
+      $("#tableHead").innerHTML = `<tr>${config.columns.map((column) => `<th>${escapeHtml(column)}</th>`).join("")}</tr>`;
+      $("#tableBody").innerHTML = state.rows.map((row) => `
+        <tr>
+          ${config.columns.map((column) => `<td class="${column === "id" ? "mono" : ""}">${column === "actions" ? actionCell(row) : rowValue(row, column)}</td>`).join("")}
+        </tr>
+      `).join("") || `<tr><td colspan="${config.columns.length}">Aucune donnée.</td></tr>`;
+      $("#pagerInfo").textContent = `${config.label} · ${state.rows.length} résultat(s) · offset ${state.offset}`;
+    }
+
+    function buildListPath() {
+      const params = new URLSearchParams();
+      const form = new FormData($("#filters"));
+      params.set("limit", String(state.limit));
+      params.set("offset", String(state.offset));
+      if (state.tab === "comments") {
+        const articleSlug = text(form.get("article_slug")).trim();
+        const status = text(form.get("status")).trim();
+        if (articleSlug) params.set("article_slug", articleSlug);
+        if (status) params.set("status", status);
+      }
+      if (state.tab === "contact") {
+        const q = text(form.get("q")).trim();
+        if (q) params.set("q", q);
+      }
+      if (state.tab === "consent") {
+        const consentGiven = text(form.get("consent_given")).trim();
+        const language = text(form.get("language")).trim();
+        if (consentGiven) params.set("consent_given", consentGiven);
+        if (language) params.set("language", language);
+      }
+      if (state.tab === "ai") {
+        const eventType = text(form.get("event_type")).trim();
+        const sessionId = text(form.get("session_id")).trim();
+        const language = text(form.get("language")).trim();
+        if (eventType) params.set("event_type", eventType);
+        if (sessionId) params.set("session_id", sessionId);
+        if (language) params.set("language", language);
+      }
+      return `${TABLES[state.tab].endpoint}?${params.toString()}`;
+    }
+
+    async function loadRows() {
+      setNotice("#appNotice", "", "");
+      const payload = await apiFetch(buildListPath());
+      state.rows = payload.items || [];
+      renderTable();
+    }
+
+    async function refreshAll() {
+      await loadSummary();
+      await loadRows();
+    }
+
+    async function changeStatus(id, status) {
+      await apiFetch("/admin/comments/status", {
+        method: "POST",
+        body: JSON.stringify({ id: Number(id), status }),
+      });
+      setNotice("#appNotice", "Statut du commentaire mis à jour.", "success");
+      await refreshAll();
+    }
+
+    async function deleteRow(id) {
+      const labels = { comments: "ce commentaire et ses réponses", contact: "ce message", ai: "ce log IA" };
+      if (!confirm(`Supprimer ${labels[state.tab]} ?`)) return;
+      const endpoint = state.tab === "comments"
+        ? "/admin/comments/delete"
+        : state.tab === "contact"
+          ? "/admin/contact-messages/delete"
+          : "/admin/ai-events/delete";
+      await apiFetch(endpoint, {
+        method: "POST",
+        body: JSON.stringify({ id: Number(id) }),
+      });
+      setNotice("#appNotice", "Suppression effectuée.", "success");
+      await refreshAll();
+    }
+
+    async function exportJson() {
+      const table = TABLES[state.tab].exportTable;
+      const response = await fetch(`${state.apiBase}/admin/export?table=${encodeURIComponent(table)}&format=json`, {
+        headers: adminHeaders(),
+      });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(payload.error || `Export impossible (${response.status})`);
+      }
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${table}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+      setNotice("#appNotice", "Export JSON généré.", "success");
+    }
+
+    function showApp() {
+      $("#loginView").classList.add("hidden");
+      $("#appView").classList.remove("hidden");
+      $("#apiLabel").textContent = state.apiBase;
+      renderFilters();
+    }
+
+    function logout() {
+      sessionStorage.removeItem("dbs_admin_token");
+      state.token = "";
+      $("#appView").classList.add("hidden");
+      $("#loginView").classList.remove("hidden");
+      $("#tokenInput").value = "";
+    }
+
+    $("#apiBaseInput").value = state.apiBase;
+    $("#tokenInput").value = state.token;
+
+    $("#loginForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      state.apiBase = $("#apiBaseInput").value.trim().replace(/\/$/, "") || location.origin;
+      state.token = $("#tokenInput").value.trim();
+      localStorage.setItem("dbs_admin_api_base", state.apiBase);
+      sessionStorage.setItem("dbs_admin_token", state.token);
+      try {
+        showApp();
+        await refreshAll();
+        setNotice("#appNotice", "Connexion réussie.", "success");
+      } catch (error) {
+        logout();
+        setNotice("#loginNotice", error.message, "error");
+      }
+    });
+
+    document.querySelectorAll(".tab").forEach((button) => {
+      button.addEventListener("click", async () => {
+        document.querySelectorAll(".tab").forEach((tab) => tab.classList.remove("active"));
+        button.classList.add("active");
+        state.tab = button.dataset.tab;
+        state.offset = 0;
+        renderFilters();
+        try {
+          await loadRows();
+        } catch (error) {
+          setNotice("#appNotice", error.message, "error");
+        }
+      });
+    });
+
+    $("#filters").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const form = new FormData(event.currentTarget);
+      const nextLimit = Number(form.get("limit") || state.limit);
+      state.limit = Math.min(Math.max(Number.isFinite(nextLimit) ? Math.trunc(nextLimit) : 50, 1), 200);
+      state.offset = 0;
+      try {
+        await loadRows();
+      } catch (error) {
+        setNotice("#appNotice", error.message, "error");
+      }
+    });
+
+    $("#tableBody").addEventListener("click", async (event) => {
+      const button = event.target.closest("button[data-action]");
+      if (!button) return;
+      try {
+        if (button.dataset.action === "status") await changeStatus(button.dataset.id, button.dataset.status);
+        if (button.dataset.action === "delete") await deleteRow(button.dataset.id);
+      } catch (error) {
+        setNotice("#appNotice", error.message, "error");
+      }
+    });
+
+    $("#prevBtn").addEventListener("click", async () => {
+      state.offset = Math.max(state.offset - state.limit, 0);
+      try {
+        await loadRows();
+      } catch (error) {
+        setNotice("#appNotice", error.message, "error");
+      }
+    });
+
+    $("#nextBtn").addEventListener("click", async () => {
+      state.offset += state.limit;
+      try {
+        await loadRows();
+      } catch (error) {
+        setNotice("#appNotice", error.message, "error");
+      }
+    });
+
+    $("#toggleSensitive").addEventListener("click", () => {
+      state.showSensitive = !state.showSensitive;
+      $("#toggleSensitive").textContent = state.showSensitive ? "Masquer détails" : "Afficher détails";
+      renderTable();
+    });
+
+    $("#refreshAll").addEventListener("click", async () => {
+      try {
+        await refreshAll();
+        setNotice("#appNotice", "Données actualisées.", "success");
+      } catch (error) {
+        setNotice("#appNotice", error.message, "error");
+      }
+    });
+
+    $("#exportBtn").addEventListener("click", async () => {
+      try {
+        await exportJson();
+      } catch (error) {
+        setNotice("#appNotice", error.message, "error");
+      }
+    });
+
+    $("#logoutBtn").addEventListener("click", logout);
+
+    document.querySelector(".back-link").addEventListener("click", (event) => {
+      if (history.length <= 1) return;
+      event.preventDefault();
+      history.back();
+    });
+
+    if (state.token) {
+      showApp();
+      refreshAll().catch((error) => {
+        logout();
+        setNotice("#loginNotice", error.message, "error");
+      });
+    }
+  </script>
+</body>
+</html>

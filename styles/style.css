@@ -1082,6 +1082,11 @@ header.site-header {
   transform: translateY(-2px);
 }
 
+.header-admin-link {
+  margin-left: clamp(25px, 1vw, 14px);
+  margin-right: auto;
+}
+
 .header-social-icon {
   height: 22px;
   width: 22px;

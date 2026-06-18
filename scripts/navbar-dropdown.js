@@ -48,6 +48,24 @@ document.addEventListener('DOMContentLoaded', function() {
     strip.className = 'header-social-strip';
     strip.setAttribute('aria-label', 'Liens sociaux et préférences');
 
+    const adminLink = document.createElement('a');
+    adminLink.className = 'header-admin-link header-social-link';
+    adminLink.href = '/pages/admin.html';
+    adminLink.setAttribute('aria-label', 'Accès admin');
+    adminLink.title = 'Admin DigitalBlueSkye';
+    adminLink.innerHTML = `
+      <img
+        class="header-social-icon"
+        src="/assets/images/ui/icons8-admin-48.png"
+        alt=""
+        width="22"
+        height="22"
+        loading="lazy"
+        aria-hidden="true"
+      />
+    `;
+    strip.appendChild(adminLink);
+
     const links = document.createElement('div');
     links.className = 'header-social-links';
 

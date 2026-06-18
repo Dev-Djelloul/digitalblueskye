@@ -1,10 +1,11 @@
 # Cloudflare API Worker (consent/comments/contact/export)
 
-Ce Worker remplace les endpoints PHP suivants:
+Ce Worker remplace les endpoints PHP suivants et expose un back-office admin protege:
 - `POST /backend/consent.php`
 - `GET|POST /backend/comments.php`
 - `POST /contact-submit.php`
 - `GET /export-csv.php`
+- `GET|POST /admin/*`
 
 ## 1) Pre-requis
 - Cloudflare account
@@ -17,6 +18,8 @@ Ce Worker remplace les endpoints PHP suivants:
 3. Ajuster `ALLOWED_ORIGIN` (ton domaine final).
 4. Ajouter le secret export:
    - `wrangler secret put EXPORT_TOKEN -c cloudflare/wrangler.api.toml`
+5. Ajouter le secret admin:
+   - `wrangler secret put ADMIN_TOKEN -c cloudflare/wrangler.api.toml`
 
 ## 3) Initialiser la base D1
 - `wrangler d1 execute digitalblueskye --file=cloudflare/d1/schema.sql -c cloudflare/wrangler.api.toml`
@@ -33,6 +36,12 @@ Sur Cloudflare, router ton domaine vers le Worker:
 - `https://api.tondomaine.com/backend/comments.php`
 - `https://api.tondomaine.com/contact-submit.php`
 - `https://api.tondomaine.com/export-csv.php`
+- `https://api.tondomaine.com/admin/summary`
+- `https://api.tondomaine.com/admin/comments`
+- `https://api.tondomaine.com/admin/contact-messages`
+- `https://api.tondomaine.com/admin/consent-logs`
+- `https://api.tondomaine.com/admin/ai-events`
+- `https://api.tondomaine.com/admin/export`
 
 ## 6) Integration front
 Deux options:

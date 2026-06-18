@@ -512,7 +512,8 @@ window.addEventListener('load', () => {
     const loaderWrapper = document.getElementById('loader-wrapper');
     if (loaderWrapper) {
       const isAboutPage = document.body.classList.contains('page-about');
-      const minimumLoadTime = isAboutPage ? 1500 : 4500; // Délai réduit sur la page about
+      const isAdminPage = document.body.classList.contains('page-admin');
+      const minimumLoadTime = isAdminPage ? 700 : isAboutPage ? 1500 : 4500;
       const loadEndTime = Date.now();
       const timeToWait = Math.max(0, minimumLoadTime - (loadEndTime - performance.timing.navigationStart)); 
   

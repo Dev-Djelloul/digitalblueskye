@@ -9,6 +9,7 @@
  * Required bindings/secrets:
  * - DB (D1 database binding)
  * - EXPORT_TOKEN (secret, for /export-csv.php)
+ * - ADMIN_TOKEN (secret, for /admin/*)
  *
  * Optional vars:
  * - ALLOWED_ORIGIN (CORS fallback)
@@ -81,15 +82,40 @@ const ALLOWED_EXPORT_TABLES = Object.freeze({
     "id",
     "article_slug",
     "page_url",
+    "parent_id",
     "author_name",
     "author_email",
     "message",
+    "likes_count",
+    "reactions_thumbsup",
+    "reactions_purpleheart",
+    "reactions_wink",
+    "reactions_sweatsmile",
+    "reactions_nerd",
+    "reactions_idea",
+    "reactions_robot",
+    "reactions_mobile",
+    "reactions_laptop",
     "status",
     "created_at",
     "ip_address",
     "user_agent",
   ],
+  ai_assistant_events: [
+    "id",
+    "session_id",
+    "event_type",
+    "event_value",
+    "language",
+    "page_url",
+    "meta",
+    "created_at",
+    "ip_address",
+    "user_agent",
+  ],
 });
+
+const COMMENT_STATUSES = Object.freeze(["approved", "pending", "hidden"]);
 
 function corsHeaders(request, env, contentType = "application/json; charset=utf-8") {
   const requestOrigin = request.headers.get("Origin");
@@ -98,7 +124,7 @@ function corsHeaders(request, env, contentType = "application/json; charset=utf-
     "Content-Type": contentType,
     "Access-Control-Allow-Origin": requestOrigin || fallbackOrigin,
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Accept",
+    "Access-Control-Allow-Headers": "Content-Type, Accept, Authorization",
     Vary: "Origin",
   };
 }
@@ -150,6 +176,31 @@ function extractUserAgent(request) {
 
 function commentsRequireApproval(env) {
   return parseBoolEnv(env.COMMENTS_REQUIRE_APPROVAL, false);
+}
+
+function isAdminAuthorized(request, env) {
+  if (!env.ADMIN_TOKEN) return false;
+  const header = request.headers.get("Authorization") || "";
+  const token = header.startsWith("Bearer ") ? header.slice(7).trim() : "";
+  return token.length > 0 && token === env.ADMIN_TOKEN;
+}
+
+function parsePagination(url) {
+  const rawLimit = Number(url.searchParams.get("limit") || 50);
+  const rawOffset = Number(url.searchParams.get("offset") || 0);
+  const limit = Math.min(Math.max(Number.isFinite(rawLimit) ? Math.trunc(rawLimit) : 50, 1), 200);
+  const offset = Math.max(Number.isFinite(rawOffset) ? Math.trunc(rawOffset) : 0, 0);
+  return { limit, offset };
+}
+
+function likePattern(value) {
+  return `%${String(value).replace(/[\\%_]/g, "\\$&")}%`;
+}
+
+function adminForbidden(request, env) {
+  const status = env.ADMIN_TOKEN ? 401 : 503;
+  const error = env.ADMIN_TOKEN ? "Unauthorized" : "Admin disabled";
+  return jsonResponse(request, env, { ok: false, error }, status);
 }
 
 function reactionsPayload(row) {
@@ -480,6 +531,321 @@ async function handleExportCsv(request, env, url) {
   });
 }
 
+async function requireAdmin(request, env) {
+  if (!isAdminAuthorized(request, env)) {
+    return adminForbidden(request, env);
+  }
+  return null;
+}
+
+async function handleAdminSummary(request, env) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+
+  const [
+    commentsTotal,
+    commentsPending,
+    commentsApproved,
+    commentsHidden,
+    contactMessages,
+    consentLogs,
+    aiEvents,
+  ] = await Promise.all([
+    env.DB.prepare("SELECT COUNT(*) AS count FROM article_comments").first(),
+    env.DB.prepare("SELECT COUNT(*) AS count FROM article_comments WHERE status = 'pending'").first(),
+    env.DB.prepare("SELECT COUNT(*) AS count FROM article_comments WHERE status = 'approved'").first(),
+    env.DB.prepare("SELECT COUNT(*) AS count FROM article_comments WHERE status = 'hidden'").first(),
+    env.DB.prepare("SELECT COUNT(*) AS count FROM contact_messages").first(),
+    env.DB.prepare("SELECT COUNT(*) AS count FROM consent_logs").first(),
+    env.DB.prepare("SELECT COUNT(*) AS count FROM ai_assistant_events").first(),
+  ]);
+
+  return jsonResponse(request, env, {
+    ok: true,
+    summary: {
+      comments_total: Number(commentsTotal?.count || 0),
+      comments_pending: Number(commentsPending?.count || 0),
+      comments_approved: Number(commentsApproved?.count || 0),
+      comments_hidden: Number(commentsHidden?.count || 0),
+      contact_messages: Number(contactMessages?.count || 0),
+      consent_logs: Number(consentLogs?.count || 0),
+      ai_assistant_events: Number(aiEvents?.count || 0),
+    },
+  });
+}
+
+async function handleAdminComments(request, env, url) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+
+  const { limit, offset } = parsePagination(url);
+  const articleSlug = String(url.searchParams.get("article_slug") || "").trim();
+  const status = String(url.searchParams.get("status") || "").trim();
+  if (status && !COMMENT_STATUSES.includes(status)) {
+    return jsonResponse(request, env, { ok: false, error: "Invalid status" }, 422);
+  }
+
+  const where = [];
+  const bindings = [];
+  if (articleSlug) {
+    where.push("article_slug LIKE ? ESCAPE '\\'");
+    bindings.push(likePattern(articleSlug));
+  }
+  if (status) {
+    where.push("status = ?");
+    bindings.push(status);
+  }
+  const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
+  const rows = await env.DB.prepare(
+    `SELECT id, article_slug, page_url, parent_id, author_name, author_email, message,
+      likes_count, reactions_thumbsup, reactions_purpleheart, reactions_wink, reactions_sweatsmile,
+      reactions_nerd, reactions_idea, reactions_robot, reactions_mobile, reactions_laptop,
+      status, created_at, ip_address, user_agent
+     FROM article_comments
+     ${whereSql}
+     ORDER BY created_at DESC, id DESC
+     LIMIT ? OFFSET ?`
+  )
+    .bind(...bindings, limit, offset)
+    .all();
+
+  return jsonResponse(request, env, { ok: true, items: rows.results || [], limit, offset });
+}
+
+async function handleAdminCommentStatus(request, env) {
+  if (request.method !== "POST") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+
+  const input = await readJsonBody(request);
+  const id = Number(input?.id || 0);
+  const status = String(input?.status || "").trim();
+  if (!Number.isInteger(id) || id <= 0 || !COMMENT_STATUSES.includes(status)) {
+    return jsonResponse(request, env, { ok: false, error: "Invalid payload" }, 422);
+  }
+
+  const result = await env.DB.prepare("UPDATE article_comments SET status = ? WHERE id = ?")
+    .bind(status, id)
+    .run();
+  if (!result.success || result.meta.changes === 0) {
+    return jsonResponse(request, env, { ok: false, error: "Comment not found" }, 404);
+  }
+  return jsonResponse(request, env, { ok: true });
+}
+
+async function handleAdminCommentDelete(request, env) {
+  if (request.method !== "POST") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+
+  const input = await readJsonBody(request);
+  const id = Number(input?.id || 0);
+  if (!Number.isInteger(id) || id <= 0) {
+    return jsonResponse(request, env, { ok: false, error: "Invalid payload" }, 422);
+  }
+
+  await env.DB.prepare("DELETE FROM article_comments WHERE parent_id = ?").bind(id).run();
+  const result = await env.DB.prepare("DELETE FROM article_comments WHERE id = ?").bind(id).run();
+  if (!result.success || result.meta.changes === 0) {
+    return jsonResponse(request, env, { ok: false, error: "Comment not found" }, 404);
+  }
+  return jsonResponse(request, env, { ok: true });
+}
+
+async function handleAdminContactMessages(request, env, url) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+
+  const { limit, offset } = parsePagination(url);
+  const q = String(url.searchParams.get("q") || "").trim();
+  const where = [];
+  const bindings = [];
+  if (q) {
+    where.push("(first_name LIKE ? ESCAPE '\\' OR last_name LIKE ? ESCAPE '\\' OR email LIKE ? ESCAPE '\\' OR message LIKE ? ESCAPE '\\')");
+    const pattern = likePattern(q);
+    bindings.push(pattern, pattern, pattern, pattern);
+  }
+  const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
+  const rows = await env.DB.prepare(
+    `SELECT id, first_name, last_name, email, message, contact_consent,
+      ip_address, user_agent, submitted_at
+     FROM contact_messages
+     ${whereSql}
+     ORDER BY submitted_at DESC, id DESC
+     LIMIT ? OFFSET ?`
+  )
+    .bind(...bindings, limit, offset)
+    .all();
+
+  return jsonResponse(request, env, { ok: true, items: rows.results || [], limit, offset });
+}
+
+async function handleAdminContactMessageDelete(request, env) {
+  if (request.method !== "POST") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+
+  const input = await readJsonBody(request);
+  const id = Number(input?.id || 0);
+  if (!Number.isInteger(id) || id <= 0) {
+    return jsonResponse(request, env, { ok: false, error: "Invalid payload" }, 422);
+  }
+
+  const result = await env.DB.prepare("DELETE FROM contact_messages WHERE id = ?").bind(id).run();
+  if (!result.success || result.meta.changes === 0) {
+    return jsonResponse(request, env, { ok: false, error: "Message not found" }, 404);
+  }
+  return jsonResponse(request, env, { ok: true });
+}
+
+async function handleAdminConsentLogs(request, env, url) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+
+  const { limit, offset } = parsePagination(url);
+  const consentGiven = String(url.searchParams.get("consent_given") || "").trim().toLowerCase();
+  const language = String(url.searchParams.get("language") || "").trim().toLowerCase();
+  if (consentGiven && !["yes", "no"].includes(consentGiven)) {
+    return jsonResponse(request, env, { ok: false, error: "Invalid consent_given" }, 422);
+  }
+  if (language && !["fr", "en"].includes(language)) {
+    return jsonResponse(request, env, { ok: false, error: "Invalid language" }, 422);
+  }
+
+  const where = [];
+  const bindings = [];
+  if (consentGiven) {
+    where.push("consent_given = ?");
+    bindings.push(consentGiven);
+  }
+  if (language) {
+    where.push("language = ?");
+    bindings.push(language);
+  }
+  const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
+  const rows = await env.DB.prepare(
+    `SELECT id, consent_id, consent_given, analytics, marketing, language, theme,
+      viewport_width, viewport_height, device_pixel_ratio, screen_width, screen_height,
+      navigator_language, ua_data, in_app_browser, created_at, ip_address, user_agent, page_url
+     FROM consent_logs
+     ${whereSql}
+     ORDER BY created_at DESC, id DESC
+     LIMIT ? OFFSET ?`
+  )
+    .bind(...bindings, limit, offset)
+    .all();
+
+  return jsonResponse(request, env, { ok: true, items: rows.results || [], limit, offset });
+}
+
+async function handleAdminAiEvents(request, env, url) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+
+  const { limit, offset } = parsePagination(url);
+  const eventType = String(url.searchParams.get("event_type") || "").trim();
+  const sessionId = String(url.searchParams.get("session_id") || "").trim();
+  const language = String(url.searchParams.get("language") || "").trim().toLowerCase();
+  if (language && !["fr", "en"].includes(language)) {
+    return jsonResponse(request, env, { ok: false, error: "Invalid language" }, 422);
+  }
+
+  const where = [];
+  const bindings = [];
+  if (eventType) {
+    where.push("event_type LIKE ? ESCAPE '\\'");
+    bindings.push(likePattern(eventType));
+  }
+  if (sessionId) {
+    where.push("session_id LIKE ? ESCAPE '\\'");
+    bindings.push(likePattern(sessionId));
+  }
+  if (language) {
+    where.push("language = ?");
+    bindings.push(language);
+  }
+  const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
+  const rows = await env.DB.prepare(
+    `SELECT id, session_id, event_type, event_value, language, page_url, meta,
+      created_at, ip_address, user_agent
+     FROM ai_assistant_events
+     ${whereSql}
+     ORDER BY created_at DESC, id DESC
+     LIMIT ? OFFSET ?`
+  )
+    .bind(...bindings, limit, offset)
+    .all();
+
+  return jsonResponse(request, env, { ok: true, items: rows.results || [], limit, offset });
+}
+
+async function handleAdminAiEventDelete(request, env) {
+  if (request.method !== "POST") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+
+  const input = await readJsonBody(request);
+  const id = Number(input?.id || 0);
+  if (!Number.isInteger(id) || id <= 0) {
+    return jsonResponse(request, env, { ok: false, error: "Invalid payload" }, 422);
+  }
+
+  const result = await env.DB.prepare("DELETE FROM ai_assistant_events WHERE id = ?").bind(id).run();
+  if (!result.success || result.meta.changes === 0) {
+    return jsonResponse(request, env, { ok: false, error: "Event not found" }, 404);
+  }
+  return jsonResponse(request, env, { ok: true });
+}
+
+async function handleAdminExport(request, env, url) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+
+  const table = String(url.searchParams.get("table") || "").trim();
+  const format = String(url.searchParams.get("format") || "json").trim().toLowerCase();
+  const columns = ALLOWED_EXPORT_TABLES[table];
+  if (!columns) {
+    return jsonResponse(request, env, { ok: false, error: "Invalid table" }, 400);
+  }
+  if (format !== "json") {
+    return jsonResponse(request, env, { ok: false, error: "Invalid format" }, 400);
+  }
+
+  const rows = await env.DB.prepare(`SELECT ${columns.join(", ")} FROM ${table} ORDER BY id DESC`).all();
+  const filename = `${table}-${new Date().toISOString().replaceAll(":", "").replace(/\.\d+Z$/, "Z")}.json`;
+  return new Response(JSON.stringify({ ok: true, table, items: rows.results || [] }, null, 2), {
+    status: 200,
+    headers: {
+      ...corsHeaders(request, env),
+      "Content-Disposition": `attachment; filename="${filename}"`,
+    },
+  });
+}
+
+async function handleAdmin(request, env, url) {
+  const authError = await requireAdmin(request, env);
+  if (authError) return authError;
+
+  const pathname = url.pathname;
+  if (pathname === "/admin/summary") return await handleAdminSummary(request, env);
+  if (pathname === "/admin/comments") return await handleAdminComments(request, env, url);
+  if (pathname === "/admin/comments/status") return await handleAdminCommentStatus(request, env);
+  if (pathname === "/admin/comments/delete") return await handleAdminCommentDelete(request, env);
+  if (pathname === "/admin/contact-messages") return await handleAdminContactMessages(request, env, url);
+  if (pathname === "/admin/contact-messages/delete") return await handleAdminContactMessageDelete(request, env);
+  if (pathname === "/admin/consent-logs") return await handleAdminConsentLogs(request, env, url);
+  if (pathname === "/admin/ai-events") return await handleAdminAiEvents(request, env, url);
+  if (pathname === "/admin/ai-events/delete") return await handleAdminAiEventDelete(request, env);
+  if (pathname === "/admin/export") return await handleAdminExport(request, env, url);
+  return jsonResponse(request, env, { ok: false, error: "Not found" }, 404);
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -494,6 +860,7 @@ export default {
     }
 
     try {
+      if (pathname.startsWith("/admin/")) return await handleAdmin(request, env, url);
       if (pathname === "/backend/consent.php") return await handleConsent(request, env);
       if (pathname === "/backend/comments.php") return await handleComments(request, env, url);
       if (pathname === "/contact-submit.php") return await handleContactSubmit(request, env);
