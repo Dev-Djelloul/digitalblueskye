@@ -104,13 +104,13 @@
     .shell {
       width: min(1440px, 100%);
       margin: 0 auto;
-      padding: 24px;
+      padding: 24px 24px 24px 88px;
     }
 
     .back-link {
       position: fixed;
       top: 22px;
-      left: 22px;
+      left: 14px;
       z-index: 10;
       width: 44px;
       height: 44px;
@@ -396,7 +396,13 @@
 
     @media (max-width: 720px) {
       .shell {
-        padding: 16px;
+        padding: 72px 16px 16px;
+      }
+
+      .back-link {
+        position: absolute;
+        top: 14px;
+        left: 14px;
       }
 
       .topbar,
