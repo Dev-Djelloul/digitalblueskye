@@ -2321,7 +2321,7 @@ h1.main-title-animated .title-icon {
   grid-template-columns: minmax(0, 1fr);
   padding-bottom: 96px;
   overflow: hidden; /* Pour coins arrondis et contenu qui dépasse */
-  padding-top: 42px;
+  padding-top: 75px;
   width: 100%;
 
   /* min-height: ...; /* S'adapte au contenu ou peut être défini */
@@ -3438,7 +3438,7 @@ h1.main-title-animated .title-icon {
   color: var(--text-color);
   font-family: var(--font-title);
   font-size: 1.4rem;
-  margin-bottom: 10px;
+  margin-bottom: 25px;
 }
 
 .ia-page section h2[data-i18n="ia.whyTitle"],
