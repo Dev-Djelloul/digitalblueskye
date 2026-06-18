@@ -225,6 +225,21 @@ async function readJsonBody(request) {
   }
 }
 
+function parseAdminIds(input) {
+  const rawIds = Array.isArray(input?.ids) ? input.ids : [input?.id];
+  return Array.from(
+    new Set(
+      rawIds
+        .map((value) => Number(value))
+        .filter((value) => Number.isInteger(value) && value > 0)
+    )
+  ).slice(0, 200);
+}
+
+function sqlPlaceholders(count) {
+  return Array.from({ length: count }, () => "?").join(", ");
+}
+
 function csvEscape(value) {
   const raw = value == null ? "" : String(value);
   const escaped = raw.replaceAll('"', '""');
@@ -641,17 +656,18 @@ async function handleAdminCommentDelete(request, env) {
   }
 
   const input = await readJsonBody(request);
-  const id = Number(input?.id || 0);
-  if (!Number.isInteger(id) || id <= 0) {
+  const ids = parseAdminIds(input);
+  if (!ids.length) {
     return jsonResponse(request, env, { ok: false, error: "Invalid payload" }, 422);
   }
 
-  await env.DB.prepare("DELETE FROM article_comments WHERE parent_id = ?").bind(id).run();
-  const result = await env.DB.prepare("DELETE FROM article_comments WHERE id = ?").bind(id).run();
+  const placeholders = sqlPlaceholders(ids.length);
+  await env.DB.prepare(`DELETE FROM article_comments WHERE parent_id IN (${placeholders})`).bind(...ids).run();
+  const result = await env.DB.prepare(`DELETE FROM article_comments WHERE id IN (${placeholders})`).bind(...ids).run();
   if (!result.success || result.meta.changes === 0) {
     return jsonResponse(request, env, { ok: false, error: "Comment not found" }, 404);
   }
-  return jsonResponse(request, env, { ok: true });
+  return jsonResponse(request, env, { ok: true, deleted: Number(result.meta.changes || 0) });
 }
 
 async function handleAdminContactMessages(request, env, url) {
@@ -689,16 +705,18 @@ async function handleAdminContactMessageDelete(request, env) {
   }
 
   const input = await readJsonBody(request);
-  const id = Number(input?.id || 0);
-  if (!Number.isInteger(id) || id <= 0) {
+  const ids = parseAdminIds(input);
+  if (!ids.length) {
     return jsonResponse(request, env, { ok: false, error: "Invalid payload" }, 422);
   }
 
-  const result = await env.DB.prepare("DELETE FROM contact_messages WHERE id = ?").bind(id).run();
+  const result = await env.DB.prepare(`DELETE FROM contact_messages WHERE id IN (${sqlPlaceholders(ids.length)})`)
+    .bind(...ids)
+    .run();
   if (!result.success || result.meta.changes === 0) {
     return jsonResponse(request, env, { ok: false, error: "Message not found" }, 404);
   }
-  return jsonResponse(request, env, { ok: true });
+  return jsonResponse(request, env, { ok: true, deleted: Number(result.meta.changes || 0) });
 }
 
 async function handleAdminConsentLogs(request, env, url) {
@@ -748,16 +766,18 @@ async function handleAdminConsentLogDelete(request, env) {
   }
 
   const input = await readJsonBody(request);
-  const id = Number(input?.id || 0);
-  if (!Number.isInteger(id) || id <= 0) {
+  const ids = parseAdminIds(input);
+  if (!ids.length) {
     return jsonResponse(request, env, { ok: false, error: "Invalid payload" }, 422);
   }
 
-  const result = await env.DB.prepare("DELETE FROM consent_logs WHERE id = ?").bind(id).run();
+  const result = await env.DB.prepare(`DELETE FROM consent_logs WHERE id IN (${sqlPlaceholders(ids.length)})`)
+    .bind(...ids)
+    .run();
   if (!result.success || result.meta.changes === 0) {
     return jsonResponse(request, env, { ok: false, error: "Consent log not found" }, 404);
   }
-  return jsonResponse(request, env, { ok: true });
+  return jsonResponse(request, env, { ok: true, deleted: Number(result.meta.changes || 0) });
 }
 
 async function handleAdminAiEvents(request, env, url) {
@@ -808,16 +828,18 @@ async function handleAdminAiEventDelete(request, env) {
   }
 
   const input = await readJsonBody(request);
-  const id = Number(input?.id || 0);
-  if (!Number.isInteger(id) || id <= 0) {
+  const ids = parseAdminIds(input);
+  if (!ids.length) {
     return jsonResponse(request, env, { ok: false, error: "Invalid payload" }, 422);
   }
 
-  const result = await env.DB.prepare("DELETE FROM ai_assistant_events WHERE id = ?").bind(id).run();
+  const result = await env.DB.prepare(`DELETE FROM ai_assistant_events WHERE id IN (${sqlPlaceholders(ids.length)})`)
+    .bind(...ids)
+    .run();
   if (!result.success || result.meta.changes === 0) {
     return jsonResponse(request, env, { ok: false, error: "Event not found" }, 404);
   }
-  return jsonResponse(request, env, { ok: true });
+  return jsonResponse(request, env, { ok: true, deleted: Number(result.meta.changes || 0) });
 }
 
 async function handleAdminExport(request, env, url) {

@@ -59,6 +59,19 @@
       background: #f9fbfd;
     }
 
+    button:disabled {
+      border-color: var(--border);
+      background: #f3f6fa;
+      color: #8a96a8;
+      cursor: not-allowed;
+      opacity: 0.72;
+    }
+
+    button:disabled:hover {
+      border-color: var(--border);
+      background: #f3f6fa;
+    }
+
     button.primary {
       border-color: var(--brand);
       background: var(--brand);
@@ -72,6 +85,11 @@
     button.danger {
       border-color: #f1c6c2;
       color: var(--danger);
+    }
+
+    button.danger:disabled {
+      border-color: var(--border);
+      color: #8a96a8;
     }
 
     button.icon {
@@ -370,6 +388,28 @@
       flex-wrap: wrap;
     }
 
+    .selection-state {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .select-cell {
+      width: 44px;
+      min-width: 44px;
+      text-align: center;
+    }
+
+    .select-cell input {
+      width: 18px;
+      height: 18px;
+      min-height: 0;
+      padding: 0;
+      accent-color: var(--brand);
+      cursor: pointer;
+    }
+
     .pager {
       display: flex;
       justify-content: space-between;
@@ -429,6 +469,11 @@
       .login-grid button {
         width: 100%;
       }
+
+      .table-wrap .actions,
+      .table-wrap .actions button {
+        width: auto;
+      }
     }
   </style>
 </head>
@@ -487,6 +532,8 @@
         <div class="panel-head">
           <form id="filters" class="filters"></form>
           <div class="actions">
+            <span id="selectionState" class="selection-state">0 sélection</span>
+            <button id="bulkDeleteBtn" class="danger" type="button" disabled>Supprimer sélection</button>
             <button id="exportBtn" type="button">Export JSON</button>
           </div>
         </div>
@@ -543,6 +590,7 @@
       offset: 0,
       showSensitive: false,
       rows: [],
+      selectedIds: new Set(),
     };
 
     const $ = (selector) => document.querySelector(selector);
@@ -714,15 +762,80 @@
       return "";
     }
 
+    function rowId(row) {
+      return String(row?.id || "");
+    }
+
+    function visibleRowIds() {
+      return state.rows.map(rowId).filter(Boolean);
+    }
+
+    function selectedVisibleIds() {
+      const visible = new Set(visibleRowIds());
+      return Array.from(state.selectedIds).filter((id) => visible.has(id));
+    }
+
+    function deleteEndpointForTab() {
+      if (state.tab === "comments") return "/admin/comments/delete";
+      if (state.tab === "contact") return "/admin/contact-messages/delete";
+      if (state.tab === "consent") return "/admin/consent-logs/delete";
+      return "/admin/ai-events/delete";
+    }
+
+    function deleteLabelForTab(count = 1) {
+      const plural = count > 1;
+      const labels = {
+        comments: plural ? "ces commentaires et leurs réponses" : "ce commentaire et ses réponses",
+        contact: plural ? "ces messages" : "ce message",
+        consent: plural ? "ces consentements" : "ce consentement",
+        ai: plural ? "ces logs IA" : "ce log IA",
+      };
+      return labels[state.tab];
+    }
+
+    function updateSelectionControls() {
+      const selectedCount = state.selectedIds.size;
+      const visibleIds = visibleRowIds();
+      const visibleSelectedCount = selectedVisibleIds().length;
+      const selectAll = $("#selectVisibleRows");
+      if (selectAll) {
+        selectAll.checked = visibleIds.length > 0 && visibleSelectedCount === visibleIds.length;
+        selectAll.indeterminate = visibleSelectedCount > 0 && visibleSelectedCount < visibleIds.length;
+        selectAll.disabled = visibleIds.length === 0;
+      }
+      const bulkDelete = $("#bulkDeleteBtn");
+      if (bulkDelete) bulkDelete.disabled = selectedCount === 0;
+      const selectionState = $("#selectionState");
+      if (selectionState) selectionState.textContent = `${selectedCount} sélection${selectedCount > 1 ? "s" : ""}`;
+    }
+
+    function clearSelection() {
+      state.selectedIds.clear();
+      updateSelectionControls();
+    }
+
     function renderTable() {
       const config = TABLES[state.tab];
-      $("#tableHead").innerHTML = `<tr>${config.columns.map((column) => `<th>${escapeHtml(column)}</th>`).join("")}</tr>`;
+      const visibleIds = visibleRowIds();
+      const allVisibleSelected = visibleIds.length > 0 && visibleIds.every((id) => state.selectedIds.has(id));
+      $("#tableHead").innerHTML = `
+        <tr>
+          <th class="select-cell">
+            <input id="selectVisibleRows" type="checkbox" aria-label="Sélectionner les lignes affichées" ${allVisibleSelected ? "checked" : ""}>
+          </th>
+          ${config.columns.map((column) => `<th>${escapeHtml(column)}</th>`).join("")}
+        </tr>
+      `;
       $("#tableBody").innerHTML = state.rows.map((row) => `
         <tr>
+          <td class="select-cell">
+            <input class="row-select" type="checkbox" data-id="${row.id}" aria-label="Sélectionner la ligne ${row.id}" ${state.selectedIds.has(rowId(row)) ? "checked" : ""}>
+          </td>
           ${config.columns.map((column) => `<td class="${column === "id" ? "mono" : ""}">${column === "actions" ? actionCell(row) : rowValue(row, column)}</td>`).join("")}
         </tr>
-      `).join("") || `<tr><td colspan="${config.columns.length}">Aucune donnée.</td></tr>`;
+      `).join("") || `<tr><td colspan="${config.columns.length + 1}">Aucune donnée.</td></tr>`;
       $("#pagerInfo").textContent = `${config.label} · ${state.rows.length} résultat(s) · offset ${state.offset}`;
+      updateSelectionControls();
     }
 
     function buildListPath() {
@@ -759,6 +872,7 @@
 
     async function loadRows() {
       setNotice("#appNotice", "", "");
+      clearSelection();
       const payload = await apiFetch(buildListPath());
       state.rows = payload.items || [];
       renderTable();
@@ -779,26 +893,27 @@
     }
 
     async function deleteRow(id) {
-      const labels = {
-        comments: "ce commentaire et ses réponses",
-        contact: "ce message",
-        consent: "ce consentement",
-        ai: "ce log IA",
-      };
-      if (!confirm(`Supprimer ${labels[state.tab]} ?`)) return;
-      const endpoint = state.tab === "comments"
-        ? "/admin/comments/delete"
-        : state.tab === "contact"
-          ? "/admin/contact-messages/delete"
-          : state.tab === "consent"
-            ? "/admin/consent-logs/delete"
-            : "/admin/ai-events/delete";
-      await apiFetch(endpoint, {
+      if (!confirm(`Supprimer ${deleteLabelForTab()} ?`)) return;
+      await apiFetch(deleteEndpointForTab(), {
         method: "POST",
         body: JSON.stringify({ id: Number(id) }),
       });
-      setNotice("#appNotice", "Suppression effectuée.", "success");
       await refreshAll();
+      setNotice("#appNotice", "Suppression effectuée.", "success");
+    }
+
+    async function bulkDeleteSelectedRows() {
+      const ids = Array.from(state.selectedIds)
+        .map((id) => Number(id))
+        .filter((id) => Number.isInteger(id) && id > 0);
+      if (!ids.length) return;
+      if (!confirm(`Supprimer ${deleteLabelForTab(ids.length)} (${ids.length} ligne${ids.length > 1 ? "s" : ""}) ?`)) return;
+      await apiFetch(deleteEndpointForTab(), {
+        method: "POST",
+        body: JSON.stringify({ ids }),
+      });
+      await refreshAll();
+      setNotice("#appNotice", `${ids.length} suppression${ids.length > 1 ? "s" : ""} effectuée${ids.length > 1 ? "s" : ""}.`, "success");
     }
 
     async function exportJson() {
@@ -893,6 +1008,24 @@
       }
     });
 
+    $("#tableHead").addEventListener("change", (event) => {
+      const checkbox = event.target.closest("#selectVisibleRows");
+      if (!checkbox) return;
+      for (const id of visibleRowIds()) {
+        if (checkbox.checked) state.selectedIds.add(id);
+        else state.selectedIds.delete(id);
+      }
+      renderTable();
+    });
+
+    $("#tableBody").addEventListener("change", (event) => {
+      const checkbox = event.target.closest(".row-select");
+      if (!checkbox) return;
+      if (checkbox.checked) state.selectedIds.add(String(checkbox.dataset.id));
+      else state.selectedIds.delete(String(checkbox.dataset.id));
+      updateSelectionControls();
+    });
+
     $("#prevBtn").addEventListener("click", async () => {
       state.offset = Math.max(state.offset - state.limit, 0);
       try {
@@ -929,6 +1062,14 @@
     $("#exportBtn").addEventListener("click", async () => {
       try {
         await exportJson();
+      } catch (error) {
+        setNotice("#appNotice", error.message, "error");
+      }
+    });
+
+    $("#bulkDeleteBtn").addEventListener("click", async () => {
+      try {
+        await bulkDeleteSelectedRows();
       } catch (error) {
         setNotice("#appNotice", error.message, "error");
       }
