@@ -3,3 +3,7 @@ main = "worker-openrouter.js"
 compatibility_date = "2026-06-18"
 workers_dev = true
 keep_vars = true
+
+# Health dashboard auth:
+# Either configure ADMIN_TOKEN on this worker too, or prefer a dedicated shared token:
+# wrangler secret put HEALTH_CHECK_TOKEN -c cloudflare/wrangler.ai.toml

@@ -8,8 +8,15 @@ binding = "DB"
 database_name = "digitalblueskye"
 database_id = "eeb9d1b0-26ed-48a1-beb3-b0a944765174"
 
+[[services]]
+binding = "AI_WORKER"
+service = "digitalblueskye-ai"
+
 [vars]
 ALLOWED_ORIGIN = "https://digitalblueskye.netlify.app/"
 COMMENTS_REQUIRE_APPROVAL = "false"
 # Configure ADMIN_TOKEN as a Wrangler secret:
 # wrangler secret put ADMIN_TOKEN -c cloudflare/wrangler.api.toml
+# Optional but recommended for the Santé dashboard to query digitalblueskye-ai:
+# wrangler secret put AI_HEALTH_TOKEN -c cloudflare/wrangler.api.toml
+# Set the same value as HEALTH_CHECK_TOKEN on cloudflare/wrangler.ai.toml.

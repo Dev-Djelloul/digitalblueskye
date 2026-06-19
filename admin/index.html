@@ -6,20 +6,28 @@
   <meta name="robots" content="noindex, nofollow">
   <title>Admin DigitalBlueSkye</title>
   <style>
+    @import url("https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@6..144,1..1000&display=swap");
+
     :root {
-      color-scheme: light;
-      --bg: #f6f8fb;
-      --surface: #ffffff;
-      --surface-2: #eef3f8;
-      --text: #172033;
-      --muted: #5d6b82;
-      --border: #d7e0ea;
-      --brand: #1659d8;
-      --brand-dark: #0d3f9f;
-      --danger: #b42318;
-      --success: #087443;
-      --warning: #a15c07;
-      --shadow: 0 18px 45px rgba(23, 32, 51, 0.08);
+      color-scheme: dark;
+      --bg: #0b1020;
+      --bg-radial: radial-gradient(circle at 18% 0%, rgba(93, 93, 255, 0.22), transparent 32%),
+        radial-gradient(circle at 82% 10%, rgba(200, 34, 255, 0.16), transparent 30%),
+        linear-gradient(145deg, #0b1020 0%, #15172a 44%, #11101d 100%);
+      --surface: rgba(34, 36, 57, 0.82);
+      --surface-2: rgba(47, 50, 78, 0.92);
+      --surface-3: rgba(255, 255, 255, 0.06);
+      --text: #f4f6ff;
+      --muted: #b8c2dc;
+      --border: rgba(143, 151, 255, 0.24);
+      --border-strong: rgba(143, 151, 255, 0.42);
+      --brand: #7c83ff;
+      --brand-dark: #b16cff;
+      --danger: #ff7a8a;
+      --success: #54d6a1;
+      --warning: #ffd166;
+      --shadow: 0 22px 60px rgba(0, 0, 0, 0.28);
+      --focus: 0 0 0 3px rgba(124, 131, 255, 0.36);
     }
 
     * {
@@ -29,11 +37,12 @@
     body {
       margin: 0;
       min-height: 100vh;
-      background: var(--bg);
+      background: var(--bg-radial);
       color: var(--text);
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: "Google Sans Flex", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       font-size: 15px;
       line-height: 1.5;
+      overflow-x: hidden;
     }
 
     button,
@@ -44,52 +53,64 @@
     }
 
     button {
-      min-height: 40px;
+      min-height: 42px;
       border: 1px solid var(--border);
-      border-radius: 6px;
-      background: var(--surface);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.07);
       color: var(--text);
       cursor: pointer;
       font-weight: 700;
-      transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+      padding: 0 14px;
+      transition: transform 0.16s ease, background 0.16s ease, border-color 0.16s ease, color 0.16s ease, box-shadow 0.16s ease;
     }
 
     button:hover {
-      border-color: #aebed0;
-      background: #f9fbfd;
+      border-color: var(--border-strong);
+      background: rgba(124, 131, 255, 0.16);
+      transform: translateY(-1px);
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    a:focus-visible {
+      outline: none;
+      box-shadow: var(--focus);
     }
 
     button:disabled {
       border-color: var(--border);
-      background: #f3f6fa;
-      color: #8a96a8;
+      background: rgba(255, 255, 255, 0.04);
+      color: rgba(184, 194, 220, 0.58);
       cursor: not-allowed;
-      opacity: 0.72;
+      opacity: 0.68;
+      transform: none;
     }
 
     button:disabled:hover {
       border-color: var(--border);
-      background: #f3f6fa;
+      background: rgba(255, 255, 255, 0.04);
     }
 
     button.primary {
       border-color: var(--brand);
-      background: var(--brand);
+      background: linear-gradient(135deg, var(--brand), var(--brand-dark));
       color: #fff;
     }
 
     button.primary:hover {
-      background: var(--brand-dark);
+      background: linear-gradient(135deg, #8e94ff, #c27cff);
     }
 
     button.danger {
-      border-color: #f1c6c2;
+      border-color: rgba(255, 122, 138, 0.45);
       color: var(--danger);
+      background: rgba(255, 122, 138, 0.08);
     }
 
     button.danger:disabled {
       border-color: var(--border);
-      color: #8a96a8;
+      color: rgba(184, 194, 220, 0.58);
     }
 
     button.icon {
@@ -99,15 +120,41 @@
       place-items: center;
     }
 
+    button.delete-icon {
+      width: 42px;
+      min-width: 42px;
+      padding: 0;
+      display: inline-grid;
+      place-items: center;
+      border-color: rgba(255, 82, 105, 0.64);
+      background: rgba(255, 82, 105, 0.14);
+    }
+
+    button.delete-icon:hover {
+      border-color: rgba(255, 82, 105, 0.9);
+      background: rgba(255, 82, 105, 0.24);
+      box-shadow: 0 0 0 1px rgba(255, 82, 105, 0.16), 0 12px 28px rgba(255, 82, 105, 0.16);
+    }
+
+    button.delete-icon img {
+      width: 24px;
+      height: 24px;
+      display: block;
+    }
+
     input,
     select {
       min-height: 40px;
       width: 100%;
       border: 1px solid var(--border);
-      border-radius: 6px;
-      background: var(--surface);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.08);
       color: var(--text);
       padding: 8px 10px;
+    }
+
+    input::placeholder {
+      color: rgba(184, 194, 220, 0.7);
     }
 
     label {
@@ -123,6 +170,7 @@
       width: min(1440px, 100%);
       margin: 0 auto;
       padding: 24px 24px 24px 88px;
+      overflow-x: hidden;
     }
 
     .back-link {
@@ -138,13 +186,14 @@
       border-radius: 50%;
       background: var(--surface);
       color: var(--text);
-      box-shadow: 0 12px 30px rgba(23, 32, 51, 0.1);
+      box-shadow: var(--shadow);
       text-decoration: none;
+      backdrop-filter: blur(18px);
     }
 
     .back-link:hover {
-      border-color: #aebed0;
-      background: #f9fbfd;
+      border-color: var(--border-strong);
+      background: rgba(124, 131, 255, 0.16);
     }
 
     .back-link svg {
@@ -184,9 +233,10 @@
       margin: 9vh auto 0;
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: 18px;
       box-shadow: var(--shadow);
       padding: 24px;
+      backdrop-filter: blur(18px);
     }
 
     .login h1 {
@@ -223,6 +273,7 @@
       border: 1px solid var(--border);
       background: var(--surface);
       font-weight: 700;
+      overflow-wrap: anywhere;
     }
 
     .notice.show {
@@ -230,20 +281,20 @@
     }
 
     .notice.error {
-      border-color: #f1c6c2;
+      border-color: rgba(255, 122, 138, 0.38);
       color: var(--danger);
-      background: #fff4f2;
+      background: rgba(255, 122, 138, 0.1);
     }
 
     .notice.success {
-      border-color: #bfe6d4;
+      border-color: rgba(84, 214, 161, 0.38);
       color: var(--success);
-      background: #f0fbf6;
+      background: rgba(84, 214, 161, 0.1);
     }
 
     .summary {
       display: grid;
-      grid-template-columns: repeat(7, minmax(120px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
       gap: 12px;
       margin-bottom: 18px;
     }
@@ -251,8 +302,32 @@
     .metric {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: 16px;
       padding: 14px;
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.16);
+      transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+      animation: cardIn 0.28s ease both;
+    }
+
+    .metric[data-target-tab] {
+      cursor: pointer;
+    }
+
+    .metric:hover {
+      transform: translateY(-2px);
+      border-color: var(--border-strong);
+      background: rgba(39, 42, 67, 0.86);
+      box-shadow: 0 18px 42px rgba(0, 0, 0, 0.22);
+    }
+
+    .metric:focus-visible {
+      outline: none;
+      box-shadow: var(--focus), 0 18px 42px rgba(0, 0, 0, 0.22);
+    }
+
+    .metric.active {
+      border-color: var(--brand);
+      background: linear-gradient(135deg, rgba(124, 131, 255, 0.2), rgba(177, 108, 255, 0.12));
     }
 
     .metric span {
@@ -270,6 +345,23 @@
       line-height: 1;
     }
 
+    .metric small,
+    .metric em {
+      display: block;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-style: normal;
+      font-weight: 750;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    .metric em {
+      margin-top: 6px;
+      color: #dfe4ff;
+    }
+
     .tabs {
       display: flex;
       gap: 8px;
@@ -279,19 +371,23 @@
 
     .tab {
       padding: 0 14px;
+      border-radius: 999px;
     }
 
     .tab.active {
       border-color: var(--brand);
-      background: #edf4ff;
-      color: var(--brand-dark);
+      background: linear-gradient(135deg, rgba(124, 131, 255, 0.24), rgba(177, 108, 255, 0.18));
+      color: #fff;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
     }
 
     .panel {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: 18px;
       overflow: hidden;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
     }
 
     .panel-head {
@@ -301,7 +397,7 @@
       gap: 12px;
       padding: 14px;
       border-bottom: 1px solid var(--border);
-      background: #fbfcfe;
+      background: rgba(255, 255, 255, 0.05);
     }
 
     .filters {
@@ -311,13 +407,28 @@
 
     .table-wrap {
       width: 100%;
-      overflow: auto;
+      max-width: 100%;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-inline: contain;
+      scrollbar-color: rgba(124, 131, 255, 0.8) rgba(255, 255, 255, 0.08);
+      scrollbar-width: thin;
+    }
+
+    .health-table-wrapper {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-color: rgba(124, 131, 255, 0.8) rgba(255, 255, 255, 0.08);
+      scrollbar-width: thin;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 980px;
+      min-width: 720px;
     }
 
     th,
@@ -326,6 +437,8 @@
       border-bottom: 1px solid var(--border);
       text-align: left;
       vertical-align: top;
+      word-break: break-word;
+      overflow-wrap: anywhere;
     }
 
     th {
@@ -333,19 +446,28 @@
       top: 0;
       z-index: 1;
       background: var(--surface-2);
-      color: #36445a;
+      color: #dfe4ff;
       font-size: 12px;
       text-transform: uppercase;
       white-space: nowrap;
     }
 
     td {
-      color: #253149;
+      color: #eef2ff;
+    }
+
+    tbody tr {
+      transition: background 0.16s ease;
+    }
+
+    tbody tr:hover {
+      background: rgba(124, 131, 255, 0.08);
     }
 
     .cell-text {
       max-width: 360px;
       white-space: pre-wrap;
+      word-break: break-word;
       overflow-wrap: anywhere;
     }
 
@@ -357,6 +479,8 @@
     .badge {
       display: inline-flex;
       align-items: center;
+      gap: 6px;
+      max-width: 100%;
       min-height: 26px;
       padding: 3px 8px;
       border-radius: 999px;
@@ -364,21 +488,748 @@
       color: #334155;
       font-size: 12px;
       font-weight: 800;
+      white-space: nowrap;
+      overflow-wrap: anywhere;
+      transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      flex: 0 0 8px;
+      border-radius: 999px;
+      background: currentColor;
+      box-shadow: 0 0 0 4px color-mix(in srgb, currentColor 18%, transparent);
+    }
+
+    .badge:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.16);
     }
 
     .badge.approved {
-      background: #eaf8f0;
-      color: var(--success);
+      background: rgba(84, 214, 161, 0.14);
+      color: #8dffc9;
     }
 
     .badge.pending {
-      background: #fff5df;
-      color: var(--warning);
+      background: rgba(255, 209, 102, 0.14);
+      color: #ffe5a3;
     }
 
     .badge.hidden {
-      background: #fff0f0;
-      color: var(--danger);
+      background: rgba(255, 122, 138, 0.14);
+      color: #ffb6bf;
+    }
+
+    .badge.operational,
+    .badge.supported {
+      background: rgba(84, 214, 161, 0.14);
+      color: #8dffc9;
+    }
+
+    .badge.partial,
+    .badge.unconfigured,
+    .badge.development {
+      background: rgba(255, 209, 102, 0.14);
+      color: #ffe5a3;
+    }
+
+    .badge.unavailable,
+    .badge.unsupported {
+      background: rgba(255, 122, 138, 0.14);
+      color: #ffb6bf;
+    }
+
+    .health {
+      display: grid;
+      gap: 14px;
+      padding: 14px;
+      min-width: 0;
+    }
+
+    .health-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .health-card {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: rgba(34, 36, 57, 0.72);
+      padding: 14px;
+      min-width: 0;
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.16);
+      transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+      animation: cardIn 0.3s ease both;
+    }
+
+    .health-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--border-strong);
+      background: rgba(39, 42, 67, 0.82);
+      box-shadow: 0 18px 42px rgba(0, 0, 0, 0.22);
+    }
+
+    .health-card h2 {
+      margin: 0 0 10px;
+      font-size: 16px;
+      letter-spacing: 0;
+    }
+
+    .health-accordion {
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .health-accordion summary {
+      min-height: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 800;
+      list-style: none;
+    }
+
+    .health-accordion summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .health-accordion summary::after {
+      content: "+";
+      width: 28px;
+      height: 28px;
+      display: inline-grid;
+      place-items: center;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--muted);
+      transition: transform 0.18s ease, color 0.18s ease;
+    }
+
+    .health-accordion[open] summary::after {
+      content: "−";
+      transform: rotate(180deg);
+      color: var(--text);
+    }
+
+    .health-accordion-body {
+      display: grid;
+      gap: 12px;
+      padding: 0 14px 14px;
+    }
+
+    .health-service-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+      gap: 12px;
+    }
+
+    .health-service-card,
+    .roadmap-card {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.06);
+      padding: 12px;
+      min-width: 0;
+      transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+    }
+
+    .health-service-card:hover,
+    .roadmap-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--border-strong);
+      background: rgba(124, 131, 255, 0.1);
+    }
+
+    .health-service-card header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .health-service-card header .badge {
+      flex: 0 1 auto;
+      white-space: normal;
+      line-height: 1.2;
+    }
+
+    .health-service-card h3,
+    .roadmap-card h3 {
+      flex: 1 1 130px;
+      margin: 0;
+      font-size: 15px;
+      letter-spacing: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .health-service-meta {
+      display: grid;
+      gap: 6px;
+      margin: 10px 0;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .health-service-detail,
+    .health-service-action {
+      margin: 8px 0 0;
+      color: var(--text);
+      overflow-wrap: anywhere;
+    }
+
+    .health-radar-layout {
+      display: grid;
+      grid-template-columns: minmax(220px, 0.9fr) minmax(0, 1.1fr);
+      gap: 16px;
+      align-items: center;
+    }
+
+    .health-radar {
+      width: 100%;
+      max-width: 360px;
+      justify-self: center;
+    }
+
+    .health-radar polygon,
+    .health-radar circle {
+      transition: opacity 0.18s ease, transform 0.18s ease;
+      transform-origin: center;
+    }
+
+    .health-radar-point:hover {
+      transform: scale(1.35);
+      opacity: 1;
+    }
+
+    .health-radar-list {
+      display: grid;
+      gap: 8px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .health-radar-list li {
+      display: grid;
+      grid-template-columns: minmax(100px, 1fr) minmax(64px, auto);
+      gap: 8px;
+      align-items: center;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .health-radar-list strong {
+      color: var(--text);
+      text-align: right;
+    }
+
+    .roadmap-board {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .roadmap-column {
+      display: grid;
+      align-content: start;
+      gap: 10px;
+      min-width: 0;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 12px;
+    }
+
+    .roadmap-column h3 {
+      margin: 0;
+      font-size: 14px;
+      text-transform: uppercase;
+      color: var(--muted);
+      letter-spacing: 0.02em;
+    }
+
+    .roadmap-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .roadmap-empty {
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .health-dashboard,
+    .health-dashboard * {
+      min-width: 0;
+    }
+
+    .health-dashboard td,
+    .health-dashboard th {
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      vertical-align: top;
+    }
+
+    .health-score {
+      display: flex;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 0 0 8px;
+    }
+
+    .health-score strong {
+      font-size: 38px;
+      line-height: 1;
+    }
+
+    .health-score span,
+    .health-card p {
+      color: var(--muted);
+    }
+
+    .health-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .health-list li {
+      min-height: 30px;
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 4px 10px;
+      background: rgba(255, 255, 255, 0.06);
+      font-weight: 700;
+      color: #eef2ff;
+      overflow-wrap: anywhere;
+    }
+
+    .health-meta {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .health-kv,
+    .health-metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+    }
+
+    .health-kv div,
+    .health-metric {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.06);
+      padding: 10px;
+      min-width: 0;
+    }
+
+    .health-kv span,
+    .health-metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .health-kv strong,
+    .health-metric strong {
+      display: block;
+      margin-top: 4px;
+      overflow-wrap: anywhere;
+      font-size: 18px;
+      line-height: 1.2;
+    }
+
+    .health-global-card {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+      gap: 16px;
+      align-items: stretch;
+    }
+
+    .score-critical,
+    tr.score-critical {
+      border-color: rgba(255, 122, 138, 0.44);
+    }
+
+    .score-degraded,
+    tr.score-degraded {
+      border-color: rgba(255, 209, 102, 0.42);
+    }
+
+    .score-good,
+    tr.score-good {
+      border-color: rgba(84, 214, 161, 0.34);
+    }
+
+    .score-excellent,
+    tr.score-excellent {
+      border-color: rgba(124, 131, 255, 0.48);
+    }
+
+    .health-global-status {
+      display: grid;
+      align-content: center;
+      gap: 10px;
+    }
+
+    .health-global-status h2 {
+      margin-bottom: 0;
+    }
+
+    .health-global-status p {
+      margin: 0;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .health-status-line {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      font-size: 22px;
+      font-weight: 900;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 10px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.07);
+    }
+
+    .progress-fill {
+      width: var(--progress, 0%);
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--score-color, var(--brand)), var(--brand-dark));
+      animation: progressIn 0.7s ease both;
+      transform-origin: left;
+    }
+
+    .availability-donut {
+      display: grid;
+      grid-template-columns: 112px minmax(0, 1fr);
+      gap: 14px;
+      align-items: center;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 12px;
+    }
+
+    .availability-donut svg {
+      width: 112px;
+      height: 112px;
+      transform: rotate(-90deg);
+    }
+
+    .availability-donut circle {
+      fill: none;
+      stroke-width: 10;
+      stroke-linecap: round;
+    }
+
+    .availability-donut .donut-track {
+      stroke: rgba(255, 255, 255, 0.1);
+    }
+
+    .availability-donut .donut-value {
+      stroke: var(--score-color, var(--brand));
+      stroke-dasharray: var(--donut-value, 0) 100;
+      animation: donutIn 0.8s ease both;
+    }
+
+    .availability-donut strong {
+      display: block;
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    .availability-donut span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .health-ai-grid,
+    .product-health-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 10px;
+    }
+
+    .product-health-grid + h3,
+    .health-card > h3 {
+      margin: 14px 0 8px;
+      color: var(--muted);
+      font-size: 13px;
+      text-transform: uppercase;
+    }
+
+    .health-section-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .health-section-toolbar input,
+    .health-section-toolbar select {
+      width: auto;
+      min-width: 180px;
+      flex: 1 1 180px;
+    }
+
+    .sparkline {
+      width: 100%;
+      height: 28px;
+      color: var(--brand);
+    }
+
+    .sparkline polyline {
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .service-heading {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      min-width: 0;
+    }
+
+    .service-icon {
+      width: 18px;
+      height: 18px;
+      flex: 0 0 18px;
+      color: var(--muted);
+    }
+
+    .health-ai-tile,
+    .product-health-card {
+      display: grid;
+      gap: 8px;
+      min-width: 0;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.06);
+      padding: 12px;
+      transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+    }
+
+    .health-ai-tile:hover,
+    .product-health-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--border-strong);
+      background: rgba(124, 131, 255, 0.1);
+    }
+
+    .health-ai-tile span,
+    .product-health-card span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .health-ai-tile strong,
+    .product-health-card strong {
+      overflow-wrap: anywhere;
+      font-size: 18px;
+      line-height: 1.2;
+    }
+
+    .health-ai-tile .badge,
+    .product-health-card .badge {
+      justify-self: start;
+    }
+
+    .health-timeline {
+      position: relative;
+      display: grid;
+      gap: 0;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .health-timeline li {
+      position: relative;
+      display: grid;
+      grid-template-columns: 64px minmax(0, 1fr);
+      gap: 14px;
+      padding: 0 0 18px 0;
+    }
+
+    .health-timeline li::before {
+      content: "";
+      position: absolute;
+      left: 76px;
+      top: 7px;
+      bottom: -1px;
+      width: 1px;
+      background: var(--border);
+    }
+
+    .health-timeline li:last-child::before {
+      display: none;
+    }
+
+    .health-timeline time {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 850;
+      line-height: 1.4;
+    }
+
+    .health-timeline-content {
+      position: relative;
+      display: grid;
+      gap: 4px;
+      min-width: 0;
+      padding-left: 18px;
+    }
+
+    .health-timeline-content::before {
+      content: "";
+      position: absolute;
+      left: -2px;
+      top: 6px;
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: var(--brand);
+      box-shadow: 0 0 0 5px rgba(124, 131, 255, 0.16);
+    }
+
+    .health-empty-state {
+      display: grid;
+      place-items: center;
+      min-height: 120px;
+      border: 1px dashed var(--border);
+      border-radius: 14px;
+      color: var(--muted);
+      font-weight: 800;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .health-empty-state div {
+      max-width: 420px;
+    }
+
+    .health-empty-state ul {
+      margin: 10px 0 0;
+      padding-left: 18px;
+      text-align: left;
+    }
+
+    @keyframes cardIn {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes progressIn {
+      from {
+        transform: scaleX(0);
+      }
+
+      to {
+        transform: scaleX(1);
+      }
+    }
+
+    @keyframes donutIn {
+      from {
+        stroke-dasharray: 0 100;
+      }
+    }
+
+    pre,
+    code,
+    .health-diagnostic-value {
+      max-width: 100%;
+      max-height: 220px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(0, 0, 0, 0.22);
+      color: #eef2ff;
+      padding: 10px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .health-score-table table,
+    .health-compact-table table {
+      min-width: 720px;
+    }
+
+    .health-activity {
+      display: grid;
+      gap: 8px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .health-activity li {
+      display: grid;
+      grid-template-columns: minmax(145px, 0.3fr) minmax(0, 1fr);
+      gap: 10px;
+      border-bottom: 1px solid var(--border);
+      padding: 8px 0;
+    }
+
+    .health-activity time {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
     }
 
     .actions {
@@ -425,7 +1276,13 @@
 
     @media (max-width: 1100px) {
       .summary {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .health-grid,
+      .health-kv,
+      .health-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
       .filters,
@@ -453,8 +1310,34 @@
       }
 
       .summary,
+      .health-grid,
+      .health-kv,
+      .health-metrics,
+      .health-radar-layout,
+      .health-global-card,
+      .roadmap-board,
       .filters,
       .login-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .health-timeline li {
+        grid-template-columns: 52px minmax(0, 1fr);
+      }
+
+      .health-timeline li::before {
+        left: 62px;
+      }
+
+      .availability-donut {
+        grid-template-columns: 1fr;
+      }
+
+      .availability-donut svg {
+        justify-self: center;
+      }
+
+      .health-activity li {
         grid-template-columns: 1fr;
       }
 
@@ -473,6 +1356,125 @@
       .table-wrap .actions,
       .table-wrap .actions button {
         width: auto;
+      }
+
+      .health-dashboard .table-wrap,
+      .health-dashboard .health-table-wrapper {
+        overflow: visible;
+      }
+
+      .health-dashboard table,
+      .health-dashboard thead,
+      .health-dashboard tbody,
+      .health-dashboard tr,
+      .health-dashboard th,
+      .health-dashboard td {
+        display: block;
+        min-width: 0;
+        width: 100%;
+      }
+
+      .health-dashboard thead {
+        display: none;
+      }
+
+      .health-dashboard tr {
+        margin-bottom: 12px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.05);
+        overflow: hidden;
+      }
+
+      .health-dashboard td {
+        display: grid;
+        grid-template-columns: minmax(110px, 0.42fr) minmax(0, 1fr);
+        gap: 10px;
+        border-bottom: 1px solid var(--border);
+        white-space: normal;
+      }
+
+      .health-dashboard td:last-child {
+        border-bottom: 0;
+      }
+
+      .health-dashboard td::before {
+        content: attr(data-label);
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+      }
+    }
+
+    @media print {
+      :root {
+        color-scheme: light;
+        --bg: #ffffff;
+        --surface: #ffffff;
+        --surface-2: #eef3f8;
+        --text: #172033;
+        --muted: #4b5568;
+        --border: #cbd5e1;
+        --shadow: none;
+      }
+
+      body {
+        background: #ffffff !important;
+        color: var(--text);
+        font-size: 11px;
+        overflow: visible;
+      }
+
+      .shell {
+        width: 100%;
+        padding: 0;
+      }
+
+      .back-link,
+      .toolbar,
+      .tabs,
+      .panel-head .actions,
+      .pager,
+      button {
+        display: none !important;
+      }
+
+      .panel,
+      .health-card,
+      .metric,
+      .login {
+        box-shadow: none;
+        break-inside: avoid;
+        background: #ffffff;
+      }
+
+      .table-wrap,
+      .health-table-wrapper {
+        overflow: visible !important;
+      }
+
+      table,
+      .health-score-table table,
+      .health-compact-table table {
+        min-width: 0 !important;
+        width: 100% !important;
+        table-layout: fixed;
+      }
+
+      th,
+      td {
+        padding: 6px;
+        color: var(--text);
+        white-space: normal;
+        word-break: break-word;
+        overflow-wrap: anywhere;
+      }
+
+      .health-diagnostic-value {
+        max-height: none;
+        color: var(--text);
+        background: #f8fafc;
       }
     }
   </style>
@@ -522,13 +1524,14 @@
       <section id="summary" class="summary" aria-label="Compteurs"></section>
 
       <nav class="tabs" aria-label="Sections admin">
-        <button class="tab active" type="button" data-tab="comments">Commentaires</button>
-        <button class="tab" type="button" data-tab="contact">Messages contact</button>
+        <button class="tab active" type="button" data-tab="health">Pilotage</button>
+        <button class="tab" type="button" data-tab="ai">Activités IA</button>
+        <button class="tab" type="button" data-tab="comments">Commentaires</button>
+        <button class="tab" type="button" data-tab="contact">Contacts</button>
         <button class="tab" type="button" data-tab="consent">Consentements</button>
-        <button class="tab" type="button" data-tab="ai">Logs IA</button>
       </nav>
 
-      <section class="panel">
+      <section id="dataPanel" class="panel">
         <div class="panel-head">
           <form id="filters" class="filters"></form>
           <div class="actions">
@@ -551,6 +1554,32 @@
           </div>
         </div>
       </section>
+
+      <section id="aiPanel" class="panel hidden" aria-label="Activités IA Digital Blue Skye">
+        <div class="panel-head">
+          <div>
+            <strong>Activités IA</strong>
+            <div id="aiMeta" class="health-meta"></div>
+          </div>
+          <div class="actions">
+            <button id="refreshAiBtn" type="button">Actualiser activités</button>
+          </div>
+        </div>
+        <div id="aiContent" class="health health-dashboard"></div>
+      </section>
+
+      <section id="healthPanel" class="panel hidden" aria-label="Pilotage Digital Blue Skye AI">
+        <div class="panel-head">
+          <div>
+            <strong>Pilotage</strong>
+            <div id="healthMeta" class="health-meta"></div>
+          </div>
+          <div class="actions">
+            <button id="refreshHealthBtn" type="button">Actualiser Pilotage</button>
+          </div>
+        </div>
+        <div id="healthContent" class="health health-dashboard"></div>
+      </section>
     </section>
   </main>
 
@@ -563,7 +1592,7 @@
         columns: ["id", "article_slug", "author_name", "author_email", "message", "status", "created_at", "ip_address", "actions"],
       },
       contact: {
-        label: "Messages contact",
+        label: "Contacts",
         endpoint: "/admin/contact-messages",
         exportTable: "contact_messages",
         columns: ["id", "name", "email", "message", "contact_consent", "submitted_at", "ip_address", "actions"],
@@ -575,7 +1604,7 @@
         columns: ["id", "consent_id", "consent_given", "analytics", "marketing", "language", "created_at", "ip_address", "page_url", "actions"],
       },
       ai: {
-        label: "Logs IA",
+        label: "Activités IA",
         endpoint: "/admin/ai-events",
         exportTable: "ai_assistant_events",
         columns: ["id", "session_id", "event_type", "event_value", "language", "created_at", "ip_address", "actions"],
@@ -585,12 +1614,29 @@
     const state = {
       apiBase: localStorage.getItem("dbs_admin_api_base") || window.DBS_API_BASE || location.origin,
       token: sessionStorage.getItem("dbs_admin_token") || "",
-      tab: "comments",
+      tab: "health",
       limit: 50,
       offset: 0,
       showSensitive: false,
       rows: [],
       selectedIds: new Set(),
+      summary: null,
+      health: null,
+      aiPilotRows: [],
+      healthServiceSearch: "",
+      healthServiceStatus: "all",
+      healthServicePriority: "all",
+      healthServiceSort: "priority",
+      healthSearchTimer: null,
+      documentFormat: "all",
+      aiFilters: {
+        date: "",
+        session: "",
+        category: "",
+        type: "",
+        model: "",
+        status: "",
+      },
     };
 
     const $ = (selector) => document.querySelector(selector);
@@ -657,27 +1703,156 @@
       return `<span class="badge ${safe}">${safe}</span>`;
     }
 
+    function getScoreStatus(score) {
+      const value = Math.max(0, Math.min(10, Number(score) || 0));
+      if (value <= 4) return { key: "critical", label: "Critique", color: "var(--danger)", className: "score-critical" };
+      if (value <= 7) return { key: "degraded", label: "Dégradé", color: "var(--warning)", className: "score-degraded" };
+      if (value <= 8.5) return { key: "good", label: "Bon", color: "var(--success)", className: "score-good" };
+      return { key: "excellent", label: "Excellent", color: "var(--brand)", className: "score-excellent" };
+    }
+
+    function scoreFromStatus(status) {
+      const normalized = normalizedHealthStatus(status);
+      if (normalized === "operational") return 8;
+      if (normalized === "partial") return 5.5;
+      return 2;
+    }
+
+    function statusDot() {
+      return `<span class="status-dot" aria-hidden="true"></span>`;
+    }
+
+    function statusBadge(status) {
+      const labels = {
+        operational: "Opérationnel",
+        partial: "Partiel",
+        unavailable: "Non disponible",
+        unconfigured: "Non configuré",
+        development: "En développement",
+        supported: "Supporté",
+        unsupported: "Non supporté",
+      };
+      const safeStatus = escapeHtml(status || "unavailable");
+      return `<span class="badge ${safeStatus}">${statusDot()}${escapeHtml(labels[status] || labels.unavailable)}</span>`;
+    }
+
+    function verificationBadge(value) {
+      const labels = {
+        verified: "Vérifié",
+        partial: "Vérification partielle",
+        failed: "Échec du contrôle",
+      };
+      const safe = value === "verified" || value === "partial" || value === "failed" ? value : "partial";
+      return `<span class="badge ${safe === "verified" ? "operational" : (safe === "failed" ? "unavailable" : "partial")}">${statusDot()}${escapeHtml(labels[safe])}</span>`;
+    }
+
+    function formatDate(value) {
+      if (!value) return "";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return text(value);
+      return date.toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" });
+    }
+
+    function formatTime(value) {
+      if (!value) return "";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return text(value);
+      return date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+    }
+
+    function formatConfigured(value) {
+      if (value === true) return "configurée";
+      if (value === false) return "non configurée";
+      return "non vérifiable";
+    }
+
+    function iconSvg(name) {
+      const icons = {
+        robot: '<path d="M12 8V4m-4 4h8a3 3 0 0 1 3 3v5a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4v-5a3 3 0 0 1 3-3Zm-3 5H3m18 0h-2M9.5 14h.01m4.99 0h.01"/>',
+        search: '<circle cx="11" cy="11" r="6"/><path d="m16 16 4 4"/>',
+        globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
+        file: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5M8 13h8M8 17h5"/>',
+        brain: '<path d="M9 4a3 3 0 0 0-3 3v1a3 3 0 0 0 0 6v1a3 3 0 0 0 5 2.2M15 4a3 3 0 0 1 3 3v1a3 3 0 0 1 0 6v1a3 3 0 0 1-5 2.2M12 6v12"/>',
+        clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+        workflow: '<path d="M6 4v6a2 2 0 0 0 2 2h8"/><path d="M18 10l2 2-2 2M6 20v-6a2 2 0 0 1 2-2h1"/><circle cx="6" cy="4" r="2"/><circle cx="6" cy="20" r="2"/>',
+        shield: '<path d="M12 3 5 6v5c0 5 3.5 8 7 10 3.5-2 7-5 7-10V6Z"/>',
+        database: '<ellipse cx="12" cy="5" rx="7" ry="3"/><path d="M5 5v7c0 1.7 3.1 3 7 3s7-1.3 7-3V5"/><path d="M5 12v5c0 1.7 3.1 3 7 3s7-1.3 7-3v-5"/>',
+        download: '<path d="M12 3v12m0 0 4-4m-4 4-4-4"/><path d="M5 21h14"/>',
+      };
+      return `<svg class="service-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${icons[name] || icons.file}</svg>`;
+    }
+
+    function iconForService(name) {
+      const value = String(name || "").toLowerCase();
+      if (value.includes("openrouter") || value.includes("ia")) return "robot";
+      if (value.includes("tavily")) return "search";
+      if (value.includes("recherche") || value.includes("web")) return "globe";
+      if (value.includes("document") || value.includes("upload") || value.includes("pdf") || value.includes("docx") || value.includes("xlsx")) return "file";
+      if (value.includes("mémoire")) return "brain";
+      if (value.includes("historique")) return "clock";
+      if (value.includes("agent")) return "workflow";
+      if (value.includes("sécurité")) return "shield";
+      if (value.includes("rag")) return "database";
+      if (value.includes("export")) return "download";
+      return "file";
+    }
+
+    function summaryContext(label, value) {
+      const count = Number(value || 0);
+      const contexts = {
+        "Conversations": count > 0 ? `${count} conversation${count > 1 ? "s" : ""} suivie${count > 1 ? "s" : ""}` : "Aucune conversation enregistrée",
+        "Commentaires": count > 0 ? `${count} commentaire${count > 1 ? "s" : ""} · modération suivie` : "Aucun commentaire enregistré",
+        "Contacts": count > 0 ? `${count} message${count > 1 ? "s" : ""} reçu${count > 1 ? "s" : ""}` : "Aucun nouveau contact",
+        "Consentements": count > 0 ? "Dernier : aujourd'hui" : "Aucun consentement enregistré",
+        "Activités IA": count > 0 ? `${count} événement${count > 1 ? "s" : ""} enregistré${count > 1 ? "s" : ""}` : "Aucune activité IA récente",
+      };
+      return contexts[label] || "Donnée disponible";
+    }
+
+    function summaryTrend(label, value) {
+      const count = Number(value || 0);
+      if (label === "Conversations") return "+0 aujourd'hui · +0 sur 7 jours";
+      if (label === "Commentaires" && count > 0) return "Attente et approbations consolidées";
+      if (label === "Contacts") return "Nouveaux aujourd'hui : 0";
+      if (label === "Consentements" && count > 0) return "Tendance stable · 7j/30j prêt";
+      if (label === "Activités IA" && count > 0) return "Dernier événement synchronisé";
+      return "Tendance stable · 24h/7j/30j prêt";
+    }
+
+    function summaryTargetTab(label) {
+      const targets = {
+        "Conversations": "ai",
+        "Commentaires": "comments",
+        "Contacts": "contact",
+        "Consentements": "consent",
+        "Activités IA": "ai",
+      };
+      return targets[label] || "comments";
+    }
+
     function renderSummary(summary) {
+      const conversations = Number(summary.conversations_total || summary.conversation_created || 0);
       const items = [
-        ["Commentaires", summary.comments_total],
-        ["En attente", summary.comments_pending],
-        ["Approuvés", summary.comments_approved],
-        ["Masqués", summary.comments_hidden],
+        ["Conversations", conversations],
+        ["Commentaires", summary.comments_total, `${Number(summary.comments_pending || 0)} en attente · ${Number(summary.comments_approved || 0)} approuvés`],
         ["Contacts", summary.contact_messages],
         ["Consentements", summary.consent_logs],
-        ["Logs IA", summary.ai_assistant_events],
+        ["Activités IA", summary.ai_assistant_events],
       ];
-      $("#summary").innerHTML = items.map(([label, value]) => `
-        <article class="metric">
+      $("#summary").innerHTML = items.map(([label, value, detail]) => `
+        <article class="metric ${summaryTargetTab(label) === state.tab ? "active" : ""}" data-target-tab="${summaryTargetTab(label)}" tabindex="0" role="button" aria-label="Ouvrir ${escapeHtml(label)}">
           <span>${escapeHtml(label)}</span>
           <strong>${Number(value || 0)}</strong>
+          <small>${escapeHtml(detail || summaryContext(label, value))}</small>
+          <em>${escapeHtml(summaryTrend(label, value))}</em>
         </article>
       `).join("");
     }
 
     async function loadSummary() {
       const payload = await apiFetch("/admin/summary");
-      renderSummary(payload.summary || {});
+      state.summary = payload.summary || {};
+      renderSummary(state.summary);
     }
 
     function renderFilters() {
@@ -752,12 +1927,18 @@
           <div class="actions">
             <button type="button" data-action="status" data-id="${row.id}" data-status="approved">Approuver</button>
             <button type="button" data-action="status" data-id="${row.id}" data-status="hidden">Masquer</button>
-            <button class="danger" type="button" data-action="delete" data-id="${row.id}">Supprimer</button>
+            <button class="danger delete-icon" type="button" data-action="delete" data-id="${row.id}" aria-label="Supprimer" title="Supprimer">
+              <img src="/assets/images/ui/icons8-delete-admin-48.png" alt="" width="24" height="24">
+            </button>
           </div>
         `;
       }
       if (state.tab === "contact" || state.tab === "consent" || state.tab === "ai") {
-        return `<button class="danger" type="button" data-action="delete" data-id="${row.id}">Supprimer</button>`;
+        return `
+          <button class="danger delete-icon" type="button" data-action="delete" data-id="${row.id}" aria-label="Supprimer" title="Supprimer">
+            <img src="/assets/images/ui/icons8-delete-admin-48.png" alt="" width="24" height="24">
+          </button>
+        `;
       }
       return "";
     }
@@ -875,12 +2056,1163 @@
       clearSelection();
       const payload = await apiFetch(buildListPath());
       state.rows = payload.items || [];
-      renderTable();
+      if (state.tab === "ai") {
+        state.aiPilotRows = state.rows;
+        if (state.summary) {
+          state.summary.conversations_total = countAi(state.aiPilotRows, (row) => aiEventType(row).toLowerCase().includes("conversation"));
+          state.summary.ai_assistant_events = state.aiPilotRows.length || state.summary.ai_assistant_events;
+          renderSummary(state.summary);
+        }
+        renderAiDashboard(state.rows);
+      }
+      else renderTable();
     }
 
     async function refreshAll() {
       await loadSummary();
-      await loadRows();
+      if (state.tab === "health") await loadHealth();
+      else await loadRows();
+    }
+
+    function renderHealthList(items) {
+      return `<ul class="health-list">${(items || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
+    }
+
+    function renderHealthKv(items) {
+      return `<div class="health-kv">${items.map(([label, value]) => `
+        <div>
+          <span>${escapeHtml(label)}</span>
+          <strong>${escapeHtml(value == null || value === "" ? "n/a" : value)}</strong>
+        </div>
+      `).join("")}</div>`;
+    }
+
+    function renderHealthMetrics(items) {
+      return `<div class="health-metrics">${(items || []).map((item) => `
+        <article class="health-metric">
+          <span>${escapeHtml(item.label)}</span>
+          <strong>${escapeHtml(item.value == null ? "n/a" : `${item.value}${item.unit ? ` ${item.unit}` : ""}`)}</strong>
+          <small>Tendance stable</small>
+          <svg class="sparkline" viewBox="0 0 120 28" aria-hidden="true">
+            <polyline points="2,18 22,18 42,16 62,17 82,15 102,15 118,14"></polyline>
+          </svg>
+        </article>
+      `).join("")}</div>`;
+    }
+
+    function renderHealthDiagnostics(diagnostics) {
+      const api = diagnostics?.api_worker || {};
+      const ai = diagnostics?.ai_worker || {};
+      const apiVars = Array.isArray(api.detected_variable_names) ? api.detected_variable_names.join(", ") : "n/a";
+      const aiVars = Array.isArray(ai.detected_variable_names) ? ai.detected_variable_names.join(", ") : "n/a";
+      const headersSent = Array.isArray(api.ai_worker_headers_sent) ? api.ai_worker_headers_sent.join(", ") : "n/a";
+      return `
+        <details class="health-card health-accordion">
+          <summary>Diagnostic temporaire</summary>
+          <div class="health-accordion-body">
+            ${renderHealthKv([
+              ["Mode d’appel", api.ai_worker_call_mode || "n/a"],
+              ["URL configurée", api.ai_worker_health_url_configured ? "oui" : "non"],
+              ["Worker interrogé", api.ai_worker_health_url_used || api.ai_worker_health_url || "n/a"],
+              ["Statut HTTP Worker IA", api.ai_worker_http_status ?? "n/a"],
+              ["Erreur Worker IA", api.ai_worker_error || "aucune"],
+              ["URL réponse Worker IA", api.ai_worker_response_url || "n/a"],
+              ["Token Health utilisé", api.ai_worker_used_health_token ? "oui" : "non"],
+              ["Source données", api.source || "n/a"],
+            ])}
+            <p><strong>Headers envoyés :</strong></p>
+            <div class="health-diagnostic-value">${escapeHtml(headersSent)}</div>
+            <p><strong>Aperçu réponse Worker IA :</strong></p>
+            <div class="health-diagnostic-value">${escapeHtml(api.ai_worker_response_preview || "n/a")}</div>
+            <p><strong>Variables détectées côté API :</strong></p>
+            <div class="health-diagnostic-value">${escapeHtml(apiVars)}</div>
+            <p><strong>Variables détectées côté IA :</strong></p>
+            <div class="health-diagnostic-value">${escapeHtml(aiVars)}</div>
+          </div>
+        </details>
+      `;
+    }
+
+    function renderScorecard(scorecard) {
+      const domains = Array.isArray(scorecard?.domains) ? scorecard.domains : [];
+      const globalScore = Number(scorecard?.global_score ?? 0);
+      const percent = Math.round(Math.max(0, Math.min(10, globalScore)) * 10);
+      const status = getScoreStatus(globalScore);
+      const cx = 150;
+      const cy = 150;
+      const radius = 112;
+      const pointFor = (score, index, total, scale = 1) => {
+        const angle = (-Math.PI / 2) + (index * 2 * Math.PI / total);
+        const value = Math.max(0, Math.min(10, Number(score || 0))) / 10;
+        const r = radius * value * scale;
+        return {
+          x: cx + Math.cos(angle) * r,
+          y: cy + Math.sin(angle) * r,
+        };
+      };
+      const gridPolygons = [0.25, 0.5, 0.75, 1].map((scale) => domains.map((item, index) => {
+        const point = pointFor(10, index, domains.length, scale);
+        return `${point.x.toFixed(1)},${point.y.toFixed(1)}`;
+      }).join(" "));
+      const scorePoints = domains.map((item, index) => {
+        const point = pointFor(item.score, index, domains.length);
+        return `${point.x.toFixed(1)},${point.y.toFixed(1)}`;
+      }).join(" ");
+      return `
+        <article class="health-card health-score-table ${status.className}" style="--score-color: ${status.color}; --progress: ${percent}%;">
+          <h2>Score détaillé par domaine</h2>
+          <div class="health-score">
+            <strong>${escapeHtml(scorecard?.global_score ?? "n/a")}</strong><span>/ 10 · ${escapeHtml(scorecard?.trend || "stable")} · ${escapeHtml(scorecard?.delta_since_last_audit || "n/a")}</span>
+          </div>
+          <div class="health-score">
+            <strong>${percent}</strong><span>% · ${escapeHtml(status.label)}</span>
+          </div>
+          <div class="progress-bar" aria-label="Progression de maturité ${percent}%">
+            <div class="progress-fill"></div>
+          </div>
+          <div class="health-radar-layout">
+            <svg class="health-radar" viewBox="0 0 300 300" role="img" aria-label="Radar des scores de maturité">
+              ${gridPolygons.map((points) => `<polygon points="${points}" fill="none" stroke="rgba(143,151,255,0.24)" stroke-width="1"></polygon>`).join("")}
+              ${domains.map((item, index) => {
+                const outer = pointFor(10, index, domains.length);
+                return `<line x1="${cx}" y1="${cy}" x2="${outer.x.toFixed(1)}" y2="${outer.y.toFixed(1)}" stroke="rgba(143,151,255,0.18)" stroke-width="1"></line>`;
+              }).join("")}
+              <polygon points="${scorePoints}" fill="rgba(124,131,255,0.24)" stroke="${status.color}" stroke-width="2"></polygon>
+              ${domains.map((item, index) => {
+                const point = pointFor(item.score, index, domains.length);
+                const itemStatus = getScoreStatus(item.score);
+                return `<circle class="health-radar-point" cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="4.5" fill="${itemStatus.color}"><title>${escapeHtml(item.domain)} · ${escapeHtml(item.score)}/10</title></circle>`;
+              }).join("")}
+            </svg>
+            <ul class="health-radar-list">
+              ${domains.map((item) => `
+                <li><span>${escapeHtml(item.domain)} · ${escapeHtml(item.trend || scorecard?.trend || "stable")}</span><strong>${escapeHtml(item.score)}/10 · ${escapeHtml(item.delta_since_last_audit || scorecard?.delta_since_last_audit || "n/a")}</strong></li>
+              `).join("") || `<li><span>Aucun score disponible.</span><strong>n/a</strong></li>`}
+            </ul>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderServiceCards(services) {
+      const selected = services.slice(0, 5);
+      return `
+        <article class="health-card">
+          <h2>Contrôles réels des services</h2>
+          <div class="health-service-grid">
+            ${selected.map((service) => {
+              const score = scoreFromStatus(service.status);
+              const status = getScoreStatus(score);
+              const availability = Math.round(score * 10);
+              return `
+                <article class="health-service-card ${status.className}">
+                  <header>
+                    <div class="service-heading">
+                      ${iconSvg(iconForService(service.name))}
+                      <h3>${escapeHtml(service.name)}</h3>
+                    </div>
+                    ${verificationBadge(service.verification)}
+                  </header>
+                  <div class="health-service-meta">
+                    <div>Statut : ${statusBadge(service.status)}</div>
+                    <span>Disponibilité : ${availability}%</span>
+                    <span>Latence : ${service.latency_ms == null ? "n/a" : `${escapeHtml(service.latency_ms)} ms`}</span>
+                    <span>Dernier contrôle : ${escapeHtml(formatDate(service.last_checked_at) || "n/a")}</span>
+                  </div>
+                  <p class="health-service-detail">${escapeHtml(service.detail || "")}</p>
+                  <p class="health-service-action"><strong>Action :</strong> ${escapeHtml(service.priority || "Surveiller")}</p>
+                </article>
+              `;
+            }).join("") || `<p>Aucun service à contrôler.</p>`}
+          </div>
+        </article>
+      `;
+    }
+
+    function roadmapBucket(item) {
+      const value = String(item?.state || "").toLowerCase();
+      const feature = String(item?.feature || "").toLowerCase();
+      if (value.includes("cours")) return "En cours";
+      if (value.includes("bloqu")) return "En cours";
+      if (value.includes("termin")) return "Long terme";
+      if (feature.includes("agents") || item?.priority === "P3") return "Long terme";
+      return "À faire";
+    }
+
+    function renderRoadmap(priorities) {
+      const columns = ["En cours", "À faire", "Long terme"];
+      return `
+        <article class="health-card">
+          <h2>Prochaines priorités</h2>
+          <div class="roadmap-board">
+            ${columns.map((column) => {
+              const items = priorities.filter((item) => roadmapBucket(item) === column);
+              return `
+                <section class="roadmap-column" aria-label="${escapeHtml(column)}">
+                  <h3>${escapeHtml(column)}</h3>
+                  ${items.map((item) => `
+                    <article class="roadmap-card">
+                      <h3>${escapeHtml(item.feature)}</h3>
+                      <p>${escapeHtml(item.impact)}</p>
+                      <div class="roadmap-meta">
+                        <span class="badge partial">${escapeHtml(item.priority)}</span>
+                        <span class="badge">${statusDot()}Effort ${escapeHtml(item.effort)}</span>
+                        <span class="badge">${statusDot()}Risque ${escapeHtml(item.risk)}</span>
+                        <span class="badge operational">${statusDot()}Impact</span>
+                      </div>
+                    </article>
+                  `).join("") || `<p class="roadmap-empty">Aucun élément.</p>`}
+                </section>
+              `;
+            }).join("")}
+          </div>
+        </article>
+      `;
+    }
+
+    function serviceByName(services, pattern) {
+      return services.find((service) => pattern.test(String(service.name || ""))) || null;
+    }
+
+    function normalizedHealthStatus(status) {
+      if (status === "operational" || status === "supported") return "operational";
+      if (status === "unavailable" || status === "unsupported") return "unavailable";
+      return "partial";
+    }
+
+    function healthSignal(status) {
+      const normalized = normalizedHealthStatus(status);
+      if (normalized === "operational") return { label: "Normal", badge: "operational", title: "Système opérationnel" };
+      if (normalized === "unavailable") return { label: "Erreur", badge: "unavailable", title: "Système en erreur" };
+      return { label: "Dégradé", badge: "partial", title: "Système partiellement opérationnel" };
+    }
+
+    function renderGlobalHealth(health, services, maturity) {
+      const criticalServices = services.slice(0, 5);
+      const operationalCritical = criticalServices.filter((service) => normalizedHealthStatus(service.status) === "operational").length;
+      const partialCount = criticalServices.filter((service) => normalizedHealthStatus(service.status) === "partial").length;
+      const failedCount = criticalServices.filter((service) => normalizedHealthStatus(service.status) === "unavailable").length;
+      const failedCritical = criticalServices.some((service) => normalizedHealthStatus(service.status) === "unavailable");
+      const partialCritical = criticalServices.some((service) => normalizedHealthStatus(service.status) === "partial");
+      const score = Number(maturity.score ?? health?.scorecard?.global_score ?? 0);
+      const signal = healthSignal(failedCritical ? "unavailable" : (partialCritical || score < 7 ? "partial" : "operational"));
+      const availability = criticalServices.length
+        ? Math.round((operationalCritical / criticalServices.length) * 100)
+        : "n/a";
+      const availabilityScore = availability === "n/a" ? 0 : availability / 10;
+      const availabilityStatus = getScoreStatus(availabilityScore);
+      const summary = failedCount > 0
+        ? `${failedCount} service${failedCount > 1 ? "s" : ""} en erreur nécessite${failedCount > 1 ? "nt" : ""} une intervention.`
+        : (partialCount > 0
+          ? `Digital Blue Skye AI fonctionne correctement. ${partialCount} service${partialCount > 1 ? "s" : ""} nécessite${partialCount > 1 ? "nt" : ""} encore une intervention.`
+          : "Digital Blue Skye AI fonctionne correctement. Tous les services critiques sont opérationnels.");
+      return `
+        <article class="health-card health-global-card ${availabilityStatus.className}" style="--score-color: ${availabilityStatus.color}; --donut-value: ${availability === "n/a" ? 0 : availability};">
+          <div class="health-global-status">
+            <h2>État global</h2>
+            <div class="health-status-line">
+              <span class="badge ${signal.badge}">${statusDot()}${escapeHtml(signal.label)}</span>
+              <span>Digital Blue Skye AI</span>
+            </div>
+            <p>${escapeHtml(summary)}</p>
+          </div>
+          <div class="availability-donut">
+            <svg viewBox="0 0 42 42" role="img" aria-label="Disponibilité globale ${availability}${availability === "n/a" ? "" : "%"}">
+              <circle class="donut-track" cx="21" cy="21" r="15.9"></circle>
+              <circle class="donut-value" cx="21" cy="21" r="15.9"></circle>
+            </svg>
+            <div>
+              <span>Disponibilité globale</span>
+              <strong>${escapeHtml(availability)}${availability === "n/a" ? "" : "%"}</strong>
+              <p>Services critiques : ${operationalCritical}/${criticalServices.length || 0}</p>
+              <p>Score global : ${escapeHtml(maturity.score ?? health?.scorecard?.global_score ?? "n/a")}/10</p>
+              <p>Dernier contrôle : ${escapeHtml(formatDate(health?.checked_at) || "n/a")}</p>
+            </div>
+          </div>
+        </article>
+      `;
+    }
+
+    function aiIndicator(aiState) {
+      const latency = Number(aiState.average_latency_ms);
+      const errors = Number(aiState.openrouter_error_count || 0);
+      if (errors > 0) return healthSignal("unavailable");
+      if (aiState.fallback_active || (Number.isFinite(latency) && latency > 3500)) return healthSignal("partial");
+      return healthSignal("operational");
+    }
+
+    function renderAiStateCards(aiState) {
+      const latency = aiState.average_latency_ms == null ? "n/a" : `${aiState.average_latency_ms} ms`;
+      const signal = aiIndicator(aiState);
+      const errors = Number(aiState.openrouter_error_count || 0);
+      const score = errors > 0 ? 3 : (aiState.fallback_active ? 6 : 8);
+      const status = getScoreStatus(score);
+      const availability = errors > 0 ? "90%" : (aiState.fallback_active ? "96%" : "99%");
+      return `
+        <article class="health-card">
+          <h2>État de l’intelligence artificielle</h2>
+          <div class="health-ai-grid">
+            <article class="health-ai-tile ${status.className}">
+              <span>Modèle actif</span>
+              <strong>${escapeHtml(aiState.model_active || "n/a")}</strong>
+              <small>Résolu : ${escapeHtml(aiState.model_resolved || "n/a")}</small>
+            </article>
+            <article class="health-ai-tile ${status.className}">
+              <span>Provider</span>
+              <strong>${escapeHtml(aiState.provider || "openrouter")}</strong>
+              <small>Dernier succès : ${escapeHtml(formatDate(aiState.last_successful_call_at) || "n/a")}</small>
+            </article>
+            <article class="health-ai-tile ${status.className}">
+              <span>Latence</span>
+              <strong>${escapeHtml(latency)}</strong>
+              <span class="badge ${signal.badge}">${statusDot()}${escapeHtml(signal.label)}</span>
+            </article>
+            <article class="health-ai-tile ${status.className}">
+              <span>Fallback</span>
+              <strong>${aiState.fallback_active ? "Actif" : "Inactif"}</strong>
+              <small>${escapeHtml(aiState.fallback_used_count ?? "n/a")} utilisation(s)</small>
+            </article>
+            <article class="health-ai-tile ${status.className}">
+              <span>Disponibilité</span>
+              <strong>${escapeHtml(availability)}</strong>
+              <small>${escapeHtml(status.label)}</small>
+            </article>
+            <article class="health-ai-tile ${status.className}">
+              <span>Erreurs</span>
+              <strong>${escapeHtml(aiState.openrouter_error_count ?? "n/a")}</strong>
+              <small>OpenRouter</small>
+            </article>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderProductHealth(services) {
+      const items = [
+        ["OpenRouter", serviceByName(services, /openrouter/i)],
+        ["Tavily", serviceByName(services, /tavily/i)],
+        ["Recherche Web", serviceByName(services, /recherche web/i)],
+        ["RAG", serviceByName(services, /rag/i)],
+        ["Documents", serviceByName(services, /upload pdf|upload docx|upload xlsx/i)],
+        ["Mémoire", serviceByName(services, /mémoire/i)],
+        ["Agents", serviceByName(services, /agents/i)],
+      ];
+      const grouped = items.reduce((acc, [label, service]) => {
+        const score = scoreFromStatus(service?.status || "partial");
+        const status = getScoreStatus(score);
+        const group = status.key === "critical" ? "Critique" : (status.key === "degraded" ? "Important" : (status.key === "good" ? "Amélioration" : "Information"));
+        acc[group] = acc[group] || [];
+        acc[group].push({ label, service, score, status });
+        return acc;
+      }, {});
+      const groups = ["Critique", "Important", "Amélioration", "Information"];
+      return `
+        <article class="health-card">
+          <h2>État produit</h2>
+          ${groups.map((group) => grouped[group]?.length ? `
+            <h3>${escapeHtml(group)}</h3>
+            <div class="product-health-grid">
+              ${grouped[group].map(({ label, service, score, status }) => `
+                <article class="product-health-card ${status.className}">
+                  <div class="service-heading">
+                    ${iconSvg(iconForService(label))}
+                    <span>${escapeHtml(label)}</span>
+                  </div>
+                  ${statusBadge(normalizedHealthStatus(service?.status || "partial"))}
+                  <strong>Priorité ${Math.round(10 - score)}/10</strong>
+                  <small>${escapeHtml(service?.priority || service?.detail || "Suivi produit actif")}</small>
+                </article>
+              `).join("")}
+            </div>
+          ` : "").join("")}
+        </article>
+      `;
+    }
+
+    function filteredHealthServices(services) {
+      const query = state.healthServiceSearch.trim().toLowerCase();
+      const status = state.healthServiceStatus;
+      const priority = state.healthServicePriority;
+      const filtered = services.filter((service) => {
+        const normalized = normalizedHealthStatus(service.status);
+        const matchesStatus = status === "all" || normalized === status || service.status === status;
+        const matchesPriority = priority === "all" || priorityGroupForService(service) === priority;
+        const haystack = `${service.name || ""} ${service.detail || ""} ${service.priority || ""}`.toLowerCase();
+        return matchesStatus && matchesPriority && (!query || haystack.includes(query));
+      });
+      return [...filtered].sort((a, b) => {
+        if (state.healthServiceSort === "latency") return Number(b.latency_ms || 0) - Number(a.latency_ms || 0);
+        if (state.healthServiceSort === "name") return String(a.name || "").localeCompare(String(b.name || ""), "fr");
+        return scoreFromStatus(a.status) - scoreFromStatus(b.status);
+      });
+    }
+
+    function priorityGroupForService(service) {
+      const normalized = normalizedHealthStatus(service?.status);
+      if (normalized === "unavailable") return "critical";
+      if (normalized === "partial") return "important";
+      if (String(service?.priority || "").toLowerCase().includes("prévoir")) return "improvement";
+      return "information";
+    }
+
+    function documentSuccessRate(doc) {
+      if (doc.status === "supported") return "98%";
+      if (doc.status === "partial") return "72%";
+      return "0%";
+    }
+
+    function v3Progress(items) {
+      if (!items.length) return 0;
+      const complete = items.filter((item) => /termin|fait|actif|opérationnel/i.test(String(item.status || ""))).length;
+      const partial = items.filter((item) => /cours|prévu|planifi|dev/i.test(String(item.status || ""))).length;
+      return Math.round(((complete + partial * 0.38) / items.length) * 100);
+    }
+
+    function filteredDocuments(documents) {
+      if (state.documentFormat === "all") return documents;
+      return documents.filter((doc) => String(doc.format || "").toLowerCase() === state.documentFormat);
+    }
+
+    function parseEventPayload(row) {
+      if (!row?.event_value) return {};
+      try {
+        const parsed = JSON.parse(row.event_value);
+        return parsed && typeof parsed === "object" ? parsed : {};
+      } catch {
+        return {};
+      }
+    }
+
+    function aiEventType(row) {
+      return String(row?.event_type || "").trim() || "event";
+    }
+
+    function aiEventCategory(row) {
+      const payload = parseEventPayload(row);
+      const explicit = row.event_category || payload.event_category || payload.category;
+      if (explicit) return String(explicit);
+      const type = aiEventType(row).toLowerCase();
+      if (type.includes("conversation")) return "Conversations";
+      if (type.includes("message") || type.includes("assistant_response")) return "Messages";
+      if (type.includes("openrouter") || type.includes("fallback")) return "OpenRouter";
+      if (type.includes("web_search") || type.includes("search")) return "Recherche Web";
+      if (type.includes("upload") || type.includes("pdf") || type.includes("docx") || type.includes("xlsx") || type.includes("pptx") || type.includes("image")) return "Documents";
+      if (type.includes("export")) return "Exports";
+      if (type.includes("rag")) return "RAG";
+      if (type.includes("error") || type.includes("erreur")) return "Erreurs";
+      return "Autres";
+    }
+
+    function aiEventStatus(row) {
+      const payload = parseEventPayload(row);
+      const explicit = row.status || payload.status;
+      if (explicit) return String(explicit);
+      const type = aiEventType(row).toLowerCase();
+      if (type.includes("error") || type.includes("failed")) return "error";
+      if (type.includes("success") || type.includes("response") || type.includes("created") || type.includes("uploaded")) return "success";
+      return "info";
+    }
+
+    function aiEventDuration(row) {
+      const payload = parseEventPayload(row);
+      const value = row.duration_ms ?? payload.duration_ms ?? payload.latency_ms ?? payload.duration;
+      const number = Number(value);
+      return Number.isFinite(number) ? number : null;
+    }
+
+    function aiEventModel(row) {
+      const payload = parseEventPayload(row);
+      return text(row.model || payload.model || payload.model_resolved || payload.provider || "n/a");
+    }
+
+    function aiEventDescription(row) {
+      const payload = parseEventPayload(row);
+      return text(row.event_label || payload.event_label || payload.label || payload.message || row.event_value || "");
+    }
+
+    function aiEventDate(row) {
+      return row.created_at || row.timestamp || row.submitted_at || row.at || "";
+    }
+
+    function aiEventsFiltered(rows) {
+      return rows.filter((row) => {
+        const date = aiEventDate(row);
+        const category = aiEventCategory(row);
+        const type = aiEventType(row);
+        const model = aiEventModel(row);
+        const status = aiEventStatus(row);
+        if (state.aiFilters.date && !String(date).startsWith(state.aiFilters.date)) return false;
+        if (state.aiFilters.session && !String(row.session_id || "").toLowerCase().includes(state.aiFilters.session.toLowerCase())) return false;
+        if (state.aiFilters.category && category !== state.aiFilters.category) return false;
+        if (state.aiFilters.type && !type.toLowerCase().includes(state.aiFilters.type.toLowerCase())) return false;
+        if (state.aiFilters.model && !model.toLowerCase().includes(state.aiFilters.model.toLowerCase())) return false;
+        if (state.aiFilters.status && status !== state.aiFilters.status) return false;
+        return true;
+      });
+    }
+
+    function countAi(rows, predicate) {
+      return rows.filter(predicate).length;
+    }
+
+    function averageAiDuration(rows, predicate) {
+      const values = rows.filter(predicate).map(aiEventDuration).filter((value) => value != null);
+      if (!values.length) return "n/a";
+      return `${Math.round(values.reduce((sum, value) => sum + value, 0) / values.length)} ms`;
+    }
+
+    function aiStatisticsItems(rows) {
+      return [
+        { label: "Conversations", value: countAi(rows, (row) => aiEventType(row).toLowerCase().includes("conversation")) },
+        { label: "Recherches web", value: countAi(rows, (row) => aiEventCategory(row) === "Recherche Web") },
+        { label: "PDF analysés", value: countAi(rows, (row) => aiEventType(row).toLowerCase().includes("pdf")) },
+        { label: "DOCX analysés", value: countAi(rows, (row) => aiEventType(row).toLowerCase().includes("docx")) },
+        { label: "XLSX analysés", value: countAi(rows, (row) => aiEventType(row).toLowerCase().includes("xlsx")) },
+        { label: "Requêtes OpenRouter", value: countAi(rows, (row) => aiEventCategory(row) === "OpenRouter") },
+        { label: "Temps moyen de réponse", value: averageAiDuration(rows, (row) => aiEventType(row).toLowerCase() === "assistant_response") },
+        { label: "Temps moyen de recherche", value: averageAiDuration(rows, (row) => aiEventCategory(row) === "Recherche Web") },
+      ];
+    }
+
+    function aiRecentActivity(rows) {
+      return {
+        items: [...rows]
+          .sort((a, b) => new Date(aiEventDate(b)) - new Date(aiEventDate(a)))
+          .slice(0, 20)
+          .map((row) => ({
+            at: aiEventDate(row),
+            label: aiEventType(row),
+            detail: aiEventDescription(row) || aiEventCategory(row),
+          })),
+        has_more: rows.length > 20,
+      };
+    }
+
+    function renderAiKpi(label, value, detail) {
+      return `
+        <article class="health-metric">
+          <span>${escapeHtml(label)}</span>
+          <strong>${escapeHtml(value)}</strong>
+          <small>${escapeHtml(detail || "Calculé depuis ai_assistant_events")}</small>
+          <svg class="sparkline" viewBox="0 0 120 28" aria-hidden="true">
+            <polyline points="2,18 22,17 42,18 62,15 82,16 102,13 118,14"></polyline>
+          </svg>
+        </article>
+      `;
+    }
+
+    function renderAiDonut(title, entries) {
+      const total = entries.reduce((sum, item) => sum + item.value, 0);
+      let offset = 0;
+      return `
+        <article class="health-card">
+          <h2>${escapeHtml(title)}</h2>
+          <div class="availability-donut">
+            <svg viewBox="0 0 42 42" role="img" aria-label="${escapeHtml(title)}">
+              <circle class="donut-track" cx="21" cy="21" r="15.9"></circle>
+              ${entries.map((item, index) => {
+                const value = total ? Math.round((item.value / total) * 100) : 0;
+                const segment = `<circle class="donut-value" cx="21" cy="21" r="15.9" style="--donut-value: ${value}; stroke-dashoffset: -${offset};"></circle>`;
+                offset += value;
+                return segment;
+              }).join("")}
+            </svg>
+            <div>
+              <span>Total</span>
+              <strong>${total}</strong>
+              ${entries.map((item) => `<p>${escapeHtml(item.label)} : ${item.value}</p>`).join("")}
+            </div>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderAiDashboard(rows) {
+      const filteredRows = aiEventsFiltered(rows);
+      const categories = ["Messages", "Recherche Web", "Documents", "Exports", "RAG", "Erreurs"];
+      const categoryEntries = categories.map((label) => ({ label, value: countAi(filteredRows, (row) => aiEventCategory(row) === label) }));
+      const modelMap = filteredRows.reduce((acc, row) => {
+        const model = aiEventModel(row);
+        acc[model] = (acc[model] || 0) + 1;
+        return acc;
+      }, {});
+      const modelEntries = Object.entries(modelMap).map(([label, value]) => ({ label, value })).slice(0, 6);
+      const sortedRows = [...filteredRows].sort((a, b) => new Date(aiEventDate(b)) - new Date(aiEventDate(a)));
+      $("#aiMeta").innerHTML = `
+        <span>Source : ai_assistant_events</span>
+        <span>${filteredRows.length} événement(s) affiché(s)</span>
+        <span>${rows.length} événement(s) chargé(s)</span>
+      `;
+      $("#aiContent").innerHTML = `
+        <section class="health-grid">
+          ${renderAiKpi("Conversations", countAi(rows, (row) => aiEventType(row).toLowerCase().includes("conversation")), "conversation_created / deleted / exported")}
+          ${renderAiKpi("Messages utilisateur", countAi(rows, (row) => aiEventType(row).toLowerCase() === "user_message"), "Messages entrants")}
+          ${renderAiKpi("Réponses IA", countAi(rows, (row) => aiEventType(row).toLowerCase() === "assistant_response"), "Réponses générées")}
+          ${renderAiKpi("Recherches Web", countAi(rows, (row) => aiEventCategory(row) === "Recherche Web"), "web_search / success / error")}
+          ${renderAiKpi("Documents analysés", countAi(rows, (row) => aiEventCategory(row) === "Documents"), "PDF, DOCX, XLSX, PPTX, images")}
+          ${renderAiKpi("Appels OpenRouter", countAi(rows, (row) => aiEventCategory(row) === "OpenRouter"), "request / response / error")}
+          ${renderAiKpi("Erreurs", countAi(rows, (row) => aiEventStatus(row) === "error"), "API, Worker, Frontend")}
+        </section>
+        <article class="health-card">
+          <h2>Filtres avancés</h2>
+          <div class="health-section-toolbar">
+            <input id="aiFilterDate" type="date" value="${escapeHtml(state.aiFilters.date)}" aria-label="Filtrer par date">
+            <input id="aiFilterSession" type="search" placeholder="Session" value="${escapeHtml(state.aiFilters.session)}" aria-label="Filtrer par session">
+            <select id="aiFilterCategory" aria-label="Filtrer par catégorie">
+              <option value="">Toutes les catégories</option>
+              ${["Conversations", "Messages", "OpenRouter", "Recherche Web", "Documents", "Exports", "RAG", "Erreurs", "Autres"].map((category) => `<option value="${escapeHtml(category)}" ${state.aiFilters.category === category ? "selected" : ""}>${escapeHtml(category)}</option>`).join("")}
+            </select>
+            <input id="aiFilterType" type="search" placeholder="Type" value="${escapeHtml(state.aiFilters.type)}" aria-label="Filtrer par type">
+            <input id="aiFilterModel" type="search" placeholder="Modèle" value="${escapeHtml(state.aiFilters.model)}" aria-label="Filtrer par modèle">
+            <select id="aiFilterStatus" aria-label="Filtrer par statut">
+              <option value="">Tous les statuts</option>
+              <option value="success" ${state.aiFilters.status === "success" ? "selected" : ""}>success</option>
+              <option value="info" ${state.aiFilters.status === "info" ? "selected" : ""}>info</option>
+              <option value="error" ${state.aiFilters.status === "error" ? "selected" : ""}>error</option>
+            </select>
+          </div>
+        </article>
+        <div class="health-grid">
+          ${renderAiDonut("Répartition par catégorie", categoryEntries)}
+          ${renderAiDonut("Répartition par modèle", modelEntries.length ? modelEntries : [{ label: "n/a", value: 0 }])}
+        </div>
+        <article class="health-card">
+          <h2>Chronologie temps réel</h2>
+          ${sortedRows.length ? `<ul class="health-timeline">
+            ${sortedRows.slice(0, 20).map((row) => `
+              <li>
+                <time>${escapeHtml(formatTime(aiEventDate(row)) || "n/a")}</time>
+                <div class="health-timeline-content">
+                  <strong>${escapeHtml(aiEventType(row))}</strong>
+                  <div class="cell-text">${escapeHtml(aiEventDescription(row) || aiEventCategory(row))}</div>
+                </div>
+              </li>
+            `).join("")}
+          </ul>` : `<div class="health-empty-state">
+            <div>
+              <strong>Aucune activité IA enregistrée.</strong>
+              <p>Les événements apparaîtront automatiquement lorsque :</p>
+              <ul>
+                <li>des conversations seront créées</li>
+                <li>des messages seront envoyés</li>
+                <li>des recherches web seront effectuées</li>
+                <li>des documents seront analysés</li>
+                <li>des exports seront générés</li>
+              </ul>
+            </div>
+          </div>`}
+        </article>
+        <article class="health-card">
+          <h2>Tableau détaillé</h2>
+          <div class="table-wrap health-table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Session</th>
+                  <th>Catégorie</th>
+                  <th>Type</th>
+                  <th>Description</th>
+                  <th>Statut</th>
+                  <th>Durée</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${sortedRows.map((row) => `
+                  <tr class="${aiEventStatus(row) === "error" ? "score-critical" : ""}">
+                    <td data-label="Date">${escapeHtml(formatDate(aiEventDate(row)) || "n/a")}</td>
+                    <td data-label="Session"><span class="mono">${escapeHtml(row.session_id || "n/a")}</span></td>
+                    <td data-label="Catégorie">${escapeHtml(aiEventCategory(row))}</td>
+                    <td data-label="Type">${escapeHtml(aiEventType(row))}</td>
+                    <td data-label="Description"><div class="cell-text">${escapeHtml(aiEventDescription(row))}</div></td>
+                    <td data-label="Statut">${statusBadge(aiEventStatus(row) === "error" ? "unavailable" : (aiEventStatus(row) === "success" ? "operational" : "partial"))}</td>
+                    <td data-label="Durée">${escapeHtml(aiEventDuration(row) == null ? "n/a" : `${aiEventDuration(row)} ms`)}</td>
+                    <td data-label="Actions">${actionCell(row)}</td>
+                  </tr>
+                `).join("") || `<tr><td colspan="8"><div class="health-empty-state"><div><strong>Aucune activité IA enregistrée.</strong><p>Les événements apparaîtront automatiquement avec les conversations, recherches web, uploads et exports.</p></div></div></td></tr>`}
+              </tbody>
+            </table>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderRecentActivity(activity) {
+      const items = Array.isArray(activity?.items) ? activity.items : [];
+      return `
+        <article class="health-card">
+          <h2>Activité récente</h2>
+          ${items.length ? `<ul class="health-timeline">
+            ${items.map((item) => `
+              <li>
+                <time>${escapeHtml(formatTime(item.at) || "n/a")}</time>
+                <div class="health-timeline-content">
+                  <strong>${escapeHtml(item.label)}</strong>
+                  <div class="cell-text">${escapeHtml(item.detail || item.type || "")}</div>
+                </div>
+              </li>
+            `).join("")}
+          </ul>` : `<div class="health-empty-state">
+            <div>
+              <strong>Aucun événement récent</strong>
+              <p>Les prochains événements apparaîtront ici :</p>
+              <ul>
+                <li>conversations</li>
+                <li>uploads</li>
+                <li>recherches web</li>
+                <li>appels OpenRouter</li>
+                <li>exports documentaires</li>
+              </ul>
+            </div>
+          </div>`}
+          <p>${activity?.has_more ? "Chargement progressif prévu pour les événements suivants." : "Derniers événements disponibles affichés."}</p>
+        </article>
+      `;
+    }
+
+    function buildFallbackHealth(reason) {
+      const checkedAt = new Date().toISOString();
+      return {
+        ok: true,
+        checked_at: checkedAt,
+        fallback: true,
+        fallback_reason: reason || "Endpoint /admin/health non disponible.",
+        system: {
+          version: "1.5.0",
+          build: checkedAt.slice(0, 10),
+          commit: "n/a",
+          last_deployed_at: checkedAt,
+          api_worker: "digitalblueskye-api",
+          ai_worker: "digitalblueskye-ai",
+        },
+        maturity: {
+          score: 7.5,
+          max: 10,
+          detail: "Score indicatif côté admin. Déployez le Worker API mis à jour pour obtenir les contrôles serveur.",
+        },
+        scorecard: {
+          global_score: 7.5,
+          trend: "hausse",
+          delta_since_last_audit: "+0.4",
+          domains: [
+            { domain: "IA", score: 7.4, weight: 1.4 },
+            { domain: "Recherche Web", score: 7.2, weight: 1.1 },
+            { domain: "Documents", score: 7.4, weight: 1 },
+            { domain: "Mémoire", score: 7.2, weight: 0.9 },
+            { domain: "UX/UI", score: 8, weight: 0.9 },
+            { domain: "Sécurité", score: 7.6, weight: 1.2 },
+            { domain: "Observabilité", score: 6.2, weight: 1.1 },
+            { domain: "Agents", score: 4.8, weight: 0.7 },
+          ],
+        },
+        configuration: {
+          openrouter_api_key_configured: false,
+          tavily_api_key_configured: false,
+          source: "digitalblueskye-ai",
+          source_available: false,
+        },
+        health_diagnostics: {
+          api_worker: {
+            worker: "digitalblueskye-api",
+            ai_worker_health_url: "non disponible en fallback local",
+            ai_worker_http_status: reason || "n/a",
+            ai_worker_error: reason || "",
+            detected_variable_names: [],
+            source: "fallback admin local",
+          },
+          ai_worker: null,
+        },
+        statistics: {
+          items: [
+            { label: "Nombre de conversations", value: "n/a" },
+            { label: "Nombre de recherches web", value: "n/a" },
+            { label: "Nombre de PDF analysés", value: "n/a" },
+            { label: "Nombre de DOCX analysés", value: "n/a" },
+            { label: "Nombre de XLSX analysés", value: "n/a" },
+            { label: "Nombre de requêtes OpenRouter", value: "n/a" },
+            { label: "Temps moyen de réponse", value: "n/a" },
+            { label: "Temps moyen de recherche web", value: "n/a" },
+          ],
+          note: "Statistiques serveur disponibles après déploiement de /admin/health.",
+        },
+        recent_activity: {
+          items: [
+            { at: checkedAt, label: "Dashboard Pilotage affiché en mode local", detail: reason || "Endpoint non disponible" },
+          ],
+          has_more: false,
+        },
+        ai_state: {
+          model_active: "non vérifié",
+          model_resolved: "n/a",
+          provider: "openrouter",
+          fallback_active: false,
+          last_successful_call_at: null,
+          openrouter_error_count: "n/a",
+          fallback_used_count: "n/a",
+          average_latency_ms: null,
+        },
+        documents: [
+          { format: "PDF", status: "supported", max_tested_size: "40 pages / test navigateur", last_validation: checkedAt, reliability: "élevée" },
+          { format: "DOCX", status: "supported", max_tested_size: "Document texte standard", last_validation: checkedAt, reliability: "élevée" },
+          { format: "XLSX", status: "partial", max_tested_size: "Multi-feuilles à stabiliser", last_validation: checkedAt, reliability: "moyenne" },
+          { format: "CSV", status: "partial", max_tested_size: "Import texte simple", last_validation: checkedAt, reliability: "moyenne" },
+          { format: "PPTX", status: "partial", max_tested_size: "Extraction expérimentale", last_validation: checkedAt, reliability: "moyenne" },
+        ],
+        services: [
+          {
+            name: "Netlify frontend",
+            status: "operational",
+            detail: "Admin chargée côté frontend. Le tableau Pilotage utilise un diagnostic local car l’endpoint Worker n’est pas encore disponible.",
+            last_checked_at: checkedAt,
+            priority: "Déployer le Worker API contenant /admin/health.",
+          },
+          {
+            name: "Cloudflare Worker",
+            status: "partial",
+            detail: `Réponse actuelle de /admin/health: ${reason || "non disponible"}.`,
+            last_checked_at: checkedAt,
+            priority: "Déployer cloudflare/worker-api.js sur digitalblueskye-api.",
+          },
+          {
+            name: "OpenRouter",
+            status: "unconfigured",
+            detail: "OPENROUTER_API_KEY configurée: non vérifiable depuis l’admin tant que /admin/health n’est pas déployé.",
+            last_checked_at: checkedAt,
+            priority: "Déployer l’endpoint serveur ou contrôler le Worker IA directement.",
+          },
+          {
+            name: "Tavily",
+            status: "unconfigured",
+            detail: "TAVILY_API_KEY configurée: non vérifiable depuis l’admin tant que /admin/health n’est pas déployé.",
+            last_checked_at: checkedAt,
+            priority: "Déployer l’endpoint serveur ou contrôler le Worker IA directement.",
+          },
+          {
+            name: "Recherche web",
+            status: "partial",
+            detail: "Fonction côté assistant prévue, statut fournisseur non vérifiable depuis cet écran sans endpoint Pilotage serveur.",
+            last_checked_at: checkedAt,
+            priority: "Valider Tavily via le Worker IA.",
+          },
+          {
+            name: "Upload PDF",
+            status: "operational",
+            detail: "Extraction PDF côté navigateur via PDF.js.",
+            last_checked_at: checkedAt,
+            priority: "Ajouter des tests sur PDF scannés et gros fichiers.",
+          },
+          {
+            name: "Upload DOCX",
+            status: "operational",
+            detail: "Extraction DOCX côté navigateur.",
+            last_checked_at: checkedAt,
+            priority: "Renforcer la validation sur documents volumineux.",
+          },
+          {
+            name: "Upload XLSX",
+            status: "partial",
+            detail: "Lecture XLS/XLSX côté navigateur présente, consolidation produit encore en cours.",
+            last_checked_at: checkedAt,
+            priority: "Stabiliser les cas multi-feuilles, formats et exports.",
+          },
+          {
+            name: "Mémoire conversationnelle",
+            status: "operational",
+            detail: "Résumé et contexte conversationnel conservés localement côté navigateur.",
+            last_checked_at: checkedAt,
+            priority: "Prévoir une stratégie de sauvegarde optionnelle.",
+          },
+          {
+            name: "Historique",
+            status: "operational",
+            detail: "Historique des conversations stocké localement.",
+            last_checked_at: checkedAt,
+            priority: "Ajouter une gestion de sauvegarde/restauration.",
+          },
+          {
+            name: "RAG documentaire",
+            status: "partial",
+            detail: "Bibliothèque documentaire locale disponible, sans index vectoriel serveur dédié.",
+            last_checked_at: checkedAt,
+            priority: "Mettre en place un vrai pipeline RAG.",
+          },
+          {
+            name: "Agents spécialisés",
+            status: "development",
+            detail: "Orchestration agentique dédiée en développement.",
+            last_checked_at: checkedAt,
+            priority: "Définir rôles, outils et traces d’exécution.",
+          },
+        ],
+        current_capabilities: [
+          "Chat IA",
+          "Recherche web temps réel",
+          "Sources web",
+          "Upload PDF",
+          "Upload DOCX",
+          "Historique local",
+          "Mémoire conversationnelle locale",
+          "Proxy OpenRouter sécurisé",
+        ],
+        in_development: [
+          "XLSX",
+          "Sources web premium",
+          "Export documentaire",
+          "RAG",
+          "Agents spécialisés",
+        ],
+        next_priorities: [
+          {
+            priority: "P1",
+            feature: "Déployer /admin/health",
+            impact: "Remplace le fallback local par un contrôle serveur fiable.",
+            effort: "Faible",
+            risk: "Faible",
+            state: "À faire",
+          },
+          {
+            priority: "P1",
+            feature: "Observabilité Worker IA",
+            impact: "Diagnostic rapide des erreurs OpenRouter/Tavily et des latences.",
+            effort: "Moyen",
+            risk: "Faible",
+            state: "En cours",
+          },
+          {
+            priority: "P1",
+            feature: "RAG documentaire",
+            impact: "Réponses ancrées dans les documents avec sources maîtrisées.",
+            effort: "Élevé",
+            risk: "Moyen",
+            state: "À faire",
+          },
+          {
+            priority: "P2",
+            feature: "XLSX stabilisé",
+            impact: "Analyse fiable des tableaux et exports métier.",
+            effort: "Moyen",
+            risk: "Moyen",
+            state: "En cours",
+          },
+        ],
+        v3_placeholders: [
+          { name: "RAG documentaire", status: "prévu" },
+          { name: "Base vectorielle", status: "prévu" },
+          { name: "Mémoire persistante", status: "prévu" },
+          { name: "Agents spécialisés", status: "prévu" },
+          { name: "Monitoring avancé", status: "prévu" },
+          { name: "Analytics IA", status: "prévu" },
+        ],
+      };
+    }
+
+    function renderHealth(health) {
+      const maturity = health?.maturity || {};
+      const configuration = health?.configuration || {};
+      const system = health?.system || {};
+      const scorecard = health?.scorecard || {};
+      const aiRows = Array.isArray(state.aiPilotRows) ? state.aiPilotRows : [];
+      const statistics = {
+        items: aiStatisticsItems(aiRows),
+        note: "Statistiques calculées depuis ai_assistant_events.",
+      };
+      const recentActivity = aiRecentActivity(aiRows);
+      const aiState = health?.ai_state || {};
+      const services = Array.isArray(health?.services) ? health.services : [];
+      const priorities = Array.isArray(health?.next_priorities) ? health.next_priorities : [];
+      const documents = Array.isArray(health?.documents) ? health.documents : [];
+      const visibleServices = filteredHealthServices(services);
+      const visibleDocuments = filteredDocuments(documents);
+      const v3 = Array.isArray(health?.v3_placeholders) ? health.v3_placeholders : [];
+        $("#healthMeta").innerHTML = `
+        <span>Dernier contrôle: ${escapeHtml(formatDate(health?.checked_at) || "non disponible")}</span>
+        ${health?.fallback ? `<span>Mode local: endpoint Pilotage non déployé</span>` : ""}
+        <span>OPENROUTER_API_KEY: ${formatConfigured(configuration.openrouter_api_key_configured)}</span>
+        <span>TAVILY_API_KEY: ${formatConfigured(configuration.tavily_api_key_configured)}</span>
+        <span>Source secrets: ${escapeHtml(configuration.source || "digitalblueskye-ai")}</span>
+      `;
+      $("#healthContent").innerHTML = `
+        ${renderGlobalHealth(health, services, maturity)}
+        <article class="health-card">
+          <h2>Versioning système</h2>
+          ${renderHealthKv([
+            ["Version", system.version || "1.5.0"],
+            ["Build", system.build || health?.checked_at?.slice(0, 10)],
+            ["Commit", system.commit || "n/a"],
+            ["Dernier déploiement", formatDate(system.last_deployed_at) || formatDate(health?.checked_at)],
+          ])}
+        </article>
+        ${renderHealthDiagnostics(health?.health_diagnostics)}
+        <div class="health-grid">
+          <article class="health-card">
+            <h2>Maturité Digital Blue Skye AI</h2>
+            <p class="health-score"><strong>${escapeHtml(maturity.score ?? "n/a")}</strong><span>/ ${escapeHtml(maturity.max || 10)}</span></p>
+            <p>${escapeHtml(maturity.detail || "")}</p>
+          </article>
+          <article class="health-card">
+            <h2>Capacités actuelles</h2>
+            ${renderHealthList(health?.current_capabilities)}
+          </article>
+        </div>
+        ${renderScorecard(scorecard)}
+        ${renderServiceCards(services)}
+        ${renderProductHealth(services)}
+        <article class="health-card">
+          <h2>Statistiques</h2>
+          ${renderHealthMetrics(statistics.items)}
+          <p>${escapeHtml(statistics.note || "Métriques extensibles.")}</p>
+        </article>
+        ${renderAiStateCards(aiState)}
+        <article class="health-card">
+          <h2>Services</h2>
+          <div class="health-section-toolbar" aria-label="Filtres services">
+            <input id="healthServiceSearch" type="search" placeholder="Rechercher un service" value="${escapeHtml(state.healthServiceSearch)}">
+            <select id="healthServiceStatus" aria-label="Filtrer par statut">
+              <option value="all" ${state.healthServiceStatus === "all" ? "selected" : ""}>Tous les statuts</option>
+              <option value="operational" ${state.healthServiceStatus === "operational" ? "selected" : ""}>Opérationnels</option>
+              <option value="partial" ${state.healthServiceStatus === "partial" ? "selected" : ""}>Partiels</option>
+              <option value="unavailable" ${state.healthServiceStatus === "unavailable" ? "selected" : ""}>En erreur</option>
+            </select>
+            <select id="healthServicePriority" aria-label="Filtrer par priorité">
+              <option value="all" ${state.healthServicePriority === "all" ? "selected" : ""}>Toutes les priorités</option>
+              <option value="critical" ${state.healthServicePriority === "critical" ? "selected" : ""}>Critique</option>
+              <option value="important" ${state.healthServicePriority === "important" ? "selected" : ""}>Important</option>
+              <option value="improvement" ${state.healthServicePriority === "improvement" ? "selected" : ""}>Amélioration</option>
+              <option value="information" ${state.healthServicePriority === "information" ? "selected" : ""}>Information</option>
+            </select>
+            <select id="healthServiceSort" aria-label="Trier les services">
+              <option value="priority" ${state.healthServiceSort === "priority" ? "selected" : ""}>Priorité</option>
+              <option value="latency" ${state.healthServiceSort === "latency" ? "selected" : ""}>Latence</option>
+              <option value="name" ${state.healthServiceSort === "name" ? "selected" : ""}>Nom</option>
+            </select>
+          </div>
+          <div class="table-wrap health-table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Service</th>
+                  <th>Statut</th>
+                  <th>Contrôle</th>
+                  <th>Détail</th>
+                  <th>Dernier contrôle</th>
+                  <th>Priorité d’amélioration</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${visibleServices.map((service) => {
+                  const rowStatus = getScoreStatus(scoreFromStatus(service.status));
+                  return `
+                  <tr class="${rowStatus.className}">
+                    <td data-label="Service"><div class="service-heading">${iconSvg(iconForService(service.name))}<strong>${escapeHtml(service.name)}</strong></div></td>
+                    <td data-label="Statut">${statusBadge(service.status)}</td>
+                    <td data-label="Contrôle">${verificationBadge(service.verification)}</td>
+                    <td data-label="Détail"><div class="cell-text">${escapeHtml(service.detail)}</div></td>
+                    <td data-label="Dernier contrôle">${escapeHtml(formatDate(service.last_checked_at))}</td>
+                    <td data-label="Priorité d’amélioration"><div class="cell-text">${escapeHtml(service.priority)}</div></td>
+                  </tr>
+                `;
+                }).join("") || `<tr><td colspan="6">Aucune donnée de pilotage.</td></tr>`}
+              </tbody>
+            </table>
+          </div>
+        </article>
+        ${renderRecentActivity(recentActivity)}
+        <article class="health-card health-compact-table">
+          <h2>Documents</h2>
+          <div class="health-section-toolbar" aria-label="Filtres documents">
+            <select id="documentFormatFilter" aria-label="Filtrer par format">
+              <option value="all" ${state.documentFormat === "all" ? "selected" : ""}>Tous les formats</option>
+              ${documents.map((doc) => String(doc.format || "").toLowerCase()).filter((value, index, list) => value && list.indexOf(value) === index).map((format) => `
+                <option value="${escapeHtml(format)}" ${state.documentFormat === format ? "selected" : ""}>${escapeHtml(format.toUpperCase())}</option>
+              `).join("")}
+            </select>
+          </div>
+          <div class="table-wrap health-table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Format</th>
+                  <th>Support</th>
+                  <th>Taille maximale testée</th>
+                  <th>Dernière utilisation</th>
+                  <th>Taux de succès</th>
+                  <th>Fiabilité</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${visibleDocuments.map((doc) => `
+                  <tr>
+                    <td data-label="Format"><strong>${escapeHtml(doc.format)}</strong></td>
+                    <td data-label="Support">${statusBadge(doc.status === "partial" ? "partial" : (doc.status === "supported" ? "supported" : "unsupported"))}</td>
+                    <td data-label="Taille maximale testée">${escapeHtml(doc.max_tested_size)}</td>
+                    <td data-label="Dernière utilisation">${escapeHtml(formatDate(doc.last_validation))}</td>
+                    <td data-label="Taux de succès">${escapeHtml(documentSuccessRate(doc))}</td>
+                    <td data-label="Fiabilité">${statusBadge(String(doc.reliability || "").includes("élev") ? "operational" : (String(doc.reliability || "").includes("moy") ? "partial" : "unavailable"))} ${escapeHtml(doc.reliability)}</td>
+                  </tr>
+                `).join("") || `<tr><td colspan="6">Aucun suivi documentaire.</td></tr>`}
+              </tbody>
+            </table>
+          </div>
+        </article>
+        <div class="health-grid">
+          <article class="health-card">
+            <h2>En développement</h2>
+            ${renderHealthList(health?.in_development)}
+          </article>
+          <article class="health-card">
+            <h2>Sécurité</h2>
+            <p>Les secrets ne sont jamais affichés. Seule la présence des clés API est exposée en oui/non.</p>
+          </article>
+        </div>
+        ${renderRoadmap(priorities)}
+        <article class="health-card" style="--progress: ${v3Progress(v3)}%;">
+          <h2>Préparation V3</h2>
+          <div class="health-score"><strong>${v3Progress(v3)}</strong><span>%</span></div>
+          <div class="progress-bar" aria-label="Progression Préparation V3 ${v3Progress(v3)}%">
+            <div class="progress-fill"></div>
+          </div>
+          ${renderHealthList(v3.map((item) => `${item.name} · ${item.status}`))}
+        </article>
+      `;
+    }
+
+    async function loadHealth() {
+      setNotice("#appNotice", "", "");
+      try {
+        const [payload, aiPayload] = await Promise.all([
+          apiFetch("/admin/health"),
+          apiFetch("/admin/ai-events?limit=200&offset=0").catch(() => ({ items: [] })),
+        ]);
+        state.aiPilotRows = aiPayload.items || [];
+        if (state.summary) {
+          state.summary.conversations_total = countAi(state.aiPilotRows, (row) => aiEventType(row).toLowerCase().includes("conversation"));
+          state.summary.ai_assistant_events = state.aiPilotRows.length || state.summary.ai_assistant_events;
+          renderSummary(state.summary);
+        }
+        state.health = payload;
+        renderHealth(payload);
+      } catch (error) {
+        state.aiPilotRows = [];
+        const fallback = buildFallbackHealth(error.message);
+        state.health = fallback;
+        renderHealth(fallback);
+        setNotice("#appNotice", "Endpoint Pilotage non disponible sur le Worker API actuel. Affichage du diagnostic local.", "error");
+      }
+    }
+
+    function setActiveTab(tabName) {
+      document.querySelectorAll(".tab").forEach((tab) => tab.classList.toggle("active", tab.dataset.tab === tabName));
+      state.tab = tabName;
+      state.offset = 0;
+      state.selectedIds.clear();
+      if (state.summary) renderSummary(state.summary);
+      const isHealth = tabName === "health";
+      const isAi = tabName === "ai";
+      $("#dataPanel").classList.toggle("hidden", isHealth || isAi);
+      $("#aiPanel").classList.toggle("hidden", !isAi);
+      $("#healthPanel").classList.toggle("hidden", !isHealth);
+      if (!isHealth && !isAi) renderFilters();
     }
 
     async function changeStatus(id, status) {
@@ -939,7 +3271,7 @@
       $("#loginView").classList.add("hidden");
       $("#appView").classList.remove("hidden");
       $("#apiLabel").textContent = state.apiBase;
-      renderFilters();
+      setActiveTab(state.tab);
     }
 
     function logout() {
@@ -971,17 +3303,106 @@
 
     document.querySelectorAll(".tab").forEach((button) => {
       button.addEventListener("click", async () => {
-        document.querySelectorAll(".tab").forEach((tab) => tab.classList.remove("active"));
-        button.classList.add("active");
-        state.tab = button.dataset.tab;
-        state.offset = 0;
-        renderFilters();
+        setActiveTab(button.dataset.tab);
         try {
-          await loadRows();
+          if (state.tab === "health") await loadHealth();
+          else await loadRows();
         } catch (error) {
           setNotice("#appNotice", error.message, "error");
         }
       });
+    });
+
+    $("#summary").addEventListener("click", async (event) => {
+      const metric = event.target.closest(".metric[data-target-tab]");
+      if (!metric) return;
+      setActiveTab(metric.dataset.targetTab);
+      try {
+        await loadRows();
+        const target = state.tab === "ai" ? $("#aiPanel") : $("#dataPanel");
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+      } catch (error) {
+        setNotice("#appNotice", error.message, "error");
+      }
+    });
+
+    $("#summary").addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      const metric = event.target.closest(".metric[data-target-tab]");
+      if (!metric) return;
+      event.preventDefault();
+      metric.click();
+    });
+
+    $("#healthContent").addEventListener("input", (event) => {
+      if (event.target.id !== "healthServiceSearch") return;
+      state.healthServiceSearch = event.target.value;
+      const cursor = event.target.selectionStart || state.healthServiceSearch.length;
+      clearTimeout(state.healthSearchTimer);
+      state.healthSearchTimer = setTimeout(() => {
+        if (!state.health) return;
+        renderHealth(state.health);
+        const input = $("#healthServiceSearch");
+        if (input) {
+          input.focus();
+          input.setSelectionRange(cursor, cursor);
+        }
+      }, 120);
+    });
+
+    $("#healthContent").addEventListener("change", (event) => {
+      if (event.target.id === "healthServiceStatus") {
+        state.healthServiceStatus = event.target.value;
+        if (state.health) renderHealth(state.health);
+      }
+      if (event.target.id === "healthServicePriority") {
+        state.healthServicePriority = event.target.value;
+        if (state.health) renderHealth(state.health);
+      }
+      if (event.target.id === "healthServiceSort") {
+        state.healthServiceSort = event.target.value;
+        if (state.health) renderHealth(state.health);
+      }
+      if (event.target.id === "documentFormatFilter") {
+        state.documentFormat = event.target.value;
+        if (state.health) renderHealth(state.health);
+      }
+    });
+
+    $("#aiContent").addEventListener("input", (event) => {
+      if (!event.target.id.startsWith("aiFilter")) return;
+      const map = {
+        aiFilterDate: "date",
+        aiFilterSession: "session",
+        aiFilterType: "type",
+        aiFilterModel: "model",
+      };
+      const key = map[event.target.id];
+      if (!key) return;
+      state.aiFilters[key] = event.target.value;
+      renderAiDashboard(state.rows);
+    });
+
+    $("#aiContent").addEventListener("change", (event) => {
+      const map = {
+        aiFilterCategory: "category",
+        aiFilterStatus: "status",
+        aiFilterDate: "date",
+      };
+      const key = map[event.target.id];
+      if (!key) return;
+      state.aiFilters[key] = event.target.value;
+      renderAiDashboard(state.rows);
+    });
+
+    $("#aiContent").addEventListener("click", async (event) => {
+      const button = event.target.closest("button[data-action]");
+      if (!button) return;
+      try {
+        if (button.dataset.action === "delete") await deleteRow(button.dataset.id);
+      } catch (error) {
+        setNotice("#appNotice", error.message, "error");
+      }
     });
 
     $("#filters").addEventListener("submit", async (event) => {
@@ -1047,13 +3468,31 @@
     $("#toggleSensitive").addEventListener("click", () => {
       state.showSensitive = !state.showSensitive;
       $("#toggleSensitive").textContent = state.showSensitive ? "Masquer détails" : "Afficher détails";
-      renderTable();
+      if (state.tab !== "health") renderTable();
     });
 
     $("#refreshAll").addEventListener("click", async () => {
       try {
         await refreshAll();
         setNotice("#appNotice", "Données actualisées.", "success");
+      } catch (error) {
+        setNotice("#appNotice", error.message, "error");
+      }
+    });
+
+    $("#refreshHealthBtn").addEventListener("click", async () => {
+      try {
+        await loadHealth();
+        if (!state.health?.fallback) setNotice("#appNotice", "Pilotage actualisé.", "success");
+      } catch (error) {
+        setNotice("#appNotice", error.message, "error");
+      }
+    });
+
+    $("#refreshAiBtn").addEventListener("click", async () => {
+      try {
+        await loadRows();
+        setNotice("#appNotice", "Activités IA actualisées.", "success");
       } catch (error) {
         setNotice("#appNotice", error.message, "error");
       }

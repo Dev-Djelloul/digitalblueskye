@@ -32,7 +32,7 @@ function buildCorsHeaders(request, env) {
   return {
     'Content-Type': 'application/json; charset=utf-8',
     'Access-Control-Allow-Origin': corsOrigin,
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Access-Control-Allow-Headers': '*',
     Vary: 'Origin'
   };
@@ -674,8 +674,243 @@ function buildEmptyReplyDiagnostic(openRouterJson) {
   };
 }
 
+function isHealthAuthorized(request, env) {
+  const healthToken = String(env.HEALTH_CHECK_TOKEN || '').trim();
+  const healthHeader = request.headers.get('X-Health-Check-Token') || '';
+  return healthToken.length > 0 && healthHeader.trim() === healthToken;
+}
+
+function detectedHealthEnvNames(env) {
+  return Object.keys(env || {})
+    .filter((name) => /^(OPENROUTER|TAVILY|SERPER|MISTRAL|ADMIN|HEALTH|ALLOWED|DEBUG|OPENAI|AI_|WORKER)/i.test(name))
+    .sort();
+}
+
+function buildHealthDiagnostics(request, env, authMode) {
+  return {
+    worker: 'digitalblueskye-ai',
+    environment: env.ENVIRONMENT || env.CF_ENVIRONMENT || 'production',
+    request_path: new URL(request.url).pathname,
+    auth_mode: authMode,
+    detected_variable_names: detectedHealthEnvNames(env),
+    source: 'digitalblueskye-ai env bindings',
+    secrets_values_exposed: false
+  };
+}
+
+async function fetchWithTimeout(url, options = {}, timeoutMs = 2500) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+async function checkOpenRouterHealth(env) {
+  const configured = hasUsableOpenRouterKey(env);
+  if (!configured) {
+    return {
+      status: 'unconfigured',
+      verification: 'partial',
+      configured,
+      ok: false,
+      latency_ms: null,
+      detail: 'OPENROUTER_API_KEY configurée: non.'
+    };
+  }
+
+  const startedAt = Date.now();
+  const model = env.OPENROUTER_MODEL || DEFAULT_MODEL;
+  try {
+    const response = await fetchWithTimeout('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: buildOpenRouterHeaders(env, env.ALLOWED_ORIGIN || 'https://digitalblueskye.netlify.app'),
+      body: JSON.stringify({
+        model,
+        messages: [
+          { role: 'system', content: 'Health check. Reply with OK only.' },
+          { role: 'user', content: 'OK?' }
+        ],
+        max_tokens: 8,
+        temperature: 0
+      })
+    }, 3000);
+    const latencyMs = Date.now() - startedAt;
+    const raw = await response.text();
+    let parsed = null;
+    try {
+      parsed = raw ? JSON.parse(raw) : null;
+    } catch (error) {}
+    const reply = extractReply(parsed);
+    return {
+      status: response.ok && reply ? 'operational' : 'partial',
+      verification: response.ok && reply ? 'verified' : 'failed',
+      configured,
+      ok: response.ok && Boolean(reply),
+      latency_ms: latencyMs,
+      model_active: model,
+      model_resolved: parsed?.model || model,
+      provider: 'openrouter',
+      detail: response.ok && reply
+        ? 'OpenRouter répond à une requête de contrôle minimale.'
+        : `OpenRouter a répondu HTTP ${response.status}, sans réponse exploitable.`
+    };
+  } catch (error) {
+    return {
+      status: 'unavailable',
+      verification: 'failed',
+      configured,
+      ok: false,
+      latency_ms: Date.now() - startedAt,
+      model_active: model,
+      model_resolved: '',
+      provider: 'openrouter',
+      detail: error?.name === 'AbortError' ? 'Timeout du contrôle OpenRouter.' : 'Contrôle OpenRouter échoué.'
+    };
+  }
+}
+
+async function checkTavilyHealth(env) {
+  const apiKey = normalizeTavilyApiKey(env?.TAVILY_API_KEY);
+  const configured = apiKey.length > 0;
+  if (!configured) {
+    return {
+      status: 'unconfigured',
+      verification: 'partial',
+      configured,
+      ok: false,
+      latency_ms: null,
+      detail: 'TAVILY_API_KEY configurée: non.'
+    };
+  }
+
+  const startedAt = Date.now();
+  try {
+    const response = await fetchWithTimeout('https://api.tavily.com/search', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        query: 'Digital Blue Skye health check',
+        topic: 'general',
+        search_depth: 'basic',
+        max_results: 1,
+        include_answer: false,
+        include_raw_content: false
+      })
+    }, 3000);
+    const latencyMs = Date.now() - startedAt;
+    const data = await response.json().catch(() => null);
+    const resultCount = Array.isArray(data?.results) ? data.results.length : 0;
+    return {
+      status: response.ok && resultCount > 0 ? 'operational' : 'partial',
+      verification: response.ok && resultCount > 0 ? 'verified' : 'failed',
+      configured,
+      ok: response.ok && resultCount > 0,
+      latency_ms: latencyMs,
+      detail: response.ok
+        ? `Tavily répond à une requête test (${resultCount} résultat).`
+        : `Tavily a répondu HTTP ${response.status}.`
+    };
+  } catch (error) {
+    return {
+      status: 'unavailable',
+      verification: 'failed',
+      configured,
+      ok: false,
+      latency_ms: Date.now() - startedAt,
+      detail: error?.name === 'AbortError' ? 'Timeout du contrôle Tavily.' : 'Contrôle Tavily échoué.'
+    };
+  }
+}
+
+async function buildAiHealthPayload(request, env, authMode) {
+  const checkedAt = new Date().toISOString();
+  const openRouterConfigured = hasUsableOpenRouterKey(env);
+  const tavilyConfigured = normalizeTavilyApiKey(env?.TAVILY_API_KEY).length > 0;
+  const serperConfigured = String(env?.SERPER_API_KEY || '').trim().length > 0;
+  const mistralConfigured = String(env?.MISTRAL_API_KEY || '').trim().length > 0;
+  const [openRouterCheck, tavilyCheck] = await Promise.all([
+    checkOpenRouterHealth(env),
+    checkTavilyHealth(env)
+  ]);
+
+  return {
+    ok: true,
+    worker: 'digitalblueskye-ai',
+    openrouter_key_configured: openRouterConfigured,
+    tavily_key_configured: tavilyConfigured,
+    serper_key_configured: serperConfigured,
+    mistral_key_configured: mistralConfigured,
+    model: env.OPENROUTER_MODEL || DEFAULT_MODEL,
+    provider: 'openrouter',
+    timestamp: checkedAt,
+    version: '2.0',
+    checked_at: checkedAt,
+    service: 'digitalblueskye-ai',
+    worker_build: WORKER_BUILD,
+    health_diagnostics: buildHealthDiagnostics(request, env, authMode),
+    configuration: {
+      openrouter_api_key_configured: openRouterConfigured,
+      tavily_api_key_configured: tavilyConfigured,
+      serper_api_key_configured: serperConfigured,
+      mistral_api_key_configured: mistralConfigured,
+      source: 'digitalblueskye-ai'
+    },
+    ai_state: {
+      model_active: openRouterCheck.model_active || env.OPENROUTER_MODEL || DEFAULT_MODEL,
+      model_resolved: openRouterCheck.model_resolved || '',
+      provider: 'openrouter',
+      fallback_active: Boolean(env.OPENROUTER_FALLBACK_MODELS || FALLBACK_MODEL),
+      last_successful_call_at: openRouterCheck.ok ? checkedAt : null,
+      openrouter_error_count: openRouterCheck.ok ? 0 : 1,
+      fallback_used_count: 0,
+      average_latency_ms: openRouterCheck.latency_ms,
+      last_check: openRouterCheck
+    },
+    checks: {
+      openrouter: openRouterCheck,
+      tavily: tavilyCheck
+    },
+    services: [
+      {
+        name: 'OpenRouter',
+        status: openRouterCheck.status,
+        verification: openRouterCheck.verification,
+        latency_ms: openRouterCheck.latency_ms,
+        detail: openRouterCheck.detail,
+        last_checked_at: checkedAt,
+        priority: openRouterConfigured ? 'Surveiller les erreurs fournisseur et les modèles de repli.' : 'Configurer le secret OPENROUTER_API_KEY.'
+      },
+      {
+        name: 'Tavily',
+        status: tavilyCheck.status,
+        verification: tavilyCheck.verification,
+        latency_ms: tavilyCheck.latency_ms,
+        detail: tavilyCheck.detail,
+        last_checked_at: checkedAt,
+        priority: tavilyConfigured ? 'Surveiller les quotas et la pertinence des résultats.' : 'Configurer le secret TAVILY_API_KEY.'
+      },
+      {
+        name: 'Recherche web',
+        status: tavilyCheck.ok ? 'operational' : 'partial',
+        verification: tavilyCheck.verification,
+        latency_ms: tavilyCheck.latency_ms,
+        detail: tavilyCheck.ok ? 'Recherche temps réel vérifiée via Tavily.' : 'Recherche web demandable, mais contrôle Tavily incomplet.',
+        last_checked_at: checkedAt,
+        priority: tavilyConfigured ? 'Ajouter un contrôle externe de disponibilité.' : 'Brancher Tavily pour les recherches temps réel.'
+      }
+    ]
+  };
+}
+
 export default {
   async fetch(request, env) {
+    const url = new URL(request.url);
     const corsHeaders = buildCorsHeaders(request, env);
     const allowedOrigin = env.ALLOWED_ORIGIN || 'https://digitalblueskye.infinityfreeapp.com';
 
@@ -684,6 +919,30 @@ export default {
         status: 204,
         headers: corsHeaders
       });
+    }
+
+    if (request.method === 'GET' && url.pathname.replace(/\/+$/, '') === '/admin/health') {
+      const healthTokenOk = isHealthAuthorized(request, env);
+      const authMode = healthTokenOk ? 'health_check_token' : 'none';
+      console.log('admin_health_request', buildHealthDiagnostics(request, env, authMode));
+      if (!healthTokenOk) {
+        return jsonResponse(
+          {
+            ok: false,
+            error: 'unauthorized',
+            health_diagnostics: {
+              worker: 'digitalblueskye-ai',
+              request_path: url.pathname,
+              auth_mode: 'unauthorized',
+              source: 'digitalblueskye-ai env bindings',
+              secrets_values_exposed: false
+            }
+          },
+          401,
+          corsHeaders
+        );
+      }
+      return jsonResponse(await buildAiHealthPayload(request, env, authMode), 200, corsHeaders);
     }
 
     if (request.method === 'GET') {

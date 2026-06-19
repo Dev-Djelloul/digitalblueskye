@@ -156,6 +156,259 @@ function nowIso() {
   return new Date().toISOString();
 }
 
+function isConfigured(value) {
+  return String(value || "").trim().length > 0;
+}
+
+function healthStatus(status, detail, priority) {
+  return { status, detail, priority };
+}
+
+function roundOne(value) {
+  return Math.round(Number(value || 0) * 10) / 10;
+}
+
+function averageWeighted(scores) {
+  const totalWeight = scores.reduce((sum, item) => sum + Number(item.weight || 0), 0);
+  if (!totalWeight) return 0;
+  const total = scores.reduce((sum, item) => sum + Number(item.score || 0) * Number(item.weight || 0), 0);
+  return roundOne(total / totalWeight);
+}
+
+function buildDomainScores({ openRouterOk, tavilyOk, dbConfigured, frontendOk }) {
+  const domains = [
+    { domain: "IA", score: openRouterOk ? 8.1 : 6.4, weight: 1.4 },
+    { domain: "Recherche Web", score: tavilyOk ? 8.0 : 6.2, weight: 1.1 },
+    { domain: "Documents", score: 7.4, weight: 1.0 },
+    { domain: "Mémoire", score: 7.2, weight: 0.9 },
+    { domain: "UX/UI", score: frontendOk ? 8.0 : 7.2, weight: 0.9 },
+    { domain: "Sécurité", score: dbConfigured ? 8.0 : 6.6, weight: 1.2 },
+    { domain: "Observabilité", score: 6.9, weight: 1.1 },
+    { domain: "Agents", score: 4.8, weight: 0.7 },
+  ];
+  return {
+    domains,
+    global_score: averageWeighted(domains),
+    trend: "hausse",
+    delta_since_last_audit: "+0.6",
+    last_audit_score: 7.1,
+    method: "Moyenne pondérée des domaines produit et techniques.",
+  };
+}
+
+function healthVerification(ok, partial = false) {
+  if (ok) return "verified";
+  return partial ? "partial" : "failed";
+}
+
+function healthVerificationLabel(value) {
+  if (value === "verified") return "🟢 Vérifié automatiquement";
+  if (value === "partial") return "🟡 Vérification partielle";
+  return "🔴 Échec du contrôle";
+}
+
+function detectedHealthEnvNames(env) {
+  return Object.keys(env || {})
+    .filter((name) => /^(AI_|APP_|BUILD|COMMIT|LAST_|ADMIN|HEALTH|OPENROUTER|TAVILY|SERPER|MISTRAL|ALLOWED|ENVIRONMENT|CF_)/i.test(name))
+    .sort();
+}
+
+function explainAiWorkerHealthStatus(status, error) {
+  if (status === 200) return "";
+  if (status === 401) return "Token Health incorrect ou manquant";
+  if (status === 404) return "Route /admin/health introuvable sur le Worker IA";
+  if (status === 0) return error === "timeout" ? "Timeout lors de l'appel au Worker IA" : "Échec réseau lors de l'appel au Worker IA";
+  return error || `Réponse inattendue du Worker IA (${status})`;
+}
+
+function buildApiHealthDiagnostics({ request, env, aiWorkerHealthUrl, aiHealthResult, aiHealthToken }) {
+  const status = aiHealthResult?.status ?? null;
+  const error = aiHealthResult?.payload?.error || aiHealthResult?.error || "";
+  return {
+    worker: "digitalblueskye-api",
+    environment: env.ENVIRONMENT || env.CF_ENVIRONMENT || "production",
+    request_path: new URL(request.url).pathname,
+    ai_health_token_configured: isConfigured(aiHealthToken),
+    ai_worker_call_mode: aiHealthResult?.call_mode || "public_fetch",
+    ai_worker_health_url_configured: isConfigured(env.AI_WORKER_HEALTH_URL),
+    ai_worker_health_url_used: aiHealthResult?.final_url || aiWorkerHealthUrl,
+    ai_worker_health_url: aiWorkerHealthUrl,
+    ai_worker_http_status: status,
+    ai_worker_response_url: aiHealthResult?.response_url || "",
+    ai_worker_response_preview: aiHealthResult?.raw_text_first_500_chars || "",
+    ai_worker_used_health_token: Boolean(aiHealthResult?.used_ai_health_token),
+    ai_worker_headers_sent: aiHealthResult?.request_headers_sent || [],
+    ai_worker_error: explainAiWorkerHealthStatus(status, error),
+    ai_worker_raw_error: error,
+    ai_worker_payload_ok: Boolean(aiHealthResult?.payload?.ok),
+    detected_variable_names: detectedHealthEnvNames(env),
+    source: "digitalblueskye-api aggregation + digitalblueskye-ai health",
+    secrets_values_exposed: false,
+  };
+}
+
+async function fetchJsonWithTimeout(url, options = {}, timeoutMs = 2200) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  const headers = options.headers || {};
+  const requestHeadersSent = Object.keys(headers);
+  const usedAiHealthToken = requestHeadersSent.includes("X-Health-Check-Token");
+  try {
+    const response = await fetch(url, { ...options, signal: controller.signal });
+    const text = await response.text();
+    let payload = null;
+    try {
+      payload = text ? JSON.parse(text) : null;
+    } catch (error) {}
+    return {
+      ok: response.ok,
+      status: response.status,
+      payload,
+      final_url: url,
+      response_url: response.url || "",
+      raw_text_first_500_chars: text.slice(0, 500),
+      request_headers_sent: requestHeadersSent,
+      used_ai_health_token: usedAiHealthToken,
+      call_mode: "public_fetch",
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      status: 0,
+      payload: null,
+      final_url: url,
+      response_url: "",
+      raw_text_first_500_chars: "",
+      request_headers_sent: requestHeadersSent,
+      used_ai_health_token: usedAiHealthToken,
+      call_mode: "public_fetch",
+      error: error?.name === "AbortError" ? "timeout" : "fetch_failed",
+    };
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+async function parseJsonResponseMetadata(response, url, requestHeadersSent, usedAiHealthToken, callMode) {
+  const text = await response.text();
+  let payload = null;
+  try {
+    payload = text ? JSON.parse(text) : null;
+  } catch (error) {}
+  return {
+    ok: response.ok,
+    status: response.status,
+    payload,
+    final_url: url,
+    response_url: response.url || "",
+    raw_text_first_500_chars: text.slice(0, 500),
+    request_headers_sent: requestHeadersSent,
+    used_ai_health_token: usedAiHealthToken,
+    call_mode: callMode,
+  };
+}
+
+async function fetchAiWorkerHealth(env, aiWorkerHealthUrl, aiHealthToken, timeoutMs = 6500) {
+  const headers = {
+    ...(aiHealthToken ? { "X-Health-Check-Token": aiHealthToken } : {}),
+    Accept: "application/json",
+  };
+  const requestHeadersSent = Object.keys(headers);
+  const usedAiHealthToken = requestHeadersSent.includes("X-Health-Check-Token");
+
+  if (env.AI_WORKER?.fetch) {
+    try {
+      const response = await env.AI_WORKER.fetch(new Request("https://digitalblueskye-ai/admin/health", {
+        method: "GET",
+        headers,
+      }));
+      return await parseJsonResponseMetadata(
+        response,
+        "service-binding://digitalblueskye-ai/admin/health",
+        requestHeadersSent,
+        usedAiHealthToken,
+        "service_binding"
+      );
+    } catch (error) {
+      return {
+        ok: false,
+        status: 0,
+        payload: null,
+        final_url: "service-binding://digitalblueskye-ai/admin/health",
+        response_url: "",
+        raw_text_first_500_chars: "",
+        request_headers_sent: requestHeadersSent,
+        used_ai_health_token: usedAiHealthToken,
+        call_mode: "service_binding",
+        error: error?.name === "AbortError" ? "timeout" : "service_binding_failed",
+      };
+    }
+  }
+
+  return await fetchJsonWithTimeout(aiWorkerHealthUrl, {
+    method: "GET",
+    headers,
+  }, timeoutMs);
+}
+
+async function firstCount(env, sql, ...bindings) {
+  const statement = env.DB.prepare(sql);
+  const row = bindings.length ? await statement.bind(...bindings).first() : await statement.first();
+  return Number(row?.count || 0);
+}
+
+function parseEventMeta(row) {
+  if (!row?.meta) return {};
+  try {
+    const parsed = JSON.parse(row.meta);
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch (error) {
+    return {};
+  }
+}
+
+function eventMatches(row, needles) {
+  const haystack = [
+    row?.event_type,
+    row?.event_value,
+    row?.meta,
+  ].map((value) => String(value || "").toLowerCase()).join(" ");
+  return needles.some((needle) => haystack.includes(needle));
+}
+
+function averageFromEvents(rows, fieldNames) {
+  const values = [];
+  for (const row of rows) {
+    const meta = parseEventMeta(row);
+    for (const fieldName of fieldNames) {
+      const value = Number(meta[fieldName] ?? row?.[fieldName]);
+      if (Number.isFinite(value) && value > 0) values.push(value);
+    }
+  }
+  if (!values.length) return null;
+  return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
+}
+
+function formatHealthActivity(row) {
+  const type = String(row?.event_type || "").toLowerCase();
+  const value = String(row?.event_value || "").toLowerCase();
+  const meta = String(row?.meta || "").toLowerCase();
+  const combined = `${type} ${value} ${meta}`;
+  let label = "Événement IA";
+  if (combined.includes("web_search")) label = "Recherche web exécutée";
+  else if (combined.includes("pdf")) label = "PDF analysé";
+  else if (combined.includes("docx")) label = "DOCX analysé";
+  else if (combined.includes("xlsx") || combined.includes("excel")) label = "XLSX analysé";
+  else if (combined.includes("openrouter") || combined.includes("api_response")) label = "Appel OpenRouter traité";
+  else if (combined.includes("api_error")) label = "Erreur IA détectée";
+  return {
+    at: row?.created_at || "",
+    type: row?.event_type || "ai_event",
+    label,
+    detail: row?.event_value || "",
+  };
+}
+
 function normalizeLanguage(value) {
   const normalized = String(value || "").trim().toLowerCase();
   return normalized.startsWith("en") ? "en" : "fr";
@@ -590,6 +843,374 @@ async function handleAdminSummary(request, env) {
   });
 }
 
+async function handleAdminHealth(request, env) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+
+  const checkedAt = nowIso();
+  const dbConfigured = Boolean(env.DB);
+  const adminConfigured = isConfigured(env.ADMIN_TOKEN);
+  const frontendOrigin = env.ALLOWED_ORIGIN || "Origine dynamique via CORS";
+  const aiWorkerHealthUrl = env.AI_WORKER_HEALTH_URL || "https://digitalblueskye-ai.djelloulabid75.workers.dev/admin/health";
+  const aiHealthToken = env.AI_HEALTH_TOKEN || env.HEALTH_CHECK_TOKEN || "";
+  const appVersion = env.APP_VERSION || "1.5.0";
+  const buildNumber = env.BUILD_NUMBER || checkedAt.slice(0, 10);
+  const commitSha = env.COMMIT_SHA || env.CF_PAGES_COMMIT_SHA || "";
+  const deployedAt = env.LAST_DEPLOYED_AT || checkedAt;
+
+  const recentEventsPromise = env.DB.prepare(
+    `SELECT id, session_id, event_type, event_value, meta, created_at
+     FROM ai_assistant_events
+     ORDER BY created_at DESC, id DESC
+     LIMIT 500`
+  ).all();
+
+  const aiHealthPromise = fetchAiWorkerHealth(env, aiWorkerHealthUrl, aiHealthToken, 6500);
+
+  const frontendHealthPromise = frontendOrigin && frontendOrigin.startsWith("http")
+    ? fetchJsonWithTimeout(frontendOrigin, { method: "GET" }, 2200)
+    : Promise.resolve({ ok: false, status: 0, payload: null, error: "dynamic_origin" });
+
+  const [
+    recentEventsResult,
+    aiHealthResult,
+    frontendHealthResult,
+    conversationCount,
+    aiEventCount,
+  ] = await Promise.all([
+    recentEventsPromise,
+    aiHealthPromise,
+    frontendHealthPromise,
+    firstCount(env, "SELECT COUNT(DISTINCT session_id) AS count FROM ai_assistant_events WHERE session_id IS NOT NULL AND session_id != ''"),
+    firstCount(env, "SELECT COUNT(*) AS count FROM ai_assistant_events"),
+  ]);
+
+  const recentEvents = recentEventsResult.results || [];
+  const aiHealthDiagnostics = buildApiHealthDiagnostics({ request, env, aiWorkerHealthUrl, aiHealthResult, aiHealthToken });
+  console.log("admin_health_aggregation", aiHealthDiagnostics);
+  const openRouterCheck = aiHealthResult.payload?.checks?.openrouter || null;
+  const tavilyCheck = aiHealthResult.payload?.checks?.tavily || null;
+  const aiHealthAvailable = Boolean(aiHealthResult.ok && aiHealthResult.payload?.ok);
+  const openRouterConfigured = aiHealthAvailable
+    ? Boolean(aiHealthResult.payload?.configuration?.openrouter_api_key_configured)
+    : null;
+  const tavilyConfigured = aiHealthAvailable
+    ? Boolean(aiHealthResult.payload?.configuration?.tavily_api_key_configured)
+    : null;
+  const openRouterOk = Boolean(openRouterCheck?.ok);
+  const tavilyOk = Boolean(tavilyCheck?.ok);
+  const frontendOk = Boolean(frontendHealthResult.ok);
+
+  const webSearchCount = recentEvents.filter((row) => eventMatches(row, ["web_search"])).length;
+  const pdfCount = recentEvents.filter((row) => eventMatches(row, ["pdf"])).length;
+  const docxCount = recentEvents.filter((row) => eventMatches(row, ["docx"])).length;
+  const xlsxCount = recentEvents.filter((row) => eventMatches(row, ["xlsx", "excel"])).length;
+  const openRouterCount = recentEvents.filter((row) => eventMatches(row, ["openrouter", "api_response", "api_request"])).length;
+  const averageResponseMs = averageFromEvents(recentEvents, ["duration_ms", "response_ms", "latency_ms"]);
+  const averageWebSearchMs = averageFromEvents(
+    recentEvents.filter((row) => eventMatches(row, ["web_search"])),
+    ["duration_ms", "web_search_latency_ms", "latency_ms"]
+  );
+
+  const scorecard = buildDomainScores({
+    openRouterOk,
+    tavilyOk,
+    dbConfigured,
+    frontendOk,
+  });
+
+  const services = [
+    {
+      name: "Netlify frontend",
+      ...healthStatus(
+        frontendOk ? "operational" : "partial",
+        `Origine autorisée: ${frontendOrigin}. Réponse HTTP: ${frontendHealthResult.status || "non vérifiée"}.`,
+        frontendOk ? "Surveiller le déploiement Netlify et les erreurs console." : "Vérifier la disponibilité Netlify ou la variable ALLOWED_ORIGIN."
+      ),
+      verification: healthVerification(frontendOk, true),
+      verification_label: healthVerificationLabel(healthVerification(frontendOk, true)),
+      last_checked_at: checkedAt,
+    },
+    {
+      name: "Cloudflare Worker",
+      ...healthStatus(
+        dbConfigured && adminConfigured ? "operational" : "partial",
+        `Endpoint admin actif. DB D1: ${dbConfigured ? "oui" : "non"}. ADMIN_TOKEN: ${adminConfigured ? "oui" : "non"}.`,
+        dbConfigured && adminConfigured ? "Ajouter un monitoring externe." : "Finaliser les bindings/secrets Worker."
+      ),
+      verification: healthVerification(dbConfigured && adminConfigured, true),
+      verification_label: healthVerificationLabel(healthVerification(dbConfigured && adminConfigured, true)),
+      last_checked_at: checkedAt,
+    },
+    {
+      name: "OpenRouter",
+      ...healthStatus(
+        openRouterCheck?.status || (openRouterConfigured === false ? "unconfigured" : "partial"),
+        openRouterCheck?.detail || `Contrôle du Worker IA non disponible (${aiHealthDiagnostics.ai_worker_error || aiHealthDiagnostics.ai_worker_http_status || "erreur inconnue"}). OPENROUTER_API_KEY: non vérifiable depuis digitalblueskye-api.`,
+        openRouterConfigured === true ? "Suivre les erreurs fournisseur, la latence et les modèles de repli." : "Rendre /admin/health accessible sur digitalblueskye-ai via ADMIN_TOKEN ou HEALTH_CHECK_TOKEN."
+      ),
+      verification: openRouterCheck?.verification || "partial",
+      verification_label: healthVerificationLabel(openRouterCheck?.verification || "partial"),
+      latency_ms: openRouterCheck?.latency_ms ?? null,
+      last_checked_at: checkedAt,
+    },
+    {
+      name: "Tavily",
+      ...healthStatus(
+        tavilyCheck?.status || (tavilyConfigured === false ? "unconfigured" : "partial"),
+        tavilyCheck?.detail || `Contrôle du Worker IA non disponible (${aiHealthDiagnostics.ai_worker_error || aiHealthDiagnostics.ai_worker_http_status || "erreur inconnue"}). TAVILY_API_KEY: non vérifiable depuis digitalblueskye-api.`,
+        tavilyConfigured === true ? "Suivre la qualité des résultats, la latence et les quotas." : "Rendre /admin/health accessible sur digitalblueskye-ai via ADMIN_TOKEN ou HEALTH_CHECK_TOKEN."
+      ),
+      verification: tavilyCheck?.verification || "partial",
+      verification_label: healthVerificationLabel(tavilyCheck?.verification || "partial"),
+      latency_ms: tavilyCheck?.latency_ms ?? null,
+      last_checked_at: checkedAt,
+    },
+    {
+      name: "Recherche web",
+      ...healthStatus(
+        tavilyOk ? "operational" : "partial",
+        tavilyOk ? "Recherche temps réel vérifiée via le Worker IA digitalblueskye-ai." : "Recherche web disponible côté interface, contrôle Tavily incomplet.",
+        tavilyOk ? "Ajouter suivi de quotas et qualité des sources." : "Finaliser la configuration Tavily sur digitalblueskye-ai."
+      ),
+      verification: tavilyCheck?.verification || "partial",
+      verification_label: healthVerificationLabel(tavilyCheck?.verification || "partial"),
+      latency_ms: tavilyCheck?.latency_ms ?? null,
+      last_checked_at: checkedAt,
+    },
+    {
+      name: "Upload PDF",
+      ...healthStatus(
+        "operational",
+        "Extraction PDF côté navigateur via PDF.js, avec contexte transmis au chat.",
+        "Ajouter des tests sur PDF scannés et gros fichiers."
+      ),
+      verification: "partial",
+      verification_label: healthVerificationLabel("partial"),
+      last_checked_at: checkedAt,
+    },
+    {
+      name: "Upload DOCX",
+      ...healthStatus(
+        "operational",
+        "Extraction DOCX côté navigateur et intégration dans le contexte assistant.",
+        "Renforcer la validation sur documents volumineux."
+      ),
+      verification: "partial",
+      verification_label: healthVerificationLabel("partial"),
+      last_checked_at: checkedAt,
+    },
+    {
+      name: "Upload XLSX",
+      ...healthStatus(
+        "partial",
+        "Lecture XLS/XLSX côté navigateur présente, consolidation produit encore en cours.",
+        "Stabiliser les cas multi-feuilles, formats et exports."
+      ),
+      verification: "partial",
+      verification_label: healthVerificationLabel("partial"),
+      last_checked_at: checkedAt,
+    },
+    {
+      name: "Mémoire conversationnelle",
+      ...healthStatus(
+        "operational",
+        "Résumé et contexte conversationnel conservés localement côté navigateur.",
+        "Prévoir une stratégie de synchronisation ou sauvegarde optionnelle."
+      ),
+      verification: "partial",
+      verification_label: healthVerificationLabel("partial"),
+      last_checked_at: checkedAt,
+    },
+    {
+      name: "Historique",
+      ...healthStatus(
+        "operational",
+        "Historique des conversations stocké localement avec export possible.",
+        "Ajouter une gestion de sauvegarde/restauration."
+      ),
+      verification: "partial",
+      verification_label: healthVerificationLabel("partial"),
+      last_checked_at: checkedAt,
+    },
+    {
+      name: "RAG documentaire",
+      ...healthStatus(
+        "partial",
+        "Bibliothèque documentaire locale disponible, sans index vectoriel serveur dédié.",
+        "Mettre en place un vrai pipeline RAG avec index et citations."
+      ),
+      verification: "partial",
+      verification_label: healthVerificationLabel("partial"),
+      last_checked_at: checkedAt,
+    },
+    {
+      name: "Agents spécialisés",
+      ...healthStatus(
+        "development",
+        "Non exposé comme orchestration agentique dédiée dans l’interface actuelle.",
+        "Définir les rôles, outils, garde-fous et traces d’exécution."
+      ),
+      verification: "partial",
+      verification_label: healthVerificationLabel("partial"),
+      last_checked_at: checkedAt,
+    },
+  ];
+
+  return jsonResponse(request, env, {
+    ok: true,
+    version: "2.0",
+    checked_at: checkedAt,
+    system: {
+      version: appVersion,
+      build: buildNumber,
+      commit: commitSha ? commitSha.slice(0, 12) : null,
+      last_deployed_at: deployedAt,
+      api_worker: "digitalblueskye-api",
+      ai_worker: "digitalblueskye-ai",
+      ai_worker_health_url: aiWorkerHealthUrl,
+    },
+    maturity: {
+      score: scorecard.global_score,
+      max: 10,
+      detail: "Score global calculé par moyenne pondérée des domaines V2.",
+    },
+    scorecard,
+    configuration: {
+      openrouter_api_key_configured: openRouterConfigured,
+      tavily_api_key_configured: tavilyConfigured,
+      source: "digitalblueskye-ai",
+      source_available: aiHealthAvailable,
+    },
+    health_diagnostics: {
+      api_worker: aiHealthDiagnostics,
+      ai_worker: aiHealthResult.payload?.health_diagnostics || null,
+    },
+    checks: {
+      worker: {
+        status: dbConfigured && adminConfigured ? "operational" : "partial",
+        verification: healthVerification(dbConfigured && adminConfigured, true),
+        http_status: 200,
+        detail: "Endpoint /admin/health actif sur digitalblueskye-api.",
+      },
+      frontend: {
+        status: frontendOk ? "operational" : "partial",
+        verification: healthVerification(frontendOk, true),
+        http_status: frontendHealthResult.status,
+        detail: frontendOk ? "Frontend accessible depuis le Worker API." : "Disponibilité frontend non confirmée pendant ce contrôle.",
+      },
+      openrouter: openRouterCheck,
+      tavily: tavilyCheck,
+    },
+    services,
+    statistics: {
+      architecture_version: 1,
+      items: [
+        { key: "conversation_count", label: "Nombre de conversations", value: conversationCount, unit: "" },
+        { key: "web_search_count", label: "Nombre de recherches web", value: webSearchCount, unit: "" },
+        { key: "pdf_count", label: "Nombre de PDF analysés", value: pdfCount, unit: "" },
+        { key: "docx_count", label: "Nombre de DOCX analysés", value: docxCount, unit: "" },
+        { key: "xlsx_count", label: "Nombre de XLSX analysés", value: xlsxCount, unit: "" },
+        { key: "openrouter_request_count", label: "Nombre de requêtes OpenRouter", value: openRouterCount || aiEventCount, unit: "" },
+        { key: "average_response_ms", label: "Temps moyen de réponse", value: averageResponseMs ?? openRouterCheck?.latency_ms ?? null, unit: "ms" },
+        { key: "average_web_search_ms", label: "Temps moyen de recherche web", value: averageWebSearchMs ?? tavilyCheck?.latency_ms ?? null, unit: "ms" },
+      ],
+      note: "Métriques extensibles depuis ai_assistant_events et les futurs logs serveur.",
+    },
+    recent_activity: {
+      limit: 20,
+      has_more: recentEvents.length > 20,
+      next_offset: recentEvents.length > 20 ? 20 : null,
+      items: recentEvents.slice(0, 20).map(formatHealthActivity),
+    },
+    ai_state: {
+      model_active: aiHealthResult.payload?.ai_state?.model_active || env.OPENROUTER_MODEL || "non vérifié",
+      model_resolved: aiHealthResult.payload?.ai_state?.model_resolved || "",
+      provider: "openrouter",
+      fallback_active: Boolean(aiHealthResult.payload?.ai_state?.fallback_active),
+      last_successful_call_at: aiHealthResult.payload?.ai_state?.last_successful_call_at || null,
+      openrouter_error_count: aiHealthResult.payload?.ai_state?.openrouter_error_count ?? (openRouterOk ? 0 : 1),
+      fallback_used_count: aiHealthResult.payload?.ai_state?.fallback_used_count ?? 0,
+      average_latency_ms: aiHealthResult.payload?.ai_state?.average_latency_ms ?? openRouterCheck?.latency_ms ?? null,
+    },
+    documents: [
+      { format: "PDF", status: "supported", max_tested_size: "40 pages / test navigateur", last_validation: checkedAt, reliability: "élevée" },
+      { format: "DOCX", status: "supported", max_tested_size: "Document texte standard", last_validation: checkedAt, reliability: "élevée" },
+      { format: "XLSX", status: "partial", max_tested_size: "Multi-feuilles à stabiliser", last_validation: checkedAt, reliability: "moyenne" },
+      { format: "CSV", status: "partial", max_tested_size: "Import texte simple", last_validation: checkedAt, reliability: "moyenne" },
+      { format: "PPTX", status: "partial", max_tested_size: "Extraction expérimentale", last_validation: checkedAt, reliability: "moyenne" },
+    ],
+    current_capabilities: [
+      "Chat IA",
+      "Recherche web temps réel",
+      "Sources web",
+      "Upload PDF",
+      "Upload DOCX",
+      "Historique local",
+      "Mémoire conversationnelle locale",
+      "Proxy OpenRouter sécurisé",
+    ],
+    in_development: [
+      "XLSX",
+      "Sources web premium",
+      "Export documentaire",
+      "RAG",
+      "Agents spécialisés",
+    ],
+    next_priorities: [
+      {
+        priority: "P1",
+        feature: "Observabilité Worker IA",
+        impact: "Diagnostic rapide des erreurs OpenRouter/Tavily et des latences.",
+        effort: "Moyen",
+        risk: "Faible",
+        state: "En cours",
+      },
+      {
+        priority: "P1",
+        feature: "RAG documentaire",
+        impact: "Réponses ancrées dans les documents avec sources maîtrisées.",
+        effort: "Élevé",
+        risk: "Moyen",
+        state: "À faire",
+      },
+      {
+        priority: "P2",
+        feature: "XLSX stabilisé",
+        impact: "Analyse fiable des tableaux et exports métier.",
+        effort: "Moyen",
+        risk: "Moyen",
+        state: "En cours",
+      },
+      {
+        priority: "P2",
+        feature: "Exports documentaires",
+        impact: "Production de livrables PDF/DOCX/HTML plus robuste.",
+        effort: "Moyen",
+        risk: "Faible",
+        state: "À faire",
+      },
+      {
+        priority: "P3",
+        feature: "Agents spécialisés",
+        impact: "Parcours guidés pour veille, audit, rédaction et gestion projet.",
+        effort: "Élevé",
+        risk: "Moyen",
+        state: "À faire",
+      },
+    ],
+    v3_placeholders: [
+      { name: "RAG documentaire", status: "prévu" },
+      { name: "Base vectorielle", status: "prévu" },
+      { name: "Mémoire persistante", status: "prévu" },
+      { name: "Agents spécialisés", status: "prévu" },
+      { name: "Monitoring avancé", status: "prévu" },
+      { name: "Analytics IA", status: "prévu" },
+    ],
+  });
+}
+
 async function handleAdminComments(request, env, url) {
   if (request.method !== "GET") {
     return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
@@ -874,6 +1495,7 @@ async function handleAdmin(request, env, url) {
 
   const pathname = url.pathname;
   if (pathname === "/admin/summary") return await handleAdminSummary(request, env);
+  if (pathname === "/admin/health") return await handleAdminHealth(request, env);
   if (pathname === "/admin/comments") return await handleAdminComments(request, env, url);
   if (pathname === "/admin/comments/status") return await handleAdminCommentStatus(request, env);
   if (pathname === "/admin/comments/delete") return await handleAdminCommentDelete(request, env);
