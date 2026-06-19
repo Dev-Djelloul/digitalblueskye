@@ -1083,7 +1083,7 @@ header.site-header {
 }
 
 .header-admin-link {
-  margin-left: clamp(25px, 1vw, 14px);
+  margin-left: clamp(30px, 1vw, 14px);
   margin-right: auto;
 }
 
@@ -1538,7 +1538,7 @@ body.body-menu-open .compact-header {
   overflow: hidden auto; /* Pour le défilement si le contenu du menu est long */
   -webkit-overflow-scrolling: touch; /* Défilement fluide sur iOS */
   -ms-overflow-style: none; /* IE et Edge */
-  padding: 34px 86px 42px;
+  padding: 34px 86px 42px 40px; /* Ajustement du padding pour le menu */
   pointer-events: auto; /* ✅ Capture les événements de souris */
   position: fixed;
   right: 0;
@@ -8246,7 +8246,7 @@ body.body-menu-open #footer {
 @media (width <= 1200px) {
   /* Tablettes larges et ordinateurs moyens */
   .dropdown-menu {
-    padding: 30px 76px 35px;
+    padding: 30px 76px 35px 40px;
     width: 100vw;
   }
 
@@ -10156,7 +10156,6 @@ body.body-menu-open #footer {
 
 @media (width >= 769px) {
   .dropdown-menu {
-    padding-left: 86px;
     padding-right: 86px;
     text-align: left;
     overflow-y: auto;
