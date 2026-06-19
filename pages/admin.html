@@ -79,11 +79,15 @@
       }
 
       .admin-access-heading h1 {
-        margin: 0;
-        font-family: "Iceland", "Roboto Condensed", sans-serif;
-        font-size: clamp(2.4rem, 7vw, 3.4rem);
-        line-height: 1;
+        margin: 10px;
+        font-family: "Indie Flower", cursive, sans-serif;
+        font-size: clamp(2.4rem, 7vw, 2.8rem);
+        line-height: 1.6;
         letter-spacing: 0;
+        background: linear-gradient(45deg, var(--accent-color), #c822ff);
+        background-clip: text;
+        color: transparent;
+        text-decoration: none;
       }
 
       .admin-access-panel p {
@@ -91,6 +95,11 @@
         max-width: 62ch;
         color: rgba(247, 251, 255, 0.78);
         font-size: 1.05rem;
+        font-weight: 200;
+      }
+
+      .admin-access-panel p strong {
+       font-weight: 800 !important;
       }
 
       [data-theme="light"] .admin-access-panel p {
@@ -268,16 +277,18 @@
       <section class="admin-access-panel" aria-labelledby="admin-title">
         <div class="admin-access-heading">
           <img src="/assets/images/ui/icons8-admin-48.png" alt="" width="48" height="48" />
-          <h1 id="admin-title">Admin</h1>
+          <h1 id="admin-title">Back-Office Digital Blue Skye</h1>
         </div>
         <p>
-          Accès réservé au back-office DigitalBlueSkye pour consulter les compteurs,
-          modérer les commentaires, lire les messages de contact, auditer les consentements
-          et exporter les journaux.
+          <strong>Accès administrateur sécurisé</strong>
+        </p>
+        <p> 
+          Cette interface est réservée à l’administration du site Digital Blue Skye. 
+          Elle permet de suivre les compteurs clés, modérer les commentaires, consulter les messages de contact, 
+          auditer les consentements utilisateurs et exporter les journaux techniques.
         </p>
         <p>
-          L’accès opérationnel reste protégé par le token administrateur configuré côté
-          Cloudflare Worker.
+          L’accès opérationnel au tableau de bord reste protégé par un token administrateur configuré côté Cloudflare Worker.
         </p>
         <div class="admin-access-actions">
           <a class="admin-access-button" href="/admin/" target="_blank" rel="noopener noreferrer">Ouvrir le back-office</a>
