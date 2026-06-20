@@ -308,7 +308,7 @@ async function parseJsonResponseMetadata(response, url, requestHeadersSent, used
   };
 }
 
-async function fetchAiWorkerHealth(env, aiWorkerHealthUrl, aiHealthToken, timeoutMs = 6500) {
+async function fetchAiWorkerHealth(env, aiWorkerHealthUrl, aiHealthToken, timeoutMs = 10000) {
   const headers = {
     ...(aiHealthToken ? { "X-Health-Check-Token": aiHealthToken } : {}),
     Accept: "application/json",
@@ -357,6 +357,13 @@ async function firstCount(env, sql, ...bindings) {
   return Number(row?.count || 0);
 }
 
+async function firstNumber(env, sql, field = "value", ...bindings) {
+  const statement = env.DB.prepare(sql);
+  const row = bindings.length ? await statement.bind(...bindings).first() : await statement.first();
+  const value = Number(row?.[field]);
+  return Number.isFinite(value) ? value : null;
+}
+
 function parseEventMeta(row) {
   if (!row?.meta) return {};
   try {
@@ -387,6 +394,31 @@ function averageFromEvents(rows, fieldNames) {
   }
   if (!values.length) return null;
   return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
+}
+
+function latestOpenRouterResponseInfo(rows) {
+  const row = rows.find((item) => item?.event_type === "openrouter_response");
+  if (!row) return null;
+  const meta = parseEventMeta(row);
+  return {
+    at: row.created_at || "",
+    model: meta.resolved_model || meta.model || row.event_value || "",
+    latency_ms: Number(meta.latency_ms || 0) || null,
+  };
+}
+
+function stabilizeOpenRouterCheck(check, configured, latestResponse) {
+  if (!check || !configured || !latestResponse) return check;
+  const statusCode = Number(check.status_code || 0);
+  if (statusCode === 401 || statusCode === 403 || check.status === "operational") return check;
+  return {
+    ...check,
+    status: "partial",
+    verification: check.verification === "verified" ? "verified" : "partial",
+    detail: "Le contrôle ponctuel est instable, mais des réponses OpenRouter récentes existent.",
+    recent_openrouter_response_at: latestResponse.at,
+    last_model_used: latestResponse.model,
+  };
 }
 
 function formatHealthActivity(row) {
@@ -866,7 +898,7 @@ async function handleAdminHealth(request, env) {
      LIMIT 500`
   ).all();
 
-  const aiHealthPromise = fetchAiWorkerHealth(env, aiWorkerHealthUrl, aiHealthToken, 6500);
+  const aiHealthPromise = fetchAiWorkerHealth(env, aiWorkerHealthUrl, aiHealthToken, 10000);
 
   const frontendHealthPromise = frontendOrigin && frontendOrigin.startsWith("http")
     ? fetchJsonWithTimeout(frontendOrigin, { method: "GET" }, 2200)
@@ -878,12 +910,40 @@ async function handleAdminHealth(request, env) {
     frontendHealthResult,
     conversationCount,
     aiEventCount,
+    webSearchCount,
+    pdfCount,
+    docxCount,
+    xlsxCount,
+    openRouterCount,
+    averageResponseMs,
+    averageWebSearchMs,
   ] = await Promise.all([
     recentEventsPromise,
     aiHealthPromise,
     frontendHealthPromise,
     firstCount(env, "SELECT COUNT(DISTINCT session_id) AS count FROM ai_assistant_events WHERE session_id IS NOT NULL AND session_id != ''"),
     firstCount(env, "SELECT COUNT(*) AS count FROM ai_assistant_events"),
+    firstCount(env, "SELECT COUNT(*) AS count FROM ai_assistant_events WHERE event_type IN ('web_search_success', 'web_search_error', 'web_search')"),
+    firstCount(env, "SELECT COUNT(*) AS count FROM ai_assistant_events WHERE event_type = 'pdf_uploaded'"),
+    firstCount(env, "SELECT COUNT(*) AS count FROM ai_assistant_events WHERE event_type = 'docx_uploaded'"),
+    firstCount(env, "SELECT COUNT(*) AS count FROM ai_assistant_events WHERE event_type = 'xlsx_uploaded'"),
+    firstCount(env, "SELECT COUNT(*) AS count FROM ai_assistant_events WHERE event_type = 'openrouter_request'"),
+    firstNumber(
+      env,
+      `SELECT AVG(CAST(json_extract(meta, '$.latency_ms') AS REAL)) AS value
+       FROM ai_assistant_events
+       WHERE event_type IN ('openrouter_response', 'assistant_response')
+         AND json_valid(meta)
+         AND json_extract(meta, '$.latency_ms') IS NOT NULL`
+    ).then((value) => value == null ? null : Math.round(value)),
+    firstNumber(
+      env,
+      `SELECT AVG(CAST(json_extract(meta, '$.latency_ms') AS REAL)) AS value
+       FROM ai_assistant_events
+       WHERE event_type = 'web_search_success'
+         AND json_valid(meta)
+         AND json_extract(meta, '$.latency_ms') IS NOT NULL`
+    ).then((value) => value == null ? null : Math.round(value)),
   ]);
 
   const recentEvents = recentEventsResult.results || [];
@@ -892,26 +952,17 @@ async function handleAdminHealth(request, env) {
   const openRouterCheck = aiHealthResult.payload?.checks?.openrouter || null;
   const tavilyCheck = aiHealthResult.payload?.checks?.tavily || null;
   const aiHealthAvailable = Boolean(aiHealthResult.ok && aiHealthResult.payload?.ok);
+  const latestOpenRouterResponse = latestOpenRouterResponseInfo(recentEvents);
   const openRouterConfigured = aiHealthAvailable
     ? Boolean(aiHealthResult.payload?.configuration?.openrouter_api_key_configured)
-    : null;
+    : (latestOpenRouterResponse ? true : null);
   const tavilyConfigured = aiHealthAvailable
     ? Boolean(aiHealthResult.payload?.configuration?.tavily_api_key_configured)
     : null;
-  const openRouterOk = Boolean(openRouterCheck?.ok);
+  const effectiveOpenRouterCheck = stabilizeOpenRouterCheck(openRouterCheck, openRouterConfigured, latestOpenRouterResponse);
+  const openRouterOk = Boolean(effectiveOpenRouterCheck?.ok);
   const tavilyOk = Boolean(tavilyCheck?.ok);
   const frontendOk = Boolean(frontendHealthResult.ok);
-
-  const webSearchCount = recentEvents.filter((row) => eventMatches(row, ["web_search"])).length;
-  const pdfCount = recentEvents.filter((row) => eventMatches(row, ["pdf"])).length;
-  const docxCount = recentEvents.filter((row) => eventMatches(row, ["docx"])).length;
-  const xlsxCount = recentEvents.filter((row) => eventMatches(row, ["xlsx", "excel"])).length;
-  const openRouterCount = recentEvents.filter((row) => eventMatches(row, ["openrouter", "api_response", "api_request"])).length;
-  const averageResponseMs = averageFromEvents(recentEvents, ["duration_ms", "response_ms", "latency_ms"]);
-  const averageWebSearchMs = averageFromEvents(
-    recentEvents.filter((row) => eventMatches(row, ["web_search"])),
-    ["duration_ms", "web_search_latency_ms", "latency_ms"]
-  );
 
   const scorecard = buildDomainScores({
     openRouterOk,
@@ -946,13 +997,13 @@ async function handleAdminHealth(request, env) {
     {
       name: "OpenRouter",
       ...healthStatus(
-        openRouterCheck?.status || (openRouterConfigured === false ? "unconfigured" : "partial"),
-        openRouterCheck?.detail || `Contrôle du Worker IA non disponible (${aiHealthDiagnostics.ai_worker_error || aiHealthDiagnostics.ai_worker_http_status || "erreur inconnue"}). OPENROUTER_API_KEY: non vérifiable depuis digitalblueskye-api.`,
+        effectiveOpenRouterCheck?.status || (openRouterConfigured === false ? "unconfigured" : "partial"),
+        effectiveOpenRouterCheck?.detail || `Contrôle du Worker IA non disponible (${aiHealthDiagnostics.ai_worker_error || aiHealthDiagnostics.ai_worker_http_status || "erreur inconnue"}). OPENROUTER_API_KEY: non vérifiable depuis digitalblueskye-api.`,
         openRouterConfigured === true ? "Suivre les erreurs fournisseur, la latence et les modèles de repli." : "Rendre /admin/health accessible sur digitalblueskye-ai via ADMIN_TOKEN ou HEALTH_CHECK_TOKEN."
       ),
-      verification: openRouterCheck?.verification || "partial",
-      verification_label: healthVerificationLabel(openRouterCheck?.verification || "partial"),
-      latency_ms: openRouterCheck?.latency_ms ?? null,
+      verification: effectiveOpenRouterCheck?.verification || "partial",
+      verification_label: healthVerificationLabel(effectiveOpenRouterCheck?.verification || "partial"),
+      latency_ms: effectiveOpenRouterCheck?.latency_ms ?? null,
       last_checked_at: checkedAt,
     },
     {
@@ -1100,7 +1151,7 @@ async function handleAdminHealth(request, env) {
         http_status: frontendHealthResult.status,
         detail: frontendOk ? "Frontend accessible depuis le Worker API." : "Disponibilité frontend non confirmée pendant ce contrôle.",
       },
-      openrouter: openRouterCheck,
+      openrouter: effectiveOpenRouterCheck,
       tavily: tavilyCheck,
     },
     services,
@@ -1113,7 +1164,7 @@ async function handleAdminHealth(request, env) {
         { key: "docx_count", label: "Nombre de DOCX analysés", value: docxCount, unit: "" },
         { key: "xlsx_count", label: "Nombre de XLSX analysés", value: xlsxCount, unit: "" },
         { key: "openrouter_request_count", label: "Nombre de requêtes OpenRouter", value: openRouterCount || aiEventCount, unit: "" },
-        { key: "average_response_ms", label: "Temps moyen de réponse", value: averageResponseMs ?? openRouterCheck?.latency_ms ?? null, unit: "ms" },
+        { key: "average_response_ms", label: "Temps moyen de réponse", value: averageResponseMs ?? effectiveOpenRouterCheck?.latency_ms ?? null, unit: "ms" },
         { key: "average_web_search_ms", label: "Temps moyen de recherche web", value: averageWebSearchMs ?? tavilyCheck?.latency_ms ?? null, unit: "ms" },
       ],
       note: "Métriques extensibles depuis ai_assistant_events et les futurs logs serveur.",
@@ -1126,13 +1177,17 @@ async function handleAdminHealth(request, env) {
     },
     ai_state: {
       model_active: aiHealthResult.payload?.ai_state?.model_active || env.OPENROUTER_MODEL || "non vérifié",
+      model_configured: aiHealthResult.payload?.ai_state?.model_configured || aiHealthResult.payload?.ai_state?.model_active || env.OPENROUTER_MODEL || "non vérifié",
       model_resolved: aiHealthResult.payload?.ai_state?.model_resolved || "",
+      health_model_used: aiHealthResult.payload?.ai_state?.health_model_used || effectiveOpenRouterCheck?.health_model_used || "",
+      last_model_used: latestOpenRouterResponse?.model || effectiveOpenRouterCheck?.last_model_used || "",
       provider: "openrouter",
       fallback_active: Boolean(aiHealthResult.payload?.ai_state?.fallback_active),
-      last_successful_call_at: aiHealthResult.payload?.ai_state?.last_successful_call_at || null,
-      openrouter_error_count: aiHealthResult.payload?.ai_state?.openrouter_error_count ?? (openRouterOk ? 0 : 1),
+      last_successful_call_at: latestOpenRouterResponse?.at || aiHealthResult.payload?.ai_state?.last_successful_call_at || null,
+      openrouter_error_count: effectiveOpenRouterCheck?.verification === "failed" ? 1 : 0,
       fallback_used_count: aiHealthResult.payload?.ai_state?.fallback_used_count ?? 0,
-      average_latency_ms: aiHealthResult.payload?.ai_state?.average_latency_ms ?? openRouterCheck?.latency_ms ?? null,
+      average_latency_ms: aiHealthResult.payload?.ai_state?.average_latency_ms ?? effectiveOpenRouterCheck?.latency_ms ?? null,
+      last_check: effectiveOpenRouterCheck,
     },
     documents: [
       { format: "PDF", status: "supported", max_tested_size: "40 pages / test navigateur", last_validation: checkedAt, reliability: "élevée" },
@@ -1201,12 +1256,42 @@ async function handleAdminHealth(request, env) {
       },
     ],
     v3_placeholders: [
-      { name: "RAG documentaire", status: "prévu" },
-      { name: "Base vectorielle", status: "prévu" },
-      { name: "Mémoire persistante", status: "prévu" },
-      { name: "Agents spécialisés", status: "prévu" },
-      { name: "Monitoring avancé", status: "prévu" },
-      { name: "Analytics IA", status: "prévu" },
+      {
+        name: "RAG documentaire",
+        status: "prévu",
+        detail: "Indexer les documents validés et produire des réponses sourcées avec citations contrôlées.",
+        next_step: "Définir le corpus pilote et la stratégie de citation.",
+      },
+      {
+        name: "Base vectorielle",
+        status: "prévu",
+        detail: "Préparer embeddings, stockage, réindexation et seuils de similarité.",
+        next_step: "Choisir le stockage et le cycle d’indexation.",
+      },
+      {
+        name: "Mémoire persistante",
+        status: "prévu",
+        detail: "Mémoriser uniquement les préférences utiles avec règles d’effacement et minimisation.",
+        next_step: "Lister les champs mémorisables et leurs durées de conservation.",
+      },
+      {
+        name: "Agents spécialisés",
+        status: "prévu",
+        detail: "Créer des parcours guidés pour veille, audit, rédaction et gestion projet.",
+        next_step: "Définir rôles, outils autorisés et reprise humaine.",
+      },
+      {
+        name: "Monitoring avancé",
+        status: "prévu",
+        detail: "Suivre erreurs fournisseur, latences, fallback, recherche web et volumes par session.",
+        next_step: "Brancher alertes Tavily/OpenRouter et taux d’échec.",
+      },
+      {
+        name: "Analytics IA",
+        status: "prévu",
+        detail: "Transformer les événements D1 en indicateurs d’usage, qualité et fiabilité.",
+        next_step: "Créer les vues 7j/30j et la segmentation par type d’événement.",
+      },
     ],
   });
 }

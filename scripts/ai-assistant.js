@@ -669,6 +669,7 @@
   let sessionsState = { activeSessionId: '', sessions: [] };
   let pendingFileContext = '';
   let pendingFileNames = [];
+  let pendingUploadMetadata = [];
   let pendingLibraryDocumentNames = [];
   let pendingVisionAttachments = [];
   let driveAccessToken = '';
@@ -1173,6 +1174,29 @@
     const safeName = String(name || '');
     const idx = safeName.lastIndexOf('.');
     return idx >= 0 ? safeName.slice(idx + 1).toLowerCase() : '';
+  }
+
+  function getTelemetryFileKind(file) {
+    const extension = getFileExtension(file?.name);
+    if (isPdfFile(file)) return 'pdf';
+    if (isDocxFile(file)) return 'docx';
+    if (isExcelFile(file)) return extension === 'csv' ? 'csv' : 'xlsx';
+    if (isPowerPointFile(file)) return 'pptx';
+    if (extension === 'csv') return 'csv';
+    return '';
+  }
+
+  function buildAttachmentTelemetry(file, extractedTextLength = 0) {
+    const kind = getTelemetryFileKind(file);
+    if (!kind) return null;
+    const extension = getFileExtension(file?.name) || kind;
+    return {
+      name: extension ? `.${extension}` : '',
+      type: String(file?.type || '').slice(0, 120),
+      size: Number(file?.size || 0) || 0,
+      extractedTextLength: Number(extractedTextLength || 0) || 0,
+      kind
+    };
   }
 
   function isReadableTextFile(file) {
@@ -1937,7 +1961,7 @@
 
   async function buildLocalFileContext(files) {
     const selected = Array.from(files || []).slice(0, maxLocalFilesPerPrompt);
-    const readableNames = [], unsupportedNames = [], failedNames = [], noTextNames = [], snippets = [];
+    const readableNames = [], unsupportedNames = [], failedNames = [], noTextNames = [], snippets = [], attachments = [];
     for (const file of selected) {
       if (!isReadableTextFile(file)) {
         if (isPdfFile(file)) {
@@ -1964,6 +1988,7 @@
               ]
             }));
             readableNames.push(file.name);
+            attachments.push(buildAttachmentTelemetry(file, pdfResult.text.length));
             continue;
           } catch (error) { failedNames.push(file.name); continue; }
         }
@@ -1983,6 +2008,7 @@
               maxChars: maxDocumentCharsPerFile
             }));
             readableNames.push(file.name);
+            attachments.push(buildAttachmentTelemetry(file, docxText.length));
             continue;
           } catch (error) { failedNames.push(file.name); continue; }
         }
@@ -2011,6 +2037,7 @@
               ]
             }));
             readableNames.push(file.name);
+            attachments.push(buildAttachmentTelemetry(file, excelResult.text.length));
             assistantLog('debug', 'excel_context_ready', {
               fileName: file.name,
               pendingFileContextLength: snippets.join('\n\n').length
@@ -2040,6 +2067,7 @@
               ]
             }));
             readableNames.push(file.name);
+            attachments.push(buildAttachmentTelemetry(file, pptResult.text.length));
             continue;
           } catch (error) { failedNames.push(file.name); continue; }
         }
@@ -2059,9 +2087,11 @@
         const excerpt = trimmed.length > maxTextCharsPerFile ? `${trimmed.slice(0, maxTextCharsPerFile)}\n...[truncated]` : trimmed;
         snippets.push(`Fichier: ${file.name}\n${excerpt || '[empty file]'}`);
         readableNames.push(file.name);
+        const telemetry = buildAttachmentTelemetry(file, trimmed.length);
+        if (telemetry) attachments.push(telemetry);
       } catch (error) { failedNames.push(file.name); }
     }
-    return { context: snippets.join('\n\n'), readableNames, unsupportedNames, failedNames, noTextNames };
+    return { context: snippets.join('\n\n'), readableNames, unsupportedNames, failedNames, noTextNames, attachments: attachments.filter(Boolean) };
   }
 
   function normalizeKnowledgeText(text) {
@@ -3773,6 +3803,7 @@
       if (excelLoadingBubble) excelLoadingBubble.remove();
       pendingFileContext = result.context;
       pendingFileNames = result.readableNames;
+      pendingUploadMetadata = result.attachments || [];
       pendingVisionAttachments = vision.attachments;
       if (hasDocx) {
         assistantLog('debug', 'docx_context_ready', {
@@ -5734,7 +5765,7 @@
     return currentInfoTriggers.some((trigger) => value.includes(trigger));
   }
 
-  async function askAI(userText, fileContext = '', attachments = []) {
+  async function askAI(userText, fileContext = '', attachments = [], uploadMetadata = []) {
     const loading = addTypingMessage();
     const requestController = new AbortController();
     let effectiveWebSearch = false;
@@ -5771,14 +5802,23 @@
         userRequest
       ].filter(Boolean).join('\n\n');
       const hasFileContext = Boolean(fileContext);
+      const payloadAttachments = [
+        ...uploadMetadata,
+        ...attachments
+      ];
       const payload = {
         message: composedMessage,
+        messagePreview: userText,
         history: hasFileContext ? [] : chatHistory.slice(-apiHistoryWindow),
         conversationSummary: hasFileContext ? '' : normalizeSessionSummary(getActiveSession()?.summary),
         language: currentLanguage === 'en' ? 'en' : 'fr',
         currentDate: dateContext,
         mode: 'chat',
-        attachments,
+        sessionId: getActiveSession()?.id || '',
+        pageUrl: window.location.href,
+        hasFileContext,
+        fileContextLength: fileContext.length,
+        attachments: payloadAttachments,
         searchWeb: effectiveWebSearch,
         webSearchQuery: userText
       };
@@ -5790,7 +5830,7 @@
         fileContextPreview: fileContext.slice(0, 300),
         hasKnowledgeContext: Boolean(knowledgeContext),
         knowledgeContextLength: knowledgeContext.length,
-        attachments: attachments.length,
+        attachments: payloadAttachments.length,
         webSearchActive: effectiveWebSearch,
         webSearchManualToggle: isWebSearchActive
       });
@@ -5879,12 +5919,14 @@
     input.value = '';
     const fileContext = pendingFileContext;
     const attachments = pendingVisionAttachments.slice(0, 2);
+    const uploadMetadata = pendingUploadMetadata.slice(0, maxLocalFilesPerPrompt);
     pendingFileContext = '';
     pendingFileNames = [];
+    pendingUploadMetadata = [];
     pendingLibraryDocumentNames = [];
     pendingVisionAttachments = [];
     if (fileInput) fileInput.value = '';
-    askAI(visibleText, fileContext, attachments);
+    askAI(visibleText, fileContext, attachments, uploadMetadata);
   });
 
   if (input) {

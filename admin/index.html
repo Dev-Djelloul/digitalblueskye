@@ -41,6 +41,7 @@
       color: var(--text);
       font-family: "Google Sans Flex", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       font-size: 15px;
+      font-weight: 400;
       line-height: 1.5;
       overflow-x: hidden;
     }
@@ -167,9 +168,10 @@
     }
 
     .shell {
-      width: min(1440px, 100%);
-      margin: 0 auto;
-      padding: 24px 24px 24px 88px;
+      width: 100%;
+      max-width: 1480px;
+      margin-inline: auto;
+      padding: 28px clamp(76px, 3vw, 96px) 36px;
       overflow-x: hidden;
     }
 
@@ -294,7 +296,7 @@
 
     .summary {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 12px;
       margin-bottom: 18px;
     }
@@ -367,6 +369,7 @@
       gap: 8px;
       flex-wrap: wrap;
       margin-bottom: 14px;
+      justify-content: center;
     }
 
     .tab {
@@ -382,6 +385,8 @@
     }
 
     .panel {
+      width: 100%;
+      margin-inline: auto;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 18px;
@@ -395,7 +400,7 @@
       align-items: end;
       justify-content: space-between;
       gap: 12px;
-      padding: 14px;
+      padding: 16px 18px;
       border-bottom: 1px solid var(--border);
       background: rgba(255, 255, 255, 0.05);
     }
@@ -544,7 +549,7 @@
     .health {
       display: grid;
       gap: 14px;
-      padding: 14px;
+      padding: 18px;
       min-width: 0;
     }
 
@@ -829,7 +834,7 @@
       flex-wrap: wrap;
       color: var(--muted);
       font-size: 13px;
-      font-weight: 800;
+      font-weight: 200;
     }
 
     .health-kv,
@@ -934,6 +939,121 @@
       background: linear-gradient(90deg, var(--score-color, var(--brand)), var(--brand-dark));
       animation: progressIn 0.7s ease both;
       transform-origin: left;
+    }
+
+    .v3-card {
+      display: grid;
+      gap: 16px;
+    }
+
+    .v3-card > header {
+      display: grid;
+      gap: 6px;
+    }
+
+    .v3-card > header p {
+      margin: 0;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .v3-layout {
+      display: grid;
+      grid-template-columns: minmax(260px, 0.42fr) minmax(0, 1fr);
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    .v3-progress-panel,
+    .v3-detail-panel {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.055);
+      padding: 14px;
+      min-width: 0;
+    }
+
+    .v3-progress-panel {
+      display: grid;
+      align-content: start;
+      gap: 14px;
+    }
+
+    .v3-progress-value {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .v3-progress-value strong {
+      font-size: 44px;
+      line-height: 0.95;
+    }
+
+    .v3-progress-value span {
+      color: var(--muted);
+      font-size: 18px;
+      font-weight: 900;
+    }
+
+    .v3-progress-caption {
+      margin: 0;
+      color: var(--muted);
+      font-weight: 750;
+    }
+
+    .v3-readiness {
+      display: grid;
+      gap: 8px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .v3-readiness li {
+      display: grid;
+      gap: 2px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .v3-readiness strong {
+      color: var(--text);
+    }
+
+    .v3-detail-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .v3-feature-card {
+      display: grid;
+      gap: 8px;
+      min-width: 0;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.055);
+      padding: 12px;
+    }
+
+    .v3-feature-card header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .v3-feature-card h3 {
+      margin: 0;
+      font-size: 14px;
+    }
+
+    .v3-feature-card p {
+      margin: 0;
+      color: var(--muted);
+      font-weight: 700;
     }
 
     .availability-donut {
@@ -1275,8 +1395,12 @@
     }
 
     @media (max-width: 1100px) {
+      .shell {
+        padding-inline: 20px;
+      }
+
       .summary {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(3, minmax(0, 1fr));
       }
 
       .health-grid,
@@ -1289,11 +1413,17 @@
       .login-grid {
         grid-template-columns: 1fr 1fr;
       }
+
+      .v3-layout,
+      .v3-detail-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     @media (max-width: 720px) {
       .shell {
-        padding: 72px 16px 16px;
+        width: 100%;
+        padding: 72px 16px 18px;
       }
 
       .back-link {
@@ -1316,6 +1446,8 @@
       .health-radar-layout,
       .health-global-card,
       .roadmap-board,
+      .v3-layout,
+      .v3-detail-grid,
       .filters,
       .login-grid {
         grid-template-columns: 1fr;
@@ -1833,11 +1965,11 @@
     function renderSummary(summary) {
       const conversations = Number(summary.conversations_total || summary.conversation_created || 0);
       const items = [
+        ["Activités IA", summary.ai_assistant_events],
         ["Conversations", conversations],
         ["Commentaires", summary.comments_total, `${Number(summary.comments_pending || 0)} en attente · ${Number(summary.comments_approved || 0)} approuvés`],
         ["Contacts", summary.contact_messages],
         ["Consentements", summary.consent_logs],
-        ["Activités IA", summary.ai_assistant_events],
       ];
       $("#summary").innerHTML = items.map(([label, value, detail]) => `
         <article class="metric ${summaryTargetTab(label) === state.tab ? "active" : ""}" data-target-tab="${summaryTargetTab(label)}" tabindex="0" role="button" aria-label="Ouvrir ${escapeHtml(label)}">
@@ -2059,7 +2191,7 @@
       if (state.tab === "ai") {
         state.aiPilotRows = state.rows;
         if (state.summary) {
-          state.summary.conversations_total = countAi(state.aiPilotRows, (row) => aiEventType(row).toLowerCase().includes("conversation"));
+          state.summary.conversations_total = countAiSessions(state.aiPilotRows);
           state.summary.ai_assistant_events = state.aiPilotRows.length || state.summary.ai_assistant_events;
           renderSummary(state.summary);
         }
@@ -2336,7 +2468,9 @@
     function aiIndicator(aiState) {
       const latency = Number(aiState.average_latency_ms);
       const errors = Number(aiState.openrouter_error_count || 0);
+      const checkStatus = String(aiState.last_check?.status || "").toLowerCase();
       if (errors > 0) return healthSignal("unavailable");
+      if (checkStatus === "partial") return healthSignal("partial");
       if (aiState.fallback_active || (Number.isFinite(latency) && latency > 3500)) return healthSignal("partial");
       return healthSignal("operational");
     }
@@ -2345,17 +2479,22 @@
       const latency = aiState.average_latency_ms == null ? "n/a" : `${aiState.average_latency_ms} ms`;
       const signal = aiIndicator(aiState);
       const errors = Number(aiState.openrouter_error_count || 0);
-      const score = errors > 0 ? 3 : (aiState.fallback_active ? 6 : 8);
+      const score = signal.badge === "unavailable" ? 3 : (signal.badge === "partial" ? 6 : 8);
       const status = getScoreStatus(score);
-      const availability = errors > 0 ? "90%" : (aiState.fallback_active ? "96%" : "99%");
+      const availability = signal.badge === "unavailable" ? "90%" : (signal.badge === "partial" ? "96%" : "99%");
       return `
         <article class="health-card">
           <h2>État de l’intelligence artificielle</h2>
           <div class="health-ai-grid">
             <article class="health-ai-tile ${status.className}">
-              <span>Modèle actif</span>
-              <strong>${escapeHtml(aiState.model_active || "n/a")}</strong>
+              <span>Modèle configuré</span>
+              <strong>${escapeHtml(aiState.model_configured || aiState.model_active || "n/a")}</strong>
               <small>Résolu : ${escapeHtml(aiState.model_resolved || "n/a")}</small>
+            </article>
+            <article class="health-ai-tile ${status.className}">
+              <span>Dernier modèle utilisé</span>
+              <strong>${escapeHtml(aiState.last_model_used || "n/a")}</strong>
+              <small>Health check : ${escapeHtml(aiState.health_model_used || "n/a")}</small>
             </article>
             <article class="health-ai-tile ${status.className}">
               <span>Provider</span>
@@ -2468,6 +2607,86 @@
       return Math.round(((complete + partial * 0.38) / items.length) * 100);
     }
 
+    function v3StatusBadge(status) {
+      const normalized = String(status || "").toLowerCase();
+      if (/termin|fait|actif|opérationnel/.test(normalized)) return statusBadge("operational");
+      if (/cours|dev/.test(normalized)) return statusBadge("development");
+      return `<span class="badge partial">${statusDot()}${escapeHtml(status || "prévu")}</span>`;
+    }
+
+    function v3DetailForItem(item) {
+      const key = String(item?.name || "").toLowerCase();
+      const fallbackDetails = {
+        "rag documentaire": "Indexer les contenus validés, citer les sources internes et isoler les réponses non sourcées.",
+        "base vectorielle": "Préparer le stockage des embeddings, les politiques de réindexation et les seuils de similarité.",
+        "mémoire persistante": "Conserver les préférences utiles sans stocker de contenu sensible inutile.",
+        "agents spécialisés": "Définir les rôles, outils autorisés, traces d’exécution et règles de reprise humaine.",
+        "monitoring avancé": "Suivre latence, erreurs fournisseur, fallback, recherche web et volumes par session.",
+        "analytics ia": "Transformer les événements D1 en indicateurs produit: usages, documents, web, erreurs et qualité."
+      };
+      return item?.detail || fallbackDetails[key] || "Cadrage fonctionnel, données nécessaires, garde-fous et critères de validation à préciser.";
+    }
+
+    function v3NextStepForItem(item) {
+      const key = String(item?.name || "").toLowerCase();
+      const fallbackSteps = {
+        "rag documentaire": "Définir le corpus pilote et le format des citations.",
+        "base vectorielle": "Choisir le stockage et le cycle d’indexation.",
+        "mémoire persistante": "Lister les champs mémorisables et les règles d’effacement.",
+        "agents spécialisés": "Créer les premiers parcours: veille, audit, rédaction, gestion projet.",
+        "monitoring avancé": "Brancher alertes sur Tavily/OpenRouter et taux d’échec.",
+        "analytics ia": "Ajouter des vues 7j/30j et segmentation par type d’événement."
+      };
+      return item?.next_step || fallbackSteps[key] || "Formaliser l’objectif, les métriques et le test d’acceptation.";
+    }
+
+    function renderV3Preparation(items) {
+      const progress = v3Progress(items);
+      const planned = items.filter((item) => /prévu|planifi/i.test(String(item.status || ""))).length;
+      const active = items.length - planned;
+      return `
+        <article class="health-card v3-card" style="--progress: ${progress}%;">
+          <header>
+            <h2>Préparation V3</h2>
+            <p>Socle prévu pour passer du chatbot augmenté à une plateforme IA pilotée: RAG, mémoire, agents, monitoring et analytics.</p>
+          </header>
+          <div class="v3-layout">
+            <section class="v3-progress-panel" aria-label="Progression Préparation V3">
+              <div>
+                <span class="badge partial">${statusDot()}Cadrage actif</span>
+              </div>
+              <div class="v3-progress-value">
+                <strong>${progress}</strong><span>%</span>
+              </div>
+              <div class="progress-bar" aria-label="Progression Préparation V3 ${progress}%">
+                <div class="progress-fill"></div>
+              </div>
+              <p class="v3-progress-caption">La bande de progression est séparée du détail fonctionnel: elle mesure le niveau de cadrage et de préparation, pas un état de livraison production.</p>
+              <ul class="v3-readiness">
+                <li><strong>${items.length}</strong><span>chantiers V3 identifiés</span></li>
+                <li><strong>${planned}</strong><span>chantiers planifiés à cadrer</span></li>
+                <li><strong>${active}</strong><span>chantiers déjà amorcés ou documentés</span></li>
+              </ul>
+            </section>
+            <section class="v3-detail-panel" aria-label="Détail Préparation V3">
+              <div class="v3-detail-grid">
+                ${items.map((item) => `
+                  <article class="v3-feature-card">
+                    <header>
+                      <h3>${escapeHtml(item.name)}</h3>
+                      ${v3StatusBadge(item.status)}
+                    </header>
+                    <p>${escapeHtml(v3DetailForItem(item))}</p>
+                    <p><strong>Prochaine étape :</strong> ${escapeHtml(v3NextStepForItem(item))}</p>
+                  </article>
+                `).join("")}
+              </div>
+            </section>
+          </div>
+        </article>
+      `;
+    }
+
     function filteredDocuments(documents) {
       if (state.documentFormat === "all") return documents;
       return documents.filter((doc) => String(doc.format || "").toLowerCase() === state.documentFormat);
@@ -2483,6 +2702,17 @@
       }
     }
 
+    function parseEventMeta(row) {
+      if (!row?.meta) return {};
+      if (typeof row.meta === "object") return row.meta;
+      try {
+        const parsed = JSON.parse(row.meta);
+        return parsed && typeof parsed === "object" ? parsed : {};
+      } catch {
+        return {};
+      }
+    }
+
     function aiEventType(row) {
       return String(row?.event_type || "").trim() || "event";
     }
@@ -2492,11 +2722,12 @@
       const explicit = row.event_category || payload.event_category || payload.category;
       if (explicit) return String(explicit);
       const type = aiEventType(row).toLowerCase();
+      if (["user_message", "assistant_response"].includes(type)) return "Messages";
+      if (["web_search", "web_search_success", "web_search_error"].includes(type)) return "Recherche Web";
+      if (["pdf_uploaded", "docx_uploaded", "xlsx_uploaded", "csv_uploaded", "pptx_uploaded"].includes(type)) return "Documents";
+      if (["openrouter_request", "openrouter_response", "openrouter_error", "fallback_used"].includes(type)) return "OpenRouter";
+      if (["api_error", "worker_error", "frontend_error"].includes(type)) return "Erreurs";
       if (type.includes("conversation")) return "Conversations";
-      if (type.includes("message") || type.includes("assistant_response")) return "Messages";
-      if (type.includes("openrouter") || type.includes("fallback")) return "OpenRouter";
-      if (type.includes("web_search") || type.includes("search")) return "Recherche Web";
-      if (type.includes("upload") || type.includes("pdf") || type.includes("docx") || type.includes("xlsx") || type.includes("pptx") || type.includes("image")) return "Documents";
       if (type.includes("export")) return "Exports";
       if (type.includes("rag")) return "RAG";
       if (type.includes("error") || type.includes("erreur")) return "Erreurs";
@@ -2513,16 +2744,42 @@
       return "info";
     }
 
-    function aiEventDuration(row) {
-      const payload = parseEventPayload(row);
-      const value = row.duration_ms ?? payload.duration_ms ?? payload.latency_ms ?? payload.duration;
+    function getEventDurationMs(event) {
+      const meta = parseEventMeta(event);
+      const payload = parseEventPayload(event);
+      const value =
+        meta.duration_ms ??
+        meta.latency_ms ??
+        meta.response_ms ??
+        meta.web_search_latency_ms ??
+        event?.duration_ms ??
+        event?.latency_ms ??
+        event?.response_ms ??
+        event?.web_search_latency_ms ??
+        payload.duration_ms ??
+        payload.latency_ms ??
+        payload.response_ms ??
+        payload.web_search_latency_ms;
       const number = Number(value);
-      return Number.isFinite(number) ? number : null;
+      return Number.isFinite(number) && number >= 0 ? number : null;
+    }
+
+    function formatEventDuration(ms) {
+      const value = Number(ms);
+      if (!Number.isFinite(value)) return "—";
+      if (value < 1000) return `${Math.round(value)} ms`;
+      const seconds = Math.round((value / 1000) * 10) / 10;
+      return `${String(seconds).replace(/\.0$/, "")} s`;
+    }
+
+    function getEventDuration(event) {
+      const durationMs = getEventDurationMs(event);
+      return durationMs == null ? "—" : formatEventDuration(durationMs);
     }
 
     function aiEventModel(row) {
       const payload = parseEventPayload(row);
-      return text(row.model || payload.model || payload.model_resolved || payload.provider || "n/a");
+      return text(row.model || payload.resolved_model || payload.model_resolved || payload.model || payload.provider || "n/a");
     }
 
     function aiEventDescription(row) {
@@ -2555,22 +2812,27 @@
       return rows.filter(predicate).length;
     }
 
+    function countAiSessions(rows) {
+      return new Set(rows.map((row) => String(row.session_id || "").trim()).filter(Boolean)).size;
+    }
+
     function averageAiDuration(rows, predicate) {
-      const values = rows.filter(predicate).map(aiEventDuration).filter((value) => value != null);
-      if (!values.length) return "n/a";
-      return `${Math.round(values.reduce((sum, value) => sum + value, 0) / values.length)} ms`;
+      const values = rows.filter(predicate).map(getEventDurationMs).filter((value) => value != null);
+      if (!values.length) return "—";
+      return formatEventDuration(values.reduce((sum, value) => sum + value, 0) / values.length);
     }
 
     function aiStatisticsItems(rows) {
       return [
-        { label: "Conversations", value: countAi(rows, (row) => aiEventType(row).toLowerCase().includes("conversation")) },
+        { label: "Conversations", value: countAiSessions(rows) },
         { label: "Recherches web", value: countAi(rows, (row) => aiEventCategory(row) === "Recherche Web") },
         { label: "PDF analysés", value: countAi(rows, (row) => aiEventType(row).toLowerCase().includes("pdf")) },
         { label: "DOCX analysés", value: countAi(rows, (row) => aiEventType(row).toLowerCase().includes("docx")) },
         { label: "XLSX analysés", value: countAi(rows, (row) => aiEventType(row).toLowerCase().includes("xlsx")) },
+        { label: "CSV analysés", value: countAi(rows, (row) => aiEventType(row).toLowerCase().includes("csv")) },
         { label: "Requêtes OpenRouter", value: countAi(rows, (row) => aiEventCategory(row) === "OpenRouter") },
-        { label: "Temps moyen de réponse", value: averageAiDuration(rows, (row) => aiEventType(row).toLowerCase() === "assistant_response") },
-        { label: "Temps moyen de recherche", value: averageAiDuration(rows, (row) => aiEventCategory(row) === "Recherche Web") },
+        { label: "Temps moyen de réponse", value: averageAiDuration(rows, (row) => ["openrouter_response", "assistant_response"].includes(aiEventType(row).toLowerCase())) },
+        { label: "Temps moyen de recherche", value: averageAiDuration(rows, (row) => aiEventType(row).toLowerCase() === "web_search_success") },
       ];
     }
 
@@ -2645,11 +2907,11 @@
       `;
       $("#aiContent").innerHTML = `
         <section class="health-grid">
-          ${renderAiKpi("Conversations", countAi(rows, (row) => aiEventType(row).toLowerCase().includes("conversation")), "conversation_created / deleted / exported")}
+          ${renderAiKpi("Conversations", countAiSessions(rows), "Sessions distinctes")}
           ${renderAiKpi("Messages utilisateur", countAi(rows, (row) => aiEventType(row).toLowerCase() === "user_message"), "Messages entrants")}
           ${renderAiKpi("Réponses IA", countAi(rows, (row) => aiEventType(row).toLowerCase() === "assistant_response"), "Réponses générées")}
           ${renderAiKpi("Recherches Web", countAi(rows, (row) => aiEventCategory(row) === "Recherche Web"), "web_search / success / error")}
-          ${renderAiKpi("Documents analysés", countAi(rows, (row) => aiEventCategory(row) === "Documents"), "PDF, DOCX, XLSX, PPTX, images")}
+          ${renderAiKpi("Documents analysés", countAi(rows, (row) => aiEventCategory(row) === "Documents"), "PDF, DOCX, XLSX, CSV, PPTX")}
           ${renderAiKpi("Appels OpenRouter", countAi(rows, (row) => aiEventCategory(row) === "OpenRouter"), "request / response / error")}
           ${renderAiKpi("Erreurs", countAi(rows, (row) => aiEventStatus(row) === "error"), "API, Worker, Frontend")}
         </section>
@@ -2727,7 +2989,7 @@
                     <td data-label="Type">${escapeHtml(aiEventType(row))}</td>
                     <td data-label="Description"><div class="cell-text">${escapeHtml(aiEventDescription(row))}</div></td>
                     <td data-label="Statut">${statusBadge(aiEventStatus(row) === "error" ? "unavailable" : (aiEventStatus(row) === "success" ? "operational" : "partial"))}</td>
-                    <td data-label="Durée">${escapeHtml(aiEventDuration(row) == null ? "n/a" : `${aiEventDuration(row)} ms`)}</td>
+                    <td data-label="Durée">${escapeHtml(getEventDuration(row))}</td>
                     <td data-label="Actions">${actionCell(row)}</td>
                   </tr>
                 `).join("") || `<tr><td colspan="8"><div class="health-empty-state"><div><strong>Aucune activité IA enregistrée.</strong><p>Les événements apparaîtront automatiquement avec les conversations, recherches web, uploads et exports.</p></div></div></td></tr>`}
@@ -2844,13 +3106,17 @@
         },
         ai_state: {
           model_active: "non vérifié",
+          model_configured: "non vérifié",
           model_resolved: "n/a",
+          health_model_used: "n/a",
+          last_model_used: "n/a",
           provider: "openrouter",
           fallback_active: false,
           last_successful_call_at: null,
           openrouter_error_count: "n/a",
           fallback_used_count: "n/a",
           average_latency_ms: null,
+          last_check: { status: "partial" },
         },
         documents: [
           { format: "PDF", status: "supported", max_tested_size: "40 pages / test navigateur", last_validation: checkedAt, reliability: "élevée" },
@@ -2997,12 +3263,42 @@
           },
         ],
         v3_placeholders: [
-          { name: "RAG documentaire", status: "prévu" },
-          { name: "Base vectorielle", status: "prévu" },
-          { name: "Mémoire persistante", status: "prévu" },
-          { name: "Agents spécialisés", status: "prévu" },
-          { name: "Monitoring avancé", status: "prévu" },
-          { name: "Analytics IA", status: "prévu" },
+          {
+            name: "RAG documentaire",
+            status: "prévu",
+            detail: "Indexer les documents validés et produire des réponses sourcées avec citations contrôlées.",
+            next_step: "Définir le corpus pilote et la stratégie de citation.",
+          },
+          {
+            name: "Base vectorielle",
+            status: "prévu",
+            detail: "Préparer embeddings, stockage, réindexation et seuils de similarité.",
+            next_step: "Choisir le stockage et le cycle d’indexation.",
+          },
+          {
+            name: "Mémoire persistante",
+            status: "prévu",
+            detail: "Mémoriser uniquement les préférences utiles avec règles d’effacement et minimisation.",
+            next_step: "Lister les champs mémorisables et leurs durées de conservation.",
+          },
+          {
+            name: "Agents spécialisés",
+            status: "prévu",
+            detail: "Créer des parcours guidés pour veille, audit, rédaction et gestion projet.",
+            next_step: "Définir rôles, outils autorisés et reprise humaine.",
+          },
+          {
+            name: "Monitoring avancé",
+            status: "prévu",
+            detail: "Suivre erreurs fournisseur, latences, fallback, recherche web et volumes par session.",
+            next_step: "Brancher alertes Tavily/OpenRouter et taux d’échec.",
+          },
+          {
+            name: "Analytics IA",
+            status: "prévu",
+            detail: "Transformer les événements D1 en indicateurs d’usage, qualité et fiabilité.",
+            next_step: "Créer les vues 7j/30j et la segmentation par type d’événement.",
+          },
         ],
       };
     }
@@ -3166,14 +3462,7 @@
           </article>
         </div>
         ${renderRoadmap(priorities)}
-        <article class="health-card" style="--progress: ${v3Progress(v3)}%;">
-          <h2>Préparation V3</h2>
-          <div class="health-score"><strong>${v3Progress(v3)}</strong><span>%</span></div>
-          <div class="progress-bar" aria-label="Progression Préparation V3 ${v3Progress(v3)}%">
-            <div class="progress-fill"></div>
-          </div>
-          ${renderHealthList(v3.map((item) => `${item.name} · ${item.status}`))}
-        </article>
+        ${renderV3Preparation(v3)}
       `;
     }
 
@@ -3186,7 +3475,7 @@
         ]);
         state.aiPilotRows = aiPayload.items || [];
         if (state.summary) {
-          state.summary.conversations_total = countAi(state.aiPilotRows, (row) => aiEventType(row).toLowerCase().includes("conversation"));
+          state.summary.conversations_total = countAiSessions(state.aiPilotRows);
           state.summary.ai_assistant_events = state.aiPilotRows.length || state.summary.ai_assistant_events;
           renderSummary(state.summary);
         }

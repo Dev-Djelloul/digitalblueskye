@@ -4,6 +4,11 @@ compatibility_date = "2026-06-18"
 workers_dev = true
 keep_vars = true
 
+[[d1_databases]]
+binding = "DB"
+database_name = "digitalblueskye"
+database_id = "eeb9d1b0-26ed-48a1-beb3-b0a944765174"
+
 # Health dashboard auth:
 # Either configure ADMIN_TOKEN on this worker too, or prefer a dedicated shared token:
 # wrangler secret put HEALTH_CHECK_TOKEN -c cloudflare/wrangler.ai.toml

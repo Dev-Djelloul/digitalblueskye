@@ -21,8 +21,8 @@ Ajouter ces variables dans `Settings > Variables`:
   - `OPENROUTER_MODEL` = `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free`
   - `OPENROUTER_FALLBACK_MODELS` = `mistralai/mistral-7b-instruct:free,google/gemma-2-9b-it:free` (optionnel, liste separee par des virgules)
   - `OPENROUTER_MAX_TOKENS` = `1400` (optionnel, minimum applique par le Worker)
-  - `TAVILY_FALLBACK_ENDPOINT` = endpoint de secours pour recuperer uniquement les resultats web si `TAVILY_API_KEY` manque (optionnel)
-  - `ALLOWED_ORIGIN` = `https://digitalblueskye.infinityfreeapp.com`
+  - `TAVILY_FALLBACK_ENDPOINT` = deprecated, option explicite uniquement; non utilise par defaut quand `TAVILY_API_KEY` manque
+  - `ALLOWED_ORIGIN` = `https://digitalblueskye.netlify.app/`
 
 ## 3) Frontend
 Le frontend pointe deja vers le Worker via:
@@ -31,7 +31,7 @@ Le frontend pointe deja vers le Worker via:
 
 Important:
 - les appels frontend vers le Worker sont envoyes en `Content-Type: application/json`
-- l'URL `digitalblueskye-ai.digitalblueskye.workers.dev` est obsolete pour ce projet: elle sert une ancienne version du Worker.
+- tout ancien Worker d'un autre compte Cloudflare est obsolete pour ce projet et ne doit pas etre utilise comme endpoint IA ou recherche web.
 
 ### Option: ajout de fichiers Google Drive dans le chat
 Le bouton Google Drive de l'assistant IA lit ces variables globales front:

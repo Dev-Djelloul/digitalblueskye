@@ -8,7 +8,7 @@ const FALLBACK_MODEL = 'openrouter/auto';
 
 function buildCorsHeaders(request, env) {
   const requestOrigin = request.headers.get('Origin');
-  const fallbackOrigin = env.ALLOWED_ORIGIN || 'https://digitalblueskye.infinityfreeapp.com';
+  const fallbackOrigin = env.ALLOWED_ORIGIN || 'https://digitalblueskye.netlify.app/';
   const corsOrigin = requestOrigin || fallbackOrigin;
 
   return {
@@ -143,7 +143,7 @@ async function callOpenRouter({ apiKey, model, systemPrompt, history, message, a
 export default {
   async fetch(request, env) {
     const corsHeaders = buildCorsHeaders(request, env);
-    const referer = env.ALLOWED_ORIGIN || 'https://digitalblueskye.infinityfreeapp.com';
+    const referer = env.ALLOWED_ORIGIN || 'https://digitalblueskye.netlify.app/';
 
     if (request.method === 'OPTIONS') {
       return new Response(null, { status: 204, headers: corsHeaders });
