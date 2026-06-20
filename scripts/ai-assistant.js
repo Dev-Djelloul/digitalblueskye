@@ -1,4 +1,4 @@
- document.addEventListener('DOMContentLoaded', function () {
+  document.addEventListener('DOMContentLoaded', function () {
   function normalizeLanguage(value) {
     if (!value) return '';
     return value.toString().trim().toLowerCase().split(/[-_]/)[0] || '';
@@ -5066,6 +5066,50 @@
     }).join('\n');
   }
 
+
+  function isMarkdownTableLine(line) {
+    return /^\s*\|.*\|\s*$/.test(String(line || ''));
+  }
+
+  function isMarkdownTableSeparator(line) {
+    const trimmed = String(line || '').trim();
+    if (!isMarkdownTableLine(trimmed)) return false;
+    const cells = trimmed.split('|').slice(1, -1).map((cell) => cell.trim());
+    return cells.length > 0 && cells.every((cell) => /^:?-{3,}:?$/.test(cell));
+  }
+
+  function parseMarkdownTableCells(row) {
+    return String(row || '')
+      .trim()
+      .split('|')
+      .slice(1, -1)
+      .map((cell) => cell.trim());
+  }
+
+  function normalizeMarkdownTableRows(rows) {
+    const sourceRows = Array.isArray(rows) ? rows.map((row) => String(row || '').trim()).filter(isMarkdownTableLine) : [];
+    if (sourceRows.length < 2) return null;
+
+    const hasSeparator = isMarkdownTableSeparator(sourceRows[1]);
+    const dataRows = sourceRows.filter((row, index) => !(index === 1 && hasSeparator));
+    if (dataRows.length < 2) return null;
+
+    const parsedRows = dataRows.map(parseMarkdownTableCells);
+    const columnCount = parsedRows[0]?.length || 0;
+    const isValid = columnCount >= 2 && parsedRows.every((row) => row.length === columnCount);
+    if (!isValid) return null;
+
+    return parsedRows;
+  }
+
+  function renderInvalidMarkdownTableRowsAsParagraphs(rows, renderCell = (value) => value) {
+    return (Array.isArray(rows) ? rows : [])
+      .map((row) => parseMarkdownTableCells(row).filter(Boolean).join(' — '))
+      .filter(Boolean)
+      .map((line) => `<p>${renderCell(line)}</p>`)
+      .join('');
+  }
+
   // ─── FONCTION DE RENDU MARKDOWN AMÉLIORÉE ───────────────────────────────────
   function formatBotMessageHtml(rawText) {
     const codeBlocks = [];
@@ -5178,13 +5222,16 @@
 
     function flushTable() {
       if (!tableBuffer.length) return;
-      const rows = tableBuffer.filter((row) => !/^\|[\s\-:| ]+\|$/.test(row));
-      if (!rows.length) { tableBuffer = []; return; }
+      const rows = normalizeMarkdownTableRows(tableBuffer);
+      if (!rows) {
+        html += renderInvalidMarkdownTableRowsAsParagraphs(tableBuffer, linkifyLine);
+        tableBuffer = [];
+        return;
+      }
       html += '<div class="ai-assistant-table-wrap"><table class="ai-assistant-table">';
-      rows.forEach((row, idx) => {
-        const cells = row.split('|').slice(1, -1);
+      rows.forEach((cells, idx) => {
         const tag = idx === 0 ? 'th' : 'td';
-        html += '<tr>' + cells.map((cell) => `<${tag}>${linkifyLine(cell.trim())}</${tag}>`).join('') + '</tr>';
+        html += '<tr>' + cells.map((cell) => `<${tag}>${linkifyLine(cell)}</${tag}>`).join('') + '</tr>';
       });
       html += '</table></div>';
       tableBuffer = [];
@@ -5192,7 +5239,7 @@
 
     for (const line of lines) {
       // Tableau Markdown
-      if (line.startsWith('|') && line.endsWith('|')) {
+      if (isMarkdownTableLine(line)) {
         flushLists();
         orderedListIndex = 1;
         tableBuffer.push(line);
@@ -5850,7 +5897,7 @@
   }
 
   function parseMarkdownTableRowForPdf(row) {
-    return row.split('|').slice(1, -1).map((cell) => stripMarkdownForPdf(cell));
+    return parseMarkdownTableCells(row).map((cell) => stripMarkdownForPdf(cell));
   }
 
   function drawPdfWrappedText(doc, text, x, y, maxWidth, options = {}) {
@@ -5867,7 +5914,8 @@
   }
 
   function drawPdfTable(doc, rows, state) {
-    const cleanRows = rows.filter((row) => !/^\|[\s\-:|]+\|$/.test(row)).map(parseMarkdownTableRowForPdf).filter((row) => row.length);
+    const normalizedRows = normalizeMarkdownTableRows(rows);
+    const cleanRows = normalizedRows ? normalizedRows.map((row) => row.map((cell) => stripMarkdownForPdf(cell))) : [];
     if (!cleanRows.length) return state.y;
     const pageHeight = doc.internal.pageSize.getHeight();
     const columnCount = Math.max(...cleanRows.map((row) => row.length));
@@ -5975,7 +6023,7 @@
           codeRows.push(line);
           return;
         }
-        if (trimmed.startsWith('|') && trimmed.endsWith('|')) {
+        if (isMarkdownTableLine(trimmed)) {
           tableRows.push(trimmed);
           return;
         }
@@ -6109,11 +6157,11 @@
   }
 
   function parseMarkdownTableRow(row) {
-    return row.split('|').slice(1, -1).map((cell) => cell.trim());
+    return parseMarkdownTableCells(row);
   }
 
   function buildDocxTable(rows) {
-    const cleanRows = rows.filter((row) => !/^\|[\s\-:|]+\|$/.test(row)).map(parseMarkdownTableRow).filter((row) => row.length);
+    const cleanRows = normalizeMarkdownTableRows(rows) || [];
     if (!cleanRows.length) return '';
     const columnCount = Math.max(...cleanRows.map((row) => row.length));
     const usableWidth = 9000;
@@ -6190,7 +6238,7 @@
         codeRows.push(line);
         return;
       }
-      if (line.trim().startsWith('|') && line.trim().endsWith('|')) {
+      if (isMarkdownTableLine(line.trim())) {
         tableRows.push(line.trim());
         return;
       }
