@@ -5621,7 +5621,14 @@
     mediaPreview.setAttribute('aria-hidden', 'false');
   }
 
+  function cleanExportHtmlContent(content) {
+    return String(content || '')
+      .replace(/<span\s+class=["']ai-assistant-tts-segment["']>/g, '')
+      .replace(/<\/span>/g, '');
+  }
+
   function buildExportHtml(content, title = 'Digital Blue Skye document') {
+    const exportContent = cleanExportHtmlContent(content);
     return `<!doctype html>
 <html lang="${currentLanguage === 'en' ? 'en' : 'fr'}">
 <head>
@@ -5629,61 +5636,175 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${escapeHtml(title)}</title>
   <style>
-    :root { color-scheme: light; }
+    :root {
+      color-scheme: dark;
+      --bg: #090719;
+      --bg-soft: #130d2c;
+      --panel: rgb(255 255 255 / 8%);
+      --panel-strong: rgb(255 255 255 / 12%);
+      --border: rgb(185 158 255 / 24%);
+      --border-soft: rgb(255 255 255 / 12%);
+      --text: #f6f3ff;
+      --muted: rgb(234 226 255 / 72%);
+      --muted-2: rgb(234 226 255 / 54%);
+      --accent: #9ee8ff;
+      --accent-2: #b98cff;
+      --accent-3: #7c5cff;
+      --shadow: 0 26px 80px rgb(0 0 0 / 38%);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
     body {
-      background: #f6f7ff;
-      color: #1f2140;
-      font-family: Arial, Helvetica, sans-serif;
-      line-height: 1.62;
+      background:
+        radial-gradient(circle at 12% 0%, rgb(121 230 255 / 18%), transparent 34%),
+        radial-gradient(circle at 88% 8%, rgb(188 92 255 / 24%), transparent 38%),
+        linear-gradient(135deg, #070713 0%, #120827 48%, #211044 100%);
+      color: var(--text);
+      line-height: 1.66;
       margin: 0;
-      padding: 42px 24px;
+      min-height: 100vh;
+      padding: clamp(18px, 4vw, 48px);
     }
     main {
-      background: #ffffff;
-      border: 1px solid #dddff7;
-      border-radius: 18px;
-      box-shadow: 0 20px 55px rgb(42 46 92 / 12%);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      background: linear-gradient(180deg, rgb(255 255 255 / 10%), rgb(255 255 255 / 6%));
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      box-shadow: var(--shadow), inset 0 1px 0 rgb(255 255 255 / 10%);
       margin: 0 auto;
-      max-width: 860px;
-      padding: 42px 48px;
+      max-width: 1180px;
+      overflow: hidden;
+      padding: clamp(24px, 4vw, 54px);
+      position: relative;
     }
+    main::before {
+      background: linear-gradient(90deg, var(--accent), var(--accent-2), transparent 75%);
+      content: "";
+      display: block;
+      height: 3px;
+      left: 0;
+      opacity: .9;
+      position: absolute;
+      top: 0;
+      width: 100%;
+    }
+    .meta {
+      border: 1px solid var(--border-soft);
+      border-radius: 999px;
+      color: var(--muted-2);
+      display: inline-flex;
+      font-size: .86rem;
+      gap: .45rem;
+      letter-spacing: .01em;
+      margin: 0 0 28px;
+      padding: 8px 13px;
+    }
+    h1, h2, h3 { color: var(--text); letter-spacing: -.02em; line-height: 1.15; }
     h1 {
-      color: #2929d8;
-      font-size: 1.72rem;
-      line-height: 1.18;
-      margin: 0 0 1.1em;
+      font-size: clamp(2rem, 4.6vw, 4rem);
+      margin: 0 0 1rem;
     }
     h2 {
-      border-left: 4px solid #5d5dff;
-      color: #4c4cff;
-      font-size: 1.18rem;
-      line-height: 1.28;
-      margin: 1.7em 0 0.65em;
-      padding-left: 0.65em;
+      border-left: 4px solid var(--accent);
+      color: var(--accent);
+      font-size: clamp(1.22rem, 2.2vw, 1.72rem);
+      margin: 2rem 0 1rem;
+      padding-left: .75rem;
     }
-    h3 { color: #3638b8; font-size: 1rem; line-height: 1.3; margin: 1.3em 0 0.5em; }
-    p, li { font-size: 0.96rem; }
-    p { margin: 0 0 0.9em; }
-    ul, ol { margin: 0.4em 0 1em 1.35em; padding: 0; }
-    li { margin: 0.28em 0; }
-    table { border-collapse: collapse; margin: 1.2em 0; table-layout: fixed; width: 100%; }
-    th, td { border: 1px solid #d7d8ef; padding: 9px 11px; text-align: left; vertical-align: top; word-break: break-word; }
-    th { background: #f0f1ff; color: #25275a; }
-    code, pre { background: #f6f7ff; border-radius: 6px; font-family: Consolas, monospace; }
-    code { padding: 2px 5px; }
-    pre { overflow-x: auto; padding: 14px; }
-    blockquote { border-left: 4px solid #5d5dff; color: #555779; margin: 1em 0; padding: 0.2em 0 0.2em 1em; }
-    .meta { border-bottom: 1px solid #d7d8ef; color: #6b6d8f; font-size: 0.86rem; margin-bottom: 28px; padding-bottom: 12px; }
+    h3 { color: #d7c7ff; font-size: 1.08rem; margin: 1.45rem 0 .65rem; }
+    p, li { color: var(--muted); font-size: 1rem; }
+    p { margin: 0 0 1rem; }
+    ul, ol { margin: .5rem 0 1.1rem 1.25rem; padding: 0; }
+    li { margin: .3rem 0; }
+    a { color: var(--accent); }
+    .ai-assistant-table-wrap, table {
+      width: 100%;
+    }
+    .ai-assistant-table-wrap {
+      border: 1px solid var(--border-soft);
+      border-radius: 18px;
+      box-shadow: 0 18px 44px rgb(0 0 0 / 18%);
+      margin: 1.35rem 0 1.65rem;
+      overflow-x: auto;
+    }
+    table {
+      border-collapse: collapse;
+      min-width: 980px;
+      table-layout: fixed;
+    }
+    th, td {
+      border-bottom: 1px solid var(--border-soft);
+      border-right: 1px solid rgb(255 255 255 / 8%);
+      padding: 14px 16px;
+      text-align: left;
+      vertical-align: top;
+      word-break: normal;
+      overflow-wrap: anywhere;
+    }
+    th:last-child, td:last-child { border-right: 0; }
+    tr:last-child td { border-bottom: 0; }
+    th {
+      background: linear-gradient(180deg, rgb(158 232 255 / 18%), rgb(185 140 255 / 12%));
+      color: #f7fbff;
+      font-size: .82rem;
+      font-weight: 750;
+      letter-spacing: .035em;
+      text-transform: uppercase;
+    }
+    td {
+      background: rgb(255 255 255 / 5%);
+      color: rgb(246 243 255 / 84%);
+      font-size: .95rem;
+    }
+    tr:nth-child(even) td { background: rgb(255 255 255 / 7%); }
+    code, pre {
+      background: rgb(0 0 0 / 24%);
+      border: 1px solid var(--border-soft);
+      border-radius: 10px;
+      color: #ecf8ff;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    code { padding: 2px 6px; }
+    pre { overflow-x: auto; padding: 16px; }
+    blockquote {
+      background: rgb(255 255 255 / 5%);
+      border-left: 4px solid var(--accent-2);
+      border-radius: 0 14px 14px 0;
+      color: var(--muted);
+      margin: 1rem 0;
+      padding: .75rem 1rem;
+    }
+    @media (max-width: 760px) {
+      body { padding: 14px; }
+      main { border-radius: 20px; padding: 22px 16px; }
+      table { min-width: 760px; }
+      th, td { padding: 11px 12px; }
+    }
+    @page { size: A4 landscape; margin: 12mm; }
     @media print {
-      body { background: #ffffff; padding: 0; }
-      main { border: 0; border-radius: 0; box-shadow: none; padding: 24px 0; }
+      :root { color-scheme: light; }
+      body { background: #ffffff; color: #111827; padding: 0; }
+      main { background: #ffffff; border: 0; border-radius: 0; box-shadow: none; max-width: none; padding: 0; }
+      main::before { display: none; }
+      .meta { border-color: #d7d8ef; color: #5b5f84; }
+      h1, h2, h3 { color: #171833; }
+      h2 { border-left-color: #5d5dff; color: #2929d8; }
+      p, li, td { color: #1f2140; }
+      .ai-assistant-table-wrap { border: 1px solid #d7d8ef; box-shadow: none; overflow: visible; }
+      table { min-width: 0; page-break-inside: auto; }
+      tr { page-break-inside: avoid; page-break-after: auto; }
+      th { background: #f0f1ff !important; color: #25275a; }
+      td { background: #ffffff !important; color: #1f2140; }
+      th, td { border-color: #d7d8ef; font-size: 8.5pt; padding: 7px 8px; }
+      code, pre { background: #f6f7ff; border-color: #d7d8ef; color: #171833; }
     }
   </style>
 </head>
 <body>
   <main>
     <div class="meta">Digital Blue Skye AI - ${new Date().toLocaleDateString(currentLanguage === 'en' ? 'en-US' : 'fr-FR')}</div>
-    ${content}
+    ${exportContent}
   </main>
 </body>
 </html>`;
@@ -5961,8 +6082,11 @@
     const source = normalizeDocumentExportSource(markdown);
     try {
       const JsPdf = await ensureJsPdfReady();
-      const doc = new JsPdf({ unit: 'mm', format: 'a4', orientation: 'portrait' });
-      const margin = 17;
+      const hasWideTableForPdf = source
+        .split('\n')
+        .some((line) => isMarkdownTableLine(line.trim()) && parseMarkdownTableCells(line.trim()).length >= 4);
+      const doc = new JsPdf({ unit: 'mm', format: 'a4', orientation: hasWideTableForPdf ? 'landscape' : 'portrait' });
+      const margin = hasWideTableForPdf ? 12 : 17;
       const pageHeight = doc.internal.pageSize.getHeight();
       const contentWidth = doc.internal.pageSize.getWidth() - (margin * 2);
       const state = { margin, contentWidth, y: margin };
