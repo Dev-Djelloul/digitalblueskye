@@ -81,3 +81,10 @@ CREATE TABLE IF NOT EXISTS ai_assistant_events (
 
 CREATE INDEX IF NOT EXISTS idx_assistant_session_created ON ai_assistant_events (session_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_assistant_event_created ON ai_assistant_events (event_type, created_at);
+
+CREATE TABLE IF NOT EXISTS tavily_search_dedupe (
+  cache_key TEXT PRIMARY KEY,
+  created_at INTEGER NOT NULL,
+  completed_at INTEGER,
+  result_json TEXT
+);

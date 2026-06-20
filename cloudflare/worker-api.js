@@ -407,6 +407,84 @@ function latestOpenRouterResponseInfo(rows) {
   };
 }
 
+function latestTavilyEventInfo(rows, eventType) {
+  const row = rows.find((item) => item?.event_type === eventType);
+  if (!row) return null;
+  const meta = parseEventMeta(row);
+  return {
+    at: row.created_at || "",
+    latency_ms: Number(meta.latency_ms || meta.duration_ms || 0) || null,
+    endpoint: meta.endpoint || "",
+    error: meta.error || row.event_value || "",
+    status_code: meta.status_code ?? null,
+  };
+}
+
+function averagePerPeriod(rows, predicate, days) {
+  const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+  const count = rows.filter((row) => {
+    const createdAt = new Date(row.created_at || 0).getTime();
+    return Number.isFinite(createdAt) && createdAt >= cutoff && predicate(row);
+  }).length;
+  return Math.round((count / days) * 10) / 10;
+}
+
+function buildTavilyUsageFromEvents(rows, aiHealthPayload, env) {
+  const eventRows = Array.isArray(rows) ? rows : [];
+  const runtime = aiHealthPayload?.tavily_usage || {};
+  const actualCallRows = eventRows.filter((row) => ["web_search_success", "web_search_error"].includes(row.event_type));
+  const successRows = eventRows.filter((row) => row.event_type === "web_search_success");
+  const cacheRows = eventRows.filter((row) => row.event_type === "web_search_cached");
+  const dedupeRows = eventRows.filter((row) => row.event_type === "web_search_deduplicated");
+  const skippedRows = eventRows.filter((row) => row.event_type === "web_search_skipped");
+  const creditsFromEvents = actualCallRows.reduce((sum, row) => {
+    const meta = parseEventMeta(row);
+    const value = Number(meta.estimated_credits ?? meta.credits_estimated ?? 1);
+    return sum + (Number.isFinite(value) ? value : 0);
+  }, 0);
+  const quota = Number(runtime.quota_estimated_total || env.TAVILY_MONTHLY_QUOTA || env.TAVILY_CREDIT_QUOTA || 1000);
+  const searchesExecuted = actualCallRows.length;
+  const searchesSkipped = skippedRows.length;
+  const cacheHits = cacheRows.length;
+  const dedupeCount = dedupeRows.length;
+  const creditsUsed = creditsFromEvents;
+  const cacheTotal = searchesExecuted + cacheHits;
+  const dedupeTotal = searchesExecuted + dedupeCount;
+  const latestSuccess = latestTavilyEventInfo(eventRows, "web_search_success");
+  const latestError = latestTavilyEventInfo(eventRows, "web_search_error");
+  const lastEvent = [latestSuccess, latestError].filter(Boolean).sort((a, b) => new Date(b.at) - new Date(a.at))[0] || null;
+  const averageLatencyMs = Number(runtime.average_latency_ms || 0) || averageFromEvents(successRows, ["latency_ms", "duration_ms"]);
+  const quotaUsedPercent = quota ? Math.min(100, Math.round((creditsUsed / quota) * 1000) / 10) : 0;
+
+  return {
+    endpoint: runtime.endpoint || latestSuccess?.endpoint || latestError?.endpoint || "https://api.tavily.com/search",
+    api_key_configured: aiHealthPayload?.configuration?.tavily_api_key_configured ?? null,
+    searches_executed: searchesExecuted,
+    searches_skipped: searchesSkipped,
+    searches_avoided_cache: cacheHits,
+    searches_avoided_deduplication: dedupeCount,
+    cache_hit_count: cacheHits,
+    cache_miss_count: searchesExecuted,
+    cache_hit_rate: cacheTotal ? Math.round((cacheHits / cacheTotal) * 1000) / 10 : 0,
+    cache_miss_rate: cacheTotal ? Math.round((searchesExecuted / cacheTotal) * 1000) / 10 : 0,
+    deduplication_rate: dedupeTotal ? Math.round((dedupeCount / dedupeTotal) * 1000) / 10 : 0,
+    average_latency_ms: averageLatencyMs,
+    credits_estimated_consumed: creditsUsed,
+    credits_estimated_remaining: Math.max(0, quota - creditsUsed),
+    quota_estimated_total: quota,
+    quota_estimated_used_percent: quotaUsedPercent,
+    daily_average: averagePerPeriod(eventRows, (row) => ["web_search_success", "web_search_error"].includes(row.event_type), 1),
+    weekly_average: averagePerPeriod(eventRows, (row) => ["web_search_success", "web_search_error"].includes(row.event_type), 7),
+    last_call_at: runtime.last_call_at || lastEvent?.at || null,
+    last_latency_ms: runtime.last_latency_ms ?? lastEvent?.latency_ms ?? null,
+    last_success_at: runtime.last_success_at || latestSuccess?.at || null,
+    last_error_at: runtime.last_error_at || latestError?.at || null,
+    last_error: runtime.last_error || latestError?.error || "",
+    economy_mode_active: runtime.economy_mode_active ?? true,
+    ultra_economy_mode_active: runtime.ultra_economy_mode_active ?? quotaUsedPercent >= 95,
+  };
+}
+
 function stabilizeOpenRouterCheck(check, configured, latestResponse) {
   if (!check || !configured || !latestResponse) return check;
   const statusCode = Number(check.status_code || 0);
@@ -923,7 +1001,7 @@ async function handleAdminHealth(request, env) {
     frontendHealthPromise,
     firstCount(env, "SELECT COUNT(DISTINCT session_id) AS count FROM ai_assistant_events WHERE session_id IS NOT NULL AND session_id != ''"),
     firstCount(env, "SELECT COUNT(*) AS count FROM ai_assistant_events"),
-    firstCount(env, "SELECT COUNT(*) AS count FROM ai_assistant_events WHERE event_type IN ('web_search_success', 'web_search_error', 'web_search')"),
+    firstCount(env, "SELECT COUNT(*) AS count FROM ai_assistant_events WHERE event_type IN ('web_search_requested', 'web_search_skipped', 'web_search_cached', 'web_search_deduplicated', 'web_search_success', 'web_search_error', 'web_search')"),
     firstCount(env, "SELECT COUNT(*) AS count FROM ai_assistant_events WHERE event_type = 'pdf_uploaded'"),
     firstCount(env, "SELECT COUNT(*) AS count FROM ai_assistant_events WHERE event_type = 'docx_uploaded'"),
     firstCount(env, "SELECT COUNT(*) AS count FROM ai_assistant_events WHERE event_type = 'xlsx_uploaded'"),
@@ -959,6 +1037,7 @@ async function handleAdminHealth(request, env) {
   const tavilyConfigured = aiHealthAvailable
     ? Boolean(aiHealthResult.payload?.configuration?.tavily_api_key_configured)
     : null;
+  const tavilyUsage = buildTavilyUsageFromEvents(recentEvents, aiHealthResult.payload, env);
   const effectiveOpenRouterCheck = stabilizeOpenRouterCheck(openRouterCheck, openRouterConfigured, latestOpenRouterResponse);
   const openRouterOk = Boolean(effectiveOpenRouterCheck?.ok);
   const tavilyOk = Boolean(tavilyCheck?.ok);
@@ -1154,12 +1233,16 @@ async function handleAdminHealth(request, env) {
       openrouter: effectiveOpenRouterCheck,
       tavily: tavilyCheck,
     },
+    tavily_usage: tavilyUsage,
     services,
     statistics: {
       architecture_version: 1,
       items: [
         { key: "conversation_count", label: "Nombre de conversations", value: conversationCount, unit: "" },
         { key: "web_search_count", label: "Nombre de recherches web", value: webSearchCount, unit: "" },
+        { key: "tavily_searches_executed", label: "Recherches Tavily exécutées", value: tavilyUsage.searches_executed, unit: "" },
+        { key: "tavily_cache_saved", label: "Recherches évitées par cache", value: tavilyUsage.searches_avoided_cache, unit: "" },
+        { key: "tavily_dedupe_saved", label: "Recherches évitées par déduplication", value: tavilyUsage.searches_avoided_deduplication, unit: "" },
         { key: "pdf_count", label: "Nombre de PDF analysés", value: pdfCount, unit: "" },
         { key: "docx_count", label: "Nombre de DOCX analysés", value: docxCount, unit: "" },
         { key: "xlsx_count", label: "Nombre de XLSX analysés", value: xlsxCount, unit: "" },

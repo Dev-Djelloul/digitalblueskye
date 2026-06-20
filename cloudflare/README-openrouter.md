@@ -21,7 +21,7 @@ Ajouter ces variables dans `Settings > Variables`:
   - `OPENROUTER_MODEL` = `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free`
   - `OPENROUTER_FALLBACK_MODELS` = `mistralai/mistral-7b-instruct:free,google/gemma-2-9b-it:free` (optionnel, liste separee par des virgules)
   - `OPENROUTER_MAX_TOKENS` = `1400` (optionnel, minimum applique par le Worker)
-  - `TAVILY_FALLBACK_ENDPOINT` = deprecated, option explicite uniquement; non utilise par defaut quand `TAVILY_API_KEY` manque
+  - `TAVILY_MONTHLY_QUOTA` = quota mensuel estime Tavily, `1000` par defaut
   - `ALLOWED_ORIGIN` = `https://digitalblueskye.netlify.app/`
 
 ## 3) Frontend
@@ -73,10 +73,11 @@ fetch('https://digitalblueskye-ai.djelloulabid75.workers.dev', {
 
 Reponse attendue:
 - `ok: true`
-- `worker_build: "2026-06-18-web-search-openrouter-v3"`
+- `worker_build: "2026-06-20-tavily-economy-v4"`
 - `reply: "..."`
 - `provider: "openrouter"`
-- si `web_search_error` vaut `missing_tavily_key`, `legacy_search_failed` ou `legacy_search_timeout`, ajouter le secret `TAVILY_API_KEY` pour rendre le Worker autonome.
+- si `web_search_error` vaut `missing_tavily_key`, ajouter le secret `TAVILY_API_KEY`.
+- aucun fallback vers un ancien Worker de recherche web n'est utilise.
 
 ## 5) Si erreur
 - `missing_openrouter_key`: secret absent.

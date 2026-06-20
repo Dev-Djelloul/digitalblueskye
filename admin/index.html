@@ -2723,7 +2723,7 @@
       if (explicit) return String(explicit);
       const type = aiEventType(row).toLowerCase();
       if (["user_message", "assistant_response"].includes(type)) return "Messages";
-      if (["web_search", "web_search_success", "web_search_error"].includes(type)) return "Recherche Web";
+      if (["web_search", "web_search_requested", "web_search_skipped", "web_search_cached", "web_search_deduplicated", "web_search_success", "web_search_error"].includes(type)) return "Recherche Web";
       if (["pdf_uploaded", "docx_uploaded", "xlsx_uploaded", "csv_uploaded", "pptx_uploaded"].includes(type)) return "Documents";
       if (["openrouter_request", "openrouter_response", "openrouter_error", "fallback_used"].includes(type)) return "OpenRouter";
       if (["api_error", "worker_error", "frontend_error"].includes(type)) return "Erreurs";
@@ -2822,6 +2822,25 @@
       return formatEventDuration(values.reduce((sum, value) => sum + value, 0) / values.length);
     }
 
+    function buildTavilyUsageFromAiRows(rows) {
+      const actualCallRows = rows.filter((row) => ["web_search_success", "web_search_error"].includes(aiEventType(row).toLowerCase()));
+      const cacheRows = rows.filter((row) => aiEventType(row).toLowerCase() === "web_search_cached");
+      const dedupeRows = rows.filter((row) => aiEventType(row).toLowerCase() === "web_search_deduplicated");
+      const credits = actualCallRows.reduce((sum, row) => {
+        const meta = parseEventMeta(row);
+        const value = Number(meta.estimated_credits ?? meta.credits_estimated ?? 1);
+        return sum + (Number.isFinite(value) ? value : 0);
+      }, 0);
+      const cacheTotal = actualCallRows.length + cacheRows.length;
+      return {
+        searches_executed: actualCallRows.length,
+        searches_avoided_cache: cacheRows.length,
+        searches_avoided_deduplication: dedupeRows.length,
+        credits_estimated_consumed: credits,
+        cache_hit_rate: cacheTotal ? Math.round((cacheRows.length / cacheTotal) * 1000) / 10 : 0,
+      };
+    }
+
     function aiStatisticsItems(rows) {
       return [
         { label: "Conversations", value: countAiSessions(rows) },
@@ -2859,6 +2878,22 @@
           <svg class="sparkline" viewBox="0 0 120 28" aria-hidden="true">
             <polyline points="2,18 22,17 42,18 62,15 82,16 102,13 118,14"></polyline>
           </svg>
+        </article>
+      `;
+    }
+
+    function renderTavilyActivitySummary(rows) {
+      const usage = buildTavilyUsageFromAiRows(rows);
+      return `
+        <article class="health-card">
+          <h2>Usage Tavily</h2>
+          <div class="health-ai-grid">
+            <article class="health-ai-tile"><span>Recherches web exécutées</span><strong>${escapeHtml(usage.searches_executed)}</strong><small>web_search_success / error</small></article>
+            <article class="health-ai-tile score-good"><span>Évitées par cache</span><strong>${escapeHtml(usage.searches_avoided_cache)}</strong><small>web_search_cached</small></article>
+            <article class="health-ai-tile score-good"><span>Évitées par déduplication</span><strong>${escapeHtml(usage.searches_avoided_deduplication)}</strong><small>web_search_deduplicated</small></article>
+            <article class="health-ai-tile"><span>Crédits estimés consommés</span><strong>${escapeHtml(usage.credits_estimated_consumed)}</strong><small>estimation depuis les événements</small></article>
+            <article class="health-ai-tile"><span>Taux de cache</span><strong>${escapeHtml(formatPercent(usage.cache_hit_rate))}</strong><small>cache hit / miss</small></article>
+          </div>
         </article>
       `;
     }
@@ -2915,6 +2950,7 @@
           ${renderAiKpi("Appels OpenRouter", countAi(rows, (row) => aiEventCategory(row) === "OpenRouter"), "request / response / error")}
           ${renderAiKpi("Erreurs", countAi(rows, (row) => aiEventStatus(row) === "error"), "API, Worker, Frontend")}
         </section>
+        ${renderTavilyActivitySummary(rows)}
         <article class="health-card">
           <h2>Filtres avancés</h2>
           <div class="health-section-toolbar">
@@ -3033,6 +3069,71 @@
       `;
     }
 
+    function tavilyGaugeStatus(percent) {
+      const value = Number(percent);
+      if (!Number.isFinite(value)) return { key: "unknown", className: "score-neutral", label: "n/a", color: "#64748b", alert: "" };
+      if (value >= 95) return { key: "critical", className: "score-critical", label: "Critique", color: "#7f1d1d", alert: "Critique : quota Tavily presque épuisé." };
+      if (value >= 80) return { key: "red", className: "score-critical", label: "Rouge", color: "#dc2626", alert: "Alerte : consommation Tavily élevée." };
+      if (value >= 60) return { key: "orange", className: "score-warning", label: "Orange", color: "#f97316", alert: "Attention : plus de 60 % du quota Tavily est consommé." };
+      return { key: "green", className: "score-good", label: "Vert", color: "#16a34a", alert: "" };
+    }
+
+    function formatPercent(value) {
+      const number = Number(value);
+      return Number.isFinite(number) ? `${number.toFixed(number % 1 ? 1 : 0)}%` : "n/a";
+    }
+
+    function formatMs(value) {
+      const number = Number(value);
+      return Number.isFinite(number) ? `${Math.round(number)} ms` : "n/a";
+    }
+
+    function renderTavilyConsumption(tavilyUsage = {}, configuration = {}) {
+      const usedPercent = Number(tavilyUsage.quota_estimated_used_percent || 0);
+      const status = tavilyGaugeStatus(usedPercent);
+      const ultra = Boolean(tavilyUsage.ultra_economy_mode_active);
+      const apiConfigured = tavilyUsage.api_key_configured ?? configuration.tavily_api_key_configured;
+      return `
+        <article class="health-card ${status.className}">
+          <h2>Consommation Tavily</h2>
+          ${status.alert ? `<p class="badge ${status.key === "orange" ? "partial" : "unavailable"}">${statusDot()}${escapeHtml(status.alert)}</p>` : ""}
+          ${ultra ? `<p class="badge unavailable">${statusDot()}Mode ultra-économique actif</p>` : ""}
+          <div class="health-global-status" style="--score-color: ${status.color};">
+            <div class="progress-bar" aria-label="Quota Tavily consommé ${formatPercent(usedPercent)}">
+              <div class="progress-fill" style="width: ${Math.min(100, Math.max(0, usedPercent))}%; background: ${status.color};"></div>
+            </div>
+            <p><strong>${escapeHtml(formatPercent(usedPercent))}</strong> du quota estimé consommé · niveau ${escapeHtml(status.label)}</p>
+          </div>
+          <div class="health-ai-grid">
+            <article class="health-ai-tile ${status.className}"><span>Recherches exécutées</span><strong>${escapeHtml(tavilyUsage.searches_executed ?? 0)}</strong><small>Tavily réel</small></article>
+            <article class="health-ai-tile score-good"><span>Évitées par cache</span><strong>${escapeHtml(tavilyUsage.searches_avoided_cache ?? 0)}</strong><small>cache_hit ${escapeHtml(formatPercent(tavilyUsage.cache_hit_rate || 0))}</small></article>
+            <article class="health-ai-tile score-good"><span>Évitées par déduplication</span><strong>${escapeHtml(tavilyUsage.searches_avoided_deduplication ?? 0)}</strong><small>${escapeHtml(formatPercent(tavilyUsage.deduplication_rate || 0))}</small></article>
+            <article class="health-ai-tile"><span>Cache miss</span><strong>${escapeHtml(formatPercent(tavilyUsage.cache_miss_rate || 0))}</strong><small>${escapeHtml(tavilyUsage.cache_miss_count ?? 0)} miss</small></article>
+            <article class="health-ai-tile"><span>Latence moyenne</span><strong>${escapeHtml(formatMs(tavilyUsage.average_latency_ms))}</strong><small>Dernière : ${escapeHtml(formatMs(tavilyUsage.last_latency_ms))}</small></article>
+            <article class="health-ai-tile ${status.className}"><span>Crédits estimés</span><strong>${escapeHtml(tavilyUsage.credits_estimated_consumed ?? 0)}</strong><small>Restants : ${escapeHtml(tavilyUsage.credits_estimated_remaining ?? "n/a")}</small></article>
+            <article class="health-ai-tile"><span>Moyenne quotidienne</span><strong>${escapeHtml(tavilyUsage.daily_average ?? 0)}</strong><small>recherches/jour</small></article>
+            <article class="health-ai-tile"><span>Moyenne hebdomadaire</span><strong>${escapeHtml(tavilyUsage.weekly_average ?? 0)}</strong><small>recherches/jour sur 7j</small></article>
+          </div>
+          <h3>Pilotage Tavily</h3>
+          ${renderHealthKv([
+            ["TAVILY_API_KEY configurée", formatConfigured(apiConfigured)],
+            ["Endpoint utilisé", tavilyUsage.endpoint || "https://api.tavily.com/search"],
+            ["Dernier appel", formatDate(tavilyUsage.last_call_at) || "n/a"],
+            ["Dernière latence", formatMs(tavilyUsage.last_latency_ms)],
+            ["Dernier succès", formatDate(tavilyUsage.last_success_at) || "n/a"],
+            ["Dernier échec", formatDate(tavilyUsage.last_error_at) || "n/a"],
+            ["Erreur récente", tavilyUsage.last_error || "aucune"],
+            ["Quota estimé utilisé", `${tavilyUsage.credits_estimated_consumed ?? 0} / ${tavilyUsage.quota_estimated_total ?? "n/a"}`],
+            ["Quota estimé restant", tavilyUsage.credits_estimated_remaining ?? "n/a"],
+            ["Mode économique actif", tavilyUsage.economy_mode_active === false ? "non" : "oui"],
+            ["Mode ultra-économique actif", ultra ? "oui" : "non"],
+            ["Taux de cache", formatPercent(tavilyUsage.cache_hit_rate || 0)],
+            ["Taux de déduplication", formatPercent(tavilyUsage.deduplication_rate || 0)],
+          ])}
+        </article>
+      `;
+    }
+
     function buildFallbackHealth(reason) {
       const checkedAt = new Date().toISOString();
       return {
@@ -3097,6 +3198,33 @@
             { label: "Temps moyen de recherche web", value: "n/a" },
           ],
           note: "Statistiques serveur disponibles après déploiement de /admin/health.",
+        },
+        tavily_usage: {
+          endpoint: "https://api.tavily.com/search",
+          api_key_configured: false,
+          searches_executed: 0,
+          searches_skipped: 0,
+          searches_avoided_cache: 0,
+          searches_avoided_deduplication: 0,
+          cache_hit_count: 0,
+          cache_miss_count: 0,
+          cache_hit_rate: 0,
+          cache_miss_rate: 0,
+          deduplication_rate: 0,
+          average_latency_ms: null,
+          credits_estimated_consumed: 0,
+          credits_estimated_remaining: "n/a",
+          quota_estimated_total: "n/a",
+          quota_estimated_used_percent: 0,
+          daily_average: 0,
+          weekly_average: 0,
+          last_call_at: null,
+          last_latency_ms: null,
+          last_success_at: null,
+          last_error_at: null,
+          last_error: "",
+          economy_mode_active: true,
+          ultra_economy_mode_active: false,
         },
         recent_activity: {
           items: [
@@ -3315,6 +3443,7 @@
       };
       const recentActivity = aiRecentActivity(aiRows);
       const aiState = health?.ai_state || {};
+      const tavilyUsage = health?.tavily_usage || {};
       const services = Array.isArray(health?.services) ? health.services : [];
       const priorities = Array.isArray(health?.next_priorities) ? health.next_priorities : [];
       const documents = Array.isArray(health?.documents) ? health.documents : [];
@@ -3326,6 +3455,7 @@
         ${health?.fallback ? `<span>Mode local: endpoint Pilotage non déployé</span>` : ""}
         <span>OPENROUTER_API_KEY: ${formatConfigured(configuration.openrouter_api_key_configured)}</span>
         <span>TAVILY_API_KEY: ${formatConfigured(configuration.tavily_api_key_configured)}</span>
+        <span>Tavily ultra-éco: ${health?.tavily_usage?.ultra_economy_mode_active ? "actif" : "inactif"}</span>
         <span>Source secrets: ${escapeHtml(configuration.source || "digitalblueskye-ai")}</span>
       `;
       $("#healthContent").innerHTML = `
@@ -3360,6 +3490,7 @@
           <p>${escapeHtml(statistics.note || "Métriques extensibles.")}</p>
         </article>
         ${renderAiStateCards(aiState)}
+        ${renderTavilyConsumption(tavilyUsage, configuration)}
         <article class="health-card">
           <h2>Services</h2>
           <div class="health-section-toolbar" aria-label="Filtres services">

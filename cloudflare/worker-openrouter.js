@@ -14,15 +14,37 @@
 
 const DEFAULT_MODEL = 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free';
 const FALLBACK_MODEL = 'openrouter/auto';
-const WORKER_BUILD = '2026-06-18-web-search-openrouter-v3';
+const WORKER_BUILD = '2026-06-20-tavily-economy-v4';
 const TAVILY_SEARCH_ENDPOINT = 'https://api.tavily.com/search';
 const DEFAULT_MAX_TOKENS = 1400;
 const WEB_SEARCH_TIMEOUT = 8000; // 8 secondes max par recherche web
-const WEB_SEARCH_CACHE_TTL = 3600000; // 1 heure de cache
+const WEB_SEARCH_CACHE_TTL = 21600000; // 6 heures de cache
+const WEB_SEARCH_DEDUPE_WINDOW = 60000; // 60 secondes
+const WEB_SEARCH_MAX_PER_SESSION = 5;
+const TAVILY_DEFAULT_QUOTA = 1000;
 
-// Cache simple pour débounce et réutilisation des résultats
+// Cache mémoire Worker: économique, non persistant, partagé tant que l'isolat Cloudflare reste chaud.
 const webSearchCache = new Map();
-const webSearchDebounce = new Map();
+const webSearchInFlight = new Map();
+const webSearchRecentRequests = new Map();
+let tavilyDedupeTableReady = false;
+const tavilyRuntimeStats = {
+  searchesExecuted: 0,
+  cacheHits: 0,
+  cacheMisses: 0,
+  deduplicatedRequests: 0,
+  savedByDedupe: 0,
+  skipped: 0,
+  errors: 0,
+  totalLatencyMs: 0,
+  estimatedCreditsUsed: 0,
+  lastCallAt: null,
+  lastLatencyMs: null,
+  lastSuccessAt: null,
+  lastErrorAt: null,
+  lastError: '',
+  lastEndpoint: TAVILY_SEARCH_ENDPOINT
+};
 
 function buildCorsHeaders(request, env) {
   const fallbackOrigin = env.ALLOWED_ORIGIN || 'https://digitalblueskye.netlify.app/';
@@ -444,6 +466,318 @@ function buildFinancialQuery(originalQuery) {
   return base;
 }
 
+function normalizeForKeywordMatching(value) {
+  return String(value || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[’']/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function containsAnyKeyword(value, keywords) {
+  const normalized = normalizeForKeywordMatching(value);
+  return keywords.some((keyword) => normalized.includes(normalizeForKeywordMatching(keyword)));
+}
+
+function detectWebSearchIntent(message, body = {}) {
+  const requestedExplicitly = body?.searchWeb === true || body?.searchWeb === 'true';
+  const haystack = [
+    message,
+    body?.webSearchQuery,
+    body?.messagePreview
+  ].filter(Boolean).join(' ');
+
+  const mandatoryKeywords = [
+    'actualité',
+    'actualite',
+    'news',
+    "aujourd'hui",
+    'aujourdhui',
+    'cette semaine',
+    'cette année',
+    'cette annee',
+    'récent',
+    'recent',
+    'récente',
+    'recente',
+    'dernier',
+    'dernière',
+    'derniere',
+    'dernières',
+    'dernieres',
+    'dernières annonces',
+    'dernieres annonces',
+    'prix actuel',
+    'cours',
+    'disponibilité',
+    'disponibilite',
+    'sortie produit',
+    'évolution réglementaire',
+    'evolution reglementaire',
+    'classement',
+    'comparatif récent',
+    'comparatif recent',
+    'évolution du marché',
+    'evolution du marche'
+  ];
+  const explicitKeywords = [
+    'recherche web',
+    'cherche sur internet',
+    'vérifie sur internet',
+    'verifie sur internet',
+    'consulte le web',
+    'fais une recherche',
+    'recherche des sources',
+    'recherche des informations récentes',
+    'recherche des informations recentes',
+    'cherche sur le web',
+    'consulte internet'
+  ];
+  const forbiddenKeywords = [
+    'définition',
+    'definition',
+    'concept théorique',
+    'concept theorique',
+    'gestion de projet',
+    'agile',
+    'marketing digital',
+    'ux/ui',
+    'ux',
+    'ui',
+    'développement web',
+    'developpement web',
+    'programmation',
+    'html',
+    'css',
+    'javascript',
+    'rédaction',
+    'redaction',
+    'synthèse',
+    'synthese',
+    'analyse de documents',
+    'analyse de fichiers',
+    'fichier uploadé',
+    'fichier uploade'
+  ];
+  const deepSearchKeywords = [
+    'recherche approfondie',
+    'analyse approfondie',
+    'deep research',
+    'recherche détaillée',
+    'recherche detaillee',
+    'sources nombreuses',
+    'comparatif complet'
+  ];
+
+  const explicit = requestedExplicitly || containsAnyKeyword(haystack, explicitKeywords);
+  return {
+    explicit,
+    mandatory: containsAnyKeyword(haystack, mandatoryKeywords),
+    forbidden: containsAnyKeyword(haystack, forbiddenKeywords),
+    deep: containsAnyKeyword(haystack, deepSearchKeywords),
+    matched_reason: explicit
+      ? 'explicit_web_search_request'
+      : (containsAnyKeyword(haystack, mandatoryKeywords) ? 'mandatory_freshness_keyword' : 'no_web_search_intent')
+  };
+}
+
+function getTavilyQuota(env) {
+  const configured = Number(env?.TAVILY_MONTHLY_QUOTA || env?.TAVILY_CREDIT_QUOTA || 0);
+  return Number.isFinite(configured) && configured > 0 ? configured : TAVILY_DEFAULT_QUOTA;
+}
+
+function getTavilyUsageRatio(env) {
+  const quota = getTavilyQuota(env);
+  return quota > 0 ? tavilyRuntimeStats.estimatedCreditsUsed / quota : 0;
+}
+
+function isTavilyUltraEconomyActive(env) {
+  return getTavilyUsageRatio(env) >= 0.95;
+}
+
+async function getPersistentTavilyCreditsUsed(env) {
+  if (!env?.DB) return tavilyRuntimeStats.estimatedCreditsUsed;
+  try {
+    const row = await env.DB.prepare(
+      `SELECT SUM(
+         COALESCE(
+           CAST(json_extract(meta, '$.estimated_credits') AS REAL),
+           CAST(json_extract(meta, '$.credits_estimated') AS REAL),
+           1
+         )
+       ) AS credits
+       FROM ai_assistant_events
+       WHERE event_type IN ('web_search_success', 'web_search_error')
+         AND json_valid(meta)
+         AND COALESCE(json_extract(meta, '$.provider'), 'tavily') = 'tavily'`
+    ).first();
+    const persisted = Number(row?.credits || 0);
+    return Math.max(persisted, tavilyRuntimeStats.estimatedCreditsUsed);
+  } catch (error) {
+    console.warn('tavily_persistent_usage_failed', error instanceof Error ? error.message : String(error));
+    return tavilyRuntimeStats.estimatedCreditsUsed;
+  }
+}
+
+function buildTavilyOptions(env, intent) {
+  const ultraEconomy = Boolean(intent?.ultraEconomyActive) || isTavilyUltraEconomyActive(env);
+  const allowDeep = Boolean(intent?.deep) && !ultraEconomy;
+  return {
+    search_depth: allowDeep ? 'advanced' : 'basic',
+    max_results: ultraEconomy ? 1 : (allowDeep ? 3 : 3),
+    include_answer: false,
+    include_raw_content: false,
+    mode: ultraEconomy ? 'ultra_economy' : 'economy',
+    estimated_credits: allowDeep ? 2 : 1
+  };
+}
+
+async function countSessionWebSearches(env, sessionId) {
+  if (!env?.DB || !sessionId) return 0;
+  try {
+    const result = await env.DB.prepare(
+      `SELECT COUNT(*) AS count
+       FROM ai_assistant_events
+       WHERE session_id = ?
+         AND event_type = 'web_search_success'
+         AND json_valid(meta)
+         AND COALESCE(
+           CAST(json_extract(meta, '$.estimated_credits') AS REAL),
+           CAST(json_extract(meta, '$.credits_estimated') AS REAL),
+           1
+         ) > 0`
+    ).bind(sessionId).first();
+    return Number(result?.count || 0) || 0;
+  } catch (error) {
+    console.warn('web_search_session_count_failed', error instanceof Error ? error.message : String(error));
+    return 0;
+  }
+}
+
+function normalizeSkipReason(reason) {
+  if (reason === 'skipped_local_document_context') return 'file_context';
+  if (reason === 'skipped_session_limit') return 'limit_reached';
+  if (reason === 'skipped_forbidden_local_or_general_topic') return 'local_question';
+  return 'not_needed';
+}
+
+async function ensureTavilyDedupeTable(env) {
+  if (!env?.DB || tavilyDedupeTableReady) return;
+  await env.DB.prepare(
+    `CREATE TABLE IF NOT EXISTS tavily_search_dedupe (
+      cache_key TEXT PRIMARY KEY,
+      created_at INTEGER NOT NULL,
+      completed_at INTEGER,
+      result_json TEXT
+    )`
+  ).run();
+  tavilyDedupeTableReady = true;
+}
+
+async function acquireTavilyDedupeLock(env, cacheKey, now) {
+  if (!env?.DB) return { acquired: true, existing: null };
+  await ensureTavilyDedupeTable(env);
+  await env.DB.prepare(
+    `DELETE FROM tavily_search_dedupe WHERE created_at < ?`
+  ).bind(now - WEB_SEARCH_DEDUPE_WINDOW).run();
+  try {
+    await env.DB.prepare(
+      `INSERT INTO tavily_search_dedupe (cache_key, created_at, completed_at, result_json)
+       VALUES (?, ?, NULL, NULL)`
+    ).bind(cacheKey, now).run();
+    return { acquired: true, existing: null };
+  } catch (error) {
+    const existing = await env.DB.prepare(
+      `SELECT cache_key, created_at, completed_at, result_json
+       FROM tavily_search_dedupe
+       WHERE cache_key = ?`
+    ).bind(cacheKey).first();
+    return { acquired: false, existing };
+  }
+}
+
+async function completeTavilyDedupeLock(env, cacheKey, result) {
+  if (!env?.DB) return;
+  await ensureTavilyDedupeTable(env);
+  const serializable = {
+    results: result?.results || [],
+    answer: result?.answer || '',
+    rawResults: result?.rawResults || [],
+    error: result?.error || '',
+    transformedQuery: result?.transformedQuery || '',
+    diagnostics: result?.diagnostics || {},
+    latencyMs: result?.latencyMs || 0,
+    endpoint: result?.endpoint || TAVILY_SEARCH_ENDPOINT,
+    options: result?.options || {},
+    timestamp: Date.now()
+  };
+  await env.DB.prepare(
+    `UPDATE tavily_search_dedupe
+     SET completed_at = ?, result_json = ?
+     WHERE cache_key = ?`
+  ).bind(Date.now(), JSON.stringify(serializable), cacheKey).run();
+}
+
+async function waitForTavilyDedupeResult(env, cacheKey) {
+  if (!env?.DB) return null;
+  await ensureTavilyDedupeTable(env);
+  const deadline = Date.now() + WEB_SEARCH_TIMEOUT + 1000;
+  while (Date.now() < deadline) {
+    const row = await env.DB.prepare(
+      `SELECT result_json FROM tavily_search_dedupe
+       WHERE cache_key = ?
+         AND completed_at IS NOT NULL
+         AND result_json IS NOT NULL`
+    ).bind(cacheKey).first();
+    if (row?.result_json) {
+      try {
+        return JSON.parse(row.result_json);
+      } catch (error) {
+        return null;
+      }
+    }
+    await new Promise((resolve) => setTimeout(resolve, 150));
+  }
+  return null;
+}
+
+async function decideWebSearch({ message, body, env, sessionId, hasFileContext, attachments }) {
+  const intent = detectWebSearchIntent(message, body);
+  const persistentCreditsUsed = await getPersistentTavilyCreditsUsed(env);
+  const quota = getTavilyQuota(env);
+  const ultraEconomy = quota > 0 ? (persistentCreditsUsed / quota) >= 0.95 : isTavilyUltraEconomyActive(env);
+  intent.ultraEconomyActive = ultraEconomy;
+  intent.estimatedCreditsUsed = persistentCreditsUsed;
+  intent.estimatedQuota = quota;
+  const hasDocumentContext = Boolean(hasFileContext || (Array.isArray(attachments) && attachments.length > 0));
+  if (hasDocumentContext) {
+    return { shouldSearch: false, intent, ultraEconomy, reason: 'skipped_local_document_context' };
+  }
+  if (ultraEconomy && !intent.explicit) {
+    return { shouldSearch: false, intent, ultraEconomy, reason: 'skipped_ultra_economy_explicit_only' };
+  }
+  if (intent.explicit) {
+    const sessionSearchCount = await countSessionWebSearches(env, sessionId);
+    if (sessionSearchCount >= WEB_SEARCH_MAX_PER_SESSION) {
+      return { shouldSearch: false, intent, ultraEconomy, reason: 'skipped_session_limit', sessionSearchCount };
+    }
+    return { shouldSearch: true, intent, ultraEconomy, reason: 'explicit_web_search_request', sessionSearchCount };
+  }
+  if (intent.mandatory && !intent.forbidden) {
+    const sessionSearchCount = await countSessionWebSearches(env, sessionId);
+    if (sessionSearchCount >= WEB_SEARCH_MAX_PER_SESSION) {
+      return { shouldSearch: false, intent, ultraEconomy, reason: 'skipped_session_limit', sessionSearchCount };
+    }
+    return { shouldSearch: true, intent, ultraEconomy, reason: 'mandatory_freshness_keyword', sessionSearchCount };
+  }
+  if (intent.forbidden) {
+    return { shouldSearch: false, intent, ultraEconomy, reason: 'skipped_forbidden_local_or_general_topic' };
+  }
+  return { shouldSearch: false, intent, ultraEconomy, reason: 'skipped_model_knowledge_sufficient' };
+}
+
 function normalizeWebSearchQuery(rawQuery, fallbackMessage = '') {
   const original = String(rawQuery || fallbackMessage || '').trim();
   if (!original) return '';
@@ -608,81 +942,12 @@ function attachmentEventValue(attachment, kind) {
   return `${extension || kind} uploaded`;
 }
 
-function isAllowedLegacyWebSearchEndpoint(endpoint) {
-  const normalizedEndpoint = String(endpoint || '').trim();
-  let blockedLegacyHost = false;
-  try {
-    const host = new URL(normalizedEndpoint).hostname;
-    blockedLegacyHost = host === ['digitalblueskye-ai', 'digitalblueskye', 'workers', 'dev'].join('.');
-  } catch (error) {
-    blockedLegacyHost = true;
-  }
-  return (
-    normalizedEndpoint.startsWith('https://') &&
-    !blockedLegacyHost
-  );
-}
-
-async function performLegacyWebSearch(query, endpoint) {
-  const normalizedEndpoint = String(endpoint || '').trim();
-  if (!isAllowedLegacyWebSearchEndpoint(normalizedEndpoint)) {
-    return { results: [], answer: '', error: 'legacy_search_disabled', transformedQuery: query };
-  }
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), WEB_SEARCH_TIMEOUT);
-  try {
-    const response = await fetch(normalizedEndpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      signal: controller.signal,
-      body: JSON.stringify({
-        mode: 'chat',
-        language: 'fr',
-        message: query,
-        searchWeb: true,
-        webSearchQuery: query
-      })
-    });
-    clearTimeout(timeoutId);
-    if (!response.ok) {
-      return { results: [], answer: '', error: `legacy_search_${response.status}`, transformedQuery: query };
-    }
-    const data = await response.json();
-    const results = Array.isArray(data?.web_search_results)
-      ? data.web_search_results
-        .filter((result) => result && (result.link || result.url))
-        .slice(0, 5)
-        .map((result, index) => ({
-          title: result.title || result.link || result.url || `Source ${index + 1}`,
-          link: result.link || result.url,
-          snippet: result.snippet || result.description || result.content || ''
-        }))
-      : [];
-    return {
-      results,
-      rawResults: [],
-      answer: '',
-      error: results.length ? '' : (data?.web_search_error || 'legacy_search_no_results'),
-      transformedQuery: data?.web_search_query || query
-    };
-  } catch (error) {
-    clearTimeout(timeoutId);
-    return {
-      results: [],
-      answer: '',
-      error: error?.name === 'AbortError' ? 'legacy_search_timeout' : 'legacy_search_failed',
-      transformedQuery: query
-    };
-  }
-}
-
-async function performWebSearch(query, env) {
+async function performWebSearch(query, env, intent = {}) {
   const normalizedApiKey = normalizeTavilyApiKey(env?.TAVILY_API_KEY);
-  const fallbackEndpoint = String(env?.TAVILY_FALLBACK_ENDPOINT || '').trim();
   if (!normalizedApiKey) {
-    if (isAllowedLegacyWebSearchEndpoint(fallbackEndpoint)) {
-      return performLegacyWebSearch(query, fallbackEndpoint);
-    }
+    tavilyRuntimeStats.errors += 1;
+    tavilyRuntimeStats.lastErrorAt = new Date().toISOString();
+    tavilyRuntimeStats.lastError = 'missing_tavily_key';
     return {
       results: [],
       answer: '',
@@ -696,26 +961,117 @@ async function performWebSearch(query, env) {
   const normalizedQuery = normalizeWebSearchQuery(query);
   if (!normalizedQuery) return { results: [], answer: '', error: 'empty_web_search_query', transformedQuery: query };
   const transformedQuery = buildFinancialQuery(normalizedQuery);
-  const cacheKey = hashQuery(transformedQuery);
+  const stableQueryKey = transformedQuery.toLowerCase().trim();
+  const cacheKey = hashQuery(stableQueryKey);
+  const now = Date.now();
+  const options = buildTavilyOptions(env, intent);
 
-  // Vérifier le cache
   const cached = webSearchCache.get(cacheKey);
-  if (cached && Date.now() - cached.timestamp < WEB_SEARCH_CACHE_TTL) {
-    console.log('web_search_cache_hit', { originalQuery: query, transformedQuery, cacheAge: Date.now() - cached.timestamp });
-    return { ...cached, error: '', transformedQuery };
+  if (cached && now - cached.timestamp < WEB_SEARCH_CACHE_TTL) {
+    tavilyRuntimeStats.cacheHits += 1;
+    console.log('web_search_cached', { originalQuery: query, transformedQuery, cacheAge: now - cached.timestamp });
+    return {
+      ...cached,
+      error: '',
+      transformedQuery,
+      cacheHit: true,
+      cacheMiss: false,
+      deduplicated: false,
+      deduplicatedAvoided: 0,
+      latencyMs: 0,
+      endpoint: TAVILY_SEARCH_ENDPOINT,
+      options,
+      creditsEstimated: 0,
+      estimatedCredits: 0
+    };
+  }
+  tavilyRuntimeStats.cacheMisses += 1;
+
+  const inFlight = webSearchInFlight.get(cacheKey);
+  if (inFlight && now - inFlight.startedAt < WEB_SEARCH_DEDUPE_WINDOW) {
+    inFlight.duplicates += 1;
+    tavilyRuntimeStats.deduplicatedRequests += 1;
+    tavilyRuntimeStats.savedByDedupe += 1;
+    console.log('web_search_deduplicated', { originalQuery: query, transformedQuery, duplicates: inFlight.duplicates });
+    const result = await inFlight.promise;
+    return {
+      ...result,
+      transformedQuery,
+      cacheHit: false,
+      cacheMiss: true,
+      deduplicated: true,
+      deduplicatedAvoided: inFlight.duplicates,
+      creditsEstimated: 0,
+      estimatedCredits: 0
+    };
   }
 
-  // Vérifier le debounce (éviter recherches identiques trop rapides)
-  const debounceKey = cacheKey;
-  const lastSearch = webSearchDebounce.get(debounceKey);
-  if (lastSearch && Date.now() - lastSearch < 30000) {
-    console.log('web_search_debounce', { originalQuery: query, transformedQuery, timeSinceLastSearch: Date.now() - lastSearch });
-    return cached ? { ...cached, error: '', transformedQuery } : { results: [], answer: '', error: 'web_search_debounced', transformedQuery };
+  const recent = webSearchRecentRequests.get(cacheKey);
+  if (recent && now - recent.timestamp < WEB_SEARCH_DEDUPE_WINDOW && recent.result) {
+    tavilyRuntimeStats.deduplicatedRequests += 1;
+    tavilyRuntimeStats.savedByDedupe += 1;
+    console.log('web_search_deduplicated_recent', { originalQuery: query, transformedQuery, age: now - recent.timestamp });
+    return {
+      ...recent.result,
+      transformedQuery,
+      cacheHit: false,
+      cacheMiss: true,
+      deduplicated: true,
+      deduplicatedAvoided: 1,
+      creditsEstimated: 0,
+      estimatedCredits: 0
+    };
   }
 
-  try {
+  let acquiredD1DedupeLock = false;
+  if (env?.DB) {
+    const lock = await acquireTavilyDedupeLock(env, cacheKey, now);
+    acquiredD1DedupeLock = Boolean(lock.acquired);
+    if (!lock.acquired) {
+      tavilyRuntimeStats.deduplicatedRequests += 1;
+      tavilyRuntimeStats.savedByDedupe += 1;
+      console.log('web_search_deduplicated_d1', { originalQuery: query, transformedQuery, cacheKey });
+      const dedupedResult = await waitForTavilyDedupeResult(env, cacheKey);
+      if (dedupedResult) {
+        return {
+          ...dedupedResult,
+          transformedQuery: dedupedResult.transformedQuery || transformedQuery,
+          cacheHit: false,
+          cacheMiss: true,
+          deduplicated: true,
+          deduplicatedAvoided: 1,
+          creditsEstimated: 0,
+          estimatedCredits: 0
+        };
+      }
+      return {
+        results: [],
+        answer: '',
+        rawResults: [],
+        error: 'web_search_deduplicated_wait_timeout',
+        transformedQuery,
+        diagnostics: buildTavilyDiagnostics(normalizedApiKey, {
+          tavily_status_code: 0,
+          tavily_response_preview: '',
+          tavily_error: 'web_search_deduplicated_wait_timeout'
+        }),
+        cacheHit: false,
+        cacheMiss: true,
+        deduplicated: true,
+        deduplicatedAvoided: 1,
+        latencyMs: WEB_SEARCH_TIMEOUT,
+        endpoint: TAVILY_SEARCH_ENDPOINT,
+        options,
+        creditsEstimated: 0,
+        estimatedCredits: 0
+      };
+    }
+  }
+
+  const executeSearch = async () => {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), WEB_SEARCH_TIMEOUT);
+    const startedAt = Date.now();
 
     const response = await fetch(TAVILY_SEARCH_ENDPOINT, {
       method: 'POST',
@@ -725,15 +1081,19 @@ async function performWebSearch(query, env) {
       },
       body: JSON.stringify({
         query: transformedQuery,
-        search_depth: 'basic',
-        max_results: 5,
-        include_answer: true,
-        include_raw_content: false
+        search_depth: options.search_depth,
+        max_results: options.max_results,
+        include_answer: options.include_answer,
+        include_raw_content: options.include_raw_content
       }),
       signal: controller.signal
     });
 
     clearTimeout(timeoutId);
+    const latencyMs = Date.now() - startedAt;
+    tavilyRuntimeStats.lastCallAt = new Date().toISOString();
+    tavilyRuntimeStats.lastLatencyMs = latencyMs;
+    tavilyRuntimeStats.totalLatencyMs += latencyMs;
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => '');
@@ -744,13 +1104,29 @@ async function performWebSearch(query, env) {
         tavily_error: `tavily_${response.status}`
       });
       console.warn('web_search_error', diagnostics);
-      return {
+      tavilyRuntimeStats.searchesExecuted += 1;
+      tavilyRuntimeStats.estimatedCreditsUsed += options.estimated_credits;
+      tavilyRuntimeStats.errors += 1;
+      tavilyRuntimeStats.lastErrorAt = new Date().toISOString();
+      tavilyRuntimeStats.lastError = `tavily_${response.status}`;
+      const result = {
         results: [],
         answer: '',
         error: `tavily_${response.status}`,
         transformedQuery,
-        diagnostics
+        diagnostics,
+        cacheHit: false,
+        cacheMiss: true,
+        deduplicated: false,
+        deduplicatedAvoided: 0,
+        latencyMs,
+        endpoint: TAVILY_SEARCH_ENDPOINT,
+        options,
+        creditsEstimated: options.estimated_credits,
+        estimatedCredits: options.estimated_credits
       };
+      if (acquiredD1DedupeLock) await completeTavilyDedupeLock(env, cacheKey, result);
+      return result;
     }
 
     const data = await response.json();
@@ -766,51 +1142,77 @@ async function performWebSearch(query, env) {
       description: r.content
     }));
 
-    // Mettre en cache
-    webSearchCache.set(cacheKey, {
+    const result = {
       results: formattedResults,
       answer,
       rawResults: results,
-      timestamp: Date.now()
-    });
-
-    // Enregistrer dernier search pour debounce
-    webSearchDebounce.set(debounceKey, Date.now());
-
-    console.log('web_search_success', {
-      originalQuery: query,
-      transformedQuery,
-      resultsCount: formattedResults.length,
-      result1: formattedResults[0] ? { title: formattedResults[0].title, link: formattedResults[0].link } : null,
-      result2: formattedResults[1] ? { title: formattedResults[1].title, link: formattedResults[1].link } : null
-    });
-
-    return {
-      results: formattedResults,
-      answer,
-      rawResults: results,
+      timestamp: Date.now(),
       error: '',
       transformedQuery,
       diagnostics: buildTavilyDiagnostics(normalizedApiKey, {
         tavily_status_code: response.status,
         tavily_response_preview: '',
         tavily_error: ''
-      })
+      }),
+      cacheHit: false,
+      cacheMiss: true,
+      deduplicated: false,
+      deduplicatedAvoided: 0,
+      latencyMs,
+      endpoint: TAVILY_SEARCH_ENDPOINT,
+      options,
+      creditsEstimated: options.estimated_credits,
+      estimatedCredits: options.estimated_credits
     };
-  } catch (error) {
+
+    webSearchCache.set(cacheKey, result);
+    webSearchRecentRequests.set(cacheKey, { timestamp: Date.now(), result });
+    if (acquiredD1DedupeLock) await completeTavilyDedupeLock(env, cacheKey, result);
+    tavilyRuntimeStats.searchesExecuted += 1;
+    tavilyRuntimeStats.estimatedCreditsUsed += options.estimated_credits;
+    tavilyRuntimeStats.lastSuccessAt = new Date().toISOString();
+    tavilyRuntimeStats.lastError = '';
+
+    console.log('web_search_success', {
+      originalQuery: query,
+      transformedQuery,
+      resultsCount: formattedResults.length,
+      options,
+      result1: formattedResults[0] ? { title: formattedResults[0].title, link: formattedResults[0].link } : null,
+      result2: formattedResults[1] ? { title: formattedResults[1].title, link: formattedResults[1].link } : null
+    });
+
+    return result;
+  };
+
+  const promise = executeSearch().catch(async (error) => {
     const diagnostics = buildTavilyDiagnostics(normalizedApiKey, {
       tavily_status_code: 0,
       tavily_response_preview: '',
       tavily_error: error?.name === 'AbortError' ? 'web_search_timeout' : 'web_search_failed'
     });
+    tavilyRuntimeStats.errors += 1;
+    tavilyRuntimeStats.searchesExecuted += 1;
+    tavilyRuntimeStats.estimatedCreditsUsed += options.estimated_credits;
+    tavilyRuntimeStats.lastErrorAt = new Date().toISOString();
+    tavilyRuntimeStats.lastError = diagnostics.tavily_error;
     if (error.name === 'AbortError') {
       console.warn('web_search_timeout', { originalQuery: query, transformedQuery, timeoutMs: WEB_SEARCH_TIMEOUT, ...diagnostics });
-      return { results: [], answer: '', error: 'web_search_timeout', transformedQuery, diagnostics };
+      const result = { results: [], answer: '', rawResults: [], error: 'web_search_timeout', transformedQuery, diagnostics, cacheHit: false, cacheMiss: true, deduplicated: false, deduplicatedAvoided: 0, latencyMs: WEB_SEARCH_TIMEOUT, endpoint: TAVILY_SEARCH_ENDPOINT, options, creditsEstimated: options.estimated_credits, estimatedCredits: options.estimated_credits };
+      if (acquiredD1DedupeLock) await completeTavilyDedupeLock(env, cacheKey, result);
+      return result;
     } else {
       console.warn('web_search_failed', { error: error.message, originalQuery: query, ...diagnostics });
-      return { results: [], answer: '', error: 'web_search_failed', transformedQuery, diagnostics };
+      const result = { results: [], answer: '', rawResults: [], error: 'web_search_failed', transformedQuery, diagnostics, cacheHit: false, cacheMiss: true, deduplicated: false, deduplicatedAvoided: 0, latencyMs: 0, endpoint: TAVILY_SEARCH_ENDPOINT, options, creditsEstimated: options.estimated_credits, estimatedCredits: options.estimated_credits };
+      if (acquiredD1DedupeLock) await completeTavilyDedupeLock(env, cacheKey, result);
+      return result;
     }
-  }
+  }).finally(() => {
+    webSearchInFlight.delete(cacheKey);
+  });
+
+  webSearchInFlight.set(cacheKey, { startedAt: now, duplicates: 0, promise });
+  return promise;
 }
 
 function buildEmptyReplyDiagnostic(openRouterJson) {
@@ -847,6 +1249,52 @@ function buildHealthDiagnostics(request, env, authMode) {
     detected_variable_names: detectedHealthEnvNames(env),
     source: 'digitalblueskye-ai env bindings',
     secrets_values_exposed: false
+  };
+}
+
+function buildTavilyRuntimeMetrics(env) {
+  const cacheTotal = tavilyRuntimeStats.cacheHits + tavilyRuntimeStats.cacheMisses;
+  const cacheHitRate = cacheTotal ? Math.round((tavilyRuntimeStats.cacheHits / cacheTotal) * 1000) / 10 : 0;
+  const cacheMissRate = cacheTotal ? Math.round((tavilyRuntimeStats.cacheMisses / cacheTotal) * 1000) / 10 : 0;
+  const dedupeBase = tavilyRuntimeStats.searchesExecuted + tavilyRuntimeStats.deduplicatedRequests;
+  const dedupeRate = dedupeBase ? Math.round((tavilyRuntimeStats.deduplicatedRequests / dedupeBase) * 1000) / 10 : 0;
+  const quota = getTavilyQuota(env);
+  const creditsUsed = tavilyRuntimeStats.estimatedCreditsUsed;
+  const quotaUsedPercent = quota ? Math.min(100, Math.round((creditsUsed / quota) * 1000) / 10) : 0;
+  const averageLatencyMs = tavilyRuntimeStats.searchesExecuted
+    ? Math.round(tavilyRuntimeStats.totalLatencyMs / tavilyRuntimeStats.searchesExecuted)
+    : null;
+  return {
+    endpoint: TAVILY_SEARCH_ENDPOINT,
+    economy_mode_active: true,
+    ultra_economy_mode_active: isTavilyUltraEconomyActive(env),
+    searches_executed: tavilyRuntimeStats.searchesExecuted,
+    searches_skipped: tavilyRuntimeStats.skipped,
+    searches_avoided_cache: tavilyRuntimeStats.cacheHits,
+    searches_avoided_deduplication: tavilyRuntimeStats.savedByDedupe,
+    cache_hit_count: tavilyRuntimeStats.cacheHits,
+    cache_miss_count: tavilyRuntimeStats.cacheMisses,
+    cache_hit_rate: cacheHitRate,
+    cache_miss_rate: cacheMissRate,
+    deduplication_rate: dedupeRate,
+    average_latency_ms: averageLatencyMs,
+    credits_estimated_consumed: creditsUsed,
+    credits_estimated_remaining: Math.max(0, quota - creditsUsed),
+    quota_estimated_total: quota,
+    quota_estimated_used_percent: quotaUsedPercent,
+    daily_average: 0,
+    weekly_average: 0,
+    last_call_at: tavilyRuntimeStats.lastCallAt,
+    last_latency_ms: tavilyRuntimeStats.lastLatencyMs,
+    last_success_at: tavilyRuntimeStats.lastSuccessAt,
+    last_error_at: tavilyRuntimeStats.lastErrorAt,
+    last_error: tavilyRuntimeStats.lastError,
+    configured_options: {
+      search_depth: 'basic',
+      max_results: isTavilyUltraEconomyActive(env) ? 1 : 3,
+      include_answer: false,
+      include_raw_content: false
+    }
   };
 }
 
@@ -978,59 +1426,18 @@ async function checkTavilyHealth(env) {
     };
   }
 
-  const startedAt = Date.now();
-  try {
-    const response = await fetchWithTimeout(TAVILY_SEARCH_ENDPOINT, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        query: 'Digital Blue Skye health check',
-        search_depth: 'basic',
-        max_results: 1,
-        include_answer: true,
-        include_raw_content: false
-      })
-    }, 3000);
-    const latencyMs = Date.now() - startedAt;
-    const raw = await response.text();
-    const responsePreview = raw.slice(0, 300);
-    let data = null;
-    try {
-      data = raw ? JSON.parse(raw) : null;
-    } catch (error) {}
-    const resultCount = Array.isArray(data?.results) ? data.results.length : 0;
-    const tavilyError = response.ok ? '' : `tavily_${response.status}`;
-    return {
-      status: response.ok && resultCount > 0 ? 'operational' : 'partial',
-      verification: response.ok && resultCount > 0 ? 'verified' : 'failed',
-      configured,
-      ok: response.ok && resultCount > 0,
-      latency_ms: latencyMs,
-      ...baseDiagnostics,
-      tavily_status_code: response.status,
-      tavily_response_preview: responsePreview,
-      tavily_error: tavilyError,
-      detail: response.ok
-        ? `Tavily répond à une requête test (${resultCount} résultat).`
-        : `Tavily a répondu HTTP ${response.status}.`
-    };
-  } catch (error) {
-    return {
-      status: 'unavailable',
-      verification: 'failed',
-      configured,
-      ok: false,
-      latency_ms: Date.now() - startedAt,
-      ...baseDiagnostics,
-      tavily_status_code: 0,
-      tavily_response_preview: '',
-      tavily_error: error?.name === 'AbortError' ? 'timeout' : 'fetch_failed',
-      detail: error?.name === 'AbortError' ? 'Timeout du contrôle Tavily.' : 'Contrôle Tavily échoué.'
-    };
-  }
+  return {
+    status: 'operational',
+    verification: 'partial',
+    configured,
+    ok: true,
+    latency_ms: tavilyRuntimeStats.lastLatencyMs,
+    ...baseDiagnostics,
+    tavily_status_code: null,
+    tavily_response_preview: '',
+    tavily_error: tavilyRuntimeStats.lastError || '',
+    detail: 'TAVILY_API_KEY configurée. Contrôle sans appel réseau pour préserver les crédits; la disponibilité réelle est suivie par les derniers événements de recherche.'
+  };
 }
 
 async function buildAiHealthPayload(request, env, authMode) {
@@ -1042,6 +1449,7 @@ async function buildAiHealthPayload(request, env, authMode) {
     checkOpenRouterHealth(env),
     checkTavilyHealth(env)
   ]);
+  const tavilyMetrics = buildTavilyRuntimeMetrics(env);
 
   return {
     ok: true,
@@ -1094,6 +1502,7 @@ async function buildAiHealthPayload(request, env, authMode) {
       openrouter: openRouterCheck,
       tavily: tavilyCheck
     },
+    tavily_usage: tavilyMetrics,
     services: [
       {
         name: 'OpenRouter',
@@ -1197,7 +1606,6 @@ export default {
     const language = body?.language === 'en' ? 'en' : 'fr';
     const history = normalizeHistory(body?.history);
     const conversationSummary = normalizeConversationSummary(body?.conversationSummary);
-    const shouldSearchWeb = body?.searchWeb === true || body?.searchWeb === 'true';
     const sessionId = typeof body?.sessionId === 'string' ? body.sessionId : (typeof body?.session_id === 'string' ? body.session_id : '');
     const pageUrl = typeof body?.pageUrl === 'string' ? body.pageUrl : (typeof body?.page_url === 'string' ? body.page_url : '');
     const hasFileContext = body?.hasFileContext === true || body?.has_file_context === true || String(body?.fileContextLength || '') !== '';
@@ -1217,6 +1625,19 @@ export default {
         meta: { error: 'empty_message', route: url.pathname, mode }
       });
       return jsonResponse({ ok: false, error: 'empty_message' }, 400, corsHeaders);
+    }
+
+    const webSearchDecision = await decideWebSearch({
+      message,
+      body,
+      env,
+      sessionId,
+      hasFileContext,
+      attachments
+    });
+    const shouldSearchWeb = webSearchDecision.shouldSearch;
+    if (!shouldSearchWeb) {
+      tavilyRuntimeStats.skipped += 1;
     }
 
     if (!hasUsableOpenRouterKey(env)) {
@@ -1264,6 +1685,9 @@ export default {
         attachment_count: attachments.length,
         mode,
         search_web_requested: shouldSearchWeb,
+        web_search_decision_reason: webSearchDecision.reason,
+        web_search_intent: webSearchDecision.intent,
+        tavily_ultra_economy_active: webSearchDecision.ultraEconomy,
         history_length: history.length
       }
     });
@@ -1285,21 +1709,113 @@ export default {
       });
     }
 
+    if (webSearchDecision.reason === 'skipped_session_limit') {
+      const limitedReply = language === 'en'
+        ? 'Web search is temporarily limited to preserve resources.'
+        : 'Recherche web temporairement limitée afin de préserver les ressources.';
+      queueAiEvent(ctx, env, request, {
+        event_type: 'web_search_skipped',
+        event_value: 'limit_reached',
+        language,
+        page_url: pageUrl,
+        session_id: sessionId,
+        meta: {
+          timestamp: new Date().toISOString(),
+          provider: 'tavily',
+          reason: 'limit_reached',
+          raw_reason: webSearchDecision.reason,
+          endpoint: TAVILY_SEARCH_ENDPOINT,
+          requested: true,
+          session_search_count: webSearchDecision.sessionSearchCount ?? null,
+          session_limit: WEB_SEARCH_MAX_PER_SESSION,
+          estimated_credits: 0,
+          credits_estimated: 0,
+          cache_used: false,
+          deduplicated: false
+        }
+      });
+      queueAiEvent(ctx, env, request, {
+        event_type: 'assistant_response',
+        event_value: limitedReply,
+        language,
+        page_url: pageUrl,
+        session_id: sessionId,
+        meta: {
+          reply_length: limitedReply.length,
+          provider: 'local_policy',
+          model: 'none',
+          fallback: false,
+          web_search_performed: false,
+          web_search_decision_reason: webSearchDecision.reason
+        }
+      });
+      return jsonResponse({
+        ok: true,
+        worker_build: WORKER_BUILD,
+        reply: limitedReply,
+        provider: 'local_policy',
+        web_search_requested: true,
+        web_search_performed: false,
+        web_search_error: 'web_search_session_limit',
+        web_search_query: webSearchResolvedQuery,
+        web_search_results: []
+      }, 200, corsHeaders);
+    }
+
+    if (!shouldSearchWeb) {
+      queueAiEvent(ctx, env, request, {
+        event_type: 'web_search_skipped',
+        event_value: normalizeSkipReason(webSearchDecision.reason),
+        language,
+        page_url: pageUrl,
+        session_id: sessionId,
+        meta: {
+          timestamp: new Date().toISOString(),
+          provider: 'tavily',
+          reason: normalizeSkipReason(webSearchDecision.reason),
+          raw_reason: webSearchDecision.reason,
+          endpoint: TAVILY_SEARCH_ENDPOINT,
+          requested: Boolean(webSearchDecision.intent?.explicit || webSearchDecision.intent?.mandatory),
+          mandatory_intent: Boolean(webSearchDecision.intent?.mandatory),
+          explicit_intent: Boolean(webSearchDecision.intent?.explicit),
+          forbidden_intent: Boolean(webSearchDecision.intent?.forbidden),
+          has_file_context: Boolean(hasFileContext || attachments.length),
+          session_search_count: webSearchDecision.sessionSearchCount ?? null,
+          session_limit: WEB_SEARCH_MAX_PER_SESSION,
+          ultra_economy_mode_active: Boolean(webSearchDecision.ultraEconomy),
+          estimated_credits: 0,
+          credits_estimated: 0,
+          cache_used: false,
+          deduplicated: false
+        }
+      });
+    }
+
     if (shouldSearchWeb) {
       const webSearchStartedAt = Date.now();
       queueAiEvent(ctx, env, request, {
-        event_type: 'web_search',
+        event_type: 'web_search_requested',
         event_value: compactText(webSearchQuery, 120),
         language,
         page_url: pageUrl,
         session_id: sessionId,
         meta: {
+          timestamp: new Date().toISOString(),
           query_length: webSearchQuery.length,
           provider: 'tavily',
-          requested: true
+          endpoint: TAVILY_SEARCH_ENDPOINT,
+          requested: true,
+          reason: webSearchDecision.reason,
+          mandatory_intent: Boolean(webSearchDecision.intent?.mandatory),
+          explicit_intent: Boolean(webSearchDecision.intent?.explicit),
+          deep_search_requested: Boolean(webSearchDecision.intent?.deep),
+          economy_mode_active: true,
+          ultra_economy_mode_active: Boolean(webSearchDecision.ultraEconomy),
+          session_search_count: webSearchDecision.sessionSearchCount ?? null,
+          session_limit: WEB_SEARCH_MAX_PER_SESSION
         }
       });
-      const webSearch = await performWebSearch(webSearchQuery, env);
+      const webSearch = await performWebSearch(webSearchQuery, env, webSearchDecision.intent);
       const webSearchLatencyMs = Date.now() - webSearchStartedAt;
       webSearchResults = webSearch.results || [];
       webSearchRawResults = webSearch.rawResults || [];
@@ -1308,31 +1824,120 @@ export default {
       webSearchResolvedQuery = webSearch.transformedQuery || webSearchQuery;
       webSearchPerformed = webSearchResults.length > 0;
       const webSearchDiagnostics = webSearch.diagnostics || {};
-      queueAiEvent(ctx, env, request, {
-        event_type: webSearchError ? 'web_search_error' : 'web_search_success',
-        event_value: webSearchError ? compactText(webSearchError, 120) : `${webSearchResults.length} result(s)`,
-        language,
-        page_url: pageUrl,
-        session_id: sessionId,
-        meta: webSearchError
-          ? {
+      if (webSearch.cacheHit) {
+        queueAiEvent(ctx, env, request, {
+          event_type: 'web_search_cached',
+          event_value: 'cache_hit',
+          language,
+          page_url: pageUrl,
+          session_id: sessionId,
+          meta: {
+            timestamp: new Date().toISOString(),
+            provider: 'tavily',
+            endpoint: webSearch.endpoint || TAVILY_SEARCH_ENDPOINT,
+            query_preview: compactText(webSearchResolvedQuery, 120),
+            cache_hit: true,
+            cache_miss: false,
+            cache_used: true,
+            deduplicated: false,
+            duration_ms: webSearchLatencyMs,
+            latency_ms: webSearchLatencyMs,
+            results_count: webSearchResults.length,
+            search_depth: webSearch.options?.search_depth || 'basic',
+            tavily_max_results: webSearch.options?.max_results || 3,
+            include_answer: Boolean(webSearch.options?.include_answer),
+            estimated_credits: 0,
+            credits_estimated: 0
+          }
+        });
+      }
+      if (webSearch.deduplicated) {
+        queueAiEvent(ctx, env, request, {
+          event_type: 'web_search_deduplicated',
+          event_value: `${webSearch.deduplicatedAvoided || 1} request(s) avoided`,
+          language,
+          page_url: pageUrl,
+          session_id: sessionId,
+          meta: {
+            timestamp: new Date().toISOString(),
+            provider: 'tavily',
+            endpoint: webSearch.endpoint || TAVILY_SEARCH_ENDPOINT,
+            query_preview: compactText(webSearchResolvedQuery, 120),
+            cache_hit: false,
+            cache_miss: Boolean(webSearch.cacheMiss),
+            cache_used: false,
+            deduplicated: true,
+            deduplicated_avoided_count: webSearch.deduplicatedAvoided || 1,
+            duration_ms: webSearchLatencyMs,
+            latency_ms: webSearchLatencyMs,
+            results_count: webSearchResults.length,
+            search_depth: webSearch.options?.search_depth || 'basic',
+            tavily_max_results: webSearch.options?.max_results || 3,
+            include_answer: Boolean(webSearch.options?.include_answer),
+            estimated_credits: 0,
+            credits_estimated: 0
+          }
+        });
+      }
+      if (!webSearch.cacheHit && !webSearch.deduplicated) {
+        queueAiEvent(ctx, env, request, {
+          event_type: webSearchError ? 'web_search_error' : 'web_search_success',
+          event_value: webSearchError ? compactText(webSearchError, 120) : `${webSearchResults.length} result(s)`,
+          language,
+          page_url: pageUrl,
+          session_id: sessionId,
+          meta: webSearchError
+            ? {
+            timestamp: new Date().toISOString(),
             provider: 'tavily',
             error: compactText(webSearchError, 180),
             status_code: webSearchDiagnostics.tavily_status_code ?? extractStatusCode(webSearchError),
-            endpoint: webSearchDiagnostics.tavily_endpoint || TAVILY_SEARCH_ENDPOINT,
+            endpoint: webSearch.endpoint || webSearchDiagnostics.tavily_endpoint || TAVILY_SEARCH_ENDPOINT,
             response_preview: compactText(webSearchDiagnostics.tavily_response_preview, 300),
             key_prefix: webSearchDiagnostics.tavily_key_prefix || '',
             key_length: webSearchDiagnostics.tavily_key_length || 0,
             auth_header_built: Boolean(webSearchDiagnostics.tavily_auth_header_built),
-            latency_ms: webSearchLatencyMs
+            duration_ms: webSearchLatencyMs,
+            latency_ms: webSearchLatencyMs,
+            results_count: webSearchResults.length,
+            cache_hit: Boolean(webSearch.cacheHit),
+            cache_miss: Boolean(webSearch.cacheMiss),
+            cache_used: Boolean(webSearch.cacheHit),
+            deduplicated: Boolean(webSearch.deduplicated),
+            deduplicated_avoided_count: webSearch.deduplicatedAvoided || 0,
+            estimated_credits: webSearch.estimatedCredits ?? webSearch.creditsEstimated ?? 0,
+            credits_estimated: webSearch.estimatedCredits ?? webSearch.creditsEstimated ?? 0,
+            search_depth: webSearch.options?.search_depth || 'basic',
+            tavily_max_results: webSearch.options?.max_results || 3,
+            max_results: webSearch.options?.max_results || 3,
+            include_answer: Boolean(webSearch.options?.include_answer),
+            include_raw_content: Boolean(webSearch.options?.include_raw_content)
           }
-          : {
+            : {
+            timestamp: new Date().toISOString(),
             provider: 'tavily',
             results_count: webSearchResults.length,
+            duration_ms: webSearchLatencyMs,
             latency_ms: webSearchLatencyMs,
-            query_preview: compactText(webSearchResolvedQuery, 120)
+            endpoint: webSearch.endpoint || TAVILY_SEARCH_ENDPOINT,
+            query_preview: compactText(webSearchResolvedQuery, 120),
+            cache_hit: Boolean(webSearch.cacheHit),
+            cache_miss: Boolean(webSearch.cacheMiss),
+            cache_used: Boolean(webSearch.cacheHit),
+            deduplicated: Boolean(webSearch.deduplicated),
+            deduplicated_avoided_count: webSearch.deduplicatedAvoided || 0,
+            estimated_credits: webSearch.estimatedCredits ?? webSearch.creditsEstimated ?? 0,
+            credits_estimated: webSearch.estimatedCredits ?? webSearch.creditsEstimated ?? 0,
+            search_depth: webSearch.options?.search_depth || 'basic',
+            tavily_max_results: webSearch.options?.max_results || 3,
+            max_results: webSearch.options?.max_results || 3,
+            include_answer: Boolean(webSearch.options?.include_answer),
+            include_raw_content: Boolean(webSearch.options?.include_raw_content),
+            economy_mode_active: true,
+            ultra_economy_mode_active: webSearch.options?.mode === 'ultra_economy'
           }
-      });
+        });
+      }
       console.log('web_search_debug', {
         shouldSearchWeb,
         tavilyApiKey: env.TAVILY_API_KEY ? 'configured' : 'missing',

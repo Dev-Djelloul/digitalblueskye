@@ -307,17 +307,37 @@
             <img src="${createNewIconUrl}" alt="" aria-hidden="true">
             <span>${i18n.newChat}</span>
           </button>
-          <button id="ai-assistant-session-library" class="ai-assistant-session-library ai-assistant-sidebar-action" type="button" title="${i18n.library}" aria-label="${i18n.library}">
-            <img src="${libraryIconUrl}" alt="" aria-hidden="true">
-            <span>${i18n.library}</span>
-          </button>
         </div>
-        <div class="ai-assistant-session-heading">
-          <img src="${newFolderIconUrl}" alt="" aria-hidden="true">
-          <span class="ai-assistant-session-label">${i18n.discussions}</span>
+        <div id="ai-assistant-projects-section" class="ai-assistant-sidebar-section ai-assistant-projects-block">
+          <div class="ai-assistant-section-header ai-assistant-projects-head">
+            <button id="ai-assistant-projects-toggle" class="ai-assistant-section-toggle" type="button" aria-expanded="true" aria-controls="ai-assistant-project-list">
+              <span class="ai-assistant-section-chevron" aria-hidden="true">›</span>
+              <span class="ai-assistant-section-title">Projets</span>
+              <span id="ai-assistant-project-count" class="ai-assistant-section-count">(0)</span>
+            </button>
+            <button id="ai-assistant-project-create" type="button" title="Creer un projet" aria-label="Creer un projet">+</button>
+          </div>
+          <div id="ai-assistant-project-list" class="ai-assistant-project-list" role="list"></div>
+        </div>
+        <button id="ai-assistant-session-library" class="ai-assistant-session-library ai-assistant-sidebar-action" type="button" title="${i18n.library}" aria-label="${i18n.library}">
+          <img src="${libraryIconUrl}" alt="" aria-hidden="true">
+          <span>${i18n.library}</span>
+        </button>
+        <div id="ai-assistant-recent-section" class="ai-assistant-sidebar-section ai-assistant-recent-block">
+          <div class="ai-assistant-section-header ai-assistant-session-heading">
+            <button id="ai-assistant-recent-toggle" class="ai-assistant-section-toggle" type="button" aria-expanded="true" aria-controls="ai-assistant-session-list">
+              <span class="ai-assistant-section-chevron" aria-hidden="true">›</span>
+              <span class="ai-assistant-session-label ai-assistant-section-title">Discussions recentes</span>
+              <span id="ai-assistant-recent-count" class="ai-assistant-section-count">(0)</span>
+            </button>
+          </div>
         </div>
         <select id="ai-assistant-session-select" class="ai-assistant-session-select" aria-label="${i18n.historyLabel}" hidden></select>
         <div id="ai-assistant-session-list" class="ai-assistant-session-list" role="listbox" aria-label="${i18n.historyLabel}"></div>
+        <button id="ai-assistant-settings-open" class="ai-assistant-settings-open ai-assistant-sidebar-action" type="button" title="Parametres" aria-label="Parametres">
+          <span aria-hidden="true">*</span>
+          <span>Parametres</span>
+        </button>
         <div class="ai-assistant-session-tools">
           <button id="ai-assistant-session-export" class="ai-assistant-session-export" type="button" title="${i18n.exportChat}" aria-label="${i18n.exportChat}">
             <img src="${filesIconUrl}" alt="" aria-hidden="true">
@@ -340,6 +360,26 @@
             <img src="${deleteIconUrl}" alt="" aria-hidden="true">
             <span>${i18n.deleteDiscussion}</span>
           </button>
+        </div>
+        <div id="ai-assistant-project-menu" class="ai-assistant-project-context-menu" role="menu" aria-hidden="true">
+          <button type="button" role="menuitem" data-project-action="open">Ouvrir le projet</button>
+          <button type="button" role="menuitem" data-project-action="rename">Renommer</button>
+          <button type="button" role="menuitem" data-project-action="duplicate">Dupliquer</button>
+          <div class="ai-assistant-project-export-menu" role="none">
+            <button type="button" role="menuitem" class="ai-assistant-project-export-trigger" data-project-action="export-menu" aria-haspopup="true">
+              <span>Exporter le projet</span>
+              <span class="ai-assistant-project-menu-chevron" aria-hidden="true">›</span>
+            </button>
+            <div class="ai-assistant-project-export-submenu" role="menu" aria-label="Exporter le projet">
+              <button type="button" role="menuitem" data-project-export="json">JSON technique</button>
+              <button type="button" role="menuitem" data-project-export="html">Rapport HTML</button>
+              <button type="button" role="menuitem" data-project-export="pdf">PDF imprimable</button>
+              <button type="button" role="menuitem" data-project-export="zip">ZIP complet</button>
+            </div>
+          </div>
+          <button type="button" role="menuitem" data-project-action="share">Partager le projet</button>
+          <button type="button" role="menuitem" data-project-action="appearance">Changer la couleur ou l'icone</button>
+          <button type="button" role="menuitem" data-project-action="delete" class="ai-assistant-project-menu-delete">Supprimer</button>
         </div>
       </div>`;
   }
@@ -381,6 +421,59 @@
           </button>
         </div>
       </section>`;
+  }
+
+  function createProjectViewMarkup() {
+    return `
+      <section id="ai-assistant-project-view" class="ai-assistant-project-view" aria-label="Projet" hidden>
+        <div class="ai-assistant-project-view-inner">
+          <div class="ai-assistant-project-hero">
+            <span id="ai-assistant-project-icon" class="ai-assistant-project-icon" aria-hidden="true">*</span>
+            <div>
+              <h3 id="ai-assistant-project-title">Projet</h3>
+              <p id="ai-assistant-project-description"></p>
+            </div>
+          </div>
+          <div id="ai-assistant-project-stats" class="ai-assistant-project-stats"></div>
+          <div id="ai-assistant-project-tabs" class="ai-assistant-project-tabs" role="tablist" aria-label="Sections projet">
+            <button type="button" data-project-tab="conversations">Conversations</button>
+            <button type="button" data-project-tab="documents">Documents</button>
+            <button type="button" data-project-tab="memory">Memoire</button>
+            <button type="button" data-project-tab="rag">RAG</button>
+            <button type="button" data-project-tab="stats">Statistiques</button>
+            <button type="button" data-project-tab="settings">Parametres</button>
+          </div>
+          <div id="ai-assistant-project-content" class="ai-assistant-project-content"></div>
+        </div>
+      </section>`;
+  }
+
+  function createSettingsViewMarkup() {
+    return `
+      <section id="ai-assistant-settings-view" class="ai-assistant-settings-view" aria-label="Parametres Digital Blue Skye AI" hidden>
+        <div class="ai-assistant-settings-view-inner">
+          <div class="ai-assistant-settings-head">
+            <h3>Parametres</h3>
+            <p>Profil, IA, recherche web, documents, apparence et donnees.</p>
+          </div>
+          <div id="ai-assistant-settings-sections" class="ai-assistant-settings-sections"></div>
+        </div>
+      </section>`;
+  }
+
+  function createProjectDeleteDialogMarkup() {
+    return `
+      <div id="ai-assistant-project-delete-dialog" class="ai-assistant-project-delete-dialog" aria-hidden="true" hidden>
+        <div class="ai-assistant-project-delete-panel" role="dialog" aria-modal="true" aria-labelledby="ai-assistant-project-delete-title">
+          <h3 id="ai-assistant-project-delete-title">Supprimer definitivement ce projet ?</h3>
+          <p id="ai-assistant-project-delete-summary"></p>
+          <p class="ai-assistant-project-delete-note">Les documents physiques restent dans la bibliotheque globale.</p>
+          <div class="ai-assistant-project-delete-actions">
+            <button id="ai-assistant-project-delete-cancel" type="button">Annuler</button>
+            <button id="ai-assistant-project-delete-confirm" type="button">Supprimer</button>
+          </div>
+        </div>
+      </div>`;
   }
 
   function createMediaPreviewMarkup() {
@@ -443,6 +536,9 @@
           ${createSessionControlsMarkup()}
           <div id="ai-assistant-messages" class="ai-assistant-messages"></div>
           ${createLibraryViewMarkup()}
+          ${createProjectViewMarkup()}
+          ${createSettingsViewMarkup()}
+          ${createProjectDeleteDialogMarkup()}
           <button id="ai-assistant-scroll-bottom" class="ai-assistant-scroll-bottom" type="button" title="${i18n.scrollBottom}" aria-label="${i18n.scrollBottom}" aria-hidden="true">
             <span aria-hidden="true"></span>
           </button>
@@ -523,6 +619,24 @@
     if (!document.getElementById('ai-assistant-library-view')) {
       const messages = document.getElementById('ai-assistant-messages');
       if (messages) messages.insertAdjacentHTML('afterend', createLibraryViewMarkup().trim());
+    }
+
+    if (!document.getElementById('ai-assistant-project-view')) {
+      const library = document.getElementById('ai-assistant-library-view');
+      const messages = document.getElementById('ai-assistant-messages');
+      if (library) library.insertAdjacentHTML('afterend', createProjectViewMarkup().trim());
+      else if (messages) messages.insertAdjacentHTML('afterend', createProjectViewMarkup().trim());
+    }
+
+    if (!document.getElementById('ai-assistant-settings-view')) {
+      const projectView = document.getElementById('ai-assistant-project-view');
+      const library = document.getElementById('ai-assistant-library-view');
+      if (projectView) projectView.insertAdjacentHTML('afterend', createSettingsViewMarkup().trim());
+      else if (library) library.insertAdjacentHTML('afterend', createSettingsViewMarkup().trim());
+    }
+
+    if (!document.getElementById('ai-assistant-project-delete-dialog')) {
+      panel.insertAdjacentHTML('beforeend', createProjectDeleteDialogMarkup().trim());
     }
 
     if (!document.getElementById('ai-assistant-media-preview')) {
@@ -624,6 +738,15 @@
   const sessionSearchInput = document.getElementById('ai-assistant-session-search');
   const sessionList = document.getElementById('ai-assistant-session-list');
   const sessionLibraryButton = document.getElementById('ai-assistant-session-library');
+  const projectsSection = document.getElementById('ai-assistant-projects-section');
+  const projectsToggleButton = document.getElementById('ai-assistant-projects-toggle');
+  const projectCount = document.getElementById('ai-assistant-project-count');
+  const projectCreateButton = document.getElementById('ai-assistant-project-create');
+  const projectList = document.getElementById('ai-assistant-project-list');
+  const recentSection = document.getElementById('ai-assistant-recent-section');
+  const recentToggleButton = document.getElementById('ai-assistant-recent-toggle');
+  const recentCount = document.getElementById('ai-assistant-recent-count');
+  const settingsOpenButton = document.getElementById('ai-assistant-settings-open');
   const libraryPanel = document.getElementById('ai-assistant-library-panel');
   const libraryCount = document.getElementById('ai-assistant-library-count');
   const libraryList = document.getElementById('ai-assistant-library-list');
@@ -646,8 +769,22 @@
   const mediaPreviewShareButton = document.getElementById('ai-assistant-media-preview-share');
   const mediaPreviewDownloadButton = document.getElementById('ai-assistant-media-preview-download');
   const mediaPreviewCloseButton = document.getElementById('ai-assistant-media-preview-close');
+  const projectView = document.getElementById('ai-assistant-project-view');
+  const projectIcon = document.getElementById('ai-assistant-project-icon');
+  const projectTitle = document.getElementById('ai-assistant-project-title');
+  const projectDescription = document.getElementById('ai-assistant-project-description');
+  const projectStats = document.getElementById('ai-assistant-project-stats');
+  const projectTabs = document.getElementById('ai-assistant-project-tabs');
+  const projectContent = document.getElementById('ai-assistant-project-content');
+  const settingsView = document.getElementById('ai-assistant-settings-view');
+  const settingsSections = document.getElementById('ai-assistant-settings-sections');
+  const projectDeleteDialog = document.getElementById('ai-assistant-project-delete-dialog');
+  const projectDeleteSummary = document.getElementById('ai-assistant-project-delete-summary');
+  const projectDeleteCancelButton = document.getElementById('ai-assistant-project-delete-cancel');
+  const projectDeleteConfirmButton = document.getElementById('ai-assistant-project-delete-confirm');
   const sidebarResizeHandle = document.getElementById('ai-assistant-sidebar-resize');
   const sessionContextMenu = document.getElementById('ai-assistant-session-menu');
+  const projectContextMenu = document.getElementById('ai-assistant-project-menu');
   const sessionMenuRenameButton = document.getElementById('ai-assistant-session-menu-rename');
   const sessionMenuExportButton = document.getElementById('ai-assistant-session-menu-export');
   const sessionMenuDeleteButton = document.getElementById('ai-assistant-session-menu-delete');
@@ -667,6 +804,11 @@
   let fileInput = document.getElementById('ai-assistant-file-input');
   let chatHistory = [];
   let sessionsState = { activeSessionId: '', sessions: [] };
+  let projectsState = { activeProjectId: 'safe', projects: [] };
+  let assistantSettingsState = {};
+  let activeProjectTab = 'conversations';
+  let areProjectsCollapsed = false;
+  let areRecentChatsCollapsed = false;
   let pendingFileContext = '';
   let pendingFileNames = [];
   let pendingUploadMetadata = [];
@@ -680,6 +822,8 @@
   let isListening = false;
   let activeAssistantRequestController = null;
   let activeContextSessionId = '';
+  let activeContextProjectId = '';
+  let pendingDeleteProjectId = '';
   let isSidebarResizing = false;
   let isLibraryImportMode = false;
   let isLibraryViewOpen = false;
@@ -710,6 +854,10 @@
   const historyPanelWidthStorageKey = 'ai_assistant_history_panel_width_v1';
   const knowledgeLibraryStorageKey = 'ai_assistant_knowledge_library_v1';
   const knowledgeLibraryLayoutStorageKey = 'ai_assistant_library_layout_v1';
+  const projectsStorageKey = 'ai_assistant_projects_v1';
+  const settingsStorageKey = 'ai_assistant_settings_v3';
+  const sidebarProjectsCollapsedStorageKey = 'dbs_sidebar_projects_collapsed';
+  const sidebarRecentChatsCollapsedStorageKey = 'dbs_sidebar_recent_chats_collapsed';
   const knowledgeLibraryDbName = 'digital_blue_skye_ai_library_v1';
   const knowledgeLibraryFileStoreName = 'original_files';
   const assistantDebugStorageKey = 'ai_assistant_debug';
@@ -728,6 +876,13 @@
   const libraryImagePreviewSize = 720;
   const libraryDocumentPreviewSize = 760;
   const simplifiedPreviewVersion = 2;
+  const defaultProjectId = 'safe';
+  const defaultProjects = [
+    { id: 'safe', name: 'SAFE', description: 'Espace de travail principal.', icon: 'S', color: '#79e6ff' },
+    { id: 'digital-blue-skye', name: 'Digital Blue Skye', description: 'Strategie, operations et livrables Digital Blue Skye.', icon: 'D', color: '#8f7cff' },
+    { id: 'openclassrooms', name: 'OpenClassrooms', description: 'Cours, projets pedagogiques et ressources de formation.', icon: 'O', color: '#35d69b' },
+    { id: 'personnel', name: 'Personnel', description: 'Notes, recherches et idees personnelles.', icon: 'P', color: '#ffb45f' }
+  ];
 
   function isAssistantDebugEnabled() {
     try { return localStorage.getItem(assistantDebugStorageKey) === 'true'; } catch (error) { return false; }
@@ -813,6 +968,616 @@
     window.setTimeout(updateScrollBottomButton, 0);
   }
 
+  function readBooleanStorage(key, fallback = false) {
+    try {
+      const saved = localStorage.getItem(key);
+      if (saved === 'true') return true;
+      if (saved === 'false') return false;
+    } catch (error) {
+      // Ignore storage restrictions.
+    }
+    return fallback;
+  }
+
+  function persistBooleanStorage(key, value) {
+    try { localStorage.setItem(key, String(Boolean(value))); } catch (error) { /* noop */ }
+  }
+
+  function applySidebarSectionState() {
+    if (projectsSection) projectsSection.classList.toggle('is-collapsed', areProjectsCollapsed);
+    if (projectList) projectList.setAttribute('aria-hidden', String(areProjectsCollapsed));
+    if (projectsToggleButton) projectsToggleButton.setAttribute('aria-expanded', String(!areProjectsCollapsed));
+    if (recentSection) recentSection.classList.toggle('is-collapsed', areRecentChatsCollapsed);
+    if (sessionList) sessionList.setAttribute('aria-hidden', String(areRecentChatsCollapsed));
+    if (recentToggleButton) recentToggleButton.setAttribute('aria-expanded', String(!areRecentChatsCollapsed));
+  }
+
+  function setSidebarSectionCollapsed(section, collapsed, persist = true) {
+    if (section === 'projects') {
+      areProjectsCollapsed = Boolean(collapsed);
+      if (persist) persistBooleanStorage(sidebarProjectsCollapsedStorageKey, areProjectsCollapsed);
+    } else if (section === 'recent') {
+      areRecentChatsCollapsed = Boolean(collapsed);
+      if (persist) persistBooleanStorage(sidebarRecentChatsCollapsedStorageKey, areRecentChatsCollapsed);
+    }
+    applySidebarSectionState();
+  }
+
+  function loadSidebarSectionState() {
+    areProjectsCollapsed = readBooleanStorage(sidebarProjectsCollapsedStorageKey, false);
+    areRecentChatsCollapsed = readBooleanStorage(sidebarRecentChatsCollapsedStorageKey, false);
+    applySidebarSectionState();
+  }
+
+  function normalizeProject(project, fallback = {}) {
+    const base = { ...fallback, ...(project || {}) };
+    const now = Date.now();
+    return {
+      id: String(base.id || buildProjectId(base.name || 'project')).slice(0, 80),
+      name: String(base.name || 'Projet').replace(/\s+/g, ' ').trim().slice(0, 80) || 'Projet',
+      description: String(base.description || '').replace(/\s+/g, ' ').trim().slice(0, 220),
+      icon: String(base.icon || String(base.name || 'P').charAt(0) || 'P').slice(0, 2).toUpperCase(),
+      color: /^#[0-9a-f]{6}$/i.test(String(base.color || '')) ? String(base.color) : '#79e6ff',
+      createdAt: Number(base.createdAt) || now,
+      updatedAt: Number(base.updatedAt) || Number(base.createdAt) || now,
+      memory: String(base.memory || '').slice(0, 2500),
+      ragScope: ['project', 'multi_project', 'library'].includes(base.ragScope) ? base.ragScope : 'project',
+      ragProjectIds: Array.isArray(base.ragProjectIds) ? base.ragProjectIds.map(String).slice(0, 12) : []
+    };
+  }
+
+  function buildProjectId(name) {
+    const slug = String(name || 'project')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 42) || 'project';
+    return `p_${slug}_${Date.now().toString(36).slice(-5)}`;
+  }
+
+  function loadProjectsState() {
+    let storedProjects = [];
+    let activeProjectId = defaultProjectId;
+    try {
+      const raw = localStorage.getItem(projectsStorageKey);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        storedProjects = Array.isArray(parsed?.projects) ? parsed.projects : [];
+        if (typeof parsed?.activeProjectId === 'string') activeProjectId = parsed.activeProjectId;
+      }
+    } catch (error) {
+      assistantLog('warn', 'projects_load_failed', { reason: error?.message || 'invalid_project_storage' });
+    }
+    const byId = new Map();
+    defaultProjects.forEach((project) => byId.set(project.id, normalizeProject(project)));
+    storedProjects.forEach((project) => {
+      const normalized = normalizeProject(project);
+      byId.set(normalized.id, normalized);
+    });
+    const projects = Array.from(byId.values());
+    if (!projects.some((project) => project.id === activeProjectId)) activeProjectId = defaultProjectId;
+    projectsState = { activeProjectId, projects };
+  }
+
+  function saveProjectsState() {
+    try {
+      projectsState = {
+        activeProjectId: projectsState.activeProjectId || defaultProjectId,
+        projects: (projectsState.projects || []).map((project) => normalizeProject(project))
+      };
+      localStorage.setItem(projectsStorageKey, JSON.stringify({ version: 1, savedAt: new Date().toISOString(), ...projectsState }));
+    } catch (error) {
+      assistantLog('warn', 'projects_save_failed', { reason: error?.message || 'local_storage_unavailable' });
+    }
+  }
+
+  function loadAssistantSettingsState() {
+    const defaults = {
+      profile: { name: '', email: '', avatar: '', language: currentLanguage, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Paris' },
+      ai: { defaultModel: 'auto', preferredProvider: 'OpenRouter', automaticFallback: true },
+      web: { tavilyEnabled: true, economyMode: true, expertMode: false, maxResults: 3 },
+      documents: { maxSizeMb: 20, chunking: 'auto', automaticIndexing: true, automaticRag: true },
+      appearance: { theme: document.documentElement.dataset.theme || 'digital-blue-skye' },
+      data: { lastExportAt: '', lastBackupAt: '' }
+    };
+    try {
+      const raw = localStorage.getItem(settingsStorageKey);
+      const parsed = raw ? JSON.parse(raw) : {};
+      assistantSettingsState = {
+        profile: { ...defaults.profile, ...(parsed.profile || {}) },
+        ai: { ...defaults.ai, ...(parsed.ai || {}) },
+        web: { ...defaults.web, ...(parsed.web || {}) },
+        documents: { ...defaults.documents, ...(parsed.documents || {}) },
+        appearance: { ...defaults.appearance, ...(parsed.appearance || {}) },
+        data: { ...defaults.data, ...(parsed.data || {}) }
+      };
+    } catch (error) {
+      assistantLog('warn', 'settings_load_failed', { reason: error?.message || 'invalid_settings_storage' });
+      assistantSettingsState = defaults;
+    }
+  }
+
+  function saveAssistantSettingsState() {
+    try {
+      localStorage.setItem(settingsStorageKey, JSON.stringify({ version: 3, savedAt: new Date().toISOString(), ...assistantSettingsState }));
+    } catch (error) {
+      assistantLog('warn', 'settings_save_failed', { reason: error?.message || 'local_storage_unavailable' });
+    }
+  }
+
+  function getProjectById(projectId) {
+    return (projectsState.projects || []).find((project) => project.id === projectId) || null;
+  }
+
+  function getActiveProject() {
+    return getProjectById(projectsState.activeProjectId) || getProjectById(defaultProjectId) || projectsState.projects[0] || null;
+  }
+
+  function getProjectName(projectId) {
+    return getProjectById(projectId)?.name || getProjectById(defaultProjectId)?.name || 'SAFE';
+  }
+
+  function getSessionProjectId(session) {
+    return getProjectById(session?.projectId)?.id || defaultProjectId;
+  }
+
+  function getDocumentProjectId(doc) {
+    return getProjectById(doc?.projectId)?.id || defaultProjectId;
+  }
+
+  function ensureProjectLinks() {
+    let sessionsChanged = false;
+    (sessionsState.sessions || []).forEach((session) => {
+      if (!getProjectById(session.projectId)) {
+        session.projectId = projectsState.activeProjectId || defaultProjectId;
+        sessionsChanged = true;
+      }
+    });
+    let libraryChanged = false;
+    (knowledgeLibrary.documents || []).forEach((doc) => {
+      if (!getProjectById(doc.projectId)) {
+        doc.projectId = projectsState.activeProjectId || defaultProjectId;
+        libraryChanged = true;
+      }
+    });
+    if (sessionsChanged) saveSessionsState();
+    if (libraryChanged) saveKnowledgeLibrary();
+  }
+
+  function formatProjectDate(value) {
+    const date = new Date(value || Date.now());
+    if (Number.isNaN(date.getTime())) return '';
+    return date.toLocaleDateString(currentLanguage === 'en' ? 'en-US' : 'fr-FR', { day: '2-digit', month: 'short' });
+  }
+
+  function getProjectStats(projectId) {
+    const sessions = (sessionsState.sessions || []).filter((session) => getSessionProjectId(session) === projectId);
+    const docs = (knowledgeLibrary.documents || []).filter((doc) => getDocumentProjectId(doc) === projectId);
+    const chunkCount = docs.reduce((sum, doc) => sum + getKnowledgeDocChunks(doc).length, 0);
+    const indexedSize = docs.reduce((sum, doc) => sum + (Number(doc.textLength) || 0), 0);
+    const latestSession = sessions.reduce((latest, session) => Math.max(latest, Number(session.updatedAt) || 0), 0);
+    const latestDoc = docs.reduce((latest, doc) => Math.max(latest, Number(doc.importedAt) || 0), 0);
+    return {
+      conversations: sessions.length,
+      documents: docs.length,
+      chunks: chunkCount,
+      indexedSize,
+      lastActivity: Math.max(latestSession, latestDoc)
+    };
+  }
+
+  function countProjectMemories(project) {
+    return normalizeSessionSummary(project?.memory).length ? 1 : 0;
+  }
+
+  function openProject(projectId) {
+    if (!getProjectById(projectId)) return;
+    projectsState.activeProjectId = projectId;
+    saveProjectsState();
+    setHistoryPanelOpen(true);
+    setWorkspaceView('project');
+  }
+
+  function renameProject(projectId) {
+    const project = getProjectById(projectId);
+    if (!project) return;
+    const nextName = window.prompt('Nouveau nom du projet', project.name);
+    if (nextName === null) return;
+    const cleanName = nextName.replace(/\s+/g, ' ').trim().slice(0, 80);
+    if (!cleanName) return;
+    project.name = cleanName;
+    project.icon = project.icon || cleanName.charAt(0).toUpperCase();
+    project.updatedAt = Date.now();
+    saveProjectsState();
+    renderProjectList();
+    if (project.id === projectsState.activeProjectId) renderProjectWorkspace();
+  }
+
+  function duplicateProject(projectId) {
+    const project = getProjectById(projectId);
+    if (!project) return;
+    const duplicate = normalizeProject({
+      ...project,
+      id: buildProjectId(`${project.name}-copy`),
+      name: `${project.name} copie`,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      memory: project.memory || '',
+      ragProjectIds: [...(project.ragProjectIds || [])]
+    });
+    projectsState.projects.unshift(duplicate);
+    projectsState.activeProjectId = duplicate.id;
+    saveProjectsState();
+    setWorkspaceView('project');
+    renderProjectList();
+  }
+
+  function getProjectExportDateStamp() {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  function downloadTextFile(filename, content, mimeType = 'text/plain;charset=utf-8') {
+    downloadBlob(new Blob([String(content || '')], { type: mimeType }), filename);
+  }
+
+  function buildProjectExportPayload(projectId) {
+    const project = getProjectById(projectId);
+    if (!project) return null;
+    const stats = getProjectStats(projectId);
+    return {
+      exportVersion: 1,
+      exportedAt: new Date().toISOString(),
+      project,
+      stats: { ...stats, memories: countProjectMemories(project) },
+      conversations: (sessionsState.sessions || []).filter((session) => getSessionProjectId(session) === projectId),
+      documents: (knowledgeLibrary.documents || []).filter((doc) => getDocumentProjectId(doc) === projectId).map((doc) => ({
+        id: doc.id,
+        name: doc.name,
+        type: doc.type,
+        kind: doc.kind,
+        size: doc.size,
+        textLength: doc.textLength,
+        chunks: getKnowledgeDocChunks(doc).length,
+        importedAt: doc.importedAt
+      })),
+      rag: {
+        scope: project.ragScope || 'project',
+        projectIds: [project.id, ...(project.ragProjectIds || [])]
+      }
+    };
+  }
+
+  function downloadProjectJson(projectId) {
+    const payload = buildProjectExportPayload(projectId);
+    if (!payload) return;
+    downloadTextFile(
+      `digital-blue-skye-project-export-${getProjectExportDateStamp()}.json`,
+      JSON.stringify(payload, null, 2),
+      'application/json;charset=utf-8'
+    );
+  }
+
+  function getProjectRagScopeLabel(scope) {
+    if (scope === 'library') return 'Toute la bibliotheque';
+    if (scope === 'multi_project') return 'Plusieurs projets';
+    return 'Projet courant';
+  }
+
+  function buildProjectHtmlReport(projectId) {
+    const payload = buildProjectExportPayload(projectId);
+    if (!payload) return;
+    const { project, stats, conversations, documents, rag, exportedAt } = payload;
+    const conversationRows = conversations.length
+      ? conversations.map((session) => `<tr><td>${escapeHtml(getSessionDisplayTitle(session))}</td><td>${normalizeHistory(session.history).length}</td><td>${escapeHtml(formatProjectDate(session.updatedAt))}</td></tr>`).join('')
+      : '<tr><td colspan="3">Aucune conversation associee.</td></tr>';
+    const documentRows = documents.length
+      ? documents.map((doc) => `<tr><td>${escapeHtml(doc.name)}</td><td>${escapeHtml(doc.type)}</td><td>${doc.chunks}</td><td>${escapeHtml(fileSizeLabel(doc.size))}</td></tr>`).join('')
+      : '<tr><td colspan="4">Aucun document associe.</td></tr>';
+    const nextSteps = [
+      'Verifier que la memoire projet resume les objectifs et contraintes actuels.',
+      'Importer ou rattacher les documents sources manquants.',
+      'Utiliser le perimetre RAG adapte avant les prochaines analyses.',
+      'Exporter regulierement le projet pour archivage ou partage.'
+    ];
+    return `<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${escapeHtml(project.name)} - Rapport Digital Blue Skye AI</title>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    body { background: radial-gradient(circle at 18% 0%, rgb(121 230 255 / 18%), transparent 30%), radial-gradient(circle at 82% 8%, rgb(160 110 255 / 20%), transparent 34%), #080a18; color: #f6f7ff; margin: 0; padding: 32px; }
+    main { margin: 0 auto; max-width: 1040px; }
+    header { border: 1px solid rgb(255 255 255 / 14%); border-radius: 18px; background: linear-gradient(180deg, rgb(255 255 255 / 10%), rgb(255 255 255 / 5%)); box-shadow: 0 22px 70px rgb(0 0 0 / 35%); padding: 28px; }
+    h1 { font-size: clamp(2rem, 5vw, 4rem); line-height: 1; margin: 0 0 12px; }
+    h2 { color: #9ee8ff; font-size: 1.1rem; margin: 0 0 14px; }
+    p { color: rgb(235 240 255 / 76%); line-height: 1.6; }
+    .grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); margin: 22px 0; }
+    .card, section { border: 1px solid rgb(255 255 255 / 12%); border-radius: 14px; background: rgb(255 255 255 / 7%); padding: 18px; }
+    .card span { color: rgb(235 240 255 / 58%); display: block; font-size: .78rem; }
+    .card strong { display: block; font-size: 1.5rem; margin-top: 6px; }
+    section { margin-top: 16px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border-bottom: 1px solid rgb(255 255 255 / 10%); padding: 10px 8px; text-align: left; vertical-align: top; }
+    th { color: #9ee8ff; font-size: .78rem; text-transform: uppercase; }
+    ul { color: rgb(235 240 255 / 78%); line-height: 1.65; margin: 0; padding-left: 20px; }
+    .meta { color: rgb(235 240 255 / 56%); font-size: .86rem; }
+    @media print { body { background: #fff; color: #111827; padding: 0; } header, section, .card { box-shadow: none; border-color: #d5d7e2; } p, ul, .meta { color: #334155; } h2, th { color: #2251c8; } }
+    @media (max-width: 680px) { body { padding: 16px; } header, section { padding: 16px; } }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <p class="meta">Digital Blue Skye AI - Export du ${escapeHtml(new Date(exportedAt).toLocaleDateString('fr-FR'))}</p>
+      <h1>${escapeHtml(project.name)}</h1>
+      <p>${escapeHtml(project.description || 'Aucune description renseignee.')}</p>
+      <div class="grid">
+        <div class="card"><span>Conversations</span><strong>${stats.conversations}</strong></div>
+        <div class="card"><span>Documents</span><strong>${stats.documents}</strong></div>
+        <div class="card"><span>Chunks documentaires</span><strong>${stats.chunks}</strong></div>
+        <div class="card"><span>Perimetre RAG</span><strong>${escapeHtml(getProjectRagScopeLabel(rag.scope))}</strong></div>
+      </div>
+    </header>
+    <section><h2>Memoire projet</h2><p>${escapeHtml(project.memory || 'Aucune memoire projet renseignee.')}</p></section>
+    <section><h2>Conversations associees</h2><table><thead><tr><th>Conversation</th><th>Messages</th><th>Activite</th></tr></thead><tbody>${conversationRows}</tbody></table></section>
+    <section><h2>Documents associes</h2><table><thead><tr><th>Document</th><th>Type</th><th>Chunks</th><th>Taille</th></tr></thead><tbody>${documentRows}</tbody></table></section>
+    <section><h2>Prochaines etapes recommandees</h2><ul>${nextSteps.map((step) => `<li>${escapeHtml(step)}</li>`).join('')}</ul></section>
+  </main>
+</body>
+</html>`;
+  }
+
+  function downloadProjectHtml(projectId) {
+    const html = buildProjectHtmlReport(projectId);
+    if (!html) return;
+    downloadTextFile(
+      `digital-blue-skye-project-report-${getProjectExportDateStamp()}.html`,
+      html,
+      'text/html;charset=utf-8'
+    );
+  }
+
+  function openProjectPrintableHtml(html) {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      addMessage('bot', "PDF imprimable : autorisez les popups puis relancez l'export.");
+      return;
+    }
+    printWindow.document.open();
+    printWindow.document.write(html.replace('</main>', '<section><h2>PDF imprimable</h2><p>Utilisez Imprimer > Enregistrer en PDF.</p></section></main>'));
+    printWindow.document.close();
+    printWindow.focus?.();
+    window.setTimeout(() => printWindow.print?.(), 500);
+  }
+
+  async function exportProjectPdf(projectId) {
+    const html = buildProjectHtmlReport(projectId);
+    if (!html) return;
+    let frame = null;
+    try {
+      const html2pdf = await ensureHtml2PdfReady();
+      frame = document.createElement('iframe');
+      frame.style.position = 'fixed';
+      frame.style.left = '-9999px';
+      frame.style.top = '-9999px';
+      frame.style.width = '1024px';
+      frame.style.height = '1400px';
+      document.body.appendChild(frame);
+      frame.contentDocument.open();
+      frame.contentDocument.write(html);
+      frame.contentDocument.close();
+      await new Promise((resolve) => window.setTimeout(resolve, 120));
+      await html2pdf()
+        .set({
+          filename: `digital-blue-skye-project-report-${getProjectExportDateStamp()}.pdf`,
+          margin: 8,
+          html2canvas: { scale: 2, useCORS: true },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        })
+        .from(frame.contentDocument.body)
+        .save();
+    } catch (error) {
+      assistantLog('warn', 'project_pdf_export_fallback', { reason: error?.message || 'html2pdf_unavailable' });
+      openProjectPrintableHtml(html);
+    } finally {
+      frame?.remove?.();
+    }
+  }
+
+  async function exportProjectZip(projectId) {
+    const payload = buildProjectExportPayload(projectId);
+    if (!payload) return;
+    if (!window.JSZip) {
+      addMessage('bot', 'Export ZIP non encore disponible. Utilisez JSON ou HTML pour le moment.');
+      return;
+    }
+    const zip = new window.JSZip();
+    const date = getProjectExportDateStamp();
+    zip.file(`digital-blue-skye-project-export-${date}.json`, JSON.stringify(payload, null, 2));
+    zip.file(`digital-blue-skye-project-report-${date}.html`, buildProjectHtmlReport(projectId));
+    zip.file('README.txt', [
+      `Export Digital Blue Skye AI - ${payload.project.name}`,
+      `Date: ${payload.exportedAt}`,
+      '',
+      'Contenu:',
+      '- JSON technique',
+      '- Rapport HTML lisible',
+      '- Metadonnees des documents lies',
+      '',
+      'Les fichiers physiques de la bibliotheque globale ne sont pas inclus.'
+    ].join('\n'));
+    zip.file('documents-metadata.json', JSON.stringify(payload.documents, null, 2));
+    const blob = await zip.generateAsync({ type: 'blob' });
+    downloadBlob(blob, `digital-blue-skye-project-complete-${date}.zip`);
+  }
+
+  function buildProjectShareText(project) {
+    const stats = getProjectStats(project.id);
+    return [
+      'Bonjour,',
+      '',
+      `Je vous partage le projet "${project.name}" depuis Digital Blue Skye AI.`,
+      '',
+      'Resume du projet :',
+      '',
+      `* Description : ${project.description || 'Non renseignee'}`,
+      `* Conversations associees : ${stats.conversations}`,
+      `* Documents associes : ${stats.documents}`,
+      `* Chunks documentaires : ${stats.chunks}`,
+      `* Perimetre RAG : ${getProjectRagScopeLabel(project.ragScope || 'project')}`,
+      '',
+      'Ce projet regroupe les elements de travail, documents et conversations utiles a son suivi.',
+      '',
+      'Cordialement,'
+    ].join('\n');
+  }
+
+  async function shareProject(projectId) {
+    const project = getProjectById(projectId);
+    if (!project) return;
+    const text = buildProjectShareText(project);
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Projet Digital Blue Skye AI - ${project.name}`,
+          text,
+          url: window.location.href
+        });
+        return;
+      } catch (error) {
+        assistantLog('warn', 'project_share_failed', { reason: error?.message || 'share_failed' });
+      }
+    }
+    const mailto = `mailto:?subject=${encodeURIComponent(`Projet Digital Blue Skye AI - ${project.name}`)}&body=${encodeURIComponent(text)}`;
+    window.location.href = mailto;
+  }
+
+  function handleProjectExportAction(format, projectId) {
+    if (!projectId) return;
+    if (format === 'json') downloadProjectJson(projectId);
+    else if (format === 'html') downloadProjectHtml(projectId);
+    else if (format === 'pdf') exportProjectPdf(projectId);
+    else if (format === 'zip') exportProjectZip(projectId);
+  }
+
+  function changeProjectAppearance(projectId) {
+    const project = getProjectById(projectId);
+    if (!project) return;
+    const nextIcon = window.prompt('Icone du projet', project.icon || project.name.charAt(0).toUpperCase());
+    if (nextIcon !== null) project.icon = String(nextIcon || project.icon || 'P').slice(0, 2).toUpperCase();
+    const nextColor = window.prompt('Couleur hexadecimale du projet', project.color || '#79e6ff');
+    if (nextColor !== null && /^#[0-9a-f]{6}$/i.test(nextColor.trim())) project.color = nextColor.trim();
+    project.updatedAt = Date.now();
+    saveProjectsState();
+    renderProjectList();
+    if (project.id === projectsState.activeProjectId) renderProjectWorkspace();
+  }
+
+  function closeProjectDeleteDialog() {
+    if (!projectDeleteDialog) return;
+    projectDeleteDialog.hidden = true;
+    projectDeleteDialog.setAttribute('aria-hidden', 'true');
+    pendingDeleteProjectId = '';
+  }
+
+  function requestProjectDeletion(projectId) {
+    const project = getProjectById(projectId);
+    if (!project || project.id === defaultProjectId || !projectDeleteDialog) return;
+    const stats = getProjectStats(projectId);
+    pendingDeleteProjectId = projectId;
+    if (projectDeleteSummary) {
+      projectDeleteSummary.textContent = [
+        `${stats.conversations} conversation${stats.conversations > 1 ? 's' : ''}`,
+        `${stats.documents} document${stats.documents > 1 ? 's' : ''}`,
+        `${countProjectMemories(project)} memoire${countProjectMemories(project) > 1 ? 's' : ''} associee${countProjectMemories(project) > 1 ? 's' : ''}`
+      ].join(' • ');
+    }
+    projectDeleteDialog.hidden = false;
+    projectDeleteDialog.setAttribute('aria-hidden', 'false');
+    projectDeleteCancelButton?.focus?.();
+  }
+
+  function deleteProjectConfirmed(projectId) {
+    const project = getProjectById(projectId);
+    if (!project || project.id === defaultProjectId) return;
+    (sessionsState.sessions || []).forEach((session) => {
+      if (getSessionProjectId(session) === projectId) {
+        session.projectId = defaultProjectId;
+        session.updatedAt = Date.now();
+      }
+    });
+    (knowledgeLibrary.documents || []).forEach((doc) => {
+      if (getDocumentProjectId(doc) === projectId) doc.projectId = defaultProjectId;
+    });
+    projectsState.projects = (projectsState.projects || []).filter((item) => item.id !== projectId);
+    projectsState.projects.forEach((item) => {
+      item.ragProjectIds = (item.ragProjectIds || []).filter((id) => id !== projectId);
+    });
+    if (projectsState.activeProjectId === projectId) projectsState.activeProjectId = defaultProjectId;
+    saveSessionsState();
+    saveKnowledgeLibrary();
+    saveProjectsState();
+    setWorkspaceView('project');
+    renderSessionOptions();
+    renderProjectList();
+    closeProjectDeleteDialog();
+  }
+
+  function handleProjectMenuAction(action, projectId) {
+    if (!projectId) return;
+    if (action === 'open') openProject(projectId);
+    else if (action === 'rename') renameProject(projectId);
+    else if (action === 'duplicate') duplicateProject(projectId);
+    else if (action === 'export-menu') return;
+    else if (action === 'share') shareProject(projectId);
+    else if (action === 'appearance') changeProjectAppearance(projectId);
+    else if (action === 'delete') requestProjectDeletion(projectId);
+  }
+
+  function fileSizeFromChars(chars) {
+    const bytes = Math.max(0, Number(chars) || 0);
+    if (!bytes) return '0 o';
+    if (bytes < 1024) return `${bytes} o`;
+    if (bytes < 1024 * 1024) return `${Math.round(bytes / 102.4) / 10} Ko`;
+    return `${Math.round(bytes / (1024 * 102.4)) / 10} Mo`;
+  }
+
+  function setWorkspaceView(view) {
+    const isLibrary = view === 'library';
+    const isProject = view === 'project';
+    const isSettings = view === 'settings';
+    isLibraryViewOpen = isLibrary;
+    if (panel) {
+      panel.classList.toggle('is-library-view', isLibrary);
+      panel.classList.toggle('is-project-view', isProject);
+      panel.classList.toggle('is-settings-view', isSettings);
+    }
+    if (libraryView) {
+      libraryView.hidden = !isLibrary;
+      libraryView.setAttribute('aria-hidden', String(!isLibrary));
+    }
+    if (projectView) {
+      projectView.hidden = !isProject;
+      projectView.setAttribute('aria-hidden', String(!isProject));
+    }
+    if (settingsView) {
+      settingsView.hidden = !isSettings;
+      settingsView.setAttribute('aria-hidden', String(!isSettings));
+    }
+    if (sessionLibraryButton) sessionLibraryButton.classList.toggle('is-active', isLibrary);
+    if (settingsOpenButton) settingsOpenButton.classList.toggle('is-active', isSettings);
+    if (isLibrary) renderKnowledgeLibraryView();
+    if (isProject) renderProjectWorkspace();
+    if (isSettings) renderSettingsView();
+    if (!isLibrary) closeLibraryCardMenu();
+    if (!isLibrary) closeMediaPreview();
+    updateScrollBottomButton();
+  }
+
   function getSessionById(sessionId) {
     return sessionsState.sessions.find((session) => session.id === sessionId) || null;
   }
@@ -824,9 +1589,17 @@
     activeContextSessionId = '';
   }
 
+  function closeProjectContextMenu() {
+    if (!projectContextMenu) return;
+    projectContextMenu.classList.remove('is-open');
+    projectContextMenu.setAttribute('aria-hidden', 'true');
+    activeContextProjectId = '';
+  }
+
   function openSessionContextMenu(event, sessionId) {
     if (!sessionContextMenu || !historyPanel || !getSessionById(sessionId)) return;
     event.preventDefault();
+    closeProjectContextMenu();
     activeContextSessionId = sessionId;
     sessionContextMenu.classList.add('is-open');
     sessionContextMenu.setAttribute('aria-hidden', 'false');
@@ -844,6 +1617,27 @@
     );
     sessionContextMenu.style.left = `${left}px`;
     sessionContextMenu.style.top = `${top}px`;
+  }
+
+  function openProjectContextMenu(event, projectId) {
+    if (!projectContextMenu || !historyPanel || !getProjectById(projectId)) return;
+    event.preventDefault();
+    closeSessionContextMenu();
+    activeContextProjectId = projectId;
+    projectContextMenu.classList.add('is-open');
+    projectContextMenu.setAttribute('aria-hidden', 'false');
+    const panelRect = historyPanel.getBoundingClientRect();
+    const ownerRect = panel?.getBoundingClientRect() || panelRect;
+    const menuRect = projectContextMenu.getBoundingClientRect();
+    const maxLeft = Math.max(10, ownerRect.right - panelRect.left - menuRect.width - 12);
+    const left = Math.min(Math.max(event.clientX - panelRect.left, 10), maxLeft);
+    const top = Math.min(
+      Math.max(event.clientY - panelRect.top, 10),
+      Math.max(10, panelRect.height - menuRect.height - 10)
+    );
+    projectContextMenu.style.left = `${left}px`;
+    projectContextMenu.style.top = `${top}px`;
+    projectContextMenu.classList.toggle('is-export-left', event.clientX > window.innerWidth - 460);
   }
 
   function setAssistantRequestRunning(active) {
@@ -2225,6 +3019,7 @@
         .map((doc) => {
           const normalizedDoc = {
             id: typeof doc?.id === 'string' ? doc.id : buildKnowledgeDocumentId(doc?.name),
+            projectId: getProjectById(doc?.projectId)?.id || defaultProjectId,
             name: String(doc?.name || 'document').slice(0, 160),
             type: String(doc?.type || 'Document').slice(0, 48),
             kind: String(doc?.kind || 'document').slice(0, 32),
@@ -2463,6 +3258,7 @@
     const chunks = chunkKnowledgeText(text || fallbackText);
     const doc = {
       id: buildKnowledgeDocumentId(file?.name),
+      projectId: projectsState.activeProjectId || defaultProjectId,
       name: extracted?.name || file?.name || 'document',
       type: extracted?.type || getKnowledgeFileTypeLabel(file),
       importedAt: Date.now(),
@@ -2718,7 +3514,14 @@
   }
 
   function retrieveKnowledgeContext(userText) {
-    const docs = knowledgeLibrary.documents || [];
+    const activeProject = getActiveProject();
+    const scope = activeProject?.ragScope || 'project';
+    const scopedProjectIds = new Set([activeProject?.id || defaultProjectId, ...(activeProject?.ragProjectIds || [])]);
+    const docs = (knowledgeLibrary.documents || []).filter((doc) => {
+      if (scope === 'library') return true;
+      if (scope === 'multi_project') return scopedProjectIds.has(getDocumentProjectId(doc));
+      return getDocumentProjectId(doc) === (activeProject?.id || defaultProjectId);
+    });
     const terms = normalizeKnowledgeTerms(userText);
     if (!docs.length || !terms.length) return { selected: [], query: { terms: [], uniqueTerms: [], phrases: [] } };
     const query = {
@@ -2754,13 +3557,21 @@
   function buildKnowledgeContextForPrompt(userText) {
     const { selected, query } = retrieveKnowledgeContext(userText);
     if (!selected.length) return '';
+    const activeProject = getActiveProject();
+    const scopeLabel = activeProject?.ragScope === 'library'
+      ? 'library'
+      : activeProject?.ragScope === 'multi_project'
+        ? 'multi_project'
+        : 'current_project';
     const intro = currentLanguage === 'en'
       ? [
         'Local document context available from the browser library.',
+        `RAG scope: ${scopeLabel}. Active project: ${activeProject?.name || 'SAFE'}.`,
         `Query terms: ${query.uniqueTerms.slice(0, 18).join(', ')}`
       ].join('\n')
       : [
         'Contexte documentaire disponible depuis la bibliothèque locale du navigateur.',
+        `Scope RAG : ${scopeLabel}. Projet actif : ${activeProject?.name || 'SAFE'}.`,
         `Termes de requête : ${query.uniqueTerms.slice(0, 18).join(', ')}`
       ].join('\n');
     return [
@@ -2924,7 +3735,7 @@
     if (attachFileLabel) attachFileLabel.textContent = i18n.attachFiles;
     const attachDriveLabel = attachDriveButton?.querySelector('span');
     if (attachDriveLabel) attachDriveLabel.textContent = i18n.attachDrive;
-    if (sessionLabel) sessionLabel.textContent = i18n.discussions;
+    if (sessionLabel) sessionLabel.textContent = currentLanguage === 'en' ? 'Recent discussions' : 'Discussions recentes';
     if (sessionSearchInput) {
       sessionSearchInput.placeholder = i18n.searchConversations;
       sessionSearchInput.setAttribute('aria-label', i18n.searchConversations);
@@ -3013,7 +3824,7 @@
   function buildSessionId() { return `s_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`; }
 
   function makeDefaultSession() {
-    return { id: buildSessionId(), title: i18n.sessionDefault, customTitle: false, summary: '', createdAt: Date.now(), updatedAt: Date.now(), history: [] };
+    return { id: buildSessionId(), projectId: projectsState.activeProjectId || defaultProjectId, title: i18n.sessionDefault, customTitle: false, summary: '', createdAt: Date.now(), updatedAt: Date.now(), history: [] };
   }
 
   function isDefaultSessionTitle(title) {
@@ -3082,6 +3893,7 @@
         const title = typeof s?.title === 'string' ? s.title.trim() : '';
         return {
           id: typeof s?.id === 'string' ? s.id : buildSessionId(),
+          projectId: getProjectById(s?.projectId)?.id || defaultProjectId,
           title: isDefaultSessionTitle(title) ? i18n.sessionDefault : title,
           customTitle: Boolean(s?.customTitle && !isDefaultSessionTitle(title)),
           summary: normalizeSessionSummary(s?.summary),
@@ -3111,6 +3923,7 @@
         activeSessionId: sessionsState.activeSessionId,
         sessions: sessionsState.sessions.slice(0, maxStoredSessions).map((session) => ({
           ...session,
+          projectId: getProjectById(session.projectId)?.id || defaultProjectId,
           title: typeof session.title === 'string' ? session.title.slice(0, 120) : i18n.sessionDefault,
           customTitle: Boolean(session.customTitle && !isDefaultSessionTitle(session.title)),
           summary: normalizeSessionSummary(session.summary),
@@ -3128,6 +3941,7 @@
           activeSessionId: sessionsState.activeSessionId,
           sessions: sessionsState.sessions.slice(0, 5).map((session) => ({
             ...session,
+            projectId: getProjectById(session.projectId)?.id || defaultProjectId,
             summary: normalizeSessionSummary(session.summary),
             history: normalizeHistory(session.history).slice(-8)
           }))
@@ -3173,6 +3987,7 @@
     if (sessionSelect) sessionSelect.innerHTML = '';
     if (sessionList) sessionList.innerHTML = '';
     const sorted = [...sessionsState.sessions].sort((a, b) => b.updatedAt - a.updatedAt);
+    if (recentCount) recentCount.textContent = `(${sorted.length})`;
     const searchTerm = sessionSearchInput?.value?.trim().toLowerCase() || '';
     const filtered = sorted.filter((session) => {
       if (!searchTerm) return true;
@@ -3225,6 +4040,246 @@
 
       sessionList.appendChild(button);
     }
+    renderProjectList();
+    applySidebarSectionState();
+  }
+
+  function renderProjectList() {
+    if (!projectList) return;
+    projectList.innerHTML = '';
+    if (projectCount) projectCount.textContent = `(${(projectsState.projects || []).length})`;
+    (projectsState.projects || []).forEach((project) => {
+      const stats = getProjectStats(project.id);
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'ai-assistant-project-item';
+      button.dataset.projectId = project.id;
+      button.classList.toggle('is-active', project.id === projectsState.activeProjectId && panel?.classList.contains('is-project-view'));
+      button.style.setProperty('--project-color', project.color);
+      button.title = project.name;
+
+      const icon = document.createElement('span');
+      icon.className = 'ai-assistant-project-item-icon';
+      icon.textContent = project.icon || project.name.charAt(0);
+
+      const body = document.createElement('span');
+      body.className = 'ai-assistant-project-item-body';
+      const name = document.createElement('strong');
+      name.textContent = project.name;
+      const meta = document.createElement('span');
+      meta.textContent = `${stats.conversations} conversation${stats.conversations > 1 ? 's' : ''} • ${stats.documents} document${stats.documents > 1 ? 's' : ''}`;
+      body.append(name, meta);
+      button.append(icon, body);
+      projectList.appendChild(button);
+    });
+    applySidebarSectionState();
+  }
+
+  function renderProjectWorkspace() {
+    const project = getActiveProject();
+    if (!project || !projectContent) return;
+    const stats = getProjectStats(project.id);
+    if (projectIcon) {
+      projectIcon.textContent = project.icon || project.name.charAt(0);
+      projectIcon.style.setProperty('--project-color', project.color);
+    }
+    if (projectTitle) projectTitle.textContent = project.name;
+    if (projectDescription) projectDescription.textContent = project.description || 'Projet Digital Blue Skye AI.';
+    if (projectStats) {
+      projectStats.innerHTML = '';
+      [
+        ['Conversations', stats.conversations],
+        ['Documents', stats.documents],
+        ['Chunks', stats.chunks],
+        ['Taille indexee', fileSizeFromChars(stats.indexedSize)],
+        ['Derniere activite', stats.lastActivity ? formatProjectDate(stats.lastActivity) : '-']
+      ].forEach(([label, value]) => {
+        const item = document.createElement('div');
+        item.className = 'ai-assistant-project-stat';
+        item.innerHTML = `<span>${escapeHtml(label)}</span><strong>${escapeHtml(String(value))}</strong>`;
+        projectStats.appendChild(item);
+      });
+    }
+    if (projectTabs) {
+      projectTabs.querySelectorAll('button').forEach((button) => {
+        button.classList.toggle('is-active', button.dataset.projectTab === activeProjectTab);
+      });
+    }
+    projectContent.innerHTML = '';
+    if (activeProjectTab === 'conversations') renderProjectConversations(project, projectContent);
+    else if (activeProjectTab === 'documents') renderProjectDocuments(project, projectContent);
+    else if (activeProjectTab === 'memory') renderProjectMemory(project, projectContent);
+    else if (activeProjectTab === 'rag') renderProjectRag(project, projectContent);
+    else if (activeProjectTab === 'stats') renderProjectStatsDetail(project, stats, projectContent);
+    else renderProjectSettings(project, projectContent);
+    renderProjectList();
+  }
+
+  function appendEmptyProjectState(container, text) {
+    const empty = document.createElement('p');
+    empty.className = 'ai-assistant-project-empty';
+    empty.textContent = text;
+    container.appendChild(empty);
+  }
+
+  function renderProjectConversations(project, container) {
+    const sessions = (sessionsState.sessions || [])
+      .filter((session) => getSessionProjectId(session) === project.id)
+      .sort((a, b) => b.updatedAt - a.updatedAt);
+    if (!sessions.length) { appendEmptyProjectState(container, 'Aucune conversation rattachee a ce projet.'); return; }
+    const list = document.createElement('div');
+    list.className = 'ai-assistant-project-list';
+    sessions.forEach((session) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'ai-assistant-project-row';
+      button.dataset.sessionId = session.id;
+      button.innerHTML = `<strong>${escapeHtml(getSessionDisplayTitle(session))}</strong><span>${normalizeHistory(session.history).length} messages · ${escapeHtml(formatProjectDate(session.updatedAt))}</span>`;
+      list.appendChild(button);
+    });
+    container.appendChild(list);
+  }
+
+  function renderProjectDocuments(project, container) {
+    const docs = (knowledgeLibrary.documents || [])
+      .filter((doc) => getDocumentProjectId(doc) === project.id)
+      .sort((a, b) => b.importedAt - a.importedAt);
+    if (!docs.length) { appendEmptyProjectState(container, 'Aucun document indexe dans ce projet.'); return; }
+    const list = document.createElement('div');
+    list.className = 'ai-assistant-project-list';
+    docs.forEach((doc) => {
+      const row = document.createElement('div');
+      row.className = 'ai-assistant-project-row';
+      row.innerHTML = `<strong>${escapeHtml(doc.name)}</strong><span>${escapeHtml(doc.type)} · ${getKnowledgeDocChunks(doc).length} chunks · ${escapeHtml(fileSizeLabel(doc.size))}</span>`;
+      list.appendChild(row);
+    });
+    container.appendChild(list);
+  }
+
+  function renderProjectMemory(project, container) {
+    const textarea = document.createElement('textarea');
+    textarea.className = 'ai-assistant-project-memory';
+    textarea.value = project.memory || '';
+    textarea.placeholder = 'Memoire persistante du projet : objectifs, preferences, contexte durable.';
+    textarea.rows = 7;
+    textarea.addEventListener('change', () => {
+      project.memory = textarea.value.slice(0, 2500);
+      project.updatedAt = Date.now();
+      saveProjectsState();
+      renderProjectWorkspace();
+    });
+    container.appendChild(textarea);
+  }
+
+  function renderProjectRag(project, container) {
+    const stats = getProjectStats(project.id);
+    const block = document.createElement('div');
+    block.className = 'ai-assistant-project-rag';
+    block.innerHTML = `
+      <div><span>Scope actif</span><strong>${project.ragScope === 'library' ? 'Toute la bibliotheque' : project.ragScope === 'multi_project' ? 'Plusieurs projets' : 'Projet courant'}</strong></div>
+      <div><span>Index vectoriel</span><strong>Prepare</strong></div>
+      <div><span>Embeddings</span><strong>Prepare</strong></div>
+      <div><span>Citations</span><strong>${stats.chunks} chunks citables</strong></div>`;
+    container.appendChild(block);
+  }
+
+  function renderProjectStatsDetail(project, stats, container) {
+    const block = document.createElement('div');
+    block.className = 'ai-assistant-project-rag';
+    block.innerHTML = `
+      <div><span>Conversations</span><strong>${stats.conversations}</strong></div>
+      <div><span>Documents</span><strong>${stats.documents}</strong></div>
+      <div><span>Chunks indexes</span><strong>${stats.chunks}</strong></div>
+      <div><span>Taille indexee</span><strong>${fileSizeFromChars(stats.indexedSize)}</strong></div>`;
+    container.appendChild(block);
+  }
+
+  function renderProjectSettings(project, container) {
+    const form = document.createElement('div');
+    form.className = 'ai-assistant-project-settings';
+    form.innerHTML = `
+      <label>Nom<input data-field="name" value="${escapeHtml(project.name)}"></label>
+      <label>Description<textarea data-field="description" rows="3">${escapeHtml(project.description || '')}</textarea></label>
+      <label>Icone<input data-field="icon" value="${escapeHtml(project.icon || '')}" maxlength="2"></label>
+      <label>Couleur<input data-field="color" value="${escapeHtml(project.color)}" type="color"></label>
+      <label>Scope RAG<select data-field="ragScope">
+        <option value="project">Projet courant</option>
+        <option value="multi_project">Plusieurs projets</option>
+        <option value="library">Toute la bibliotheque</option>
+      </select></label>`;
+    const scope = form.querySelector('[data-field="ragScope"]');
+    if (scope) scope.value = project.ragScope || 'project';
+    form.addEventListener('change', (event) => {
+      const field = event.target?.dataset?.field;
+      if (!field) return;
+      project[field] = field === 'icon'
+        ? String(event.target.value || '').slice(0, 2).toUpperCase()
+        : String(event.target.value || '').slice(0, field === 'description' ? 220 : 120);
+      project.updatedAt = Date.now();
+      saveProjectsState();
+      renderProjectWorkspace();
+    });
+    container.appendChild(form);
+    const multi = document.createElement('div');
+    multi.className = 'ai-assistant-project-settings';
+    const title = document.createElement('strong');
+    title.textContent = 'Projets inclus en RAG multi-projets';
+    multi.appendChild(title);
+    (projectsState.projects || []).filter((item) => item.id !== project.id).forEach((item) => {
+      const label = document.createElement('label');
+      label.className = 'ai-assistant-project-check';
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.dataset.ragProjectId = item.id;
+      checkbox.checked = (project.ragProjectIds || []).includes(item.id);
+      const span = document.createElement('span');
+      span.textContent = item.name;
+      label.append(checkbox, span);
+      multi.appendChild(label);
+    });
+    multi.addEventListener('change', (event) => {
+      const projectId = event.target?.dataset?.ragProjectId;
+      if (!projectId) return;
+      const selected = new Set(project.ragProjectIds || []);
+      if (event.target.checked) selected.add(projectId);
+      else selected.delete(projectId);
+      project.ragProjectIds = Array.from(selected);
+      project.updatedAt = Date.now();
+      saveProjectsState();
+    });
+    container.appendChild(multi);
+  }
+
+  function renderSettingsView() {
+    if (!settingsSections) return;
+    const sections = [
+      ['Profil', [['Nom', 'profile.name'], ['Email', 'profile.email'], ['Avatar', 'profile.avatar'], ['Langue', 'profile.language'], ['Fuseau horaire', 'profile.timezone']]],
+      ['IA', [['Modele par defaut', 'ai.defaultModel'], ['Fournisseur prefere', 'ai.preferredProvider'], ['Fallback automatique', 'ai.automaticFallback']]],
+      ['Recherche Web', [['Tavily active', 'web.tavilyEnabled'], ['Mode economique', 'web.economyMode'], ['Mode expert', 'web.expertMode'], ['Limite de resultats', 'web.maxResults']]],
+      ['Documents', [['Taille maximale (Mo)', 'documents.maxSizeMb'], ['Chunking', 'documents.chunking'], ['Indexation automatique', 'documents.automaticIndexing'], ['RAG automatique', 'documents.automaticRag']]],
+      ['Apparence', [['Theme', 'appearance.theme']]],
+      ['Donnees', [['Export conversations', 'data.lastExportAt'], ['Export projets', 'data.lastProjectExportAt'], ['Sauvegarde', 'data.lastBackupAt'], ['Restauration', 'data.lastRestoreAt']]]
+    ];
+    settingsSections.innerHTML = '';
+    sections.forEach(([title, fields]) => {
+      const section = document.createElement('section');
+      section.className = 'ai-assistant-settings-section';
+      const heading = document.createElement('h4');
+      heading.textContent = title;
+      section.appendChild(heading);
+      fields.forEach(([label, path]) => {
+        const [group, key] = path.split('.');
+        const value = assistantSettingsState[group]?.[key];
+        const field = document.createElement('label');
+        const isBoolean = typeof value === 'boolean';
+        field.innerHTML = `<span>${escapeHtml(label)}</span><input data-settings-path="${escapeHtml(path)}" ${isBoolean ? 'type="checkbox"' : 'type="text"'}>`;
+        const inputNode = field.querySelector('input');
+        if (isBoolean) inputNode.checked = Boolean(value);
+        else inputNode.value = value || '';
+        section.appendChild(field);
+      });
+      settingsSections.appendChild(section);
+    });
   }
 
   function renderCurrentConversation() {
@@ -3265,22 +4320,11 @@
   }
 
   function setLibraryViewOpen(open) {
-    isLibraryViewOpen = Boolean(open);
-    if (panel) panel.classList.toggle('is-library-view', isLibraryViewOpen);
-    if (libraryView) {
-      libraryView.hidden = !isLibraryViewOpen;
-      libraryView.setAttribute('aria-hidden', String(!isLibraryViewOpen));
-    }
-    if (sessionLibraryButton) sessionLibraryButton.classList.toggle('is-active', isLibraryViewOpen);
-    if (isLibraryViewOpen) {
+    setWorkspaceView(open ? 'library' : 'chat');
+    if (open) {
       closeAttachMenu();
       closeSessionContextMenu();
-      renderKnowledgeLibraryView();
-    } else {
-      closeLibraryCardMenu();
-      closeMediaPreview();
     }
-    updateScrollBottomButton();
   }
 
   function persistActiveConversation() {
@@ -3313,6 +4357,11 @@
     if (!sessionsState.sessions.some((s) => s.id === sessionId)) return;
     setLibraryViewOpen(false);
     sessionsState.activeSessionId = sessionId;
+    const session = getSessionById(sessionId);
+    if (session?.projectId && getProjectById(session.projectId)) {
+      projectsState.activeProjectId = session.projectId;
+      saveProjectsState();
+    }
     saveSessionsState();
     renderSessionOptions();
     renderCurrentConversation();
@@ -3571,6 +4620,16 @@
   if (sessionExportButton) sessionExportButton.addEventListener('click', () => exportActiveConversation());
   if (sessionDeleteButton) sessionDeleteButton.addEventListener('click', () => deleteActiveSession());
   if (sessionSearchInput) sessionSearchInput.addEventListener('input', () => renderSessionOptions());
+  if (projectsToggleButton) {
+    projectsToggleButton.addEventListener('click', () => {
+      setSidebarSectionCollapsed('projects', !areProjectsCollapsed);
+    });
+  }
+  if (recentToggleButton) {
+    recentToggleButton.addEventListener('click', () => {
+      setSidebarSectionCollapsed('recent', !areRecentChatsCollapsed);
+    });
+  }
   if (sessionList) {
     sessionList.addEventListener('click', (event) => {
       closeSessionContextMenu();
@@ -3594,6 +4653,99 @@
       activeLibraryStatus = '';
       setHistoryPanelOpen(true);
       setLibraryViewOpen(true);
+    });
+  }
+  if (projectCreateButton) {
+    projectCreateButton.addEventListener('click', () => {
+      const name = window.prompt('Nom du projet');
+      if (name === null) return;
+      const cleanName = name.replace(/\s+/g, ' ').trim().slice(0, 80);
+      if (!cleanName) return;
+      const project = normalizeProject({
+        id: buildProjectId(cleanName),
+        name: cleanName,
+        description: '',
+        icon: cleanName.charAt(0).toUpperCase(),
+        color: '#79e6ff',
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+      });
+      projectsState.projects.unshift(project);
+      projectsState.activeProjectId = project.id;
+      saveProjectsState();
+      setHistoryPanelOpen(true);
+      setWorkspaceView('project');
+      renderProjectList();
+    });
+  }
+  if (projectList) {
+    projectList.addEventListener('click', (event) => {
+      const item = event.target?.closest?.('.ai-assistant-project-item');
+      if (!item?.dataset?.projectId || !getProjectById(item.dataset.projectId)) return;
+      openProject(item.dataset.projectId);
+    });
+    projectList.addEventListener('contextmenu', (event) => {
+      const item = event.target?.closest?.('.ai-assistant-project-item');
+      if (!item?.dataset?.projectId) return;
+      openProjectContextMenu(event, item.dataset.projectId);
+    });
+  }
+  if (projectTabs) {
+    projectTabs.addEventListener('click', (event) => {
+      const tab = event.target?.closest?.('[data-project-tab]')?.dataset?.projectTab;
+      if (!tab) return;
+      activeProjectTab = tab;
+      renderProjectWorkspace();
+    });
+  }
+  if (projectContent) {
+    projectContent.addEventListener('click', (event) => {
+      const row = event.target?.closest?.('[data-session-id]');
+      if (!row?.dataset?.sessionId) return;
+      switchSession(row.dataset.sessionId);
+    });
+  }
+  if (settingsOpenButton) {
+    settingsOpenButton.addEventListener('click', () => {
+      setHistoryPanelOpen(true);
+      setWorkspaceView('settings');
+    });
+  }
+  if (settingsSections) {
+    settingsSections.addEventListener('change', (event) => {
+      const path = event.target?.dataset?.settingsPath;
+      if (!path) return;
+      const [group, key] = path.split('.');
+      if (!assistantSettingsState[group]) assistantSettingsState[group] = {};
+      assistantSettingsState[group][key] = event.target.type === 'checkbox' ? Boolean(event.target.checked) : event.target.value;
+      saveAssistantSettingsState();
+    });
+  }
+  if (projectContextMenu) {
+    projectContextMenu.addEventListener('click', (event) => {
+      const exportFormat = event.target?.closest?.('[data-project-export]')?.dataset?.projectExport;
+      if (exportFormat) {
+        const projectId = activeContextProjectId;
+        closeProjectContextMenu();
+        handleProjectExportAction(exportFormat, projectId);
+        return;
+      }
+      const action = event.target?.closest?.('[data-project-action]')?.dataset?.projectAction;
+      const projectId = activeContextProjectId;
+      if (action === 'export-menu') return;
+      closeProjectContextMenu();
+      handleProjectMenuAction(action, projectId);
+    });
+  }
+  if (projectDeleteCancelButton) projectDeleteCancelButton.addEventListener('click', () => closeProjectDeleteDialog());
+  if (projectDeleteConfirmButton) {
+    projectDeleteConfirmButton.addEventListener('click', () => {
+      if (pendingDeleteProjectId) deleteProjectConfirmed(pendingDeleteProjectId);
+    });
+  }
+  if (projectDeleteDialog) {
+    projectDeleteDialog.addEventListener('click', (event) => {
+      if (event.target === projectDeleteDialog) closeProjectDeleteDialog();
     });
   }
   if (libraryImportButton) {
@@ -3701,15 +4853,16 @@
   }
   if (sessionContextMenu) {
     document.addEventListener('click', (event) => {
-      if (!sessionContextMenu.classList.contains('is-open')) return;
-      if (sessionContextMenu.contains(event.target)) return;
-      closeSessionContextMenu();
+      if (sessionContextMenu.classList.contains('is-open') && !sessionContextMenu.contains(event.target)) closeSessionContextMenu();
+      if (projectContextMenu?.classList.contains('is-open') && !projectContextMenu.contains(event.target)) closeProjectContextMenu();
     });
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') closeSessionContextMenu();
+      if (event.key === 'Escape') closeProjectContextMenu();
       if (event.key === 'Escape') {
         closeLibraryCardMenu();
         closeMediaPreview();
+        closeProjectDeleteDialog();
       }
     });
   }
@@ -5773,7 +6926,8 @@
     setAssistantRequestRunning(true);
     try {
       const dateContext = getAssistantCurrentDateContext();
-      effectiveWebSearch = isWebSearchActive || shouldUseWebSearchForPrompt(userText);
+      const webSettings = assistantSettingsState.web || {};
+      effectiveWebSearch = webSettings.tavilyEnabled !== false && (isWebSearchActive || shouldUseWebSearchForPrompt(userText));
       const knowledgeContext = fileContext ? '' : buildKnowledgeContextForPrompt(userText);
 
       // Activer le statut "recherche en cours" si recherche web activée
@@ -5815,10 +6969,20 @@
         currentDate: dateContext,
         mode: 'chat',
         sessionId: getActiveSession()?.id || '',
+        projectId: getActiveProject()?.id || defaultProjectId,
+        projectName: getActiveProject()?.name || 'SAFE',
+        ragScope: getActiveProject()?.ragScope || 'project',
         pageUrl: window.location.href,
         hasFileContext,
         fileContextLength: fileContext.length,
         attachments: payloadAttachments,
+        webSearchSettings: {
+          tavilyEnabled: webSettings.tavilyEnabled !== false,
+          economyMode: webSettings.economyMode !== false,
+          expertMode: Boolean(webSettings.expertMode),
+          maxResults: Math.max(1, Math.min(10, Number(webSettings.maxResults) || 3))
+        },
+        documentSettings: assistantSettingsState.documents || {},
         searchWeb: effectiveWebSearch,
         webSearchQuery: userText
       };
@@ -6031,12 +7195,17 @@
 
   document.addEventListener('translationCompleted', (event) => applyAssistantLanguage(event.detail?.language));
 
+  loadProjectsState();
+  loadAssistantSettingsState();
   applyAssistantLanguage(currentLanguage);
   loadKnowledgeLibrary();
   setupPanelDrag();
   loadPanelSize();
   loadPanelPosition();
+  loadSidebarSectionState();
   ensureSessionState();
+  ensureProjectLinks();
   renderSessionOptions();
+  renderProjectList();
   renderCurrentConversation();
 });

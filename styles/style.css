@@ -10624,6 +10624,167 @@ body.body-menu-open .ai-assistant-launcher {
   transform: translateY(-1px);
 }
 
+.ai-assistant-projects-block {
+  display: grid;
+  gap: 8px;
+  min-height: 0;
+}
+
+.ai-assistant-sidebar-section {
+  display: grid;
+  gap: 8px;
+  min-height: 0;
+}
+
+.ai-assistant-section-header {
+  align-items: center;
+  color: rgb(235 240 255 / 62%);
+  display: flex;
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 700;
+  justify-content: space-between;
+  letter-spacing: 0.02em;
+  padding: 0 2px;
+}
+
+.ai-assistant-section-toggle {
+  align-items: center;
+  appearance: none;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  flex: 1;
+  font: inherit;
+  gap: 6px;
+  min-width: 0;
+  padding: 4px 0;
+  text-align: left;
+}
+
+.ai-assistant-section-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ai-assistant-section-count {
+  color: rgb(121 230 255 / 70%);
+  flex: 0 0 auto;
+  font-size: 0.68rem;
+}
+
+.ai-assistant-section-chevron {
+  color: rgb(121 230 255 / 78%);
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 1rem;
+  line-height: 1;
+  transform: rotate(90deg);
+  transition: transform 0.18s ease;
+}
+
+.ai-assistant-sidebar-section.is-collapsed .ai-assistant-section-chevron {
+  transform: rotate(0deg);
+}
+
+.ai-assistant-projects-head #ai-assistant-project-create {
+  align-items: center;
+  background: rgb(121 230 255 / 13%);
+  border: 1px solid rgb(121 230 255 / 24%);
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  font: 700 1rem/1 var(--font-body);
+  height: 26px;
+  justify-content: center;
+  width: 26px;
+}
+
+.ai-assistant-projects-block > .ai-assistant-project-list {
+  display: grid;
+  gap: 6px !important;
+  max-height: min(176px, 24vh);
+  overflow-y: auto;
+  padding-right: 2px;
+  scrollbar-color: rgb(121 230 255 / 34%) transparent;
+  scrollbar-width: thin;
+  transition: max-height 0.2s ease, opacity 0.18s ease, visibility 0.18s ease;
+}
+
+.ai-assistant-projects-block.is-collapsed > .ai-assistant-project-list,
+.ai-assistant-recent-block.is-collapsed + .ai-assistant-session-select + .ai-assistant-session-list {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.ai-assistant-project-item {
+  align-items: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: rgb(246 247 255 / 88%);
+  cursor: pointer;
+  display: grid;
+  font-family: var(--font-body);
+  gap: 9px;
+  grid-template-columns: 30px minmax(0, 1fr);
+  padding: 8px 9px;
+  text-align: left;
+  width: 100%;
+}
+
+.ai-assistant-project-item:hover,
+.ai-assistant-project-item.is-active {
+  background: rgb(255 255 255 / 7%);
+  border-color: rgb(121 230 255 / 16%);
+  color: #fff;
+}
+
+.ai-assistant-project-item-icon {
+  align-items: center;
+  background: color-mix(in srgb, var(--project-color, #79e6ff) 22%, transparent);
+  border: 1px solid color-mix(in srgb, var(--project-color, #79e6ff) 45%, transparent);
+  border-radius: 8px;
+  color: rgb(246 247 255 / 94%);
+  display: inline-flex;
+  font-size: 0.76rem;
+  font-weight: 800;
+  height: 30px;
+  justify-content: center;
+  width: 30px;
+}
+
+.ai-assistant-project-item-body {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ai-assistant-project-item-body strong,
+.ai-assistant-project-item-body span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ai-assistant-project-item-body strong {
+  font-size: 0.78rem;
+  line-height: 1.25;
+}
+
+.ai-assistant-project-item-body span {
+  color: rgb(235 240 255 / 48%);
+  font-size: 0.64rem;
+  line-height: 1.25;
+}
+
 .ai-assistant-library-panel {
   background:
     linear-gradient(180deg, rgb(255 255 255 / 7%), rgb(255 255 255 / 3%)),
@@ -10718,7 +10879,9 @@ body.body-menu-open .ai-assistant-launcher {
   white-space: nowrap;
 }
 
-.ai-assistant-library-view {
+.ai-assistant-library-view,
+.ai-assistant-project-view,
+.ai-assistant-settings-view {
   flex: 1;
   margin-left: 0;
   min-height: 0;
@@ -10728,15 +10891,300 @@ body.body-menu-open .ai-assistant-launcher {
   transition: margin-left 0.22s ease;
 }
 
-.ai-assistant-library-view[hidden] {
+.ai-assistant-library-view[hidden],
+.ai-assistant-project-view[hidden],
+.ai-assistant-settings-view[hidden] {
   display: none;
 }
 
-.ai-assistant-library-view-inner {
+.ai-assistant-library-view-inner,
+.ai-assistant-project-view-inner,
+.ai-assistant-settings-view-inner {
   display: grid;
   gap: 18px;
   margin: 0 auto;
   max-width: min(760px, 100%);
+}
+
+.ai-assistant-project-view-inner,
+.ai-assistant-settings-view-inner {
+  max-width: min(820px, 100%);
+}
+
+.ai-assistant-project-hero {
+  align-items: center;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: 52px minmax(0, 1fr);
+}
+
+.ai-assistant-project-icon {
+  align-items: center;
+  background: color-mix(in srgb, var(--project-color, #79e6ff) 22%, transparent);
+  border: 1px solid color-mix(in srgb, var(--project-color, #79e6ff) 44%, transparent);
+  border-radius: 12px;
+  color: #fff;
+  display: inline-flex;
+  font-family: var(--font-body);
+  font-size: 1.1rem;
+  font-weight: 800;
+  height: 52px;
+  justify-content: center;
+  width: 52px;
+}
+
+.ai-assistant-project-hero h3,
+.ai-assistant-settings-head h3 {
+  color: rgb(246 247 255 / 94%);
+  font-family: var(--font-body);
+  font-size: clamp(1.05rem, 2.6cqw, 1.32rem);
+  line-height: 1.2;
+  margin: 0;
+}
+
+.ai-assistant-project-hero p,
+.ai-assistant-settings-head p {
+  color: rgb(235 240 255 / 58%);
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  margin: 5px 0 0;
+}
+
+.ai-assistant-project-stats,
+.ai-assistant-project-rag {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(122px, 1fr));
+}
+
+.ai-assistant-project-stat,
+.ai-assistant-project-rag div {
+  background: rgb(255 255 255 / 6%);
+  border: 1px solid rgb(255 255 255 / 9%);
+  border-radius: 10px;
+  display: grid;
+  gap: 5px;
+  padding: 10px 11px;
+}
+
+.ai-assistant-project-stat span,
+.ai-assistant-project-rag span {
+  color: rgb(235 240 255 / 52%);
+  font-family: var(--font-body);
+  font-size: 0.66rem;
+  line-height: 1.25;
+}
+
+.ai-assistant-project-stat strong,
+.ai-assistant-project-rag strong {
+  color: rgb(246 247 255 / 94%);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  line-height: 1.25;
+}
+
+.ai-assistant-project-tabs {
+  background: rgb(255 255 255 / 6%);
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px;
+}
+
+.ai-assistant-project-tabs button {
+  background: transparent;
+  border: 0;
+  border-radius: 9px;
+  color: rgb(246 247 255 / 64%);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 700;
+  min-height: 32px;
+  padding: 7px 10px;
+}
+
+.ai-assistant-project-tabs button.is-active,
+.ai-assistant-project-tabs button:hover {
+  background: rgb(121 230 255 / 14%);
+  color: #fff;
+}
+
+.ai-assistant-project-content,
+.ai-assistant-settings-sections,
+.ai-assistant-project-list {
+  display: grid;
+  gap: 12px;
+}
+
+.ai-assistant-project-row {
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: 10px;
+  color: inherit;
+  display: grid;
+  font-family: var(--font-body);
+  gap: 4px;
+  padding: 10px 11px;
+  text-align: left;
+}
+
+button.ai-assistant-project-row {
+  cursor: pointer;
+}
+
+.ai-assistant-project-row strong {
+  color: rgb(246 247 255 / 92%);
+  font-size: 0.82rem;
+  line-height: 1.3;
+}
+
+.ai-assistant-project-row span,
+.ai-assistant-project-empty {
+  color: rgb(235 240 255 / 54%);
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  line-height: 1.4;
+}
+
+.ai-assistant-project-memory,
+.ai-assistant-project-settings input,
+.ai-assistant-project-settings textarea,
+.ai-assistant-project-settings select,
+.ai-assistant-settings-section input {
+  background: rgb(8 9 22 / 32%);
+  border: 1px solid rgb(255 255 255 / 11%);
+  border-radius: 9px;
+  color: rgb(246 247 255 / 92%);
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  min-width: 0;
+  padding: 9px 10px;
+  width: 100%;
+}
+
+.ai-assistant-project-settings,
+.ai-assistant-settings-section {
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: 12px;
+  display: grid;
+  gap: 12px;
+  padding: 13px;
+}
+
+.ai-assistant-project-settings label,
+.ai-assistant-settings-section label {
+  color: rgb(235 240 255 / 60%);
+  display: grid;
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  gap: 6px;
+}
+
+.ai-assistant-settings-section h4 {
+  color: rgb(246 247 255 / 92%);
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  margin: 0;
+}
+
+.ai-assistant-project-settings > strong {
+  color: rgb(246 247 255 / 92%);
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+}
+
+.ai-assistant-project-check {
+  align-items: center;
+  display: flex !important;
+  flex-direction: row;
+  gap: 8px;
+}
+
+.ai-assistant-project-check input,
+.ai-assistant-settings-section input[type="checkbox"] {
+  flex: 0 0 auto;
+  width: auto;
+}
+
+.ai-assistant-project-delete-dialog {
+  align-items: center;
+  background: rgb(0 0 0 / 62%);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 18px;
+  position: absolute;
+  z-index: 35;
+}
+
+.ai-assistant-project-delete-dialog[hidden] {
+  display: none;
+}
+
+.ai-assistant-project-delete-panel {
+  background:
+    linear-gradient(180deg, rgb(28 28 42 / 98%), rgb(13 14 28 / 98%)),
+    linear-gradient(135deg, rgb(255 255 255 / 18%), rgb(255 93 124 / 20%));
+  background-clip: padding-box, border-box;
+  background-origin: border-box;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  box-shadow: 0 24px 60px rgb(0 0 0 / 45%);
+  display: grid;
+  gap: 12px;
+  max-width: min(420px, 100%);
+  padding: 18px;
+  width: 100%;
+}
+
+.ai-assistant-project-delete-panel h3 {
+  color: rgb(246 247 255 / 96%);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.25;
+  margin: 0;
+}
+
+.ai-assistant-project-delete-panel p {
+  color: rgb(235 240 255 / 68%);
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.ai-assistant-project-delete-note {
+  color: rgb(255 205 216 / 78%) !important;
+}
+
+.ai-assistant-project-delete-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.ai-assistant-project-delete-actions button {
+  background: rgb(255 255 255 / 8%);
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 9px;
+  color: rgb(246 247 255 / 92%);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 700;
+  min-height: 34px;
+  padding: 8px 12px;
+}
+
+#ai-assistant-project-delete-confirm {
+  background: rgb(255 82 132 / 18%);
+  border-color: rgb(255 82 132 / 38%);
+  color: #ffd8e4;
 }
 
 .ai-assistant-library-view-head {
@@ -11027,11 +11475,21 @@ body.body-menu-open .ai-assistant-launcher {
 .ai-assistant-panel.is-library-view .ai-assistant-messages,
 .ai-assistant-panel.is-library-view .ai-assistant-quick-actions,
 .ai-assistant-panel.is-library-view .ai-assistant-form,
-.ai-assistant-panel.is-library-view .ai-assistant-scroll-bottom {
+.ai-assistant-panel.is-library-view .ai-assistant-scroll-bottom,
+.ai-assistant-panel.is-project-view .ai-assistant-messages,
+.ai-assistant-panel.is-project-view .ai-assistant-quick-actions,
+.ai-assistant-panel.is-project-view .ai-assistant-form,
+.ai-assistant-panel.is-project-view .ai-assistant-scroll-bottom,
+.ai-assistant-panel.is-settings-view .ai-assistant-messages,
+.ai-assistant-panel.is-settings-view .ai-assistant-quick-actions,
+.ai-assistant-panel.is-settings-view .ai-assistant-form,
+.ai-assistant-panel.is-settings-view .ai-assistant-scroll-bottom {
   display: none;
 }
 
-.ai-assistant-panel.has-history-open .ai-assistant-library-view {
+.ai-assistant-panel.has-history-open .ai-assistant-library-view,
+.ai-assistant-panel.has-history-open .ai-assistant-project-view,
+.ai-assistant-panel.has-history-open .ai-assistant-settings-view {
   margin-left: calc(var(--ai-history-width) + 18px);
 }
 
@@ -11284,12 +11742,16 @@ body.body-menu-open .ai-assistant-launcher {
 
 .ai-assistant-session-list {
   display: flex;
-  flex: 1;
+  flex: 0 1 auto;
   flex-direction: column;
   gap: 6px;
+  max-height: min(250px, 32vh);
   min-height: 0;
   overflow-y: auto;
   padding-right: 2px;
+  scrollbar-color: rgb(121 230 255 / 34%) transparent;
+  scrollbar-width: thin;
+  transition: max-height 0.2s ease, opacity 0.18s ease, visibility 0.18s ease;
 }
 
 .ai-assistant-session-item {
@@ -11389,7 +11851,8 @@ body.ai-assistant-sidebar-is-resizing * {
   user-select: none !important;
 }
 
-.ai-assistant-session-context-menu {
+.ai-assistant-session-context-menu,
+.ai-assistant-project-context-menu {
   background:
     linear-gradient(180deg, rgb(28 28 34 / 96%), rgb(16 16 22 / 98%)),
     linear-gradient(145deg, rgb(255 255 255 / 18%), rgb(121 230 255 / 18%));
@@ -11406,11 +11869,13 @@ body.ai-assistant-sidebar-is-resizing * {
   z-index: 15;
 }
 
-.ai-assistant-session-context-menu.is-open {
+.ai-assistant-session-context-menu.is-open,
+.ai-assistant-project-context-menu.is-open {
   display: grid;
 }
 
-.ai-assistant-session-context-menu button {
+.ai-assistant-session-context-menu button,
+.ai-assistant-project-context-menu button {
   align-items: center;
   background: transparent;
   border: 0;
@@ -11428,9 +11893,62 @@ body.ai-assistant-sidebar-is-resizing * {
 }
 
 .ai-assistant-session-context-menu button:hover,
-.ai-assistant-session-context-menu button:focus-visible {
+.ai-assistant-session-context-menu button:focus-visible,
+.ai-assistant-project-context-menu button:hover,
+.ai-assistant-project-context-menu button:focus-visible {
   background: rgb(255 255 255 / 9%);
   outline: 0;
+}
+
+.ai-assistant-project-context-menu .ai-assistant-project-menu-delete {
+  color: rgb(255 174 198 / 94%);
+}
+
+.ai-assistant-project-context-menu .ai-assistant-project-menu-delete:hover,
+.ai-assistant-project-context-menu .ai-assistant-project-menu-delete:focus-visible {
+  background: rgb(255 82 132 / 13%);
+  color: #ffd8e4;
+}
+
+.ai-assistant-project-export-menu {
+  position: relative;
+}
+
+.ai-assistant-project-export-trigger {
+  justify-content: space-between;
+}
+
+.ai-assistant-project-menu-chevron {
+  color: rgb(121 230 255 / 74%);
+  margin-left: auto;
+}
+
+.ai-assistant-project-export-submenu {
+  background:
+    linear-gradient(180deg, rgb(28 28 34 / 98%), rgb(16 16 22 / 99%)),
+    linear-gradient(145deg, rgb(255 255 255 / 18%), rgb(121 230 255 / 18%));
+  background-clip: padding-box, border-box;
+  background-origin: border-box;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  box-shadow: 0 18px 38px rgb(0 0 0 / 42%);
+  display: none;
+  left: min(calc(100% - 4px), 220px);
+  min-width: 190px;
+  padding: 6px;
+  position: absolute;
+  top: 0;
+  z-index: 16;
+}
+
+.ai-assistant-project-export-menu:hover .ai-assistant-project-export-submenu,
+.ai-assistant-project-export-menu:focus-within .ai-assistant-project-export-submenu {
+  display: grid;
+}
+
+.ai-assistant-project-context-menu.is-export-left .ai-assistant-project-export-submenu {
+  left: auto;
+  right: min(calc(100% - 4px), 220px);
 }
 
 .ai-assistant-session-context-menu img {
@@ -12544,7 +13062,9 @@ body.ai-assistant-sidebar-is-resizing * {
   .ai-assistant-panel.has-history-open .ai-assistant-messages,
   .ai-assistant-panel.has-history-open .ai-assistant-quick-actions,
   .ai-assistant-panel.has-history-open .ai-assistant-form,
-  .ai-assistant-panel.has-history-open .ai-assistant-library-view {
+  .ai-assistant-panel.has-history-open .ai-assistant-library-view,
+  .ai-assistant-panel.has-history-open .ai-assistant-project-view,
+  .ai-assistant-panel.has-history-open .ai-assistant-settings-view {
     margin-left: 0;
   }
 
@@ -12558,7 +13078,9 @@ body.ai-assistant-sidebar-is-resizing * {
     gap: 8px;
   }
 
-  .ai-assistant-library-view {
+  .ai-assistant-library-view,
+  .ai-assistant-project-view,
+  .ai-assistant-settings-view {
     padding: 22px 16px;
   }
 
@@ -12622,6 +13144,14 @@ body.ai-assistant-sidebar-is-resizing * {
   .ai-assistant-voice-controls {
     grid-column: 3;
     justify-self: end;
+  }
+
+  .ai-assistant-project-export-submenu {
+    box-shadow: none;
+    left: auto;
+    margin: 2px 0 4px 14px;
+    position: static;
+    top: auto;
   }
 }
 
@@ -12713,6 +13243,28 @@ body.ai-assistant-sidebar-is-resizing * {
   border-color: rgb(93 93 255 / 34%);
 }
 
+[data-theme="light"] .ai-assistant-projects-head,
+[data-theme="light"] .ai-assistant-section-header,
+[data-theme="light"] .ai-assistant-project-item-body span {
+  color: rgb(47 43 95 / 56%);
+}
+
+[data-theme="light"] .ai-assistant-section-count,
+[data-theme="light"] .ai-assistant-section-chevron {
+  color: rgb(48 111 157 / 76%);
+}
+
+[data-theme="light"] .ai-assistant-project-item {
+  color: #2f2b5f;
+}
+
+[data-theme="light"] .ai-assistant-project-item:hover,
+[data-theme="light"] .ai-assistant-project-item.is-active {
+  background: rgb(93 93 255 / 10%);
+  border-color: rgb(93 93 255 / 20%);
+  color: #24235c;
+}
+
 [data-theme="light"] .ai-assistant-library-panel {
   background:
     linear-gradient(180deg, rgb(255 255 255 / 82%), rgb(248 247 255 / 76%)),
@@ -12752,6 +13304,12 @@ body.ai-assistant-sidebar-is-resizing * {
 }
 
 [data-theme="light"] .ai-assistant-library-view-head h3,
+[data-theme="light"] .ai-assistant-project-hero h3,
+[data-theme="light"] .ai-assistant-settings-head h3,
+[data-theme="light"] .ai-assistant-project-stat strong,
+[data-theme="light"] .ai-assistant-project-rag strong,
+[data-theme="light"] .ai-assistant-project-row strong,
+[data-theme="light"] .ai-assistant-settings-section h4,
 [data-theme="light"] .ai-assistant-media-card-body strong,
 [data-theme="light"] .ai-assistant-chat-media-body strong {
   color: #2f2b5f;
@@ -12788,9 +13346,37 @@ body.ai-assistant-sidebar-is-resizing * {
 }
 
 [data-theme="light"] .ai-assistant-library-empty,
+[data-theme="light"] .ai-assistant-project-hero p,
+[data-theme="light"] .ai-assistant-settings-head p,
+[data-theme="light"] .ai-assistant-project-stat span,
+[data-theme="light"] .ai-assistant-project-rag span,
+[data-theme="light"] .ai-assistant-project-row span,
+[data-theme="light"] .ai-assistant-project-empty,
+[data-theme="light"] .ai-assistant-project-settings label,
+[data-theme="light"] .ai-assistant-settings-section label,
 [data-theme="light"] .ai-assistant-media-card-body span,
 [data-theme="light"] .ai-assistant-chat-media-body span {
   color: rgb(47 43 95 / 58%);
+}
+
+[data-theme="light"] .ai-assistant-project-stat,
+[data-theme="light"] .ai-assistant-project-rag div,
+[data-theme="light"] .ai-assistant-project-row,
+[data-theme="light"] .ai-assistant-project-settings,
+[data-theme="light"] .ai-assistant-settings-section,
+[data-theme="light"] .ai-assistant-project-tabs {
+  background: rgb(255 255 255 / 64%);
+  border-color: rgb(93 93 255 / 12%);
+}
+
+[data-theme="light"] .ai-assistant-project-memory,
+[data-theme="light"] .ai-assistant-project-settings input,
+[data-theme="light"] .ai-assistant-project-settings textarea,
+[data-theme="light"] .ai-assistant-project-settings select,
+[data-theme="light"] .ai-assistant-settings-section input {
+  background: rgb(255 255 255 / 76%);
+  border-color: rgb(93 93 255 / 16%);
+  color: #2f2b5f;
 }
 
 [data-theme="light"] .ai-assistant-media-card-thumb {
@@ -12872,20 +13458,65 @@ body.ai-assistant-sidebar-is-resizing * {
   box-shadow: 0 0 16px rgb(93 93 255 / 18%);
 }
 
-[data-theme="light"] .ai-assistant-session-context-menu {
+[data-theme="light"] .ai-assistant-session-context-menu,
+[data-theme="light"] .ai-assistant-project-context-menu {
   background:
     linear-gradient(180deg, rgb(255 255 255 / 98%), rgb(245 244 255 / 98%)),
     linear-gradient(145deg, rgb(93 93 255 / 28%), rgb(200 34 255 / 18%));
   box-shadow: 0 18px 38px rgb(88 74 136 / 18%);
 }
 
-[data-theme="light"] .ai-assistant-session-context-menu button {
+[data-theme="light"] .ai-assistant-session-context-menu button,
+[data-theme="light"] .ai-assistant-project-context-menu button {
   color: #2f2b5f;
 }
 
 [data-theme="light"] .ai-assistant-session-context-menu button:hover,
-[data-theme="light"] .ai-assistant-session-context-menu button:focus-visible {
+[data-theme="light"] .ai-assistant-session-context-menu button:focus-visible,
+[data-theme="light"] .ai-assistant-project-context-menu button:hover,
+[data-theme="light"] .ai-assistant-project-context-menu button:focus-visible {
   background: rgb(93 93 255 / 10%);
+}
+
+[data-theme="light"] .ai-assistant-project-context-menu .ai-assistant-project-menu-delete {
+  color: #a72658;
+}
+
+[data-theme="light"] .ai-assistant-project-menu-chevron {
+  color: rgb(48 111 157 / 76%);
+}
+
+[data-theme="light"] .ai-assistant-project-export-submenu {
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 98%), rgb(245 244 255 / 98%)),
+    linear-gradient(145deg, rgb(93 93 255 / 28%), rgb(200 34 255 / 18%));
+  box-shadow: 0 18px 38px rgb(88 74 136 / 18%);
+}
+
+[data-theme="light"] .ai-assistant-project-delete-panel {
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 98%), rgb(245 244 255 / 98%)),
+    linear-gradient(135deg, rgb(93 93 255 / 20%), rgb(255 82 132 / 18%));
+  box-shadow: 0 24px 58px rgb(88 74 136 / 20%);
+}
+
+[data-theme="light"] .ai-assistant-project-delete-panel h3,
+[data-theme="light"] .ai-assistant-project-delete-actions button {
+  color: #2f2b5f;
+}
+
+[data-theme="light"] .ai-assistant-project-delete-panel p {
+  color: rgb(47 43 95 / 64%);
+}
+
+[data-theme="light"] .ai-assistant-project-delete-note {
+  color: #a72658 !important;
+}
+
+[data-theme="light"] #ai-assistant-project-delete-confirm {
+  background: rgb(255 82 132 / 13%);
+  border-color: rgb(255 82 132 / 28%);
+  color: #a72658;
 }
 
 [data-theme="light"] .ai-assistant-session-delete {
