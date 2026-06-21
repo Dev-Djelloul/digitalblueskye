@@ -1,4 +1,4 @@
- /**
+  /**
  * Cloudflare Worker - Digital Blue Skye AI via OpenRouter Free
  *
  * Required secrets/vars:
@@ -95,6 +95,7 @@ function buildSystemPrompt(language, dateContext) {
       'Strict Markdown table rules: if you produce a Markdown table, it must always include a header row, a separator row, and body rows with exactly the same number of cells. Example: | Column 1 | Column 2 | then |---|---|. Never use bullet lists inside a Markdown table. To separate several items inside one cell, use <br>. Never leave an isolated | character at the end of a line. If the content is too long or complex, prefer sections with subheadings instead of a table.',
       'Exports and deliverables: when the user asks for a document, note, project sheet, audit, benchmark, synthesis, or professional support material, produce a clean, hierarchical, exportable structure. Avoid decorative filler. The content must be easy to convert cleanly to HTML, PDF, or DOCX.',
       'External data: when web excerpts, files, documents, or search results are provided, use them as raw material. Do not mechanically reproduce raw data: analyze, synthesize, cross-check, and reformulate.',
+      'Source citations: use numbered citations such as [1], [2], [3] only when a web search context explicitly provides a numbered source index. Never invent citation numbers, never cite non-existent sources, and never output references such as [11] if only three sources are available.',
       'Style: answer in English only when the user asks in English or requests it. Use a professional, pedagogical, constructive, solution-oriented tone.'
     ].join(' ');
   }
@@ -109,6 +110,7 @@ function buildSystemPrompt(language, dateContext) {
     "Règles strictes pour les tableaux Markdown : si tu produis un tableau Markdown, il doit toujours avoir une ligne d'en-tête, une ligne de séparation, puis des lignes ayant exactement le même nombre de cellules. Exemple : | Colonne 1 | Colonne 2 | puis |---|---|. N'utilise jamais de listes à puces à l'intérieur d'un tableau Markdown. Pour séparer plusieurs éléments dans une cellule, utilise <br>. Ne laisse jamais de caractère | isolé en fin de ligne. Si le contenu est trop long ou complexe, préfère des sections avec sous-titres plutôt qu'un tableau.",
     "Exports et livrables : lorsque l'utilisateur demande un document, une note, une fiche projet, un audit, un benchmark, une synthèse ou un support professionnel, produis une structure propre, hiérarchisée et exportable. Évite les formulations décoratives inutiles. Les contenus doivent pouvoir être convertis proprement en HTML, PDF ou DOCX.",
     "Données externes : lorsque des extraits web, fichiers, documents ou résultats de recherche sont fournis, utilise-les comme matière première. Ne reproduis pas mécaniquement les données brutes : analyse, synthétise, recoupe et reformule.",
+    "Citations de sources : utilise des citations numérotées comme [1], [2], [3] uniquement lorsqu’un contexte de recherche web fournit explicitement un index de sources numéroté. N’invente jamais de numéros de citations, ne cite jamais de sources inexistantes et n’affiche jamais des références comme [11] si seules trois sources sont disponibles.",
     "Style : réponds en français par défaut, sauf demande contraire. Ton ton doit être professionnel, pédagogique, constructif et orienté solution."
   ].join(' ');
 }
@@ -293,6 +295,7 @@ function buildWebContextPrompt(language, searchResults, query, answer = '') {
       'The web results are not the final answer.',
       'The final answer must be produced from these data.',
       'You may cite sources by identifier such as [1] only when useful; never print the URLs.',
+      'Use only the source identifiers present in the internal source index below. If there are 3 sources, valid citations are only [1], [2], and [3].',
       `Query: ${query}`,
       answerBlock,
       '',
@@ -317,6 +320,7 @@ function buildWebContextPrompt(language, searchResults, query, answer = '') {
     'Les resultats web ne constituent pas la reponse finale.',
     'La reponse finale doit etre produite a partir de ces donnees.',
     'Tu peux citer les sources par identifiant comme [1] uniquement lorsque cela apporte de la valeur ; ne reproduis jamais les URLs.',
+    'Utilise uniquement les identifiants présents dans l’index interne des sources ci-dessous. S’il y a 3 sources, les seules citations valides sont [1], [2] et [3].',
     `Requete : ${query}`,
     answerBlock,
     '',

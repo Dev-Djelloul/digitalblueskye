@@ -1,4 +1,4 @@
-  document.addEventListener('DOMContentLoaded', function () {
+   document.addEventListener('DOMContentLoaded', function () {
   function normalizeLanguage(value) {
     if (!value) return '';
     return value.toString().trim().toLowerCase().split(/[-_]/)[0] || '';
@@ -5179,13 +5179,57 @@
       const style = document.createElement('style');
       style.id = 'ai-assistant-table-styles';
       style.textContent = `
-        .ai-assistant-table-wrap { overflow-x: auto; margin: 8px 0; border-radius: 6px; }
-        .ai-assistant-table { border-collapse: collapse; width: 100%; font-size: 0.83em; }
-        .ai-assistant-table th,
-        .ai-assistant-table td { border: 1px solid rgba(255,255,255,0.15); padding: 6px 10px; text-align: left; vertical-align: top; line-height: 1.4; }
-        .ai-assistant-table th { background: rgba(255,255,255,0.1); font-weight: 600; }
-        .ai-assistant-table tr:nth-child(even) td { background: rgba(255,255,255,0.04); }
-        .ai-assistant-table tr:hover td { background: rgba(255,255,255,0.07); }
+        .ai-assistant-message-content .ai-assistant-table-wrap {
+          width: 100%;
+          max-width: 100%;
+          overflow-x: auto;
+          margin: 14px 0 18px;
+          border: 1px solid rgba(158,232,255,0.16);
+          border-radius: 14px;
+          box-shadow: 0 18px 40px rgba(0,0,0,0.14);
+          -webkit-overflow-scrolling: touch;
+        }
+        .ai-assistant-message-content .ai-assistant-table {
+          border-collapse: collapse;
+          width: max-content;
+          min-width: min(1040px, 100%);
+          table-layout: fixed;
+          font-size: 0.9em;
+        }
+        .ai-assistant-message-content .ai-assistant-table th,
+        .ai-assistant-message-content .ai-assistant-table td {
+          border: 1px solid rgba(255,255,255,0.13);
+          padding: 10px 14px;
+          text-align: left;
+          vertical-align: top;
+          line-height: 1.48;
+          word-break: normal;
+          overflow-wrap: anywhere;
+          hyphens: none;
+        }
+        .ai-assistant-message-content .ai-assistant-table th:first-child,
+        .ai-assistant-message-content .ai-assistant-table td:first-child {
+          width: 150px;
+          min-width: 150px;
+          max-width: 190px;
+          white-space: normal;
+          overflow-wrap: normal;
+          word-break: normal;
+        }
+        .ai-assistant-message-content .ai-assistant-table th {
+          background: linear-gradient(180deg, rgba(158,232,255,0.15), rgba(185,140,255,0.11));
+          color: rgba(247,251,255,0.96);
+          font-weight: 700;
+          letter-spacing: 0.015em;
+        }
+        .ai-assistant-message-content .ai-assistant-table td { background: rgba(255,255,255,0.035); }
+        .ai-assistant-message-content .ai-assistant-table tr:nth-child(even) td { background: rgba(255,255,255,0.055); }
+        .ai-assistant-message-content .ai-assistant-table tr:hover td { background: rgba(158,232,255,0.07); }
+        .ai-assistant-message-content .ai-assistant-table-wrap::-webkit-scrollbar { height: 9px; }
+        .ai-assistant-message-content .ai-assistant-table-wrap::-webkit-scrollbar-thumb {
+          background: rgba(158,232,255,0.35);
+          border-radius: 999px;
+        }
       `;
       document.head.appendChild(style);
     }
@@ -6554,6 +6598,7 @@
     }
     enhanceCodeBlocks(content);
     const rawText = String(bubble._assistantRawText || content.innerText || '').trim();
+    const getLiveExportText = () => String(bubble._assistantRawText || rawText || content.innerText || '').trim();
     if (rawText.length > 80) {
       const exportActions = document.createElement('div');
       exportActions.className = 'ai-assistant-export-actions';
@@ -6563,7 +6608,7 @@
         {
           label: 'MD',
           title: i18n.downloadMd,
-          action: () => downloadBlob(new Blob([rawText], { type: 'text/markdown;charset=utf-8' }), `${baseName}.md`)
+          action: () => downloadBlob(new Blob([getLiveExportText()], { type: 'text/markdown;charset=utf-8' }), `${baseName}.md`)
         },
         {
           label: 'HTML',
@@ -6573,12 +6618,12 @@
         {
           label: 'PDF',
           title: i18n.downloadPdf,
-          action: () => downloadPdfDocument(rawText, baseName)
+          action: () => downloadPdfDocument(getLiveExportText(), baseName)
         },
         {
           label: 'DOCX',
           title: i18n.downloadDocx,
-          action: () => downloadBlob(buildDocxBlob(rawText), `${baseName}.docx`)
+          action: () => downloadBlob(buildDocxBlob(getLiveExportText()), `${baseName}.docx`)
         }
       ];
       exports.forEach((item) => {
@@ -6695,6 +6740,29 @@
     return lines.slice(0, sourceStartIndex).join('\n').replace(/\n{3,}/g, '\n\n').trim();
   }
 
+  function stripUnsupportedCitationMarkers(rawText, maxSourceIndex = 0) {
+    const maxIndex = Math.max(0, Number(maxSourceIndex) || 0);
+    return String(rawText || '')
+      .replace(/\s*\[(\d{1,3})\]/g, (match, rawIndex) => {
+        const index = Number(rawIndex);
+        return index >= 1 && index <= maxIndex ? match : '';
+      })
+      .replace(/\s{2,}/g, ' ')
+      .replace(/\n[ \t]+/g, '\n')
+      .trim();
+  }
+
+  function buildWebSourcesMarkdown(results) {
+    const sources = normalizeWebSearchResults(results);
+    if (!sources.length) return '';
+    const heading = currentLanguage === 'en' ? '### Web references' : '### Références web';
+    const lines = sources.map((source, index) => {
+      const title = escapeMarkdownLinkText(source.title || getReadableSourceName(source));
+      return `${index + 1}. [${title}](${source.link})`;
+    });
+    return [heading, ...lines].join('\n');
+  }
+
   function escapeMarkdownLinkText(text) {
     return String(text || '')
       .replace(/\\/g, '\\\\')
@@ -6754,7 +6822,11 @@
     content.querySelectorAll('.ai-assistant-citation').forEach((citation) => {
       const sourceIndex = Number((citation.textContent || '').match(/\d+/)?.[0] || 0);
       const source = sourceByIndex.get(sourceIndex);
-      if (!source || citation.querySelector('a')) return;
+      if (!source) {
+        citation.remove();
+        return;
+      }
+      if (citation.querySelector('a')) return;
       const link = document.createElement('a');
       link.href = source.link;
       link.target = '_blank';
@@ -6850,6 +6922,14 @@
     section.appendChild(compactSources);
 
     content.appendChild(section);
+
+    const sourceMarkdown = buildWebSourcesMarkdown(sources);
+    if (sourceMarkdown) {
+      const existingRawText = String(bubble._assistantRawText || '').trim();
+      if (existingRawText && !/(^|\n)#{1,6}\s*(Références web|Web references)/i.test(existingRawText)) {
+        bubble._assistantRawText = `${existingRawText}\n\n${sourceMarkdown}`;
+      }
+    }
   }
 
   function formatAssistantApiError(apiError) {
@@ -7180,10 +7260,14 @@
       loading.remove();
       if (data.ok) {
         let cleanedReply = cleanAssistantReplyText(data.reply);
-        if (data.web_search_performed && data.web_search_results?.length) {
+        const normalizedWebSources = data.web_search_performed && data.web_search_results?.length
+          ? normalizeWebSearchResults(data.web_search_results)
+          : [];
+        if (normalizedWebSources.length) {
           cleanedReply = stripModelSourcesSection(cleanedReply);
+          cleanedReply = stripUnsupportedCitationMarkers(cleanedReply, normalizedWebSources.length);
           assistantLog('debug', 'web_search_results', {
-            count: normalizeWebSearchResults(data.web_search_results).length,
+            count: normalizedWebSources.length,
             result1Title: data.web_search_results[0]?.title,
             result1Link: data.web_search_results[0]?.link,
             result2Title: data.web_search_results[1]?.title,
@@ -7191,6 +7275,8 @@
             deterministicWebReply: Boolean(data.deterministic_web_reply),
             debugWeb: Boolean(data.debug_web)
           });
+        } else {
+          cleanedReply = stripUnsupportedCitationMarkers(cleanedReply, 0);
         }
         if (data.web_search_requested && !data.web_search_performed && data.web_search_error) {
           const searchErrorNote = currentLanguage === 'en'
