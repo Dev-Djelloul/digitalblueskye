@@ -5341,12 +5341,35 @@
         .ai-assistant-message-content .ai-assistant-table th {
           background: linear-gradient(180deg, rgba(158,232,255,0.15), rgba(185,140,255,0.11));
           color: rgba(247,251,255,0.96);
+          -webkit-text-fill-color: rgba(247,251,255,0.96);
           font-weight: 700;
           letter-spacing: 0.015em;
         }
-        .ai-assistant-message-content .ai-assistant-table td { background: rgba(255,255,255,0.035); }
+        .ai-assistant-message-content .ai-assistant-table td {
+          background: rgba(255,255,255,0.035);
+          color: rgba(238,232,255,0.94);
+          -webkit-text-fill-color: rgba(238,232,255,0.94);
+        }
+        .ai-assistant-message-content .ai-assistant-table td *,
+        .ai-assistant-message-content .ai-assistant-table td strong,
+        .ai-assistant-message-content .ai-assistant-table td span {
+          color: inherit;
+          -webkit-text-fill-color: currentColor;
+        }
         .ai-assistant-message-content .ai-assistant-table tr:nth-child(even) td { background: rgba(255,255,255,0.055); }
         .ai-assistant-message-content .ai-assistant-table tr:hover td { background: rgba(158,232,255,0.07); }
+        [data-theme="light"] .ai-assistant-message-content .ai-assistant-table th {
+          background: linear-gradient(180deg, rgba(124,92,255,0.12), rgba(158,232,255,0.11));
+          color: rgba(31,24,64,0.95);
+          -webkit-text-fill-color: rgba(31,24,64,0.95);
+        }
+        [data-theme="light"] .ai-assistant-message-content .ai-assistant-table td {
+          background: rgba(255,255,255,0.68);
+          color: rgba(35,30,68,0.92);
+          -webkit-text-fill-color: rgba(35,30,68,0.92);
+        }
+        [data-theme="light"] .ai-assistant-message-content .ai-assistant-table tr:nth-child(even) td { background: rgba(246,242,255,0.78); }
+        [data-theme="light"] .ai-assistant-message-content .ai-assistant-table tr:hover td { background: rgba(124,92,255,0.10); }
         .ai-assistant-message-content .ai-assistant-table-wrap::-webkit-scrollbar { height: 9px; }
         .ai-assistant-message-content .ai-assistant-table-wrap::-webkit-scrollbar-thumb {
           background: rgba(158,232,255,0.35);
