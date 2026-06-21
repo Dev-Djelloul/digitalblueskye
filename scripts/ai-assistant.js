@@ -5289,14 +5289,24 @@
           border-radius: 14px;
           box-shadow: 0 18px 40px rgba(0,0,0,0.14);
           -webkit-overflow-scrolling: touch;
+          overscroll-behavior-x: contain;
+          scrollbar-gutter: stable;
+          contain: inline-size paint;
+          position: relative;
         }
         .ai-assistant-message-content .ai-assistant-table {
           border-collapse: collapse;
           width: 100%;
-          min-width: 0;
-          table-layout: auto;
+          min-width: 100%;
+          table-layout: fixed;
           font-size: 0.9em;
         }
+        .ai-assistant-message-content .ai-assistant-table.ai-assistant-table--cols-5 { min-width: 920px; }
+        .ai-assistant-message-content .ai-assistant-table.ai-assistant-table--cols-6 { min-width: 1040px; }
+        .ai-assistant-message-content .ai-assistant-table.ai-assistant-table--cols-7 { min-width: 1160px; }
+        .ai-assistant-message-content .ai-assistant-table.ai-assistant-table--cols-8,
+        .ai-assistant-message-content .ai-assistant-table.ai-assistant-table--cols-9,
+        .ai-assistant-message-content .ai-assistant-table.ai-assistant-table--cols-10 { min-width: 1280px; }
         .ai-assistant-message-content .ai-assistant-table th,
         .ai-assistant-message-content .ai-assistant-table td {
           border: 1px solid rgba(255,255,255,0.13);
@@ -5306,18 +5316,27 @@
           line-height: 1.5;
           word-break: normal;
           overflow-wrap: break-word;
-          hyphens: none;
+          hyphens: manual;
           white-space: normal;
         }
         .ai-assistant-message-content .ai-assistant-table th:first-child,
         .ai-assistant-message-content .ai-assistant-table td:first-child {
-          width: 132px;
-          min-width: 132px;
+          width: clamp(118px, 14vw, 160px);
+          min-width: 118px;
           max-width: 180px;
           white-space: normal;
           overflow-wrap: break-word;
           word-break: normal;
           font-weight: 650;
+        }
+        .ai-assistant-message-content .ai-assistant-table.ai-assistant-table--cols-6 th,
+        .ai-assistant-message-content .ai-assistant-table.ai-assistant-table--cols-6 td,
+        .ai-assistant-message-content .ai-assistant-table.ai-assistant-table--cols-7 th,
+        .ai-assistant-message-content .ai-assistant-table.ai-assistant-table--cols-7 td,
+        .ai-assistant-message-content .ai-assistant-table.ai-assistant-table--cols-8 th,
+        .ai-assistant-message-content .ai-assistant-table.ai-assistant-table--cols-8 td {
+          padding: 9px 12px;
+          font-size: 0.88em;
         }
         .ai-assistant-message-content .ai-assistant-table th {
           background: linear-gradient(180deg, rgba(158,232,255,0.15), rgba(185,140,255,0.11));
@@ -5386,7 +5405,10 @@
         tableBuffer = [];
         return;
       }
-      html += '<div class="ai-assistant-table-wrap"><table class="ai-assistant-table">';
+      const columnCount = block.rows[0]?.length || 0;
+      const columnClass = `ai-assistant-table--cols-${Math.min(Math.max(columnCount, 1), 10)}`;
+      const wideClass = columnCount >= 5 ? ' ai-assistant-table--wide' : '';
+      html += `<div class="ai-assistant-table-wrap${wideClass}" data-columns="${columnCount}"><table class="ai-assistant-table ${columnClass}">`;
       block.rows.forEach((cells, idx) => {
         const tag = idx === 0 ? 'th' : 'td';
         html += '<tr>' + cells.map((cell) => `<${tag}>${linkifyLine(cell)}</${tag}>`).join('') + '</tr>';
@@ -5484,6 +5506,42 @@
   }
   // ─────────────────────────────────────────────────────────────────────────────
 
+  function stabilizeTableLayouts(root = document) {
+    const scope = root && root.querySelectorAll ? root : document;
+    const wraps = scope.querySelectorAll('.ai-assistant-table-wrap');
+    wraps.forEach((wrap) => {
+      const table = wrap.querySelector('.ai-assistant-table');
+      if (!table) return;
+      const columns = Number(wrap.dataset.columns || table.rows?.[0]?.cells?.length || 0);
+      wrap.classList.toggle('is-scrollable', table.scrollWidth > wrap.clientWidth + 2);
+      wrap.classList.toggle('is-wide-table', columns >= 5);
+      if (wrap.scrollLeft < 0 || wrap.scrollLeft > table.scrollWidth) wrap.scrollLeft = 0;
+    });
+  }
+
+  function stabilizeTableLayoutsSoon(root = document) {
+    stabilizeTableLayouts(root);
+    if (window.requestAnimationFrame) {
+      window.requestAnimationFrame(() => stabilizeTableLayouts(root));
+      window.requestAnimationFrame(() => {
+        const scope = root && root.querySelectorAll ? root : document;
+        scope.querySelectorAll('.ai-assistant-table-wrap').forEach((wrap) => { wrap.scrollLeft = 0; });
+        stabilizeTableLayouts(root);
+      });
+    }
+    window.setTimeout(() => stabilizeTableLayouts(root), 120);
+    window.setTimeout(() => stabilizeTableLayouts(root), 360);
+  }
+
+  if (!window.__aiAssistantTableResizeListener) {
+    window.__aiAssistantTableResizeListener = true;
+    let tableResizeTimer = null;
+    window.addEventListener('resize', () => {
+      window.clearTimeout(tableResizeTimer);
+      tableResizeTimer = window.setTimeout(() => stabilizeTableLayoutsSoon(document), 120);
+    });
+  }
+
   function addMessage(kind, text) {
     const bubble = document.createElement('article');
     bubble.className = `ai-assistant-message ai-assistant-message--${kind}`;
@@ -5493,6 +5551,7 @@
       bubble._assistantRawText = normalizedText;
       bubble.innerHTML = formatBotMessageHtml(normalizedText);
       enhanceBotBubble(bubble);
+      stabilizeTableLayoutsSoon(bubble);
     } else {
       const p = document.createElement('p');
       p.textContent = text;
@@ -5532,6 +5591,7 @@
       content.innerHTML = formatBotMessageHtml(fullText);
       bubble.classList.remove('is-streaming');
       enhanceBotBubble(bubble);
+      stabilizeTableLayoutsSoon(bubble);
       scrollConversationToBottom('auto');
       return Promise.resolve(bubble);
     }
@@ -5545,6 +5605,7 @@
           content.innerHTML = formatBotMessageHtml(fullText);
           bubble.classList.remove('is-streaming');
           enhanceBotBubble(bubble);
+          stabilizeTableLayoutsSoon(bubble);
           resolve(bubble);
           return;
         }
