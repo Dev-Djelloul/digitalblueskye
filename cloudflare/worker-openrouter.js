@@ -583,15 +583,33 @@ function detectWebSearchIntent(message, body = {}) {
     'comparatif complet'
   ];
 
-  const explicit = requestedExplicitly || containsAnyKeyword(haystack, explicitKeywords);
+  const noWebSearchKeywords = [
+    'sans recherche web',
+    'sans faire de recherche web',
+    'aucune recherche web',
+    'si aucune recherche web',
+    "si tu n'as pas de sources web",
+    'si tu n as pas de sources web',
+    'sans sources web',
+    'sans recherche internet',
+    'pas de recherche web',
+    'ne fais pas de recherche web'
+  ];
+
+  const explicitKeywordMatch = containsAnyKeyword(haystack, explicitKeywords);
+  const noWebSearchRequested = containsAnyKeyword(haystack, noWebSearchKeywords);
+  const explicit = requestedExplicitly || (explicitKeywordMatch && !noWebSearchRequested);
+  const mandatory = containsAnyKeyword(haystack, mandatoryKeywords) && !noWebSearchRequested;
+
   return {
     explicit,
-    mandatory: containsAnyKeyword(haystack, mandatoryKeywords),
+    mandatory,
     forbidden: containsAnyKeyword(haystack, forbiddenKeywords),
     deep: containsAnyKeyword(haystack, deepSearchKeywords),
+    no_web_search_requested: noWebSearchRequested,
     matched_reason: explicit
       ? 'explicit_web_search_request'
-      : (containsAnyKeyword(haystack, mandatoryKeywords) ? 'mandatory_freshness_keyword' : 'no_web_search_intent')
+      : (mandatory ? 'mandatory_freshness_keyword' : (noWebSearchRequested ? 'no_web_search_requested' : 'no_web_search_intent'))
   };
 }
 

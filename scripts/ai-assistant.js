@@ -5110,6 +5110,25 @@
       .join('');
   }
 
+  function splitInlineMarkdownTableLines(markdown) {
+    return String(markdown || '').replace(/\r\n?/g, '\n').split('\n').flatMap((line) => {
+      const raw = String(line || '');
+      const trimmed = raw.trim();
+      if (!trimmed || isMarkdownTableLine(trimmed)) return [raw];
+
+      const firstPipe = raw.indexOf('|');
+      const lastPipe = raw.lastIndexOf('|');
+      if (firstPipe <= 0 || lastPipe <= firstPipe) return [raw];
+
+      const possibleTable = raw.slice(firstPipe).trim();
+      if (!isMarkdownTableLine(possibleTable)) return [raw];
+      if (parseMarkdownTableCells(possibleTable).length < 2) return [raw];
+
+      const prefix = raw.slice(0, firstPipe).trim();
+      return prefix ? [prefix, possibleTable] : [possibleTable];
+    }).join('\n');
+  }
+
   // ─── FONCTION DE RENDU MARKDOWN AMÉLIORÉE ───────────────────────────────────
   function formatBotMessageHtml(rawText) {
     const codeBlocks = [];
@@ -5183,6 +5202,7 @@
           width: 100%;
           max-width: 100%;
           overflow-x: auto;
+          overflow-y: visible;
           margin: 14px 0 18px;
           border: 1px solid rgba(158,232,255,0.16);
           border-radius: 14px;
@@ -5191,9 +5211,9 @@
         }
         .ai-assistant-message-content .ai-assistant-table {
           border-collapse: collapse;
-          width: max-content;
-          min-width: min(1040px, 100%);
-          table-layout: fixed;
+          width: 100%;
+          min-width: 0;
+          table-layout: auto;
           font-size: 0.9em;
         }
         .ai-assistant-message-content .ai-assistant-table th,
@@ -5202,19 +5222,21 @@
           padding: 10px 14px;
           text-align: left;
           vertical-align: top;
-          line-height: 1.48;
+          line-height: 1.5;
           word-break: normal;
-          overflow-wrap: anywhere;
+          overflow-wrap: break-word;
           hyphens: none;
+          white-space: normal;
         }
         .ai-assistant-message-content .ai-assistant-table th:first-child,
         .ai-assistant-message-content .ai-assistant-table td:first-child {
-          width: 150px;
-          min-width: 150px;
-          max-width: 190px;
+          width: 132px;
+          min-width: 132px;
+          max-width: 180px;
           white-space: normal;
-          overflow-wrap: normal;
+          overflow-wrap: break-word;
           word-break: normal;
+          font-weight: 650;
         }
         .ai-assistant-message-content .ai-assistant-table th {
           background: linear-gradient(180deg, rgba(158,232,255,0.15), rgba(185,140,255,0.11));
@@ -5230,13 +5252,24 @@
           background: rgba(158,232,255,0.35);
           border-radius: 999px;
         }
+        @media (max-width: 780px) {
+          .ai-assistant-message-content .ai-assistant-table {
+            min-width: 760px;
+            table-layout: auto;
+          }
+          .ai-assistant-message-content .ai-assistant-table th:first-child,
+          .ai-assistant-message-content .ai-assistant-table td:first-child {
+            min-width: 120px;
+          }
+        }
       `;
       document.head.appendChild(style);
     }
 
     injectTableStyles();
 
-    const withCodeBlocks = normalizeAssistantMarkdown(rawText).replace(/```([a-zA-Z0-9+#.-]*)\n([\s\S]*?)```/g, stashCodeBlock);
+    const preparedText = splitInlineMarkdownTableLines(normalizeAssistantMarkdown(rawText));
+    const withCodeBlocks = preparedText.replace(/```([a-zA-Z0-9+#.-]*)\n([\s\S]*?)```/g, stashCodeBlock);
     const safe = escapeHtml(withCodeBlocks)
       .replace(/\r/g, '')
       .replace(/&lt;br\s*\/?&gt;/gi, '\n')
