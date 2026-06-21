@@ -111,6 +111,7 @@ function buildSystemPrompt(language, dateContext) {
     "Exports et livrables : lorsque l'utilisateur demande un document, une note, une fiche projet, un audit, un benchmark, une synthèse ou un support professionnel, produis une structure propre, hiérarchisée et exportable. Évite les formulations décoratives inutiles. Les contenus doivent pouvoir être convertis proprement en HTML, PDF ou DOCX.",
     "Données externes : lorsque des extraits web, fichiers, documents ou résultats de recherche sont fournis, utilise-les comme matière première. Ne reproduis pas mécaniquement les données brutes : analyse, synthétise, recoupe et reformule.",
     "Citations de sources : utilise des citations numérotées comme [1], [2], [3] uniquement lorsqu’un contexte de recherche web fournit explicitement un index de sources numéroté. N’invente jamais de numéros de citations, ne cite jamais de sources inexistantes et n’affiche jamais des références comme [11] si seules trois sources sont disponibles.",
+    "Langue : si le message utilisateur est rédigé en français, réponds toujours en français, même si certains noms de produits, marques ou termes techniques sont en anglais. Ne réponds en anglais que si l'utilisateur le demande explicitement ou si le paramètre de langue indique clairement l'anglais et que le message utilisateur n'est pas en français.",
     "Style : réponds en français par défaut, sauf demande contraire. Ton ton doit être professionnel, pédagogique, constructif et orienté solution."
   ].join(' ');
 }
@@ -593,12 +594,20 @@ function detectWebSearchIntent(message, body = {}) {
     'sans sources web',
     'sans recherche internet',
     'pas de recherche web',
-    'ne fais pas de recherche web'
+    'ne fais pas de recherche web',
+    'ne lance pas de recherche web',
+    'sans recherche en ligne',
+    'pas de sources web',
+    'aucune source web',
+    'pas d acces web',
+    'pas d’accès web',
+    'connaissances générales',
+    'connaissances generales'
   ];
 
   const explicitKeywordMatch = containsAnyKeyword(haystack, explicitKeywords);
   const noWebSearchRequested = containsAnyKeyword(haystack, noWebSearchKeywords);
-  const explicit = requestedExplicitly || (explicitKeywordMatch && !noWebSearchRequested);
+  const explicit = !noWebSearchRequested && (requestedExplicitly || explicitKeywordMatch);
   const mandatory = containsAnyKeyword(haystack, mandatoryKeywords) && !noWebSearchRequested;
 
   return {

@@ -5068,26 +5068,36 @@
 
 
   function isMarkdownTableLine(line) {
-    return /^\s*\|.*\|\s*$/.test(String(line || ''));
+    const trimmed = String(line || '').trim();
+    return trimmed.startsWith('|') && (trimmed.match(/\|/g) || []).length >= 2;
+  }
+
+  function ensureMarkdownTableBoundary(row) {
+    let value = String(row || '').trim();
+    if (!value.startsWith('|')) value = `| ${value}`;
+    if (!value.endsWith('|')) value = `${value} |`;
+    return value;
   }
 
   function isMarkdownTableSeparator(line) {
-    const trimmed = String(line || '').trim();
+    const trimmed = ensureMarkdownTableBoundary(line);
     if (!isMarkdownTableLine(trimmed)) return false;
-    const cells = trimmed.split('|').slice(1, -1).map((cell) => cell.trim());
+    const cells = parseMarkdownTableCells(trimmed);
     return cells.length > 0 && cells.every((cell) => /^:?-{3,}:?$/.test(cell));
   }
 
   function parseMarkdownTableCells(row) {
-    return String(row || '')
-      .trim()
+    const normalized = ensureMarkdownTableBoundary(row);
+    return normalized
       .split('|')
       .slice(1, -1)
       .map((cell) => cell.trim());
   }
 
   function normalizeMarkdownTableRows(rows) {
-    const sourceRows = Array.isArray(rows) ? rows.map((row) => String(row || '').trim()).filter(isMarkdownTableLine) : [];
+    const sourceRows = Array.isArray(rows)
+      ? rows.map((row) => ensureMarkdownTableBoundary(row)).filter(isMarkdownTableLine)
+      : [];
     if (sourceRows.length < 2) return null;
 
     const hasSeparator = isMarkdownTableSeparator(sourceRows[1]);
@@ -5096,10 +5106,23 @@
 
     const parsedRows = dataRows.map(parseMarkdownTableCells);
     const columnCount = parsedRows[0]?.length || 0;
-    const isValid = columnCount >= 2 && parsedRows.every((row) => row.length === columnCount);
-    if (!isValid) return null;
+    if (columnCount < 2) return null;
 
-    return parsedRows;
+    const repairedRows = parsedRows
+      .filter((row, index) => index === 0 || row.some((cell) => cell && !/^[-–—]+$/.test(cell)))
+      .map((row) => {
+        if (row.length === columnCount) return row;
+        if (row.length > columnCount) {
+          return [
+            ...row.slice(0, columnCount - 1),
+            row.slice(columnCount - 1).join(' | ')
+          ];
+        }
+        return [...row, ...Array(columnCount - row.length).fill('')];
+      });
+
+    const validRows = repairedRows.filter((row) => row.length === columnCount);
+    return validRows.length >= 2 ? validRows : null;
   }
 
   function renderInvalidMarkdownTableRowsAsParagraphs(rows, renderCell = (value) => value) {
