@@ -10715,6 +10715,57 @@ body.body-menu-open .ai-assistant-launcher {
   transition: max-height 0.2s ease, opacity 0.18s ease, visibility 0.18s ease;
 }
 
+.ai-assistant-sidebar-empty-state {
+  border: 1px dashed rgb(255 255 255 / 14%);
+  border-radius: 10px;
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+}
+
+.ai-assistant-sidebar-empty-state p {
+  color: rgb(235 240 255 / 58%);
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.ai-assistant-sidebar-empty-action,
+.ai-assistant-project-empty-panel button {
+  align-items: center;
+  background: rgb(121 230 255 / 13%);
+  border: 1px solid rgb(121 230 255 / 24%);
+  border-radius: 8px;
+  color: rgb(246 247 255 / 92%);
+  cursor: pointer;
+  display: inline-flex;
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 800;
+  justify-content: center;
+  min-height: 30px;
+  padding: 7px 10px;
+}
+
+.ai-assistant-project-empty-panel {
+  align-items: start;
+  background: rgb(255 255 255 / 5%);
+  border: 1px dashed rgb(255 255 255 / 14%);
+  border-radius: 12px;
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+}
+
+.ai-assistant-project-empty-panel p {
+  color: rgb(235 240 255 / 58%);
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  line-height: 1.4;
+  margin: 0;
+}
+
 .ai-assistant-projects-block.is-collapsed > .ai-assistant-project-list,
 .ai-assistant-recent-block.is-collapsed + .ai-assistant-session-select + .ai-assistant-session-list {
   max-height: 0;
@@ -10933,6 +10984,18 @@ body.body-menu-open .ai-assistant-launcher {
   width: 52px;
 }
 
+.ai-assistant-project-icon img,
+.ai-assistant-project-item-icon img {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.ai-assistant-project-item-icon {
+  overflow: hidden;
+}
+
 .ai-assistant-project-hero h3,
 .ai-assistant-settings-head h3 {
   color: rgb(246 247 255 / 94%);
@@ -10982,6 +11045,40 @@ body.body-menu-open .ai-assistant-launcher {
   font-family: var(--font-body);
   font-size: 0.9rem;
   line-height: 1.25;
+}
+
+.ai-assistant-project-rag p {
+  color: rgb(235 240 255 / 58%);
+  font-family: var(--font-body);
+  font-size: 0.76rem;
+  grid-column: 1 / -1;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.ai-assistant-project-source-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ai-assistant-project-source-actions button,
+.ai-assistant-project-row-action {
+  background: rgb(121 230 255 / 12%);
+  border: 1px solid rgb(121 230 255 / 22%);
+  border-radius: 8px;
+  color: rgb(246 247 255 / 92%);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 800;
+  min-height: 30px;
+  padding: 7px 10px;
+}
+
+.ai-assistant-project-row-action {
+  justify-self: start;
+  margin-top: 4px;
 }
 
 .ai-assistant-project-tabs {
@@ -11473,14 +11570,17 @@ button.ai-assistant-project-row {
 }
 
 .ai-assistant-panel.is-library-view .ai-assistant-messages,
+.ai-assistant-panel.is-library-view .ai-assistant-rag-status,
 .ai-assistant-panel.is-library-view .ai-assistant-quick-actions,
 .ai-assistant-panel.is-library-view .ai-assistant-form,
 .ai-assistant-panel.is-library-view .ai-assistant-scroll-bottom,
 .ai-assistant-panel.is-project-view .ai-assistant-messages,
+.ai-assistant-panel.is-project-view .ai-assistant-rag-status,
 .ai-assistant-panel.is-project-view .ai-assistant-quick-actions,
 .ai-assistant-panel.is-project-view .ai-assistant-form,
 .ai-assistant-panel.is-project-view .ai-assistant-scroll-bottom,
 .ai-assistant-panel.is-settings-view .ai-assistant-messages,
+.ai-assistant-panel.is-settings-view .ai-assistant-rag-status,
 .ai-assistant-panel.is-settings-view .ai-assistant-quick-actions,
 .ai-assistant-panel.is-settings-view .ai-assistant-form,
 .ai-assistant-panel.is-settings-view .ai-assistant-scroll-bottom {
@@ -11910,11 +12010,13 @@ body.ai-assistant-sidebar-is-resizing * {
   color: #ffd8e4;
 }
 
-.ai-assistant-project-export-menu {
+.ai-assistant-project-export-menu,
+.ai-assistant-project-sources-menu {
   position: relative;
 }
 
-.ai-assistant-project-export-trigger {
+.ai-assistant-project-export-trigger,
+.ai-assistant-project-sources-trigger {
   justify-content: space-between;
 }
 
@@ -11923,7 +12025,8 @@ body.ai-assistant-sidebar-is-resizing * {
   margin-left: auto;
 }
 
-.ai-assistant-project-export-submenu {
+.ai-assistant-project-export-submenu,
+.ai-assistant-project-sources-submenu {
   background:
     linear-gradient(180deg, rgb(28 28 34 / 98%), rgb(16 16 22 / 99%)),
     linear-gradient(145deg, rgb(255 255 255 / 18%), rgb(121 230 255 / 18%));
@@ -11942,11 +12045,14 @@ body.ai-assistant-sidebar-is-resizing * {
 }
 
 .ai-assistant-project-export-menu:hover .ai-assistant-project-export-submenu,
-.ai-assistant-project-export-menu:focus-within .ai-assistant-project-export-submenu {
+.ai-assistant-project-export-menu:focus-within .ai-assistant-project-export-submenu,
+.ai-assistant-project-sources-menu:hover .ai-assistant-project-sources-submenu,
+.ai-assistant-project-sources-menu:focus-within .ai-assistant-project-sources-submenu {
   display: grid;
 }
 
-.ai-assistant-project-context-menu.is-export-left .ai-assistant-project-export-submenu {
+.ai-assistant-project-context-menu.is-export-left .ai-assistant-project-export-submenu,
+.ai-assistant-project-context-menu.is-export-left .ai-assistant-project-sources-submenu {
   left: auto;
   right: min(calc(100% - 4px), 220px);
 }
@@ -12695,6 +12801,23 @@ body.ai-assistant-sidebar-is-resizing * {
   width: 7px;
 }
 
+.ai-assistant-rag-status {
+  align-self: stretch;
+  background: rgb(121 230 255 / 8%);
+  border: 1px solid rgb(121 230 255 / 16%);
+  border-radius: 9px;
+  color: rgb(235 240 255 / 70%);
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  line-height: 1.35;
+  margin: 10px 14px 0;
+  padding: 8px 10px;
+}
+
+.ai-assistant-rag-status[hidden] {
+  display: none;
+}
+
 .web-sources-title {
   color: #f2efff;
   font-family: var(--font-body);
@@ -13146,7 +13269,8 @@ body.ai-assistant-sidebar-is-resizing * {
     justify-self: end;
   }
 
-  .ai-assistant-project-export-submenu {
+  .ai-assistant-project-export-submenu,
+  .ai-assistant-project-sources-submenu {
     box-shadow: none;
     left: auto;
     margin: 2px 0 4px 14px;
@@ -13352,6 +13476,8 @@ body.ai-assistant-sidebar-is-resizing * {
 [data-theme="light"] .ai-assistant-project-rag span,
 [data-theme="light"] .ai-assistant-project-row span,
 [data-theme="light"] .ai-assistant-project-empty,
+[data-theme="light"] .ai-assistant-sidebar-empty-state p,
+[data-theme="light"] .ai-assistant-project-empty-panel p,
 [data-theme="light"] .ai-assistant-project-settings label,
 [data-theme="light"] .ai-assistant-settings-section label,
 [data-theme="light"] .ai-assistant-media-card-body span,
@@ -13362,6 +13488,8 @@ body.ai-assistant-sidebar-is-resizing * {
 [data-theme="light"] .ai-assistant-project-stat,
 [data-theme="light"] .ai-assistant-project-rag div,
 [data-theme="light"] .ai-assistant-project-row,
+[data-theme="light"] .ai-assistant-sidebar-empty-state,
+[data-theme="light"] .ai-assistant-project-empty-panel,
 [data-theme="light"] .ai-assistant-project-settings,
 [data-theme="light"] .ai-assistant-settings-section,
 [data-theme="light"] .ai-assistant-project-tabs {

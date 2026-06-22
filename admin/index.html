@@ -3134,6 +3134,23 @@
       `;
     }
 
+    function renderRagPilotage(ragUsage = {}) {
+      return `
+        <article class="health-card">
+          <h2>RAG projet</h2>
+          <div class="health-ai-grid">
+            <article class="health-ai-tile ${ragUsage.project_rag_active ? "score-good" : ""}"><span>RAG projet actif</span><strong>${ragUsage.project_rag_active ? "oui" : "non"}</strong><small>Depuis ai_assistant_events</small></article>
+            <article class="health-ai-tile"><span>Documents indexés</span><strong>${escapeHtml(ragUsage.documents_indexed ?? 0)}</strong><small>sources utilisées</small></article>
+            <article class="health-ai-tile"><span>Chunks disponibles</span><strong>${escapeHtml(ragUsage.chunks_available ?? 0)}</strong><small>chunks recherchés</small></article>
+            <article class="health-ai-tile"><span>Recherches RAG</span><strong>${escapeHtml(ragUsage.searches_performed ?? 0)}</strong><small>${escapeHtml(ragUsage.contexts_used ?? 0)} contextes injectés</small></article>
+            <article class="health-ai-tile"><span>Taux de match</span><strong>${escapeHtml(formatPercent(ragUsage.match_rate || 0))}</strong><small>${escapeHtml(ragUsage.matches ?? 0)} match · ${escapeHtml(ragUsage.no_matches ?? 0)} sans match</small></article>
+            <article class="health-ai-tile"><span>Temps moyen</span><strong>${escapeHtml(formatMs(ragUsage.average_search_ms))}</strong><small>recherche locale</small></article>
+          </div>
+          <p>Documents les plus utilisés : ${escapeHtml((ragUsage.top_documents || []).map((item) => `${item.name} (${item.count})`).join(", ") || "n/a")}</p>
+        </article>
+      `;
+    }
+
     function buildFallbackHealth(reason) {
       const checkedAt = new Date().toISOString();
       return {
@@ -3444,6 +3461,7 @@
       const recentActivity = aiRecentActivity(aiRows);
       const aiState = health?.ai_state || {};
       const tavilyUsage = health?.tavily_usage || {};
+      const ragUsage = health?.rag_usage || {};
       const services = Array.isArray(health?.services) ? health.services : [];
       const priorities = Array.isArray(health?.next_priorities) ? health.next_priorities : [];
       const documents = Array.isArray(health?.documents) ? health.documents : [];
@@ -3491,6 +3509,7 @@
         </article>
         ${renderAiStateCards(aiState)}
         ${renderTavilyConsumption(tavilyUsage, configuration)}
+        ${renderRagPilotage(ragUsage)}
         <article class="health-card">
           <h2>Services</h2>
           <div class="health-section-toolbar" aria-label="Filtres services">

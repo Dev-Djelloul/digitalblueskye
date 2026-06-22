@@ -485,6 +485,35 @@ function buildTavilyUsageFromEvents(rows, aiHealthPayload, env) {
   };
 }
 
+function buildRagUsageFromEvents(rows) {
+  const eventRows = Array.isArray(rows) ? rows : [];
+  const queryRows = eventRows.filter((row) => row.event_type === "rag_query");
+  const matchRows = eventRows.filter((row) => row.event_type === "rag_match");
+  const noMatchRows = eventRows.filter((row) => row.event_type === "rag_no_match");
+  const contextRows = eventRows.filter((row) => row.event_type === "rag_context_used");
+  const searches = queryRows.length;
+  const matchRate = searches ? Math.round((matchRows.length / searches) * 1000) / 10 : 0;
+  const averageDurationMs = averageFromEvents(queryRows.concat(matchRows, noMatchRows), ["duration_ms"]);
+  const documentUse = new Map();
+  contextRows.forEach((row) => {
+    const meta = parseEventMeta(row);
+    const key = meta.projectName || meta.projectId || "Projet";
+    documentUse.set(key, (documentUse.get(key) || 0) + Number(meta.documents_used || 0));
+  });
+  return {
+    project_rag_active: searches > 0,
+    searches_performed: searches,
+    matches: matchRows.length,
+    no_matches: noMatchRows.length,
+    match_rate: matchRate,
+    average_search_ms: averageDurationMs,
+    contexts_used: contextRows.length,
+    documents_indexed: Math.max(0, ...eventRows.map((row) => Number(parseEventMeta(row).documents_used || 0))),
+    chunks_available: Math.max(0, ...eventRows.map((row) => Number(parseEventMeta(row).chunks_searched || 0))),
+    top_documents: Array.from(documentUse.entries()).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count).slice(0, 5),
+  };
+}
+
 function stabilizeOpenRouterCheck(check, configured, latestResponse) {
   if (!check || !configured || !latestResponse) return check;
   const statusCode = Number(check.status_code || 0);
@@ -506,6 +535,7 @@ function formatHealthActivity(row) {
   const combined = `${type} ${value} ${meta}`;
   let label = "Événement IA";
   if (combined.includes("web_search")) label = "Recherche web exécutée";
+  else if (combined.includes("rag_")) label = "Recherche RAG projet";
   else if (combined.includes("pdf")) label = "PDF analysé";
   else if (combined.includes("docx")) label = "DOCX analysé";
   else if (combined.includes("xlsx") || combined.includes("excel")) label = "XLSX analysé";
@@ -1038,6 +1068,7 @@ async function handleAdminHealth(request, env) {
     ? Boolean(aiHealthResult.payload?.configuration?.tavily_api_key_configured)
     : null;
   const tavilyUsage = buildTavilyUsageFromEvents(recentEvents, aiHealthResult.payload, env);
+  const ragUsage = buildRagUsageFromEvents(recentEvents);
   const effectiveOpenRouterCheck = stabilizeOpenRouterCheck(openRouterCheck, openRouterConfigured, latestOpenRouterResponse);
   const openRouterOk = Boolean(effectiveOpenRouterCheck?.ok);
   const tavilyOk = Boolean(tavilyCheck?.ok);
@@ -1234,6 +1265,7 @@ async function handleAdminHealth(request, env) {
       tavily: tavilyCheck,
     },
     tavily_usage: tavilyUsage,
+    rag_usage: ragUsage,
     services,
     statistics: {
       architecture_version: 1,
@@ -1243,6 +1275,8 @@ async function handleAdminHealth(request, env) {
         { key: "tavily_searches_executed", label: "Recherches Tavily exécutées", value: tavilyUsage.searches_executed, unit: "" },
         { key: "tavily_cache_saved", label: "Recherches évitées par cache", value: tavilyUsage.searches_avoided_cache, unit: "" },
         { key: "tavily_dedupe_saved", label: "Recherches évitées par déduplication", value: tavilyUsage.searches_avoided_deduplication, unit: "" },
+        { key: "rag_search_count", label: "Recherches RAG projet", value: ragUsage.searches_performed, unit: "" },
+        { key: "rag_match_rate", label: "Taux de match RAG", value: ragUsage.match_rate, unit: "%" },
         { key: "pdf_count", label: "Nombre de PDF analysés", value: pdfCount, unit: "" },
         { key: "docx_count", label: "Nombre de DOCX analysés", value: docxCount, unit: "" },
         { key: "xlsx_count", label: "Nombre de XLSX analysés", value: xlsxCount, unit: "" },

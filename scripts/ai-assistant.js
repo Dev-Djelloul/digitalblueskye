@@ -365,6 +365,18 @@
           <button type="button" role="menuitem" data-project-action="open">Ouvrir le projet</button>
           <button type="button" role="menuitem" data-project-action="rename">Renommer</button>
           <button type="button" role="menuitem" data-project-action="duplicate">Dupliquer</button>
+          <div class="ai-assistant-project-sources-menu" role="none">
+            <button type="button" role="menuitem" class="ai-assistant-project-sources-trigger" data-project-action="sources-menu" aria-haspopup="true">
+              <span>Sources</span>
+              <span class="ai-assistant-project-menu-chevron" aria-hidden="true">›</span>
+            </button>
+            <div class="ai-assistant-project-sources-submenu" role="menu" aria-label="Sources projet">
+              <button type="button" role="menuitem" data-project-source-action="add">Ajouter une source</button>
+              <button type="button" role="menuitem" data-project-source-action="import">Importer un document</button>
+              <button type="button" role="menuitem" data-project-source-action="link">Lier depuis la bibliothèque</button>
+              <button type="button" role="menuitem" data-project-source-action="view">Voir les sources du projet</button>
+            </div>
+          </div>
           <div class="ai-assistant-project-export-menu" role="none">
             <button type="button" role="menuitem" class="ai-assistant-project-export-trigger" data-project-action="export-menu" aria-haspopup="true">
               <span>Exporter le projet</span>
@@ -378,7 +390,7 @@
             </div>
           </div>
           <button type="button" role="menuitem" data-project-action="share">Partager le projet</button>
-          <button type="button" role="menuitem" data-project-action="appearance">Changer la couleur ou l'icone</button>
+          <button type="button" role="menuitem" data-project-action="appearance">Changer l'icône du projet</button>
           <button type="button" role="menuitem" data-project-action="delete" class="ai-assistant-project-menu-delete">Supprimer</button>
         </div>
       </div>`;
@@ -437,7 +449,7 @@
           <div id="ai-assistant-project-stats" class="ai-assistant-project-stats"></div>
           <div id="ai-assistant-project-tabs" class="ai-assistant-project-tabs" role="tablist" aria-label="Sections projet">
             <button type="button" data-project-tab="conversations">Conversations</button>
-            <button type="button" data-project-tab="documents">Documents</button>
+            <button type="button" data-project-tab="sources">Sources</button>
             <button type="button" data-project-tab="memory">Memoire</button>
             <button type="button" data-project-tab="rag">RAG</button>
             <button type="button" data-project-tab="stats">Statistiques</button>
@@ -534,6 +546,7 @@
             <button id="ai-assistant-close" class="ai-assistant-close" type="button">&times;</button>
           </header>
           ${createSessionControlsMarkup()}
+          <div id="ai-assistant-rag-status" class="ai-assistant-rag-status" hidden></div>
           <div id="ai-assistant-messages" class="ai-assistant-messages"></div>
           ${createLibraryViewMarkup()}
           ${createProjectViewMarkup()}
@@ -782,6 +795,7 @@
   const projectDeleteSummary = document.getElementById('ai-assistant-project-delete-summary');
   const projectDeleteCancelButton = document.getElementById('ai-assistant-project-delete-cancel');
   const projectDeleteConfirmButton = document.getElementById('ai-assistant-project-delete-confirm');
+  const ragStatus = document.getElementById('ai-assistant-rag-status');
   const sidebarResizeHandle = document.getElementById('ai-assistant-sidebar-resize');
   const sessionContextMenu = document.getElementById('ai-assistant-session-menu');
   const projectContextMenu = document.getElementById('ai-assistant-project-menu');
@@ -804,7 +818,7 @@
   let fileInput = document.getElementById('ai-assistant-file-input');
   let chatHistory = [];
   let sessionsState = { activeSessionId: '', sessions: [] };
-  let projectsState = { activeProjectId: 'safe', projects: [] };
+  let projectsState = { activeProjectId: '', projects: [] };
   let assistantSettingsState = {};
   let activeProjectTab = 'conversations';
   let areProjectsCollapsed = false;
@@ -826,6 +840,7 @@
   let pendingDeleteProjectId = '';
   let isSidebarResizing = false;
   let isLibraryImportMode = false;
+  let pendingKnowledgeImportProjectId = null;
   let isLibraryViewOpen = false;
   let activeLibraryMenuDocId = '';
   let activePreviewDocId = '';
@@ -873,17 +888,11 @@
   const knowledgeChunkOverlap = 180;
   const maxRetrievedKnowledgeChunks = 8;
   const maxStoredMediaDataUrlLength = 1500000;
+  const maxProjectIconDataUrlLength = 512000;
   const libraryImagePreviewSize = 720;
   const libraryDocumentPreviewSize = 760;
   const simplifiedPreviewVersion = 2;
-  const defaultProjectId = 'safe';
-  const defaultProjects = [
-    { id: 'safe', name: 'SAFE', description: 'Espace de travail principal.', icon: 'S', color: '#79e6ff' },
-    { id: 'digital-blue-skye', name: 'Digital Blue Skye', description: 'Strategie, operations et livrables Digital Blue Skye.', icon: 'D', color: '#8f7cff' },
-    { id: 'openclassrooms', name: 'OpenClassrooms', description: 'Cours, projets pedagogiques et ressources de formation.', icon: 'O', color: '#35d69b' },
-    { id: 'personnel', name: 'Personnel', description: 'Notes, recherches et idees personnelles.', icon: 'P', color: '#ffb45f' }
-  ];
-
+  const legacySeededProjectIds = new Set(['safe', 'digital-blue-skye', 'openclassrooms', 'personnel']);
   function isAssistantDebugEnabled() {
     try { return localStorage.getItem(assistantDebugStorageKey) === 'true'; } catch (error) { return false; }
   }
@@ -1017,12 +1026,17 @@
       name: String(base.name || 'Projet').replace(/\s+/g, ' ').trim().slice(0, 80) || 'Projet',
       description: String(base.description || '').replace(/\s+/g, ' ').trim().slice(0, 220),
       icon: String(base.icon || String(base.name || 'P').charAt(0) || 'P').slice(0, 2).toUpperCase(),
+      iconImage: String(base.iconImage || '').startsWith('data:image/') && String(base.iconImage || '').length <= maxProjectIconDataUrlLength ? String(base.iconImage) : '',
       color: /^#[0-9a-f]{6}$/i.test(String(base.color || '')) ? String(base.color) : '#79e6ff',
       createdAt: Number(base.createdAt) || now,
       updatedAt: Number(base.updatedAt) || Number(base.createdAt) || now,
       memory: String(base.memory || '').slice(0, 2500),
       ragScope: ['project', 'multi_project', 'library'].includes(base.ragScope) ? base.ragScope : 'project',
-      ragProjectIds: Array.isArray(base.ragProjectIds) ? base.ragProjectIds.map(String).slice(0, 12) : []
+      ragProjectIds: Array.isArray(base.ragProjectIds) ? base.ragProjectIds.map(String).slice(0, 12) : [],
+      ragEnabled: base.ragEnabled !== false,
+      ragMaxPassages: [3, 5, 8].includes(Number(base.ragMaxPassages)) ? Number(base.ragMaxPassages) : 5,
+      ragUseGlobalLibrary: Boolean(base.ragUseGlobalLibrary),
+      ragCitations: base.ragCitations !== false
     };
   }
 
@@ -1039,33 +1053,41 @@
 
   function loadProjectsState() {
     let storedProjects = [];
-    let activeProjectId = defaultProjectId;
+    let activeProjectId = '';
+    let removedLegacyProjects = false;
     try {
       const raw = localStorage.getItem(projectsStorageKey);
       if (raw) {
         const parsed = JSON.parse(raw);
-        storedProjects = Array.isArray(parsed?.projects) ? parsed.projects : [];
+        if (Array.isArray(parsed?.projects)) {
+          storedProjects = parsed.projects.filter((project) => !legacySeededProjectIds.has(String(project?.id || '')));
+          removedLegacyProjects = storedProjects.length !== parsed.projects.length;
+        }
         if (typeof parsed?.activeProjectId === 'string') activeProjectId = parsed.activeProjectId;
       }
     } catch (error) {
       assistantLog('warn', 'projects_load_failed', { reason: error?.message || 'invalid_project_storage' });
     }
     const byId = new Map();
-    defaultProjects.forEach((project) => byId.set(project.id, normalizeProject(project)));
     storedProjects.forEach((project) => {
       const normalized = normalizeProject(project);
       byId.set(normalized.id, normalized);
     });
     const projects = Array.from(byId.values());
-    if (!projects.some((project) => project.id === activeProjectId)) activeProjectId = defaultProjectId;
+    if (!projects.some((project) => project.id === activeProjectId)) activeProjectId = projects[0]?.id || '';
     projectsState = { activeProjectId, projects };
+    if (removedLegacyProjects) saveProjectsState();
   }
 
   function saveProjectsState() {
     try {
+      const projects = (projectsState.projects || []).map((project) => normalizeProject(project));
+      const activeProjectId = projects.some((project) => project.id === projectsState.activeProjectId)
+        ? projectsState.activeProjectId
+        : projects[0]?.id || '';
       projectsState = {
-        activeProjectId: projectsState.activeProjectId || defaultProjectId,
-        projects: (projectsState.projects || []).map((project) => normalizeProject(project))
+        activeProjectId,
+        projects
       };
       localStorage.setItem(projectsStorageKey, JSON.stringify({ version: 1, savedAt: new Date().toISOString(), ...projectsState }));
     } catch (error) {
@@ -1078,7 +1100,7 @@
       profile: { name: '', email: '', avatar: '', language: currentLanguage, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Paris' },
       ai: { defaultModel: 'auto', preferredProvider: 'OpenRouter', automaticFallback: true },
       web: { tavilyEnabled: true, economyMode: true, expertMode: false, maxResults: 3 },
-      documents: { maxSizeMb: 20, chunking: 'auto', automaticIndexing: true, automaticRag: true },
+      documents: { maxSizeMb: 20, chunking: 'auto', automaticIndexing: true, automaticRag: true, ragMaxPassages: 5, ragUseGlobalLibrary: false, ragCitations: true },
       appearance: { theme: document.documentElement.dataset.theme || 'digital-blue-skye' },
       data: { lastExportAt: '', lastBackupAt: '' }
     };
@@ -1112,33 +1134,93 @@
   }
 
   function getActiveProject() {
-    return getProjectById(projectsState.activeProjectId) || getProjectById(defaultProjectId) || projectsState.projects[0] || null;
+    return getProjectById(projectsState.activeProjectId) || projectsState.projects[0] || null;
   }
 
   function getProjectName(projectId) {
-    return getProjectById(projectId)?.name || getProjectById(defaultProjectId)?.name || 'SAFE';
+    return getProjectById(projectId)?.name || 'Aucun projet';
+  }
+
+  function renderProjectIcon(project, container) {
+    if (!container) return;
+    container.innerHTML = '';
+    container.style.setProperty('--project-color', project?.color || '#79e6ff');
+    if (project?.iconImage) {
+      const image = document.createElement('img');
+      image.src = project.iconImage;
+      image.alt = '';
+      image.loading = 'lazy';
+      image.onerror = () => {
+        container.innerHTML = '';
+        container.textContent = project.icon || project.name?.charAt(0) || 'P';
+      };
+      container.appendChild(image);
+      return;
+    }
+    container.textContent = project?.icon || project?.name?.charAt(0) || 'P';
   }
 
   function getSessionProjectId(session) {
-    return getProjectById(session?.projectId)?.id || defaultProjectId;
+    return getProjectById(session?.projectId)?.id || null;
+  }
+
+  function normalizeDocumentProjectIds(doc) {
+    const ids = new Set();
+    if (Array.isArray(doc?.projectIds)) {
+      doc.projectIds.forEach((id) => {
+        const project = getProjectById(id);
+        if (project) ids.add(project.id);
+      });
+    }
+    const project = getProjectById(doc?.projectId);
+    if (project) ids.add(project.id);
+    return Array.from(ids);
+  }
+
+  function getDocumentProjectIds(doc) {
+    return normalizeDocumentProjectIds(doc);
   }
 
   function getDocumentProjectId(doc) {
-    return getProjectById(doc?.projectId)?.id || defaultProjectId;
+    return getDocumentProjectIds(doc)[0] || null;
+  }
+
+  function isDocumentLinkedToProject(doc, projectId) {
+    return Boolean(projectId) && getDocumentProjectIds(doc).includes(projectId);
+  }
+
+  function attachDocumentToProject(doc, projectId) {
+    const project = getProjectById(projectId);
+    if (!doc || !project) return false;
+    const ids = new Set(getDocumentProjectIds(doc));
+    ids.add(project.id);
+    doc.projectIds = Array.from(ids);
+    doc.projectId = doc.projectIds[0] || null;
+    return true;
+  }
+
+  function detachDocumentFromProject(doc, projectId) {
+    if (!doc || !projectId) return false;
+    const ids = getDocumentProjectIds(doc).filter((id) => id !== projectId);
+    doc.projectIds = ids;
+    doc.projectId = ids[0] || null;
+    return true;
   }
 
   function ensureProjectLinks() {
     let sessionsChanged = false;
     (sessionsState.sessions || []).forEach((session) => {
-      if (!getProjectById(session.projectId)) {
-        session.projectId = projectsState.activeProjectId || defaultProjectId;
+      if (session.projectId && !getProjectById(session.projectId)) {
+        session.projectId = null;
         sessionsChanged = true;
       }
     });
     let libraryChanged = false;
     (knowledgeLibrary.documents || []).forEach((doc) => {
-      if (!getProjectById(doc.projectId)) {
-        doc.projectId = projectsState.activeProjectId || defaultProjectId;
+      const ids = getDocumentProjectIds(doc);
+      if (doc.projectId !== (ids[0] || null) || JSON.stringify(doc.projectIds || []) !== JSON.stringify(ids)) {
+        doc.projectIds = ids;
+        doc.projectId = ids[0] || null;
         libraryChanged = true;
       }
     });
@@ -1154,7 +1236,7 @@
 
   function getProjectStats(projectId) {
     const sessions = (sessionsState.sessions || []).filter((session) => getSessionProjectId(session) === projectId);
-    const docs = (knowledgeLibrary.documents || []).filter((doc) => getDocumentProjectId(doc) === projectId);
+    const docs = (knowledgeLibrary.documents || []).filter((doc) => isDocumentLinkedToProject(doc, projectId));
     const chunkCount = docs.reduce((sum, doc) => sum + getKnowledgeDocChunks(doc).length, 0);
     const indexedSize = docs.reduce((sum, doc) => sum + (Number(doc.textLength) || 0), 0);
     const latestSession = sessions.reduce((latest, session) => Math.max(latest, Number(session.updatedAt) || 0), 0);
@@ -1214,12 +1296,50 @@
     renderProjectList();
   }
 
+  function createProjectFromPrompt() {
+    const name = window.prompt('Nom du projet');
+    if (name === null) return;
+    const cleanName = name.replace(/\s+/g, ' ').trim().slice(0, 80);
+    if (!cleanName) return;
+    const project = normalizeProject({
+      id: buildProjectId(cleanName),
+      name: cleanName,
+      description: '',
+      icon: cleanName.charAt(0).toUpperCase(),
+      color: '#79e6ff',
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    });
+    projectsState.projects.unshift(project);
+    projectsState.activeProjectId = project.id;
+    saveProjectsState();
+    setHistoryPanelOpen(true);
+    setWorkspaceView('project');
+    renderProjectList();
+  }
+
   function getProjectExportDateStamp() {
     return new Date().toISOString().slice(0, 10);
   }
 
   function downloadTextFile(filename, content, mimeType = 'text/plain;charset=utf-8') {
     downloadBlob(new Blob([String(content || '')], { type: mimeType }), filename);
+  }
+
+  function downloadBlobFile(filename, blob) {
+    downloadBlob(blob, filename);
+  }
+
+  function slugifyFilename(value, fallback = 'file') {
+    return slugifyDocumentTitle(String(value || fallback)).replace(/^-+|-+$/g, '') || fallback;
+  }
+
+  function getProjectDocuments(projectId) {
+    return (knowledgeLibrary.documents || []).filter((doc) => isDocumentLinkedToProject(doc, projectId));
+  }
+
+  function getProjectConversations(projectId) {
+    return (sessionsState.sessions || []).filter((session) => getSessionProjectId(session) === projectId);
   }
 
   function buildProjectExportPayload(projectId) {
@@ -1231,15 +1351,19 @@
       exportedAt: new Date().toISOString(),
       project,
       stats: { ...stats, memories: countProjectMemories(project) },
-      conversations: (sessionsState.sessions || []).filter((session) => getSessionProjectId(session) === projectId),
-      documents: (knowledgeLibrary.documents || []).filter((doc) => getDocumentProjectId(doc) === projectId).map((doc) => ({
+      conversations: getProjectConversations(projectId),
+      documents: getProjectDocuments(projectId).map((doc) => ({
         id: doc.id,
         name: doc.name,
         type: doc.type,
         kind: doc.kind,
         size: doc.size,
+        projectId: getDocumentProjectId(doc),
+        projectIds: getDocumentProjectIds(doc),
         textLength: doc.textLength,
         chunks: getKnowledgeDocChunks(doc).length,
+        hasOriginalFile: Boolean(doc.hasOriginalFile),
+        hasExtractedText: Boolean(getKnowledgeDocChunks(doc).length),
         importedAt: doc.importedAt
       })),
       rag: {
@@ -1317,18 +1441,136 @@
       <p>${escapeHtml(project.description || 'Aucune description renseignee.')}</p>
       <div class="grid">
         <div class="card"><span>Conversations</span><strong>${stats.conversations}</strong></div>
-        <div class="card"><span>Documents</span><strong>${stats.documents}</strong></div>
+        <div class="card"><span>Sources</span><strong>${stats.documents}</strong></div>
         <div class="card"><span>Chunks documentaires</span><strong>${stats.chunks}</strong></div>
         <div class="card"><span>Perimetre RAG</span><strong>${escapeHtml(getProjectRagScopeLabel(rag.scope))}</strong></div>
       </div>
     </header>
     <section><h2>Memoire projet</h2><p>${escapeHtml(project.memory || 'Aucune memoire projet renseignee.')}</p></section>
     <section><h2>Conversations associees</h2><table><thead><tr><th>Conversation</th><th>Messages</th><th>Activite</th></tr></thead><tbody>${conversationRows}</tbody></table></section>
-    <section><h2>Documents associes</h2><table><thead><tr><th>Document</th><th>Type</th><th>Chunks</th><th>Taille</th></tr></thead><tbody>${documentRows}</tbody></table></section>
+    <section><h2>Sources associees</h2><table><thead><tr><th>Source</th><th>Type</th><th>Chunks</th><th>Taille</th></tr></thead><tbody>${documentRows}</tbody></table></section>
     <section><h2>Prochaines etapes recommandees</h2><ul>${nextSteps.map((step) => `<li>${escapeHtml(step)}</li>`).join('')}</ul></section>
   </main>
 </body>
 </html>`;
+  }
+
+  function buildDocumentExtractMarkdown(document) {
+    const chunks = getKnowledgeDocChunks(document);
+    const lines = [
+      `# ${document?.name || 'Document'}`,
+      '',
+      `- Document ID: ${document?.id || ''}`,
+      `- Type: ${document?.type || document?.kind || 'Document'}`,
+      `- Taille: ${fileSizeLabel(document?.size || 0)}`,
+      `- Projet IDs: ${getDocumentProjectIds(document).join(', ') || 'aucun'}`,
+      `- Chunks: ${chunks.length}`,
+      `- Fichier original disponible: ${document?.hasOriginalFile ? 'oui' : 'non'}`,
+      '',
+      '## Texte extrait',
+      ''
+    ];
+    if (!chunks.length) {
+      lines.push('Aucun texte extrait disponible.', '');
+    } else {
+      chunks.forEach((chunk, index) => {
+        lines.push(`### Chunk ${index + 1}`, '', String(chunk || '').trim() || '[chunk vide]', '');
+      });
+    }
+    return lines.join('\n').trim() + '\n';
+  }
+
+  function buildProjectDocumentsMetadata(projectId, sourceStatuses = new Map()) {
+    return getProjectDocuments(projectId).map((doc) => {
+      const chunks = getKnowledgeDocChunks(doc);
+      const sourceStatus = sourceStatuses.get(doc.id);
+      return {
+        id: doc.id,
+        name: doc.name,
+        type: doc.type,
+        size: Number(doc.size) || 0,
+        projectId: getDocumentProjectId(doc),
+        projectIds: getDocumentProjectIds(doc),
+        chunks: chunks.length,
+        hasOriginalFile: Boolean(doc.hasOriginalFile),
+        hasExtractedText: chunks.length > 0,
+        exportStatus: sourceStatus || (doc.hasOriginalFile ? 'source_not_checked' : 'source_unavailable_extracted_text_only')
+      };
+    });
+  }
+
+  function buildRagContextExport(projectId) {
+    const project = getProjectById(projectId);
+    const docs = getProjectDocuments(projectId);
+    const chunks = [];
+    docs.forEach((doc) => {
+      const docChunks = getKnowledgeDocChunks(doc);
+      const ragIndex = normalizeKnowledgeRagIndex(doc.ragIndex, docChunks, doc);
+      docChunks.forEach((chunk, index) => {
+        chunks.push({
+          id: `${doc.id || 'document'}::chunk-${index + 1}`,
+          documentId: doc.id,
+          documentName: doc.name,
+          chunkIndex: index,
+          text: chunk,
+          locator: ragIndex[index]?.locator || extractKnowledgeChunkLocator(chunk, doc.kind || doc.type, index),
+          index: ragIndex[index] || null
+        });
+      });
+    });
+    return {
+      scope: project?.ragScope || 'project',
+      projectId,
+      projectName: project?.name || '',
+      projectIds: [projectId, ...((project?.ragProjectIds || []).filter(Boolean))],
+      documents: docs.map((doc) => ({ id: doc.id, name: doc.name, type: doc.type, chunks: getKnowledgeDocChunks(doc).length })),
+      documentIds: docs.map((doc) => doc.id),
+      chunks,
+      exportedAt: new Date().toISOString(),
+      preparedAt: new Date().toISOString(),
+      indexType: 'local_keyword_pre_index',
+      futureUse: 'Portable context for rebuilding semantic/vector RAG in another AI workspace.'
+    };
+  }
+
+  function buildProjectReadme(projectId, exportPayload, sourceStatuses = new Map()) {
+    const project = exportPayload?.project || getProjectById(projectId);
+    const stats = exportPayload?.stats || getProjectStats(projectId);
+    const unavailable = Array.from(sourceStatuses.entries()).filter(([, status]) => status !== 'source_included');
+    return [
+      `Digital Blue Skye AI - Export portable IA`,
+      '',
+      `Projet: ${project?.name || 'Projet'}`,
+      `Description: ${project?.description || 'Non renseignee'}`,
+      `Date export: ${exportPayload?.exportedAt || new Date().toISOString()}`,
+      '',
+      'Statistiques:',
+      `- Conversations: ${stats.conversations || 0}`,
+      `- Documents: ${stats.documents || 0}`,
+      `- Chunks documentaires: ${stats.chunks || 0}`,
+      `- Perimetre RAG: ${getProjectRagScopeLabel(project?.ragScope || 'project')}`,
+      '',
+      'Structure du ZIP:',
+      '- project-export.json: export technique complet.',
+      '- project-report.html: rapport lisible pour consultation humaine.',
+      '- conversations/: conversations en Markdown, reutilisables dans un autre chatbot IA.',
+      '- documents/: fichiers sources disponibles depuis le navigateur.',
+      '- extracted-text/: texte extrait et chunks par document.',
+      '- documents-metadata.json: inventaire des documents et statut d export.',
+      '- rag-context.json: contexte portable pour reconstruire un futur RAG.',
+      '',
+      'Reutilisation dans un autre chatbot IA:',
+      '1. Importez project-report.html pour comprendre le contexte.',
+      '2. Ajoutez les fichiers Markdown de conversations/ et extracted-text/ comme documents de contexte.',
+      '3. Ajoutez rag-context.json si l outil accepte des donnees structurees.',
+      '4. Ajoutez les fichiers de documents/ si presents.',
+      '',
+      unavailable.length
+        ? `Note: ${unavailable.length} fichier(s) source sont absents ou indisponibles. Le texte extrait reste fourni dans extracted-text/.`
+        : 'Tous les fichiers sources disponibles cote navigateur ont ete ajoutes quand ils existaient.',
+      '',
+      'Aucun secret systeme, token ou cle API n est volontairement inclus dans cet export.'
+    ].join('\n');
   }
 
   function downloadProjectHtml(projectId) {
@@ -1391,28 +1633,64 @@
   async function exportProjectZip(projectId) {
     const payload = buildProjectExportPayload(projectId);
     if (!payload) return;
-    if (!window.JSZip) {
-      addMessage('bot', 'Export ZIP non encore disponible. Utilisez JSON ou HTML pour le moment.');
+    addMessage('bot', 'Preparation du ZIP...');
+    let JSZipCtor = null;
+    try {
+      JSZipCtor = await loadJsZipLibrary();
+    } catch (error) {
+      assistantLog('warn', 'project_zip_jszip_unavailable', { reason: error?.message || 'jszip_unavailable' });
+      addMessage('bot', 'Impossible de generer le ZIP pour le moment.');
       return;
     }
-    const zip = new window.JSZip();
-    const date = getProjectExportDateStamp();
-    zip.file(`digital-blue-skye-project-export-${date}.json`, JSON.stringify(payload, null, 2));
-    zip.file(`digital-blue-skye-project-report-${date}.html`, buildProjectHtmlReport(projectId));
-    zip.file('README.txt', [
-      `Export Digital Blue Skye AI - ${payload.project.name}`,
-      `Date: ${payload.exportedAt}`,
-      '',
-      'Contenu:',
-      '- JSON technique',
-      '- Rapport HTML lisible',
-      '- Metadonnees des documents lies',
-      '',
-      'Les fichiers physiques de la bibliotheque globale ne sont pas inclus.'
-    ].join('\n'));
-    zip.file('documents-metadata.json', JSON.stringify(payload.documents, null, 2));
-    const blob = await zip.generateAsync({ type: 'blob' });
-    downloadBlob(blob, `digital-blue-skye-project-complete-${date}.zip`);
+    try {
+      const zip = new JSZipCtor();
+      const sourceStatuses = new Map();
+      const conversationsFolder = zip.folder('conversations');
+      const documentsFolder = zip.folder('documents');
+      const extractedTextFolder = zip.folder('extracted-text');
+      const project = payload.project;
+      const projectDocs = getProjectDocuments(projectId);
+      const projectConversations = getProjectConversations(projectId);
+
+      zip.file('project-export.json', JSON.stringify(payload, null, 2));
+      zip.file('project-report.html', buildProjectHtmlReport(projectId));
+      zip.file('rag-context.json', JSON.stringify(buildRagContextExport(projectId), null, 2));
+
+      projectConversations.forEach((conversation) => {
+        const name = slugifyFilename(getSessionDisplayTitle(conversation) || conversation.id, conversation.id || 'conversation');
+        conversationsFolder.file(`conversation-${name}.md`, buildConversationMarkdown(conversation, project));
+      });
+
+      for (const doc of projectDocs) {
+        const name = slugifyFilename(doc.name || doc.id, doc.id || 'document');
+        extractedTextFolder.file(`document-${name}.md`, buildDocumentExtractMarkdown(doc));
+        try {
+          const original = await getKnowledgeOriginalFile(doc);
+          if (original?.blob) {
+            documentsFolder.file(sanitizeFilename(original.name || doc.name || `${doc.id}.bin`, `${doc.id}.bin`), original.blob);
+            sourceStatuses.set(doc.id, 'source_included');
+          } else {
+            sourceStatuses.set(doc.id, 'source_unavailable_extracted_text_only');
+          }
+        } catch (error) {
+          sourceStatuses.set(doc.id, 'source_error_extracted_text_only');
+          assistantLog('warn', 'project_zip_source_file_unavailable', { docId: doc.id, reason: error?.message || 'source_unavailable' });
+        }
+      }
+
+      zip.file('documents-metadata.json', JSON.stringify(buildProjectDocumentsMetadata(projectId, sourceStatuses), null, 2));
+      zip.file('README.txt', buildProjectReadme(projectId, payload, sourceStatuses));
+
+      const blob = await zip.generateAsync({ type: 'blob' });
+      downloadBlobFile(`digital-blue-skye-project-portable-ai-${getProjectExportDateStamp()}.zip`, blob);
+      const hasPartialSources = Array.from(sourceStatuses.values()).some((status) => status !== 'source_included');
+      addMessage('bot', hasPartialSources
+        ? 'Export ZIP genere avec certains fichiers sources indisponibles.'
+        : 'Export ZIP genere.');
+    } catch (error) {
+      assistantLog('error', 'project_zip_export_failed', { reason: error?.message || 'zip_export_failed' });
+      addMessage('bot', 'Impossible de generer le ZIP pour le moment.');
+    }
   }
 
   function buildProjectShareText(project) {
@@ -1426,7 +1704,7 @@
       '',
       `* Description : ${project.description || 'Non renseignee'}`,
       `* Conversations associees : ${stats.conversations}`,
-      `* Documents associes : ${stats.documents}`,
+      `* Sources associees : ${stats.documents}`,
       `* Chunks documentaires : ${stats.chunks}`,
       `* Perimetre RAG : ${getProjectRagScopeLabel(project.ragScope || 'project')}`,
       '',
@@ -1464,13 +1742,103 @@
     else if (format === 'zip') exportProjectZip(projectId);
   }
 
-  function changeProjectAppearance(projectId) {
+  function importDocumentToProject(projectId) {
+    if (!getProjectById(projectId)) return;
+    openAssistantFilePicker(true, projectId);
+  }
+
+  function linkLibraryDocumentToProject(projectId) {
     const project = getProjectById(projectId);
     if (!project) return;
-    const nextIcon = window.prompt('Icone du projet', project.icon || project.name.charAt(0).toUpperCase());
-    if (nextIcon !== null) project.icon = String(nextIcon || project.icon || 'P').slice(0, 2).toUpperCase();
-    const nextColor = window.prompt('Couleur hexadecimale du projet', project.color || '#79e6ff');
-    if (nextColor !== null && /^#[0-9a-f]{6}$/i.test(nextColor.trim())) project.color = nextColor.trim();
+    const candidates = (knowledgeLibrary.documents || []).filter((doc) => !isDocumentLinkedToProject(doc, projectId));
+    if (!candidates.length) {
+      addMessage('bot', 'Aucun document disponible à lier depuis la Bibliothèque globale.');
+      return;
+    }
+    const choice = window.prompt([
+      `Document à lier au projet "${project.name}" :`,
+      ...candidates.map((doc, index) => `${index + 1}. ${doc.name} (${doc.type || 'Document'})`)
+    ].join('\n'));
+    if (choice === null) return;
+    const doc = candidates[Number.parseInt(choice, 10) - 1];
+    if (!doc) return;
+    attachDocumentToProject(doc, projectId);
+    saveKnowledgeLibrary();
+    renderProjectWorkspace();
+    renderProjectList();
+    addMessage('bot', `Source liée au projet : ${doc.name}`);
+  }
+
+  function removeDocumentFromProject(docId, projectId) {
+    const doc = getKnowledgeDocumentById(docId);
+    if (!doc || !projectId) return;
+    detachDocumentFromProject(doc, projectId);
+    saveKnowledgeLibrary();
+    renderProjectWorkspace();
+    renderProjectList();
+  }
+
+  function viewProjectSources(projectId) {
+    if (!getProjectById(projectId)) return;
+    projectsState.activeProjectId = projectId;
+    activeProjectTab = 'sources';
+    saveProjectsState();
+    setHistoryPanelOpen(true);
+    setWorkspaceView('project');
+  }
+
+  function handleProjectSourceAction(action, projectId) {
+    if (action === 'add' || action === 'import') importDocumentToProject(projectId);
+    else if (action === 'link') linkLibraryDocumentToProject(projectId);
+    else if (action === 'view') viewProjectSources(projectId);
+  }
+
+  async function importProjectIconImage(project) {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/png,image/jpeg,image/jpg,image/webp,image/svg+xml';
+    input.className = 'ai-assistant-file-input';
+    input.setAttribute('aria-hidden', 'true');
+    const file = await new Promise((resolve) => {
+      input.addEventListener('change', () => resolve(input.files?.[0] || null), { once: true });
+      (panel || document.body).appendChild(input);
+      input.click();
+      window.setTimeout(() => resolve(null), 60000);
+    });
+    input.remove();
+    if (!file) return;
+    if (!/^image\/(png|jpe?g|webp|svg\+xml)$/i.test(file.type || '')) {
+      addMessage('bot', 'Format d’icône non supporté. Utilisez png, jpg, jpeg, webp ou svg.');
+      return;
+    }
+    if (file.size > maxProjectIconDataUrlLength) {
+      addMessage('bot', 'Icône trop lourde. Taille maximale recommandée : 512 Ko.');
+      return;
+    }
+    const dataUrl = await readFileAsDataUrl(file);
+    if (dataUrl.length > maxProjectIconDataUrlLength) {
+      addMessage('bot', 'Icône trop lourde après encodage. Utilisez une image plus légère.');
+      return;
+    }
+    project.iconImage = dataUrl;
+    project.icon = project.icon || project.name.charAt(0).toUpperCase();
+    project.updatedAt = Date.now();
+    saveProjectsState();
+    renderProjectList();
+    if (project.id === projectsState.activeProjectId) renderProjectWorkspace();
+  }
+
+  async function changeProjectAppearance(projectId) {
+    const project = getProjectById(projectId);
+    if (!project) return;
+    const nextIcon = window.prompt('Icône du projet : tapez une lettre/emoji, ou "image" pour importer une image locale.', project.icon || project.name.charAt(0).toUpperCase());
+    if (nextIcon === null) return;
+    if (nextIcon.trim().toLowerCase() === 'image') {
+      await importProjectIconImage(project);
+      return;
+    }
+    project.icon = String(nextIcon || project.icon || 'P').slice(0, 2).toUpperCase();
+    if (nextIcon.trim()) project.iconImage = '';
     project.updatedAt = Date.now();
     saveProjectsState();
     renderProjectList();
@@ -1486,13 +1854,13 @@
 
   function requestProjectDeletion(projectId) {
     const project = getProjectById(projectId);
-    if (!project || project.id === defaultProjectId || !projectDeleteDialog) return;
+    if (!project || !projectDeleteDialog) return;
     const stats = getProjectStats(projectId);
     pendingDeleteProjectId = projectId;
     if (projectDeleteSummary) {
       projectDeleteSummary.textContent = [
         `${stats.conversations} conversation${stats.conversations > 1 ? 's' : ''}`,
-        `${stats.documents} document${stats.documents > 1 ? 's' : ''}`,
+        `${stats.documents} source${stats.documents > 1 ? 's' : ''}`,
         `${countProjectMemories(project)} memoire${countProjectMemories(project) > 1 ? 's' : ''} associee${countProjectMemories(project) > 1 ? 's' : ''}`
       ].join(' • ');
     }
@@ -1503,25 +1871,25 @@
 
   function deleteProjectConfirmed(projectId) {
     const project = getProjectById(projectId);
-    if (!project || project.id === defaultProjectId) return;
+    if (!project) return;
     (sessionsState.sessions || []).forEach((session) => {
       if (getSessionProjectId(session) === projectId) {
-        session.projectId = defaultProjectId;
+        session.projectId = null;
         session.updatedAt = Date.now();
       }
     });
     (knowledgeLibrary.documents || []).forEach((doc) => {
-      if (getDocumentProjectId(doc) === projectId) doc.projectId = defaultProjectId;
+      if (isDocumentLinkedToProject(doc, projectId)) detachDocumentFromProject(doc, projectId);
     });
     projectsState.projects = (projectsState.projects || []).filter((item) => item.id !== projectId);
     projectsState.projects.forEach((item) => {
       item.ragProjectIds = (item.ragProjectIds || []).filter((id) => id !== projectId);
     });
-    if (projectsState.activeProjectId === projectId) projectsState.activeProjectId = defaultProjectId;
+    if (projectsState.activeProjectId === projectId) projectsState.activeProjectId = projectsState.projects[0]?.id || '';
     saveSessionsState();
     saveKnowledgeLibrary();
     saveProjectsState();
-    setWorkspaceView('project');
+    setWorkspaceView(projectsState.activeProjectId ? 'project' : 'chat');
     renderSessionOptions();
     renderProjectList();
     closeProjectDeleteDialog();
@@ -1532,6 +1900,7 @@
     if (action === 'open') openProject(projectId);
     else if (action === 'rename') renameProject(projectId);
     else if (action === 'duplicate') duplicateProject(projectId);
+    else if (action === 'sources-menu') return;
     else if (action === 'export-menu') return;
     else if (action === 'share') shareProject(projectId);
     else if (action === 'appearance') changeProjectAppearance(projectId);
@@ -3017,9 +3386,11 @@
       savedAt: value?.savedAt || '',
       documents: documents
         .map((doc) => {
+          const projectIds = normalizeDocumentProjectIds(doc);
           const normalizedDoc = {
             id: typeof doc?.id === 'string' ? doc.id : buildKnowledgeDocumentId(doc?.name),
-            projectId: getProjectById(doc?.projectId)?.id || defaultProjectId,
+            projectId: projectIds[0] || null,
+            projectIds,
             name: String(doc?.name || 'document').slice(0, 160),
             type: String(doc?.type || 'Document').slice(0, 48),
             kind: String(doc?.kind || 'document').slice(0, 32),
@@ -3089,7 +3460,13 @@
   }
 
   function getLibraryDocumentMeta(doc) {
-    return [doc.type, fileSizeLabel(doc.size), i18n.libraryStoredLocally].filter(Boolean).join(' · ');
+    const projectIds = getDocumentProjectIds(doc);
+    const association = projectIds.length > 1
+      ? `${projectIds.length} projets`
+      : projectIds.length === 1
+        ? `Projet : ${getProjectName(projectIds[0])}`
+        : 'Non associé';
+    return [doc.type, fileSizeLabel(doc.size), association, i18n.libraryStoredLocally].filter(Boolean).join(' · ');
   }
 
   function getLibraryDocumentPreviewText(doc) {
@@ -3246,8 +3623,9 @@
     };
   }
 
-  function createStoredKnowledgeDocument(file, extracted) {
+  function createStoredKnowledgeDocument(file, extracted, projectId = null) {
     const text = normalizeKnowledgeText(extracted?.text);
+    const project = getProjectById(projectId);
     const fallbackText = [
       `Document importé dans la bibliothèque locale: ${extracted?.name || file?.name || 'document'}`,
       `Type: ${extracted?.type || getKnowledgeFileTypeLabel(file)}`,
@@ -3258,7 +3636,8 @@
     const chunks = chunkKnowledgeText(text || fallbackText);
     const doc = {
       id: buildKnowledgeDocumentId(file?.name),
-      projectId: projectsState.activeProjectId || defaultProjectId,
+      projectId: project?.id || null,
+      projectIds: project?.id ? [project.id] : [],
       name: extracted?.name || file?.name || 'document',
       type: extracted?.type || getKnowledgeFileTypeLabel(file),
       importedAt: Date.now(),
@@ -3385,9 +3764,10 @@
     return buildFallbackKnowledgeExtraction(file, new Error('unsupported_library_file'));
   }
 
-  async function importFilesToKnowledgeLibrary(files) {
+  async function importFilesToKnowledgeLibrary(files, projectId = null) {
     const selected = Array.from(files || []).slice(0, maxLocalFilesPerPrompt);
     if (!selected.length) return;
+    const targetProject = getProjectById(projectId);
     activeLibraryStatus = i18n.libraryImporting;
     renderKnowledgeLibraryView();
     assistantLog('debug', 'library_import_start', {
@@ -3410,7 +3790,7 @@
             });
             extracted = buildFallbackKnowledgeExtraction(file, error);
           }
-          const doc = createStoredKnowledgeDocument(file, extracted);
+          const doc = createStoredKnowledgeDocument(file, extracted, targetProject?.id || null);
           doc.hasOriginalFile = await putKnowledgeOriginalFile(doc.id, file);
           knowledgeLibrary.documents = [
             doc,
@@ -3435,9 +3815,10 @@
       storedDocuments: knowledgeLibrary.documents?.length || 0
     });
     activeLibraryStatus = importedNames.length
-      ? `${i18n.libraryImportSuccessView} ${importedNames.join(', ')}`
+      ? `${i18n.libraryImportSuccessView} ${importedNames.join(', ')}${targetProject ? ` · attaché à ${targetProject.name}` : ''}`
       : i18n.libraryImportErrorView;
     renderKnowledgeLibrary();
+    if (targetProject && panel?.classList.contains('is-project-view')) renderProjectWorkspace();
     if (!isLibraryViewOpen && importedNames.length) addMessage('bot', `${i18n.libraryReady} ${importedNames.join(', ')}`);
     if (!isLibraryViewOpen && failedNames.length) addMessage('bot', `${i18n.libraryImportFailed} ${failedNames.join(', ')}`);
   }
@@ -3513,25 +3894,56 @@
     };
   }
 
-  function retrieveKnowledgeContext(userText) {
-    const activeProject = getActiveProject();
-    const scope = activeProject?.ragScope || 'project';
-    const scopedProjectIds = new Set([activeProject?.id || defaultProjectId, ...(activeProject?.ragProjectIds || [])]);
-    const docs = (knowledgeLibrary.documents || []).filter((doc) => {
-      if (scope === 'library') return true;
-      if (scope === 'multi_project') return scopedProjectIds.has(getDocumentProjectId(doc));
-      return getDocumentProjectId(doc) === (activeProject?.id || defaultProjectId);
+  function getProjectRagDocuments(projectId, options = {}) {
+    const projectDocs = getProjectDocuments(projectId);
+    if (!options.includeGlobalLibrary) return projectDocs;
+    const byId = new Map(projectDocs.map((doc) => [doc.id, doc]));
+    (knowledgeLibrary.documents || []).forEach((doc) => {
+      if (!byId.has(doc.id)) byId.set(doc.id, doc);
     });
-    const terms = normalizeKnowledgeTerms(userText);
-    if (!docs.length || !terms.length) return { selected: [], query: { terms: [], uniqueTerms: [], phrases: [] } };
+    return Array.from(byId.values());
+  }
+
+  function buildDocumentChunks(doc) {
+    return getKnowledgeDocChunks(doc).map((text, index) => ({
+      id: `${doc.id || 'document'}::chunk-${index + 1}`,
+      documentId: doc.id,
+      projectId: getDocumentProjectId(doc),
+      documentName: doc.name,
+      text,
+      index,
+      createdAt: doc.importedAt || Date.now()
+    }));
+  }
+
+  function searchProjectRag(queryText, projectId, options = {}) {
+    const startedAt = performance.now();
+    const project = getProjectById(projectId);
+    const docs = project ? getProjectRagDocuments(project.id, { includeGlobalLibrary: Boolean(options.includeGlobalLibrary) }) : [];
+    const maxPassages = Math.max(1, Math.min(8, Number(options.maxPassages) || 5));
+    const telemetry = {
+      projectId: project?.id || null,
+      query_length: String(queryText || '').length,
+      chunks_searched: 0,
+      chunks_selected: 0,
+      documents_used: 0,
+      context_length: 0,
+      duration_ms: 0
+    };
+    const terms = normalizeKnowledgeTerms(queryText);
+    if (!project || !docs.length || !terms.length) {
+      telemetry.duration_ms = Math.round(performance.now() - startedAt);
+      return { selected: [], query: { terms: [], uniqueTerms: [], phrases: [] }, docs, telemetry };
+    }
     const query = {
       terms,
       uniqueTerms: [...new Set(terms)].slice(0, 36),
-      phrases: extractKnowledgePhrases(userText)
+      phrases: extractKnowledgePhrases(queryText)
     };
     const candidates = [];
     docs.forEach((doc) => {
       const chunks = getKnowledgeDocChunks(doc);
+      telemetry.chunks_searched += chunks.length;
       const ragIndex = normalizeKnowledgeRagIndex(doc.ragIndex, chunks, doc);
       if (!Array.isArray(doc.ragIndex) || doc.ragIndex.length !== ragIndex.length) doc.ragIndex = ragIndex;
       chunks.forEach((chunk, chunkIndex) => {
@@ -3550,31 +3962,60 @@
     });
     const selected = candidates
       .sort((a, b) => b.score - a.score || a.doc.name.localeCompare(b.doc.name) || a.chunkIndex - b.chunkIndex)
-      .slice(0, maxRetrievedKnowledgeChunks);
-    return { selected, query };
+      .slice(0, maxPassages);
+    telemetry.chunks_selected = selected.length;
+    telemetry.documents_used = new Set(selected.map((item) => item.doc.id)).size;
+    telemetry.context_length = selected.reduce((sum, item) => sum + String(item.chunk || '').length, 0);
+    telemetry.duration_ms = Math.round(performance.now() - startedAt);
+    return { selected, query, docs, telemetry };
+  }
+
+  function retrieveKnowledgeContext(userText) {
+    const activeProject = getActiveProject();
+    return searchProjectRag(userText, activeProject?.id || null, {
+      includeGlobalLibrary: Boolean(activeProject?.ragUseGlobalLibrary),
+      maxPassages: activeProject?.ragMaxPassages || maxRetrievedKnowledgeChunks
+    });
   }
 
   function buildKnowledgeContextForPrompt(userText) {
-    const { selected, query } = retrieveKnowledgeContext(userText);
-    if (!selected.length) return '';
     const activeProject = getActiveProject();
-    const scopeLabel = activeProject?.ragScope === 'library'
-      ? 'library'
-      : activeProject?.ragScope === 'multi_project'
-        ? 'multi_project'
-        : 'current_project';
+    const documentSettings = assistantSettingsState.documents || {};
+    if (!activeProject) return { context: '', events: [], status: 'global', selected: [] };
+    if (activeProject.ragEnabled === false || documentSettings.automaticRag === false) {
+      return { context: '', events: [], status: 'disabled', selected: [] };
+    }
+    const includeGlobalLibrary = Boolean(activeProject.ragUseGlobalLibrary || documentSettings.ragUseGlobalLibrary);
+    const result = searchProjectRag(userText, activeProject.id, {
+      includeGlobalLibrary,
+      maxPassages: activeProject.ragMaxPassages || Number(documentSettings.ragMaxPassages) || 5
+    });
+    const baseMeta = {
+      ...result.telemetry,
+      projectName: activeProject.name,
+      include_global_library: includeGlobalLibrary
+    };
+    const events = [
+      { event_type: 'rag_query', event_value: activeProject.name, meta: baseMeta },
+      { event_type: result.selected.length ? 'rag_match' : 'rag_no_match', event_value: result.selected.length ? `${result.selected.length} passages` : 'no_match', meta: baseMeta }
+    ];
+    if (!result.selected.length) return { context: '', events, status: 'no_match', selected: [], telemetry: baseMeta };
+    const { selected, query } = result;
+    const scopeLabel = includeGlobalLibrary ? 'project_sources_plus_global_library' : 'project_sources';
     const intro = currentLanguage === 'en'
       ? [
-        'Local document context available from the browser library.',
-        `RAG scope: ${scopeLabel}. Active project: ${activeProject?.name || 'SAFE'}.`,
+        'Active project document context.',
+        `RAG scope: ${scopeLabel}. Active project: ${activeProject?.name || 'No project'}.`,
+        'Use the passages below only if relevant. Cite sources with [D1], [D2], etc. If the documents do not contain the answer, say so clearly.',
         `Query terms: ${query.uniqueTerms.slice(0, 18).join(', ')}`
       ].join('\n')
       : [
-        'Contexte documentaire disponible depuis la bibliothèque locale du navigateur.',
-        `Scope RAG : ${scopeLabel}. Projet actif : ${activeProject?.name || 'SAFE'}.`,
+        'Contexte documentaire du projet actif.',
+        `Scope RAG : ${scopeLabel}. Projet actif : ${activeProject?.name || 'Aucun projet'}.`,
+        'Utilise les passages documentaires ci-dessous si pertinents. Cite les sources avec [D1], [D2], etc. Si les documents ne contiennent pas la réponse, dis-le clairement.',
         `Termes de requête : ${query.uniqueTerms.slice(0, 18).join(', ')}`
       ].join('\n');
-    return [
+    const context = [
       intro,
       ...selected.map((item, index) => [
         `\n[D${index + 1}]`,
@@ -3585,6 +4026,9 @@
         item.chunk
       ].join('\n'))
     ].join('\n\n');
+    const usedMeta = { ...baseMeta, context_length: context.length };
+    events.push({ event_type: 'rag_context_used', event_value: `${selected.length} passages`, meta: usedMeta });
+    return { context, events, status: 'match', selected, telemetry: usedMeta };
   }
 
   function loadExternalScript(src) {
@@ -3824,7 +4268,7 @@
   function buildSessionId() { return `s_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`; }
 
   function makeDefaultSession() {
-    return { id: buildSessionId(), projectId: projectsState.activeProjectId || defaultProjectId, title: i18n.sessionDefault, customTitle: false, summary: '', createdAt: Date.now(), updatedAt: Date.now(), history: [] };
+    return { id: buildSessionId(), projectId: getActiveProject()?.id || null, title: i18n.sessionDefault, customTitle: false, summary: '', createdAt: Date.now(), updatedAt: Date.now(), history: [] };
   }
 
   function isDefaultSessionTitle(title) {
@@ -3893,7 +4337,7 @@
         const title = typeof s?.title === 'string' ? s.title.trim() : '';
         return {
           id: typeof s?.id === 'string' ? s.id : buildSessionId(),
-          projectId: getProjectById(s?.projectId)?.id || defaultProjectId,
+          projectId: getProjectById(s?.projectId)?.id || null,
           title: isDefaultSessionTitle(title) ? i18n.sessionDefault : title,
           customTitle: Boolean(s?.customTitle && !isDefaultSessionTitle(title)),
           summary: normalizeSessionSummary(s?.summary),
@@ -3923,7 +4367,7 @@
         activeSessionId: sessionsState.activeSessionId,
         sessions: sessionsState.sessions.slice(0, maxStoredSessions).map((session) => ({
           ...session,
-          projectId: getProjectById(session.projectId)?.id || defaultProjectId,
+          projectId: getProjectById(session.projectId)?.id || null,
           title: typeof session.title === 'string' ? session.title.slice(0, 120) : i18n.sessionDefault,
           customTitle: Boolean(session.customTitle && !isDefaultSessionTitle(session.title)),
           summary: normalizeSessionSummary(session.summary),
@@ -3941,7 +4385,7 @@
           activeSessionId: sessionsState.activeSessionId,
           sessions: sessionsState.sessions.slice(0, 5).map((session) => ({
             ...session,
-            projectId: getProjectById(session.projectId)?.id || defaultProjectId,
+            projectId: getProjectById(session.projectId)?.id || null,
             summary: normalizeSessionSummary(session.summary),
             history: normalizeHistory(session.history).slice(-8)
           }))
@@ -4047,8 +4491,24 @@
   function renderProjectList() {
     if (!projectList) return;
     projectList.innerHTML = '';
-    if (projectCount) projectCount.textContent = `(${(projectsState.projects || []).length})`;
-    (projectsState.projects || []).forEach((project) => {
+    const projects = projectsState.projects || [];
+    if (projectCount) projectCount.textContent = `(${projects.length})`;
+    if (!projects.length) {
+      const empty = document.createElement('div');
+      empty.className = 'ai-assistant-sidebar-empty-state';
+      const text = document.createElement('p');
+      text.textContent = 'Aucun projet pour le moment.';
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'ai-assistant-sidebar-empty-action';
+      button.textContent = 'Créer un projet';
+      button.addEventListener('click', createProjectFromPrompt);
+      empty.append(text, button);
+      projectList.appendChild(empty);
+      applySidebarSectionState();
+      return;
+    }
+    projects.forEach((project) => {
       const stats = getProjectStats(project.id);
       const button = document.createElement('button');
       button.type = 'button';
@@ -4060,14 +4520,14 @@
 
       const icon = document.createElement('span');
       icon.className = 'ai-assistant-project-item-icon';
-      icon.textContent = project.icon || project.name.charAt(0);
+      renderProjectIcon(project, icon);
 
       const body = document.createElement('span');
       body.className = 'ai-assistant-project-item-body';
       const name = document.createElement('strong');
       name.textContent = project.name;
       const meta = document.createElement('span');
-      meta.textContent = `${stats.conversations} conversation${stats.conversations > 1 ? 's' : ''} • ${stats.documents} document${stats.documents > 1 ? 's' : ''}`;
+      meta.textContent = `${stats.conversations} conversation${stats.conversations > 1 ? 's' : ''} • ${stats.documents} source${stats.documents > 1 ? 's' : ''}`;
       body.append(name, meta);
       button.append(icon, body);
       projectList.appendChild(button);
@@ -4077,11 +4537,32 @@
 
   function renderProjectWorkspace() {
     const project = getActiveProject();
-    if (!project || !projectContent) return;
+    if (!projectContent) return;
+    if (!project) {
+    if (projectIcon) {
+      projectIcon.style.setProperty('--project-color', '#79e6ff');
+      projectIcon.textContent = '+';
+      }
+      if (projectTitle) projectTitle.textContent = 'Aucun projet';
+      if (projectDescription) projectDescription.textContent = 'Créez un projet pour organiser conversations, documents et mémoire.';
+      if (projectStats) projectStats.innerHTML = '';
+      projectContent.innerHTML = '';
+      const empty = document.createElement('div');
+      empty.className = 'ai-assistant-project-empty-panel';
+      const text = document.createElement('p');
+      text.textContent = 'Aucun projet pour le moment.';
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = 'Créer un projet';
+      button.addEventListener('click', createProjectFromPrompt);
+      empty.append(text, button);
+      projectContent.appendChild(empty);
+      renderProjectList();
+      return;
+    }
     const stats = getProjectStats(project.id);
     if (projectIcon) {
-      projectIcon.textContent = project.icon || project.name.charAt(0);
-      projectIcon.style.setProperty('--project-color', project.color);
+      renderProjectIcon(project, projectIcon);
     }
     if (projectTitle) projectTitle.textContent = project.name;
     if (projectDescription) projectDescription.textContent = project.description || 'Projet Digital Blue Skye AI.';
@@ -4089,7 +4570,7 @@
       projectStats.innerHTML = '';
       [
         ['Conversations', stats.conversations],
-        ['Documents', stats.documents],
+        ['Sources', stats.documents],
         ['Chunks', stats.chunks],
         ['Taille indexee', fileSizeFromChars(stats.indexedSize)],
         ['Derniere activite', stats.lastActivity ? formatProjectDate(stats.lastActivity) : '-']
@@ -4106,8 +4587,9 @@
       });
     }
     projectContent.innerHTML = '';
+    if (activeProjectTab === 'documents') activeProjectTab = 'sources';
     if (activeProjectTab === 'conversations') renderProjectConversations(project, projectContent);
-    else if (activeProjectTab === 'documents') renderProjectDocuments(project, projectContent);
+    else if (activeProjectTab === 'sources') renderProjectSources(project, projectContent);
     else if (activeProjectTab === 'memory') renderProjectMemory(project, projectContent);
     else if (activeProjectTab === 'rag') renderProjectRag(project, projectContent);
     else if (activeProjectTab === 'stats') renderProjectStatsDetail(project, stats, projectContent);
@@ -4140,17 +4622,36 @@
     container.appendChild(list);
   }
 
-  function renderProjectDocuments(project, container) {
-    const docs = (knowledgeLibrary.documents || [])
-      .filter((doc) => getDocumentProjectId(doc) === project.id)
-      .sort((a, b) => b.importedAt - a.importedAt);
-    if (!docs.length) { appendEmptyProjectState(container, 'Aucun document indexe dans ce projet.'); return; }
+  function renderProjectSources(project, container) {
+    const actions = document.createElement('div');
+    actions.className = 'ai-assistant-project-source-actions';
+    [
+      ['Ajouter une source', () => importDocumentToProject(project.id)],
+      ['Importer un document', () => importDocumentToProject(project.id)],
+      ['Lier depuis la bibliothèque', () => linkLibraryDocumentToProject(project.id)]
+    ].forEach(([label, handler]) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = label;
+      button.addEventListener('click', handler);
+      actions.appendChild(button);
+    });
+    container.appendChild(actions);
+
+    const docs = getProjectDocuments(project.id).sort((a, b) => b.importedAt - a.importedAt);
+    if (!docs.length) { appendEmptyProjectState(container, 'Aucune source attachée à ce projet. Les documents restent disponibles dans la Bibliothèque globale.'); return; }
     const list = document.createElement('div');
     list.className = 'ai-assistant-project-list';
     docs.forEach((doc) => {
       const row = document.createElement('div');
       row.className = 'ai-assistant-project-row';
       row.innerHTML = `<strong>${escapeHtml(doc.name)}</strong><span>${escapeHtml(doc.type)} · ${getKnowledgeDocChunks(doc).length} chunks · ${escapeHtml(fileSizeLabel(doc.size))}</span>`;
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'ai-assistant-project-row-action';
+      remove.textContent = 'Retirer du projet';
+      remove.addEventListener('click', () => removeDocumentFromProject(doc.id, project.id));
+      row.appendChild(remove);
       list.appendChild(row);
     });
     container.appendChild(list);
@@ -4173,13 +4674,15 @@
 
   function renderProjectRag(project, container) {
     const stats = getProjectStats(project.id);
+    const sources = getProjectDocuments(project.id);
     const block = document.createElement('div');
     block.className = 'ai-assistant-project-rag';
     block.innerHTML = `
-      <div><span>Scope actif</span><strong>${project.ragScope === 'library' ? 'Toute la bibliotheque' : project.ragScope === 'multi_project' ? 'Plusieurs projets' : 'Projet courant'}</strong></div>
-      <div><span>Index vectoriel</span><strong>Prepare</strong></div>
-      <div><span>Embeddings</span><strong>Prepare</strong></div>
-      <div><span>Citations</span><strong>${stats.chunks} chunks citables</strong></div>`;
+      <div><span>RAG projet actif</span><strong>${project.ragEnabled === false ? 'Non' : 'Oui'}</strong></div>
+      <div><span>Sources utilisées</span><strong>${sources.length} document${sources.length > 1 ? 's' : ''}</strong></div>
+      <div><span>Chunks disponibles</span><strong>${stats.chunks}</strong></div>
+      <div><span>Bibliothèque globale incluse</span><strong>${project.ragUseGlobalLibrary ? 'Oui' : 'Non'}</strong></div>
+      <p>Le RAG utilise uniquement les sources attachées à ce projet. Les autres fichiers restent dans la Bibliothèque globale.</p>`;
     container.appendChild(block);
   }
 
@@ -4188,7 +4691,7 @@
     block.className = 'ai-assistant-project-rag';
     block.innerHTML = `
       <div><span>Conversations</span><strong>${stats.conversations}</strong></div>
-      <div><span>Documents</span><strong>${stats.documents}</strong></div>
+      <div><span>Sources</span><strong>${stats.documents}</strong></div>
       <div><span>Chunks indexes</span><strong>${stats.chunks}</strong></div>
       <div><span>Taille indexee</span><strong>${fileSizeFromChars(stats.indexedSize)}</strong></div>`;
     container.appendChild(block);
@@ -4202,52 +4705,40 @@
       <label>Description<textarea data-field="description" rows="3">${escapeHtml(project.description || '')}</textarea></label>
       <label>Icone<input data-field="icon" value="${escapeHtml(project.icon || '')}" maxlength="2"></label>
       <label>Couleur<input data-field="color" value="${escapeHtml(project.color)}" type="color"></label>
-      <label>Scope RAG<select data-field="ragScope">
-        <option value="project">Projet courant</option>
-        <option value="multi_project">Plusieurs projets</option>
-        <option value="library">Toute la bibliotheque</option>
-      </select></label>`;
-    const scope = form.querySelector('[data-field="ragScope"]');
-    if (scope) scope.value = project.ragScope || 'project';
+      <label class="ai-assistant-project-check"><input data-field="ragEnabled" type="checkbox"><span>Activer RAG projet</span></label>
+      <label>Nombre max de passages<select data-field="ragMaxPassages">
+        <option value="3">3</option>
+        <option value="5">5</option>
+        <option value="8">8</option>
+      </select></label>
+      <label class="ai-assistant-project-check"><input data-field="ragUseGlobalLibrary" type="checkbox"><span>Utiliser bibliothèque globale</span></label>
+      <label class="ai-assistant-project-check"><input data-field="ragCitations" type="checkbox"><span>Citer les sources</span></label>`;
+    const maxPassages = form.querySelector('[data-field="ragMaxPassages"]');
+    if (maxPassages) maxPassages.value = String(project.ragMaxPassages || 5);
+    const ragEnabled = form.querySelector('[data-field="ragEnabled"]');
+    if (ragEnabled) ragEnabled.checked = project.ragEnabled !== false;
+    const ragUseGlobalLibrary = form.querySelector('[data-field="ragUseGlobalLibrary"]');
+    if (ragUseGlobalLibrary) ragUseGlobalLibrary.checked = Boolean(project.ragUseGlobalLibrary);
+    const ragCitations = form.querySelector('[data-field="ragCitations"]');
+    if (ragCitations) ragCitations.checked = project.ragCitations !== false;
     form.addEventListener('change', (event) => {
       const field = event.target?.dataset?.field;
       if (!field) return;
-      project[field] = field === 'icon'
-        ? String(event.target.value || '').slice(0, 2).toUpperCase()
-        : String(event.target.value || '').slice(0, field === 'description' ? 220 : 120);
+      if (['ragEnabled', 'ragUseGlobalLibrary', 'ragCitations'].includes(field)) {
+        project[field] = Boolean(event.target.checked);
+      } else if (field === 'ragMaxPassages') {
+        project[field] = [3, 5, 8].includes(Number(event.target.value)) ? Number(event.target.value) : 5;
+      } else {
+        project[field] = field === 'icon'
+          ? String(event.target.value || '').slice(0, 2).toUpperCase()
+          : String(event.target.value || '').slice(0, field === 'description' ? 220 : 120);
+        if (field === 'icon' && project[field]) project.iconImage = '';
+      }
       project.updatedAt = Date.now();
       saveProjectsState();
       renderProjectWorkspace();
     });
     container.appendChild(form);
-    const multi = document.createElement('div');
-    multi.className = 'ai-assistant-project-settings';
-    const title = document.createElement('strong');
-    title.textContent = 'Projets inclus en RAG multi-projets';
-    multi.appendChild(title);
-    (projectsState.projects || []).filter((item) => item.id !== project.id).forEach((item) => {
-      const label = document.createElement('label');
-      label.className = 'ai-assistant-project-check';
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.dataset.ragProjectId = item.id;
-      checkbox.checked = (project.ragProjectIds || []).includes(item.id);
-      const span = document.createElement('span');
-      span.textContent = item.name;
-      label.append(checkbox, span);
-      multi.appendChild(label);
-    });
-    multi.addEventListener('change', (event) => {
-      const projectId = event.target?.dataset?.ragProjectId;
-      if (!projectId) return;
-      const selected = new Set(project.ragProjectIds || []);
-      if (event.target.checked) selected.add(projectId);
-      else selected.delete(projectId);
-      project.ragProjectIds = Array.from(selected);
-      project.updatedAt = Date.now();
-      saveProjectsState();
-    });
-    container.appendChild(multi);
   }
 
   function renderSettingsView() {
@@ -4256,7 +4747,7 @@
       ['Profil', [['Nom', 'profile.name'], ['Email', 'profile.email'], ['Avatar', 'profile.avatar'], ['Langue', 'profile.language'], ['Fuseau horaire', 'profile.timezone']]],
       ['IA', [['Modele par defaut', 'ai.defaultModel'], ['Fournisseur prefere', 'ai.preferredProvider'], ['Fallback automatique', 'ai.automaticFallback']]],
       ['Recherche Web', [['Tavily active', 'web.tavilyEnabled'], ['Mode economique', 'web.economyMode'], ['Mode expert', 'web.expertMode'], ['Limite de resultats', 'web.maxResults']]],
-      ['Documents', [['Taille maximale (Mo)', 'documents.maxSizeMb'], ['Chunking', 'documents.chunking'], ['Indexation automatique', 'documents.automaticIndexing'], ['RAG automatique', 'documents.automaticRag']]],
+      ['Documents', [['Taille maximale (Mo)', 'documents.maxSizeMb'], ['Chunking', 'documents.chunking'], ['Indexation automatique', 'documents.automaticIndexing'], ['RAG automatique', 'documents.automaticRag'], ['Passages RAG max', 'documents.ragMaxPassages'], ['Bibliothèque globale RAG', 'documents.ragUseGlobalLibrary'], ['Citer les sources', 'documents.ragCitations']]],
       ['Apparence', [['Theme', 'appearance.theme']]],
       ['Donnees', [['Export conversations', 'data.lastExportAt'], ['Export projets', 'data.lastProjectExportAt'], ['Sauvegarde', 'data.lastBackupAt'], ['Restauration', 'data.lastRestoreAt']]]
     ];
@@ -4284,11 +4775,29 @@
 
   function renderCurrentConversation() {
     if (!messagesContainer) return;
+    renderRagStatus();
     messagesContainer.innerHTML = '';
     const active = getActiveSession();
     chatHistory = active?.history ? [...active.history] : [];
     if (!chatHistory.length) { addMessage('bot', i18n.greeting); return; }
     for (const msg of chatHistory) addMessage(msg.role === 'assistant' ? 'bot' : 'user', msg.content);
+  }
+
+  function renderRagStatus(status = '') {
+    if (!ragStatus) return;
+    const activeProject = getActiveProject();
+    if (!activeProject) {
+      ragStatus.hidden = false;
+      ragStatus.textContent = 'Mode global.';
+      return;
+    }
+    const sourceCount = getProjectDocuments(activeProject.id).length;
+    const ragActive = activeProject.ragEnabled === false ? 'RAG projet inactif' : 'RAG projet actif';
+    const suffix = status === 'no_match'
+      ? ' · aucun document pertinent trouvé'
+      : ` · ${sourceCount} source${sourceCount > 1 ? 's' : ''}`;
+    ragStatus.hidden = false;
+    ragStatus.textContent = `Projet actif : ${activeProject.name} · ${ragActive}${suffix}`;
   }
 
   function closeLibraryCardMenu() {
@@ -4358,10 +4867,8 @@
     setLibraryViewOpen(false);
     sessionsState.activeSessionId = sessionId;
     const session = getSessionById(sessionId);
-    if (session?.projectId && getProjectById(session.projectId)) {
-      projectsState.activeProjectId = session.projectId;
-      saveProjectsState();
-    }
+    projectsState.activeProjectId = getProjectById(session?.projectId)?.id || projectsState.activeProjectId || '';
+    saveProjectsState();
     saveSessionsState();
     renderSessionOptions();
     renderCurrentConversation();
@@ -4384,7 +4891,7 @@
     return date.toISOString();
   }
 
-  function buildConversationMarkdown(session) {
+  function buildConversationMarkdown(session, project = null) {
     const title = getSessionDisplayTitle(session);
     const history = normalizeHistory(session?.history || []);
     const exportedAt = formatExportDate(Date.now());
@@ -4394,6 +4901,10 @@
       '',
       `- Export: ${exportedAt}`,
       `- Language: ${languageLabel}`,
+      `- Projet associe: ${project?.name || getProjectName(session?.projectId)}`,
+      `- Conversation ID: ${session?.id || ''}`,
+      `- Creation: ${formatExportDate(session?.createdAt)}`,
+      `- Derniere mise a jour: ${formatExportDate(session?.updatedAt)}`,
       `- Messages: ${history.length}`,
       ''
     ];
@@ -4408,7 +4919,7 @@
       const label = entry.role === 'assistant'
         ? (currentLanguage === 'en' ? 'Assistant' : 'Assistant')
         : (currentLanguage === 'en' ? 'User' : 'Utilisateur');
-      lines.push(`### ${index + 1}. ${label}`, '', entry.content, '');
+      lines.push('---', '', `### ${index + 1}. ${label}`, '', entry.content, '');
     });
 
     return lines.join('\n').trim() + '\n';
@@ -4577,12 +5088,13 @@
     return fileInput;
   }
 
-  function openAssistantFilePicker(libraryMode = false) {
+  function openAssistantFilePicker(libraryMode = false, projectId = null) {
     const inputEl = ensureAssistantFileInput();
     if (!inputEl) return;
     isLibraryImportMode = Boolean(libraryMode);
+    pendingKnowledgeImportProjectId = getProjectById(projectId)?.id || null;
     inputEl.value = '';
-    assistantLog('debug', 'file_picker_open', { libraryMode: isLibraryImportMode });
+    assistantLog('debug', 'file_picker_open', { libraryMode: isLibraryImportMode, projectId: pendingKnowledgeImportProjectId });
     inputEl.click();
   }
 
@@ -4656,27 +5168,7 @@
     });
   }
   if (projectCreateButton) {
-    projectCreateButton.addEventListener('click', () => {
-      const name = window.prompt('Nom du projet');
-      if (name === null) return;
-      const cleanName = name.replace(/\s+/g, ' ').trim().slice(0, 80);
-      if (!cleanName) return;
-      const project = normalizeProject({
-        id: buildProjectId(cleanName),
-        name: cleanName,
-        description: '',
-        icon: cleanName.charAt(0).toUpperCase(),
-        color: '#79e6ff',
-        createdAt: Date.now(),
-        updatedAt: Date.now()
-      });
-      projectsState.projects.unshift(project);
-      projectsState.activeProjectId = project.id;
-      saveProjectsState();
-      setHistoryPanelOpen(true);
-      setWorkspaceView('project');
-      renderProjectList();
-    });
+    projectCreateButton.addEventListener('click', createProjectFromPrompt);
   }
   if (projectList) {
     projectList.addEventListener('click', (event) => {
@@ -4730,9 +5222,16 @@
         handleProjectExportAction(exportFormat, projectId);
         return;
       }
+      const sourceAction = event.target?.closest?.('[data-project-source-action]')?.dataset?.projectSourceAction;
+      if (sourceAction) {
+        const projectId = activeContextProjectId;
+        closeProjectContextMenu();
+        handleProjectSourceAction(sourceAction, projectId);
+        return;
+      }
       const action = event.target?.closest?.('[data-project-action]')?.dataset?.projectAction;
       const projectId = activeContextProjectId;
-      if (action === 'export-menu') return;
+      if (action === 'export-menu' || action === 'sources-menu') return;
       closeProjectContextMenu();
       handleProjectMenuAction(action, projectId);
     });
@@ -4999,8 +5498,15 @@
       if (!files.length) return;
       if (isLibraryImportMode) {
         isLibraryImportMode = false;
-        await importFilesToKnowledgeLibrary(files);
-        setLibraryViewOpen(true);
+        const targetProjectId = pendingKnowledgeImportProjectId;
+        await importFilesToKnowledgeLibrary(files, targetProjectId);
+        pendingKnowledgeImportProjectId = null;
+        if (targetProjectId) {
+          activeProjectTab = 'sources';
+          setWorkspaceView('project');
+        } else {
+          setLibraryViewOpen(true);
+        }
         fileInput.value = '';
         return;
       }
@@ -7391,8 +7897,11 @@
     try {
       const dateContext = getAssistantCurrentDateContext();
       const webSettings = assistantSettingsState.web || {};
-      effectiveWebSearch = webSettings.tavilyEnabled !== false && (isWebSearchActive || shouldUseWebSearchForPrompt(userText));
-      const knowledgeContext = fileContext ? '' : buildKnowledgeContextForPrompt(userText);
+      const ragContext = fileContext ? { context: '', events: [], status: 'file_context', selected: [] } : buildKnowledgeContextForPrompt(userText);
+      const knowledgeContext = ragContext.context || '';
+      renderRagStatus(ragContext.status);
+      effectiveWebSearch = webSettings.tavilyEnabled !== false
+        && (isWebSearchActive || (ragContext.status !== 'match' && shouldUseWebSearchForPrompt(userText)));
 
       // Activer le statut "recherche en cours" si recherche web activée
       if (effectiveWebSearch) {
@@ -7433,8 +7942,8 @@
         currentDate: dateContext,
         mode: 'chat',
         sessionId: getActiveSession()?.id || '',
-        projectId: getActiveProject()?.id || defaultProjectId,
-        projectName: getActiveProject()?.name || 'SAFE',
+        projectId: getActiveProject()?.id || null,
+        projectName: getActiveProject()?.name || '',
         ragScope: getActiveProject()?.ragScope || 'project',
         pageUrl: window.location.href,
         hasFileContext,
@@ -7447,6 +7956,7 @@
           maxResults: Math.max(1, Math.min(10, Number(webSettings.maxResults) || 3))
         },
         documentSettings: assistantSettingsState.documents || {},
+        ragTelemetry: ragContext.events || [],
         searchWeb: effectiveWebSearch,
         webSearchQuery: userText
       };
@@ -7460,7 +7970,9 @@
         knowledgeContextLength: knowledgeContext.length,
         attachments: payloadAttachments.length,
         webSearchActive: effectiveWebSearch,
-        webSearchManualToggle: isWebSearchActive
+        webSearchManualToggle: isWebSearchActive,
+        ragStatus: ragContext.status,
+        ragEvents: ragContext.events?.length || 0
       });
       const data = await sendAssistantRequest(payload, requestController.signal);
 

@@ -1649,6 +1649,7 @@ export default {
     const pageUrl = typeof body?.pageUrl === 'string' ? body.pageUrl : (typeof body?.page_url === 'string' ? body.page_url : '');
     const hasFileContext = body?.hasFileContext === true || body?.has_file_context === true || String(body?.fileContextLength || '') !== '';
     const attachments = Array.isArray(body?.attachments) ? body.attachments.slice(0, 10) : [];
+    const ragTelemetry = Array.isArray(body?.ragTelemetry) ? body.ragTelemetry.slice(0, 6) : [];
     const debugWeb = isDebugWebEnabled(env, body);
     const webSearchQuery = typeof body?.webSearchQuery === 'string' && body.webSearchQuery.trim()
       ? body.webSearchQuery.trim().slice(0, 500)
@@ -1744,6 +1745,22 @@ export default {
           extension: kind,
           size: Number(attachment?.size || 0) || 0,
           extractedTextLength: Number(attachment?.extractedTextLength || 0) || 0
+        }
+      });
+    }
+
+    for (const ragEvent of ragTelemetry) {
+      const eventType = String(ragEvent?.event_type || '').trim();
+      if (!['rag_query', 'rag_match', 'rag_no_match', 'rag_context_used'].includes(eventType)) continue;
+      queueAiEvent(ctx, env, request, {
+        event_type: eventType,
+        event_value: compactText(ragEvent?.event_value || '', 120),
+        language,
+        page_url: pageUrl,
+        session_id: sessionId,
+        meta: {
+          ...(ragEvent?.meta && typeof ragEvent.meta === 'object' ? ragEvent.meta : {}),
+          source: 'browser_project_rag'
         }
       });
     }
