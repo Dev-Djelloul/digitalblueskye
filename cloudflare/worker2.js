@@ -1,6 +1,11 @@
 /**
  * Cloudflare Worker - Digital Blue Skye AI (OpenRouter)
  * Stable version with model fallback.
+ *
+ * @deprecated Non déployé, non référencé par aucun wrangler.*.toml.
+ * Prototype historique conservé pour mémoire. Les Workers actifs sont
+ * cloudflare/worker-api.js et cloudflare/worker-openrouter.js.
+ * Voir docs/ARCHITECTURE.md.
  */
 
 const DEFAULT_MODEL = 'openrouter/free';
