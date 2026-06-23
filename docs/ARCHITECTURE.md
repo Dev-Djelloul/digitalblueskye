@@ -67,3 +67,12 @@ Ces noms de route sont conservés par compatibilité, mais les requêtes sont en
 | Génération B (`backend/`) | Legacy, non exécutée en prod, bandeau `@deprecated` ajouté sur les fichiers PHP principaux, voir `backend/README-LEGACY.md` |
 | Routes compatibles (`/contact-submit.php`, `/backend/*.php`, `/export-csv.php`) | Actives, mais servies par `cloudflare/worker-api.js` |
 | `export-csv.html` | Référence un chemin potentiellement cassé en prod — à traiter séparément |
+
+## Dépendances CDN de l'assistant IA (SRI)
+
+`scripts/ai-assistant.js` charge dynamiquement plusieurs librairies tierces versionnées (export PDF, OCR, import PDF/DOCX/XLSX, export ZIP). Une constante `SRI_HASHES` centralise les hash SHA-384 (`integrity` + `crossOrigin="anonymous"`) appliqués à ces scripts au moment de leur injection dans le DOM : html2pdf.js, jsPDF, Tesseract.js, pdf.js (script principal), mammoth.js, SheetJS/xlsx, JSZip.
+
+Deux exceptions volontaires, sans SRI :
+
+- **`apis.google.com/js/api.js`** (Google Picker) — exclu car cette URL peut servir un contenu dynamique côté Google, incompatible avec un hash figé.
+- **`pdf.worker.min.js`** — exclu car il n'est jamais chargé via une balise `<script>` : sa seule utilisation est une assignation de chaîne à `pdfjsLib.GlobalWorkerOptions.workerSrc`, c'est pdf.js qui instancie ensuite un `Worker` en interne à partir de cette URL.

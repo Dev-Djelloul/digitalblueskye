@@ -732,6 +732,24 @@
   const GOOGLE_IDENTITY_SCRIPT_URL = 'https://accounts.google.com/gsi/client';
   const HTML2PDF_SCRIPT_URL = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
   const JSPDF_SCRIPT_URL = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+  // SRI pour les librairies CDN versionnées/figées chargées dynamiquement.
+  // apis.google.com (Picker) et pdf.worker.min.js sont volontairement exclus (voir docs/ARCHITECTURE.md).
+  const SRI_HASHES = {
+    'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js':
+      'sha384-Yv5O+t3uE3hunW8uyrbpPW3iw6/5/Y7HitWJBLgqfMoA36NogMmy+8wWZMpn3HWc',
+    'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js':
+      'sha384-JcnsjUPPylna1s1fvi1u12X5qjY5OL56iySh75FdtrwhO/SWXgMjoVqcKyIIWOLk',
+    'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js':
+      'sha384-GJqSu7vueQ9qN0E9yLPb3Wtpd7OrgK8KmYzC8T1IysG1bcvxvIO4qtYR/D3A991F',
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js':
+      'sha384-/1qUCSGwTur9vjf/z9lmu/eCUYbpOTgSjmpbMQZ1/CtX2v/WcAIKqRv+U1DUCG6e',
+    'https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js':
+      'sha384-/cXAMbzovUIKbBERjPmR3SnPTh8siWr5lsvFYj1Uq4XP0yaJUZJmsh0YXyGv5P0y',
+    'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js':
+      'sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw',
+    'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js':
+      'sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG',
+  };
   const DRIVE_API_KEY = String(window.DBS_GOOGLE_API_KEY || '').trim();
   const DRIVE_CLIENT_ID = String(window.DBS_GOOGLE_CLIENT_ID || '').trim();
   const DRIVE_APP_ID = String(window.DBS_GOOGLE_APP_ID || '').trim();
@@ -2736,6 +2754,11 @@
       const script = document.createElement('script');
       script.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
       script.async = true;
+      const integrity = SRI_HASHES[script.src];
+      if (integrity) {
+        script.integrity = integrity;
+        script.crossOrigin = 'anonymous';
+      }
       script.onload = () => window.Tesseract?.recognize ? resolve(window.Tesseract) : reject(new Error('ocr_library_missing'));
       script.onerror = () => reject(new Error('ocr_library_load_failed'));
       document.head.appendChild(script);
@@ -2757,6 +2780,11 @@
       const script = document.createElement('script');
       script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
       script.async = true;
+      const integrity = SRI_HASHES[script.src];
+      if (integrity) {
+        script.integrity = integrity;
+        script.crossOrigin = 'anonymous';
+      }
       script.onload = () => {
         if (!window.pdfjsLib?.getDocument) { reject(new Error('pdfjs_missing')); return; }
         window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -2838,6 +2866,11 @@
       const script = document.createElement('script');
       script.src = 'https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js';
       script.async = true;
+      const integrity = SRI_HASHES[script.src];
+      if (integrity) {
+        script.integrity = integrity;
+        script.crossOrigin = 'anonymous';
+      }
       script.onload = () => window.mammoth?.extractRawText ? resolve(window.mammoth) : reject(new Error('mammoth_missing'));
       script.onerror = () => reject(new Error('mammoth_load_failed'));
       document.head.appendChild(script);
@@ -2852,6 +2885,11 @@
       const script = document.createElement('script');
       script.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
       script.async = true;
+      const integrity = SRI_HASHES[script.src];
+      if (integrity) {
+        script.integrity = integrity;
+        script.crossOrigin = 'anonymous';
+      }
       script.onload = () => window.XLSX?.read ? resolve(window.XLSX) : reject(new Error('xlsx_missing'));
       script.onerror = () => reject(new Error('xlsx_load_failed'));
       document.head.appendChild(script);
@@ -2866,6 +2904,11 @@
       const script = document.createElement('script');
       script.src = 'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js';
       script.async = true;
+      const integrity = SRI_HASHES[script.src];
+      if (integrity) {
+        script.integrity = integrity;
+        script.crossOrigin = 'anonymous';
+      }
       script.onload = () => window.JSZip?.loadAsync ? resolve(window.JSZip) : reject(new Error('jszip_missing'));
       script.onerror = () => reject(new Error('jszip_load_failed'));
       document.head.appendChild(script);
@@ -4043,6 +4086,11 @@
       const script = document.createElement('script');
       script.src = src;
       script.async = true;
+      const integrity = SRI_HASHES[src];
+      if (integrity) {
+        script.integrity = integrity;
+        script.crossOrigin = 'anonymous';
+      }
       script.onload = () => { script.dataset.loaded = 'true'; resolve(); };
       script.onerror = () => reject(new Error('script_load_failed'));
       document.head.appendChild(script);
