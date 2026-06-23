@@ -117,16 +117,42 @@ const ALLOWED_EXPORT_TABLES = Object.freeze({
 
 const COMMENT_STATUSES = Object.freeze(["approved", "pending", "hidden"]);
 
+// Static fallback whitelist: kept in addition to ALLOWED_ORIGIN so Netlify
+// and local dev keep working even if the env var is unset or misconfigured.
+const STATIC_ALLOWED_ORIGINS = ["https://digitalblueskye.netlify.app"];
+const LOCALHOST_ORIGIN_PATTERN = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i;
+
+function normalizeOrigin(origin) {
+  return String(origin || "").trim().replace(/\/+$/, "");
+}
+
+function getEnvAllowedOrigins(env) {
+  return String(env?.ALLOWED_ORIGIN || "")
+    .split(",")
+    .map(normalizeOrigin)
+    .filter(Boolean);
+}
+
+function isOriginAllowed(origin, env) {
+  if (!origin) return false;
+  const normalized = normalizeOrigin(origin);
+  if (LOCALHOST_ORIGIN_PATTERN.test(normalized)) return true;
+  if (STATIC_ALLOWED_ORIGINS.includes(normalized)) return true;
+  return getEnvAllowedOrigins(env).includes(normalized);
+}
+
 function corsHeaders(request, env, contentType = "application/json; charset=utf-8") {
   const requestOrigin = request.headers.get("Origin");
-  const fallbackOrigin = env.ALLOWED_ORIGIN || "*";
-  return {
+  const headers = {
     "Content-Type": contentType,
-    "Access-Control-Allow-Origin": requestOrigin || fallbackOrigin,
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Accept, Authorization",
     Vary: "Origin",
   };
+  if (isOriginAllowed(requestOrigin, env)) {
+    headers["Access-Control-Allow-Origin"] = normalizeOrigin(requestOrigin);
+  }
+  return headers;
 }
 
 function jsonResponse(request, env, body, status = 200) {
