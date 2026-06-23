@@ -1,6 +1,12 @@
 <?php
 declare(strict_types=1);
 
+/**
+ * @deprecated Pile PHP/MariaDB legacy (cible InfinityFree/XAMPP), non exécutée
+ * en production dans l'architecture actuelle Netlify + Cloudflare Workers + D1.
+ * Voir backend/README-LEGACY.md et docs/ARCHITECTURE.md.
+ */
+
 require_once __DIR__ . '/db.php';
 
 function assistant_client_ip(): string {

@@ -1,6 +1,12 @@
 <?php
 declare(strict_types=1);
 
+/**
+ * @deprecated Pile PHP/MariaDB legacy (cible InfinityFree/XAMPP), non exécutée
+ * en production dans l'architecture actuelle Netlify + Cloudflare Workers + D1.
+ * Voir backend/README-LEGACY.md et docs/ARCHITECTURE.md.
+ */
+
 // Basic configuration for database and comment settings.
 // Prefer environment variables in production.
 

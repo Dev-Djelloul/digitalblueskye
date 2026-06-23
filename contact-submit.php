@@ -1,6 +1,14 @@
 <?php
 declare(strict_types=1);
 
+/**
+ * @deprecated Pile PHP/MySQL legacy (génération A, racine du projet), non
+ * exécutée en production dans l'architecture actuelle Netlify + Cloudflare
+ * Workers + D1. Le chemin /contact-submit.php reste utilisé par le front
+ * comme route compatible, mais il est servi par cloudflare/worker-api.js,
+ * pas par ce fichier. Voir docs/ARCHITECTURE.md.
+ */
+
 require __DIR__ . "/config/contact-db.php";
 
 header("Content-Type: application/json; charset=utf-8");

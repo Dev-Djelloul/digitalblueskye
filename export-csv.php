@@ -1,6 +1,14 @@
 <?php
 declare(strict_types=1);
 
+/**
+ * @deprecated Pile PHP/MySQL legacy (génération A, racine du projet), non
+ * exécutée en production dans l'architecture actuelle Netlify + Cloudflare
+ * Workers + D1. Le chemin /export-csv.php reste utilisé comme route
+ * compatible, mais il est servi par cloudflare/worker-api.js, pas par ce
+ * fichier. Voir docs/ARCHITECTURE.md.
+ */
+
 require __DIR__ . '/config/contact-db.php';
 require __DIR__ . '/config/export-token.php';
 
