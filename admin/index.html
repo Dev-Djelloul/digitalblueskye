@@ -3122,7 +3122,15 @@
             ["Dernière latence", formatMs(tavilyUsage.last_latency_ms)],
             ["Dernier succès", formatDate(tavilyUsage.last_success_at) || "n/a"],
             ["Dernier échec", formatDate(tavilyUsage.last_error_at) || "n/a"],
-            ["Erreur récente", tavilyUsage.last_error || "aucune"],
+            ["Erreur récente", (() => {
+              if (tavilyUsage.error_status === "resolved") {
+                return `${tavilyUsage.last_error} (résolue — succès plus récent le ${formatDate(tavilyUsage.last_success_at)})`;
+              }
+              if (tavilyUsage.error_status === "active") {
+                return tavilyUsage.last_error || "active";
+              }
+              return "aucune";
+            })()],
             ["Quota estimé utilisé", `${tavilyUsage.credits_estimated_consumed ?? 0} / ${tavilyUsage.quota_estimated_total ?? "n/a"}${tavilyUsage.quota_source === "fallback_default" ? " (valeur par défaut non configurée)" : ""}`],
             ["Quota estimé restant", tavilyUsage.credits_estimated_remaining ?? "n/a"],
             ["Mode économique actif", tavilyUsage.economy_mode_active === false ? "non" : "oui"],

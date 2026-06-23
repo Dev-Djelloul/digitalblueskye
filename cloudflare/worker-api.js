@@ -485,6 +485,11 @@ function buildTavilyUsageFromEvents(rows, aiHealthPayload, env) {
   const lastEvent = [latestSuccess, latestError].filter(Boolean).sort((a, b) => new Date(b.at) - new Date(a.at))[0] || null;
   const averageLatencyMs = Number(runtime.average_latency_ms || 0) || averageFromEvents(successRows, ["latency_ms", "duration_ms"]);
   const quotaUsedPercent = quota ? Math.min(100, Math.round((creditsUsed / quota) * 1000) / 10) : 0;
+  const lastSuccessAt = runtime.last_success_at || latestSuccess?.at || null;
+  const lastErrorAt = runtime.last_error_at || latestError?.at || null;
+  const errorStatus = !lastErrorAt
+    ? "none"
+    : (lastSuccessAt && new Date(lastSuccessAt) > new Date(lastErrorAt) ? "resolved" : "active");
 
   return {
     endpoint: runtime.endpoint || latestSuccess?.endpoint || latestError?.endpoint || "https://api.tavily.com/search",
@@ -508,9 +513,10 @@ function buildTavilyUsageFromEvents(rows, aiHealthPayload, env) {
     weekly_average: averagePerPeriod(eventRows, (row) => ["web_search_success", "web_search_error"].includes(row.event_type), 7),
     last_call_at: runtime.last_call_at || lastEvent?.at || null,
     last_latency_ms: runtime.last_latency_ms ?? lastEvent?.latency_ms ?? null,
-    last_success_at: runtime.last_success_at || latestSuccess?.at || null,
-    last_error_at: runtime.last_error_at || latestError?.at || null,
+    last_success_at: lastSuccessAt,
+    last_error_at: lastErrorAt,
     last_error: runtime.last_error || latestError?.error || "",
+    error_status: errorStatus,
     economy_mode_active: runtime.economy_mode_active ?? true,
     ultra_economy_mode_active: runtime.ultra_economy_mode_active ?? quotaUsedPercent >= 95,
   };
