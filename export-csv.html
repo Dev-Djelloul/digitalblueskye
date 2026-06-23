@@ -193,6 +193,15 @@
     </main>
     <script>
       const tokenInput = document.getElementById("export-token");
+      function resolveApiUrl(path) {
+        const defaultBase = "https://digitalblueskye-api.djelloulabid75.workers.dev";
+        const explicitBase = String(window.DBS_API_BASE || "").trim();
+        const inferredBase = window.location.hostname.startsWith("www.")
+          ? `${window.location.protocol}//api.${window.location.hostname.slice(4)}`
+          : "";
+        const base = (explicitBase || inferredBase || defaultBase).replace(/\/+$/, "");
+        return base ? `${base}${path}` : path;
+      }
       document.querySelectorAll("button[data-table]").forEach((button) => {
         button.addEventListener("click", () => {
           const token = tokenInput.value.trim();
@@ -202,7 +211,7 @@
           }
           const table = button.dataset.table;
           const params = new URLSearchParams({ table, token });
-          const url = `/export-csv.php?${params.toString()}`;
+          const url = resolveApiUrl(`/export-csv.php?${params.toString()}`);
           window.location.href = url;
         });
       });
