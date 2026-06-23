@@ -3123,7 +3123,7 @@
             ["Dernier succès", formatDate(tavilyUsage.last_success_at) || "n/a"],
             ["Dernier échec", formatDate(tavilyUsage.last_error_at) || "n/a"],
             ["Erreur récente", tavilyUsage.last_error || "aucune"],
-            ["Quota estimé utilisé", `${tavilyUsage.credits_estimated_consumed ?? 0} / ${tavilyUsage.quota_estimated_total ?? "n/a"}`],
+            ["Quota estimé utilisé", `${tavilyUsage.credits_estimated_consumed ?? 0} / ${tavilyUsage.quota_estimated_total ?? "n/a"}${tavilyUsage.quota_source === "fallback_default" ? " (valeur par défaut non configurée)" : ""}`],
             ["Quota estimé restant", tavilyUsage.credits_estimated_remaining ?? "n/a"],
             ["Mode économique actif", tavilyUsage.economy_mode_active === false ? "non" : "oui"],
             ["Mode ultra-économique actif", ultra ? "oui" : "non"],

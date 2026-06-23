@@ -76,3 +76,9 @@ Deux exceptions volontaires, sans SRI :
 
 - **`apis.google.com/js/api.js`** (Google Picker) — exclu car cette URL peut servir un contenu dynamique côté Google, incompatible avec un hash figé.
 - **`pdf.worker.min.js`** — exclu car il n'est jamais chargé via une balise `<script>` : sa seule utilisation est une assignation de chaîne à `pdfjsLib.GlobalWorkerOptions.workerSrc`, c'est pdf.js qui instancie ensuite un `Worker` en interne à partir de cette URL.
+
+## Quota Tavily — fallback de code vs quota réel
+
+`1000` (constante `TAVILY_DEFAULT_QUOTA` dans `cloudflare/worker-openrouter.js` et `cloudflare/worker-api.js`) est un **fallback de code**, pas un quota vérifié auprès de Tavily. Il n'est utilisé que si ni `TAVILY_MONTHLY_QUOTA` ni `TAVILY_CREDIT_QUOTA` ne sont configurés en variable/secret Wrangler — ce qui est le cas par défaut tant que vous n'avez pas exécuté `wrangler secret put TAVILY_MONTHLY_QUOTA` (ou l'équivalent `[vars]`) sur `digitalblueskye-ai`/`digitalblueskye-api`.
+
+Les payloads de santé exposent désormais un champ `quota_source` (`"env_configured"` ou `"fallback_default"`), affiché dans `admin/index.html` ("Quota estimé utilisé : X / 1000 (valeur par défaut non configurée)" quand le fallback est actif) — pour un suivi fiable du quota réel, configurez `TAVILY_MONTHLY_QUOTA` ou `TAVILY_CREDIT_QUOTA`.

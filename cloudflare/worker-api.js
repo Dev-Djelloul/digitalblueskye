@@ -455,6 +455,8 @@ function averagePerPeriod(rows, predicate, days) {
   return Math.round((count / days) * 10) / 10;
 }
 
+const TAVILY_DEFAULT_QUOTA = 1000;
+
 function buildTavilyUsageFromEvents(rows, aiHealthPayload, env) {
   const eventRows = Array.isArray(rows) ? rows : [];
   const runtime = aiHealthPayload?.tavily_usage || {};
@@ -468,7 +470,9 @@ function buildTavilyUsageFromEvents(rows, aiHealthPayload, env) {
     const value = Number(meta.estimated_credits ?? meta.credits_estimated ?? 1);
     return sum + (Number.isFinite(value) ? value : 0);
   }, 0);
-  const quota = Number(runtime.quota_estimated_total || env.TAVILY_MONTHLY_QUOTA || env.TAVILY_CREDIT_QUOTA || 1000);
+  const quota = Number(runtime.quota_estimated_total || env.TAVILY_MONTHLY_QUOTA || env.TAVILY_CREDIT_QUOTA || TAVILY_DEFAULT_QUOTA);
+  const quotaSource = runtime.quota_source
+    || ((env.TAVILY_MONTHLY_QUOTA || env.TAVILY_CREDIT_QUOTA) ? "env_configured" : "fallback_default");
   const searchesExecuted = actualCallRows.length;
   const searchesSkipped = skippedRows.length;
   const cacheHits = cacheRows.length;
@@ -498,6 +502,7 @@ function buildTavilyUsageFromEvents(rows, aiHealthPayload, env) {
     credits_estimated_consumed: creditsUsed,
     credits_estimated_remaining: Math.max(0, quota - creditsUsed),
     quota_estimated_total: quota,
+    quota_source: quotaSource,
     quota_estimated_used_percent: quotaUsedPercent,
     daily_average: averagePerPeriod(eventRows, (row) => ["web_search_success", "web_search_error"].includes(row.event_type), 1),
     weekly_average: averagePerPeriod(eventRows, (row) => ["web_search_success", "web_search_error"].includes(row.event_type), 7),

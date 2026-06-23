@@ -1320,6 +1320,7 @@ function buildTavilyRuntimeMetrics(env) {
     credits_estimated_consumed: creditsUsed,
     credits_estimated_remaining: Math.max(0, quota - creditsUsed),
     quota_estimated_total: quota,
+    quota_source: (env?.TAVILY_MONTHLY_QUOTA || env?.TAVILY_CREDIT_QUOTA) ? 'env_configured' : 'fallback_default',
     quota_estimated_used_percent: quotaUsedPercent,
     daily_average: 0,
     weekly_average: 0,
