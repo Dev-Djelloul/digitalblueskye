@@ -13533,8 +13533,17 @@ body.ai-assistant-sidebar-is-resizing * {
 }
 
 /* Bouton de copie discret, ancre en haut a droite de chaque tableau. */
-.ai-assistant-table-wrap--has-copy {
+/* Enveloppe non-scrollable autour d'un tableau : ancre le bouton copier (fixe)
+   tandis que la zone .ai-assistant-table-wrap interne défile. */
+.ai-assistant-table-figure {
+  margin: 14px 0 18px;
+  max-width: 100%;
+  min-width: 0;
   position: relative;
+}
+
+.ai-assistant-table-figure > .ai-assistant-table-wrap {
+  margin: 0;
 }
 
 .ai-assistant-table-copy-btn {
@@ -13557,7 +13566,7 @@ body.ai-assistant-sidebar-is-resizing * {
   z-index: 3;
 }
 
-.ai-assistant-table-wrap--has-copy:hover .ai-assistant-table-copy-btn,
+.ai-assistant-table-figure:hover .ai-assistant-table-copy-btn,
 .ai-assistant-table-copy-btn:focus-visible {
   opacity: 1;
 }
@@ -15552,6 +15561,11 @@ body.ai-assistant-sidebar-is-resizing * {
 /* AI message layout layer — corrige la largeur de la bulle assistant. .ai-assistant-message--bot a "align-self: flex-start" (defini plus haut), ce qui desactive l'etirement par defaut du conteneur flex .ai-assistant-messages (flex-direction: column) et fait dependre la largeur de la bulle de son seul contenu : d'ou une colonne tassee a gauche avec un grand vide a droite. On force une largeur explicite pour retrouver une vraie colonne de lecture, bornee a 980px, sans toucher aux variantes compactes (typing, library-media). */
 .ai-assistant-message--bot:not(.ai-assistant-message--typing, .ai-assistant-message--library-media) {
   max-width: 100%;
+  /* min-width: 0 indispensable : sans cela un flex-item prend pour largeur
+     minimale son contenu insecable le plus large (longue ligne de code), ce qui
+     empeche la bulle de retrecir quand le panneau Sources s'ouvre et la fait
+     deborder. Avec min-width: 0, le bloc de code scrolle au lieu d'elargir. */
+  min-width: 0;
   /* width 100% moins la gouttiere avatar (margin-left: 40px) pour remplir la
      bande de lecture centree sans deborder a droite. */
   width: calc(100% - 40px);
@@ -15559,13 +15573,22 @@ body.ai-assistant-sidebar-is-resizing * {
 
 .ai-assistant-message-content.ai-markdown {
   max-width: 100%;
+  min-width: 0;
   width: 100%;
 }
 
 .ai-assistant-message-content.ai-markdown table,
 .ai-assistant-message-content.ai-markdown pre {
   max-width: 100%;
+  min-width: 0;
   overflow-x: auto;
+}
+
+/* Le bloc de code garde overflow:hidden (coins arrondis) ; c'est son <pre>
+   interne qui scrolle. Il doit juste pouvoir retrecir avec la bulle. */
+.ai-assistant-message-content.ai-markdown .ai-assistant-code-block {
+  max-width: 100%;
+  min-width: 0;
 }
 
 /* RAG sources block — liste deterministe des documents projet reellement utilises pour la reponse, ajoutee en JS apres le rendu Markdown (cf. appendRagSources). Reprend les variables --ai-* du calque Markdown pour rester coherent dans les deux themes. */

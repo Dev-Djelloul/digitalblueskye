@@ -6557,43 +6557,51 @@
     'the', 'this', 'that', 'these', 'those', 'it', 'we', 'you', 'they', 'here', 'there'
   ]);
 
-  // Normalise un texte brut avant rendu Markdown afin d'éviter les "###" visibles en
-  // texte brut : garantit une ligne vide avant/après chaque titre et sépare un titre
-  // collé à une phrase ("texte. ### Titre" ou "### Titre suite du texte").
+  // Normalise un texte brut avant rendu Markdown pour qu'une réponse "collée" par
+  // le modèle (titres ### en plein milieu d'une ligne, séparateurs ---, tableaux
+  // dont les lignes de données ne commencent pas par "|" et sans ligne de
+  // séparation) ressorte aérée et correctement structurée, façon ChatGPT/Claude.
   function normalizeMarkdownBeforeRender(rawText) {
-    const lines = String(rawText || '').replace(/\r\n?/g, '\n').split('\n');
-    const output = [];
-    let inCodeBlock = false;
-
-    function pushBlankIfNeeded() {
-      if (output.length && output[output.length - 1] !== '') output.push('');
+    // ── Phase 1 : on "explose" les segments collés sur une même ligne (hors code).
+    // Un titre Markdown (## …) ou un séparateur --- collé au milieu d'une ligne
+    // reçoit un vrai saut de ligne devant lui.
+    const srcLines = String(rawText || '').replace(/\r\n?/g, '\n').split('\n');
+    const exploded = [];
+    let inCodePre = false;
+    for (const line of srcLines) {
+      const t = line.trim();
+      if (/^```/.test(t)) { inCodePre = !inCodePre; exploded.push(line); continue; }
+      if (inCodePre) { exploded.push(line); continue; }
+      let work = line;
+      // Sections numérotées collées : "… texte. 2. Titre" -> chaque "N. Titre"
+      // démarre sa propre ligne (hors lignes de tableau).
+      if (!work.trim().startsWith('|')) {
+        work = work.replace(/([.!?:)\]])[ \t]+(\d{1,2}\.[ \t]+(?=[A-ZÀ-Þ]))/g, '$1\n\n$2');
+      }
+      work
+        // "… --- ### Titre" : retire le séparateur collé et saute une ligne.
+        .replace(/\s*(?:-{3,}|\*{3,}|_{3,})\s+(?=#{1,6}\s)/g, '\n')
+        // "texte ### Titre" collé : saut de ligne juste avant le marqueur de titre.
+        .replace(/(\S)[ \t]+(#{1,6}[ \t]+(?=\S))/g, '$1\n$2')
+        .split('\n')
+        .forEach((sub) => exploded.push(sub));
     }
 
-    for (let raw of lines) {
+    // ── Phase 2 : aération autour des titres + séparation titre/prose ou titre/tableau.
+    const output = [];
+    let inCodeBlock = false;
+    const pushBlankIfNeeded = () => { if (output.length && output[output.length - 1] !== '') output.push(''); };
+
+    for (let raw of exploded) {
       const trimmed = raw.trim();
+      if (/^```/.test(trimmed)) { inCodeBlock = !inCodeBlock; output.push(raw); continue; }
+      if (inCodeBlock || trimmed.startsWith('|')) { output.push(raw); continue; }
 
-      if (/^```/.test(trimmed)) {
-        inCodeBlock = !inCodeBlock;
-        output.push(raw);
-        continue;
-      }
-
-      if (inCodeBlock || trimmed.startsWith('|')) {
-        output.push(raw);
-        continue;
-      }
-
-      // Titre collé en fin de phrase, avec éventuellement un séparateur horizontal
-      // collé entre les deux : "texte. ### Titre" ou "texte. --- ### Titre".
       let glueMatch = raw.match(/^(.*[.!?:])\s+(?:(?:-{3,}|\*{3,}|_{3,})\s+)?(#{1,6}\s+\S.*)$/);
-      // Cas sans ponctuation finale mais séparateur collé : "texte --- ### Titre".
       if (!glueMatch) glueMatch = raw.match(/^(.*\S)\s+(?:-{3,}|\*{3,}|_{3,})\s+(#{1,6}\s+\S.*)$/);
       if (glueMatch) {
         const before = glueMatch[1].replace(/\s*(?:-{3,}|\*{3,}|_{3,})\s*$/, '').trim();
-        if (before) {
-          output.push(before);
-          output.push('');
-        }
+        if (before) { output.push(before); output.push(''); }
         raw = glueMatch[2];
       }
 
@@ -6602,8 +6610,7 @@
         const hashes = headingMatch[1];
         let rest = headingMatch[2];
 
-        // Tableau Markdown collé à un titre : "## Titre | col | col" -> on sépare
-        // le titre de la première ligne de tableau (traitée ensuite séparément).
+        // Tableau collé à un titre : "## Titre | col | col" -> titre + ligne tableau.
         let tablePart = '';
         const pipeIndex = rest.indexOf('|');
         if (pipeIndex > 0 && (rest.match(/\|/g) || []).length >= 2) {
@@ -6611,45 +6618,65 @@
           rest = rest.slice(0, pipeIndex).trim();
         }
 
-        // Sinon, prose collée au titre : "### Titre Le texte commence". On ne coupe
-        // que si le mot suivant est un démarreur de phrase ET capitalisé (évite de
-        // découper un vrai titre contenant "le", "la", "sur le"…).
+        // Prose collée au titre : on ne coupe que sur un démarreur de phrase capitalisé.
         let bodyWords = [];
         if (!tablePart) {
           const words = rest.split(/\s+/);
           let splitIndex = -1;
           for (let i = 1; i < words.length; i += 1) {
-            if (MARKDOWN_HEADING_SENTENCE_STARTERS.has(words[i].toLowerCase()) && /^[A-ZÀ-Þ]/.test(words[i])) {
-              splitIndex = i;
-              break;
-            }
+            if (MARKDOWN_HEADING_SENTENCE_STARTERS.has(words[i].toLowerCase()) && /^[A-ZÀ-Þ]/.test(words[i])) { splitIndex = i; break; }
           }
-          if (splitIndex > 0) {
-            bodyWords = words.slice(splitIndex);
-            rest = words.slice(0, splitIndex).join(' ');
-          }
+          if (splitIndex > 0) { bodyWords = words.slice(splitIndex); rest = words.slice(0, splitIndex).join(' '); }
         }
 
         pushBlankIfNeeded();
         output.push(`${hashes} ${rest}`);
         output.push('');
-        if (tablePart) {
-          output.push(tablePart);
-        } else if (bodyWords.length) {
-          output.push(bodyWords.join(' '));
-          output.push('');
-        }
+        if (tablePart) output.push(tablePart);
+        else if (bodyWords.length) { output.push(bodyWords.join(' ')); output.push(''); }
         continue;
       }
 
-      // Séparateur horizontal isolé en fin de ligne de prose : on le retire pour
-      // éviter les "---" résiduels visibles.
+      // Séparateur horizontal isolé en fin de ligne de prose : on le retire.
       raw = raw.replace(/\s*(?:-{3,}|\*{3,}|_{3,})\s*$/, '');
-
       output.push(raw);
     }
 
-    return output.join('\n').replace(/\n{3,}/g, '\n\n');
+    // ── Phase 3 : enveloppe les blocs de lignes "à tuyaux" en vrais tableaux
+    // Markdown (ajoute bordures et ligne de séparation), même quand le modèle
+    // n'a mis ni "|" de début ni ligne |---|.
+    const isPipeRow = (line) => {
+      const t = String(line || '').trim();
+      if (!t || /^```/.test(t) || /^#{1,6}\s/.test(t) || t.startsWith('>')) return false;
+      return (t.match(/\|/g) || []).length >= 2;
+    };
+    const finalLines = [];
+    let buffer = [];
+    let inCodeFinal = false;
+    const flushTable = () => {
+      if (!buffer.length) return;
+      if (buffer.length < 2) { finalLines.push(...buffer); buffer = []; return; }
+      const block = normalizeMarkdownTableBlock(buffer);
+      if (!block) { finalLines.push(...buffer); buffer = []; return; }
+      const colCount = block.rows[0].length;
+      if (finalLines.length && finalLines[finalLines.length - 1] !== '') finalLines.push('');
+      finalLines.push(`| ${block.rows[0].join(' | ')} |`);
+      finalLines.push(`| ${Array(colCount).fill('---').join(' | ')} |`);
+      block.rows.slice(1).forEach((cells) => finalLines.push(`| ${cells.join(' | ')} |`));
+      if (block.trailingParagraphs.length) { finalLines.push(''); finalLines.push(...block.trailingParagraphs); }
+      finalLines.push('');
+      buffer = [];
+    };
+    for (const line of output) {
+      const t = line.trim();
+      if (/^```/.test(t)) { flushTable(); inCodeFinal = !inCodeFinal; finalLines.push(line); continue; }
+      if (!inCodeFinal && isPipeRow(line)) { buffer.push(t); continue; }
+      flushTable();
+      finalLines.push(line);
+    }
+    flushTable();
+
+    return finalLines.join('\n').replace(/\n{3,}/g, '\n\n');
   }
 
   // ─── FONCTION DE RENDU MARKDOWN AMÉLIORÉE ───────────────────────────────────
@@ -8293,9 +8320,18 @@
     if (!root) return;
     const wraps = root.querySelectorAll('.ai-assistant-table-wrap');
     wraps.forEach((wrap) => {
-      if (wrap.querySelector('.ai-assistant-table-copy-btn')) return;
+      // Si le tableau est déjà entouré de son enveloppe, on ne refait rien.
+      if (wrap.parentElement && wrap.parentElement.classList.contains('ai-assistant-table-figure')) return;
       const table = wrap.querySelector('table');
       if (!table) return;
+
+      // Enveloppe NON scrollable autour du tableau : le bouton copier y est ancré
+      // pour rester fixe en haut à droite et ne plus défiler avec le tableau.
+      const figure = document.createElement('div');
+      figure.className = 'ai-assistant-table-figure';
+      wrap.parentNode.insertBefore(figure, wrap);
+      figure.appendChild(wrap);
+
       const copyBtn = document.createElement('button');
       copyBtn.type = 'button';
       copyBtn.className = 'ai-assistant-table-copy-btn';
@@ -8316,8 +8352,7 @@
           copyBtn.setAttribute('aria-label', i18n.copy);
         }, 1400);
       });
-      wrap.classList.add('ai-assistant-table-wrap--has-copy');
-      wrap.appendChild(copyBtn);
+      figure.appendChild(copyBtn);
     });
   }
 
