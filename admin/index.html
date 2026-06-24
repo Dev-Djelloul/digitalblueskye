@@ -1656,7 +1656,7 @@
       <section id="summary" class="summary" aria-label="Compteurs"></section>
 
       <nav class="tabs" aria-label="Sections admin">
-        <button class="tab active" type="button" data-tab="health">Pilotage</button>
+        <button class="tab active" type="button" data-tab="health">Santé globale</button>
         <button class="tab" type="button" data-tab="ai">Activités IA</button>
         <button class="tab" type="button" data-tab="comments">Commentaires</button>
         <button class="tab" type="button" data-tab="contact">Contacts</button>
@@ -1700,14 +1700,14 @@
         <div id="aiContent" class="health health-dashboard"></div>
       </section>
 
-      <section id="healthPanel" class="panel hidden" aria-label="Pilotage Digital Blue Skye AI">
+      <section id="healthPanel" class="panel hidden" aria-label="Santé globale Digital Blue Skye AI">
         <div class="panel-head">
           <div>
-            <strong>Pilotage</strong>
+            <strong>Santé globale</strong>
             <div id="healthMeta" class="health-meta"></div>
           </div>
           <div class="actions">
-            <button id="refreshHealthBtn" type="button">Actualiser Pilotage</button>
+            <button id="refreshHealthBtn" type="button">Actualiser Santé globale</button>
           </div>
         </div>
         <div id="healthContent" class="health health-dashboard"></div>
@@ -3114,7 +3114,7 @@
             <article class="health-ai-tile"><span>Moyenne quotidienne</span><strong>${escapeHtml(tavilyUsage.daily_average ?? 0)}</strong><small>recherches/jour</small></article>
             <article class="health-ai-tile"><span>Moyenne hebdomadaire</span><strong>${escapeHtml(tavilyUsage.weekly_average ?? 0)}</strong><small>recherches/jour sur 7j</small></article>
           </div>
-          <h3>Pilotage Tavily</h3>
+          <h3>Santé globale Tavily</h3>
           ${renderHealthKv([
             ["TAVILY_API_KEY configurée", formatConfigured(apiConfigured)],
             ["Endpoint utilisé", tavilyUsage.endpoint || "https://api.tavily.com/search"],
@@ -3253,7 +3253,7 @@
         },
         recent_activity: {
           items: [
-            { at: checkedAt, label: "Dashboard Pilotage affiché en mode local", detail: reason || "Endpoint non disponible" },
+            { at: checkedAt, label: "Dashboard Santé globale affiché en mode local", detail: reason || "Endpoint non disponible" },
           ],
           has_more: false,
         },
@@ -3282,7 +3282,7 @@
           {
             name: "Netlify frontend",
             status: "operational",
-            detail: "Admin chargée côté frontend. Le tableau Pilotage utilise un diagnostic local car l’endpoint Worker n’est pas encore disponible.",
+            detail: "Admin chargée côté frontend. Le tableau Santé globale utilise un diagnostic local car l’endpoint Worker n’est pas encore disponible.",
             last_checked_at: checkedAt,
             priority: "Déployer le Worker API contenant /admin/health.",
           },
@@ -3310,7 +3310,7 @@
           {
             name: "Recherche web",
             status: "partial",
-            detail: "Fonction côté assistant prévue, statut fournisseur non vérifiable depuis cet écran sans endpoint Pilotage serveur.",
+            detail: "Fonction côté assistant prévue, statut fournisseur non vérifiable depuis cet écran sans endpoint Santé globale serveur.",
             last_checked_at: checkedAt,
             priority: "Valider Tavily via le Worker IA.",
           },
@@ -3478,7 +3478,7 @@
       const v3 = Array.isArray(health?.v3_placeholders) ? health.v3_placeholders : [];
         $("#healthMeta").innerHTML = `
         <span>Dernier contrôle: ${escapeHtml(formatDate(health?.checked_at) || "non disponible")}</span>
-        ${health?.fallback ? `<span>Mode local: endpoint Pilotage non déployé</span>` : ""}
+        ${health?.fallback ? `<span>Mode local: endpoint Santé globale non déployé</span>` : ""}
         <span>OPENROUTER_API_KEY: ${formatConfigured(configuration.openrouter_api_key_configured)}</span>
         <span>TAVILY_API_KEY: ${formatConfigured(configuration.tavily_api_key_configured)}</span>
         <span>Tavily ultra-éco: ${health?.tavily_usage?.ultra_economy_mode_active ? "actif" : "inactif"}</span>
@@ -3566,7 +3566,7 @@
                     <td data-label="Priorité d’amélioration"><div class="cell-text">${escapeHtml(service.priority)}</div></td>
                   </tr>
                 `;
-                }).join("") || `<tr><td colspan="6">Aucune donnée de pilotage.</td></tr>`}
+                }).join("") || `<tr><td colspan="6">Aucune donnée de santé globale.</td></tr>`}
               </tbody>
             </table>
           </div>
@@ -3644,7 +3644,7 @@
         const fallback = buildFallbackHealth(error.message);
         state.health = fallback;
         renderHealth(fallback);
-        setNotice("#appNotice", "Endpoint Pilotage non disponible sur le Worker API actuel. Affichage du diagnostic local.", "error");
+        setNotice("#appNotice", "Endpoint Santé globale non disponible sur le Worker API actuel. Affichage du diagnostic local.", "error");
       }
     }
 
@@ -3930,7 +3930,7 @@
     $("#refreshHealthBtn").addEventListener("click", async () => {
       try {
         await loadHealth();
-        if (!state.health?.fallback) setNotice("#appNotice", "Pilotage actualisé.", "success");
+        if (!state.health?.fallback) setNotice("#appNotice", "Santé globale actualisée.", "success");
       } catch (error) {
         setNotice("#appNotice", error.message, "error");
       }
