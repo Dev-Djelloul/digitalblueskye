@@ -10266,6 +10266,9 @@ body.body-menu-open .ai-assistant-launcher {
 
 .ai-assistant-panel {
   --ai-history-width: clamp(252px, 30cqw, 318px);
+  --ai-sources-width: clamp(264px, 26cqw, 320px);
+  --ai-thread-gutter: 30px;
+  --ai-rail-space: 74px;
   backdrop-filter: blur(22px) saturate(150%);
   background: linear-gradient(180deg, rgb(20 22 42 / 82%), rgb(11 13 28 / 88%));
   border: 2px solid transparent;
@@ -10516,20 +10519,412 @@ body.body-menu-open .ai-assistant-launcher {
     18px 0 44px rgb(0 0 0 / 26%),
     inset 0 1px 0 rgb(255 255 255 / 10%),
     0 0 24px rgb(93 93 255 / 10%);
+  color: rgb(246 247 255 / 92%);
   display: flex;
   flex-direction: column;
   gap: 14px;
-  left: 12px;
+  left: var(--ai-rail-space, 12px);
   opacity: 0;
   overflow: visible;
   padding: 18px 14px 14px;
   pointer-events: none;
   position: absolute;
   top: 74px;
-  transform: translateX(calc(-100% - 26px));
+  transform: translateX(calc(-100% - 90px));
   transition: opacity 0.22s ease, transform 0.22s ease;
   width: var(--ai-history-width);
   z-index: 7;
+}
+
+/* Rail d'icones permanent (facon ChatGPT), toujours visible au bord gauche.
+   La barre laterale complete s'ouvre A COTE (a droite) du rail. */
+.ai-assistant-rail {
+  align-items: center;
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid rgb(255 255 255 / 9%);
+  border-radius: 18px;
+  bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  justify-content: space-between;
+  left: 12px;
+  padding: 12px 0;
+  position: absolute;
+  top: 74px;
+  width: 50px;
+  z-index: 8;
+}
+
+.ai-assistant-rail-group {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ai-assistant-rail-btn {
+  align-items: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  color: rgb(235 240 255 / 82%);
+  cursor: pointer;
+  display: inline-flex;
+  height: 38px;
+  justify-content: center;
+  padding: 0;
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+  width: 38px;
+}
+
+.ai-assistant-rail-btn:hover {
+  background: rgb(255 255 255 / 10%);
+  border-color: rgb(121 230 255 / 32%);
+  color: #fff;
+}
+
+.ai-assistant-rail-btn:focus-visible {
+  outline: 2px solid rgb(121 230 255 / 60%);
+  outline-offset: 2px;
+}
+
+.ai-assistant-rail-btn.is-active {
+  background: rgb(121 230 255 / 16%);
+  border-color: rgb(121 230 255 / 42%);
+}
+
+.ai-assistant-rail-btn img {
+  height: 20px;
+  object-fit: contain;
+  width: 20px;
+}
+
+.ai-assistant-rail-avatar img {
+  border-radius: 50%;
+  height: 30px;
+  width: 30px;
+}
+
+/* Le rail remplace le toggle d'historique du header (evite le doublon). */
+.ai-assistant-panel.has-rail .ai-assistant-history-toggle {
+  display: none;
+}
+
+/* Le rail porte l'acces aux Parametres : on masque le bouton redondant de la
+   sidebar (il reste dans le DOM pour conserver son handler, declenche par le
+   rail via un clic programmatique). */
+.ai-assistant-panel.has-rail .ai-assistant-settings-open {
+  display: none;
+}
+
+/* Reservation de la largeur du rail cote gauche (toujours presente). */
+.ai-assistant-panel.has-rail .ai-assistant-messages,
+.ai-assistant-panel.has-rail .ai-assistant-quick-actions,
+.ai-assistant-panel.has-rail .ai-assistant-form {
+  padding-left: var(--ai-rail-space);
+}
+
+/* Modale de recherche de discussions (facon ChatGPT). */
+.ai-assistant-search-modal {
+  align-items: flex-start;
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  opacity: 0;
+  padding-top: 11vh;
+  position: absolute;
+  transition: opacity 0.18s ease;
+  z-index: 60;
+}
+
+.ai-assistant-search-modal[hidden] {
+  display: none;
+}
+
+.ai-assistant-search-modal.is-open {
+  opacity: 1;
+}
+
+.ai-assistant-search-modal-backdrop {
+  backdrop-filter: blur(5px);
+  background: rgb(5 6 18 / 55%);
+  inset: 0;
+  position: absolute;
+}
+
+.ai-assistant-search-dialog {
+  background: linear-gradient(180deg, rgb(26 26 52 / 96%), rgb(15 14 34 / 97%));
+  border: 1px solid rgb(255 255 255 / 14%);
+  border-radius: 18px;
+  box-shadow: 0 30px 80px rgb(0 0 0 / 55%);
+  display: flex;
+  flex-direction: column;
+  max-height: 72%;
+  overflow: hidden;
+  position: relative;
+  transform: translateY(-8px);
+  transition: transform 0.18s ease;
+  width: min(620px, calc(100% - 48px));
+}
+
+.ai-assistant-search-modal.is-open .ai-assistant-search-dialog {
+  transform: translateY(0);
+}
+
+.ai-assistant-search-input-row {
+  align-items: center;
+  border-bottom: 1px solid rgb(255 255 255 / 10%);
+  display: flex;
+  gap: 10px;
+  padding: 14px 16px;
+}
+
+.ai-assistant-search-input-icon {
+  color: rgb(235 240 255 / 60%);
+  display: inline-flex;
+}
+
+.ai-assistant-search-modal-input {
+  background: transparent;
+  border: 0;
+  color: #fff;
+  flex: 1;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  outline: none;
+}
+
+.ai-assistant-search-modal-input::placeholder {
+  color: rgb(235 240 255 / 45%);
+}
+
+.ai-assistant-search-modal-close {
+  background: transparent;
+  border: 0;
+  color: rgb(235 240 255 / 70%);
+  cursor: pointer;
+  font-size: 1.4rem;
+  line-height: 1;
+  padding: 0 4px;
+}
+
+.ai-assistant-search-modal-close:hover {
+  color: #fff;
+}
+
+.ai-assistant-search-results {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.ai-assistant-search-result {
+  align-items: flex-start;
+  background: transparent;
+  border: 0;
+  border-radius: 10px;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  text-align: left;
+  width: 100%;
+}
+
+.ai-assistant-search-result:hover,
+.ai-assistant-search-result.is-active {
+  background: rgb(255 255 255 / 8%);
+}
+
+.ai-assistant-search-result--new {
+  align-items: center;
+  flex-direction: row;
+  font-weight: 600;
+  gap: 10px;
+}
+
+.ai-assistant-search-result--new img {
+  height: 18px;
+  object-fit: contain;
+  width: 18px;
+}
+
+.ai-assistant-search-result-title {
+  font-size: 0.92rem;
+}
+
+.ai-assistant-search-result-meta {
+  color: rgb(235 240 255 / 50%);
+  font-size: 0.76rem;
+}
+
+.ai-assistant-search-empty {
+  color: rgb(235 240 255 / 55%);
+  padding: 16px;
+  text-align: center;
+}
+
+/* Modale d'entree (creation de projet, etc.) — reutilise le socle .ai-assistant-search-modal. */
+.ai-assistant-input-dialog {
+  background: linear-gradient(180deg, rgb(26 26 52 / 97%), rgb(15 14 34 / 98%));
+  border: 1px solid rgb(255 255 255 / 14%);
+  border-radius: 18px;
+  box-shadow: 0 30px 80px rgb(0 0 0 / 55%);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+  position: relative;
+  text-align: left;
+  transform: translateY(-8px);
+  transition: transform 0.18s ease;
+  width: min(520px, calc(100% - 48px));
+}
+
+.ai-assistant-search-modal.is-open .ai-assistant-input-dialog {
+  transform: translateY(0);
+}
+
+.ai-assistant-input-modal-head {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.ai-assistant-input-modal-title {
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  margin: 0;
+}
+
+.ai-assistant-input-modal-label {
+  color: rgb(235 240 255 / 72%);
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+}
+
+.ai-assistant-input-modal-field {
+  background: rgb(255 255 255 / 6%);
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: 12px;
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  outline: none;
+  padding: 12px 14px;
+  width: 100%;
+}
+
+.ai-assistant-input-modal-field:focus {
+  border-color: rgb(121 230 255 / 55%);
+}
+
+.ai-assistant-input-modal-field::placeholder {
+  color: rgb(235 240 255 / 40%);
+}
+
+.ai-assistant-input-modal-hint {
+  color: rgb(235 240 255 / 52%);
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.ai-assistant-input-modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.ai-assistant-input-modal-btn {
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 9px 16px;
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.12s ease;
+}
+
+.ai-assistant-input-modal-btn--ghost {
+  background: transparent;
+  border: 1px solid rgb(255 255 255 / 18%);
+  color: rgb(235 240 255 / 85%);
+}
+
+.ai-assistant-input-modal-btn--ghost:hover {
+  background: rgb(255 255 255 / 8%);
+}
+
+.ai-assistant-input-modal-btn--primary {
+  background: linear-gradient(135deg, #6f6bff, #9d7dff);
+  border: 1px solid transparent;
+  color: #fff;
+}
+
+.ai-assistant-input-modal-btn--primary:hover {
+  transform: translateY(-1px);
+}
+
+[data-theme="light"] .ai-assistant-input-dialog {
+  background: linear-gradient(180deg, rgb(255 255 255 / 99%), rgb(245 244 255 / 99%));
+  border-color: rgb(93 93 255 / 18%);
+  box-shadow: 0 30px 80px rgb(88 74 136 / 22%);
+}
+
+[data-theme="light"] .ai-assistant-input-modal-title {
+  color: #2f2b5f;
+}
+
+[data-theme="light"] .ai-assistant-input-modal-label {
+  color: rgb(47 43 95 / 80%);
+}
+
+[data-theme="light"] .ai-assistant-input-modal-field {
+  background: rgb(93 93 255 / 6%);
+  border-color: rgb(93 93 255 / 24%);
+  color: #2f2b5f;
+}
+
+[data-theme="light"] .ai-assistant-input-modal-field::placeholder {
+  color: rgb(47 43 95 / 45%);
+}
+
+[data-theme="light"] .ai-assistant-input-modal-hint {
+  color: rgb(47 43 95 / 60%);
+}
+
+[data-theme="light"] .ai-assistant-input-modal-btn--ghost {
+  border-color: rgb(93 93 255 / 24%);
+  color: #2f2b5f;
+}
+
+[data-theme="light"] .ai-assistant-input-modal-close {
+  color: #2f2b5f;
+}
+
+/* Conteneur scrollable englobant tout le contenu de la sidebar (facon ChatGPT) :
+   tout le panneau gauche defile, tandis que la poignee de resize et les menus
+   contextuels restent hors de ce conteneur pour ne pas etre rognes. */
+.ai-assistant-sidebar-scroll {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 4px;
+  scrollbar-color: rgb(121 230 255 / 34%) transparent;
+  scrollbar-width: thin;
 }
 
 .ai-assistant-sidebar-nav {
@@ -10549,7 +10944,7 @@ body.body-menu-open .ai-assistant-launcher {
 }
 
 .ai-assistant-session-search-icon {
-  border: 2px solid rgb(235 240 255 / 72%);
+  border: 2px solid rgb(246 247 255 / 92%);
   border-radius: 50%;
   display: block;
   flex: 0 0 auto;
@@ -10559,7 +10954,7 @@ body.body-menu-open .ai-assistant-launcher {
 }
 
 .ai-assistant-session-search-icon::after {
-  background: rgb(235 240 255 / 72%);
+  background: rgb(246 247 255 / 92%);
   border-radius: 999px;
   content: "";
   height: 2px;
@@ -10574,10 +10969,10 @@ body.body-menu-open .ai-assistant-launcher {
   appearance: none;
   background: transparent;
   border: 0;
-  color: rgb(245 247 255 / 94%);
+  color: rgb(246 247 255 / 92%);
   flex: 1;
   font-family: var(--font-body);
-  font-size: 0.83rem;
+  font-size: 0.77rem;
   min-width: 0;
   outline: 0;
   padding: 8px 0;
@@ -10596,7 +10991,7 @@ body.body-menu-open .ai-assistant-launcher {
   cursor: pointer;
   display: flex;
   font-family: var(--font-body);
-  font-size: 0.86rem;
+  font-size: 0.8rem;
   font-weight: 600;
   gap: 10px;
   min-height: 42px;
@@ -10614,8 +11009,7 @@ body.body-menu-open .ai-assistant-launcher {
 }
 
 .ai-assistant-sidebar-action:hover,
-.ai-assistant-sidebar-action.is-active,
-.ai-assistant-session-library {
+.ai-assistant-sidebar-action.is-active {
   background: rgb(255 255 255 / 8%);
   border-color: rgb(255 255 255 / 8%);
 }
@@ -10638,14 +11032,15 @@ body.body-menu-open .ai-assistant-launcher {
 
 .ai-assistant-section-header {
   align-items: center;
-  color: rgb(235 240 255 / 62%);
+  color: rgb(246 247 255 / 92%);
   display: flex;
   font-family: var(--font-body);
   font-size: 0.72rem;
   font-weight: 700;
   justify-content: space-between;
   letter-spacing: 0.02em;
-  padding: 0 2px;
+  /* padding-left aligne l'icone de section avec celle des boutons d'action. */
+  padding: 0 2px 0 12px;
 }
 
 .ai-assistant-section-toggle {
@@ -10658,30 +11053,42 @@ body.body-menu-open .ai-assistant-launcher {
   display: inline-flex;
   flex: 1;
   font: inherit;
-  gap: 6px;
+  gap: 10px;
   min-width: 0;
   padding: 4px 0;
   text-align: left;
 }
 
+.ai-assistant-section-icon {
+  display: block;
+  flex: 0 0 auto;
+  height: 20px;
+  object-fit: contain;
+  width: 20px;
+}
+
 .ai-assistant-section-title {
+  font-size: 0.8rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .ai-assistant-section-count {
-  color: rgb(121 230 255 / 70%);
+  color: rgb(246 247 255 / 92%);
   flex: 0 0 auto;
-  font-size: 0.68rem;
+  font-size: 0.63rem;
 }
 
 .ai-assistant-section-chevron {
-  color: rgb(121 230 255 / 78%);
+  color: rgb(246 247 255 / 92%);
   display: inline-flex;
   flex: 0 0 auto;
   font-size: 1rem;
   line-height: 1;
+  /* Chevron place juste apres le libelle (facon ChatGPT "Epingles ›"), et non
+     rejete a l'extremite. order:5 le met apres le titre/compteur. */
+  order: 5;
   transform: rotate(90deg);
   transition: transform 0.18s ease;
 }
@@ -10707,11 +11114,9 @@ body.body-menu-open .ai-assistant-launcher {
 .ai-assistant-projects-block > .ai-assistant-project-list {
   display: grid;
   gap: 6px !important;
-  max-height: min(176px, 24vh);
-  overflow-y: auto;
+  max-height: none;
+  overflow-y: visible;
   padding-right: 2px;
-  scrollbar-color: rgb(121 230 255 / 34%) transparent;
-  scrollbar-width: thin;
   transition: max-height 0.2s ease, opacity 0.18s ease, visibility 0.18s ease;
 }
 
@@ -10768,7 +11173,9 @@ body.body-menu-open .ai-assistant-launcher {
 
 .ai-assistant-projects-block.is-collapsed > .ai-assistant-project-list,
 .ai-assistant-recent-block.is-collapsed + .ai-assistant-session-select + .ai-assistant-session-list {
+  flex: 0 0 auto;
   max-height: 0;
+  min-height: 0;
   opacity: 0;
   overflow: hidden;
   pointer-events: none;
@@ -11117,6 +11524,41 @@ body.body-menu-open .ai-assistant-launcher {
   gap: 12px;
 }
 
+.ai-assistant-project-new-conversation {
+  align-items: center;
+  background: rgb(255 255 255 / 6%);
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 12px;
+  color: rgb(246 247 255 / 92%);
+  cursor: pointer;
+  display: flex;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 600;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 11px 14px;
+  transition: background 0.18s ease, border-color 0.18s ease;
+  width: 100%;
+}
+
+.ai-assistant-project-new-conversation:hover {
+  background: rgb(121 230 255 / 14%);
+  border-color: rgb(121 230 255 / 36%);
+}
+
+.ai-assistant-project-new-conversation img {
+  height: 18px;
+  object-fit: contain;
+  width: 18px;
+}
+
+[data-theme="light"] .ai-assistant-project-new-conversation {
+  background: rgb(93 93 255 / 6%);
+  border-color: rgb(93 93 255 / 18%);
+  color: #2f2b5f;
+}
+
 .ai-assistant-project-row {
   background: rgb(255 255 255 / 5%);
   border: 1px solid rgb(255 255 255 / 8%);
@@ -11135,15 +11577,15 @@ button.ai-assistant-project-row {
 
 .ai-assistant-project-row strong {
   color: rgb(246 247 255 / 92%);
-  font-size: 0.82rem;
+  font-size: 0.76rem;
   line-height: 1.3;
 }
 
 .ai-assistant-project-row span,
 .ai-assistant-project-empty {
-  color: rgb(235 240 255 / 54%);
+  color: rgb(246 247 255 / 92%);
   font-family: var(--font-body);
-  font-size: 0.72rem;
+  font-size: 0.66rem;
   line-height: 1.4;
 }
 
@@ -11206,6 +11648,42 @@ button.ai-assistant-project-row {
 .ai-assistant-settings-section input[type="checkbox"] {
   flex: 0 0 auto;
   width: auto;
+}
+
+.ai-assistant-settings-feedback {
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 0.76rem;
+  font-weight: 700;
+  margin: 0;
+  padding: 8px 10px;
+}
+
+.ai-assistant-settings-feedback[hidden] {
+  display: none;
+}
+
+.ai-assistant-settings-feedback.is-success {
+  background: rgb(157 245 195 / 12%);
+  border: 1px solid rgb(157 245 195 / 30%);
+  color: #9df5c3;
+}
+
+.ai-assistant-settings-feedback.is-error {
+  background: rgb(255 107 107 / 12%);
+  border: 1px solid rgb(255 107 107 / 30%);
+  color: #ff6b6b;
+}
+
+.ai-assistant-settings-data-row {
+  display: grid;
+  gap: 8px;
+}
+
+.ai-assistant-settings-data-status {
+  color: rgb(235 240 255 / 60%);
+  font-family: var(--font-body);
+  font-size: 0.72rem;
 }
 
 .ai-assistant-project-delete-dialog {
@@ -11587,10 +12065,20 @@ button.ai-assistant-project-row {
   display: none;
 }
 
+/* Les vues (bibliotheque, projet, parametres) reservent toujours l'espace du
+   rail a gauche ; quand la sidebar est ouverte (et redimensionnable), on ajoute
+   sa largeur courante (--ai-history-width suit le resize) pour que le contenu
+   ne passe jamais sous le rail/la sidebar. */
+.ai-assistant-panel.has-rail .ai-assistant-library-view,
+.ai-assistant-panel.has-rail .ai-assistant-project-view,
+.ai-assistant-panel.has-rail .ai-assistant-settings-view {
+  margin-left: var(--ai-rail-space, 0px);
+}
+
 .ai-assistant-panel.has-history-open .ai-assistant-library-view,
 .ai-assistant-panel.has-history-open .ai-assistant-project-view,
 .ai-assistant-panel.has-history-open .ai-assistant-settings-view {
-  margin-left: calc(var(--ai-history-width) + 18px);
+  margin-left: calc(var(--ai-rail-space, 0px) + var(--ai-history-width) + 18px);
 }
 
 .ai-assistant-media-preview {
@@ -11792,23 +12280,22 @@ button.ai-assistant-project-row {
 
 .ai-assistant-session-heading {
   align-items: center;
-  color: rgb(235 240 255 / 58%);
+  color: rgb(246 247 255 / 92%);
   display: flex;
   font-family: var(--font-body);
   font-size: 0.72rem;
   font-weight: 700;
-  gap: 8px;
+  gap: 10px;
   letter-spacing: 0.02em;
   margin-top: 4px;
-  padding: 0 2px;
+  padding: 0 2px 0 12px;
 }
 
 .ai-assistant-session-heading img {
   display: block;
-  height: 16px;
+  height: 20px;
   object-fit: contain;
-  opacity: 0.75;
-  width: 16px;
+  width: 20px;
 }
 
 .ai-assistant-panel.has-history-open .ai-assistant-session-bar {
@@ -11820,11 +12307,298 @@ button.ai-assistant-project-row {
 .ai-assistant-panel.has-history-open .ai-assistant-messages,
 .ai-assistant-panel.has-history-open .ai-assistant-quick-actions,
 .ai-assistant-panel.has-history-open .ai-assistant-form {
-  margin-left: calc(var(--ai-history-width) + 18px);
+  padding-left: calc(var(--ai-rail-space, 0px) + var(--ai-history-width) + 18px + var(--ai-thread-gutter, 30px));
 }
 
 .ai-assistant-panel.has-history-open .ai-assistant-scroll-bottom {
   left: calc(50% + ((var(--ai-history-width) + 18px) / 2));
+}
+
+/* AI sources side panel */
+.ai-sources-panel,
+.ai-assistant-sources-panel {
+  backdrop-filter: blur(24px) saturate(150%);
+  background:
+    radial-gradient(circle at 82% 0%, rgb(121 230 255 / 15%), transparent 36%),
+    radial-gradient(circle at 12% 14%, rgb(200 34 255 / 18%), transparent 38%),
+    linear-gradient(180deg, rgb(29 28 61 / 88%), rgb(14 13 34 / 92%)),
+    linear-gradient(145deg, rgb(121 230 255 / 34%), rgb(157 125 255 / 30%), rgb(200 34 255 / 26%));
+  background-clip: padding-box, border-box;
+  background-origin: border-box;
+  border: 1px solid transparent;
+  border-radius: 20px;
+  bottom: 12px;
+  box-shadow:
+    -18px 0 44px rgb(0 0 0 / 26%),
+    inset 0 1px 0 rgb(255 255 255 / 10%),
+    0 0 24px rgb(93 93 255 / 10%);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+  position: absolute;
+  right: 12px;
+  text-align: left;
+  top: 74px;
+  transform: translateX(calc(100% + 26px));
+  transition: opacity 0.22s ease, transform 0.22s ease;
+  width: var(--ai-sources-width, 380px);
+  z-index: 7;
+}
+
+.ai-sources-panel--open,
+.ai-assistant-sources-panel--open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(0);
+}
+
+.ai-sources-panel-header {
+  align-items: center;
+  border-bottom: 1px solid rgb(255 255 255 / 10%);
+  display: flex;
+  flex: 0 0 auto;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 16px 16px 14px 18px;
+  position: relative;
+  z-index: 1;
+}
+
+.ai-sources-panel-title {
+  align-items: baseline;
+  color: rgb(246 247 255 / 92%);
+  display: flex;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  gap: 7px;
+  margin: 0;
+}
+
+.ai-sources-panel-title-label {
+  font-weight: 700;
+}
+
+.ai-sources-panel-count {
+  color: rgb(235 240 255 / 52%);
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.ai-sources-panel-close {
+  background: rgb(255 255 255 / 8%);
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 8px;
+  color: rgb(246 247 255 / 80%);
+  cursor: pointer;
+  flex: 0 0 auto;
+  font-size: 1rem;
+  height: 30px;
+  line-height: 1;
+  transition: background 0.18s ease, border-color 0.18s ease;
+  width: 30px;
+}
+
+.ai-sources-panel-close:hover,
+.ai-sources-panel-close:focus-visible {
+  background: rgb(255 255 255 / 14%);
+  border-color: rgb(121 230 255 / 38%);
+}
+
+.ai-sources-panel-body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 18px;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px 14px 16px 18px;
+}
+
+.ai-sources-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ai-sources-section-title {
+  color: rgb(235 240 255 / 60%);
+  font-family: var(--font-body);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.ai-source-card {
+  background: rgb(255 255 255 / 6%);
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 12px;
+  display: grid;
+  gap: 6px;
+  padding: 10px 11px;
+}
+
+a.ai-source-card {
+  color: inherit;
+  text-decoration: none;
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+a.ai-source-card:hover {
+  background: rgb(255 255 255 / 10%);
+  border-color: rgb(121 230 255 / 32%);
+  transform: translateY(-1px);
+}
+
+a.ai-source-card:focus-visible {
+  outline: 2px solid rgb(121 230 255 / 60%);
+  outline-offset: 2px;
+}
+
+.ai-source-card-head {
+  align-items: center;
+  display: flex;
+  gap: 7px;
+}
+
+.ai-source-open-indicator {
+  color: rgb(121 230 255 / 70%);
+  font-size: 0.78rem;
+  margin-left: auto;
+}
+
+.ai-source-favicon {
+  align-items: center;
+  background: rgb(255 255 255 / 10%);
+  border-radius: 5px;
+  display: flex;
+  flex: 0 0 auto;
+  font-size: 0.68rem;
+  font-weight: 700;
+  height: 18px;
+  justify-content: center;
+  overflow: hidden;
+  width: 18px;
+}
+
+.ai-source-favicon-img {
+  object-fit: cover;
+  height: 100%;
+  width: 100%;
+}
+
+.ai-source-favicon-fallback {
+  color: rgb(246 247 255 / 80%);
+}
+
+.ai-source-favicon--fallback {
+  background: rgb(255 255 255 / 14%);
+  color: rgb(246 247 255 / 80%);
+}
+
+.ai-source-domain {
+  color: rgb(235 240 255 / 64%);
+  font-size: 0.72rem;
+}
+
+.ai-source-id {
+  color: #8ab4ff;
+  font-size: 0.76rem;
+  font-weight: 750;
+}
+
+.ai-source-title {
+  color: rgb(246 247 255 / 92%);
+  font-size: 0.82rem;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.ai-source-meta {
+  color: rgb(235 240 255 / 58%);
+  display: block;
+  font-size: 0.72rem;
+}
+
+.ai-source-snippet {
+  -webkit-box-orient: vertical;
+  color: rgb(235 240 255 / 70%);
+  display: -webkit-box;
+  font-size: 0.76rem;
+  -webkit-line-clamp: 3;
+  line-height: 1.5;
+  margin: 0;
+  overflow: hidden;
+}
+
+.ai-source-badge {
+  background: rgb(255 255 255 / 10%);
+  border-radius: 999px;
+  color: rgb(246 247 255 / 80%);
+  font-size: 0.66rem;
+  font-weight: 700;
+  justify-self: start;
+  letter-spacing: 0.02em;
+  padding: 2px 9px;
+  text-transform: uppercase;
+}
+
+.ai-source-badge--web {
+  background: rgb(121 230 255 / 16%);
+  color: #79e6ff;
+}
+
+.ai-source-badge--project {
+  background: rgb(157 125 255 / 18%);
+  color: #c4b5ff;
+}
+
+.ai-source-badge--global {
+  background: rgb(200 34 255 / 16%);
+  color: #e7a9ff;
+}
+
+.ai-sources-trigger {
+  background: rgb(121 230 255 / 12%);
+  border: 1px solid rgb(121 230 255 / 22%);
+  border-radius: 999px;
+  color: rgb(246 247 255 / 88%);
+  cursor: pointer;
+  display: inline-flex;
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 700;
+  margin-top: 12px;
+  padding: 6px 14px;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.ai-sources-trigger:hover {
+  background: rgb(121 230 255 / 18%);
+  border-color: rgb(121 230 255 / 38%);
+}
+
+.ai-sources-trigger:focus-visible {
+  outline: 2px solid rgb(121 230 255 / 60%);
+  outline-offset: 2px;
+}
+
+.ai-assistant-panel.has-sources-open .ai-assistant-messages,
+.ai-assistant-panel.has-sources-open .ai-assistant-quick-actions,
+.ai-assistant-panel.has-sources-open .ai-assistant-form {
+  padding-right: calc(var(--ai-sources-width) + 18px + var(--ai-thread-gutter, 30px));
+}
+
+.ai-assistant-panel.has-sources-open .ai-assistant-scroll-bottom {
+  left: calc(50% - ((var(--ai-sources-width) + 18px) / 2));
+}
+
+.ai-assistant-panel.has-history-open.has-sources-open .ai-assistant-scroll-bottom {
+  left: calc(50% + ((var(--ai-history-width) - var(--ai-sources-width)) / 2));
 }
 
 .ai-assistant-session-label {
@@ -11842,16 +12616,14 @@ button.ai-assistant-project-row {
 
 .ai-assistant-session-list {
   display: flex;
-  flex: 0 1 auto;
+  flex: 0 0 auto;
   flex-direction: column;
   gap: 6px;
-  max-height: min(250px, 32vh);
+  max-height: none;
   min-height: 0;
-  overflow-y: auto;
+  overflow-y: visible;
   padding-right: 2px;
-  scrollbar-color: rgb(121 230 255 / 34%) transparent;
-  scrollbar-width: thin;
-  transition: max-height 0.2s ease, opacity 0.18s ease, visibility 0.18s ease;
+  transition: opacity 0.18s ease, visibility 0.18s ease;
 }
 
 .ai-assistant-session-item {
@@ -11884,7 +12656,7 @@ button.ai-assistant-project-row {
 
 .ai-assistant-session-item-title {
   display: block;
-  font-size: 0.8rem;
+  font-size: 0.74rem;
   font-weight: 650;
   line-height: 1.25;
   overflow: hidden;
@@ -11894,9 +12666,9 @@ button.ai-assistant-project-row {
 
 .ai-assistant-session-item-meta,
 .ai-assistant-session-empty {
-  color: rgb(235 240 255 / 48%);
+  color: rgb(246 247 255 / 92%);
   font-family: var(--font-body);
-  font-size: 0.66rem;
+  font-size: 0.6rem;
   line-height: 1.35;
 }
 
@@ -12285,15 +13057,27 @@ body.ai-assistant-sidebar-is-resizing * {
 }
 
 .ai-assistant-messages {
+  /* Colonne de lecture unique facon ChatGPT : message bot (a gauche) et message
+     utilisateur (a droite) partagent une meme colonne qui REMPLIT tout l'espace
+     disponible entre le panneau historique (gauche) et le panneau Sources
+     (droite). Les panneaux sont des overlays absolus : on reserve donc leur
+     largeur via du PADDING (les marges sur ce flex-item en colonne sont
+     ignorees sur l'axe transversal). Gouttieres fines par defaut ; quand un
+     panneau s'ouvre, on ajoute sa largeur du cote concerne (cf. regles
+     has-history-open / has-sources-open) et la colonne se retrecit/recentre
+     automatiquement. */
+  --ai-thread-gutter: 30px;
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 22px;
+  gap: 26px;
   margin-left: 0;
+  min-width: 0;
   overscroll-behavior: contain;
+  overflow-x: hidden;
   overflow-y: auto;
-  padding: 28px 26px 12px;
-  transition: margin-left 0.22s ease;
+  padding: 28px var(--ai-thread-gutter) 14px;
+  transition: padding 0.22s ease;
 }
 
 .ai-assistant-scroll-bottom {
@@ -12376,6 +13160,7 @@ body.ai-assistant-sidebar-is-resizing * {
 
 .ai-assistant-message-content {
   max-height: none;
+  min-width: 0;
   overflow: visible;
   padding-right: 38px;
   padding-top: 2px;
@@ -12465,21 +13250,21 @@ body.ai-assistant-sidebar-is-resizing * {
 .ai-assistant-message p {
   display: block;
   height: auto;
-  line-height: 1.72;
-  margin: 0 0 0.78rem;
+  line-height: 1.7;
+  margin: 0 0 0.95rem;
   min-height: 0;
 }
 
 .ai-assistant-message p + p {
-  margin-top: 0.6rem;
+  margin-top: 0.3rem;
 }
 
 .ai-assistant-heading {
   color: #dfe8ff;
   font-weight: 700;
   letter-spacing: 0.01em;
-  line-height: 1.25;
-  margin: 1.1rem 0 0.58rem;
+  line-height: 1.3;
+  margin: 1.5rem 0 0.75rem;
   -webkit-text-fill-color: #dfe8ff;
 }
 
@@ -12511,7 +13296,7 @@ body.ai-assistant-sidebar-is-resizing * {
 
 .ai-assistant-message ul,
 .ai-assistant-message ol {
-  margin: 0.35rem 0 0.9rem;
+  margin: 0.45rem 0 1.1rem;
   padding-left: 1.35rem;
 }
 
@@ -12521,7 +13306,7 @@ body.ai-assistant-sidebar-is-resizing * {
 
 .ai-assistant-message li {
   line-height: 1.66;
-  margin: 0;
+  margin: 0 0 0.18rem;
   padding-left: 0.12rem;
 }
 
@@ -12553,8 +13338,8 @@ body.ai-assistant-sidebar-is-resizing * {
   border-left: 3px solid rgb(121 230 255 / 72%);
   color: rgb(235 240 255 / 86%);
   font-style: italic;
-  margin: 10px 0;
-  padding: 8px 0 8px 12px;
+  margin: 16px 0;
+  padding: 10px 0 10px 14px;
   -webkit-text-fill-color: rgb(235 240 255 / 86%);
 }
 
@@ -12606,6 +13391,53 @@ body.ai-assistant-sidebar-is-resizing * {
 }
 
 .ai-assistant-code-copy-btn img {
+  display: block;
+  height: 13px;
+  object-fit: contain;
+  width: 13px;
+}
+
+/* Bouton de copie discret, ancre en haut a droite de chaque tableau. */
+.ai-assistant-table-wrap--has-copy {
+  position: relative;
+}
+
+.ai-assistant-table-copy-btn {
+  align-items: center;
+  background: rgb(12 14 30 / 78%);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgb(255 255 255 / 20%);
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  height: 26px;
+  justify-content: center;
+  opacity: 0;
+  padding: 0;
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  transition: opacity 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+  width: 26px;
+  z-index: 3;
+}
+
+.ai-assistant-table-wrap--has-copy:hover .ai-assistant-table-copy-btn,
+.ai-assistant-table-copy-btn:focus-visible {
+  opacity: 1;
+}
+
+.ai-assistant-table-copy-btn:hover {
+  background: rgb(121 230 255 / 16%);
+  border-color: rgb(121 230 255 / 48%);
+}
+
+.ai-assistant-table-copy-btn.is-copied {
+  border-color: rgb(90 207 166 / 75%);
+  opacity: 1;
+}
+
+.ai-assistant-table-copy-btn img {
   display: block;
   height: 13px;
   object-fit: contain;
@@ -12939,7 +13771,6 @@ body.ai-assistant-sidebar-is-resizing * {
 }
 
 .ai-assistant-quick-actions {
-  border-top: 1px solid rgb(255 255 255 / 8%);
   display: flex;
   flex-wrap: wrap;
   gap: 7px;
@@ -12966,13 +13797,35 @@ body.ai-assistant-sidebar-is-resizing * {
 }
 
 .ai-assistant-form {
-  border-top: 1px solid rgb(255 255 255 / 8%);
   display: flex;
   align-items: center;
   gap: 10px;
   margin-left: 0;
+  min-width: 0;
   padding: 10px;
-  transition: margin-left 0.22s ease;
+  position: relative;
+  transition: margin-left 0.22s ease, margin-right 0.22s ease;
+}
+
+/* Separateur du composer aligne sur la colonne de lecture (et non plein cadre
+   sous le rail/sidebar). Les bornes left/right suivent les memes reservations
+   de paddings que la zone messages selon l'etat des panneaux. */
+.ai-assistant-form::before {
+  background: rgb(255 255 255 / 8%);
+  content: "";
+  height: 1px;
+  left: var(--ai-rail-space, 16px);
+  position: absolute;
+  right: var(--ai-thread-gutter, 30px);
+  top: 0;
+}
+
+.ai-assistant-panel.has-history-open .ai-assistant-form::before {
+  left: calc(var(--ai-rail-space, 0px) + var(--ai-history-width) + 18px + var(--ai-thread-gutter, 30px));
+}
+
+.ai-assistant-panel.has-sources-open .ai-assistant-form::before {
+  right: calc(var(--ai-sources-width) + 18px + var(--ai-thread-gutter, 30px));
 }
 
 .ai-assistant-attach {
@@ -13061,10 +13914,12 @@ body.ai-assistant-sidebar-is-resizing * {
   border: 1px solid rgb(255 255 255 / 18%);
   border-radius: 10px;
   color: #fff;
-  flex: 2 1 420px;
+  flex: 2 1 320px;
   font-family: var(--font-body);
   font-size: 0.85rem;
-  min-width: 280px;
+  /* min-width: 0 pour que le champ absorbe le retrecissement (sidebar ouverte)
+     au lieu de pousser le bouton "Envoyer" hors du cadre. */
+  min-width: 0;
   padding: 10px;
 }
 
@@ -13085,6 +13940,7 @@ body.ai-assistant-sidebar-is-resizing * {
   border-radius: 10px;
   color: #fff;
   cursor: pointer;
+  flex: 0 0 auto;
   font-family: var(--font-body);
   font-size: 0.83rem;
   font-weight: 600;
@@ -13174,8 +14030,18 @@ body.ai-assistant-sidebar-is-resizing * {
 }
 
 @container (max-width: 760px) {
+  .ai-assistant-panel {
+    --ai-thread-gutter: 16px;
+  }
+
+  /* Sur fenetre etroite, la sidebar devient un tiroir qui couvre toute la zone
+     de contenu (du rail au bord droit), au lieu d'une demi-largeur qui chevauche
+     le composer. Le rail (z-index superieur) reste visible/cliquable a gauche
+     pour le refermer. */
   .ai-assistant-session-bar {
-    width: min(292px, 86cqw);
+    left: var(--ai-rail-space, 74px);
+    right: 12px;
+    width: auto;
   }
 
   .ai-assistant-sidebar-resize {
@@ -13189,9 +14055,27 @@ body.ai-assistant-sidebar-is-resizing * {
   .ai-assistant-panel.has-history-open .ai-assistant-project-view,
   .ai-assistant-panel.has-history-open .ai-assistant-settings-view {
     margin-left: 0;
+    padding-left: var(--ai-thread-gutter, 16px);
   }
 
   .ai-assistant-panel.has-history-open .ai-assistant-scroll-bottom {
+    left: 50%;
+  }
+
+  .ai-sources-panel {
+    left: 12px;
+    right: 12px;
+    width: auto;
+  }
+
+  .ai-assistant-panel.has-sources-open .ai-assistant-messages,
+  .ai-assistant-panel.has-sources-open .ai-assistant-quick-actions,
+  .ai-assistant-panel.has-sources-open .ai-assistant-form {
+    margin-right: 0;
+    padding-right: var(--ai-thread-gutter, 16px);
+  }
+
+  .ai-assistant-panel.has-sources-open .ai-assistant-scroll-bottom {
     left: 50%;
   }
 
@@ -13329,6 +14213,105 @@ body.ai-assistant-sidebar-is-resizing * {
     18px 0 34px rgb(88 74 136 / 12%),
     inset 0 1px 0 rgb(255 255 255 / 80%),
     0 0 18px rgb(93 93 255 / 8%);
+}
+
+[data-theme="light"] .ai-sources-panel {
+  background:
+    radial-gradient(circle at 82% 0%, rgb(93 93 255 / 10%), transparent 36%),
+    radial-gradient(circle at 12% 14%, rgb(200 34 255 / 10%), transparent 38%),
+    linear-gradient(180deg, rgb(255 255 255 / 94%), rgb(244 242 255 / 96%)),
+    linear-gradient(145deg, rgb(93 93 255 / 32%), rgb(200 34 255 / 24%));
+  box-shadow:
+    -18px 0 34px rgb(88 74 136 / 12%),
+    inset 0 1px 0 rgb(255 255 255 / 80%),
+    0 0 18px rgb(93 93 255 / 8%);
+}
+
+[data-theme="light"] .ai-sources-panel-header {
+  border-bottom-color: rgb(93 93 255 / 14%);
+}
+
+[data-theme="light"] .ai-sources-panel-title,
+[data-theme="light"] .ai-source-title {
+  color: #24235c;
+}
+
+[data-theme="light"] .ai-sources-panel-close {
+  background: rgb(37 99 235 / 10%);
+  border-color: rgb(37 99 235 / 35%);
+  color: #1e3a8a;
+}
+
+[data-theme="light"] .ai-sources-panel-close:hover,
+[data-theme="light"] .ai-sources-panel-close:focus-visible {
+  background: rgb(37 99 235 / 16%);
+  border-color: rgb(37 99 235 / 55%);
+  color: #172554;
+}
+
+[data-theme="light"] .ai-sources-section-title,
+[data-theme="light"] .ai-source-domain,
+[data-theme="light"] .ai-source-meta,
+[data-theme="light"] .ai-source-snippet {
+  color: rgb(47 43 95 / 62%);
+}
+
+[data-theme="light"] .ai-source-card {
+  background: rgb(255 255 255 / 70%);
+  border-color: rgb(93 93 255 / 14%);
+}
+
+[data-theme="light"] a.ai-source-card:hover {
+  background: rgb(255 255 255 / 92%);
+  border-color: rgb(76 76 255 / 32%);
+}
+
+[data-theme="light"] a.ai-source-card:focus-visible {
+  outline-color: rgb(76 76 255 / 55%);
+}
+
+[data-theme="light"] .ai-source-open-indicator {
+  color: rgb(76 76 255 / 70%);
+}
+
+[data-theme="light"] .ai-source-favicon {
+  background: rgb(93 93 255 / 10%);
+}
+
+[data-theme="light"] .ai-source-favicon--fallback {
+  color: #4c4cff;
+}
+
+[data-theme="light"] .ai-source-id {
+  color: #4c4cff;
+}
+
+[data-theme="light"] .ai-source-badge--web {
+  background: rgb(76 76 255 / 12%);
+  color: #4c4cff;
+}
+
+[data-theme="light"] .ai-source-badge--project {
+  background: rgb(93 93 255 / 14%);
+  color: #5b45d6;
+}
+
+[data-theme="light"] .ai-source-badge--global {
+  background: rgb(200 34 255 / 12%);
+  color: #a324d8;
+}
+
+[data-theme="light"] .ai-sources-trigger {
+  background: rgb(37 99 235 / 10%);
+  border-color: rgb(37 99 235 / 35%);
+  color: #1e3a8a;
+}
+
+[data-theme="light"] .ai-sources-trigger:hover,
+[data-theme="light"] .ai-sources-trigger:focus-visible {
+  background: rgb(37 99 235 / 16%);
+  border-color: rgb(37 99 235 / 55%);
+  color: #172554;
 }
 
 [data-theme="light"] .ai-assistant-session-search-wrap {
@@ -13497,6 +14480,35 @@ body.ai-assistant-sidebar-is-resizing * {
   border-color: rgb(93 93 255 / 12%);
 }
 
+/* Boutons bleus de l'onglet Sources/Documents — en mode clair, ces boutons heritaient
+   des couleurs cyan/blanc reglees pour le fond sombre (texte quasi blanc sur fond clair),
+   d'ou un contraste insuffisant. */
+[data-theme="light"] .ai-assistant-project-tabs button {
+  color: rgb(47 43 95 / 62%);
+}
+
+[data-theme="light"] .ai-assistant-project-tabs button.is-active,
+[data-theme="light"] .ai-assistant-project-tabs button:hover {
+  background: rgb(37 99 235 / 14%);
+  color: #1e3a8a;
+}
+
+[data-theme="light"] .ai-assistant-project-source-actions button,
+[data-theme="light"] .ai-assistant-project-row-action {
+  background: rgb(37 99 235 / 10%);
+  border-color: rgb(37 99 235 / 35%);
+  color: #1e3a8a;
+}
+
+[data-theme="light"] .ai-assistant-project-source-actions button:hover,
+[data-theme="light"] .ai-assistant-project-source-actions button:focus-visible,
+[data-theme="light"] .ai-assistant-project-row-action:hover,
+[data-theme="light"] .ai-assistant-project-row-action:focus-visible {
+  background: rgb(37 99 235 / 16%);
+  border-color: rgb(37 99 235 / 55%);
+  color: #172554;
+}
+
 [data-theme="light"] .ai-assistant-project-memory,
 [data-theme="light"] .ai-assistant-project-settings input,
 [data-theme="light"] .ai-assistant-project-settings textarea,
@@ -13505,6 +14517,22 @@ body.ai-assistant-sidebar-is-resizing * {
   background: rgb(255 255 255 / 76%);
   border-color: rgb(93 93 255 / 16%);
   color: #2f2b5f;
+}
+
+[data-theme="light"] .ai-assistant-settings-data-status {
+  color: rgb(47 43 95 / 62%);
+}
+
+[data-theme="light"] .ai-assistant-settings-feedback.is-success {
+  background: rgb(16 122 64 / 10%);
+  border-color: rgb(16 122 64 / 30%);
+  color: #0f6b3a;
+}
+
+[data-theme="light"] .ai-assistant-settings-feedback.is-error {
+  background: rgb(167 38 88 / 10%);
+  border-color: rgb(167 38 88 / 30%);
+  color: #a72658;
 }
 
 [data-theme="light"] .ai-assistant-media-card-thumb {
@@ -13614,11 +14642,24 @@ body.ai-assistant-sidebar-is-resizing * {
   color: rgb(48 111 157 / 76%);
 }
 
-[data-theme="light"] .ai-assistant-project-export-submenu {
+[data-theme="light"] .ai-assistant-project-export-submenu,
+[data-theme="light"] .ai-assistant-project-sources-submenu {
   background:
     linear-gradient(180deg, rgb(255 255 255 / 98%), rgb(245 244 255 / 98%)),
     linear-gradient(145deg, rgb(93 93 255 / 28%), rgb(200 34 255 / 18%));
   box-shadow: 0 18px 38px rgb(88 74 136 / 18%);
+}
+
+[data-theme="light"] .ai-assistant-project-sources-submenu button,
+[data-theme="light"] .ai-assistant-project-export-submenu button {
+  color: #2f2b5f;
+}
+
+[data-theme="light"] .ai-assistant-project-sources-submenu button:hover,
+[data-theme="light"] .ai-assistant-project-sources-submenu button:focus-visible,
+[data-theme="light"] .ai-assistant-project-export-submenu button:hover,
+[data-theme="light"] .ai-assistant-project-export-submenu button:focus-visible {
+  background: rgb(93 93 255 / 10%);
 }
 
 [data-theme="light"] .ai-assistant-project-delete-panel {
@@ -14171,4 +15212,276 @@ body.ai-assistant-sidebar-is-resizing * {
     font-size: 1rem;
     padding: 13px 22px;
   }
+}
+
+/* AI Markdown rendering layer — conteneur dedie .ai-markdown / .assistant-markdown pour les reponses de l'assistant IA. Variables de couleur dediees, independantes du theme global, pour garantir un contraste fiable en mode clair et sombre. */
+
+:root,
+[data-theme="dark"] {
+  --ai-text: #f5f0ff;
+  --ai-text-muted: #d9d0f5;
+  --ai-surface: rgb(17 12 38 / 82%);
+  --ai-surface-soft: rgb(255 255 255 / 7%);
+  --ai-border: rgb(255 255 255 / 15%);
+  --ai-accent: #8ab4ff;
+}
+
+[data-theme="light"] {
+  --ai-text: #17142a;
+  --ai-text-muted: #50476f;
+  --ai-surface: rgb(255 255 255 / 88%);
+  --ai-surface-soft: rgb(94 79 190 / 8%);
+  --ai-border: rgb(70 55 130 / 18%);
+  --ai-accent: #5b45d6;
+}
+
+.assistant-markdown,
+.ai-markdown {
+  color: var(--ai-text, #f4f0ff);
+  font-size: clamp(0.9rem, 0.86rem + 0.12vw, 0.96rem);
+  line-height: 1.72;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  width: 100%;
+  word-break: normal;
+}
+
+.assistant-markdown > *:first-child,
+.ai-markdown > *:first-child {
+  margin-top: 0;
+}
+
+.assistant-markdown > *:last-child,
+.ai-markdown > *:last-child {
+  margin-bottom: 0;
+}
+
+.assistant-markdown p,
+.ai-markdown p {
+  color: var(--ai-text, #f4f0ff);
+  margin: 0 0 0.95rem;
+}
+
+.assistant-markdown h1,
+.assistant-markdown h2,
+.assistant-markdown h3,
+.assistant-markdown h4,
+.ai-markdown h1,
+.ai-markdown h2,
+.ai-markdown h3,
+.ai-markdown h4 {
+  color: var(--ai-text, #fff);
+  font-weight: 750;
+  line-height: 1.3;
+  margin: 1.5rem 0 0.75rem;
+}
+
+/* Neutralise l'ancien effet degrade transparent (background-clip: text +
+   -webkit-text-fill-color: transparent) applique au h1, qui peut rendre le
+   titre illisible selon le rendu du navigateur ou le contraste du theme. */
+.assistant-markdown h1,
+.ai-markdown h1 {
+  background: none;
+  background-clip: initial;
+  font-size: 1.35rem;
+  -webkit-text-fill-color: var(--ai-text, #fff);
+}
+
+.assistant-markdown h2,
+.ai-markdown h2 {
+  font-size: 1.18rem;
+}
+
+.assistant-markdown h3,
+.ai-markdown h3 {
+  font-size: 1.05rem;
+}
+
+.assistant-markdown ul,
+.assistant-markdown ol,
+.ai-markdown ul,
+.ai-markdown ol {
+  color: var(--ai-text, #f4f0ff);
+  margin: 0.5rem 0 1.1rem;
+  padding-left: 1.35rem;
+}
+
+.assistant-markdown li,
+.ai-markdown li {
+  margin: 0 0 0.32rem;
+  padding-left: 0.15rem;
+}
+
+.assistant-markdown li + li,
+.ai-markdown li + li {
+  margin-top: 0;
+}
+
+.assistant-markdown li::marker,
+.ai-markdown li::marker {
+  color: var(--ai-accent, #8ab4ff);
+  font-weight: 700;
+}
+
+.assistant-markdown strong,
+.ai-markdown strong {
+  color: var(--ai-text, #fff);
+  font-weight: 750;
+}
+
+.assistant-markdown em,
+.ai-markdown em {
+  color: var(--ai-text-muted, #d8ceff);
+}
+
+.assistant-markdown table,
+.ai-markdown table {
+  border: 1px solid var(--ai-border, rgb(255 255 255 / 16%));
+  border-collapse: collapse;
+  border-radius: 14px;
+  display: block;
+  margin: 1rem 0;
+  overflow-x: auto;
+  width: 100%;
+}
+
+.assistant-markdown th,
+.assistant-markdown td,
+.ai-markdown th,
+.ai-markdown td {
+  border-bottom: 1px solid var(--ai-border, rgb(255 255 255 / 12%));
+  color: var(--ai-text, #f4f0ff);
+  padding: 0.75rem 0.85rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.assistant-markdown th,
+.ai-markdown th {
+  background: var(--ai-surface-soft, rgb(255 255 255 / 8%));
+  color: var(--ai-text, #fff);
+  font-weight: 750;
+}
+
+.assistant-markdown blockquote,
+.ai-markdown blockquote {
+  background: var(--ai-surface-soft, rgb(255 255 255 / 7%));
+  border-left: 4px solid var(--ai-accent, #8ab4ff);
+  border-radius: 12px;
+  color: var(--ai-text, #f4f0ff);
+  margin: 1.2rem 0;
+  padding: 0.9rem 1.1rem;
+}
+
+.assistant-markdown code,
+.ai-markdown code {
+  background: var(--ai-surface-soft, rgb(255 255 255 / 10%));
+  border-radius: 7px;
+  color: var(--ai-text, #fff);
+  font-size: 0.9em;
+  padding: 0.15rem 0.35rem;
+}
+
+.assistant-markdown pre,
+.ai-markdown pre {
+  background: var(--ai-surface, rgb(8 5 22 / 72%));
+  border: 1px solid var(--ai-border, rgb(255 255 255 / 14%));
+  border-radius: 14px;
+  margin: 1rem 0;
+  overflow-x: auto;
+  padding: 1rem;
+}
+
+.assistant-markdown pre code,
+.ai-markdown pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+}
+
+.assistant-markdown hr,
+.ai-markdown hr {
+  border: 0;
+  border-top: 1px solid var(--ai-border, rgb(255 255 255 / 14%));
+  margin: 1.2rem 0;
+}
+
+@media (width <= 640px) {
+  .assistant-markdown,
+  .ai-markdown {
+    font-size: 0.93rem;
+  }
+}
+
+/* AI message layout layer — corrige la largeur de la bulle assistant. .ai-assistant-message--bot a "align-self: flex-start" (defini plus haut), ce qui desactive l'etirement par defaut du conteneur flex .ai-assistant-messages (flex-direction: column) et fait dependre la largeur de la bulle de son seul contenu : d'ou une colonne tassee a gauche avec un grand vide a droite. On force une largeur explicite pour retrouver une vraie colonne de lecture, bornee a 980px, sans toucher aux variantes compactes (typing, library-media). */
+.ai-assistant-message--bot:not(.ai-assistant-message--typing, .ai-assistant-message--library-media) {
+  max-width: 100%;
+  /* width 100% moins la gouttiere avatar (margin-left: 40px) pour remplir la
+     bande de lecture centree sans deborder a droite. */
+  width: calc(100% - 40px);
+}
+
+.ai-assistant-message-content.ai-markdown {
+  max-width: 100%;
+  width: 100%;
+}
+
+.ai-assistant-message-content.ai-markdown table,
+.ai-assistant-message-content.ai-markdown pre {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* RAG sources block — liste deterministe des documents projet reellement utilises pour la reponse, ajoutee en JS apres le rendu Markdown (cf. appendRagSources). Reprend les variables --ai-* du calque Markdown pour rester coherent dans les deux themes. */
+.rag-sources-section {
+  border-top: 1px solid var(--ai-border, rgb(255 255 255 / 15%));
+  margin-top: 18px;
+  padding-top: 16px;
+}
+
+.rag-sources-title {
+  color: var(--ai-text, #f2efff);
+  font-size: 0.92rem;
+  font-weight: 700;
+  margin: 0 0 12px;
+}
+
+.rag-sources-list {
+  display: grid;
+  gap: 10px;
+}
+
+.rag-source-card {
+  background: var(--ai-surface-soft, rgb(255 255 255 / 7%));
+  border: 1px solid var(--ai-border, rgb(255 255 255 / 15%));
+  border-radius: 10px;
+  display: grid;
+  gap: 5px;
+  padding: 10px 12px;
+}
+
+.rag-source-id {
+  color: var(--ai-accent, #8ab4ff);
+  font-weight: 750;
+  margin-right: 6px;
+}
+
+.rag-source-name {
+  color: var(--ai-text, #f2efff);
+  font-weight: 650;
+}
+
+.rag-source-meta {
+  color: var(--ai-text-muted, #d9d0f5);
+  display: block;
+  font-size: 0.78rem;
+}
+
+/* Non utilisee par appendRagSources pour l'instant (extrait stocke en data-excerpt, non affiche) ; reservee a un futur "Voir l'extrait" repliable. */
+.rag-source-excerpt {
+  color: var(--ai-text-muted, #d9d0f5);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  margin: 4px 0 0;
 }

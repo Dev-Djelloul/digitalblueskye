@@ -18,17 +18,29 @@
       || 'fr';
   }
 
+  function resolveAssistantTimezone() {
+    const candidate = assistantSettingsState?.profile?.timezone;
+    if (!candidate) return 'Europe/Paris';
+    try {
+      new Intl.DateTimeFormat('en-US', { timeZone: candidate });
+      return candidate;
+    } catch (error) {
+      return 'Europe/Paris';
+    }
+  }
+
   function getAssistantCurrentDateContext() {
     const now = new Date();
     const isoDate = now.toISOString().slice(0, 10);
+    const timezone = resolveAssistantTimezone();
     const formatter = new Intl.DateTimeFormat(currentLanguage === 'en' ? 'en-US' : 'fr-FR', {
       dateStyle: 'full',
-      timeZone: 'Europe/Paris'
+      timeZone: timezone
     });
     return {
       isoDate,
       localeDate: formatter.format(now),
-      timezone: 'Europe/Paris'
+      timezone
     };
   }
 
@@ -269,6 +281,8 @@
   const createNewIconUrl = resolveUiIconUrl('icons8-create-new-64.png');
   const newFolderIconUrl = resolveUiIconUrl('icons8-new-folder-64.png');
   const libraryIconUrl = resolveUiIconUrl('icons8-library-64.png');
+  const projectSectionIconUrl = resolveUiIconUrl('icons8-project-64.png');
+  const conversationSectionIconUrl = resolveUiIconUrl('icons8-conversation-64.png');
 
   function createWebSearchButtonMarkup() {
     return `
@@ -298,6 +312,7 @@
   function createSessionControlsMarkup() {
     return `
       <div id="ai-assistant-history-panel" class="ai-assistant-session-bar" aria-label="${i18n.historyLabel}">
+        <div class="ai-assistant-sidebar-scroll">
         <div class="ai-assistant-sidebar-nav">
           <label class="ai-assistant-session-search-wrap" for="ai-assistant-session-search">
             <span class="ai-assistant-session-search-icon" aria-hidden="true"></span>
@@ -308,10 +323,15 @@
             <span>${i18n.newChat}</span>
           </button>
         </div>
+        <button id="ai-assistant-session-library" class="ai-assistant-session-library ai-assistant-sidebar-action" type="button" title="${i18n.library}" aria-label="${i18n.library}">
+          <img src="${libraryIconUrl}" alt="" aria-hidden="true">
+          <span>${i18n.library}</span>
+        </button>
         <div id="ai-assistant-projects-section" class="ai-assistant-sidebar-section ai-assistant-projects-block">
           <div class="ai-assistant-section-header ai-assistant-projects-head">
             <button id="ai-assistant-projects-toggle" class="ai-assistant-section-toggle" type="button" aria-expanded="true" aria-controls="ai-assistant-project-list">
               <span class="ai-assistant-section-chevron" aria-hidden="true">›</span>
+              <img class="ai-assistant-section-icon" src="${projectSectionIconUrl}" alt="" aria-hidden="true">
               <span class="ai-assistant-section-title">Projets</span>
               <span id="ai-assistant-project-count" class="ai-assistant-section-count">(0)</span>
             </button>
@@ -319,14 +339,11 @@
           </div>
           <div id="ai-assistant-project-list" class="ai-assistant-project-list" role="list"></div>
         </div>
-        <button id="ai-assistant-session-library" class="ai-assistant-session-library ai-assistant-sidebar-action" type="button" title="${i18n.library}" aria-label="${i18n.library}">
-          <img src="${libraryIconUrl}" alt="" aria-hidden="true">
-          <span>${i18n.library}</span>
-        </button>
         <div id="ai-assistant-recent-section" class="ai-assistant-sidebar-section ai-assistant-recent-block">
           <div class="ai-assistant-section-header ai-assistant-session-heading">
             <button id="ai-assistant-recent-toggle" class="ai-assistant-section-toggle" type="button" aria-expanded="true" aria-controls="ai-assistant-session-list">
               <span class="ai-assistant-section-chevron" aria-hidden="true">›</span>
+              <img class="ai-assistant-section-icon" src="${conversationSectionIconUrl}" alt="" aria-hidden="true">
               <span class="ai-assistant-session-label ai-assistant-section-title">Discussions recentes</span>
               <span id="ai-assistant-recent-count" class="ai-assistant-section-count">(0)</span>
             </button>
@@ -345,6 +362,7 @@
           <button id="ai-assistant-session-delete" class="ai-assistant-session-delete" type="button" title="${i18n.deleteChat}" aria-label="${i18n.deleteChat}">
             <img src="${deleteIconUrl}" alt="" aria-hidden="true">
           </button>
+        </div>
         </div>
         <span id="ai-assistant-sidebar-resize" class="ai-assistant-sidebar-resize" role="separator" aria-orientation="vertical" tabindex="0" title="${i18n.resizeSidebar}" aria-label="${i18n.resizeSidebar}"></span>
         <div id="ai-assistant-session-menu" class="ai-assistant-session-context-menu" role="menu" aria-hidden="true">
@@ -488,6 +506,250 @@
       </div>`;
   }
 
+  function createSourcesPanelMarkup() {
+    return `
+      <aside id="ai-assistant-sources-panel" class="ai-assistant-sources-panel ai-sources-panel" aria-hidden="true" aria-label="Sources">
+        <div class="ai-sources-panel-header">
+          <h3 class="ai-sources-panel-title"><span class="ai-sources-panel-title-label">Sources</span><span class="ai-sources-panel-count" id="ai-assistant-sources-panel-count" hidden></span></h3>
+          <button id="ai-assistant-sources-panel-close" class="ai-sources-panel-close" type="button" aria-label="${currentLanguage === 'en' ? 'Close' : 'Fermer'}">&times;</button>
+        </div>
+        <div id="ai-assistant-sources-panel-body" class="ai-sources-panel-body"></div>
+      </aside>`;
+  }
+
+  // Garde-fou : garantit que #ai-assistant-sources-panel existe toujours dans
+  // le DOM apres l'init, meme si ensureAssistantMarkup() a pris la branche
+  // "panel deja present" (qui ne reinjecte pas le contenu du gabarit initial).
+  function ensureSourcesPanel() {
+    let el = document.getElementById('ai-assistant-sources-panel');
+    if (el) return el;
+    const host = document.getElementById('ai-assistant-panel') || document.body;
+    host.insertAdjacentHTML('beforeend', createSourcesPanelMarkup());
+    return document.getElementById('ai-assistant-sources-panel');
+  }
+
+  // Rail d'icones permanent (facon ChatGPT) au bord gauche du panneau. Il ne
+  // duplique aucune logique : chaque icone declenche le bouton existant de la
+  // barre laterale complete (recherche, nouvelle discussion, bibliotheque…).
+  function createSidebarRailMarkup() {
+    const searchSvg = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>';
+    const settingsIconUrl = resolveUiIconUrl('icons8-settings.svg');
+    const settingsLabel = currentLanguage === 'en' ? 'Settings' : 'Paramètres';
+    return `
+      <nav id="ai-assistant-rail" class="ai-assistant-rail" aria-label="${currentLanguage === 'en' ? 'Sidebar' : 'Barre latérale'}">
+        <div class="ai-assistant-rail-group">
+          <button class="ai-assistant-rail-btn" type="button" data-rail="toggle" title="${i18n.historyToggle}" aria-label="${i18n.historyToggle}"><img src="${sidebarIconUrl}" alt="" aria-hidden="true"></button>
+          <button class="ai-assistant-rail-btn" type="button" data-rail="search" title="${i18n.searchConversations}" aria-label="${i18n.searchConversations}">${searchSvg}</button>
+          <button class="ai-assistant-rail-btn" type="button" data-rail="new" title="${i18n.newChat}" aria-label="${i18n.newChat}"><img src="${createNewIconUrl}" alt="" aria-hidden="true"></button>
+          <button class="ai-assistant-rail-btn" type="button" data-rail="library" title="${i18n.library}" aria-label="${i18n.library}"><img src="${libraryIconUrl}" alt="" aria-hidden="true"></button>
+        </div>
+        <div class="ai-assistant-rail-group ai-assistant-rail-group--bottom">
+          <button class="ai-assistant-rail-btn" type="button" data-rail="settings" title="${settingsLabel}" aria-label="${settingsLabel}"><img src="${settingsIconUrl}" alt="" aria-hidden="true"></button>
+          <button class="ai-assistant-rail-btn ai-assistant-rail-avatar" type="button" data-rail="settings" title="${settingsLabel}" aria-label="${settingsLabel}"><img src="/assets/images/portrait/my-notion-face-transparent.png" alt="" aria-hidden="true"></button>
+        </div>
+      </nav>`;
+  }
+
+  function ensureSidebarRail() {
+    const host = document.getElementById('ai-assistant-panel');
+    if (!host || document.getElementById('ai-assistant-rail')) return;
+    host.insertAdjacentHTML('beforeend', createSidebarRailMarkup());
+    host.classList.add('has-rail');
+    const rail = document.getElementById('ai-assistant-rail');
+    const trigger = (id) => document.getElementById(id)?.click();
+    const isHistoryOpen = () => host.classList.contains('has-history-open');
+    rail.addEventListener('click', (event) => {
+      const btn = event.target.closest('[data-rail]');
+      if (!btn) return;
+      switch (btn.dataset.rail) {
+        case 'toggle':
+          trigger('ai-assistant-history-toggle');
+          break;
+        case 'new':
+          trigger('ai-assistant-session-new');
+          break;
+        case 'search':
+          openSearchModal();
+          break;
+        case 'library':
+          trigger('ai-assistant-session-library');
+          break;
+        case 'settings':
+          trigger('ai-assistant-settings-open');
+          break;
+        default:
+          break;
+      }
+      rail.querySelectorAll('.ai-assistant-rail-btn').forEach((b) => b.classList.toggle('is-active', b.dataset.rail === 'toggle' && isHistoryOpen()));
+    });
+  }
+
+  // Modale de recherche de discussions (facon ChatGPT) declenchee depuis le rail.
+  // Elle reutilise les donnees existantes (sessionsState) et switchSession().
+  function ensureSearchModal() {
+    if (document.getElementById('ai-assistant-search-modal')) return;
+    const host = document.getElementById('ai-assistant-panel') || document.body;
+    const searchSvg = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>';
+    const placeholder = currentLanguage === 'en' ? 'Search chats...' : 'Rechercher des discussions…';
+    host.insertAdjacentHTML('beforeend', `
+      <div id="ai-assistant-search-modal" class="ai-assistant-search-modal" aria-hidden="true" hidden>
+        <div class="ai-assistant-search-modal-backdrop" data-search-close></div>
+        <div class="ai-assistant-search-dialog" role="dialog" aria-modal="true" aria-label="${placeholder}">
+          <div class="ai-assistant-search-input-row">
+            <span class="ai-assistant-search-input-icon" aria-hidden="true">${searchSvg}</span>
+            <input id="ai-assistant-search-modal-input" class="ai-assistant-search-modal-input" type="search" autocomplete="off" placeholder="${placeholder}" aria-label="${placeholder}">
+            <button class="ai-assistant-search-modal-close" type="button" data-search-close aria-label="${currentLanguage === 'en' ? 'Close' : 'Fermer'}">&times;</button>
+          </div>
+          <div id="ai-assistant-search-results" class="ai-assistant-search-results" role="listbox"></div>
+        </div>
+      </div>`);
+
+    const modal = document.getElementById('ai-assistant-search-modal');
+    const input = document.getElementById('ai-assistant-search-modal-input');
+    const results = document.getElementById('ai-assistant-search-results');
+
+    modal.addEventListener('click', (event) => {
+      if (event.target.closest('[data-search-close]')) { closeSearchModal(); return; }
+      const row = event.target.closest('[data-session-id]');
+      if (row) { switchSession(row.dataset.sessionId); closeSearchModal(); return; }
+      if (event.target.closest('[data-search-new]')) {
+        closeSearchModal();
+        document.getElementById('ai-assistant-session-new')?.click();
+      }
+    });
+    input.addEventListener('input', () => renderSearchResults(input.value));
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && !modal.hidden) closeSearchModal();
+    });
+  }
+
+  function renderSearchResults(query) {
+    const results = document.getElementById('ai-assistant-search-results');
+    if (!results) return;
+    results.innerHTML = '';
+    const q = String(query || '').trim().toLowerCase();
+
+    const newRow = document.createElement('button');
+    newRow.type = 'button';
+    newRow.className = 'ai-assistant-search-result ai-assistant-search-result--new';
+    newRow.setAttribute('data-search-new', '');
+    newRow.innerHTML = `<img src="${createNewIconUrl}" alt="" aria-hidden="true"><span>${i18n.newChat}</span>`;
+    results.appendChild(newRow);
+
+    const sessions = (sessionsState.sessions || [])
+      .map((session) => ({ session, title: getSessionDisplayTitle(session) }))
+      .filter(({ title }) => !q || title.toLowerCase().includes(q))
+      .sort((a, b) => (b.session.updatedAt || 0) - (a.session.updatedAt || 0));
+
+    if (!sessions.length) {
+      const empty = document.createElement('p');
+      empty.className = 'ai-assistant-search-empty';
+      empty.textContent = currentLanguage === 'en' ? 'No matching chat.' : 'Aucune discussion trouvée.';
+      results.appendChild(empty);
+      return;
+    }
+
+    sessions.forEach(({ session, title }) => {
+      const row = document.createElement('button');
+      row.type = 'button';
+      row.className = 'ai-assistant-search-result';
+      row.dataset.sessionId = session.id;
+      if (session.id === sessionsState.activeSessionId) row.classList.add('is-active');
+      const date = new Date(session.updatedAt || Date.now());
+      const dateLabel = Number.isNaN(date.getTime()) ? '' : date.toLocaleDateString(currentLanguage === 'en' ? 'en-US' : 'fr-FR', { month: 'short', day: 'numeric' });
+      const count = normalizeHistory(session.history).length;
+      const meta = [dateLabel, count ? `${count} msg` : ''].filter(Boolean).join(' · ');
+      row.innerHTML = `<span class="ai-assistant-search-result-title"></span><span class="ai-assistant-search-result-meta"></span>`;
+      row.querySelector('.ai-assistant-search-result-title').textContent = title;
+      row.querySelector('.ai-assistant-search-result-meta').textContent = meta;
+      results.appendChild(row);
+    });
+  }
+
+  function openSearchModal() {
+    ensureSearchModal();
+    const modal = document.getElementById('ai-assistant-search-modal');
+    const input = document.getElementById('ai-assistant-search-modal-input');
+    if (!modal) return;
+    modal.hidden = false;
+    modal.setAttribute('aria-hidden', 'false');
+    void modal.offsetWidth; // force un reflow pour declencher la transition
+    modal.classList.add('is-open'); // pas de rAF : il est gele en onglet d'arriere-plan
+    if (input) { input.value = ''; }
+    renderSearchResults('');
+    setTimeout(() => input?.focus(), 60);
+  }
+
+  function closeSearchModal() {
+    const modal = document.getElementById('ai-assistant-search-modal');
+    if (!modal) return;
+    modal.classList.remove('is-open');
+    modal.setAttribute('aria-hidden', 'true');
+    setTimeout(() => { modal.hidden = true; }, 180);
+  }
+
+  // Modale de creation de projet (facon ChatGPT) qui remplace la window.prompt.
+  function ensureProjectModal() {
+    if (document.getElementById('ai-assistant-project-modal')) return;
+    const host = document.getElementById('ai-assistant-panel') || document.body;
+    const en = currentLanguage === 'en';
+    host.insertAdjacentHTML('beforeend', `
+      <div id="ai-assistant-project-modal" class="ai-assistant-search-modal ai-assistant-input-modal" aria-hidden="true" hidden>
+        <div class="ai-assistant-search-modal-backdrop" data-project-close></div>
+        <div class="ai-assistant-input-dialog" role="dialog" aria-modal="true" aria-label="${en ? 'Create a project' : 'Créer un projet'}">
+          <div class="ai-assistant-input-modal-head">
+            <h3 class="ai-assistant-input-modal-title">${en ? 'Create a project' : 'Créer un projet'}</h3>
+            <button class="ai-assistant-search-modal-close" type="button" data-project-close aria-label="${en ? 'Close' : 'Fermer'}">&times;</button>
+          </div>
+          <label class="ai-assistant-input-modal-label" for="ai-assistant-project-name-input">${en ? 'Project name' : 'Nom du projet'}</label>
+          <input id="ai-assistant-project-name-input" class="ai-assistant-input-modal-field" type="text" maxlength="80" autocomplete="off" placeholder="${en ? 'e.g. Trip to Istanbul' : 'Ex. Voyage à Istanbul'}">
+          <p class="ai-assistant-input-modal-hint">${en ? 'Projects keep chats, files and sources together in one place.' : 'Les projets regroupent les discussions, fichiers et sources en un seul endroit.'}</p>
+          <div class="ai-assistant-input-modal-actions">
+            <button class="ai-assistant-input-modal-btn ai-assistant-input-modal-btn--ghost" type="button" data-project-close>${en ? 'Cancel' : 'Annuler'}</button>
+            <button class="ai-assistant-input-modal-btn ai-assistant-input-modal-btn--primary" type="button" data-project-confirm>${en ? 'Create project' : 'Créer un projet'}</button>
+          </div>
+        </div>
+      </div>`);
+
+    const modal = document.getElementById('ai-assistant-project-modal');
+    const input = document.getElementById('ai-assistant-project-name-input');
+    const confirm = () => {
+      if (createProjectWithName(input.value)) closeProjectModal();
+      else input.focus();
+    };
+    modal.addEventListener('click', (event) => {
+      if (event.target.closest('[data-project-close]')) closeProjectModal();
+      else if (event.target.closest('[data-project-confirm]')) confirm();
+    });
+    input.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') { event.preventDefault(); confirm(); }
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && !modal.hidden) closeProjectModal();
+    });
+  }
+
+  function openProjectModal() {
+    ensureProjectModal();
+    const modal = document.getElementById('ai-assistant-project-modal');
+    const input = document.getElementById('ai-assistant-project-name-input');
+    if (!modal) return;
+    modal.hidden = false;
+    modal.setAttribute('aria-hidden', 'false');
+    void modal.offsetWidth;
+    modal.classList.add('is-open');
+    if (input) input.value = '';
+    setTimeout(() => input?.focus(), 60);
+  }
+
+  function closeProjectModal() {
+    const modal = document.getElementById('ai-assistant-project-modal');
+    if (!modal) return;
+    modal.classList.remove('is-open');
+    modal.setAttribute('aria-hidden', 'true');
+    setTimeout(() => { modal.hidden = true; }, 180);
+  }
+
   function createMediaPreviewMarkup() {
     return `
       <div id="ai-assistant-media-preview" class="ai-assistant-media-preview" aria-hidden="true" hidden>
@@ -552,6 +814,7 @@
           ${createProjectViewMarkup()}
           ${createSettingsViewMarkup()}
           ${createProjectDeleteDialogMarkup()}
+          ${createSourcesPanelMarkup()}
           <button id="ai-assistant-scroll-bottom" class="ai-assistant-scroll-bottom" type="button" title="${i18n.scrollBottom}" aria-label="${i18n.scrollBottom}" aria-hidden="true">
             <span aria-hidden="true"></span>
           </button>
@@ -725,6 +988,8 @@
   }
 
   ensureAssistantMarkup();
+  ensureSourcesPanel();
+  ensureSidebarRail();
 
   const API_ENDPOINT = 'https://digitalblueskye-ai.djelloulabid75.workers.dev';
   const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.readonly';
@@ -814,6 +1079,9 @@
   const projectDeleteCancelButton = document.getElementById('ai-assistant-project-delete-cancel');
   const projectDeleteConfirmButton = document.getElementById('ai-assistant-project-delete-confirm');
   const ragStatus = document.getElementById('ai-assistant-rag-status');
+  const sourcesPanel = document.getElementById('ai-assistant-sources-panel');
+  const sourcesPanelBody = document.getElementById('ai-assistant-sources-panel-body');
+  const sourcesPanelCloseButton = document.getElementById('ai-assistant-sources-panel-close');
   const sidebarResizeHandle = document.getElementById('ai-assistant-sidebar-resize');
   const sessionContextMenu = document.getElementById('ai-assistant-session-menu');
   const projectContextMenu = document.getElementById('ai-assistant-project-menu');
@@ -835,6 +1103,8 @@
   const assistantSendButton = document.querySelector('#ai-assistant-form .ai-assistant-send-btn');
   let fileInput = document.getElementById('ai-assistant-file-input');
   let chatHistory = [];
+  let sourcesPanelMessageCounter = 0;
+  const sourcesPanelPayloadByMessageId = new Map();
   let sessionsState = { activeSessionId: '', sessions: [] };
   let projectsState = { activeProjectId: '', projects: [] };
   let assistantSettingsState = {};
@@ -950,8 +1220,20 @@
     return window.matchMedia('(min-width: 769px)').matches;
   }
 
+  // En dessous de cette largeur de panneau, rail + historique + Sources +
+  // colonne de lecture ne tiennent pas ensemble : on garde alors un seul
+  // panneau lateral ouvert a la fois (l'ouverture de l'un ferme l'autre),
+  // comme ChatGPT sur les fenetres etroites.
+  function panelsMustBeExclusive() {
+    const width = panel?.getBoundingClientRect().width || 0;
+    return width > 0 && width < 1180;
+  }
+
   function setHistoryPanelOpen(open, persist = true) {
     if (!panel || !historyToggleButton) return;
+    if (open && panelsMustBeExclusive() && panel.classList.contains('has-sources-open')) {
+      closeSourcesPanel();
+    }
     panel.classList.toggle('has-history-open', open);
     historyToggleButton.classList.toggle('is-active', open);
     historyToggleButton.setAttribute('aria-expanded', String(open));
@@ -1120,7 +1402,7 @@
       web: { tavilyEnabled: true, economyMode: true, expertMode: false, maxResults: 3 },
       documents: { maxSizeMb: 20, chunking: 'auto', automaticIndexing: true, automaticRag: true, ragMaxPassages: 5, ragUseGlobalLibrary: false, ragCitations: true },
       appearance: { theme: document.documentElement.dataset.theme || 'digital-blue-skye' },
-      data: { lastExportAt: '', lastBackupAt: '' }
+      data: { lastExportAt: '', lastProjectExportAt: '', lastBackupAt: '', lastRestoreAt: '' }
     };
     try {
       const raw = localStorage.getItem(settingsStorageKey);
@@ -1314,11 +1596,9 @@
     renderProjectList();
   }
 
-  function createProjectFromPrompt() {
-    const name = window.prompt('Nom du projet');
-    if (name === null) return;
-    const cleanName = name.replace(/\s+/g, ' ').trim().slice(0, 80);
-    if (!cleanName) return;
+  function createProjectWithName(rawName) {
+    const cleanName = String(rawName || '').replace(/\s+/g, ' ').trim().slice(0, 80);
+    if (!cleanName) return false;
     const project = normalizeProject({
       id: buildProjectId(cleanName),
       name: cleanName,
@@ -1334,6 +1614,12 @@
     setHistoryPanelOpen(true);
     setWorkspaceView('project');
     renderProjectList();
+    return true;
+  }
+
+  // Remplace la window.prompt native par une modale custom (facon ChatGPT).
+  function createProjectFromPrompt() {
+    openProjectModal();
   }
 
   function getProjectExportDateStamp() {
@@ -2307,13 +2593,56 @@
     });
   }
 
+  function normalizeRagSourcesUsed(rawSources) {
+    if (!Array.isArray(rawSources) || !rawSources.length) return [];
+    return rawSources
+      .filter((source) => source && typeof source === 'object')
+      .map((source) => ({
+        id: Number(source.id) || 0,
+        documentId: String(source.documentId || ''),
+        documentName: String(source.documentName || ''),
+        documentType: String(source.documentType || ''),
+        locators: Array.isArray(source.locators) ? source.locators.map((locator) => String(locator)) : [],
+        sourceScope: source.sourceScope === 'global' ? 'global' : 'project',
+        excerpt: String(source.excerpt || '').slice(0, 220)
+      }))
+      .filter((source) => source.id > 0)
+      .slice(0, 12);
+  }
+
+  function normalizeWebSourcesUsed(rawSources) {
+    if (!Array.isArray(rawSources) || !rawSources.length) return [];
+    return rawSources
+      .filter((source) => source && typeof source === 'object')
+      .map((source) => ({
+        index: Number(source.index) || 0,
+        title: String(source.title || ''),
+        link: String(source.link || ''),
+        snippet: String(source.snippet || '').slice(0, 220),
+        publishedDate: String(source.publishedDate || '')
+      }))
+      .filter((source) => /^https?:\/\//i.test(source.link))
+      .slice(0, 12);
+  }
+
+  // Metadonnees UI uniquement (panneau Sources / bloc "Sources utilisees").
+  // Cette fonction prepare l'historique pour la persistance locale, jamais
+  // pour le payload OpenRouter (voir askAI : payload.history ne garde que
+  // {role, content}).
   function normalizeHistory(history) {
     if (!Array.isArray(history)) return [];
     return history
       .map((entry) => {
         const role = entry?.role === 'assistant' ? 'assistant' : 'user';
         const content = typeof entry?.content === 'string' ? entry.content : String(entry?.content ?? '');
-        return { role, content: content.trim().slice(0, maxStoredMessageLength) };
+        const normalized = { role, content: content.trim().slice(0, maxStoredMessageLength) };
+        if (role === 'assistant') {
+          const ragSourcesUsed = normalizeRagSourcesUsed(entry?.ragSourcesUsed);
+          if (ragSourcesUsed.length) normalized.ragSourcesUsed = ragSourcesUsed;
+          const webSourcesUsed = normalizeWebSourcesUsed(entry?.webSourcesUsed);
+          if (webSourcesUsed.length) normalized.webSourcesUsed = webSourcesUsed;
+        }
+        return normalized;
       })
       .filter((m) => m.content.length > 0)
       .slice(-maxStoredMessagesPerSession);
@@ -3959,10 +4288,18 @@
     }));
   }
 
+  function buildStableRagSourceIds(docs) {
+    // Identifiant stable par document, derive de l'ordre de l'onglet Sources
+    // (meme ordre que getProjectDocuments), independant de la selection de
+    // chunks d'une requete donnee. [S1] designe donc toujours le meme fichier.
+    return new Map((docs || []).map((doc, index) => [doc.id, index + 1]));
+  }
+
   function searchProjectRag(queryText, projectId, options = {}) {
     const startedAt = performance.now();
     const project = getProjectById(projectId);
     const docs = project ? getProjectRagDocuments(project.id, { includeGlobalLibrary: Boolean(options.includeGlobalLibrary) }) : [];
+    const sourceIds = buildStableRagSourceIds(docs);
     const maxPassages = Math.max(1, Math.min(8, Number(options.maxPassages) || 5));
     const telemetry = {
       projectId: project?.id || null,
@@ -3976,7 +4313,7 @@
     const terms = normalizeKnowledgeTerms(queryText);
     if (!project || !docs.length || !terms.length) {
       telemetry.duration_ms = Math.round(performance.now() - startedAt);
-      return { selected: [], query: { terms: [], uniqueTerms: [], phrases: [] }, docs, telemetry };
+      return { selected: [], query: { terms: [], uniqueTerms: [], phrases: [] }, docs, sourceIds, telemetry };
     }
     const query = {
       terms,
@@ -4010,7 +4347,7 @@
     telemetry.documents_used = new Set(selected.map((item) => item.doc.id)).size;
     telemetry.context_length = selected.reduce((sum, item) => sum + String(item.chunk || '').length, 0);
     telemetry.duration_ms = Math.round(performance.now() - startedAt);
-    return { selected, query, docs, telemetry };
+    return { selected, query, docs, sourceIds, telemetry };
   }
 
   function retrieveKnowledgeContext(userText) {
@@ -4019,6 +4356,44 @@
       includeGlobalLibrary: Boolean(activeProject?.ragUseGlobalLibrary),
       maxPassages: activeProject?.ragMaxPassages || maxRetrievedKnowledgeChunks
     });
+  }
+
+  function shouldUseProjectRagForMessage(message, activeProject) {
+    const value = String(message || '').toLowerCase();
+    if (!activeProject || !value.trim()) return false;
+
+    const documentIntentTriggers = [
+      'à partir des sources', 'a partir des sources',
+      'dans les documents', 'dans le document',
+      'selon les sources', 'selon les documents', 'selon le document',
+      "d'après les sources", "d'apres les sources", "d'après les documents", "d'apres les documents",
+      'que disent les sources', 'que disent les documents',
+      'documents du projet', 'document du projet', 'sources du projet',
+      'résume les blocages', 'resume les blocages', 'blocages techniques',
+      'mémoire projet', 'memoire projet',
+      'compare', 'comparer', 'comparaison',
+      'audit', 'mvp', 'backend', 'frontend', 'questionnaire', 'matching',
+      'from the sources', 'in the documents', 'according to the sources', 'according to the documents',
+      'project documents', 'project sources', 'technical blockers'
+    ];
+    const projectNameToken = String(activeProject.name || '').trim().toLowerCase();
+    if (projectNameToken && projectNameToken.length >= 2 && value.includes(projectNameToken)) return true;
+    if (documentIntentTriggers.some((trigger) => value.includes(trigger))) return true;
+
+    const metaSystemTriggers = [
+      'quelle heure', 'quelle date', 'quel jour', 'fuseau horaire',
+      'what time', 'what date', 'current time', 'current date', 'time zone', 'timezone',
+      'quel modèle', 'quel modele', 'quel est le modèle', 'quel est le modele', 'modèle ia', 'modele ia', 'modèle utilisé', 'modele utilise',
+      'which model', 'what model', 'ai model',
+      'paramètres', 'parametres', 'réglages', 'reglages', 'settings',
+      'exporter', 'export', 'sauvegarde', 'backup', 'restauration', 'restore',
+      'recherche web', 'cherche sur le web', 'rechercher sur le web', 'recherche internet', 'cherche sur internet',
+      'search the web', 'web search', 'browse the web',
+      'openrouter', 'tavily', 'cloudflare', 'navigateur', 'browser'
+    ];
+    if (metaSystemTriggers.some((trigger) => value.includes(trigger))) return false;
+
+    return true;
   }
 
   function buildKnowledgeContextForPrompt(userText) {
@@ -4042,36 +4417,82 @@
       { event_type: 'rag_query', event_value: activeProject.name, meta: baseMeta },
       { event_type: result.selected.length ? 'rag_match' : 'rag_no_match', event_value: result.selected.length ? `${result.selected.length} passages` : 'no_match', meta: baseMeta }
     ];
-    if (!result.selected.length) return { context: '', events, status: 'no_match', selected: [], telemetry: baseMeta };
-    const { selected, query } = result;
+    if (!result.selected.length) return { context: '', events, status: 'no_match', selected: [], usedSources: [], telemetry: baseMeta };
+    const { selected, query, sourceIds } = result;
     const scopeLabel = includeGlobalLibrary ? 'project_sources_plus_global_library' : 'project_sources';
+
+    // Regroupe les chunks selectionnes par document : un seul identifiant
+    // stable [Sx] par source, meme si plusieurs chunks du meme document sont
+    // utilises. L'id vient de sourceIds (ordre de l'onglet Sources), pas de
+    // la position dans cette selection — il ne change donc pas d'une requete
+    // a l'autre pour un meme fichier.
+    const groupsById = new Map();
+    selected.forEach((item) => {
+      const id = sourceIds.get(item.doc.id);
+      if (!id) return;
+      if (!groupsById.has(id)) groupsById.set(id, { id, doc: item.doc, items: [] });
+      groupsById.get(id).items.push(item);
+    });
+    const projectOwnDocIds = new Set(getProjectDocuments(activeProject.id).map((doc) => doc.id));
+    const usedSources = Array.from(groupsById.values())
+      .sort((a, b) => a.id - b.id)
+      .map((group) => {
+        const bestItem = group.items.slice().sort((a, b) => b.score - a.score)[0];
+        return {
+          id: group.id,
+          documentId: group.doc.id,
+          documentName: group.doc.name,
+          documentType: group.doc.type || 'Document',
+          locators: group.items.map((item) => item.locator),
+          sourceScope: projectOwnDocIds.has(group.doc.id) ? 'project' : 'global',
+          excerpt: String(bestItem?.chunk || '').replace(/\s+/g, ' ').trim().slice(0, 220)
+        };
+      });
+
     const intro = currentLanguage === 'en'
       ? [
         'Active project document context.',
         `RAG scope: ${scopeLabel}. Active project: ${activeProject?.name || 'No project'}.`,
-        'Use the passages below only if relevant. Cite sources with [D1], [D2], etc. If the documents do not contain the answer, say so clearly.',
+        'Use the passages below only if relevant. If the documents do not contain the answer, say so clearly.',
         `Query terms: ${query.uniqueTerms.slice(0, 18).join(', ')}`
       ].join('\n')
       : [
         'Contexte documentaire du projet actif.',
         `Scope RAG : ${scopeLabel}. Projet actif : ${activeProject?.name || 'Aucun projet'}.`,
-        'Utilise les passages documentaires ci-dessous si pertinents. Cite les sources avec [D1], [D2], etc. Si les documents ne contiennent pas la réponse, dis-le clairement.',
+        'Utilise les passages documentaires ci-dessous si pertinents. Si les documents ne contiennent pas la réponse, dis-le clairement.',
         `Termes de requête : ${query.uniqueTerms.slice(0, 18).join(', ')}`
       ].join('\n');
-    const context = [
-      intro,
-      ...selected.map((item, index) => [
-        `\n[D${index + 1}]`,
-        `Document: ${item.doc.name}`,
-        `Type: ${item.doc.type}`,
-        `Localisation: ${item.locator}`,
+
+    const passages = usedSources.map((source) => {
+      const group = groupsById.get(source.id);
+      const locatorLabel = source.locators.join(', ');
+      return [
+        `\n[S${source.id}]`,
+        currentLanguage === 'en' ? `Document: ${source.documentName}` : `Document : ${source.documentName}`,
+        currentLanguage === 'en' ? `Type: ${source.documentType}` : `Type : ${source.documentType}`,
+        currentLanguage === 'en' ? `Location: ${locatorLabel}` : `Localisation : ${locatorLabel}`,
         currentLanguage === 'en' ? 'Excerpt:' : 'Extrait :',
-        item.chunk
-      ].join('\n'))
-    ].join('\n\n');
-    const usedMeta = { ...baseMeta, context_length: context.length };
-    events.push({ event_type: 'rag_context_used', event_value: `${selected.length} passages`, meta: usedMeta });
-    return { context, events, status: 'match', selected, telemetry: usedMeta };
+        group.items.map((item) => item.chunk).join('\n---\n')
+      ].join('\n');
+    });
+
+    const sourcesIndexHeading = currentLanguage === 'en'
+      ? 'AVAILABLE DOCUMENT SOURCES FOR THIS REPLY:'
+      : 'SOURCES DOCUMENTAIRES DISPONIBLES POUR CETTE RÉPONSE :';
+    const sourcesIndexLines = usedSources.map((source) => {
+      const locatorLabel = source.locators.join(', ');
+      return `[S${source.id}] ${source.documentName} — ${source.documentType} — ${locatorLabel}`;
+    });
+    const validIdsLabel = usedSources.map((source) => `[S${source.id}]`).join(', ');
+    const sourcesRule = currentLanguage === 'en'
+      ? `Rule: cite only the identifiers ${validIdsLabel} listed above for information coming from these documents. Never invent a reference. If information comes from the persistent project memory instead, write "project memory" and not an [Sx] reference.`
+      : `Règle : cite uniquement les identifiants ${validIdsLabel} listés ci-dessus pour les informations issues de ces documents. N'invente jamais de référence. Si une information vient plutôt de la mémoire persistante du projet, écris « mémoire projet » et non une référence [Sx].`;
+    const sourcesIndexBlock = [sourcesIndexHeading, ...sourcesIndexLines, sourcesRule].join('\n');
+
+    const context = [intro, ...passages, `\n${sourcesIndexBlock}`].join('\n\n');
+    const usedMeta = { ...baseMeta, context_length: context.length, sources_used: usedSources.length };
+    events.push({ event_type: 'rag_context_used', event_value: `${selected.length} passages / ${usedSources.length} sources`, meta: usedMeta });
+    return { context, events, status: 'match', selected, usedSources, telemetry: usedMeta };
   }
 
   function loadExternalScript(src) {
@@ -4315,8 +4736,11 @@
 
   function buildSessionId() { return `s_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`; }
 
-  function makeDefaultSession() {
-    return { id: buildSessionId(), projectId: getActiveProject()?.id || null, title: i18n.sessionDefault, customTitle: false, summary: '', createdAt: Date.now(), updatedAt: Date.now(), history: [] };
+  function makeDefaultSession(projectId = null) {
+    // Le rattachement a un projet est desormais explicite : une discussion creee
+    // hors projet reste independante (projectId null) ; seule la creation depuis
+    // la page d'un projet transmet son id.
+    return { id: buildSessionId(), projectId: getProjectById(projectId)?.id || null, title: i18n.sessionDefault, customTitle: false, summary: '', createdAt: Date.now(), updatedAt: Date.now(), history: [] };
   }
 
   function isDefaultSessionTitle(title) {
@@ -4479,9 +4903,12 @@
     if (sessionSelect) sessionSelect.innerHTML = '';
     if (sessionList) sessionList.innerHTML = '';
     const sorted = [...sessionsState.sessions].sort((a, b) => b.updatedAt - a.updatedAt);
-    if (recentCount) recentCount.textContent = `(${sorted.length})`;
+    // "Discussions recentes" ne montre que les discussions independantes (hors
+    // projet) ; les conversations d'un projet vivent dans la page du projet.
+    const standalone = sorted.filter((session) => !getSessionProjectId(session));
+    if (recentCount) recentCount.textContent = `(${standalone.length})`;
     const searchTerm = sessionSearchInput?.value?.trim().toLowerCase() || '';
-    const filtered = sorted.filter((session) => {
+    const filtered = standalone.filter((session) => {
       if (!searchTerm) return true;
       const title = getSessionDisplayTitle(session).toLowerCase();
       const summary = normalizeSessionSummary(session.summary).toLowerCase();
@@ -4653,6 +5080,13 @@
   }
 
   function renderProjectConversations(project, container) {
+    const newButton = document.createElement('button');
+    newButton.type = 'button';
+    newButton.className = 'ai-assistant-project-new-conversation';
+    newButton.innerHTML = `<img src="${createNewIconUrl}" alt="" aria-hidden="true"><span>${currentLanguage === 'en' ? 'New conversation' : 'Nouvelle conversation'}</span>`;
+    newButton.addEventListener('click', () => createProjectConversation(project.id));
+    container.appendChild(newButton);
+
     const sessions = (sessionsState.sessions || [])
       .filter((session) => getSessionProjectId(session) === project.id)
       .sort((a, b) => b.updatedAt - a.updatedAt);
@@ -4789,6 +5223,148 @@
     container.appendChild(form);
   }
 
+  function formatSettingsTimestamp(value) {
+    if (!value) return currentLanguage === 'en' ? 'never' : 'jamais';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return currentLanguage === 'en' ? 'never' : 'jamais';
+    return date.toLocaleString(currentLanguage === 'en' ? 'en-US' : 'fr-FR', { dateStyle: 'medium', timeStyle: 'short' });
+  }
+
+  function showAssistantFeedback(message, type = 'success') {
+    if (!settingsSections) return;
+    let banner = settingsSections.querySelector('.ai-assistant-settings-feedback');
+    if (!banner) {
+      banner = document.createElement('p');
+      banner.className = 'ai-assistant-settings-feedback';
+      banner.setAttribute('role', 'status');
+      banner.setAttribute('aria-live', 'polite');
+      settingsSections.prepend(banner);
+    }
+    banner.textContent = message;
+    banner.classList.remove('is-success', 'is-error');
+    banner.classList.add(type === 'error' ? 'is-error' : 'is-success');
+    banner.hidden = false;
+    window.clearTimeout(banner._hideTimer);
+    banner._hideTimer = window.setTimeout(() => { banner.hidden = true; }, 5000);
+  }
+
+  function buildBackupBundle() {
+    return {
+      schema: 'digitalblueskye-ai-assistant-backup',
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      sessions: { activeSessionId: sessionsState.activeSessionId, sessions: sessionsState.sessions },
+      projects: { activeProjectId: projectsState.activeProjectId, projects: projectsState.projects },
+      settings: assistantSettingsState
+    };
+  }
+
+  function downloadBackupBundle(bundle) {
+    downloadTextFile(`digitalblueskye-ai-backup-${getProjectExportDateStamp()}.json`, JSON.stringify(bundle, null, 2), 'application/json;charset=utf-8');
+  }
+
+  function isValidBackupBundle(payload) {
+    return Boolean(
+      payload
+      && payload.schema === 'digitalblueskye-ai-assistant-backup'
+      && payload.sessions && Array.isArray(payload.sessions.sessions)
+      && payload.projects && Array.isArray(payload.projects.projects)
+      && payload.settings && typeof payload.settings === 'object'
+    );
+  }
+
+  function exportFullBackup() {
+    let feedback;
+    try {
+      downloadBackupBundle(buildBackupBundle());
+      assistantSettingsState.data.lastBackupAt = new Date().toISOString();
+      saveAssistantSettingsState();
+      feedback = { message: currentLanguage === 'en' ? 'Backup created successfully.' : 'Sauvegarde créée avec succès.', type: 'success' };
+    } catch (error) {
+      assistantLog('error', 'backup_export_failed', { reason: error?.message || 'unknown' });
+      feedback = { message: currentLanguage === 'en' ? 'Backup failed.' : 'La sauvegarde a échoué.', type: 'error' };
+    }
+    renderSettingsView();
+    showAssistantFeedback(feedback.message, feedback.type);
+  }
+
+  function exportActiveConversationFromSettings() {
+    const session = getActiveSession();
+    if (!session || !normalizeHistory(session.history || []).length) {
+      showAssistantFeedback(currentLanguage === 'en' ? 'No active conversation to export.' : 'Aucune conversation active à exporter.', 'error');
+      return;
+    }
+    exportConversationById(session.id);
+    assistantSettingsState.data.lastExportAt = new Date().toISOString();
+    saveAssistantSettingsState();
+    renderSettingsView();
+    showAssistantFeedback(currentLanguage === 'en' ? 'Active conversation exported.' : 'Conversation active exportée.', 'success');
+  }
+
+  async function exportActiveProjectFromSettings() {
+    const project = getActiveProject();
+    if (!project) {
+      showAssistantFeedback(currentLanguage === 'en' ? 'No active project to export.' : 'Aucun projet actif à exporter.', 'error');
+      return;
+    }
+    await exportProjectZip(project.id);
+    assistantSettingsState.data.lastProjectExportAt = new Date().toISOString();
+    saveAssistantSettingsState();
+    renderSettingsView();
+    showAssistantFeedback(currentLanguage === 'en' ? 'Active project exported (ZIP).' : 'Projet actif exporté (ZIP).', 'success');
+  }
+
+  function restoreFromBackupFile(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      let payload = null;
+      try {
+        payload = JSON.parse(String(reader.result || ''));
+      } catch (error) {
+        showAssistantFeedback(currentLanguage === 'en' ? 'Restore failed: the file is not valid JSON.' : 'Restauration échouée : le fichier n\'est pas un JSON valide.', 'error');
+        return;
+      }
+      if (!isValidBackupBundle(payload)) {
+        showAssistantFeedback(currentLanguage === 'en' ? 'Restore failed: this file does not match the expected backup format.' : 'Restauration échouée : ce fichier ne correspond pas au format de sauvegarde attendu.', 'error');
+        return;
+      }
+      try {
+        downloadBackupBundle(buildBackupBundle());
+        const restoredAt = new Date().toISOString();
+        const restoredSettings = {
+          ...payload.settings,
+          data: { ...(payload.settings.data || {}), lastRestoreAt: restoredAt }
+        };
+        localStorage.setItem(conversationStorageKey, JSON.stringify({ version: 2, savedAt: restoredAt, ...payload.sessions }));
+        localStorage.setItem(projectsStorageKey, JSON.stringify({ version: 1, savedAt: restoredAt, ...payload.projects }));
+        localStorage.setItem(settingsStorageKey, JSON.stringify({ version: 3, savedAt: restoredAt, ...restoredSettings }));
+        showAssistantFeedback(currentLanguage === 'en'
+          ? 'Restore successful (a backup of the previous state was downloaded). Reloading...'
+          : 'Restauration réussie (une sauvegarde de l\'état précédent a été téléchargée). Rechargement...', 'success');
+        window.setTimeout(() => window.location.reload(), 1500);
+      } catch (error) {
+        assistantLog('error', 'backup_restore_failed', { reason: error?.message || 'unknown' });
+        showAssistantFeedback(currentLanguage === 'en' ? 'Restore failed while writing local data.' : 'Restauration échouée lors de l\'écriture des données locales.', 'error');
+      }
+    };
+    reader.onerror = () => {
+      showAssistantFeedback(currentLanguage === 'en' ? 'Restore failed: unable to read the file.' : 'Restauration échouée : impossible de lire le fichier.', 'error');
+    };
+    reader.readAsText(file);
+  }
+
+  function triggerRestoreFilePicker() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/json,.json';
+    input.addEventListener('change', () => {
+      const file = input.files?.[0];
+      if (file) restoreFromBackupFile(file);
+    });
+    input.click();
+  }
+
   function renderSettingsView() {
     if (!settingsSections) return;
     const sections = [
@@ -4797,7 +5373,7 @@
       ['Recherche Web', [['Tavily active', 'web.tavilyEnabled'], ['Mode economique', 'web.economyMode'], ['Mode expert', 'web.expertMode'], ['Limite de resultats', 'web.maxResults']]],
       ['Documents', [['Taille maximale (Mo)', 'documents.maxSizeMb'], ['Chunking', 'documents.chunking'], ['Indexation automatique', 'documents.automaticIndexing'], ['RAG automatique', 'documents.automaticRag'], ['Passages RAG max', 'documents.ragMaxPassages'], ['Bibliothèque globale RAG', 'documents.ragUseGlobalLibrary'], ['Citer les sources', 'documents.ragCitations']]],
       ['Apparence', [['Theme', 'appearance.theme']]],
-      ['Donnees', [['Export conversations', 'data.lastExportAt'], ['Export projets', 'data.lastProjectExportAt'], ['Sauvegarde', 'data.lastBackupAt'], ['Restauration', 'data.lastRestoreAt']]]
+      ['Donnees', null]
     ];
     settingsSections.innerHTML = '';
     sections.forEach(([title, fields]) => {
@@ -4806,6 +5382,11 @@
       const heading = document.createElement('h4');
       heading.textContent = title;
       section.appendChild(heading);
+      if (title === 'Donnees') {
+        renderDataSettingsSection(section);
+        settingsSections.appendChild(section);
+        return;
+      }
       fields.forEach(([label, path]) => {
         const [group, key] = path.split('.');
         const value = assistantSettingsState[group]?.[key];
@@ -4821,6 +5402,59 @@
     });
   }
 
+  function renderDataSettingsSection(section) {
+    const data = assistantSettingsState.data || {};
+    const rows = [
+      {
+        label: currentLanguage === 'en' ? 'Export active conversation' : 'Exporter la conversation active',
+        statusLabel: currentLanguage === 'en' ? 'Last export' : 'Dernier export',
+        timestamp: data.lastExportAt,
+        action: 'export-conversation'
+      },
+      {
+        label: currentLanguage === 'en' ? 'Export active project (ZIP)' : 'Exporter le projet actif (ZIP)',
+        statusLabel: currentLanguage === 'en' ? 'Last project export' : 'Dernier export projet',
+        timestamp: data.lastProjectExportAt,
+        action: 'export-project'
+      },
+      {
+        label: currentLanguage === 'en' ? 'Create a full backup' : 'Créer une sauvegarde complète',
+        statusLabel: currentLanguage === 'en' ? 'Last backup' : 'Dernière sauvegarde',
+        timestamp: data.lastBackupAt,
+        action: 'backup'
+      },
+      {
+        label: currentLanguage === 'en' ? 'Restore a backup' : 'Restaurer une sauvegarde',
+        statusLabel: currentLanguage === 'en' ? 'Last restore' : 'Dernière restauration',
+        timestamp: data.lastRestoreAt,
+        action: 'restore'
+      }
+    ];
+    rows.forEach((row) => {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'ai-assistant-settings-data-row';
+      const status = document.createElement('span');
+      status.className = 'ai-assistant-settings-data-status';
+      status.textContent = `${row.statusLabel} : ${formatSettingsTimestamp(row.timestamp)}`;
+      const actions = document.createElement('div');
+      actions.className = 'ai-assistant-project-source-actions';
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.dataset.settingsAction = row.action;
+      button.textContent = row.label;
+      actions.appendChild(button);
+      wrapper.appendChild(status);
+      wrapper.appendChild(actions);
+      section.appendChild(wrapper);
+    });
+    const note = document.createElement('p');
+    note.className = 'ai-assistant-project-empty';
+    note.textContent = currentLanguage === 'en'
+      ? 'Restoring a backup overwrites local conversations, projects and settings on this device after automatically downloading a backup of the current state.'
+      : 'Restaurer une sauvegarde écrase les conversations, projets et réglages locaux de cet appareil, après téléchargement automatique d\'une sauvegarde de l\'état actuel.';
+    section.appendChild(note);
+  }
+
   function renderCurrentConversation() {
     if (!messagesContainer) return;
     renderRagStatus();
@@ -4828,7 +5462,9 @@
     const active = getActiveSession();
     chatHistory = active?.history ? [...active.history] : [];
     if (!chatHistory.length) { addMessage('bot', i18n.greeting); return; }
-    for (const msg of chatHistory) addMessage(msg.role === 'assistant' ? 'bot' : 'user', msg.content);
+    for (const msg of chatHistory) {
+      addMessage(msg.role === 'assistant' ? 'bot' : 'user', msg.content, { ragSourcesUsed: msg.ragSourcesUsed, webSourcesUsed: msg.webSourcesUsed });
+    }
   }
 
   function renderRagStatus(status = '') {
@@ -4843,7 +5479,9 @@
     const ragActive = activeProject.ragEnabled === false ? 'RAG projet inactif' : 'RAG projet actif';
     const suffix = status === 'no_match'
       ? ' · aucun document pertinent trouvé'
-      : ` · ${sourceCount} source${sourceCount > 1 ? 's' : ''}`;
+      : status === 'off_topic'
+        ? ' · question hors sujet, RAG non déclenché'
+        : ` · ${sourceCount} source${sourceCount > 1 ? 's' : ''}`;
     ragStatus.hidden = false;
     ragStatus.textContent = `Projet actif : ${activeProject.name} · ${ragActive}${suffix}`;
   }
@@ -4908,6 +5546,7 @@
     session.updatedAt = Date.now();
     saveSessionsState();
     renderSessionOptions();
+    if (panel?.classList.contains('is-project-view')) renderProjectWorkspace();
   }
 
   function switchSession(sessionId) {
@@ -4920,15 +5559,44 @@
     saveSessionsState();
     renderSessionOptions();
     renderCurrentConversation();
+    // Sur fenetre etroite la sidebar est un tiroir qui couvre le chat : on le
+    // referme apres selection pour revenir a la conversation choisie.
+    if (panelsMustBeExclusive() && panel?.classList.contains('has-history-open')) {
+      setHistoryPanelOpen(false, false);
+    }
   }
 
+  // Nouvelle discussion STANDALONE (bouton "Nouvelle discussion" du panneau /
+  // du rail) : independante de tout projet, affichee dans "Discussions recentes".
   function createNewSession() {
     setLibraryViewOpen(false);
-    const next = makeDefaultSession();
+    const next = makeDefaultSession(null);
     sessionsState.sessions.unshift(next);
     sessionsState.sessions = sessionsState.sessions.slice(0, maxStoredSessions);
     sessionsState.activeSessionId = next.id;
     saveSessionsState();
+    setWorkspaceView('chat');
+    renderSessionOptions();
+    renderCurrentConversation();
+    if (panelsMustBeExclusive() && panel?.classList.contains('has-history-open')) {
+      setHistoryPanelOpen(false, false);
+    }
+  }
+
+  // Nouvelle conversation RATTACHEE a un projet (bouton de la page projet) :
+  // elle apparait dans la page du projet, pas dans "Discussions recentes".
+  function createProjectConversation(projectId) {
+    const project = getProjectById(projectId);
+    if (!project) return;
+    setLibraryViewOpen(false);
+    const next = makeDefaultSession(project.id);
+    sessionsState.sessions.unshift(next);
+    sessionsState.sessions = sessionsState.sessions.slice(0, maxStoredSessions);
+    sessionsState.activeSessionId = next.id;
+    projectsState.activeProjectId = project.id;
+    saveSessionsState();
+    saveProjectsState();
+    setWorkspaceView('chat');
     renderSessionOptions();
     renderCurrentConversation();
   }
@@ -5004,6 +5672,7 @@
     }
     saveSessionsState();
     renderSessionOptions();
+    if (panel?.classList.contains('is-project-view')) renderProjectWorkspace();
     if (wasActive) renderCurrentConversation();
   }
 
@@ -5244,10 +5913,23 @@
       if (!row?.dataset?.sessionId) return;
       switchSession(row.dataset.sessionId);
     });
+    // Menu contextuel (Renommer / Exporter / Supprimer) sur les conversations
+    // d'un projet, identique a celui de la sidebar gauche.
+    projectContent.addEventListener('contextmenu', (event) => {
+      const row = event.target?.closest?.('[data-session-id]');
+      if (!row?.dataset?.sessionId) return;
+      if (!panel?.classList.contains('has-history-open')) setHistoryPanelOpen(true);
+      openSessionContextMenu(event, row.dataset.sessionId);
+    });
+    projectContent.addEventListener('dblclick', (event) => {
+      const row = event.target?.closest?.('[data-session-id]');
+      if (!row?.dataset?.sessionId) return;
+      renameSessionById(row.dataset.sessionId);
+    });
   }
   if (settingsOpenButton) {
     settingsOpenButton.addEventListener('click', () => {
-      setHistoryPanelOpen(true);
+      // Ouvrir les Parametres ne doit plus deployer la sidebar gauche.
       setWorkspaceView('settings');
     });
   }
@@ -5259,6 +5941,14 @@
       if (!assistantSettingsState[group]) assistantSettingsState[group] = {};
       assistantSettingsState[group][key] = event.target.type === 'checkbox' ? Boolean(event.target.checked) : event.target.value;
       saveAssistantSettingsState();
+    });
+    settingsSections.addEventListener('click', (event) => {
+      const action = event.target?.closest?.('[data-settings-action]')?.dataset?.settingsAction;
+      if (!action) return;
+      if (action === 'export-conversation') exportActiveConversationFromSettings();
+      else if (action === 'export-project') exportActiveProjectFromSettings();
+      else if (action === 'backup') exportFullBackup();
+      else if (action === 'restore') triggerRestoreFilePicker();
     });
   }
   if (projectContextMenu) {
@@ -5402,6 +6092,7 @@
     document.addEventListener('click', (event) => {
       if (sessionContextMenu.classList.contains('is-open') && !sessionContextMenu.contains(event.target)) closeSessionContextMenu();
       if (projectContextMenu?.classList.contains('is-open') && !projectContextMenu.contains(event.target)) closeProjectContextMenu();
+      if (sourcesPanel?.classList.contains('ai-sources-panel--open') && !sourcesPanel.contains(event.target) && !event.target.closest('.ai-sources-trigger')) closeSourcesPanel();
     });
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') closeSessionContextMenu();
@@ -5410,8 +6101,12 @@
         closeLibraryCardMenu();
         closeMediaPreview();
         closeProjectDeleteDialog();
+        closeSourcesPanel();
       }
     });
+  }
+  if (sourcesPanelCloseButton) {
+    sourcesPanelCloseButton.addEventListener('click', () => closeSourcesPanel());
   }
   if (sidebarResizeHandle && historyPanel) {
     setHistoryPanelWidth(getStoredHistoryPanelWidth(), false);
@@ -5764,6 +6459,109 @@
     }).join('\n');
   }
 
+  // Mots qui démarrent presque toujours une nouvelle phrase/clause (FR/EN), utilisés
+  // pour détecter un titre Markdown collé à du texte de paragraphe sur la même ligne.
+  const MARKDOWN_HEADING_SENTENCE_STARTERS = new Set([
+    'le', 'la', 'les', 'un', 'une', 'ce', 'cette', 'ces', 'il', 'elle', 'ils', 'elles',
+    'on', 'nous', 'vous', 'cela', 'ça', 'voici', 'voilà', 'ainsi', 'enfin', 'cependant',
+    'the', 'this', 'that', 'these', 'those', 'it', 'we', 'you', 'they', 'here', 'there'
+  ]);
+
+  // Normalise un texte brut avant rendu Markdown afin d'éviter les "###" visibles en
+  // texte brut : garantit une ligne vide avant/après chaque titre et sépare un titre
+  // collé à une phrase ("texte. ### Titre" ou "### Titre suite du texte").
+  function normalizeMarkdownBeforeRender(rawText) {
+    const lines = String(rawText || '').replace(/\r\n?/g, '\n').split('\n');
+    const output = [];
+    let inCodeBlock = false;
+
+    function pushBlankIfNeeded() {
+      if (output.length && output[output.length - 1] !== '') output.push('');
+    }
+
+    for (let raw of lines) {
+      const trimmed = raw.trim();
+
+      if (/^```/.test(trimmed)) {
+        inCodeBlock = !inCodeBlock;
+        output.push(raw);
+        continue;
+      }
+
+      if (inCodeBlock || trimmed.startsWith('|')) {
+        output.push(raw);
+        continue;
+      }
+
+      // Titre collé en fin de phrase, avec éventuellement un séparateur horizontal
+      // collé entre les deux : "texte. ### Titre" ou "texte. --- ### Titre".
+      let glueMatch = raw.match(/^(.*[.!?:])\s+(?:(?:-{3,}|\*{3,}|_{3,})\s+)?(#{1,6}\s+\S.*)$/);
+      // Cas sans ponctuation finale mais séparateur collé : "texte --- ### Titre".
+      if (!glueMatch) glueMatch = raw.match(/^(.*\S)\s+(?:-{3,}|\*{3,}|_{3,})\s+(#{1,6}\s+\S.*)$/);
+      if (glueMatch) {
+        const before = glueMatch[1].replace(/\s*(?:-{3,}|\*{3,}|_{3,})\s*$/, '').trim();
+        if (before) {
+          output.push(before);
+          output.push('');
+        }
+        raw = glueMatch[2];
+      }
+
+      const headingMatch = raw.trim().match(/^(#{1,6})\s+(.+)$/);
+      if (headingMatch) {
+        const hashes = headingMatch[1];
+        let rest = headingMatch[2];
+
+        // Tableau Markdown collé à un titre : "## Titre | col | col" -> on sépare
+        // le titre de la première ligne de tableau (traitée ensuite séparément).
+        let tablePart = '';
+        const pipeIndex = rest.indexOf('|');
+        if (pipeIndex > 0 && (rest.match(/\|/g) || []).length >= 2) {
+          tablePart = rest.slice(pipeIndex).trim();
+          rest = rest.slice(0, pipeIndex).trim();
+        }
+
+        // Sinon, prose collée au titre : "### Titre Le texte commence". On ne coupe
+        // que si le mot suivant est un démarreur de phrase ET capitalisé (évite de
+        // découper un vrai titre contenant "le", "la", "sur le"…).
+        let bodyWords = [];
+        if (!tablePart) {
+          const words = rest.split(/\s+/);
+          let splitIndex = -1;
+          for (let i = 1; i < words.length; i += 1) {
+            if (MARKDOWN_HEADING_SENTENCE_STARTERS.has(words[i].toLowerCase()) && /^[A-ZÀ-Þ]/.test(words[i])) {
+              splitIndex = i;
+              break;
+            }
+          }
+          if (splitIndex > 0) {
+            bodyWords = words.slice(splitIndex);
+            rest = words.slice(0, splitIndex).join(' ');
+          }
+        }
+
+        pushBlankIfNeeded();
+        output.push(`${hashes} ${rest}`);
+        output.push('');
+        if (tablePart) {
+          output.push(tablePart);
+        } else if (bodyWords.length) {
+          output.push(bodyWords.join(' '));
+          output.push('');
+        }
+        continue;
+      }
+
+      // Séparateur horizontal isolé en fin de ligne de prose : on le retire pour
+      // éviter les "---" résiduels visibles.
+      raw = raw.replace(/\s*(?:-{3,}|\*{3,}|_{3,})\s*$/, '');
+
+      output.push(raw);
+    }
+
+    return output.join('\n').replace(/\n{3,}/g, '\n\n');
+  }
+
   // ─── FONCTION DE RENDU MARKDOWN AMÉLIORÉE ───────────────────────────────────
   function formatBotMessageHtml(rawText) {
     const codeBlocks = [];
@@ -5945,7 +6743,7 @@
 
     injectTableStyles();
 
-    const preparedText = splitInlineMarkdownTableLines(normalizeAssistantMarkdown(rawText));
+    const preparedText = splitInlineMarkdownTableLines(normalizeAssistantMarkdown(normalizeMarkdownBeforeRender(rawText)));
     const withCodeBlocks = preparedText.replace(/```([a-zA-Z0-9+#.-]*)\n([\s\S]*?)```/g, stashCodeBlock);
     const safe = escapeHtml(withCodeBlocks)
       .replace(/\r/g, '')
@@ -6119,7 +6917,7 @@
     });
   }
 
-  function addMessage(kind, text) {
+  function addMessage(kind, text, sourcesMeta) {
     const bubble = document.createElement('article');
     bubble.className = `ai-assistant-message ai-assistant-message--${kind}`;
     bubble.setAttribute('data-role', kind === 'bot' ? 'assistant' : 'user');
@@ -6129,6 +6927,12 @@
       bubble.innerHTML = formatBotMessageHtml(normalizedText);
       enhanceBotBubble(bubble);
       stabilizeTableLayoutsSoon(bubble);
+      const ragSourcesUsed = Array.isArray(sourcesMeta?.ragSourcesUsed) ? sourcesMeta.ragSourcesUsed : [];
+      const webSourcesUsed = Array.isArray(sourcesMeta?.webSourcesUsed) ? sourcesMeta.webSourcesUsed : [];
+      if (ragSourcesUsed.length) appendRagSources(bubble, ragSourcesUsed);
+      if (ragSourcesUsed.length || webSourcesUsed.length) {
+        attachSourcesPanelTrigger(bubble, { ragSources: ragSourcesUsed, webSources: webSourcesUsed });
+      }
     } else {
       const p = document.createElement('p');
       p.textContent = text;
@@ -6208,6 +7012,45 @@
       document.body.removeChild(area);
       return Promise.resolve(!!ok);
     } catch (error) { return Promise.resolve(false); }
+  }
+
+  // Copie riche : ecrit a la fois text/html (un VRAI tableau, colle comme une
+  // grille dans Google Docs / Word) et text/plain (TSV, colle dans un tableur).
+  // Repli sur la copie texte simple si l'API Clipboard riche est indisponible.
+  async function copyTableToClipboard(tableEl) {
+    if (!tableEl) return false;
+    const rows = Array.from(tableEl.querySelectorAll('tr'));
+    if (!rows.length) return false;
+
+    const cellText = (cell) => (cell.innerText || cell.textContent || '').trim().replace(/\s+/g, ' ');
+    const tsv = rows
+      .map((tr) => Array.from(tr.querySelectorAll('th, td')).map(cellText).join('\t'))
+      .join('\n');
+
+    const htmlRows = rows.map((tr, rowIndex) => {
+      const cells = Array.from(tr.querySelectorAll('th, td')).map((cell) => {
+        const tag = rowIndex === 0 || cell.tagName === 'TH' ? 'th' : 'td';
+        const style = tag === 'th'
+          ? 'border:1px solid #cccccc;padding:6px 10px;background:#f2f2f2;text-align:left;font-weight:bold;'
+          : 'border:1px solid #cccccc;padding:6px 10px;text-align:left;';
+        return `<${tag} style="${style}">${escapeHtml(cellText(cell))}</${tag}>`;
+      }).join('');
+      return `<tr>${cells}</tr>`;
+    }).join('');
+    const html = `<table border="1" cellspacing="0" cellpadding="6" style="border-collapse:collapse;">${htmlRows}</table>`;
+
+    try {
+      if (navigator.clipboard && window.ClipboardItem) {
+        await navigator.clipboard.write([
+          new window.ClipboardItem({
+            'text/html': new Blob([html], { type: 'text/html' }),
+            'text/plain': new Blob([tsv], { type: 'text/plain' })
+          })
+        ]);
+        return true;
+      }
+    } catch (error) { /* repli ci-dessous */ }
+    return copyTextToClipboard(tsv);
   }
 
   function slugifyDocumentTitle(text) {
@@ -7353,8 +8196,44 @@
     });
   }
 
+  // Ajoute un bouton de copie discret sur chaque tableau rendu. La copie produit
+  // du TSV (cellules separees par des tabulations, lignes par des retours) qui se
+  // colle proprement dans un tableur ou un document.
+  function enhanceTables(root) {
+    if (!root) return;
+    const wraps = root.querySelectorAll('.ai-assistant-table-wrap');
+    wraps.forEach((wrap) => {
+      if (wrap.querySelector('.ai-assistant-table-copy-btn')) return;
+      const table = wrap.querySelector('table');
+      if (!table) return;
+      const copyBtn = document.createElement('button');
+      copyBtn.type = 'button';
+      copyBtn.className = 'ai-assistant-table-copy-btn';
+      copyBtn.innerHTML = `<img src="${copyPasteIconUrl}" alt="" aria-hidden="true">`;
+      copyBtn.title = i18n.copy;
+      copyBtn.setAttribute('aria-label', i18n.copy);
+      copyBtn.addEventListener('click', async () => {
+        const ok = await copyTableToClipboard(table);
+        if (!ok) return;
+        copyBtn.dataset.state = 'copied';
+        copyBtn.classList.add('is-copied');
+        copyBtn.title = i18n.copied;
+        copyBtn.setAttribute('aria-label', i18n.copied);
+        setTimeout(() => {
+          copyBtn.dataset.state = '';
+          copyBtn.classList.remove('is-copied');
+          copyBtn.title = i18n.copy;
+          copyBtn.setAttribute('aria-label', i18n.copy);
+        }, 1400);
+      });
+      wrap.classList.add('ai-assistant-table-wrap--has-copy');
+      wrap.appendChild(copyBtn);
+    });
+  }
+
   function enhanceBotBubble(bubble) {
-    if (!bubble || bubble.querySelector('.ai-assistant-message-actions')) return;
+    if (!bubble || bubble.dataset.bubbleEnhanced === '1') return;
+    bubble.dataset.bubbleEnhanced = '1';
     let content = bubble.querySelector(':scope > .ai-assistant-message-content');
     if (!content) {
       content = document.createElement('div');
@@ -7362,7 +8241,10 @@
       while (bubble.firstChild) content.appendChild(bubble.firstChild);
       bubble.appendChild(content);
     }
+    // Conteneur Markdown stable pour la couche de rendu CSS dediee (AI Markdown rendering layer).
+    content.classList.add('ai-markdown');
     enhanceCodeBlocks(content);
+    enhanceTables(content);
     const rawText = String(bubble._assistantRawText || content.innerText || '').trim();
     const getLiveExportText = () => String(bubble._assistantRawText || rawText || content.innerText || '').trim();
     if (rawText.length > 80) {
@@ -7404,30 +8286,9 @@
       });
       bubble.appendChild(exportActions);
     }
-    const actions = document.createElement('div');
-    actions.className = 'ai-assistant-message-actions';
-    const copyBtn = document.createElement('button');
-    copyBtn.type = 'button';
-    copyBtn.className = 'ai-assistant-bubble-btn ai-assistant-copy-btn';
-    copyBtn.innerHTML = `<img src="${copyPasteIconUrl}" alt="" aria-hidden="true">`;
-    copyBtn.title = i18n.copy;
-    copyBtn.setAttribute('aria-label', i18n.copy);
-    copyBtn.addEventListener('click', async () => {
-      const ok = await copyTextToClipboard(content.innerText);
-      if (!ok) return;
-      copyBtn.dataset.state = 'copied';
-      copyBtn.classList.add('is-copied');
-      copyBtn.title = i18n.copied;
-      copyBtn.setAttribute('aria-label', i18n.copied);
-      setTimeout(() => {
-        copyBtn.dataset.state = '';
-        copyBtn.classList.remove('is-copied');
-        copyBtn.title = i18n.copy;
-        copyBtn.setAttribute('aria-label', i18n.copy);
-      }, 1400);
-    });
-    actions.appendChild(copyBtn);
-    bubble.appendChild(actions);
+    // Le bouton "copier toute la bulle" a ete retire volontairement : la copie ne
+    // s'applique plus qu'aux elements reellement utiles (blocs de code via
+    // enhanceCodeBlocks, tableaux via enhanceTables).
   }
 
   function setMicState(listening) {
@@ -7518,6 +8379,280 @@
       .trim();
   }
 
+  function stripUnsupportedRagCitationMarkers(rawText, validIds = []) {
+    const validSet = new Set((validIds || []).map((id) => Number(id)).filter(Number.isFinite));
+    return String(rawText || '')
+      .replace(/\s*\[S(\d{1,3})\]/gi, (match, rawIndex) => {
+        const index = Number(rawIndex);
+        return validSet.has(index) ? match : '';
+      })
+      .replace(/\s{2,}/g, ' ')
+      .replace(/\n[ \t]+/g, '\n')
+      .trim();
+  }
+
+  function extractCitedSourceIds(text) {
+    const ids = new Set();
+    String(text || '').replace(/\[S(\d{1,3})\]/gi, (match, rawIndex) => {
+      const index = Number(rawIndex);
+      if (Number.isFinite(index)) ids.add(index);
+      return match;
+    });
+    return ids;
+  }
+
+  function isRagCitationsDisplayEnabled(activeProject) {
+    if (activeProject && typeof activeProject.ragCitations === 'boolean') return activeProject.ragCitations;
+    return assistantSettingsState.documents?.ragCitations !== false;
+  }
+
+  function buildRagSourcesMarkdown(usedSources) {
+    if (!Array.isArray(usedSources) || !usedSources.length) return '';
+    const heading = currentLanguage === 'en' ? '### Sources used' : '### Sources utilisées';
+    const lines = usedSources.map((source) => {
+      const locatorLabel = source.locators.join(', ');
+      return `- [S${source.id}] ${source.documentName} — ${source.documentType} — ${locatorLabel}`;
+    });
+    return [heading, ...lines].join('\n');
+  }
+
+  // Rendu carte inline desactive : les sources RAG vivent desormais dans le
+  // panneau lateral droit (cf. attachSourcesPanelTrigger + openSourcesPanel).
+  // Cette fonction ne fait plus que completer le texte exportable
+  // (_assistantRawText) avec la liste des sources, pour que les exports
+  // MD/HTML/PDF/DOCX conservent cette information.
+  function appendRagSources(bubble, usedSources) {
+    const sources = Array.isArray(usedSources) ? usedSources : [];
+    if (!bubble || !sources.length) return;
+    const sourceMarkdown = buildRagSourcesMarkdown(sources);
+    if (!sourceMarkdown) return;
+    const existingRawText = String(bubble._assistantRawText || '').trim();
+    if (existingRawText && !/(^|\n)#{1,6}\s*(Sources utilisées|Sources used)/i.test(existingRawText)) {
+      bubble._assistantRawText = `${existingRawText}\n\n${sourceMarkdown}`;
+    }
+  }
+
+  function buildSourceFaviconElement(domain) {
+    const wrap = document.createElement('span');
+    wrap.className = 'ai-source-favicon';
+    if (!domain) {
+      wrap.classList.add('ai-source-favicon--fallback');
+      wrap.textContent = '?';
+      return wrap;
+    }
+    const fallback = document.createElement('span');
+    fallback.className = 'ai-source-favicon-fallback';
+    fallback.hidden = true;
+    fallback.textContent = domain.charAt(0).toUpperCase();
+
+    const img = document.createElement('img');
+    img.className = 'ai-source-favicon-img';
+    img.src = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=64`;
+    img.alt = '';
+    img.loading = 'lazy';
+    img.referrerPolicy = 'no-referrer';
+    img.addEventListener('error', () => {
+      img.hidden = true;
+      fallback.hidden = false;
+      wrap.classList.add('ai-source-favicon--fallback');
+    }, { once: true });
+
+    wrap.appendChild(img);
+    wrap.appendChild(fallback);
+    return wrap;
+  }
+
+  // Carte web entierement cliquable (toute la carte est un <a>), ouvre
+  // l'URL source dans un nouvel onglet. Les cartes RAG (projet/bibliotheque)
+  // restent des <article> non cliquables : elles n'ont pas d'URL reelle.
+  function buildWebSourcePanelCard(source, index) {
+    const domain = getWebSourceDomain(source.link);
+    const card = document.createElement('a');
+    card.className = 'ai-source-card ai-source-card--web';
+    card.href = source.link;
+    card.target = '_blank';
+    card.rel = 'noopener noreferrer';
+    card.setAttribute('aria-label', currentLanguage === 'en' ? `Open source: ${source.title}` : `Ouvrir la source : ${source.title}`);
+
+    const head = document.createElement('div');
+    head.className = 'ai-source-card-head';
+    head.appendChild(buildSourceFaviconElement(domain));
+    const domainEl = document.createElement('span');
+    domainEl.className = 'ai-source-domain';
+    domainEl.textContent = domain || source.link;
+    head.appendChild(domainEl);
+    const openIndicator = document.createElement('span');
+    openIndicator.className = 'ai-source-open-indicator';
+    openIndicator.setAttribute('aria-hidden', 'true');
+    openIndicator.textContent = '↗';
+    head.appendChild(openIndicator);
+    card.appendChild(head);
+
+    const titleEl = document.createElement('strong');
+    titleEl.className = 'ai-source-title';
+    titleEl.textContent = source.title;
+    card.appendChild(titleEl);
+
+    if (source.snippet) {
+      const snippet = document.createElement('p');
+      snippet.className = 'ai-source-snippet';
+      snippet.textContent = source.snippet;
+      card.appendChild(snippet);
+    }
+
+    if (source.publishedDate) {
+      const meta = document.createElement('span');
+      meta.className = 'ai-source-meta';
+      meta.textContent = source.publishedDate;
+      card.appendChild(meta);
+    }
+
+    const badge = document.createElement('span');
+    badge.className = 'ai-source-badge ai-source-badge--web';
+    badge.textContent = currentLanguage === 'en' ? 'WEB' : 'WEB';
+    card.appendChild(badge);
+
+    return card;
+  }
+
+  function buildRagSourcePanelCard(source) {
+    const isGlobal = source.sourceScope === 'global';
+    const card = document.createElement('article');
+    card.className = `ai-source-card ${isGlobal ? 'ai-source-card--global' : 'ai-source-card--project'}`;
+
+    const titleEl = document.createElement('div');
+    titleEl.className = 'ai-source-title';
+    titleEl.textContent = source.documentName;
+    card.appendChild(titleEl);
+
+    const meta = document.createElement('span');
+    meta.className = 'ai-source-meta';
+    meta.textContent = `${source.documentType} · ${(source.locators || []).join(', ')}`;
+    card.appendChild(meta);
+
+    if (source.excerpt) card.dataset.excerpt = source.excerpt;
+
+    const badge = document.createElement('span');
+    badge.className = `ai-source-badge ${isGlobal ? 'ai-source-badge--global' : 'ai-source-badge--project'}`;
+    badge.textContent = isGlobal
+      ? (currentLanguage === 'en' ? 'Global library' : 'Bibliothèque globale')
+      : (currentLanguage === 'en' ? 'Project' : 'Projet');
+    card.appendChild(badge);
+
+    return card;
+  }
+
+  function renderSourcesPanelBody(payload) {
+    if (!sourcesPanelBody) return;
+    sourcesPanelBody.innerHTML = '';
+    const ragSources = Array.isArray(payload?.ragSources) ? payload.ragSources : [];
+    const webSources = Array.isArray(payload?.webSources) ? payload.webSources : [];
+    const projectSources = ragSources.filter((source) => source.sourceScope !== 'global');
+    const globalSources = ragSources.filter((source) => source.sourceScope === 'global');
+
+    // On ne construit que les groupes non vides. Le libelle de section
+    // ("Sources web", "Sources projet"…) n'est affiche que lorsqu'il y a
+    // plusieurs groupes a distinguer : avec un seul groupe il fait doublon
+    // avec le compteur "Sources · N" de l'en-tete (cf. ChatGPT).
+    const groups = [
+      { title: currentLanguage === 'en' ? 'Web sources' : 'Sources web', cards: webSources.map((source, index) => buildWebSourcePanelCard(source, index)) },
+      { title: currentLanguage === 'en' ? 'Project sources' : 'Sources projet', cards: projectSources.map((source) => buildRagSourcePanelCard(source)) },
+      { title: currentLanguage === 'en' ? 'Global library' : 'Bibliothèque globale', cards: globalSources.map((source) => buildRagSourcePanelCard(source)) }
+    ].filter((group) => group.cards.length);
+    const showSectionTitles = groups.length > 1;
+
+    groups.forEach(({ title, cards }) => {
+      const section = document.createElement('section');
+      section.className = 'ai-sources-section';
+      if (showSectionTitles) {
+        const heading = document.createElement('h4');
+        heading.className = 'ai-sources-section-title';
+        heading.textContent = title;
+        section.appendChild(heading);
+      }
+      cards.forEach((card) => section.appendChild(card));
+      sourcesPanelBody.appendChild(section);
+    });
+
+    // Compteur global dans l'en-tete, facon ChatGPT ("Sources · N").
+    const totalSources = webSources.length + projectSources.length + globalSources.length;
+    const countEl = document.getElementById('ai-assistant-sources-panel-count');
+    if (countEl) {
+      if (totalSources > 0) {
+        countEl.textContent = `· ${totalSources}`;
+        countEl.hidden = false;
+      } else {
+        countEl.textContent = '';
+        countEl.hidden = true;
+      }
+    }
+
+    if (!webSources.length && !projectSources.length && !globalSources.length) {
+      const empty = document.createElement('p');
+      empty.className = 'ai-assistant-project-empty';
+      empty.textContent = currentLanguage === 'en' ? 'No sources for this reply.' : 'Aucune source pour cette réponse.';
+      sourcesPanelBody.appendChild(empty);
+    }
+  }
+
+  function openSourcesPanel(payload) {
+    if (!sourcesPanel) return;
+    if (panelsMustBeExclusive() && panel?.classList.contains('has-history-open')) {
+      setHistoryPanelOpen(false, false);
+    }
+    renderSourcesPanelBody(payload);
+    sourcesPanel.classList.add('ai-sources-panel--open', 'ai-assistant-sources-panel--open');
+    sourcesPanel.setAttribute('aria-hidden', 'false');
+    panel?.classList.add('has-sources-open');
+    document.body.classList.add('has-sources-open');
+  }
+
+  function closeSourcesPanel() {
+    if (!sourcesPanel) return;
+    sourcesPanel.classList.remove('ai-sources-panel--open', 'ai-assistant-sources-panel--open');
+    sourcesPanel.setAttribute('aria-hidden', 'true');
+    panel?.classList.remove('has-sources-open');
+    document.body.classList.remove('has-sources-open');
+  }
+
+  function openSourcesPanelForMessage(messageId) {
+    const payload = sourcesPanelPayloadByMessageId.get(String(messageId));
+    if (!payload) return;
+    openSourcesPanel(payload);
+  }
+
+  // Petit declencheur "Sources (N)" ajoute sous un message assistant : ouvre
+  // le panneau droit avec les sources de CE message uniquement, separees
+  // web / projet / bibliotheque globale. N'est jamais ajoute si la reponse
+  // n'a utilise aucune source (mémoire projet seule => pas de bouton).
+  // Le bouton "Sources (N)" est un frere de .ai-assistant-message-content,
+  // pas un enfant : il doit s'aligner avec les boutons d'export (MD/HTML/
+  // PDF/DOCX) sous la reponse, pas se meler au texte rendu.
+  function attachSourcesPanelTrigger(bubble, { ragSources = [], webSources = [] } = {}) {
+    if (!bubble) return;
+    const count = (ragSources?.length || 0) + (webSources?.length || 0);
+    if (!count || bubble.dataset.sourcesPanelReady === '1') return;
+    bubble.dataset.sourcesPanelReady = '1';
+    if (!bubble.dataset.messageId) bubble.dataset.messageId = String(++sourcesPanelMessageCounter);
+    const messageId = bubble.dataset.messageId;
+    const payload = { ragSources, webSources };
+    bubble._sourcesPayload = payload;
+    sourcesPanelPayloadByMessageId.set(messageId, payload);
+
+    const trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.className = 'ai-sources-trigger ai-sources-button';
+    trigger.setAttribute('data-sources-button', '');
+    trigger.dataset.messageId = messageId;
+    trigger.textContent = `${currentLanguage === 'en' ? 'Sources' : 'Sources'} (${count})`;
+    trigger.setAttribute('aria-label', currentLanguage === 'en' ? `View ${count} sources for this reply` : `Voir les ${count} sources de cette réponse`);
+    trigger.addEventListener('click', () => openSourcesPanelForMessage(messageId));
+
+    const exportActions = bubble.querySelector('.ai-assistant-export-actions');
+    if (exportActions) bubble.insertBefore(trigger, exportActions);
+    else bubble.appendChild(trigger);
+  }
+
   function buildWebSourcesMarkdown(results) {
     const sources = normalizeWebSearchResults(results);
     if (!sources.length) return '';
@@ -7546,7 +8681,8 @@
         index: Number(result?.index) > 0 ? Number(result.index) : index + 1,
         title: String(result?.title || result?.link || '').trim(),
         link: String(result?.link || '').trim(),
-        snippet: String(result?.snippet || '').replace(/\s+/g, ' ').trim(),
+        snippet: String(result?.snippet || '').replace(/\s+/g, ' ').trim().slice(0, 220),
+        publishedDate: String(result?.publishedDate || '').trim(),
         score: result?.score ?? null
       }))
       .filter((result) => result.title && /^https?:\/\//i.test(result.link))
@@ -7577,12 +8713,16 @@
       .replace(/[-.]/g, ' ');
   }
 
-  function appendWebSearchSources(bubble, results, debugWeb = false) {
+  // Grille de cartes inline desactivee : les sources web vivent desormais
+  // dans le panneau lateral droit (cf. attachSourcesPanelTrigger +
+  // openSourcesPanel). On garde uniquement (1) le branchement des citations
+  // [1][2]... presentes dans le texte vers des liens cliquables, et (2) le
+  // complement du texte exportable (_assistantRawText) pour les exports
+  // MD/HTML/PDF/DOCX.
+  function appendWebSearchSources(bubble, results) {
     const sources = normalizeWebSearchResults(results);
     const content = bubble?.querySelector('.ai-assistant-message-content');
     if (!content || !sources.length) return;
-
-    bubble.classList.add('has-web-sources');
 
     const sourceByIndex = new Map(sources.map((source, index) => [index + 1, source]));
     content.querySelectorAll('.ai-assistant-citation').forEach((citation) => {
@@ -7602,92 +8742,6 @@
       citation.textContent = '';
       citation.appendChild(link);
     });
-
-    const section = document.createElement('section');
-    section.className = 'web-sources-section';
-    section.setAttribute('aria-label', currentLanguage === 'en' ? 'Verified web sources' : 'Sources web vérifiées');
-
-    const badge = document.createElement('div');
-    badge.className = 'web-search-badge';
-    badge.textContent = currentLanguage === 'en' ? 'Verified web search' : 'Sources vérifiées';
-    section.appendChild(badge);
-
-    const title = document.createElement('h3');
-    title.className = 'web-sources-title';
-    title.textContent = currentLanguage === 'en' ? 'Web references' : 'Références web';
-    section.appendChild(title);
-
-    const cards = document.createElement('div');
-    cards.className = 'web-sources-grid';
-
-    sources.forEach((source, index) => {
-      const domain = getWebSourceDomain(source.link);
-      const card = document.createElement('article');
-      card.className = 'web-source-card';
-
-      const sourceTitle = document.createElement('strong');
-      sourceTitle.className = 'web-source-title';
-      sourceTitle.textContent = `[${index + 1}] ${source.title}`;
-      card.appendChild(sourceTitle);
-
-      if (domain) {
-        const domainNode = document.createElement('span');
-        domainNode.className = 'web-source-domain';
-        domainNode.textContent = domain;
-        card.appendChild(domainNode);
-      }
-
-      const link = document.createElement('a');
-      link.className = 'web-source-link';
-      link.href = source.link;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      link.textContent = currentLanguage === 'en' ? 'Read source' : 'Lire la source';
-      card.appendChild(link);
-
-      const details = document.createElement('details');
-      details.className = 'web-source-details';
-      details.open = Boolean(debugWeb);
-      const summary = document.createElement('summary');
-      summary.textContent = currentLanguage === 'en' ? 'Technical details' : 'Voir les détails techniques';
-      details.appendChild(summary);
-
-      const technical = document.createElement('dl');
-      [
-        [currentLanguage === 'en' ? 'Index' : 'Index', String(index + 1)],
-        ['URL', source.link],
-        ['Score', source.score == null ? '' : String(source.score)]
-      ].forEach(([label, value]) => {
-        if (!value) return;
-        const dt = document.createElement('dt');
-        dt.textContent = label;
-        const dd = document.createElement('dd');
-        dd.textContent = value;
-        technical.append(dt, dd);
-      });
-      details.appendChild(technical);
-      card.appendChild(details);
-
-      cards.appendChild(card);
-    });
-
-    section.appendChild(cards);
-
-    const compactSources = document.createElement('p');
-    compactSources.className = 'web-sources-compact';
-    compactSources.textContent = currentLanguage === 'en' ? 'Web references: ' : 'Références web : ';
-    sources.forEach((source, index) => {
-      if (index > 0) compactSources.appendChild(document.createTextNode(' · '));
-      const link = document.createElement('a');
-      link.href = source.link;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      link.textContent = `[${index + 1}] ${getReadableSourceName(source)} — ${currentLanguage === 'en' ? 'Read article' : 'Lire l’article'}`;
-      compactSources.appendChild(link);
-    });
-    section.appendChild(compactSources);
-
-    content.appendChild(section);
 
     const sourceMarkdown = buildWebSourcesMarkdown(sources);
     if (sourceMarkdown) {
@@ -7945,7 +8999,16 @@
     try {
       const dateContext = getAssistantCurrentDateContext();
       const webSettings = assistantSettingsState.web || {};
-      const ragContext = fileContext ? { context: '', events: [], status: 'file_context', selected: [] } : buildKnowledgeContextForPrompt(userText);
+      // Le contexte projet (RAG + memoire) suit la CONVERSATION active, pas le
+      // projet globalement selectionne : une discussion standalone (projectId
+      // null) n'utilise donc aucun document ni memoire de projet.
+      const conversationProject = getProjectById(getActiveSession()?.projectId) || null;
+      const ragCandidateProject = conversationProject;
+      const ragContext = fileContext
+        ? { context: '', events: [], status: 'file_context', selected: [], usedSources: [] }
+        : (shouldUseProjectRagForMessage(userText, ragCandidateProject)
+          ? buildKnowledgeContextForPrompt(userText)
+          : { context: '', events: [], status: 'off_topic', selected: [], usedSources: [] });
       const knowledgeContext = ragContext.context || '';
       renderRagStatus(ragContext.status);
       effectiveWebSearch = webSettings.tavilyEnabled !== false
@@ -7968,6 +9031,10 @@
           ? 'Available document context:'
           : 'Contexte documentaire disponible :';
         contextSections.push(`${knowledgeContextLabel}\n${knowledgeContext}`);
+      } else if (ragContext.status === 'no_match') {
+        contextSections.push(currentLanguage === 'en'
+          ? 'No project document source matched this query: no [Sx] identifier is available for this reply. If you did not use any document, state clearly that no project document source was used for this reply.'
+          : 'Aucune source documentaire du projet ne correspond à cette requête : aucun identifiant [Sx] n\'est disponible pour cette réponse. Si tu n\'utilises aucun document, indique clairement qu\'aucune source documentaire projet n\'a été utilisée pour cette réponse.');
       }
       const userRequest = currentLanguage === 'en'
         ? `User request:\n${userText}`
@@ -7984,15 +9051,18 @@
       const payload = {
         message: composedMessage,
         messagePreview: userText,
-        history: hasFileContext ? [] : chatHistory.slice(-apiHistoryWindow),
+        // .map garantit que seules role/content partent vers OpenRouter : les
+        // metadonnees UI (ragSourcesUsed) restent strictement client-side.
+        history: hasFileContext ? [] : chatHistory.slice(-apiHistoryWindow).map(({ role, content }) => ({ role, content })),
         conversationSummary: hasFileContext ? '' : normalizeSessionSummary(getActiveSession()?.summary),
         language: currentLanguage === 'en' ? 'en' : 'fr',
         currentDate: dateContext,
         mode: 'chat',
         sessionId: getActiveSession()?.id || '',
-        projectId: getActiveProject()?.id || null,
-        projectName: getActiveProject()?.name || '',
-        ragScope: getActiveProject()?.ragScope || 'project',
+        projectId: conversationProject?.id || null,
+        projectName: conversationProject?.name || '',
+        projectMemory: conversationProject?.memory || '',
+        ragScope: conversationProject?.ragScope || 'project',
         pageUrl: window.location.href,
         hasFileContext,
         fileContextLength: fileContext.length,
@@ -8020,7 +9090,13 @@
         webSearchActive: effectiveWebSearch,
         webSearchManualToggle: isWebSearchActive,
         ragStatus: ragContext.status,
-        ragEvents: ragContext.events?.length || 0
+        ragEvents: ragContext.events?.length || 0,
+        // Debug temporaire — diagnostic injection memoire projet (a retirer une fois valide)
+        projectId: payload.projectId,
+        projectName: payload.projectName,
+        projectMemoryLength: payload.projectMemory.length,
+        ragChunksLength: ragContext.selected?.length || 0,
+        includeGlobalLibrary: Boolean(conversationProject?.ragUseGlobalLibrary || assistantSettingsState.documents?.ragUseGlobalLibrary)
       });
       const data = await sendAssistantRequest(payload, requestController.signal);
 
@@ -8050,6 +9126,12 @@
         } else {
           cleanedReply = stripUnsupportedCitationMarkers(cleanedReply, 0);
         }
+        cleanedReply = stripUnsupportedRagCitationMarkers(cleanedReply, ragContext.usedSources?.map((source) => source.id) || []);
+        // Le bloc "Sources utilisees" ne doit refleter que les [Sx] reellement
+        // presents dans le texte final, jamais l'ensemble des candidats retrouves
+        // par le RAG (qui peuvent etre plus larges que ce que le modele a cite).
+        const citedSourceIds = extractCitedSourceIds(cleanedReply);
+        const validCitedSources = (ragContext.usedSources || []).filter((source) => citedSourceIds.has(source.id));
         if (data.web_search_requested && !data.web_search_performed && data.web_search_error) {
           const searchErrorNote = currentLanguage === 'en'
             ? `\n\n**Web search status**\nThe live web search could not be completed: ${data.web_search_error}.`
@@ -8057,12 +9139,21 @@
           cleanedReply += searchErrorNote;
         }
         const botBubble = await addStreamingBotMessage(cleanedReply);
+        const displaySources = validCitedSources.length && isRagCitationsDisplayEnabled(ragCandidateProject) ? validCitedSources : [];
         if (data.web_search_performed && data.web_search_results?.length) {
-          appendWebSearchSources(botBubble, data.web_search_results, Boolean(data.debug_web));
-          scrollConversationToBottom('smooth');
+          appendWebSearchSources(botBubble, data.web_search_results);
         }
+        if (displaySources.length) {
+          appendRagSources(botBubble, displaySources);
+        }
+        attachSourcesPanelTrigger(botBubble, { ragSources: displaySources, webSources: normalizedWebSources });
         speakText(cleanedReply, botBubble);
-        chatHistory.push({ role: 'assistant', content: cleanedReply });
+        chatHistory.push({
+          role: 'assistant',
+          content: cleanedReply,
+          ...(displaySources.length ? { ragSourcesUsed: displaySources } : {}),
+          ...(normalizedWebSources.length ? { webSourcesUsed: normalizedWebSources } : {})
+        });
         persistActiveConversation();
       } else {
         assistantLog('warn', 'api_error', {
