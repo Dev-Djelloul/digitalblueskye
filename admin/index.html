@@ -121,6 +121,20 @@
       place-items: center;
     }
 
+    button.refresh-icon {
+      width: 46px;
+      min-width: 46px;
+      padding: 0;
+      display: inline-grid;
+      place-items: center;
+    }
+
+    button.refresh-icon img {
+      width: 24px;
+      height: 24px;
+      display: block;
+    }
+
     button.delete-icon {
       width: 42px;
       min-width: 42px;
@@ -1694,7 +1708,9 @@
             <div id="aiMeta" class="health-meta"></div>
           </div>
           <div class="actions">
-            <button id="refreshAiBtn" type="button">Actualiser activités</button>
+            <button id="refreshAiBtn" class="refresh-icon" type="button" aria-label="Actualiser activités" title="Actualiser activités">
+              <img src="../assets/images/ui/icons8-synchronize-48.png" alt="" aria-hidden="true">
+            </button>
           </div>
         </div>
         <div id="aiContent" class="health health-dashboard"></div>
@@ -1707,7 +1723,9 @@
             <div id="healthMeta" class="health-meta"></div>
           </div>
           <div class="actions">
-            <button id="refreshHealthBtn" type="button">Actualiser Santé globale</button>
+            <button id="refreshHealthBtn" class="refresh-icon" type="button" aria-label="Actualiser Santé globale" title="Actualiser Santé globale">
+              <img src="../assets/images/ui/icons8-synchronize-48.png" alt="" aria-hidden="true">
+            </button>
           </div>
         </div>
         <div id="healthContent" class="health health-dashboard"></div>
