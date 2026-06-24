@@ -60,7 +60,7 @@
       background: rgba(255, 255, 255, 0.07);
       color: var(--text);
       cursor: pointer;
-      font-weight: 700;
+      font-weight: 600;
       padding: 0 14px;
       transition: transform 0.16s ease, background 0.16s ease, border-color 0.16s ease, color 0.16s ease, box-shadow 0.16s ease;
     }
@@ -97,6 +97,7 @@
       border-color: var(--brand);
       background: linear-gradient(135deg, var(--brand), var(--brand-dark));
       color: #fff;
+      font-weight: 650;
     }
 
     button.primary:hover {
@@ -107,6 +108,7 @@
       border-color: rgba(255, 122, 138, 0.45);
       color: var(--danger);
       background: rgba(255, 122, 138, 0.08);
+      font-weight: 650;
     }
 
     button.danger:disabled {
@@ -177,7 +179,7 @@
       gap: 5px;
       color: var(--muted);
       font-size: 12px;
-      font-weight: 800;
+      font-weight: 600;
       text-transform: uppercase;
     }
 
@@ -185,7 +187,7 @@
       width: 100%;
       max-width: 1480px;
       margin-inline: auto;
-      padding: 28px clamp(76px, 3vw, 96px) 36px;
+      padding: 28px clamp(96px, 5vw, 132px) 36px;
       overflow-x: hidden;
     }
 
@@ -215,6 +217,28 @@
     .back-link svg {
       width: 22px;
       height: 22px;
+    }
+
+    .scroll-top-button {
+      position: fixed;
+      right: 18px;
+      bottom: 28px;
+      z-index: 10;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 999px;
+      padding: 0 14px 0 12px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .scroll-top-button svg {
+      width: 20px;
+      height: 20px;
+      flex: 0 0 20px;
     }
 
     .topbar {
@@ -288,7 +312,7 @@
       border-radius: 6px;
       border: 1px solid var(--border);
       background: var(--surface);
-      font-weight: 700;
+      font-weight: 500;
       overflow-wrap: anywhere;
     }
 
@@ -350,7 +374,7 @@
       display: block;
       color: var(--muted);
       font-size: 12px;
-      font-weight: 800;
+      font-weight: 600;
       text-transform: uppercase;
     }
 
@@ -358,6 +382,7 @@
       display: block;
       margin-top: 4px;
       font-size: 28px;
+      font-weight: 700;
       line-height: 1;
     }
 
@@ -368,7 +393,7 @@
       color: var(--muted);
       font-size: 12px;
       font-style: normal;
-      font-weight: 750;
+      font-weight: 450;
       line-height: 1.35;
       overflow-wrap: anywhere;
     }
@@ -389,13 +414,19 @@
     .tab {
       padding: 0 14px;
       border-radius: 999px;
+      font-weight: 600;
     }
 
     .tab.active {
       border-color: var(--brand);
       background: linear-gradient(135deg, rgba(124, 131, 255, 0.24), rgba(177, 108, 255, 0.18));
       color: #fff;
+      font-weight: 650;
       box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    }
+
+    .panel-head strong {
+      font-weight: 650;
     }
 
     .panel {
@@ -467,6 +498,7 @@
       background: var(--surface-2);
       color: #dfe4ff;
       font-size: 12px;
+      font-weight: 600;
       text-transform: uppercase;
       white-space: nowrap;
     }
@@ -506,7 +538,7 @@
       background: #eef3f8;
       color: #334155;
       font-size: 12px;
-      font-weight: 800;
+      font-weight: 600;
       white-space: nowrap;
       overflow-wrap: anywhere;
       transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
@@ -595,6 +627,7 @@
     .health-card h2 {
       margin: 0 0 10px;
       font-size: 16px;
+      font-weight: 650;
       letter-spacing: 0;
     }
 
@@ -612,7 +645,7 @@
       padding: 14px;
       cursor: pointer;
       font-size: 16px;
-      font-weight: 800;
+      font-weight: 650;
       list-style: none;
     }
 
@@ -687,6 +720,7 @@
       flex: 1 1 130px;
       margin: 0;
       font-size: 15px;
+      font-weight: 650;
       letter-spacing: 0;
       overflow-wrap: anywhere;
     }
@@ -697,7 +731,7 @@
       margin: 10px 0;
       color: var(--muted);
       font-size: 13px;
-      font-weight: 700;
+      font-weight: 450;
     }
 
     .health-service-detail,
@@ -745,7 +779,7 @@
       gap: 8px;
       align-items: center;
       color: var(--muted);
-      font-weight: 700;
+      font-weight: 500;
     }
 
     .health-radar-list strong {
@@ -773,6 +807,7 @@
     .roadmap-column h3 {
       margin: 0;
       font-size: 14px;
+      font-weight: 650;
       text-transform: uppercase;
       color: var(--muted);
       letter-spacing: 0.02em;
@@ -787,7 +822,7 @@
 
     .roadmap-empty {
       color: var(--muted);
-      font-weight: 700;
+      font-weight: 450;
     }
 
     .health-dashboard,
@@ -812,6 +847,7 @@
 
     .health-score strong {
       font-size: 38px;
+      font-weight: 700;
       line-height: 1;
     }
 
@@ -837,7 +873,7 @@
       border-radius: 999px;
       padding: 4px 10px;
       background: rgba(255, 255, 255, 0.06);
-      font-weight: 700;
+      font-weight: 500;
       color: #eef2ff;
       overflow-wrap: anywhere;
     }
@@ -848,7 +884,7 @@
       flex-wrap: wrap;
       color: var(--muted);
       font-size: 13px;
-      font-weight: 200;
+      font-weight: 400;
     }
 
     .health-kv,
@@ -872,7 +908,7 @@
       display: block;
       color: var(--muted);
       font-size: 12px;
-      font-weight: 800;
+      font-weight: 600;
       text-transform: uppercase;
     }
 
@@ -882,6 +918,7 @@
       margin-top: 4px;
       overflow-wrap: anywhere;
       font-size: 18px;
+      font-weight: 650;
       line-height: 1.2;
     }
 
@@ -925,7 +962,7 @@
     .health-global-status p {
       margin: 0;
       color: var(--muted);
-      font-weight: 700;
+      font-weight: 500;
     }
 
     .health-status-line {
@@ -934,7 +971,7 @@
       gap: 10px;
       align-items: center;
       font-size: 22px;
-      font-weight: 900;
+      font-weight: 700;
     }
 
     .progress-bar {
@@ -968,7 +1005,7 @@
     .v3-card > header p {
       margin: 0;
       color: var(--muted);
-      font-weight: 700;
+      font-weight: 450;
     }
 
     .v3-layout {
@@ -1001,19 +1038,20 @@
 
     .v3-progress-value strong {
       font-size: 44px;
+      font-weight: 700;
       line-height: 0.95;
     }
 
     .v3-progress-value span {
       color: var(--muted);
       font-size: 18px;
-      font-weight: 900;
+      font-weight: 600;
     }
 
     .v3-progress-caption {
       margin: 0;
       color: var(--muted);
-      font-weight: 750;
+      font-weight: 450;
     }
 
     .v3-readiness {
@@ -1028,7 +1066,7 @@
       display: grid;
       gap: 2px;
       color: var(--muted);
-      font-weight: 700;
+      font-weight: 450;
     }
 
     .v3-readiness strong {
@@ -1067,7 +1105,7 @@
     .v3-feature-card p {
       margin: 0;
       color: var(--muted);
-      font-weight: 700;
+      font-weight: 450;
     }
 
     .availability-donut {
@@ -1106,13 +1144,14 @@
     .availability-donut strong {
       display: block;
       font-size: 28px;
+      font-weight: 700;
       line-height: 1;
     }
 
     .availability-donut span {
       color: var(--muted);
       font-size: 12px;
-      font-weight: 800;
+      font-weight: 600;
       text-transform: uppercase;
     }
 
@@ -1196,7 +1235,7 @@
     .product-health-card span {
       color: var(--muted);
       font-size: 12px;
-      font-weight: 800;
+      font-weight: 600;
       text-transform: uppercase;
     }
 
@@ -1204,6 +1243,7 @@
     .product-health-card strong {
       overflow-wrap: anywhere;
       font-size: 18px;
+      font-weight: 650;
       line-height: 1.2;
     }
 
@@ -1246,7 +1286,7 @@
     .health-timeline time {
       color: var(--muted);
       font-size: 13px;
-      font-weight: 850;
+      font-weight: 600;
       line-height: 1.4;
     }
 
@@ -1277,7 +1317,7 @@
       border: 1px dashed var(--border);
       border-radius: 14px;
       color: var(--muted);
-      font-weight: 800;
+      font-weight: 500;
       text-align: center;
       background: rgba(255, 255, 255, 0.04);
     }
@@ -1363,7 +1403,7 @@
     .health-activity time {
       color: var(--muted);
       font-size: 13px;
-      font-weight: 800;
+      font-weight: 500;
     }
 
     .actions {
@@ -1376,7 +1416,7 @@
     .selection-state {
       color: var(--muted);
       font-size: 13px;
-      font-weight: 800;
+      font-weight: 500;
       white-space: nowrap;
     }
 
@@ -1410,7 +1450,7 @@
 
     @media (max-width: 1100px) {
       .shell {
-        padding-inline: 20px;
+        padding-inline: 28px;
       }
 
       .summary {
@@ -1437,13 +1477,30 @@
     @media (max-width: 720px) {
       .shell {
         width: 100%;
-        padding: 72px 16px 18px;
+        padding: 72px 20px 18px;
       }
 
       .back-link {
         position: absolute;
         top: 14px;
         left: 14px;
+      }
+
+      .scroll-top-button {
+        right: 14px;
+        bottom: 18px;
+        width: 44px;
+        padding: 0;
+        justify-content: center;
+      }
+
+      .scroll-top-button span {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
       }
 
       .topbar,
@@ -1548,7 +1605,7 @@
         content: attr(data-label);
         color: var(--muted);
         font-size: 12px;
-        font-weight: 800;
+        font-weight: 600;
         text-transform: uppercase;
       }
     }
@@ -1578,6 +1635,7 @@
       }
 
       .back-link,
+      .scroll-top-button,
       .toolbar,
       .tabs,
       .panel-head .actions,
@@ -1631,6 +1689,12 @@
       <path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path>
     </svg>
   </a>
+  <button id="scrollTopBtn" class="scroll-top-button hidden" type="button" aria-label="Retour vers le haut" title="Retour vers le haut">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 19V5m0 0l-6 6m6-6l6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path>
+    </svg>
+    <span>Retour vers le haut</span>
+  </button>
   <main class="shell">
     <section id="loginView" class="login">
       <h1>
@@ -3735,6 +3799,7 @@
     function showApp() {
       $("#loginView").classList.add("hidden");
       $("#appView").classList.remove("hidden");
+      $("#scrollTopBtn").classList.remove("hidden");
       $("#apiLabel").textContent = state.apiBase;
       setActiveTab(state.tab);
     }
@@ -3743,6 +3808,7 @@
       sessionStorage.removeItem("dbs_admin_token");
       state.token = "";
       $("#appView").classList.add("hidden");
+      $("#scrollTopBtn").classList.add("hidden");
       $("#loginView").classList.remove("hidden");
       $("#tokenInput").value = "";
     }
@@ -3980,6 +4046,10 @@
     });
 
     $("#logoutBtn").addEventListener("click", logout);
+
+    $("#scrollTopBtn").addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
 
     document.querySelector(".back-link").addEventListener("click", (event) => {
       if (history.length <= 1) return;
