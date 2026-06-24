@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(awk 'NR<=100')",
+      "Bash(node --check cloudflare/worker-openrouter.js)",
+      "Bash(awk '/8190,|@@ -8/{p=1} p')",
+      "Bash(awk 'NR<=15')",
+      "Bash(awk 'NR==1{print \"first:\",$0} END{print \"last:\",$0}')",
+      "Bash(grep -n \"validCitedSources.length && isRagCitationsDisplayEnabled\\\\|chatHistory.push\\({ role: 'assistant', content: cleanedReply }\\)\" scripts/ai-assistant.js)",
+      "Bash(grep -n \"^\\\\.ai-sources-panel {$\\\\|^\\\\.ai-sources-panel--open {$\" styles/style.css)",
+      "Bash(xargs sed -i '' 's/ai-assistant\\\\.js?v=20260618-web-worker-fix/ai-assistant.js?v=20260623-sources-panel/g')",
+      "Bash(awk 'NR<=16')",
+      "Bash(grep -n \"\\\\.ai-sources-panel {$\" styles/style.css)",
+      "Bash(git status *)"
+    ]
+  }
+}

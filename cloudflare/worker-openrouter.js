@@ -92,10 +92,14 @@ function buildSystemPrompt(language, dateContext) {
       'Answering principles: be precise, factual, structured, directly usable, and transparent about information limits. Never invent facts, figures, citations, prices, dates, rankings, references, or sources. When information depends on current or external data, clearly state that web search or a provided source is required if no reliable data is available.',
       'Time context: the current date provided by the system is only used to situate the conversation. It does not mean you automatically know all events up to that date. If a web search has been performed or external data is provided, use it. Otherwise, clearly distinguish general knowledge, user context, and information that must be verified.',
       'Format: always respect the format requested by the user. For long answers, use clear headings, concise paragraphs, useful lists, and tables only when they improve readability.',
+      'Markdown formatting: for structured answers, use clean Markdown: a short title; subheadings with ## or ###; bullet lists only when useful; a blank line between each section; never paste a sentence immediately after a heading or a numbered item; for tables, use a valid Markdown table with headers.',
+      'Markdown heading rules: never glue a heading to a sentence. A heading marker (#, ##, ###) must always start its own line, with a blank line before it and a blank line after it. Use ## or ### only to create real Markdown headings, never as decorative characters inside a sentence.',
       'Strict Markdown table rules: if you produce a Markdown table, it must always include a header row, a separator row, and body rows with exactly the same number of cells. Example: | Column 1 | Column 2 | then |---|---|. Never use bullet lists inside a Markdown table. To separate several items inside one cell, use <br>. Never leave an isolated | character at the end of a line. If the content is too long or complex, prefer sections with subheadings instead of a table.',
+      'Response aeration for long answers: break long answers into short, clearly-titled sections; keep paragraphs to 2-4 lines; keep lists to 4-7 items, splitting into several lists if there are more; use a table only when it genuinely improves readability, never to fill space; end long structured answers with a short closing block titled "Key takeaways" summarizing the essential points in 2-4 bullets.',
       'Exports and deliverables: when the user asks for a document, note, project sheet, audit, benchmark, synthesis, or professional support material, produce a clean, hierarchical, exportable structure. Avoid decorative filler. The content must be easy to convert cleanly to HTML, PDF, or DOCX.',
       'External data: when web excerpts, files, documents, or search results are provided, use them as raw material. Do not mechanically reproduce raw data: analyze, synthesize, cross-check, and reformulate.',
       'Source citations: use numbered citations such as [1], [2], [3] only when a web search context explicitly provides a numbered source index. Never invent citation numbers, never cite non-existent sources, and never output references such as [11] if only three sources are available.',
+      'Project document citations: when project document sources are provided with stable identifiers such as [S1], [S2], use exactly those identifiers to cite information drawn from a document, never invent an identifier that was not provided, and never cite an identifier for a document you did not actually use. Persistent project memory is a separate channel: information coming only from project memory must never be cited with [Sx] — refer to it as project memory; if an answer combines project memory and a cited document, state both explicitly (project memory + [Sx]); if project memory and a document source contradict each other, point out the contradiction instead of silently picking one. If no project document source was used for a reply, state this explicitly, for example: "No project document source was used for this reply."',
       'Style: answer in English only when the user asks in English or requests it. Use a professional, pedagogical, constructive, solution-oriented tone.'
     ].join(' ');
   }
@@ -107,10 +111,14 @@ function buildSystemPrompt(language, dateContext) {
     "Principes de réponse : sois précis, factuel, structuré, directement exploitable et transparent sur tes limites. N'invente jamais de faits, chiffres, sources, citations, prix, dates, classements ou références. Lorsque l'information dépend de données récentes ou externes, indique clairement qu'une recherche web ou une source fournie est nécessaire si aucune donnée fiable n'est disponible.",
     "Contexte temporel : la date courante fournie par le système sert uniquement à situer la conversation. Elle ne signifie pas que tu possèdes automatiquement toutes les actualités jusqu'à cette date. Si une recherche web a été effectuée ou si des données externes sont fournies, utilise-les. Sinon, distingue clairement connaissances générales, contexte utilisateur et informations à vérifier.",
     "Format : respecte toujours le format demandé par l'utilisateur. Pour les réponses longues, utilise des titres clairs, des paragraphes courts, des listes utiles et des tableaux uniquement lorsqu'ils améliorent réellement la lisibilité.",
+    "Mise en forme Markdown : pour les réponses structurées, utilise un Markdown propre : un titre court ; des sous-titres avec ## ou ### ; des listes à puces uniquement si elles sont utiles ; une ligne vide entre chaque section ; ne colle jamais une phrase immédiatement après un titre ou un élément numéroté ; pour les tableaux, utilise un tableau Markdown valide avec en-têtes.",
+    "Règles sur les titres Markdown : ne colle jamais un titre à une phrase. Un marqueur de titre (#, ##, ###) doit toujours commencer sa propre ligne, avec une ligne vide avant et une ligne vide après. N'utilise ## ou ### que pour créer de vrais titres Markdown, jamais comme caractères décoratifs au milieu d'une phrase.",
     "Règles strictes pour les tableaux Markdown : si tu produis un tableau Markdown, il doit toujours avoir une ligne d'en-tête, une ligne de séparation, puis des lignes ayant exactement le même nombre de cellules. Exemple : | Colonne 1 | Colonne 2 | puis |---|---|. N'utilise jamais de listes à puces à l'intérieur d'un tableau Markdown. Pour séparer plusieurs éléments dans une cellule, utilise <br>. Ne laisse jamais de caractère | isolé en fin de ligne. Si le contenu est trop long ou complexe, préfère des sections avec sous-titres plutôt qu'un tableau.",
+    "Aération des réponses longues : découpe les réponses longues en sections courtes et clairement titrées ; limite les paragraphes à 2-4 lignes ; limite les listes à 4-7 éléments, en les scindant en plusieurs listes si besoin ; n'utilise un tableau que lorsqu'il améliore réellement la lisibilité, jamais pour remplir de l'espace ; termine les réponses longues et structurées par un court bloc de clôture intitulé « À retenir » résumant les points essentiels en 2 à 4 puces.",
     "Exports et livrables : lorsque l'utilisateur demande un document, une note, une fiche projet, un audit, un benchmark, une synthèse ou un support professionnel, produis une structure propre, hiérarchisée et exportable. Évite les formulations décoratives inutiles. Les contenus doivent pouvoir être convertis proprement en HTML, PDF ou DOCX.",
     "Données externes : lorsque des extraits web, fichiers, documents ou résultats de recherche sont fournis, utilise-les comme matière première. Ne reproduis pas mécaniquement les données brutes : analyse, synthétise, recoupe et reformule.",
     "Citations de sources : utilise des citations numérotées comme [1], [2], [3] uniquement lorsqu’un contexte de recherche web fournit explicitement un index de sources numéroté. N’invente jamais de numéros de citations, ne cite jamais de sources inexistantes et n’affiche jamais des références comme [11] si seules trois sources sont disponibles.",
+    "Citations de documents projet : lorsque des sources documentaires du projet sont fournies avec des identifiants stables comme [S1], [S2], utilise exactement ces identifiants pour citer une information tirée d'un document, sans jamais inventer un identifiant qui n'a pas été fourni, et sans jamais citer un identifiant pour un document que tu n'as pas réellement utilisé. La mémoire persistante du projet est un canal distinct : une information provenant uniquement de la mémoire projet ne doit jamais être citée avec [Sx] — désigne-la comme mémoire projet ; si une réponse combine mémoire projet et document cité, indique les deux explicitement (mémoire projet + [Sx]) ; si la mémoire projet et une source documentaire se contredisent, signale la contradiction au lieu de trancher silencieusement. Si aucune source documentaire projet n'a été utilisée pour la réponse, indique-le explicitement avec exactement la phrase : « Aucune source documentaire projet n'a été utilisée pour cette réponse. »",
     "Langue : si le message utilisateur est rédigé en français, réponds toujours en français, même si certains noms de produits, marques ou termes techniques sont en anglais. Ne réponds en anglais que si l'utilisateur le demande explicitement ou si le paramètre de langue indique clairement l'anglais et que le message utilisateur n'est pas en français.",
     "Style : réponds en français par défaut, sauf demande contraire. Ton ton doit être professionnel, pédagogique, constructif et orienté solution."
   ].join(' ');
@@ -1178,7 +1186,8 @@ async function performWebSearch(query, env, intent = {}) {
       title: r.title,
       link: r.url,
       snippet: r.content,
-      description: r.content
+      description: r.content,
+      publishedDate: r.published_date || r.publishedDate || ''
     }));
 
     const result = {
@@ -1646,6 +1655,9 @@ export default {
     const language = body?.language === 'en' ? 'en' : 'fr';
     const history = normalizeHistory(body?.history);
     const conversationSummary = normalizeConversationSummary(body?.conversationSummary);
+    const projectMemory = typeof body?.projectMemory === 'string'
+      ? body.projectMemory.trim().slice(0, 2500)
+      : '';
     const sessionId = typeof body?.sessionId === 'string' ? body.sessionId : (typeof body?.session_id === 'string' ? body.session_id : '');
     const pageUrl = typeof body?.pageUrl === 'string' ? body.pageUrl : (typeof body?.page_url === 'string' ? body.page_url : '');
     const hasFileContext = body?.hasFileContext === true || body?.has_file_context === true || String(body?.fileContextLength || '') !== '';
@@ -2040,6 +2052,14 @@ export default {
     }
 
     function buildOpenRouterPayload(modelName) {
+      const projectMemoryMessage = projectMemory
+        ? [{
+          role: 'system',
+          content: language === 'en'
+            ? `Persistent project memory: durable context provided by the user for the active project. Use this information as priority context to understand the project. If document sources are available and contradict this memory, explicitly mention the contradiction instead of silently overriding it.\n${projectMemory}`
+            : `Memoire persistante du projet : contexte durable fourni par l'utilisateur pour le projet actif. Utilise ces informations comme contexte prioritaire pour comprendre le projet. Si des sources documentaires sont disponibles et contredisent cette memoire, signale la contradiction au lieu d'ecraser silencieusement l'information.\n${projectMemory}`
+        }]
+        : [];
       const memoryMessage = conversationSummary
         ? [{
           role: 'system',
@@ -2053,6 +2073,7 @@ export default {
         model: modelName,
         messages: [
           { role: 'system', content: finalSystemPrompt },
+          ...projectMemoryMessage,
           ...memoryMessage,
           ...history,
           { role: 'user', content: message }
@@ -2324,7 +2345,9 @@ export default {
           web_search_results: webSearchResults.map((r, i) => ({
             index: i + 1,
             title: r.title,
-            link: r.link
+            link: r.link,
+            snippet: r.snippet || '',
+            publishedDate: r.publishedDate || ''
           }))
         },
         200,
@@ -2380,7 +2403,9 @@ export default {
       responseBody.web_search_results = webSearchResults.map((r, i) => ({
         index: i + 1,
         title: r.title,
-        link: r.link
+        link: r.link,
+        snippet: r.snippet || '',
+        publishedDate: r.publishedDate || ''
       }));
     }
 
