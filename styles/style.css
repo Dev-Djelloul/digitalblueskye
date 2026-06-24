@@ -10606,6 +10606,133 @@ body.body-menu-open .ai-assistant-launcher {
   width: 30px;
 }
 
+/* Menu profil ancre au bouton avatar du rail (pop-up vers le haut). */
+.ai-assistant-profile-menu {
+  background: linear-gradient(180deg, rgb(26 26 52 / 97%), rgb(15 14 34 / 98%));
+  border: 1px solid rgb(255 255 255 / 14%);
+  border-radius: 14px;
+  bottom: 14px;
+  box-shadow: 0 18px 44px rgb(0 0 0 / 50%);
+  left: 70px;
+  opacity: 0;
+  padding: 8px;
+  pointer-events: none;
+  position: absolute;
+  transform: translateY(6px);
+  transition: opacity 0.16s ease, transform 0.16s ease;
+  width: 250px;
+  z-index: 30;
+}
+
+.ai-assistant-profile-menu[hidden] {
+  display: none;
+}
+
+.ai-assistant-profile-menu.is-open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.ai-assistant-profile-menu-head {
+  align-items: center;
+  border-bottom: 1px solid rgb(255 255 255 / 10%);
+  display: flex;
+  gap: 10px;
+  margin-bottom: 6px;
+  padding: 8px 8px 10px;
+}
+
+.ai-assistant-profile-menu-avatar {
+  border-radius: 50%;
+  flex: 0 0 auto;
+  height: 38px;
+  object-fit: cover;
+  width: 38px;
+}
+
+.ai-assistant-profile-menu-id {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.ai-assistant-profile-menu-name {
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 0.86rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ai-assistant-profile-menu-email {
+  color: rgb(235 240 255 / 55%);
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ai-assistant-profile-menu-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ai-assistant-profile-menu-item {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 9px;
+  color: rgb(246 247 255 / 92%);
+  cursor: pointer;
+  display: flex;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  gap: 10px;
+  padding: 9px 10px;
+  text-align: left;
+  width: 100%;
+}
+
+.ai-assistant-profile-menu-item:hover {
+  background: rgb(255 255 255 / 8%);
+}
+
+.ai-assistant-profile-menu-item svg {
+  color: rgb(235 240 255 / 75%);
+  flex: 0 0 auto;
+}
+
+[data-theme="light"] .ai-assistant-profile-menu {
+  background: linear-gradient(180deg, rgb(255 255 255 / 99%), rgb(245 244 255 / 99%));
+  border-color: rgb(93 93 255 / 18%);
+  box-shadow: 0 18px 44px rgb(88 74 136 / 22%);
+}
+
+[data-theme="light"] .ai-assistant-profile-menu-name {
+  color: #2f2b5f;
+}
+
+[data-theme="light"] .ai-assistant-profile-menu-email {
+  color: rgb(47 43 95 / 60%);
+}
+
+[data-theme="light"] .ai-assistant-profile-menu-item {
+  color: #2f2b5f;
+}
+
+[data-theme="light"] .ai-assistant-profile-menu-item:hover {
+  background: rgb(93 93 255 / 10%);
+}
+
+[data-theme="light"] .ai-assistant-profile-menu-item svg {
+  color: rgb(47 43 95 / 70%);
+}
+
 /* Le rail remplace le toggle d'historique du header (evite le doublon). */
 .ai-assistant-panel.has-rail .ai-assistant-history-toggle {
   display: none;
@@ -10925,6 +11052,14 @@ body.body-menu-open .ai-assistant-launcher {
   padding-right: 4px;
   scrollbar-color: rgb(121 230 255 / 34%) transparent;
   scrollbar-width: thin;
+}
+
+/* Empeche les sections (Projets, Discussions recentes…) de se faire ecraser a
+   hauteur 0 par le flex quand le contenu depasse : sans cela leur contenu
+   debordait et se superposait. On garde leur hauteur naturelle et c'est le
+   conteneur qui defile. */
+.ai-assistant-sidebar-scroll > * {
+  flex-shrink: 0;
 }
 
 .ai-assistant-sidebar-nav {

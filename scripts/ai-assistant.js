@@ -533,8 +533,6 @@
   // barre laterale complete (recherche, nouvelle discussion, bibliotheque…).
   function createSidebarRailMarkup() {
     const searchSvg = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>';
-    const settingsIconUrl = resolveUiIconUrl('icons8-settings.svg');
-    const settingsLabel = currentLanguage === 'en' ? 'Settings' : 'Paramètres';
     return `
       <nav id="ai-assistant-rail" class="ai-assistant-rail" aria-label="${currentLanguage === 'en' ? 'Sidebar' : 'Barre latérale'}">
         <div class="ai-assistant-rail-group">
@@ -542,10 +540,10 @@
           <button class="ai-assistant-rail-btn" type="button" data-rail="search" title="${i18n.searchConversations}" aria-label="${i18n.searchConversations}">${searchSvg}</button>
           <button class="ai-assistant-rail-btn" type="button" data-rail="new" title="${i18n.newChat}" aria-label="${i18n.newChat}"><img src="${createNewIconUrl}" alt="" aria-hidden="true"></button>
           <button class="ai-assistant-rail-btn" type="button" data-rail="library" title="${i18n.library}" aria-label="${i18n.library}"><img src="${libraryIconUrl}" alt="" aria-hidden="true"></button>
+          <button class="ai-assistant-rail-btn" type="button" data-rail="projects" title="${currentLanguage === 'en' ? 'Projects' : 'Projets'}" aria-label="${currentLanguage === 'en' ? 'Projects' : 'Projets'}"><img src="${projectSectionIconUrl}" alt="" aria-hidden="true"></button>
         </div>
         <div class="ai-assistant-rail-group ai-assistant-rail-group--bottom">
-          <button class="ai-assistant-rail-btn" type="button" data-rail="settings" title="${settingsLabel}" aria-label="${settingsLabel}"><img src="${settingsIconUrl}" alt="" aria-hidden="true"></button>
-          <button class="ai-assistant-rail-btn ai-assistant-rail-avatar" type="button" data-rail="settings" title="${settingsLabel}" aria-label="${settingsLabel}"><img src="/assets/images/portrait/my-notion-face-transparent.png" alt="" aria-hidden="true"></button>
+          <button class="ai-assistant-rail-btn ai-assistant-rail-avatar" type="button" data-rail="profile" title="${currentLanguage === 'en' ? 'Profile' : 'Profil'}" aria-label="${currentLanguage === 'en' ? 'Profile' : 'Profil'}" aria-haspopup="menu"><img src="/assets/images/portrait/my-notion-face-transparent.png" alt="" aria-hidden="true"></button>
         </div>
       </nav>`;
   }
@@ -574,14 +572,104 @@
         case 'library':
           trigger('ai-assistant-session-library');
           break;
+        case 'projects':
+          if (!isHistoryOpen()) trigger('ai-assistant-history-toggle');
+          areProjectsCollapsed = false;
+          applySidebarSectionState();
+          setTimeout(() => document.getElementById('ai-assistant-projects-section')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 90);
+          break;
         case 'settings':
           trigger('ai-assistant-settings-open');
+          break;
+        case 'profile':
+          toggleProfileMenu(btn);
           break;
         default:
           break;
       }
       rail.querySelectorAll('.ai-assistant-rail-btn').forEach((b) => b.classList.toggle('is-active', b.dataset.rail === 'toggle' && isHistoryOpen()));
     });
+  }
+
+  // Menu profil (facon ChatGPT) ancre au bouton avatar du rail : en-tete
+  // avatar + nom + email, puis Profil / Parametres / bascule de theme.
+  function ensureProfileMenu() {
+    if (document.getElementById('ai-assistant-profile-menu')) return;
+    const host = document.getElementById('ai-assistant-panel') || document.body;
+    const en = currentLanguage === 'en';
+    const userSvg = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>';
+    const gearSvg = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 8 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H2a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 8a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H6a1.65 1.65 0 0 0 1-1.51V2a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V8a1.65 1.65 0 0 0 1.51 1H22a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>';
+    const themeSvg = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
+    host.insertAdjacentHTML('beforeend', `
+      <div id="ai-assistant-profile-menu" class="ai-assistant-profile-menu" role="menu" aria-hidden="true" hidden>
+        <div class="ai-assistant-profile-menu-head">
+          <img class="ai-assistant-profile-menu-avatar" src="/assets/images/portrait/my-notion-face-transparent.png" alt="" aria-hidden="true">
+          <div class="ai-assistant-profile-menu-id">
+            <strong id="ai-assistant-profile-menu-name" class="ai-assistant-profile-menu-name"></strong>
+            <span id="ai-assistant-profile-menu-email" class="ai-assistant-profile-menu-email"></span>
+          </div>
+        </div>
+        <div class="ai-assistant-profile-menu-list">
+          <button class="ai-assistant-profile-menu-item" type="button" role="menuitem" data-profile-action="profile">${userSvg}<span>${en ? 'Profile' : 'Profil'}</span></button>
+          <button class="ai-assistant-profile-menu-item" type="button" role="menuitem" data-profile-action="settings">${gearSvg}<span>${en ? 'Settings' : 'Paramètres'}</span></button>
+          <button class="ai-assistant-profile-menu-item" type="button" role="menuitem" data-profile-action="theme">${themeSvg}<span>${en ? 'Light / dark theme' : 'Thème clair / sombre'}</span></button>
+        </div>
+      </div>`);
+
+    const menu = document.getElementById('ai-assistant-profile-menu');
+    menu.addEventListener('click', (event) => {
+      const item = event.target.closest('[data-profile-action]');
+      if (!item) return;
+      const action = item.dataset.profileAction;
+      if (action === 'profile' || action === 'settings') {
+        document.getElementById('ai-assistant-settings-open')?.click();
+        if (action === 'profile') {
+          setTimeout(() => document.querySelector('.ai-assistant-settings-view-inner')?.scrollIntoView({ block: 'start', behavior: 'smooth' }), 80);
+        }
+      } else if (action === 'theme') {
+        document.getElementById('theme-switch')?.click();
+      }
+      closeProfileMenu();
+    });
+    document.addEventListener('click', (event) => {
+      if (menu.hidden) return;
+      if (event.target.closest('#ai-assistant-profile-menu') || event.target.closest('[data-rail="profile"]')) return;
+      closeProfileMenu();
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && !menu.hidden) closeProfileMenu();
+    });
+  }
+
+  function openProfileMenu() {
+    ensureProfileMenu();
+    const menu = document.getElementById('ai-assistant-profile-menu');
+    if (!menu) return;
+    const profile = assistantSettingsState.profile || {};
+    const nameEl = document.getElementById('ai-assistant-profile-menu-name');
+    const emailEl = document.getElementById('ai-assistant-profile-menu-email');
+    if (nameEl) nameEl.textContent = String(profile.name || '').trim() || (currentLanguage === 'en' ? 'My profile' : 'Mon profil');
+    if (emailEl) emailEl.textContent = String(profile.email || '').trim();
+    menu.hidden = false;
+    menu.setAttribute('aria-hidden', 'false');
+    void menu.offsetWidth;
+    menu.classList.add('is-open');
+    document.querySelector('[data-rail="profile"]')?.classList.add('is-active');
+  }
+
+  function closeProfileMenu() {
+    const menu = document.getElementById('ai-assistant-profile-menu');
+    if (!menu) return;
+    menu.classList.remove('is-open');
+    menu.setAttribute('aria-hidden', 'true');
+    document.querySelector('[data-rail="profile"]')?.classList.remove('is-active');
+    setTimeout(() => { menu.hidden = true; }, 160);
+  }
+
+  function toggleProfileMenu() {
+    const menu = document.getElementById('ai-assistant-profile-menu');
+    if (menu && !menu.hidden) closeProfileMenu();
+    else openProfileMenu();
   }
 
   // Modale de recherche de discussions (facon ChatGPT) declenchee depuis le rail.
@@ -1169,7 +1257,9 @@
   const maxStoredMessageLength = 8000;
   const maxConversationSummaryLength = 1800;
   const apiHistoryWindow = 16;
-  const maxKnowledgeDocuments = 10;
+  // Plafond large (tous formats confondus) : ce n'est plus une limite a 10, le
+  // vrai garde-fou est la capacite du stockage local.
+  const maxKnowledgeDocuments = 200;
   const maxKnowledgeCharsPerDocument = 250000;
   const maxKnowledgeChunksPerDocument = 140;
   const knowledgeChunkSize = 2200;
