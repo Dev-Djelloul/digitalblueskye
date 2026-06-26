@@ -82,6 +82,29 @@ async function scenarioCloudflareAiFallback() {
   console.log('scenario6 (fallback Cloudflare AI apres echec OpenRouter):', result.ok, result.provider, result.model);
 }
 
+async function scenarioLowOpenRouterCreditShortCircuitsToCloudflareAi() {
+  let openRouterCalls = 0;
+  const fetchImpl = async () => {
+    openRouterCalls += 1;
+    return fakeResponse(402, {
+      error: {
+        message: 'This request requires more credits, or fewer max_tokens. You requested up to 700 tokens, but can only afford 50.'
+      }
+    });
+  };
+  const args = commonArgs(fetchImpl);
+  args.env = { ...baseEnv, AI: { run: async () => ({ response: 'Reponse Cloudflare AI apres credit bas' }) } };
+  const result = await routeChatCompletion(args);
+  console.assert(result.ok === true, 'scenario6b: should succeed via Cloudflare AI');
+  console.assert(result.provider === 'cloudflare_ai', 'scenario6b: provider should be cloudflare_ai');
+  console.assert(openRouterCalls === 1, 'scenario6b: should not cascade OpenRouter when account credit is exhausted');
+  const failed = events.find((e) => e.type === 'openrouter_model_failed');
+  console.assert(failed?.payload?.affordable_tokens === 50, 'scenario6b: should log affordable token count');
+  const allFailed = events.find((e) => e.type === 'openrouter_all_models_failed');
+  console.assert(allFailed?.payload?.credit_exhausted === true, 'scenario6b: should log credit_exhausted');
+  console.log('scenario6b (credit OpenRouter bas -> Cloudflare AI direct):', result.ok, result.provider, 'openrouterCalls=', openRouterCalls);
+}
+
 async function scenarioCloudflareAiUnavailable() {
   const fetchImpl = async () => fakeResponse(429, { error: { message: 'free-models-per-day limit' } });
   const args = commonArgs(fetchImpl);
@@ -257,6 +280,7 @@ async function run() {
   await scenario402ThenReducedTokens();
   await scenarioAllModelsFail();
   await scenarioCloudflareAiFallback();
+  await scenarioLowOpenRouterCreditShortCircuitsToCloudflareAi();
   await scenarioCloudflareAiUnavailable();
   await scenarioCloudflareAiModelCascade();
   await scenarioInvalidModelExcluded();

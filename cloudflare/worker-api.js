@@ -434,6 +434,13 @@ function averageFromEvents(rows, fieldNames) {
   return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
 }
 
+function extractAffordableTokensFromText(value) {
+  const match = String(value || "").match(/can\s+only\s+afford\s+(\d+)/i);
+  if (!match) return null;
+  const parsed = Number(match[1]);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 // Statistiques par modele a partir des nouveaux evenements du Model Router
 // (cloudflare/modelRouter.js) : openrouter_model_attempt/success/failed,
 // openrouter_rate_limit/credit_limit, openrouter_retry_reduced_tokens,
@@ -448,6 +455,7 @@ function buildOpenRouterModelStatsFromEvents(rows) {
   const creditLimitEvents = eventRows.filter((row) => row.event_type === "openrouter_credit_limit");
   const retryEvents = eventRows.filter((row) => row.event_type === "openrouter_retry_reduced_tokens");
   const allFailedEvents = eventRows.filter((row) => row.event_type === "openrouter_all_models_failed");
+  const creditExhaustedEvents = allFailedEvents.filter((row) => isTruthyFlag(parseEventMeta(row).credit_exhausted));
 
   // Second provider (cf. cloudflare/modelRouter.js, callCloudflareAiChat) :
   // n'apparait que quand OpenRouter a totalement echoue.
@@ -459,6 +467,10 @@ function buildOpenRouterModelStatsFromEvents(rows) {
   // rows sont triees created_at DESC : le premier match est donc le plus recent.
   const lastSuccess = successes[0] ? parseEventMeta(successes[0]) : null;
   const lastFailure = failures[0] ? parseEventMeta(failures[0]) : null;
+  const lastCreditLimit = creditLimitEvents[0] ? parseEventMeta(creditLimitEvents[0]) : null;
+  const lastAffordableTokens = lastCreditLimit
+    ? (Number(lastCreditLimit.affordable_tokens) || extractAffordableTokensFromText(lastCreditLimit.upstream_error))
+    : null;
 
   // Provider reellement utilise lors de la derniere reponse generee, tous
   // providers confondus (le plus recent entre un succes OpenRouter et un
@@ -509,6 +521,18 @@ function buildOpenRouterModelStatsFromEvents(rows) {
     success_rate_by_model: successRateByModel,
     rate_limit_count: rateLimitEvents.length,
     credit_limit_count: creditLimitEvents.length,
+    credit_exhausted_count: creditExhaustedEvents.length,
+    openrouter_credit_exhausted: creditExhaustedEvents.length > 0,
+    last_credit_limit_detail: lastCreditLimit
+      ? {
+          model: lastCreditLimit.model || "",
+          at: creditLimitEvents[0]?.created_at || null,
+          status_code: lastCreditLimit.status_code ?? null,
+          tokens_requested: lastCreditLimit.tokens_requested ?? null,
+          affordable_tokens: lastAffordableTokens,
+          upstream_error: lastCreditLimit.upstream_error || "",
+        }
+      : null,
     all_models_failed_count: allFailedEvents.length,
     most_reliable_fallback_model: mostReliableFallback?.model || "",
     // Provider reellement utilise (OpenRouter ou Cloudflare AI en secours).

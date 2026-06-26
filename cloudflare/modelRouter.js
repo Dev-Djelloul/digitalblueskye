@@ -20,6 +20,7 @@ import { applyCompletionGuard, resolveMaxContinuations, closeOpenMarkdownStructu
 export const DEFAULT_MAX_TOKENS = 700;
 export const TOKEN_RETRY_LEVELS = [700, 500, 350];
 export const LAST_RESORT_MODEL = 'openrouter/auto';
+export const MIN_USEFUL_OPENROUTER_TOKENS = 128;
 
 // Lot 6 — Dynamic Model Selection. Le Prompt Orchestrator (cf.
 // cloudflare/promptOrchestrator.js) calcule un preferredModelTier par
@@ -173,6 +174,19 @@ function classifyFailure(statusCode, upstreamError, isTimeout) {
   if (statusCode >= 500) return 'provider_error';
   if (!statusCode) return 'provider_error';
   return 'unknown';
+}
+
+function extractAffordableTokens(upstreamError) {
+  const text = String(upstreamError || '');
+  const match = text.match(/can\s+only\s+afford\s+(\d+)/i);
+  if (!match) return null;
+  const value = Number(match[1]);
+  return Number.isFinite(value) ? value : null;
+}
+
+function isOpenRouterCreditExhausted(upstreamError) {
+  const affordableTokens = extractAffordableTokens(upstreamError);
+  return affordableTokens !== null && affordableTokens < MIN_USEFUL_OPENROUTER_TOKENS;
 }
 
 function extractReplyContent(parsed) {
@@ -397,6 +411,7 @@ export async function routeChatCompletion({
   let attemptIndex = 0;
   let success = null;
   let lastFailure = null;
+  let openRouterCreditExhausted = false;
 
   async function attemptOnce(model, tokenLimit, isRetryOfSameAttempt) {
     attemptIndex += 1;
@@ -449,8 +464,13 @@ export async function routeChatCompletion({
     const errorType = classifyFailure(result.statusCode, upstreamError, result.isTimeout);
     record.error_type = errorType;
     record.upstream_error = String(upstreamError).slice(0, 300);
+    const affordableTokens = extractAffordableTokens(upstreamError);
+    if (affordableTokens !== null) record.affordable_tokens = affordableTokens;
     attempts.push(record);
     lastFailure = record;
+    if (errorType === 'credit_limit' && isOpenRouterCreditExhausted(upstreamError)) {
+      openRouterCreditExhausted = true;
+    }
 
     emit(onEvent, EVENT_TYPES.MODEL_FAILED, record);
     if (errorType === 'rate_limit') emit(onEvent, EVENT_TYPES.RATE_LIMIT, record);
@@ -557,6 +577,12 @@ export async function routeChatCompletion({
         if (ok) break modelLoop;
 
         const errorType = lastFailure?.error_type;
+
+        // 402 avec credit restant trop faible : le plafond concerne la cle
+        // OpenRouter, pas un modele specifique. Continuer la cascade ne fait
+        // que multiplier les echecs; on bascule directement vers le provider
+        // de secours si disponible.
+        if (openRouterCreditExhausted) break modelLoop;
 
         // 402 (credit) : meme modele, niveau de tokens reduit.
         if (errorType === 'credit_limit' && levelIndex < tokenRetryLevels.length - 1) {
@@ -667,12 +693,19 @@ export async function routeChatCompletion({
   // Dernier recours : openrouter/auto, une seule fois, au plus petit niveau
   // de tokens — jamais essaye plus tot dans la chaine.
   const smallestTokenLimit = tokenRetryLevels[tokenRetryLevels.length - 1];
-  const lastResortOk = await attemptOnce(LAST_RESORT_MODEL, smallestTokenLimit, false);
-  if (lastResortOk) {
-    return await finalizeOpenRouterSuccess();
+  if (!openRouterCreditExhausted) {
+    const lastResortOk = await attemptOnce(LAST_RESORT_MODEL, smallestTokenLimit, false);
+    if (lastResortOk) {
+      return await finalizeOpenRouterSuccess();
+    }
   }
 
-  emit(onEvent, EVENT_TYPES.ALL_MODELS_FAILED, { attempts_count: attempts.length, last_error_type: lastFailure?.error_type || 'unknown' });
+  emit(onEvent, EVENT_TYPES.ALL_MODELS_FAILED, {
+    attempts_count: attempts.length,
+    last_error_type: lastFailure?.error_type || 'unknown',
+    credit_exhausted: openRouterCreditExhausted,
+    affordable_tokens: lastFailure?.affordable_tokens ?? null
+  });
 
   // Second provider, hors OpenRouter, uniquement quand toute la chaine
   // OpenRouter (y compris openrouter/auto) a echoue. Jamais essaye avant,

@@ -632,6 +632,22 @@
       letter-spacing: 0;
     }
 
+    .health-warning {
+      display: grid;
+      gap: 4px;
+      margin-top: 12px;
+      padding: 12px;
+      border: 1px solid rgba(255, 209, 102, 0.34);
+      border-radius: 12px;
+      background: rgba(255, 209, 102, 0.1);
+      color: #ffe5a3;
+      line-height: 1.45;
+    }
+
+    .health-warning strong {
+      color: #fff2bf;
+    }
+
     .health-accordion {
       padding: 0;
       overflow: hidden;
@@ -2791,6 +2807,17 @@
     // remplacer la carte "État de l'intelligence artificielle" ci-dessus.
     function renderModelRouterCard(stats = {}) {
       const byModel = Array.isArray(stats.success_rate_by_model) ? stats.success_rate_by_model : [];
+      const creditDetail = stats.last_credit_limit_detail || null;
+      const creditAlert = stats.openrouter_credit_exhausted ? `
+        <div class="health-warning">
+          <strong>Crédit OpenRouter insuffisant.</strong>
+          <span>
+            Dernier blocage : ${escapeHtml(creditDetail?.model || "modèle inconnu")}
+            ${creditDetail?.tokens_requested ? `demandait ${escapeHtml(creditDetail.tokens_requested)} tokens` : ""}
+            ${creditDetail?.affordable_tokens ? `, crédit restant estimé : ${escapeHtml(creditDetail.affordable_tokens)} tokens` : ""}.
+            Le routeur bascule vers Cloudflare AI pour éviter de multiplier les échecs.
+          </span>
+        </div>` : "";
       const rows = byModel.length
         ? byModel.map((entry) => `
             <tr>
@@ -2839,6 +2866,7 @@
             <article class="health-ai-tile">
               <span>Erreurs 402 (crédit)</span>
               <strong>${escapeHtml(stats.credit_limit_count ?? 0)}</strong>
+              <small>${escapeHtml(stats.credit_exhausted_count ?? 0)} épuisement(s) détecté(s)</small>
             </article>
             <article class="health-ai-tile">
               <span>Modèle de secours le plus fiable</span>
@@ -2855,6 +2883,7 @@
               <tbody>${rows}</tbody>
             </table>
           </div>
+          ${creditAlert}
           ${renderCloudflareAiErrorDetail(stats.last_cloudflare_ai_error)}
         </article>
       `;
