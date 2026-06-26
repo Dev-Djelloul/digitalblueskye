@@ -362,6 +362,7 @@ export async function routeChatCompletion({
   env,
   metadata,
   modelTier,
+  cloudflareAiMaxTokens,
   onEvent,
   fetchImpl,
   timeoutMs
@@ -405,6 +406,10 @@ export async function routeChatCompletion({
     .map((level) => Math.min(level, effectiveMaxTokens))
     .filter((value, index, array) => index === 0 || value < array[index - 1]);
   if (!tokenRetryLevels.length) tokenRetryLevels.push(effectiveMaxTokens);
+  const effectiveCloudflareAiMaxTokens = Math.max(
+    tokenRetryLevels[tokenRetryLevels.length - 1],
+    Number(cloudflareAiMaxTokens) || tokenRetryLevels[tokenRetryLevels.length - 1]
+  );
 
   const modelChain = buildModelChain(env, onEvent, requestedModelTier);
   const attempts = [];
@@ -564,7 +569,7 @@ export async function routeChatCompletion({
   let earlyCloudflareAiResult = null;
   if (requestedModelTier === MODEL_TIERS.FAST) {
     cloudflareAiAlreadyAttempted = true;
-    earlyCloudflareAiResult = await attemptCloudflareAiChain(tokenRetryLevels[0]);
+    earlyCloudflareAiResult = await attemptCloudflareAiChain(effectiveCloudflareAiMaxTokens);
   }
 
   if (!earlyCloudflareAiResult) {
@@ -712,8 +717,7 @@ export async function routeChatCompletion({
   // jamais en concurrence avec OpenRouter (sauf early-attempt tier 'fast'
   // ci-dessus, deja gere via cloudflareAiAlreadyAttempted).
   if (!cloudflareAiAlreadyAttempted) {
-    const fallbackTokenLimit = tokenRetryLevels[tokenRetryLevels.length - 1];
-    const fallbackAttempt = await attemptCloudflareAiChain(fallbackTokenLimit);
+    const fallbackAttempt = await attemptCloudflareAiChain(effectiveCloudflareAiMaxTokens);
     if (fallbackAttempt) return fallbackAttempt;
   }
 

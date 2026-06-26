@@ -84,6 +84,7 @@ async function scenarioCloudflareAiFallback() {
 
 async function scenarioLowOpenRouterCreditShortCircuitsToCloudflareAi() {
   let openRouterCalls = 0;
+  let cloudflareAiMaxTokens = 0;
   const fetchImpl = async () => {
     openRouterCalls += 1;
     return fakeResponse(402, {
@@ -93,11 +94,21 @@ async function scenarioLowOpenRouterCreditShortCircuitsToCloudflareAi() {
     });
   };
   const args = commonArgs(fetchImpl);
-  args.env = { ...baseEnv, AI: { run: async () => ({ response: 'Reponse Cloudflare AI apres credit bas' }) } };
+  args.cloudflareAiMaxTokens = 1600;
+  args.env = {
+    ...baseEnv,
+    AI: {
+      run: async (model, payload) => {
+        cloudflareAiMaxTokens = payload.max_tokens;
+        return { response: 'Reponse Cloudflare AI apres credit bas' };
+      }
+    }
+  };
   const result = await routeChatCompletion(args);
   console.assert(result.ok === true, 'scenario6b: should succeed via Cloudflare AI');
   console.assert(result.provider === 'cloudflare_ai', 'scenario6b: provider should be cloudflare_ai');
   console.assert(openRouterCalls === 1, 'scenario6b: should not cascade OpenRouter when account credit is exhausted');
+  console.assert(cloudflareAiMaxTokens === 1600, 'scenario6b: should use dedicated Cloudflare AI token budget');
   const failed = events.find((e) => e.type === 'openrouter_model_failed');
   console.assert(failed?.payload?.affordable_tokens === 50, 'scenario6b: should log affordable token count');
   const allFailed = events.find((e) => e.type === 'openrouter_all_models_failed');

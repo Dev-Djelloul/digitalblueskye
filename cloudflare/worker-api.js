@@ -613,9 +613,18 @@ function buildResponseQualityStatsFromEvents(rows) {
   const sent = eventRows.filter((row) => row.event_type === "response_quality_final_sent" || row.event_type === "response_quality_sent");
 
   const lastSentMeta = sent[0] ? parseEventMeta(sent[0]) : null;
+  const dayAgo = Date.now() - 24 * 60 * 60 * 1000;
+  const recentSent = sent.filter((row) => {
+    const ts = Date.parse(row.created_at || "");
+    return Number.isFinite(ts) && ts >= dayAgo;
+  });
 
   const scores = sent.map((row) => Number(parseEventMeta(row).score)).filter((value) => Number.isFinite(value));
   const averageScore = scores.length ? Math.round((scores.reduce((sum, value) => sum + value, 0) / scores.length) * 10) / 10 : null;
+  const recentScores = recentSent.map((row) => Number(parseEventMeta(row).score)).filter((value) => Number.isFinite(value));
+  const recentAverageScore = recentScores.length
+    ? Math.round((recentScores.reduce((sum, value) => sum + value, 0) / recentScores.length) * 10) / 10
+    : null;
 
   const improveGains = improved
     .map((row) => Number(parseEventMeta(row).score_gain))
@@ -653,6 +662,11 @@ function buildResponseQualityStatsFromEvents(rows) {
     successful_improvements_count: successfulImprovements,
     average_improve_gain: averageImproveGain,
     average_score: averageScore,
+    recent_24h_count: recentSent.length,
+    recent_24h_average_score: recentAverageScore,
+    status: !sent.length
+      ? "unknown"
+      : ((recentAverageScore ?? averageScore ?? 0) >= 80 ? "operational" : ((recentAverageScore ?? averageScore ?? 0) >= 60 ? "partial" : "degraded")),
     top_issues: topIssues,
   };
 }

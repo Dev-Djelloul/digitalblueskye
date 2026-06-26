@@ -2377,6 +2377,7 @@ export default {
       messages: conversationMessages,
       systemPrompt: finalSystemPrompt,
       maxTokens: effectiveMaxTokens,
+      cloudflareAiMaxTokens: effectiveMaxTokens,
       temperature: effectiveTemperature,
       env,
       metadata: { language, allowedOrigin },
@@ -2555,6 +2556,7 @@ export default {
               messages: conversationMessages,
               systemPrompt: retrySystemPrompt,
               maxTokens: effectiveMaxTokens,
+              cloudflareAiMaxTokens: effectiveMaxTokens,
               temperature: effectiveTemperature,
               env: pinnedRetryEnv,
               metadata: { language, allowedOrigin },
@@ -2635,6 +2637,7 @@ export default {
               messages: improveMessages,
               systemPrompt: finalSystemPrompt,
               maxTokens: effectiveMaxTokens,
+              cloudflareAiMaxTokens: effectiveMaxTokens,
               temperature: effectiveTemperature,
               env: pinnedRetryEnv,
               metadata: { language, allowedOrigin },
@@ -2774,7 +2777,7 @@ export default {
       session_id: sessionId,
       meta: {
         reply_length: reply.length,
-        provider: 'openrouter',
+        provider: resolvedProvider,
         model: resolvedModel,
         fallback: responseBody.fallback_model_used,
         web_search_performed: webSearchPerformed
