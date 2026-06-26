@@ -950,6 +950,33 @@
       border-color: rgba(124, 131, 255, 0.48);
     }
 
+    .health-engine-badge {
+      display: inline-flex;
+      align-items: center;
+      margin-left: 10px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      vertical-align: middle;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      color: rgba(235, 240, 255, 0.85);
+    }
+
+    .health-engine-badge.is-good {
+      background: rgba(84, 214, 161, 0.16);
+      border-color: rgba(84, 214, 161, 0.45);
+      color: #54d6a1;
+    }
+
+    .health-engine-badge.is-warn {
+      background: rgba(255, 209, 102, 0.16);
+      border-color: rgba(255, 209, 102, 0.5);
+      color: #ffd166;
+    }
+
     .health-global-status {
       display: grid;
       align-content: center;
@@ -1730,6 +1757,7 @@
         <button class="tab" type="button" data-tab="comments">Commentaires</button>
         <button class="tab" type="button" data-tab="contact">Contacts</button>
         <button class="tab" type="button" data-tab="consent">Consentements</button>
+        <button class="tab" type="button" data-tab="pilotage">Pilotage IA</button>
       </nav>
 
       <section id="dataPanel" class="panel">
@@ -1784,6 +1812,21 @@
           </div>
         </div>
         <div id="healthContent" class="health health-dashboard"></div>
+      </section>
+
+      <section id="pilotagePanel" class="panel hidden" aria-label="Pilotage IA Digital Blue Skye">
+        <div class="panel-head">
+          <div>
+            <strong>Pilotage IA</strong>
+            <div id="pilotageMeta" class="health-meta"></div>
+          </div>
+          <div class="actions">
+            <button id="refreshPilotageBtn" class="refresh-icon" type="button" aria-label="Actualiser Pilotage IA" title="Actualiser Pilotage IA">
+              <img src="../assets/images/ui/icons8-synchronize-48.png" alt="" aria-hidden="true">
+            </button>
+          </div>
+        </div>
+        <div id="pilotageContent" class="health health-dashboard"></div>
       </section>
     </section>
   </main>
@@ -2305,6 +2348,95 @@
       `).join("")}</div>`;
     }
 
+    function renderPilotageActionCard(action, index) {
+      return `
+        <article class="health-card">
+          <h3>${index + 1}. ${escapeHtml(action.title)}</h3>
+          ${renderHealthKv([
+            ["Domaine", action.domain],
+            ["Statut", action.status],
+            ["Échéance", action.timeframe],
+            ["Score de priorité", action.priorityScore],
+            ["Impact", `${action.impact}/10`],
+            ["Effort", `${action.effortLabel} (${action.effort}/10)`],
+            ["Risque", `${action.risk}/10`],
+          ])}
+          <p><strong>Pourquoi :</strong> ${escapeHtml(action.reason || "Donnée non disponible dans le monitoring actuel.")}</p>
+          <p><strong>Action recommandée :</strong> ${escapeHtml(action.recommendedAction || "Donnée non disponible dans le monitoring actuel.")}</p>
+          ${renderHealthList(action.acceptanceCriteria)}
+        </article>
+      `;
+    }
+
+    function renderPilotageTable(rows, columns) {
+      if (!rows || !rows.length) return `<p class="health-empty">Donnée non disponible dans le monitoring actuel.</p>`;
+      return `
+        <div class="table-wrap">
+          <table>
+            <thead><tr>${columns.map(([, label]) => `<th>${escapeHtml(label)}</th>`).join("")}</tr></thead>
+            <tbody>
+              ${rows.map((row) => `<tr>${columns.map(([key]) => `<td>${escapeHtml(row[key] == null ? "n/a" : row[key])}</td>`).join("")}</tr>`).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderPilotage(payload) {
+      const plan = payload?.plan || {};
+      $("#pilotageMeta").textContent = payload?.checked_at ? `Dernier calcul : ${new Date(payload.checked_at).toLocaleString("fr-FR")}` : "";
+      const top3 = plan.topPriorities || [];
+      $("#pilotageContent").innerHTML = `
+        <section class="health-card">
+          <h3>Synthèse</h3>
+          ${renderHealthKv([
+            ["État global", plan.globalStatus],
+            ["Maturité", payload?.maturity?.score != null ? `${payload.maturity.score} / 10` : "Donnée non disponible dans le monitoring actuel."],
+            ["Priorité principale", top3[0]?.title || "Donnée non disponible dans le monitoring actuel."],
+            ["Effort estimé global", plan.estimatedEffort],
+            ["Impact attendu global", plan.expectedImpact],
+          ])}
+        </section>
+
+        <section class="health-card">
+          <h3>Top 3 actions recommandées</h3>
+          ${top3.length ? top3.map((action, index) => renderPilotageActionCard(action, index)).join("") : `<p class="health-empty">Donnée non disponible dans le monitoring actuel.</p>`}
+        </section>
+
+        <section class="health-card">
+          <h3>Quick wins</h3>
+          ${renderPilotageTable(plan.quickWins, [["title", "Action"], ["impact", "Impact"], ["effort", "Effort"], ["priorityScore", "Priorité"]])}
+        </section>
+
+        <section class="health-card">
+          <h3>Risques à surveiller</h3>
+          ${renderPilotageTable(plan.risks, [["title", "Risque"], ["risk", "Gravité"], ["recommendedAction", "Mesure recommandée"]])}
+        </section>
+
+        <section class="health-card">
+          <h3>Feuille de route proposée</h3>
+          <h4>Aujourd'hui</h4>
+          ${renderHealthList(plan.roadmap?.today)}
+          <h4>Cette semaine</h4>
+          ${renderHealthList(plan.roadmap?.thisWeek)}
+          <h4>V3</h4>
+          ${renderHealthList(plan.roadmap?.v3)}
+        </section>
+      `;
+    }
+
+    async function loadPilotage() {
+      setNotice("#appNotice", "", "");
+      try {
+        const payload = await apiFetch("/admin/project-plan");
+        state.pilotage = payload;
+        renderPilotage(payload);
+      } catch (error) {
+        $("#pilotageContent").innerHTML = `<p class="health-empty">Pilotage IA indisponible : ${escapeHtml(error.message || "erreur inconnue")}.</p>`;
+        setNotice("#appNotice", "Endpoint Pilotage IA non disponible sur le Worker API actuel.", "error");
+      }
+    }
+
     function renderHealthDiagnostics(diagnostics) {
       const api = diagnostics?.api_worker || {};
       const ai = diagnostics?.ai_worker || {};
@@ -2596,6 +2728,275 @@
             </article>
           </div>
         </article>
+        ${renderModelRouterCard(aiState.model_router)}
+        ${renderModelTierCard(aiState.model_tiers)}
+        ${renderPromptOrchestratorCard(aiState.prompt_orchestrator)}
+        ${renderResponseQualityCard(aiState.response_quality)}
+      `;
+    }
+
+    // Prompt Orchestrator (cf. cloudflare/promptOrchestrator.js) : derniere
+    // decision + repartition des intentions/profils. Carte compacte.
+    function renderPromptOrchestratorCard(stats = {}) {
+      const s = stats || {};
+      const yesNo = (v) => (v === true ? "Oui" : v === false ? "Non" : "n/a");
+      const topIntents = Array.isArray(s.top_intents) ? s.top_intents : [];
+      const intentsRows = topIntents.length
+        ? topIntents.map((e) => `<tr><td>${escapeHtml(e.name)}</td><td>${e.count}</td></tr>`).join("")
+        : `<tr><td colspan="2">Aucune intention détectée encore.</td></tr>`;
+      return `
+        <article class="health-card">
+          <h2>Prompt Orchestrator</h2>
+          <div class="health-ai-grid">
+            <article class="health-ai-tile">
+              <span>Dernier intent détecté</span>
+              <strong>${escapeHtml(s.last_intent || "n/a")}</strong>
+              <small>${escapeHtml(s.last_expected_format || "")} · ${escapeHtml(formatDate(s.last_at) || "n/a")}</small>
+            </article>
+            <article class="health-ai-tile">
+              <span>Dernier prompt profile</span>
+              <strong>${escapeHtml(s.last_profile || "n/a")}</strong>
+              <small>complexité : ${escapeHtml(s.last_complexity || "n/a")}</small>
+            </article>
+            <article class="health-ai-tile">
+              <span>Besoin RAG / Web</span>
+              <strong>${escapeHtml(yesNo(s.last_needs_rag))} / ${escapeHtml(yesNo(s.last_needs_web))}</strong>
+            </article>
+            <article class="health-ai-tile">
+              <span>Tier recommandé</span>
+              <strong>${escapeHtml(s.last_model_tier || "n/a")}</strong>
+              <small>maxTokens : ${escapeHtml(s.last_max_tokens_hint ?? "n/a")}</small>
+            </article>
+            <article class="health-ai-tile">
+              <span>Intentions détectées</span>
+              <strong>${escapeHtml(s.intents_detected ?? 0)}</strong>
+            </article>
+            <article class="health-ai-tile">
+              <span>Taux d'erreurs orchestrator</span>
+              <strong>${escapeHtml(s.error_rate ?? 0)}%</strong>
+              <small>${escapeHtml(s.error_count ?? 0)} erreur(s)</small>
+            </article>
+          </div>
+          <div class="table-wrap health-table-wrapper">
+            <table>
+              <thead><tr><th>Intent</th><th>Occurrences</th></tr></thead>
+              <tbody>${intentsRows}</tbody>
+            </table>
+          </div>
+        </article>
+      `;
+    }
+
+    // Model Router (cf. cloudflare/modelRouter.js) : detail par modele, sans
+    // remplacer la carte "État de l'intelligence artificielle" ci-dessus.
+    function renderModelRouterCard(stats = {}) {
+      const byModel = Array.isArray(stats.success_rate_by_model) ? stats.success_rate_by_model : [];
+      const rows = byModel.length
+        ? byModel.map((entry) => `
+            <tr>
+              <td>${escapeHtml(entry.model)}</td>
+              <td>${escapeHtml(entry.provider === "cloudflare_ai" ? "Cloudflare AI" : "OpenRouter")}</td>
+              <td>${entry.attempts}</td>
+              <td>${entry.successes}</td>
+              <td>${entry.failures}</td>
+              <td>${entry.success_rate}%</td>
+            </tr>`).join("")
+        : `<tr><td colspan="6">Aucune tentative journalisée encore.</td></tr>`;
+      const usingFallbackProvider = stats.last_provider_used === "cloudflare_ai";
+      return `
+        <article class="health-card">
+          <h2>Model Router — OpenRouter${usingFallbackProvider ? ' <span class="badge unavailable">Secours Cloudflare AI actif</span>' : ""}</h2>
+          <div class="health-ai-grid">
+            <article class="health-ai-tile">
+              <span>Provider réellement utilisé</span>
+              <strong>${escapeHtml(stats.last_provider_used === "cloudflare_ai" ? "Cloudflare AI" : (stats.last_provider_used === "openrouter" ? "OpenRouter" : "n/a"))}</strong>
+              <small>${escapeHtml(stats.last_provider_model || "n/a")} · ${escapeHtml(formatDate(stats.last_provider_used_at) || "n/a")}</small>
+            </article>
+            <article class="health-ai-tile">
+              <span>Bascules vers Cloudflare AI</span>
+              <strong>${escapeHtml(stats.provider_fallback_count ?? 0)}</strong>
+              <small>${escapeHtml(stats.cloudflare_ai_successes ?? 0)} succès / ${escapeHtml(stats.cloudflare_ai_attempts ?? 0)} tentatives</small>
+            </article>
+            <article class="health-ai-tile">
+              <span>Dernier modèle réussi</span>
+              <strong>${escapeHtml(stats.last_successful_model || "n/a")}</strong>
+              <small>${escapeHtml(formatDate(stats.last_successful_at) || "n/a")}</small>
+            </article>
+            <article class="health-ai-tile">
+              <span>Dernier modèle bloqué</span>
+              <strong>${escapeHtml(stats.last_blocked_model || "n/a")}</strong>
+              <small>${escapeHtml(stats.last_blocked_error_type || "n/a")} · ${escapeHtml(formatDate(stats.last_blocked_at) || "n/a")}</small>
+            </article>
+            <article class="health-ai-tile">
+              <span>Retries</span>
+              <strong>${escapeHtml(stats.retries_count ?? 0)}</strong>
+              <small>Réductions de tokens + échecs intermédiaires</small>
+            </article>
+            <article class="health-ai-tile">
+              <span>Erreurs 429 (rate limit)</span>
+              <strong>${escapeHtml(stats.rate_limit_count ?? 0)}</strong>
+            </article>
+            <article class="health-ai-tile">
+              <span>Erreurs 402 (crédit)</span>
+              <strong>${escapeHtml(stats.credit_limit_count ?? 0)}</strong>
+            </article>
+            <article class="health-ai-tile">
+              <span>Modèle de secours le plus fiable</span>
+              <strong>${escapeHtml(stats.most_reliable_fallback_model || "n/a")}</strong>
+            </article>
+            <article class="health-ai-tile">
+              <span>Tous modèles KO (occurrences)</span>
+              <strong>${escapeHtml(stats.all_models_failed_count ?? 0)}</strong>
+            </article>
+          </div>
+          <div class="table-wrap health-table-wrapper">
+            <table>
+              <thead><tr><th>Modèle</th><th>Provider</th><th>Tentatives</th><th>Succès</th><th>Échecs</th><th>Taux de succès</th></tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+          ${renderCloudflareAiErrorDetail(stats.last_cloudflare_ai_error)}
+        </article>
+      `;
+    }
+
+    // Lot 6 — Dynamic Model Selection : tier (fast/balanced/strong) demande
+    // par le Prompt Orchestrator vs tier reellement utilise par le Model
+    // Router, et taux de succes par tier (cf. cloudflare/modelRouter.js,
+    // evenements model_tier_requested / model_tier_used).
+    function renderModelTierCard(stats = {}) {
+      const s = stats || {};
+      const byTier = Array.isArray(s.success_rate_by_tier) ? s.success_rate_by_tier : [];
+      const rows = byTier.length
+        ? byTier.map((entry) => `
+            <tr>
+              <td>${escapeHtml(entry.tier)}</td>
+              <td>${entry.total}</td>
+              <td>${entry.success}</td>
+              <td>${entry.success_rate}%</td>
+            </tr>`).join("")
+        : `<tr><td colspan="4">Aucun tier journalisé encore.</td></tr>`;
+      return `
+        <article class="health-card">
+          <h2>Model Router — Sélection dynamique de tier</h2>
+          <div class="health-ai-grid">
+            <article class="health-ai-tile">
+              <span>Dernier tier demandé</span>
+              <strong>${escapeHtml(s.last_tier_requested || "n/a")}</strong>
+              <small>${escapeHtml(formatDate(s.last_tier_requested_at) || "n/a")}</small>
+            </article>
+            <article class="health-ai-tile">
+              <span>Dernier tier réellement utilisé</span>
+              <strong>${escapeHtml(s.last_tier_used || "n/a")}</strong>
+              <small>${escapeHtml(s.last_tier_used_provider || "n/a")} · ${escapeHtml(s.last_tier_used_model || "n/a")}</small>
+            </article>
+            <article class="health-ai-tile">
+              <span>Dernier appel réussi ?</span>
+              <strong>${s.last_tier_used_success === true ? "Oui" : (s.last_tier_used_success === false ? "Non" : "n/a")}</strong>
+              <small>${escapeHtml(formatDate(s.last_tier_used_at) || "n/a")}</small>
+            </article>
+          </div>
+          <div class="table-wrap health-table-wrapper">
+            <table>
+              <thead><tr><th>Tier demandé</th><th>Appels</th><th>Succès</th><th>Taux de succès</th></tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+        </article>
+      `;
+    }
+
+    // Lot 7 (+ Lot 7.1 Auto-Improver) — Response Quality Controller (cf.
+    // cloudflare/responseQualityController.js) : score avant/apres, action
+    // finale (SEND/REPAIR/IMPROVE_WITH_MODEL/RETRY_FULL), compteurs
+    // reparations/retries/ameliorations, gain moyen, top problemes detectes.
+    function renderResponseQualityCard(stats = {}) {
+      const s = stats || {};
+      const topIssues = Array.isArray(s.top_issues) ? s.top_issues : [];
+      const issueRows = topIssues.length
+        ? topIssues.map((e) => `<tr><td>${escapeHtml(e.name)}</td><td>${e.count}</td></tr>`).join("")
+        : `<tr><td colspan="2">Aucun problème détecté encore.</td></tr>`;
+      const gradeClass = s.last_grade === "A" || s.last_grade === "B" ? "operational" : (s.last_grade === "C" ? "partial" : "unavailable");
+      const ACTION_LABELS = { SEND: "SEND", AUTO_REPAIR: "REPAIR", IMPROVE_WITH_MODEL: "IMPROVE_WITH_MODEL", RETRY_FULL: "RETRY_FULL", RETRY_MODEL: "RETRY_FULL" };
+      const finalActionLabel = ACTION_LABELS[s.last_action] || s.last_action || "n/a";
+      const scoreBefore = s.last_score_before ?? null;
+      const scoreAfter = s.last_score_after ?? s.last_score ?? null;
+      const hasGainDelta = scoreBefore !== null && scoreAfter !== null && scoreBefore !== scoreAfter;
+      return `
+        <article class="health-card">
+          <h2>Response Quality${s.last_grade ? ` <span class="badge ${gradeClass}">Note ${escapeHtml(s.last_grade)}</span>` : ""}</h2>
+          <div class="health-ai-grid">
+            <article class="health-ai-tile">
+              <span>Score avant</span>
+              <strong>${scoreBefore ?? "n/a"}${scoreBefore !== null ? "/100" : ""}</strong>
+              <small>${escapeHtml(formatDate(s.last_at) || "n/a")}</small>
+            </article>
+            <article class="health-ai-tile">
+              <span>Score après</span>
+              <strong>${scoreAfter ?? "n/a"}${scoreAfter !== null ? "/100" : ""}</strong>
+              <small>${hasGainDelta ? `${scoreAfter > scoreBefore ? "+" : ""}${scoreAfter - scoreBefore} pt(s)` : "inchangé"}</small>
+            </article>
+            <article class="health-ai-tile">
+              <span>Dernière note</span>
+              <strong>${escapeHtml(s.last_grade || "n/a")}</strong>
+            </article>
+            <article class="health-ai-tile">
+              <span>Action finale</span>
+              <strong>${escapeHtml(finalActionLabel)}</strong>
+            </article>
+            <article class="health-ai-tile">
+              <span>Score moyen</span>
+              <strong>${s.average_score ?? "n/a"}${s.average_score !== null && s.average_score !== undefined ? "/100" : ""}</strong>
+              <small>${escapeHtml(s.analyzed_count ?? 0)} analyse(s)</small>
+            </article>
+            <article class="health-ai-tile">
+              <span>Réparations automatiques</span>
+              <strong>${escapeHtml(s.repaired_count ?? 0)}</strong>
+            </article>
+            <article class="health-ai-tile">
+              <span>Retries complets</span>
+              <strong>${escapeHtml(s.retry_count ?? 0)}</strong>
+              <small>${escapeHtml(s.retry_failed_count ?? 0)} échec(s) de retry</small>
+            </article>
+            <article class="health-ai-tile">
+              <span>Améliorations modèle réussies</span>
+              <strong>${escapeHtml(s.successful_improvements_count ?? 0)}</strong>
+              <small>${escapeHtml(s.improved_count ?? 0)} tentative(s) · ${escapeHtml(s.improve_failed_count ?? 0)} échec(s)</small>
+            </article>
+            <article class="health-ai-tile">
+              <span>Gain moyen (amélioration)</span>
+              <strong>${s.average_improve_gain ?? "n/a"}${s.average_improve_gain !== null && s.average_improve_gain !== undefined ? " pt(s)" : ""}</strong>
+            </article>
+          </div>
+          <div class="table-wrap health-table-wrapper">
+            <table>
+              <thead><tr><th>Problème détecté</th><th>Occurrences</th></tr></thead>
+              <tbody>${issueRows}</tbody>
+            </table>
+          </div>
+        </article>
+      `;
+    }
+
+    // Detail brut de la derniere erreur Cloudflare AI (point 4 du diagnostic
+    // demande) : name/message/stack tronque/cause, visible sans lire les
+    // logs Worker. Reutilise le pattern accordeon + health-kv existant
+    // (cf. renderHealthDiagnostics) plutot que d'introduire de nouvelles classes.
+    function renderCloudflareAiErrorDetail(lastError) {
+      if (!lastError || !lastError.error_detail) return "";
+      const detail = lastError.error_detail;
+      return `
+        <details class="health-card health-accordion">
+          <summary>Dernière erreur Cloudflare AI (${escapeHtml(lastError.model || "n/a")} · ${escapeHtml(formatDate(lastError.at) || "n/a")})</summary>
+          <div class="health-accordion-body">
+            ${renderHealthKv([
+              ["name", detail.name || "n/a"],
+              ["message", detail.message || "n/a"],
+              ["cause", detail.cause ? JSON.stringify(detail.cause) : "aucune"],
+            ])}
+            <pre>${escapeHtml(detail.stack || "n/a")}</pre>
+          </div>
+        </details>
       `;
     }
 
@@ -3215,10 +3616,21 @@
       `;
     }
 
+    function renderRagEngineBadge(ragUsage = {}) {
+      const engine = ragUsage.engine || "n/a";
+      const labels = {
+        vectorize: { text: "Vectorize", className: "is-good" },
+        browser_fallback: { text: "Fallback navigateur", className: "is-warn" },
+        "n/a": { text: "Aucune recherche encore", className: "" },
+      };
+      const config = labels[engine] || labels["n/a"];
+      return `<span class="health-engine-badge ${config.className}" title="${escapeHtml(`${ragUsage.vector_searches ?? 0} recherche(s) vectorielle(s) sur ${ragUsage.matches ?? 0} match(s) (${escapeHtml(formatPercent(ragUsage.vector_search_rate || 0))})`)}">${escapeHtml(config.text)}</span>`;
+    }
+
     function renderRagPilotage(ragUsage = {}) {
       return `
         <article class="health-card">
-          <h2>RAG projet</h2>
+          <h2>RAG projet ${renderRagEngineBadge(ragUsage)}</h2>
           <div class="health-ai-grid">
             <article class="health-ai-tile ${ragUsage.project_rag_active ? "score-good" : ""}"><span>RAG projet actif</span><strong>${ragUsage.project_rag_active ? "oui" : "non"}</strong><small>Depuis ai_assistant_events</small></article>
             <article class="health-ai-tile"><span>Documents indexés</span><strong>${escapeHtml(ragUsage.documents_indexed ?? 0)}</strong><small>sources utilisées</small></article>
@@ -3226,8 +3638,19 @@
             <article class="health-ai-tile"><span>Recherches RAG</span><strong>${escapeHtml(ragUsage.searches_performed ?? 0)}</strong><small>${escapeHtml(ragUsage.contexts_used ?? 0)} contextes injectés</small></article>
             <article class="health-ai-tile"><span>Taux de match</span><strong>${escapeHtml(formatPercent(ragUsage.match_rate || 0))}</strong><small>${escapeHtml(ragUsage.matches ?? 0)} match · ${escapeHtml(ragUsage.no_matches ?? 0)} sans match</small></article>
             <article class="health-ai-tile"><span>Temps moyen</span><strong>${escapeHtml(formatMs(ragUsage.average_search_ms))}</strong><small>recherche locale</small></article>
+            <article class="health-ai-tile ${ragUsage.engine === "vectorize" ? "score-good" : ""}"><span>Recherches vectorielles</span><strong>${escapeHtml(ragUsage.vector_searches ?? 0)}</strong><small>${escapeHtml(formatPercent(ragUsage.vector_search_rate || 0))} des recherches RAG</small></article>
           </div>
           <p>Documents les plus utilisés : ${escapeHtml((ragUsage.top_documents || []).map((item) => `${item.name} (${item.count})`).join(", ") || "n/a")}</p>
+          <details class="health-card health-accordion">
+            <summary>Debug comptage vectoriel (temporaire)</summary>
+            <div class="health-accordion-body">
+              ${renderHealthKv([
+                ["Événements RAG bruts (query+match+context)", ragUsage.debug_raw_rag_events_count ?? 0],
+                ["Meta parsées avec succès", ragUsage.debug_parsed_meta_count ?? 0],
+                ["vector_search=vrai détecté (toutes formes)", ragUsage.debug_vector_true_count ?? 0],
+              ])}
+            </div>
+          </details>
         </article>
       `;
     }
@@ -3729,10 +4152,12 @@
       if (state.summary) renderSummary(state.summary);
       const isHealth = tabName === "health";
       const isAi = tabName === "ai";
-      $("#dataPanel").classList.toggle("hidden", isHealth || isAi);
+      const isPilotage = tabName === "pilotage";
+      $("#dataPanel").classList.toggle("hidden", isHealth || isAi || isPilotage);
       $("#aiPanel").classList.toggle("hidden", !isAi);
       $("#healthPanel").classList.toggle("hidden", !isHealth);
-      if (!isHealth && !isAi) renderFilters();
+      $("#pilotagePanel").classList.toggle("hidden", !isPilotage);
+      if (!isHealth && !isAi && !isPilotage) renderFilters();
     }
 
     async function changeStatus(id, status) {
@@ -3828,6 +4253,7 @@
         setActiveTab(button.dataset.tab);
         try {
           if (state.tab === "health") await loadHealth();
+          else if (state.tab === "pilotage") await loadPilotage();
           else await loadRows();
         } catch (error) {
           setNotice("#appNotice", error.message, "error");
@@ -4015,6 +4441,15 @@
       try {
         await loadRows();
         setNotice("#appNotice", "Activités IA actualisées.", "success");
+      } catch (error) {
+        setNotice("#appNotice", error.message, "error");
+      }
+    });
+
+    $("#refreshPilotageBtn").addEventListener("click", async () => {
+      try {
+        await loadPilotage();
+        setNotice("#appNotice", "Pilotage IA actualisé.", "success");
       } catch (error) {
         setNotice("#appNotice", error.message, "error");
       }

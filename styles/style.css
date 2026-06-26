@@ -11657,6 +11657,20 @@ body.body-menu-open .ai-assistant-launcher {
 .ai-assistant-project-list {
   display: grid;
   gap: 12px;
+  margin-bottom: 16px;
+}
+
+.ai-assistant-project-source-group-heading {
+  color: rgb(246 247 255 / 55%);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin: 14px 0 8px;
+  text-transform: uppercase;
+}
+
+[data-theme="light"] .ai-assistant-project-source-group-heading {
+  color: rgb(47 43 95 / 60%);
 }
 
 .ai-assistant-project-new-conversation {
@@ -12543,19 +12557,22 @@ button.ai-assistant-project-row {
 }
 
 .ai-sources-panel-body {
+  align-content: start;
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
+  justify-content: flex-start;
   min-height: 0;
   overflow-y: auto;
-  padding: 16px 14px 16px 18px;
+  padding: 14px 14px 16px 18px;
 }
 
 .ai-sources-section {
   display: flex;
+  flex: 0 0 auto;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .ai-sources-section-title {
@@ -12577,16 +12594,30 @@ button.ai-assistant-project-row {
   padding: 10px 11px;
 }
 
-a.ai-source-card {
+a.ai-source-card,
+.ai-source-card--openable {
   color: inherit;
+  cursor: pointer;
   text-decoration: none;
   transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
 }
 
-a.ai-source-card:hover {
+a.ai-source-card:hover,
+.ai-source-card--openable:hover {
   background: rgb(255 255 255 / 10%);
   border-color: rgb(121 230 255 / 32%);
   transform: translateY(-1px);
+}
+
+.ai-source-card--openable:focus-visible {
+  outline: 2px solid rgb(121 230 255 / 60%);
+  outline-offset: 2px;
+}
+
+.ai-source-added {
+  color: rgb(235 240 255 / 45%);
+  font-family: var(--font-body);
+  font-size: 0.66rem;
 }
 
 a.ai-source-card:focus-visible {
@@ -13382,100 +13413,16 @@ body.ai-assistant-sidebar-is-resizing * {
   border-color: rgb(90 207 166 / 75%);
 }
 
-.ai-assistant-message p {
-  display: block;
-  height: auto;
-  line-height: 1.7;
-  margin: 0 0 0.95rem;
-  min-height: 0;
-}
-
-.ai-assistant-message p + p {
-  margin-top: 0.3rem;
-}
-
-.ai-assistant-heading {
-  color: #dfe8ff;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  line-height: 1.3;
-  margin: 1.5rem 0 0.75rem;
-  -webkit-text-fill-color: #dfe8ff;
-}
-
-.ai-assistant-heading:first-child {
-  margin-top: 0;
-}
-
-.ai-assistant-heading--h1 {
-  background: linear-gradient(92deg, #bfeeff 0%, #d7b4ff 55%, #ffb7ef 100%);
-  background-clip: text;
-  color: transparent;
-  font-size: 1.24rem;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.ai-assistant-heading--h2 {
-  font-size: 1.08rem;
-}
-
-.ai-assistant-heading--h3,
-.ai-assistant-heading--h4,
-.ai-assistant-heading--h5,
-.ai-assistant-heading--h6 {
-  color: #bfeeff;
-  font-size: 0.98rem;
-  -webkit-text-fill-color: #bfeeff;
-}
-
-.ai-assistant-message ul,
-.ai-assistant-message ol {
-  margin: 0.45rem 0 1.1rem;
-  padding-left: 1.35rem;
-}
-
-.ai-assistant-message ol {
-  list-style-position: outside;
-}
-
-.ai-assistant-message li {
-  line-height: 1.66;
-  margin: 0 0 0.18rem;
-  padding-left: 0.12rem;
-}
-
-.ai-assistant-message li + li {
-  margin-top: 0.45rem;
-}
-
+/* Styles typographiques (p/titres/listes/strong/code/blockquote) supprimes
+   d'ici : doublons concurrents de la couche canonique .ai-markdown (cf. plus
+   bas dans ce fichier), qu'ils ne faisaient que contredire silencieusement
+   sur la marge/couleur/espacement. .ai-assistant-list-detail et le wrapper
+   visuel .ai-assistant-code-block (figcaption, copy-btn) sont conserves : ce
+   ne sont pas des doublons, juste de l'UI specifique au bloc de code. */
 .ai-assistant-list-detail {
   display: block;
   margin-top: 0.36rem !important;
   opacity: 0.9;
-}
-
-.ai-assistant-message strong {
-  font-weight: 700;
-}
-
-.ai-assistant-message code {
-  background: rgb(255 255 255 / 10%);
-  border: 1px solid rgb(255 255 255 / 14%);
-  border-radius: 6px;
-  color: #dff7ff;
-  font-size: 0.92em;
-  padding: 0.08rem 0.32rem;
-  -webkit-text-fill-color: #dff7ff;
-}
-
-.ai-assistant-message blockquote {
-  border-left: 3px solid rgb(121 230 255 / 72%);
-  color: rgb(235 240 255 / 86%);
-  font-style: italic;
-  margin: 16px 0;
-  padding: 10px 0 10px 14px;
-  -webkit-text-fill-color: rgb(235 240 255 / 86%);
 }
 
 .ai-assistant-code-block {
@@ -13738,6 +13685,28 @@ body.ai-assistant-sidebar-is-resizing * {
   margin-left: 3px;
   padding: 1px 5px;
   -webkit-text-fill-color: #bfeeff;
+}
+
+/* Nom de la source rendu à la place d'un marqueur [S1] / [1] : accent, gras,
+   italique, pour se distinguer du texte courant. */
+.ai-source-ref {
+  color: #79e6ff;
+  font-style: italic;
+  font-weight: 650;
+  -webkit-text-fill-color: #79e6ff;
+}
+
+.ai-source-ref--web {
+  text-decoration: none;
+}
+
+.ai-source-ref--web:hover {
+  text-decoration: underline;
+}
+
+[data-theme="light"] .ai-source-ref {
+  color: #5d3bd6;
+  -webkit-text-fill-color: #5d3bd6;
 }
 
 .ai-assistant-citation a {
@@ -14859,40 +14828,10 @@ body.ai-assistant-sidebar-is-resizing * {
   color: #2f2b5f;
 }
 
-[data-theme="light"] .ai-assistant-message code {
-  background: rgb(93 93 255 / 9%);
-  border-color: rgb(93 93 255 / 18%);
-  color: #2f2b5f;
-  -webkit-text-fill-color: #2f2b5f;
-}
-
-[data-theme="light"] .ai-assistant-heading {
-  color: #2f2b5f;
-  -webkit-text-fill-color: #2f2b5f;
-}
-
-[data-theme="light"] .ai-assistant-heading--h1 {
-  background: linear-gradient(92deg, #4c4cff 0%, #7f52ff 55%, #c822ff 100%);
-  background-clip: text;
-  color: transparent;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-[data-theme="light"] .ai-assistant-heading--h3,
-[data-theme="light"] .ai-assistant-heading--h4,
-[data-theme="light"] .ai-assistant-heading--h5,
-[data-theme="light"] .ai-assistant-heading--h6 {
-  color: #4c4cff;
-  -webkit-text-fill-color: #4c4cff;
-}
-
-[data-theme="light"] .ai-assistant-message blockquote {
-  border-left-color: rgb(93 93 255 / 55%);
-  color: rgb(47 43 95 / 78%);
-  -webkit-text-fill-color: rgb(47 43 95 / 78%);
-}
-
+/* Overrides clair de .ai-assistant-message code / .ai-assistant-heading /
+   blockquote supprimes ici : leurs regles de base ont ete retirees (doublons
+   de la couche canonique .ai-markdown, qui a son propre filet mode clair
+   plus bas dans ce fichier). */
 [data-theme="light"] .ai-assistant-code-block {
   background: rgb(255 255 255 / 72%);
   border-color: rgb(93 93 255 / 18%);
@@ -15382,8 +15321,8 @@ body.ai-assistant-sidebar-is-resizing * {
 .assistant-markdown,
 .ai-markdown {
   color: var(--ai-text, #f4f0ff);
-  font-size: clamp(0.9rem, 0.86rem + 0.12vw, 0.96rem);
-  line-height: 1.72;
+  font-size: clamp(0.85rem, 0.82rem + 0.1vw, 0.9rem);
+  line-height: 1.7;
   max-width: 100%;
   overflow-wrap: anywhere;
   white-space: normal;
@@ -15416,9 +15355,9 @@ body.ai-assistant-sidebar-is-resizing * {
 .ai-markdown h3,
 .ai-markdown h4 {
   color: var(--ai-text, #fff);
-  font-weight: 750;
+  font-weight: 680;
   line-height: 1.3;
-  margin: 1.5rem 0 0.75rem;
+  margin: 1.25rem 0 0.6rem;
 }
 
 /* Neutralise l'ancien effet degrade transparent (background-clip: text +
@@ -15428,18 +15367,18 @@ body.ai-assistant-sidebar-is-resizing * {
 .ai-markdown h1 {
   background: none;
   background-clip: initial;
-  font-size: 1.35rem;
+  font-size: 1.15rem;
   -webkit-text-fill-color: var(--ai-text, #fff);
 }
 
 .assistant-markdown h2,
 .ai-markdown h2 {
-  font-size: 1.18rem;
+  font-size: 1.05rem;
 }
 
 .assistant-markdown h3,
 .ai-markdown h3 {
-  font-size: 1.05rem;
+  font-size: 0.97rem;
 }
 
 .assistant-markdown ul,
@@ -15484,9 +15423,15 @@ body.ai-assistant-sidebar-is-resizing * {
   border: 1px solid var(--ai-border, rgb(255 255 255 / 16%));
   border-collapse: collapse;
   border-radius: 14px;
-  display: block;
+  /* display:table (et non block) directement ici : une table en display:block
+     se retrecit a son contenu et s'aligne a gauche (grand vide a droite sur
+     les tables courtes). table-layout:auto + width:100% remplissent
+     reellement la largeur. Le defilement horizontal eventuel est porte par
+     .ai-assistant-table-wrap, pas par la table elle-meme. */
+  display: table;
   margin: 1rem 0;
-  overflow-x: auto;
+  overflow: visible;
+  table-layout: auto;
   width: 100%;
 }
 
@@ -15551,6 +15496,64 @@ body.ai-assistant-sidebar-is-resizing * {
   margin: 1.2rem 0;
 }
 
+/* Garde-fou mode clair explicite : la couche .ai-markdown ci-dessus repose
+   entierement sur les variables --ai-* definies en [data-theme="light"] plus
+   haut. Ces regles forcent ces memes variables sur chaque element, pour ne
+   jamais dependre silencieusement de leur seule resolution en cascade. */
+[data-theme="light"] .ai-markdown,
+[data-theme="light"] .ai-markdown p,
+[data-theme="light"] .ai-markdown li {
+  color: var(--ai-text);
+}
+
+[data-theme="light"] .ai-markdown h1,
+[data-theme="light"] .ai-markdown h2,
+[data-theme="light"] .ai-markdown h3,
+[data-theme="light"] .ai-markdown h4,
+[data-theme="light"] .ai-markdown strong {
+  color: var(--ai-text);
+  -webkit-text-fill-color: var(--ai-text);
+}
+
+[data-theme="light"] .ai-markdown em {
+  color: var(--ai-text-muted);
+}
+
+[data-theme="light"] .ai-markdown table,
+[data-theme="light"] .ai-markdown th,
+[data-theme="light"] .ai-markdown td {
+  border-color: var(--ai-border);
+}
+
+[data-theme="light"] .ai-markdown th {
+  background: var(--ai-surface-soft);
+  color: var(--ai-text);
+}
+
+[data-theme="light"] .ai-markdown td {
+  color: var(--ai-text);
+}
+
+[data-theme="light"] .ai-markdown blockquote {
+  background: var(--ai-surface-soft);
+  border-left-color: var(--ai-accent);
+  color: var(--ai-text);
+}
+
+[data-theme="light"] .ai-markdown code,
+[data-theme="light"] .ai-markdown pre {
+  background: var(--ai-surface-soft);
+  color: var(--ai-text);
+}
+
+[data-theme="light"] .ai-markdown pre code {
+  background: transparent;
+}
+
+[data-theme="light"] .ai-markdown hr {
+  border-top-color: var(--ai-border);
+}
+
 @media (width <= 640px) {
   .assistant-markdown,
   .ai-markdown {
@@ -15577,11 +15580,17 @@ body.ai-assistant-sidebar-is-resizing * {
   width: 100%;
 }
 
-.ai-assistant-message-content.ai-markdown table,
 .ai-assistant-message-content.ai-markdown pre {
   max-width: 100%;
   min-width: 0;
   overflow-x: auto;
+}
+
+/* display:table est desormais pose directement sur la regle canonique
+   .ai-markdown table ci-dessus ; on garde juste la contrainte de largeur max
+   propre au conteneur de bulle. */
+.ai-assistant-message-content.ai-markdown table.ai-assistant-table {
+  max-width: 100%;
 }
 
 /* Le bloc de code garde overflow:hidden (coins arrondis) ; c'est son <pre>

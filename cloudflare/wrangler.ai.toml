@@ -12,3 +12,57 @@ database_id = "eeb9d1b0-26ed-48a1-beb3-b0a944765174"
 # Health dashboard auth:
 # Either configure ADMIN_TOKEN on this worker too, or prefer a dedicated shared token:
 # wrangler secret put HEALTH_CHECK_TOKEN -c cloudflare/wrangler.ai.toml
+
+# Completion Guard (cf. cloudflare/completionGuard.js) — actif par defaut.
+# Si OpenRouter tronque une reponse longue (finish_reason=length), le routeur
+# relance le meme modele pour continuer, fusionne sans duplication, puis ferme
+# les structures Markdown ouvertes (code/tableaux/listes/citations/titres)
+# avant d'envoyer au frontend. Variables optionnelles :
+#   COMPLETION_GUARD_ENABLED = "false"        # desactive entierement le guard
+#   COMPLETION_GUARD_MAX_CONTINUATIONS = "2"  # 0..3 (defaut 2)
+# A definir via [vars] ou `wrangler secret put` si besoin de surcharger.
+
+# Prompt Orchestrator (cf. cloudflare/promptOrchestrator.js) — actif par
+# defaut. Detecte l'intention utilisateur (regles, sans LLM), planifie les
+# capacites, et compose un prompt systeme modulaire compact a la place du
+# monolithe. Toute erreur => repli automatique sur le prompt monolithique.
+#   PROMPT_ORCHESTRATOR_ENABLED = "false"     # revient au prompt monolithique
+
+# Response Quality Controller (cf. cloudflare/responseQualityController.js) —
+# actif par defaut. Analyse la reponse finale (apres Completion Guard) :
+# score 0-100 deterministe (aucun appel IA), puis SEND / AUTO_REPAIR (reparation
+# locale du Markdown) / RETRY_MODEL (1 seul retry max, meme modele/temperature,
+# instruction systeme additionnelle). Toute erreur => la reponse part inchangee.
+#   RESPONSE_QUALITY_CONTROLLER_ENABLED = "false"   # desactive entierement le RQC
+#
+# Lot 7.1 — Auto-Improver : action intermediaire IMPROVE_WITH_MODEL entre
+# AUTO_REPAIR et RETRY_FULL. Si la reponse contient du contenu utile mais ne
+# respecte pas le format demande (tableau/liste/citation/code/sources/titre/
+# conclusion manquant), le MEME modele est sollicite une seule fois pour
+# reecrire la reponse existante (jamais regeneree de zero) en corrigeant
+# uniquement les problemes identifies. Si vide/irrecuperable => RETRY_FULL
+# (regeneration complete, alias historique RETRY_MODEL). Si l'amelioration
+# echoue, repli sur repairResponse() local puis envoi de la meilleure
+# version disponible — aucune interruption de service.
+
+# RAG vectoriel (necessite Workers Paid) :
+# 1. Appliquer la table rag_chunks : wrangler d1 execute digitalblueskye --file=cloudflare/d1/schema.sql -c cloudflare/wrangler.ai.toml
+# 2. wrangler vectorize create digitalblueskye-rag --dimensions=768 --metric=cosine
+# 3. IMPORTANT : Vectorize exige un index de metadata explicite pour pouvoir
+#    filtrer sur un champ (sinon le filtre echoue silencieusement et le code
+#    retombe sur une recherche non filtree + re-filtrage cote Worker) :
+#    wrangler vectorize create-metadata-index digitalblueskye-rag --property-name=projectId --type=string
+# 4. Decommenter les deux blocs ci-dessous puis redeployer (npx wrangler deploy -c cloudflare/wrangler.ai.toml).
+# Tant que ces bindings sont absents, getVectorStoreProvider() retourne null et
+# le RAG navigateur (cote client) reste utilise sans regression.
+#
+# Diagnostic independant d'OpenRouter : POST { "mode": "rag_diagnose" } sur ce
+# Worker -> teste embedding + upsert + query + delete et renvoie le detail de
+# chaque etape (utile si le LLM est en 429/402 et qu'on veut juste valider le
+# pipeline RAG).
+[ai]
+binding = "AI"
+
+[[vectorize]]
+binding = "VECTOR_INDEX"
+index_name = "digitalblueskye-rag"

@@ -1,0 +1,184 @@
+{
+  "project": "Voyage en Crète",
+  "generated_at": "2026-06-24",
+  "format": "markdown_with_yaml_frontmatter",
+  "documents": [
+    {
+      "file": "01-presentation-generale-crete.md",
+      "title": "Présentation générale de la Crète",
+      "type": "destination",
+      "priority": "haute",
+      "tags": [
+        "Crète",
+        "Grèce",
+        "Méditerranée",
+        "culture",
+        "nature",
+        "voyage"
+      ]
+    },
+    {
+      "file": "02-meilleure-periode-crete.md",
+      "title": "Meilleure période pour voyager en Crète",
+      "type": "climat_saisonnalite",
+      "priority": "haute",
+      "tags": [
+        "Crète",
+        "climat",
+        "saison",
+        "printemps",
+        "été",
+        "automne"
+      ]
+    },
+    {
+      "file": "03-formalites-securite-grece.md",
+      "title": "Formalités et sécurité pour un voyageur français en Grèce",
+      "type": "formalites_securite",
+      "priority": "haute",
+      "tags": [
+        "France",
+        "Grèce",
+        "Schengen",
+        "sécurité",
+        "assurance",
+        "Ariane"
+      ]
+    },
+    {
+      "file": "04-transports-crete.md",
+      "title": "Transports en Crète",
+      "type": "mobilite",
+      "priority": "haute",
+      "tags": [
+        "Crète",
+        "transport",
+        "bus",
+        "KTEL",
+        "voiture",
+        "aéroport",
+        "ferry"
+      ]
+    },
+    {
+      "file": "05-heraklion-knossos.md",
+      "title": "Héraklion et Knossos",
+      "type": "patrimoine_ville",
+      "priority": "haute",
+      "tags": [
+        "Héraklion",
+        "Knossos",
+        "archéologie",
+        "Minoens",
+        "musée"
+      ]
+    },
+    {
+      "file": "06-chania-la-canee.md",
+      "title": "La Canée / Chania",
+      "type": "ville_sejour",
+      "priority": "haute",
+      "tags": [
+        "Chania",
+        "La Canée",
+        "vieux port",
+        "ouest Crète",
+        "Venise"
+      ]
+    },
+    {
+      "file": "07-rethymnon.md",
+      "title": "Réthymnon",
+      "type": "ville_base_intermediaire",
+      "priority": "moyenne",
+      "tags": [
+        "Réthymnon",
+        "Crète",
+        "vieille ville",
+        "position centrale"
+      ]
+    },
+    {
+      "file": "08-plages-sites-naturels.md",
+      "title": "Plages et sites naturels majeurs",
+      "type": "nature_plages",
+      "priority": "haute",
+      "tags": [
+        "Balos",
+        "Elafonissi",
+        "Falassarna",
+        "Preveli",
+        "Seitan Limania",
+        "Vai"
+      ]
+    },
+    {
+      "file": "09-gorges-samaria.md",
+      "title": "Gorges de Samaria",
+      "type": "randonnee_nature",
+      "priority": "haute",
+      "tags": [
+        "Samaria",
+        "randonnée",
+        "gorge",
+        "parc national",
+        "Chania"
+      ]
+    },
+    {
+      "file": "10-gastronomie-cretoise.md",
+      "title": "Gastronomie crétoise",
+      "type": "culture_gastronomie",
+      "priority": "moyenne",
+      "tags": [
+        "Crète",
+        "gastronomie",
+        "taverne",
+        "huile olive",
+        "dakos",
+        "raki"
+      ]
+    },
+    {
+      "file": "11-itineraire-7-jours-crete.md",
+      "title": "Itinéraire conseillé de 7 jours en Crète",
+      "type": "itineraire",
+      "priority": "haute",
+      "tags": [
+        "Crète",
+        "7 jours",
+        "road trip",
+        "première fois",
+        "Chania",
+        "Héraklion"
+      ]
+    },
+    {
+      "file": "12-erreurs-a-eviter-crete.md",
+      "title": "Erreurs fréquentes à éviter lors d’un voyage en Crète",
+      "type": "conseils_pratiques",
+      "priority": "haute",
+      "tags": [
+        "Crète",
+        "erreurs",
+        "road trip",
+        "organisation",
+        "sécurité"
+      ]
+    }
+  ],
+  "sources": {
+    "visit_greece_crete": "https://www.visitgreece.gr/islands/crete/",
+    "incredible_crete": "https://www.incrediblecrete.gr/en/home/",
+    "france_diplomatie_entree": "https://www.diplomatie.gouv.fr/fr/information-par-pays/grece/conseils-aux-voyageurs-entree-sejour",
+    "france_diplomatie_conseils": "https://www.diplomatie.gouv.fr/fr/conseils-aux-voyageurs",
+    "ktel_chania_rethymno": "https://www.e-ktel.com/en/",
+    "ktel_heraklion_lasithi": "https://www.ktelherlas.gr/en",
+    "knossos_ministry": "https://odysseus.culture.gr/h/3/eh355.jsp?obj_id=2369",
+    "hellenic_eticket": "https://hhticket.gr/tap_b2c_new/english/tap.exe?PM=P1P&region=all",
+    "samaria_official": "https://www.samaria.gr/",
+    "samaria_tickets": "https://samaria-tickets.necca.gov.gr/checkout",
+    "visit_greece_samaria": "https://www.visitgreece.gr/experiences/nature/gorges/samaria-gorge/",
+    "ekathimerini_samaria_2026": "https://www.ekathimerini.com/in-depth/society-in-depth/1304116/samaria-gorge-reopening-for-the-season/"
+  }
+}

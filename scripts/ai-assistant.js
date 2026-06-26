@@ -144,6 +144,11 @@
         thinking: 'Thinking',
         rateLimitError: 'The AI provider is temporarily saturated. Please try again in a few moments.',
         friendlyApiError: 'I hit a temporary issue. Please try again in a few seconds.',
+        openRouterLimited: 'The generation engine is temporarily limited. Sources were retrieved when available, but the full reformulated answer could not be generated.',
+        openRouterFallbackTitle: 'Summary from retrieved sources',
+        openRouterFallbackKeyPoints: 'Key points',
+        openRouterFallbackSources: 'Sources used',
+        openRouterFallbackMention: 'Fallback mode without full LLM reformulation.',
         fallbackConnectionError: 'Connection problem',
         assistantDown: 'The assistant is currently unavailable.',
         greeting: 'Hello! How can I help you?',
@@ -250,6 +255,11 @@
       thinking: 'Réflexion',
       rateLimitError: "Le fournisseur IA est temporairement saturé. Réessaie dans quelques instants.",
       friendlyApiError: "Oups, je rencontre un souci temporaire. Réessaie dans quelques secondes.",
+      openRouterLimited: "Le moteur de génération est temporairement limité. Les sources ont été récupérées lorsque disponibles, mais la reformulation complète n'a pas pu être générée.",
+      openRouterFallbackTitle: 'Synthèse à partir des sources récupérées',
+      openRouterFallbackKeyPoints: 'Points clés',
+      openRouterFallbackSources: 'Sources utilisées',
+      openRouterFallbackMention: 'Mode secours sans reformulation LLM complète.',
       fallbackConnectionError: 'Problème de connexion',
       assistantDown: "L'assistant est indisponible actuellement.",
       greeting: 'Bonjour ! Comment puis-je vous aider ?',
@@ -3893,6 +3903,7 @@
       knowledgeLibrary = { version: 1, documents: [] };
     }
     renderKnowledgeLibrary();
+    scheduleVectorMigrationForExistingDocuments();
   }
 
   function saveKnowledgeLibrary() {
@@ -4034,6 +4045,7 @@
     if (activeLibraryMenuDocId === docId) closeLibraryCardMenu();
     activeLibraryStatus = i18n.libraryDeleted;
     await deleteKnowledgeOriginalFile(docId);
+    deleteDocumentRemotely(docId);
     saveKnowledgeLibrary();
   }
 
@@ -4258,6 +4270,7 @@
             doc,
             ...(knowledgeLibrary.documents || []).filter((existing) => existing.name !== doc.name)
           ].slice(0, maxKnowledgeDocuments);
+          indexDocumentRemotely(doc);
           importedNames.push(file.name);
         } catch (error) {
           assistantLog('error', 'library_import_document_failed', {
@@ -4385,7 +4398,43 @@
     return new Map((docs || []).map((doc, index) => [doc.id, index + 1]));
   }
 
-  function searchProjectRag(queryText, projectId, options = {}) {
+  async function searchProjectRag(queryText, projectId, options = {}) {
+    const project = getProjectById(projectId);
+    const docs = project ? getProjectRagDocuments(project.id, { includeGlobalLibrary: Boolean(options.includeGlobalLibrary) }) : [];
+    if (project && docs.length && String(queryText || '').trim()) {
+      const remote = await queryRagRemotely(queryText, project.id, options).catch(() => null);
+      if (remote?.ok && Array.isArray(remote.selected)) {
+        const sourceIds = buildStableRagSourceIds(docs);
+        const docsById = new Map(docs.map((doc) => [doc.id, doc]));
+        const mapped = remote.selected
+          .map((item) => {
+            const doc = docsById.get(item.documentId);
+            if (!doc) return null;
+            return {
+              doc,
+              chunk: item.text,
+              chunkIndex: item.chunkIndex,
+              locator: item.locator || '',
+              score: item.score,
+              matchedTerms: []
+            };
+          })
+          .filter(Boolean);
+        if (mapped.length) {
+          return {
+            selected: mapped,
+            query: { terms: normalizeKnowledgeTerms(queryText), uniqueTerms: [], phrases: extractKnowledgePhrases(queryText) },
+            docs,
+            sourceIds,
+            telemetry: { ...remote.telemetry, projectId: project.id, query_length: String(queryText || '').length }
+          };
+        }
+      }
+    }
+    return searchProjectRagLocal(queryText, projectId, options);
+  }
+
+  function searchProjectRagLocal(queryText, projectId, options = {}) {
     const startedAt = performance.now();
     const project = getProjectById(projectId);
     const docs = project ? getProjectRagDocuments(project.id, { includeGlobalLibrary: Boolean(options.includeGlobalLibrary) }) : [];
@@ -4486,7 +4535,7 @@
     return true;
   }
 
-  function buildKnowledgeContextForPrompt(userText) {
+  async function buildKnowledgeContextForPrompt(userText) {
     const activeProject = getActiveProject();
     const documentSettings = assistantSettingsState.documents || {};
     if (!activeProject) return { context: '', events: [], status: 'global', selected: [] };
@@ -4494,7 +4543,7 @@
       return { context: '', events: [], status: 'disabled', selected: [] };
     }
     const includeGlobalLibrary = Boolean(activeProject.ragUseGlobalLibrary || documentSettings.ragUseGlobalLibrary);
-    const result = searchProjectRag(userText, activeProject.id, {
+    const result = await searchProjectRag(userText, activeProject.id, {
       includeGlobalLibrary,
       maxPassages: activeProject.ragMaxPassages || Number(documentSettings.ragMaxPassages) || 5
     });
@@ -5194,6 +5243,27 @@
     container.appendChild(list);
   }
 
+  function formatProjectDateTime(value) {
+    const date = new Date(Number(value) || Date.now());
+    if (Number.isNaN(date.getTime())) return '';
+    const en = currentLanguage === 'en';
+    const datePart = date.toLocaleDateString(en ? 'en-US' : 'fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+    const timePart = date.toLocaleTimeString(en ? 'en-US' : 'fr-FR', { hour: '2-digit', minute: '2-digit' });
+    return en ? `${datePart} at ${timePart}` : `${datePart} à ${timePart}`;
+  }
+
+  // Classe une source par anciennete (Aujourd'hui / Cette semaine / Plus
+  // ancien), pour donner une lecture rapide de ce qui vient d'etre ajoute
+  // dans un projet qui accumule des sources au fil du temps.
+  function classifyProjectSourceRecency(importedAt) {
+    const now = Date.now();
+    const age = now - (Number(importedAt) || 0);
+    const DAY = 24 * 60 * 60 * 1000;
+    if (age < DAY) return currentLanguage === 'en' ? 'Today' : "Aujourd'hui";
+    if (age < 7 * DAY) return currentLanguage === 'en' ? 'This week' : 'Cette semaine';
+    return currentLanguage === 'en' ? 'Older' : 'Plus ancien';
+  }
+
   function renderProjectSources(project, container) {
     const actions = document.createElement('div');
     actions.className = 'ai-assistant-project-source-actions';
@@ -5212,21 +5282,41 @@
 
     const docs = getProjectDocuments(project.id).sort((a, b) => b.importedAt - a.importedAt);
     if (!docs.length) { appendEmptyProjectState(container, 'Aucune source attachée à ce projet. Les documents restent disponibles dans la Bibliothèque globale.'); return; }
-    const list = document.createElement('div');
-    list.className = 'ai-assistant-project-list';
+
+    // Classement par anciennete (Aujourd'hui / Cette semaine / Plus ancien),
+    // chaque groupe conservant le tri du plus recent au plus ancien.
+    const groups = new Map();
     docs.forEach((doc) => {
-      const row = document.createElement('div');
-      row.className = 'ai-assistant-project-row';
-      row.innerHTML = `<strong>${escapeHtml(doc.name)}</strong><span>${escapeHtml(doc.type)} · ${getKnowledgeDocChunks(doc).length} chunks · ${escapeHtml(fileSizeLabel(doc.size))}</span>`;
-      const remove = document.createElement('button');
-      remove.type = 'button';
-      remove.className = 'ai-assistant-project-row-action';
-      remove.textContent = 'Retirer du projet';
-      remove.addEventListener('click', () => removeDocumentFromProject(doc.id, project.id));
-      row.appendChild(remove);
-      list.appendChild(row);
+      const key = classifyProjectSourceRecency(doc.importedAt);
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(doc);
     });
-    container.appendChild(list);
+
+    groups.forEach((groupDocs, groupLabel) => {
+      const heading = document.createElement('h4');
+      heading.className = 'ai-assistant-project-source-group-heading';
+      heading.textContent = groupLabel;
+      container.appendChild(heading);
+
+      const list = document.createElement('div');
+      list.className = 'ai-assistant-project-list';
+      groupDocs.forEach((doc) => {
+        const row = document.createElement('div');
+        row.className = 'ai-assistant-project-row';
+        const addedLabel = doc.importedAt
+          ? (currentLanguage === 'en' ? `Added ${formatProjectDateTime(doc.importedAt)}` : `Ajouté le ${formatProjectDateTime(doc.importedAt)}`)
+          : '';
+        row.innerHTML = `<strong>${escapeHtml(doc.name)}</strong><span>${escapeHtml(doc.type)} · ${getKnowledgeDocChunks(doc).length} chunks · ${escapeHtml(fileSizeLabel(doc.size))}${addedLabel ? ` · ${escapeHtml(addedLabel)}` : ''}</span>`;
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.className = 'ai-assistant-project-row-action';
+        remove.textContent = 'Retirer du projet';
+        remove.addEventListener('click', () => removeDocumentFromProject(doc.id, project.id));
+        row.appendChild(remove);
+        list.appendChild(row);
+      });
+      container.appendChild(list);
+    });
   }
 
   function renderProjectMemory(project, container) {
@@ -6386,8 +6476,39 @@
       .replace(/'/g, '&#39;');
   }
 
+  // Filet de securite cote client : meme avec la regle anti-LaTeX du prompt
+  // backend, un modele peut encore produire $\rightarrow$ ou similaire. On
+  // convertit les commandes LaTeX les plus frequentes en texte/Unicode brut
+  // avant tout rendu Markdown.
+  function stripLatexArtifacts(text) {
+    let result = String(text || '');
+    const arrowCommands = [
+      [/\\(?:rightarrow|to)\b/gi, '→'],
+      [/\\Rightarrow\b/gi, '⇒'],
+      [/\\leftarrow\b/gi, '←'],
+      [/\\Leftarrow\b/gi, '⇐'],
+      [/\\leftrightarrow\b/gi, '↔'],
+      [/\\cdot\b/gi, '·'],
+      [/\\approx\b/gi, '≈'],
+      [/\\geq\b/gi, '≥'],
+      [/\\leq\b/gi, '≤'],
+      [/\\neq\b/gi, '≠'],
+      [/\\%/g, '%']
+    ];
+    arrowCommands.forEach(([pattern, replacement]) => {
+      result = result.replace(pattern, replacement);
+    });
+    // $...$ ou \(...\) autour d'un contenu déjà converti (ou court) : retire
+    // les délimiteurs sans toucher au $ légitime (prix, montants) — on ne
+    // cible que les cas où l'intérieur ne contient ni chiffre ni espace+chiffre
+    // typique d'un prix, pour rester prudent.
+    result = result.replace(/\\\(([^()]{1,80})\\\)/g, '$1');
+    result = result.replace(/\$([→⇒←⇐↔·≈≥≤≠][^$]{0,40})\$/g, '$1');
+    return result;
+  }
+
   function normalizeAssistantMarkdown(markdown) {
-    const lines = String(markdown || '').replace(/\r\n?/g, '\n').split('\n');
+    const lines = stripLatexArtifacts(markdown).replace(/\r\n?/g, '\n').split('\n');
     let inCodeBlock = false;
     let topLevelOrderedIndex = 1;
     return lines.map((line) => {
@@ -6763,23 +6884,21 @@
           contain: inline-size paint;
           position: relative;
         }
+        /* Approche ChatGPT : la table epouse son contenu (table-layout: auto)
+           et s'etire jusqu'a 100% de la largeur dispo. Petite table -> remplit
+           sans vide a droite ; grande table -> deborde et le conteneur
+           .ai-assistant-table-wrap defile horizontalement. Aucune largeur de
+           colonne forcee. */
         .ai-assistant-message-content .ai-assistant-table {
           border-collapse: collapse;
           width: 100%;
-          min-width: 100%;
-          table-layout: fixed;
+          table-layout: auto;
           font-size: 0.9em;
         }
-        .ai-assistant-message-content .ai-assistant-table.ai-assistant-table--cols-5 { min-width: 920px; }
-        .ai-assistant-message-content .ai-assistant-table.ai-assistant-table--cols-6 { min-width: 1040px; }
-        .ai-assistant-message-content .ai-assistant-table.ai-assistant-table--cols-7 { min-width: 1160px; }
-        .ai-assistant-message-content .ai-assistant-table.ai-assistant-table--cols-8,
-        .ai-assistant-message-content .ai-assistant-table.ai-assistant-table--cols-9,
-        .ai-assistant-message-content .ai-assistant-table.ai-assistant-table--cols-10 { min-width: 1280px; }
         .ai-assistant-message-content .ai-assistant-table th,
         .ai-assistant-message-content .ai-assistant-table td {
           border: 1px solid rgba(255,255,255,0.13);
-          padding: 10px 14px;
+          padding: 9px 14px;
           text-align: left;
           vertical-align: top;
           line-height: 1.5;
@@ -6790,12 +6909,6 @@
         }
         .ai-assistant-message-content .ai-assistant-table th:first-child,
         .ai-assistant-message-content .ai-assistant-table td:first-child {
-          width: clamp(118px, 14vw, 160px);
-          min-width: 118px;
-          max-width: 180px;
-          white-space: normal;
-          overflow-wrap: break-word;
-          word-break: normal;
           font-weight: 650;
         }
         .ai-assistant-message-content .ai-assistant-table.ai-assistant-table--cols-6 th,
@@ -6845,13 +6958,17 @@
           border-radius: 999px;
         }
         @media (max-width: 780px) {
-          .ai-assistant-message-content .ai-assistant-table {
-            min-width: 760px;
-            table-layout: auto;
-          }
-          .ai-assistant-message-content .ai-assistant-table th:first-child,
-          .ai-assistant-message-content .ai-assistant-table td:first-child {
-            min-width: 120px;
+          /* Sur mobile, on garde un plancher pour que les tables multi-colonnes
+             restent lisibles (le conteneur defile). Les tables a 2-3 colonnes
+             restent sous ce plancher et remplissent donc la largeur. */
+          .ai-assistant-message-content .ai-assistant-table.ai-assistant-table--cols-4,
+          .ai-assistant-message-content .ai-assistant-table.ai-assistant-table--cols-5,
+          .ai-assistant-message-content .ai-assistant-table.ai-assistant-table--cols-6,
+          .ai-assistant-message-content .ai-assistant-table.ai-assistant-table--cols-7,
+          .ai-assistant-message-content .ai-assistant-table.ai-assistant-table--cols-8,
+          .ai-assistant-message-content .ai-assistant-table.ai-assistant-table--cols-9,
+          .ai-assistant-message-content .ai-assistant-table.ai-assistant-table--cols-10 {
+            min-width: 620px;
           }
         }
       `;
@@ -6860,7 +6977,10 @@
 
     injectTableStyles();
 
-    const preparedText = splitInlineMarkdownTableLines(normalizeAssistantMarkdown(normalizeMarkdownBeforeRender(rawText)));
+    // rawText est deja passe par normalizeAssistantMarkdown() chez tous les
+    // appelants (addMessage, addStreamingBotMessage, normalizeDocumentExportSource) :
+    // un second appel ici etait redondant (idempotent mais inutile).
+    const preparedText = splitInlineMarkdownTableLines(normalizeMarkdownBeforeRender(rawText));
     const withCodeBlocks = preparedText.replace(/```([a-zA-Z0-9+#.-]*)\n([\s\S]*?)```/g, stashCodeBlock);
     const safe = escapeHtml(withCodeBlocks)
       .replace(/\r/g, '')
@@ -6998,6 +7118,591 @@
   }
   // ─────────────────────────────────────────────────────────────────────────────
 
+  // ═══════════════════════════════════════════════════════════════════════
+  // Markdown AST — Phase 1 (incrementale, additive, aucun point d'appel
+  // existant modifie)
+  //
+  // Objectif final : un seul arbre de blocs structures (parseMarkdownToBlocks)
+  // consomme par TOUS les renderers (chat HTML, export HTML, export PDF,
+  // export DOCX), pour garantir un rendu strictement identique quel que soit
+  // le format. Aujourd'hui, formatBotMessageHtml() (ci-dessus) reste la seule
+  // fonction realmente utilisee partout dans l'app — RAG, citations,
+  // streaming, exports et panneaux de sources continuent de fonctionner
+  // exactement comme avant. Cette AST est construite et verifiee EN
+  // PARALLELE (cf. selfTestMarkdownAst plus bas), pas encore branchee : elle
+  // deviendra la source de verite unique dans une phase suivante, une fois
+  // sa stricte equivalence confirmee en production sur formatBotMessageHtml.
+  // Les exports PDF/DOCX (qui re-parsent aujourd'hui le markdown chacun de
+  // leur cote, cf. normalizeDocumentExportSource + downloadPdfDocument +
+  // buildDocxDocumentXml) migreront vers parseMarkdownToBlocks() dans une
+  // phase ulterieure, une fois la Phase 1 validee — aucun changement n'y est
+  // fait ici.
+  // ═══════════════════════════════════════════════════════════════════════
+
+  // Copie exacte de linkifyLine() (interne a formatBotMessageHtml) : dupliquee
+  // ici plutot que partagee pour ne RIEN modifier dans formatBotMessageHtml.
+  function linkifyLineForAst(text) {
+    const preservedAnchors = [];
+    let output = String(text || '').replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, (_, label, url) => {
+      const anchor = `<a class="ai-assistant-inline-link" href="${url}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+      preservedAnchors.push(anchor);
+      return `__AI_LINK_${preservedAnchors.length - 1}__`;
+    });
+    output = output.replace(/(https?:\/\/[^\s<]+)/g, (url) => {
+      const cleanUrl = url.replace(/[),.;!?]+$/, '');
+      const trailing = url.slice(cleanUrl.length);
+      return `<a class="ai-assistant-inline-link" href="${cleanUrl}" target="_blank" rel="noopener noreferrer">${cleanUrl}</a>${trailing}`;
+    });
+    output = output.replace(/\[(\d{1,2})\]/g, '<sup class="ai-assistant-citation">[$1]</sup>');
+    output = output.replace(/__AI_LINK_(\d+)__/g, (_, idx) => preservedAnchors[Number(idx)] || '');
+    return output;
+  }
+
+  // Copie exacte de highlightCode() (interne a formatBotMessageHtml).
+  function highlightCodeForAst(code, language) {
+    let output = escapeHtml(String(code || '').replace(/\n$/, ''));
+    const lang = String(language || '').toLowerCase();
+    if (/^(js|javascript|ts|typescript)$/.test(lang)) {
+      output = output
+        .replace(/\b(const|let|var|function|return|async|await|if|else|for|while|switch|case|break|continue|try|catch|class|new|import|from|export|default|throw)\b/g, '<span class="ai-token ai-token--keyword">$1</span>')
+        .replace(/\b(true|false|null|undefined)\b/g, '<span class="ai-token ai-token--literal">$1</span>')
+        .replace(/(&quot;.*?&quot;|&#39;.*?&#39;|`.*?`)/g, '<span class="ai-token ai-token--string">$1</span>')
+        .replace(/(\/\/.*)$/gm, '<span class="ai-token ai-token--comment">$1</span>');
+    } else if (/^(html|xml)$/.test(lang)) {
+      output = output
+        .replace(/(&lt;\/?)([\w-]+)/g, '$1<span class="ai-token ai-token--tag">$2</span>')
+        .replace(/([\w:-]+)=(&quot;.*?&quot;|&#39;.*?&#39;)/g, '<span class="ai-token ai-token--attr">$1</span>=<span class="ai-token ai-token--string">$2</span>');
+    } else if (/^(css|scss)$/.test(lang)) {
+      output = output
+        .replace(/([\w-]+)(\s*:)/g, '<span class="ai-token ai-token--attr">$1</span>$2')
+        .replace(/(#(?:[0-9a-f]{3}){1,2}\b|rgb[a]?\(.*?\))/gi, '<span class="ai-token ai-token--literal">$1</span>');
+    } else if (/^(json)$/.test(lang)) {
+      output = output
+        .replace(/(&quot;[^&]+&quot;)(\s*:)/g, '<span class="ai-token ai-token--attr">$1</span>$2')
+        .replace(/:\s*(&quot;.*?&quot;)/g, ': <span class="ai-token ai-token--string">$1</span>')
+        .replace(/\b(true|false|null)\b/g, '<span class="ai-token ai-token--literal">$1</span>');
+    }
+    return output;
+  }
+
+  // Equivalent du traitement inline applique globalement dans
+  // formatBotMessageHtml (escapeHtml + **gras** + *italique* + `code` +
+  // emoji), mais applique bloc par bloc puisque l'AST garde le markdown brut
+  // par bloc. Les regex utilisees ne franchissent jamais un saut de ligne
+  // (pas de flag /s), donc appliquer ce traitement par fragment plutot que
+  // sur le texte entier produit un resultat strictement identique.
+  function renderInlineMarkdownToHtml(text) {
+    const escaped = escapeHtml(String(text || ''))
+      .replace(/&lt;br\s*\/?&gt;/gi, '\n')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
+      .replace(/(\p{Extended_Pictographic}(?:️|︎)?(?:‍\p{Extended_Pictographic}(?:️|︎)?)*)/gu, '<span class="ai-assistant-emoji">$1</span>');
+    return linkifyLineForAst(escaped);
+  }
+
+  // Extrait les blocs ```lang\n...\n``` du texte AVANT le decoupage en
+  // lignes (identique a stashCodeBlock dans formatBotMessageHtml), pour que
+  // le contenu d'un bloc de code ne soit jamais interprete comme du markdown
+  // de structure (titres, listes, tableaux).
+  function extractCodeBlocksAsNodes(text) {
+    const nodes = [];
+    const withPlaceholders = String(text || '').replace(/```([a-zA-Z0-9+#.-]*)\n([\s\S]*?)```/g, (_, lang, code) => {
+      nodes.push({
+        type: 'code',
+        lang: String(lang || '').trim().toLowerCase().replace(/[^a-z0-9+#.-]/g, ''),
+        code: String(code || '').replace(/\n$/, '')
+      });
+      return `AI_AST_CODE_${nodes.length - 1}`;
+    });
+    return { withPlaceholders, nodes };
+  }
+
+  /**
+   * Construit un AST de blocs a partir d'un texte markdown brut, en
+   * reproduisant EXACTEMENT l'algorithme ligne-par-ligne de
+   * formatBotMessageHtml (memes regles : titres, listes, tableaux,
+   * citations, blocs de code, paragraphes), mais sans jamais convertir en
+   * HTML : chaque bloc garde son texte markdown brut, a interpreter par le
+   * renderer cible (HTML/PDF/DOCX/Markdown).
+   *
+   * Types de blocs : 'code' {lang, code}, 'heading' {level, text},
+   * 'blockquote' {text}, 'list' {ordered, start, items:[{text, details:[]}]},
+   * 'table' {rows, trailingParagraphs}, 'invalid_table' {rawRows},
+   * 'paragraph' {text}. Les separateurs horizontaux (---) sont ignores, a
+   * l'identique de formatBotMessageHtml qui ne les affiche jamais.
+   */
+  function parseMarkdownToBlocks(rawText) {
+    const prepared = splitInlineMarkdownTableLines(normalizeMarkdownBeforeRender(rawText));
+    const { withPlaceholders, nodes: codeNodes } = extractCodeBlocksAsNodes(prepared);
+    const normalizedBullets = withPlaceholders.replace(/\s+-\s+/g, '\n- ');
+    const lines = normalizedBullets.split('\n').map((line) => line.trim());
+
+    const blocks = [];
+    let inUl = false;
+    let inOl = false;
+    let orderedListIndex = 1;
+    let tableBuffer = [];
+    let pendingBlankLine = false;
+
+    const lastBlock = () => blocks[blocks.length - 1];
+
+    function flushTable() {
+      if (!tableBuffer.length) return;
+      const block = normalizeMarkdownTableBlock(tableBuffer);
+      if (!block) {
+        blocks.push({ type: 'invalid_table', rawRows: tableBuffer.slice() });
+      } else {
+        blocks.push({ type: 'table', rows: block.rows, trailingParagraphs: block.trailingParagraphs });
+      }
+      tableBuffer = [];
+    }
+
+    for (const line of lines) {
+      const codeMatch = line.match(/^AI_AST_CODE_(\d+)$/);
+      if (codeMatch) {
+        if (tableBuffer.length) flushTable();
+        inUl = false; inOl = false;
+        orderedListIndex = 1;
+        pendingBlankLine = false;
+        blocks.push(codeNodes[Number(codeMatch[1])]);
+        continue;
+      }
+
+      if (isMarkdownTableLine(line)) {
+        inUl = false; inOl = false;
+        orderedListIndex = 1;
+        tableBuffer.push(line);
+        continue;
+      }
+      if (tableBuffer.length) flushTable();
+
+      if (!line) { pendingBlankLine = true; continue; }
+
+      if (/^[-*_]{3,}$/.test(line)) { pendingBlankLine = false; continue; }
+
+      const headerMatch = line.match(/^(#{1,6})\s*(.+)$/);
+      if (headerMatch) {
+        inUl = false; inOl = false;
+        orderedListIndex = 1;
+        pendingBlankLine = false;
+        const level = Math.min(Math.max(headerMatch[1].length, 1), 6);
+        blocks.push({ type: 'heading', level, text: headerMatch[2].replace(/^#+\s*/, '').trim() });
+        continue;
+      }
+
+      if (line.startsWith('> ')) {
+        inUl = false; inOl = false;
+        orderedListIndex = 1;
+        pendingBlankLine = false;
+        blocks.push({ type: 'blockquote', text: line.slice(2).trim() });
+        continue;
+      }
+
+      if (line.startsWith('- ') || line.startsWith('* ')) {
+        inOl = false;
+        orderedListIndex = 1;
+        if (!inUl) { blocks.push({ type: 'list', ordered: false, start: 1, items: [] }); inUl = true; }
+        lastBlock().items.push({ text: line.slice(2).trim(), details: [] });
+        pendingBlankLine = false;
+        continue;
+      }
+
+      const orderedMatch = line.match(/^\d+[.)]\s+(.+)$/);
+      if (orderedMatch) {
+        inUl = false;
+        const markerIndex = Number(line.match(/^(\d+)/)?.[1] || orderedListIndex);
+        if (!inOl) { blocks.push({ type: 'list', ordered: true, start: markerIndex, items: [] }); inOl = true; }
+        lastBlock().items.push({ text: orderedMatch[1], details: [] });
+        orderedListIndex = markerIndex + 1;
+        pendingBlankLine = false;
+        continue;
+      }
+
+      if ((inUl || inOl) && !pendingBlankLine) {
+        const list = lastBlock();
+        if (list && list.type === 'list') {
+          const item = list.items[list.items.length - 1];
+          if (item) item.details.push(line);
+        }
+        continue;
+      }
+
+      inUl = false; inOl = false;
+      orderedListIndex = 1;
+      pendingBlankLine = false;
+      blocks.push({ type: 'paragraph', text: line });
+    }
+
+    if (tableBuffer.length) flushTable();
+
+    // Cas degenere (texte vide ou uniquement des lignes blanches) : aucun
+    // bloc structure n'est produit par la boucle ci-dessus (chaque ligne
+    // vide ne fait que positionner pendingBlankLine). formatBotMessageHtml
+    // retombe alors sur `<p>${safe}</p>` ou `safe` est le texte prepare
+    // AVANT le trim/decoupage par ligne — reproduit ici a l'identique via un
+    // bloc 'paragraph' portant ce texte non-trimme.
+    if (!blocks.length) {
+      blocks.push({ type: 'paragraph', text: normalizedBullets, rawFallback: true });
+    }
+    return blocks;
+  }
+
+  /**
+   * Rendu HTML d'un AST de blocs — doit produire un HTML strictement
+   * identique a formatBotMessageHtml() pour le meme texte source (verifie
+   * par selfTestMarkdownAst ci-dessous). C'est ce rendu qui, une fois
+   * l'equivalence confirmee en production, remplacera l'appel a
+   * formatBotMessageHtml() dans addMessage()/addStreamingBotMessage().
+   */
+  function renderBlocksToHtml(blocks) {
+    let html = '';
+    (Array.isArray(blocks) ? blocks : []).forEach((block) => {
+      switch (block.type) {
+        case 'code': {
+          // formatBotMessageHtml stocke un placeholder de bloc de code dans le
+          // flux de lignes normal : la ligne-placeholder retombe toujours
+          // dans la branche "paragraphe" generique (<p>...</p>) avant que
+          // restoreCodeBlocks() n'y substitue le HTML du <figure>. D'ou ce
+          // <p> englobant, reproduit ici a l'identique.
+          const language = block.lang || '';
+          const highlighted = highlightCodeForAst(block.code, language);
+          const label = language || 'code';
+          html += `<p><figure class="ai-assistant-code-block">
+          <figcaption>${escapeHtml(label)}</figcaption>
+          <pre><code class="language-${escapeHtml(language || 'plain')}">${highlighted}</code></pre>
+        </figure></p>`;
+          break;
+        }
+        case 'heading':
+          html += `<h${block.level} class="ai-assistant-heading ai-assistant-heading--h${block.level}">${renderInlineMarkdownToHtml(block.text)}</h${block.level}>`;
+          break;
+        case 'blockquote':
+          html += `<blockquote>${renderInlineMarkdownToHtml(block.text)}</blockquote>`;
+          break;
+        case 'list': {
+          const tag = block.ordered ? 'ol' : 'ul';
+          const startAttr = block.ordered && block.start > 1 ? ` start="${block.start}"` : '';
+          html += `<${tag}${startAttr}>`;
+          block.items.forEach((item) => {
+            html += `<li>${renderInlineMarkdownToHtml(item.text)}`;
+            item.details.forEach((detail) => {
+              html += `<p class="ai-assistant-list-detail">${renderInlineMarkdownToHtml(detail)}</p>`;
+            });
+            html += '</li>';
+          });
+          html += `</${tag}>`;
+          break;
+        }
+        case 'table': {
+          const columnCount = block.rows[0]?.length || 0;
+          const columnClass = `ai-assistant-table--cols-${Math.min(Math.max(columnCount, 1), 10)}`;
+          const wideClass = columnCount >= 5 ? ' ai-assistant-table--wide' : '';
+          html += `<div class="ai-assistant-table-wrap${wideClass}" data-columns="${columnCount}"><table class="ai-assistant-table ${columnClass}">`;
+          block.rows.forEach((cells, idx) => {
+            const cellTag = idx === 0 ? 'th' : 'td';
+            html += '<tr>' + cells.map((cell) => `<${cellTag}>${renderInlineMarkdownToHtml(cell)}</${cellTag}>`).join('') + '</tr>';
+          });
+          html += '</table></div>';
+          if (block.trailingParagraphs.length) {
+            html += block.trailingParagraphs.map((line) => `<p>${renderInlineMarkdownToHtml(line)}</p>`).join('');
+          }
+          break;
+        }
+        case 'invalid_table':
+          html += renderInvalidMarkdownTableRowsAsParagraphs(block.rawRows, renderInlineMarkdownToHtml);
+          break;
+        case 'paragraph':
+          html += `<p>${renderInlineMarkdownToHtml(block.text)}</p>`;
+          break;
+        default:
+          break;
+      }
+    });
+    return html;
+  }
+
+  /**
+   * Re-serialise un AST de blocs en Markdown canonique (Phase 3, export MD).
+   * Le texte inline de chaque bloc reste tel quel (markdown brut : **gras**,
+   * [S1], [lien](url)...), seule la STRUCTURE est normalisee : titres avec
+   * un espace apres les #, listes renumerotees/puces uniformes, tableaux avec
+   * ligne de separation | --- |, blocs de code en fences. Doit etre
+   * HTML-stable : reparser le Markdown produit doit redonner exactement le
+   * meme HTML (verifie par le self-test Phase 3 et le harnais Node).
+   */
+  function renderBlocksToMarkdown(blocks) {
+    // Cas degenere : un unique paragraphe de repli (texte vide/espaces seuls,
+    // cf. parseMarkdownToBlocks). On renvoie son texte verbatim, sans
+    // trim/collapse, pour rester strictement HTML-stable au reparse.
+    if (Array.isArray(blocks) && blocks.length === 1 && blocks[0].type === 'paragraph' && blocks[0].rawFallback) {
+      return blocks[0].text;
+    }
+    const parts = [];
+    (Array.isArray(blocks) ? blocks : []).forEach((block) => {
+      switch (block.type) {
+        case 'code':
+          parts.push('```' + (block.lang || '') + '\n' + block.code + '\n```');
+          break;
+        case 'heading':
+          parts.push(`${'#'.repeat(block.level)} ${block.text}`);
+          break;
+        case 'blockquote':
+          parts.push(`> ${block.text}`);
+          break;
+        case 'list': {
+          const lines = [];
+          block.items.forEach((item, index) => {
+            const marker = block.ordered ? `${block.start + index}.` : '-';
+            lines.push(`${marker} ${item.text}`);
+            // Les details (lignes de continuation d'un item) sont reindentes
+            // pour rester rattaches a l'item lors d'un futur reparse.
+            item.details.forEach((detail) => lines.push(`  ${detail}`));
+          });
+          parts.push(lines.join('\n'));
+          break;
+        }
+        case 'table': {
+          const lines = [];
+          block.rows.forEach((cells, idx) => {
+            lines.push(`| ${cells.join(' | ')} |`);
+            if (idx === 0) lines.push(`| ${cells.map(() => '---').join(' | ')} |`);
+          });
+          parts.push(lines.join('\n'));
+          if (block.trailingParagraphs.length) {
+            block.trailingParagraphs.forEach((line) => parts.push(line));
+          }
+          break;
+        }
+        case 'invalid_table':
+          parts.push(block.rawRows.join('\n'));
+          break;
+        case 'paragraph':
+          parts.push(block.rawFallback ? block.text : block.text);
+          break;
+        default:
+          break;
+      }
+    });
+    return parts.join('\n\n').replace(/\n{3,}/g, '\n\n').trim();
+  }
+
+  // Filet de securite Phase 1 : compare formatBotMessageHtml() (canonique,
+  // toujours utilise en production) au pipeline AST equivalent, sur un jeu
+  // de textes representatifs (court, long structure, titres, tableau,
+  // citations, sources RAG, liste numerotee, sous-sections, code, symboles/
+  // accents). Ne s'execute qu'en local (localhost) et ne fait QUE logger un
+  // avertissement en cas d'ecart — ne bloque jamais le rendu reel, qui
+  // continue de passer par formatBotMessageHtml().
+  function selfTestMarkdownAst() {
+    const fixtures = [
+      'Réponse courte avec accents : café, élève, hôtel.',
+      '## Titre\n\nUn paragraphe avec **gras**, *italique* et `code`.\n\n### Sous-titre\n\nAutre paragraphe.',
+      '1. Premier point\n2. Deuxième point\n   suite du deuxième point\n3. Troisième point',
+      '- Item A\n- Item B avec [lien](https://example.com)\n- Item C',
+      '| Colonne 1 | Colonne 2 |\n| --- | --- |\n| a | b |\n| c | d |',
+      'Voici une citation [1] et une autre [2], ainsi qu\'une source projet [S1].',
+      '> Une citation en bloc.\n\nUn paragraphe normal après.',
+      '```js\nconst x = 1;\nfunction f() { return x; }\n```',
+      'Flèches et symboles : → ⇒ ≥ ≤ — et emoji 🚀✨.',
+      '## Section\n| A | B | C |\n| --- | --- | --- |\n| 1 | 2 | 3 |\n\nTexte après le tableau.'
+    ];
+    const mismatches = [];
+    fixtures.forEach((fixture, index) => {
+      try {
+        const expected = formatBotMessageHtml(fixture);
+        const actual = renderBlocksToHtml(parseMarkdownToBlocks(fixture));
+        if (expected !== actual) mismatches.push({ index, fixture, expected, actual });
+      } catch (error) {
+        mismatches.push({ index, fixture, error: error instanceof Error ? error.message : String(error) });
+      }
+    });
+    if (mismatches.length) {
+      console.warn('[markdown-ast] Ecarts detectes entre formatBotMessageHtml et l\'AST (Phase 1, non bloquant) :', mismatches);
+    } else {
+      console.info('[markdown-ast] Phase 1 : equivalence confirmee sur', fixtures.length, 'fixtures.');
+    }
+    return mismatches;
+  }
+
+  const AI_MARKDOWN_AST_IS_LOCAL = typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location?.hostname || '');
+
+  if (AI_MARKDOWN_AST_IS_LOCAL) {
+    try { selfTestMarkdownAst(); } catch (error) { /* jamais bloquant */ }
+  }
+
+  // ── Phase 2 : bascule du chat live + historique vers l'AST partage ──────
+  //
+  // Flag interne (pas d'UI, pas de réglage utilisateur) : true = chat live
+  // (addStreamingBotMessage) et historique (addMessage) passent par
+  // renderMarkdownToHtml() ci-dessous, qui consomme parseMarkdownToBlocks()
+  // + renderBlocksToHtml(). formatBotMessageHtml() reste defini tel quel et
+  // sert de filet de secours automatique en cas d'erreur du renderer AST,
+  // ainsi que de reference pour le self-test (Phase 1) et pour l'export PDF
+  // (openPrintablePdf, volontairement non touche dans cette phase).
+  const AI_MARKDOWN_AST_PHASE2_ENABLED = true;
+
+  /**
+   * Point d'entree unique pour le rendu Markdown -> HTML du chat (live et
+   * historique). Tant que AI_MARKDOWN_AST_PHASE2_ENABLED est actif, tente le
+   * pipeline AST (parseMarkdownToBlocks + renderBlocksToHtml) ; si une
+   * exception survient OU si le resultat est manifestement vide pour un
+   * texte source non-vide, retombe immediatement sur formatBotMessageHtml()
+   * (jamais d'écran blanc). Le flag peut etre repasse a false sans toucher
+   * a aucun appelant pour revenir integralement au comportement Phase 1.
+   */
+  function renderMarkdownToHtml(rawText) {
+    if (!AI_MARKDOWN_AST_PHASE2_ENABLED) return formatBotMessageHtml(rawText);
+    try {
+      const blocks = parseMarkdownToBlocks(rawText);
+      const html = renderBlocksToHtml(blocks);
+      if (!html && String(rawText || '').trim()) {
+        throw new Error('ast_render_empty_for_non_empty_input');
+      }
+      return html;
+    } catch (error) {
+      console.warn('[markdown-ast] Phase 2 : erreur dans le renderer AST, repli sur formatBotMessageHtml()', error instanceof Error ? error.message : error);
+      return formatBotMessageHtml(rawText);
+    }
+  }
+
+  if (AI_MARKDOWN_AST_PHASE2_ENABLED && AI_MARKDOWN_AST_IS_LOCAL) {
+    console.info('[markdown-ast] Phase 2 active : chat live et historique utilisent le renderer AST partage.');
+  }
+
+  // ── Phase 3 : exports (HTML d'abord, puis Markdown) via l'AST partage ────
+  //
+  // Flag interne unique. true = l'export HTML construit son corps avec
+  // renderBlocksToHtml(parseMarkdownToBlocks(...)) (puis re-applique la MEME
+  // fonction de remplacement des citations, reutilisee telle quelle), et
+  // l'export Markdown re-serialise l'AST en Markdown canonique via
+  // renderBlocksToMarkdown(). Les anciens chemins (DOM innerHTML pour HTML,
+  // getLiveExportText() brut pour MD) restent en place et servent de repli
+  // automatique en cas d'erreur ou si le flag est repasse a false.
+  // PDF et DOCX ne sont VOLONTAIREMENT pas touches dans cette phase
+  // (cf. demande : "PDF/DOCX apres seulement, avec prudence").
+  const AI_MARKDOWN_AST_PHASE3_ENABLED = true;
+
+  // Self-test Phase 3 (local, non bloquant) : verifie que renderBlocksToMarkdown
+  // est HTML-stable — reparser le Markdown re-serialise redonne exactement le
+  // meme HTML que l'AST d'origine. Couvre titres, listes, tableaux, citations,
+  // code, et une section "sources" en Markdown.
+  function selfTestMarkdownAstPhase3() {
+    const fixtures = [
+      '## Titre\n\nParagraphe avec **gras** et `code`.\n\n### Sous-titre\n\nFin.',
+      '1. Premier\n2. Deuxième\n   détail du deuxième\n3. Troisième',
+      '- Item A\n- Item B avec [lien](https://example.com)\n- Item C',
+      '| Colonne 1 | Colonne 2 |\n| --- | --- |\n| a | b |\n| c | d |',
+      'Citation web [1] et source projet [S1] dans le texte.',
+      '```js\nconst x = 1;\nfunction f() { return x; }\n```',
+      'Texte avant.\n\n### Sources utilisées\n- [S1] Document A — md — chunk 1\n- [S2] Document B — md — chunk 3',
+      '## Section\n| A | B | C |\n| --- | --- | --- |\n| 1 | 2 | 3 |\n\nTexte après le tableau.'
+    ];
+    const mismatches = [];
+    fixtures.forEach((fixture, index) => {
+      try {
+        const blocks = parseMarkdownToBlocks(fixture);
+        const htmlExpected = renderBlocksToHtml(blocks);
+        const md = renderBlocksToMarkdown(blocks);
+        const htmlAfterRoundtrip = renderBlocksToHtml(parseMarkdownToBlocks(md));
+        if (htmlExpected !== htmlAfterRoundtrip) {
+          mismatches.push({ index, fixture, md, htmlExpected, htmlAfterRoundtrip });
+        }
+      } catch (error) {
+        mismatches.push({ index, fixture, error: error instanceof Error ? error.message : String(error) });
+      }
+    });
+    if (mismatches.length) {
+      console.warn('[markdown-ast] Phase 3 : ecarts de stabilite Markdown (non bloquant) :', mismatches);
+    } else {
+      console.info('[markdown-ast] Phase 3 : serialisation Markdown HTML-stable sur', fixtures.length, 'fixtures.');
+    }
+    return mismatches;
+  }
+
+  /**
+   * Export Markdown via l'AST (Phase 3). Re-serialise le texte normalise en
+   * Markdown canonique. Repli automatique sur le texte brut (comportement
+   * historique) en cas d'erreur ou si le flag est desactive.
+   */
+  function buildMarkdownExportText(rawExportText) {
+    if (!AI_MARKDOWN_AST_PHASE3_ENABLED) return rawExportText;
+    try {
+      const md = renderBlocksToMarkdown(parseMarkdownToBlocks(rawExportText));
+      if (!md && String(rawExportText || '').trim()) throw new Error('ast_md_empty_for_non_empty_input');
+      return md;
+    } catch (error) {
+      console.warn('[markdown-ast] Phase 3 MD : repli sur le texte brut', error instanceof Error ? error.message : error);
+      return rawExportText;
+    }
+  }
+
+  /**
+   * Corps HTML d'export via l'AST (Phase 3). Construit le corps depuis le
+   * texte d'export normalise (meme source que MD/PDF/DOCX), puis re-applique
+   * la MEME fonction de remplacement des citations que le chat
+   * (replaceCitationsWithSourceNames, reutilisee telle quelle, jamais
+   * modifiee) sur un noeud detache, en se servant des sources stockees sur la
+   * bulle. Repli automatique sur l'ancien chemin (DOM innerHTML nettoye) en
+   * cas d'erreur ou si le flag est desactive.
+   */
+  function buildExportHtmlBody(bubble, contentNode) {
+    const oldPath = () => cleanExportHtmlContent(contentNode?.innerHTML || '');
+    if (!AI_MARKDOWN_AST_PHASE3_ENABLED) return { html: oldPath(), alreadyClean: false };
+    try {
+      const text = String(bubble?._assistantRawText || contentNode?.innerText || '').trim();
+      if (!text) throw new Error('empty_export_text');
+      const bodyHtml = renderBlocksToHtml(parseMarkdownToBlocks(text));
+      if (!bodyHtml) throw new Error('ast_export_body_empty');
+      const payload = bubble?._sourcesPayload;
+      if (payload && ((payload.ragSources && payload.ragSources.length) || (payload.webSources && payload.webSources.length))) {
+        const container = document.createElement('div');
+        container.innerHTML = bodyHtml;
+        replaceCitationsWithSourceNames(container, payload.ragSources || [], payload.webSources || []);
+        return { html: container.innerHTML, alreadyClean: true };
+      }
+      return { html: bodyHtml, alreadyClean: true };
+    } catch (error) {
+      console.warn('[markdown-ast] Phase 3 HTML : repli sur le DOM live', error instanceof Error ? error.message : error);
+      return { html: oldPath(), alreadyClean: false };
+    }
+  }
+
+  if (AI_MARKDOWN_AST_IS_LOCAL) {
+    try { selfTestMarkdownAstPhase3(); } catch (error) { /* jamais bloquant */ }
+    if (AI_MARKDOWN_AST_PHASE3_ENABLED) {
+      console.info('[markdown-ast] Phase 3 active : exports HTML et Markdown utilisent le renderer AST partage (PDF/DOCX inchanges).');
+    }
+  }
+
+  // ── Phase 4 : exports PDF + DOCX via l'AST partage ───────────────────────
+  //
+  // true = downloadPdfDocument() et buildDocxDocumentXml() construisent leur
+  // contenu a partir de parseMarkdownToBlocks() (meme AST que chat/HTML/MD),
+  // en reutilisant tous les helpers de dessin existants (drawPdfTable,
+  // drawPdfWrappedText, buildDocxParagraph, buildDocxTable...). Les anciens
+  // parseurs ligne-par-ligne restent en place et servent de repli automatique
+  // (try/catch) en cas d'erreur ou si le flag est repasse a false.
+  const AI_MARKDOWN_AST_PHASE4_ENABLED = true;
+
+  // Numerotation des citations coherente avec le chat pour les exports texte
+  // (PDF/DOCX). Le chat remplace [S{id}] par (n) ou n = position de la source
+  // dans la liste (cf. buildRagSourceNumberMap, reutilise tel quel, jamais
+  // modifie). On applique la MEME correspondance au niveau texte avant
+  // parsing, sans toucher a la logique de citations du chat. Les citations web
+  // [n] sont deja des numeros coherents avec la liste de sources : on les
+  // laisse telles quelles.
+  function applyCitationNumberingForExport(text, sourcesPayload) {
+    if (!sourcesPayload) return text;
+    const ragSources = Array.isArray(sourcesPayload.ragSources) ? sourcesPayload.ragSources : [];
+    if (!ragSources.length) return text;
+    const numberById = buildRagSourceNumberMap(ragSources);
+    return String(text || '').replace(/\[S(\d{1,3})\]/g, (match, id) => {
+      const number = numberById.get(Number(id));
+      return number ? `(${number})` : match;
+    });
+  }
+
   function stabilizeTableLayouts(root = document) {
     const scope = root && root.querySelectorAll ? root : document;
     const wraps = scope.querySelectorAll('.ai-assistant-table-wrap');
@@ -7034,6 +7739,82 @@
     });
   }
 
+  // Remplace dans la réponse rendue les marqueurs de citation [S1] (document
+  // projet) par le NOM du document, et [1] (web) par le domaine cliquable, le
+  // tout dans un style dédié (accent + gras + italique).
+  // Numerote les sources RAG dans l'ordre d'utilisation (meme ordre que le
+  // tableau ragSources fourni a attachSourcesPanelTrigger / appendRagSources),
+  // pour que le marqueur inline (n) corresponde exactement a la carte (n) du
+  // panneau Sources.
+  function buildRagSourceNumberMap(ragSources) {
+    const numberById = new Map();
+    (ragSources || []).forEach((s, index) => {
+      const id = Number(s?.id);
+      if (id) numberById.set(id, index + 1);
+    });
+    return numberById;
+  }
+
+  function replaceCitationsWithSourceNames(root, ragSources, webSources) {
+    if (!root) return;
+    const ragMap = new Map();
+    const ragNumberById = buildRagSourceNumberMap(ragSources);
+    (ragSources || []).forEach((s) => {
+      const id = Number(s?.id);
+      if (id && s?.documentName) ragMap.set(id, { name: String(s.documentName), number: ragNumberById.get(id) });
+    });
+    const webMap = new Map();
+    (webSources || []).forEach((s) => { const idx = Number(s?.index); if (idx && /^https?:\/\//i.test(s?.link || '')) webMap.set(idx, s); });
+    if (!ragMap.size && !webMap.size) return;
+
+    if (ragMap.size) {
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+      const targets = [];
+      while (walker.nextNode()) { if (/\[S\d{1,3}\]/.test(walker.currentNode.nodeValue)) targets.push(walker.currentNode); }
+      targets.forEach((node) => {
+        const text = node.nodeValue;
+        const frag = document.createDocumentFragment();
+        let last = 0; let m; const re = /\[S(\d{1,3})\]/g;
+        while ((m = re.exec(text))) {
+          const entry = ragMap.get(Number(m[1]));
+          if (m.index > last) frag.appendChild(document.createTextNode(text.slice(last, m.index)));
+          if (entry) {
+            const span = document.createElement('span');
+            span.className = 'ai-source-ref';
+            span.textContent = `(${entry.number})`;
+            span.title = entry.name;
+            span.dataset.sourceNumber = String(entry.number);
+            frag.appendChild(span);
+          } else {
+            frag.appendChild(document.createTextNode(m[0]));
+          }
+          last = m.index + m[0].length;
+        }
+        if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+        node.parentNode.replaceChild(frag, node);
+      });
+    }
+
+    if (webMap.size) {
+      root.querySelectorAll('sup.ai-assistant-citation').forEach((sup) => {
+        const m = String(sup.textContent || '').match(/\[(\d{1,3})\]/);
+        if (!m) return;
+        const src = webMap.get(Number(m[1]));
+        if (!src) return;
+        const label = getWebSourceDomain(src.link) || src.title || '';
+        if (!label) return;
+        const link = document.createElement('a');
+        link.className = 'ai-source-ref ai-source-ref--web';
+        link.href = src.link;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.textContent = label;
+        link.title = src.title || label;
+        sup.replaceWith(link);
+      });
+    }
+  }
+
   function addMessage(kind, text, sourcesMeta) {
     const bubble = document.createElement('article');
     bubble.className = `ai-assistant-message ai-assistant-message--${kind}`;
@@ -7041,11 +7822,18 @@
     if (kind === 'bot') {
       const normalizedText = normalizeAssistantMarkdown(text);
       bubble._assistantRawText = normalizedText;
-      bubble.innerHTML = formatBotMessageHtml(normalizedText);
-      enhanceBotBubble(bubble);
-      stabilizeTableLayoutsSoon(bubble);
+      bubble.innerHTML = renderMarkdownToHtml(normalizedText);
       const ragSourcesUsed = Array.isArray(sourcesMeta?.ragSourcesUsed) ? sourcesMeta.ragSourcesUsed : [];
       const webSourcesUsed = Array.isArray(sourcesMeta?.webSourcesUsed) ? sourcesMeta.webSourcesUsed : [];
+      // Remplace les marqueurs de citation [S1] / [1] par le nom de la source.
+      replaceCitationsWithSourceNames(bubble, ragSourcesUsed, webSourcesUsed);
+      enhanceBotBubble(bubble);
+      stabilizeTableLayoutsSoon(bubble);
+      // Au rechargement d'une session, appendWebSearchSources() n'etait jamais
+      // appelee (contrairement au flux live, cf. askAI) : le bloc "### Références
+      // web" manquait alors dans _assistantRawText, donc dans l'export Markdown
+      // d'un message rechargé. On aligne ici sur l'ordre du flux live.
+      if (webSourcesUsed.length) appendWebSearchSources(bubble, webSourcesUsed);
       if (ragSourcesUsed.length) appendRagSources(bubble, ragSourcesUsed);
       if (ragSourcesUsed.length || webSourcesUsed.length) {
         attachSourcesPanelTrigger(bubble, { ragSources: ragSourcesUsed, webSources: webSourcesUsed });
@@ -7086,7 +7874,7 @@
     bubble.appendChild(content);
     messagesContainer.appendChild(bubble);
     if (reducedMotion || fullText.length < 90) {
-      content.innerHTML = formatBotMessageHtml(fullText);
+      content.innerHTML = renderMarkdownToHtml(fullText);
       bubble.classList.remove('is-streaming');
       enhanceBotBubble(bubble);
       stabilizeTableLayoutsSoon(bubble);
@@ -7097,10 +7885,10 @@
       let cursor = 0;
       const step = () => {
         cursor = Math.min(fullText.length, cursor + Math.max(2, Math.ceil(fullText.length / 85)));
-        content.innerHTML = `${formatBotMessageHtml(fullText.slice(0, cursor))}<span class="ai-assistant-stream-caret" aria-hidden="true"></span>`;
+        content.innerHTML = `${renderMarkdownToHtml(fullText.slice(0, cursor))}<span class="ai-assistant-stream-caret" aria-hidden="true"></span>`;
         scrollConversationToBottom('auto');
         if (cursor >= fullText.length) {
-          content.innerHTML = formatBotMessageHtml(fullText);
+          content.innerHTML = renderMarkdownToHtml(fullText);
           bubble.classList.remove('is-streaming');
           enhanceBotBubble(bubble);
           stabilizeTableLayoutsSoon(bubble);
@@ -7386,8 +8174,13 @@
       .replace(/<\/span>/g, '');
   }
 
-  function buildExportHtml(content, title = 'Digital Blue Skye document') {
-    const exportContent = cleanExportHtmlContent(content);
+  function buildExportHtml(content, title = 'Digital Blue Skye document', options = {}) {
+    // options.alreadyClean : le corps fourni provient deja de l'AST (Phase 3)
+    // et ne doit PAS repasser par cleanExportHtmlContent, qui retire tous les
+    // </span> (concu pour le DOM live truffe de spans TTS) et casserait les
+    // spans legitimes du rendu AST (emoji, citations, coloration de code).
+    // Par defaut (ancien chemin DOM live), on nettoie comme avant.
+    const exportContent = options.alreadyClean ? String(content || '') : cleanExportHtmlContent(content);
     return `<!doctype html>
 <html lang="${currentLanguage === 'en' ? 'en' : 'fr'}">
 <head>
@@ -7836,136 +8629,226 @@
     return y + 5;
   }
 
-  async function downloadPdfDocument(markdown, title) {
+  // Dessine un bloc de code dans le PDF (encadre monospace) — extrait de
+  // l'ancienne closure flushCodeRows pour etre reutilise par le rendu AST et
+  // le rendu legacy a l'identique (memes constantes de dessin).
+  function drawPdfCodeBlock(doc, codeLines, ctx) {
+    const { state, margin, contentWidth } = ctx;
+    const lines = String(codeLines || '').split('\n');
+    doc.setFillColor('#f6f7ff');
+    doc.setDrawColor('#d7d8ef');
+    const wrapped = lines.flatMap((line) => doc.splitTextToSize(line || ' ', contentWidth - 8));
+    const height = Math.max(12, wrapped.length * 4.2 + 7);
+    ctx.addPageIfNeeded(height);
+    doc.roundedRect(margin, state.y, contentWidth, height, 2, 2, 'FD');
+    doc.setFont('courier', 'normal');
+    doc.setFontSize(8.5);
+    doc.setTextColor('#171833');
+    doc.text(wrapped, margin + 4, state.y + 5.5);
+    state.y += height + 5;
+  }
+
+  function drawPdfHeadingBlock(doc, level, text, ctx) {
+    const { state, margin, contentWidth } = ctx;
+    const lvl = Math.min(level, 3);
+    if (lvl > 1) {
+      doc.setDrawColor('#5d5dff');
+      doc.setLineWidth(0.8);
+      doc.line(margin, state.y - 2.4, margin, state.y + 4.8);
+    }
+    state.y = drawPdfWrappedText(doc, text, margin, state.y, contentWidth, {
+      bold: true,
+      color: lvl === 1 ? '#2929d8' : '#4c4cff',
+      fontSize: lvl === 1 ? 15.4 : lvl === 2 ? 12.4 : 10.8,
+      lineHeight: lvl === 1 ? 7.2 : 6
+    }) + (lvl === 1 ? 3 : 2);
+  }
+
+  function drawPdfQuoteBlock(doc, text, ctx) {
+    const { state, margin, contentWidth } = ctx;
+    doc.setDrawColor('#5d5dff');
+    doc.line(margin, state.y - 3, margin, state.y + 5);
+    state.y = drawPdfWrappedText(doc, text, margin + 4, state.y, contentWidth - 4, {
+      italic: true, color: '#555779', fontSize: 10, lineHeight: 5
+    }) + 2;
+  }
+
+  // Rendu PDF a partir de l'AST partage (Phase 4). Reutilise exactement les
+  // memes helpers de dessin que le rendu legacy (drawPdfTable,
+  // drawPdfWrappedText, drawPdfCodeBlock...), seul le parsing change : l'AST
+  // (parseMarkdownToBlocks) remplace l'analyse ligne-par-ligne.
+  function renderPdfBlocks(doc, blocks, ctx) {
+    const { state, margin, contentWidth } = ctx;
+    (Array.isArray(blocks) ? blocks : []).forEach((block) => {
+      ctx.addPageIfNeeded(12);
+      switch (block.type) {
+        case 'heading':
+          drawPdfHeadingBlock(doc, block.level, block.text, ctx);
+          break;
+        case 'paragraph':
+          state.y = drawPdfWrappedText(doc, block.text, margin, state.y, contentWidth, { fontSize: 9.6, lineHeight: 4.9 }) + 2.2;
+          break;
+        case 'blockquote':
+          drawPdfQuoteBlock(doc, block.text, ctx);
+          break;
+        case 'list':
+          block.items.forEach((item, index) => {
+            ctx.addPageIfNeeded(10);
+            const marker = block.ordered ? `${block.start + index}. ` : '• ';
+            state.y = drawPdfWrappedText(doc, `${marker}${item.text}`, margin + 4, state.y, contentWidth - 4, { fontSize: 9.6, lineHeight: 4.9 }) + 1.2;
+            item.details.forEach((detail) => {
+              ctx.addPageIfNeeded(8);
+              state.y = drawPdfWrappedText(doc, detail, margin + 8, state.y, contentWidth - 8, { fontSize: 9.4, lineHeight: 4.8 }) + 1;
+            });
+          });
+          break;
+        case 'table': {
+          const rowStrings = block.rows.map((cells) => `| ${cells.join(' | ')} |`);
+          state.y = drawPdfTable(doc, rowStrings, state);
+          if (block.trailingParagraphs.length) {
+            block.trailingParagraphs.forEach((paragraph) => {
+              ctx.addPageIfNeeded(10);
+              state.y = drawPdfWrappedText(doc, paragraph, margin, state.y + 5, contentWidth, { fontSize: 10, lineHeight: 4.9, color: '#171833' }) + 2;
+            });
+          }
+          break;
+        }
+        case 'invalid_table':
+          block.rawRows.forEach((row) => {
+            const text = parseMarkdownTableCells(row).filter(Boolean).join(' — ');
+            if (!text) return;
+            ctx.addPageIfNeeded(8);
+            state.y = drawPdfWrappedText(doc, text, margin, state.y, contentWidth, { fontSize: 9.6, lineHeight: 4.9 }) + 2.2;
+          });
+          break;
+        case 'code':
+          drawPdfCodeBlock(doc, block.code, ctx);
+          break;
+        default:
+          break;
+      }
+    });
+  }
+
+  // Cree le document jsPDF + dessine l'en-tete (date + filet). Partage entre
+  // le rendu AST et le rendu legacy pour garantir une mise en page identique.
+  function setupPdfDoc(JsPdf, source) {
+    const hasWideTableForPdf = source
+      .split('\n')
+      .some((line) => isMarkdownTableLine(line.trim()) && parseMarkdownTableCells(line.trim()).length >= 4);
+    const doc = new JsPdf({ unit: 'mm', format: 'a4', orientation: hasWideTableForPdf ? 'landscape' : 'portrait' });
+    const margin = hasWideTableForPdf ? 12 : 17;
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const contentWidth = doc.internal.pageSize.getWidth() - (margin * 2);
+    const state = { margin, contentWidth, y: margin };
+    const ctx = {
+      state, margin, contentWidth, pageHeight,
+      addPageIfNeeded(extra = 8) {
+        if (state.y + extra > pageHeight - margin) { doc.addPage(); state.y = margin + 4; }
+      }
+    };
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+    doc.setTextColor('#5b5f84');
+    doc.text(`Digital Blue Skye AI - ${new Date().toLocaleDateString(currentLanguage === 'en' ? 'en-US' : 'fr-FR')}`, margin, state.y);
+    state.y += 7;
+    doc.setDrawColor('#d7d8ef');
+    doc.line(margin, state.y, margin + contentWidth, state.y);
+    state.y += 12;
+    return { doc, ctx };
+  }
+
+  // Ancien rendu PDF ligne-par-ligne (fallback Phase 4) — logique inchangee,
+  // simplement extraite dans une fonction qui prend un doc deja initialise.
+  function fillPdfBodyLegacy(doc, ctx, source) {
+    const { state, margin, contentWidth } = ctx;
+    let tableRows = [];
+    let codeRows = [];
+    let inCode = false;
+    function flushTableRows() {
+      if (!tableRows.length) return;
+      const block = normalizeMarkdownTableBlock(tableRows);
+      state.y = drawPdfTable(doc, tableRows, state);
+      if (block?.trailingParagraphs?.length) {
+        block.trailingParagraphs.forEach((paragraph) => {
+          ctx.addPageIfNeeded(10);
+          state.y = drawPdfWrappedText(doc, paragraph, margin, state.y + 5, contentWidth, { fontSize: 10, lineHeight: 4.9, color: '#171833' }) + 2;
+        });
+      }
+      tableRows = [];
+    }
+    function flushCodeRows() {
+      if (!codeRows.length) return;
+      drawPdfCodeBlock(doc, codeRows.join('\n'), ctx);
+      codeRows = [];
+    }
+    const lines = source ? source.split('\n') : ['Digital Blue Skye document'];
+    lines.forEach((rawLine) => {
+      const line = rawLine.trimEnd();
+      const trimmed = line.trim();
+      if (/^```/.test(trimmed)) {
+        flushTableRows();
+        if (inCode) flushCodeRows();
+        inCode = !inCode;
+        return;
+      }
+      if (inCode) { codeRows.push(line); return; }
+      if (isMarkdownTableLine(trimmed)) { tableRows.push(trimmed); return; }
+      flushTableRows();
+      if (!trimmed || /^[-*_]{3,}$/.test(trimmed)) { state.y += 2; return; }
+      const heading = trimmed.match(/^(#{1,6})\s*(.+)$/);
+      const bullet = trimmed.match(/^[-*]\s+(.+)$/);
+      const ordered = trimmed.match(/^(\d+)[.)]\s+(.+)$/);
+      ctx.addPageIfNeeded(12);
+      if (heading) {
+        drawPdfHeadingBlock(doc, heading[1].length, heading[2].replace(/^#+\s*/, '').trim(), ctx);
+        return;
+      }
+      if (bullet) {
+        state.y = drawPdfWrappedText(doc, `• ${bullet[1]}`, margin + 4, state.y, contentWidth - 4, { fontSize: 9.6, lineHeight: 4.9 }) + 1.2;
+        return;
+      }
+      if (ordered) {
+        state.y = drawPdfWrappedText(doc, `${ordered[1]}. ${ordered[2]}`, margin + 4, state.y, contentWidth - 4, { fontSize: 9.6, lineHeight: 4.9 }) + 1.2;
+        return;
+      }
+      if (trimmed.startsWith('> ')) {
+        drawPdfQuoteBlock(doc, trimmed.slice(2), ctx);
+        return;
+      }
+      state.y = drawPdfWrappedText(doc, trimmed, margin, state.y, contentWidth, { fontSize: 9.6, lineHeight: 4.9 }) + 2.2;
+    });
+    flushTableRows();
+    flushCodeRows();
+  }
+
+  async function downloadPdfDocument(markdown, title, citationContext) {
     const filename = `${slugifyDocumentTitle(title)}.pdf`;
-    const source = normalizeDocumentExportSource(markdown);
+    const numberedMarkdown = AI_MARKDOWN_AST_PHASE4_ENABLED
+      ? applyCitationNumberingForExport(markdown, citationContext)
+      : markdown;
+    const source = normalizeDocumentExportSource(numberedMarkdown);
     try {
       const JsPdf = await ensureJsPdfReady();
-      const hasWideTableForPdf = source
-        .split('\n')
-        .some((line) => isMarkdownTableLine(line.trim()) && parseMarkdownTableCells(line.trim()).length >= 4);
-      const doc = new JsPdf({ unit: 'mm', format: 'a4', orientation: hasWideTableForPdf ? 'landscape' : 'portrait' });
-      const margin = hasWideTableForPdf ? 12 : 17;
-      const pageHeight = doc.internal.pageSize.getHeight();
-      const contentWidth = doc.internal.pageSize.getWidth() - (margin * 2);
-      const state = { margin, contentWidth, y: margin };
-      let tableRows = [];
-      let codeRows = [];
-      let inCode = false;
-
-      function addPageIfNeeded(extra = 8) {
-        if (state.y + extra > pageHeight - margin) {
-          doc.addPage();
-          state.y = margin + 4;
+      let built = null;
+      if (AI_MARKDOWN_AST_PHASE4_ENABLED) {
+        // Tente l'AST dans un document neuf ; en cas d'erreur, on repart d'un
+        // document vierge pour le rendu legacy (jamais de contenu duplique).
+        try {
+          const astDoc = setupPdfDoc(JsPdf, source);
+          renderPdfBlocks(astDoc.doc, parseMarkdownToBlocks(numberedMarkdown), astDoc.ctx);
+          built = astDoc.doc;
+        } catch (astError) {
+          console.warn('[markdown-ast] Phase 4 PDF : repli sur l\'ancien export ligne-par-ligne', astError instanceof Error ? astError.message : astError);
+          built = null;
         }
       }
-
-      function flushTableRows() {
-        if (!tableRows.length) return;
-        const block = normalizeMarkdownTableBlock(tableRows);
-        state.y = drawPdfTable(doc, tableRows, state);
-        if (block?.trailingParagraphs?.length) {
-          block.trailingParagraphs.forEach((paragraph) => {
-            addPageIfNeeded(10);
-            state.y = drawPdfWrappedText(doc, paragraph, margin, state.y + 5, contentWidth, { fontSize: 10, lineHeight: 4.9, color: '#171833' }) + 2;
-          });
-        }
-        tableRows = [];
+      if (!built) {
+        const legacyDoc = setupPdfDoc(JsPdf, source);
+        fillPdfBodyLegacy(legacyDoc.doc, legacyDoc.ctx, source);
+        built = legacyDoc.doc;
       }
-
-      function flushCodeRows() {
-        if (!codeRows.length) return;
-        const lines = codeRows.join('\n').split('\n');
-        doc.setFillColor('#f6f7ff');
-        doc.setDrawColor('#d7d8ef');
-        const wrapped = lines.flatMap((line) => doc.splitTextToSize(line || ' ', contentWidth - 8));
-        const height = Math.max(12, wrapped.length * 4.2 + 7);
-        addPageIfNeeded(height);
-        doc.roundedRect(margin, state.y, contentWidth, height, 2, 2, 'FD');
-        doc.setFont('courier', 'normal');
-        doc.setFontSize(8.5);
-        doc.setTextColor('#171833');
-        doc.text(wrapped, margin + 4, state.y + 5.5);
-        state.y += height + 5;
-        codeRows = [];
-      }
-
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8.5);
-      doc.setTextColor('#5b5f84');
-      doc.text(`Digital Blue Skye AI - ${new Date().toLocaleDateString(currentLanguage === 'en' ? 'en-US' : 'fr-FR')}`, margin, state.y);
-      state.y += 7;
-      doc.setDrawColor('#d7d8ef');
-      doc.line(margin, state.y, margin + contentWidth, state.y);
-      state.y += 12;
-
-      const lines = source ? source.split('\n') : ['Digital Blue Skye document'];
-      lines.forEach((rawLine) => {
-        const line = rawLine.trimEnd();
-        const trimmed = line.trim();
-        if (/^```/.test(trimmed)) {
-          flushTableRows();
-          if (inCode) flushCodeRows();
-          inCode = !inCode;
-          return;
-        }
-        if (inCode) {
-          codeRows.push(line);
-          return;
-        }
-        if (isMarkdownTableLine(trimmed)) {
-          tableRows.push(trimmed);
-          return;
-        }
-        flushTableRows();
-        if (!trimmed || /^[-*_]{3,}$/.test(trimmed)) {
-          state.y += 2;
-          return;
-        }
-        const heading = trimmed.match(/^(#{1,6})\s*(.+)$/);
-        const bullet = trimmed.match(/^[-*]\s+(.+)$/);
-        const ordered = trimmed.match(/^(\d+)[.)]\s+(.+)$/);
-        addPageIfNeeded(12);
-        if (heading) {
-          const level = Math.min(heading[1].length, 3);
-          const headingText = heading[2].replace(/^#+\s*/, '').trim();
-          if (level > 1) {
-            doc.setDrawColor('#5d5dff');
-            doc.setLineWidth(0.8);
-            doc.line(margin, state.y - 2.4, margin, state.y + 4.8);
-          }
-          state.y = drawPdfWrappedText(doc, headingText, margin, state.y, contentWidth, {
-            bold: true,
-            color: level === 1 ? '#2929d8' : '#4c4cff',
-            fontSize: level === 1 ? 15.4 : level === 2 ? 12.4 : 10.8,
-            lineHeight: level === 1 ? 7.2 : 6
-          }) + (level === 1 ? 3 : 2);
-          return;
-        }
-        if (bullet) {
-          state.y = drawPdfWrappedText(doc, `• ${bullet[1]}`, margin + 4, state.y, contentWidth - 4, { fontSize: 9.6, lineHeight: 4.9 }) + 1.2;
-          return;
-        }
-        if (ordered) {
-          state.y = drawPdfWrappedText(doc, `${ordered[1]}. ${ordered[2]}`, margin + 4, state.y, contentWidth - 4, { fontSize: 9.6, lineHeight: 4.9 }) + 1.2;
-          return;
-        }
-        if (trimmed.startsWith('> ')) {
-          doc.setDrawColor('#5d5dff');
-          doc.line(margin, state.y - 3, margin, state.y + 5);
-          state.y = drawPdfWrappedText(doc, trimmed.slice(2), margin + 4, state.y, contentWidth - 4, {
-            italic: true,
-            color: '#555779',
-            fontSize: 10,
-            lineHeight: 5
-          }) + 2;
-          return;
-        }
-        state.y = drawPdfWrappedText(doc, trimmed, margin, state.y, contentWidth, { fontSize: 9.6, lineHeight: 4.9 }) + 2.2;
-      });
-      flushTableRows();
-      flushCodeRows();
-      doc.save(filename);
+      built.save(filename);
     } catch (error) {
       openPrintablePdf(formatBotMessageHtml(source), title);
     }
@@ -8093,15 +8976,60 @@
     return `<w:tbl><w:tblPr><w:tblW w:w="${usableWidth}" w:type="dxa"/><w:tblLayout w:type="fixed"/><w:tblInd w:w="0" w:type="dxa"/><w:tblBorders>${borders}</w:tblBorders><w:tblCellMar><w:top w:w="120" w:type="dxa"/><w:left w:w="140" w:type="dxa"/><w:bottom w:w="120" w:type="dxa"/><w:right w:w="140" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid>${grid}</w:tblGrid>${tableRows}</w:tbl>`;
   }
 
-  function buildDocxDocumentXml(markdown) {
-    const source = normalizeDocumentExportSource(markdown);
+  // Rendu DOCX a partir de l'AST partage (Phase 4). Reutilise exactement les
+  // memes constructeurs OOXML (buildDocxParagraph, buildDocxTable...), seul le
+  // parsing change : l'AST remplace l'analyse ligne-par-ligne.
+  function renderDocxBlocks(astBlocks) {
+    const out = [];
+    (Array.isArray(astBlocks) ? astBlocks : []).forEach((block) => {
+      switch (block.type) {
+        case 'heading':
+          out.push(buildDocxParagraph(block.text, { heading: Math.min(block.level, 3) }));
+          break;
+        case 'paragraph':
+          out.push(buildDocxParagraph(block.text));
+          break;
+        case 'blockquote':
+          out.push(buildDocxParagraph(block.text, { quote: true }));
+          break;
+        case 'list':
+          block.items.forEach((item, index) => {
+            if (block.ordered) out.push(buildDocxParagraph(item.text, { ordered: block.start + index }));
+            else out.push(buildDocxParagraph(item.text, { bullet: true }));
+            item.details.forEach((detail) => out.push(buildDocxParagraph(detail)));
+          });
+          break;
+        case 'table': {
+          const rowStrings = block.rows.map((cells) => `| ${cells.join(' | ')} |`);
+          out.push(buildDocxTable(rowStrings));
+          block.trailingParagraphs.forEach((paragraph) => out.push(buildDocxParagraph(paragraph)));
+          break;
+        }
+        case 'invalid_table':
+          block.rawRows.forEach((row) => {
+            const text = parseMarkdownTableCells(row).filter(Boolean).join(' — ');
+            if (text) out.push(buildDocxParagraph(text));
+          });
+          break;
+        case 'code':
+          String(block.code || '').split('\n').forEach((line) => out.push(buildDocxParagraph(line || ' ', { code: true })));
+          break;
+        default:
+          break;
+      }
+    });
+    return out;
+  }
+
+  // Ancien rendu DOCX ligne-par-ligne (fallback Phase 4) — logique inchangee,
+  // extraite dans une fonction renvoyant le tableau de blocs OOXML.
+  function buildDocxBlocksLegacy(source) {
     const lines = source ? source.split('\n') : ['Digital Blue Skye document'];
     const blocks = [];
     let tableRows = [];
     let codeRows = [];
     let inCode = false;
     let orderedIndex = 1;
-
     function flushTableRows() {
       if (tableRows.length) {
         const block = normalizeMarkdownTableBlock(tableRows);
@@ -8112,14 +9040,12 @@
         tableRows = [];
       }
     }
-
     function flushCodeRows() {
       if (codeRows.length) {
         codeRows.join('\n').split('\n').forEach((line) => blocks.push(buildDocxParagraph(line || ' ', { code: true })));
         codeRows = [];
       }
     }
-
     lines.forEach((rawLine) => {
       const line = rawLine.trimEnd();
       if (/^```/.test(line.trim())) {
@@ -8128,14 +9054,8 @@
         inCode = !inCode;
         return;
       }
-      if (inCode) {
-        codeRows.push(line);
-        return;
-      }
-      if (isMarkdownTableLine(line.trim())) {
-        tableRows.push(line.trim());
-        return;
-      }
+      if (inCode) { codeRows.push(line); return; }
+      if (isMarkdownTableLine(line.trim())) { tableRows.push(line.trim()); return; }
       flushTableRows();
       const trimmed = line.trim();
       if (!trimmed || /^[-*_]{3,}$/.test(trimmed)) return;
@@ -8167,6 +9087,25 @@
     });
     flushTableRows();
     flushCodeRows();
+    return blocks;
+  }
+
+  function buildDocxDocumentXml(markdown, citationContext) {
+    const numberedMarkdown = AI_MARKDOWN_AST_PHASE4_ENABLED
+      ? applyCitationNumberingForExport(markdown, citationContext)
+      : markdown;
+    const source = normalizeDocumentExportSource(numberedMarkdown);
+    let blocks = null;
+    if (AI_MARKDOWN_AST_PHASE4_ENABLED) {
+      try {
+        blocks = renderDocxBlocks(parseMarkdownToBlocks(numberedMarkdown));
+        if (!blocks.length && source.trim()) throw new Error('docx_ast_empty_for_non_empty_source');
+      } catch (astError) {
+        console.warn('[markdown-ast] Phase 4 DOCX : repli sur l\'ancien export ligne-par-ligne', astError instanceof Error ? astError.message : astError);
+        blocks = null;
+      }
+    }
+    if (!blocks) blocks = buildDocxBlocksLegacy(source);
     return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
   <w:body>
@@ -8256,12 +9195,55 @@
     return new Blob([...localParts, ...centralParts, end], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
   }
 
-  function buildDocxBlob(markdown) {
+  function buildDocxBlob(markdown, citationContext) {
     return createZip([
       { name: '[Content_Types].xml', content: '<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>' },
       { name: '_rels/.rels', content: '<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>' },
-      { name: 'word/document.xml', content: buildDocxDocumentXml(markdown) }
+      { name: 'word/document.xml', content: buildDocxDocumentXml(markdown, citationContext) }
     ]);
+  }
+
+  // Self-test Phase 4 (local, non bloquant). Le PDF depend de jsPDF (non
+  // verifiable hors navigateur) ; on valide donc en local la generation DOCX
+  // via l'AST : XML non vide, bien forme (balises <w:p>/<w:tbl> equilibrees au
+  // niveau du nombre d'ouvertures/fermetures), pour chaque type de bloc.
+  function selfTestMarkdownAstPhase4() {
+    const fixtures = [
+      'Réponse courte avec accents : café, élève, hôtel.',
+      '## Titre\n\nParagraphe **gras** et `code inline`.\n\n### Sous-titre\n\nFin.',
+      '1. Premier\n2. Deuxième\n3. Troisième',
+      '- Puce A\n- Puce B',
+      '| A | B |\n| --- | --- |\n| 1 | 2 |',
+      '> Une citation.',
+      '```js\nconst x = 1;\n```',
+      'Texte.\n\n### Sources utilisées\n- [S1] Document A — md — chunk 1',
+      'Citation projet [S1] et web [1].'
+    ];
+    const problems = [];
+    fixtures.forEach((fixture, index) => {
+      try {
+        const xml = buildDocxDocumentXml(fixture, { ragSources: [{ id: 1, documentName: 'Document A' }] });
+        if (!/<w:body>/.test(xml) || !/<\/w:document>/.test(xml)) throw new Error('xml_structure_invalide');
+        const opens = (xml.match(/<w:p>/g) || []).length + (xml.match(/<w:p\s/g) || []).length;
+        const closes = (xml.match(/<\/w:p>/g) || []).length;
+        if (opens !== closes) throw new Error(`w:p desequilibre (${opens} vs ${closes})`);
+      } catch (error) {
+        problems.push({ index, fixture, error: error instanceof Error ? error.message : String(error) });
+      }
+    });
+    if (problems.length) {
+      console.warn('[markdown-ast] Phase 4 : problemes de generation DOCX (non bloquant) :', problems);
+    } else {
+      console.info('[markdown-ast] Phase 4 : generation DOCX via AST valide sur', fixtures.length, 'fixtures.');
+    }
+    return problems;
+  }
+
+  if (AI_MARKDOWN_AST_IS_LOCAL) {
+    try { selfTestMarkdownAstPhase4(); } catch (error) { /* jamais bloquant */ }
+    if (AI_MARKDOWN_AST_PHASE4_ENABLED) {
+      console.info('[markdown-ast] Phase 4 active : PDF/DOCX utilisent l\'AST partagé');
+    }
   }
 
   function refreshBubbleActionLabels() {
@@ -8381,22 +9363,35 @@
         {
           label: 'MD',
           title: i18n.downloadMd,
-          action: () => downloadBlob(new Blob([getLiveExportText()], { type: 'text/markdown;charset=utf-8' }), `${baseName}.md`)
+          // Phase 3 : Markdown re-serialise depuis l'AST (texte normalise),
+          // repli automatique sur le texte brut dans buildMarkdownExportText.
+          action: () => downloadBlob(new Blob([buildMarkdownExportText(getLiveExportText())], { type: 'text/markdown;charset=utf-8' }), `${baseName}.md`)
         },
         {
           label: 'HTML',
           title: i18n.downloadHtml,
-          action: () => downloadBlob(new Blob([buildExportHtml(content.innerHTML, baseName)], { type: 'text/html;charset=utf-8' }), `${baseName}.html`)
+          // Phase 3 : corps construit depuis l'AST partage (+ citations
+          // reappliquees), repli automatique sur le DOM live dans
+          // buildExportHtmlBody.
+          action: () => {
+            const { html, alreadyClean } = buildExportHtmlBody(bubble, content);
+            downloadBlob(new Blob([buildExportHtml(html, baseName, { alreadyClean })], { type: 'text/html;charset=utf-8' }), `${baseName}.html`);
+          }
         },
         {
           label: 'PDF',
           title: i18n.downloadPdf,
-          action: () => downloadPdfDocument(getLiveExportText(), baseName)
+          // Phase 4 : PDF construit depuis l'AST partage, citations numerotees
+          // comme le chat via bubble._sourcesPayload ; repli automatique sur
+          // l'ancien export PDF dans downloadPdfDocument.
+          action: () => downloadPdfDocument(getLiveExportText(), baseName, bubble._sourcesPayload)
         },
         {
           label: 'DOCX',
           title: i18n.downloadDocx,
-          action: () => downloadBlob(buildDocxBlob(getLiveExportText()), `${baseName}.docx`)
+          // Phase 4 : DOCX construit depuis l'AST partage (memes citations) ;
+          // repli automatique sur l'ancien export DOCX dans buildDocxDocumentXml.
+          action: () => downloadBlob(buildDocxBlob(getLiveExportText(), bubble._sourcesPayload), `${baseName}.docx`)
         }
       ];
       exports.forEach((item) => {
@@ -8640,29 +9635,102 @@
     return card;
   }
 
-  function buildRagSourcePanelCard(source) {
+  function buildRagSourcePanelCard(source, number) {
+    const en = currentLanguage === 'en';
     const isGlobal = source.sourceScope === 'global';
+    const doc = getKnowledgeDocumentById(source.documentId);
     const card = document.createElement('article');
-    card.className = `ai-source-card ${isGlobal ? 'ai-source-card--global' : 'ai-source-card--project'}`;
+    card.className = `ai-source-card ai-source-card--openable ${isGlobal ? 'ai-source-card--global' : 'ai-source-card--project'}`;
+    card.setAttribute('role', 'button');
+    card.setAttribute('tabindex', '0');
+    card.setAttribute('aria-label', `${en ? 'Open document: ' : 'Ouvrir le document : '}${source.documentName}`);
 
+    const head = document.createElement('div');
+    head.className = 'ai-source-card-head';
     const titleEl = document.createElement('div');
     titleEl.className = 'ai-source-title';
-    titleEl.textContent = source.documentName;
-    card.appendChild(titleEl);
+    titleEl.textContent = number ? `(${number}) ${source.documentName}` : source.documentName;
+    head.appendChild(titleEl);
+    const openIndicator = document.createElement('span');
+    openIndicator.className = 'ai-source-open-indicator';
+    openIndicator.setAttribute('aria-hidden', 'true');
+    openIndicator.textContent = '↗';
+    head.appendChild(openIndicator);
+    card.appendChild(head);
 
     const meta = document.createElement('span');
     meta.className = 'ai-source-meta';
     meta.textContent = `${source.documentType} · ${(source.locators || []).join(', ')}`;
     card.appendChild(meta);
 
+    // Date et heure d'ajout (tracabilite) depuis l'import du document.
+    const added = Number(doc?.importedAt) || 0;
+    if (added) {
+      const addedEl = document.createElement('span');
+      addedEl.className = 'ai-source-added';
+      const when = new Date(added);
+      const datePart = when.toLocaleDateString(en ? 'en-US' : 'fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      const timePart = when.toLocaleTimeString(en ? 'en-US' : 'fr-FR', { hour: '2-digit', minute: '2-digit' });
+      addedEl.textContent = en ? `Added ${datePart} at ${timePart}` : `Ajouté le ${datePart} à ${timePart}`;
+      card.appendChild(addedEl);
+    }
+
     if (source.excerpt) card.dataset.excerpt = source.excerpt;
 
     const badge = document.createElement('span');
     badge.className = `ai-source-badge ${isGlobal ? 'ai-source-badge--global' : 'ai-source-badge--project'}`;
     badge.textContent = isGlobal
-      ? (currentLanguage === 'en' ? 'Global library' : 'Bibliothèque globale')
-      : (currentLanguage === 'en' ? 'Project' : 'Projet');
+      ? (en ? 'Global library' : 'Bibliothèque globale')
+      : (en ? 'Project' : 'Projet');
     card.appendChild(badge);
+
+    // Clic / Entrée -> ouvre le document local dans un nouvel onglet (fichier
+    // original si disponible, sinon apercu).
+    const openInNewTab = (blob) => {
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank', 'noopener');
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    };
+    // Les fichiers texte (.md/.txt/.html/.json/.csv) sont stockés tels quels
+    // (octets d'origine, déjà en UTF-8), mais leur Content-Type d'origine n'a
+    // souvent aucun charset déclaré (ex. file.type === '' pour un .md) :
+    // Chrome retombe alors sur un décodage Latin-1 pour un blob: URL sans
+    // charset, d'où les accents illisibles (Ã©, Ã¨...). On ne touche jamais
+    // aux octets, seulement à l'étiquette MIME, et jamais pour les formats
+    // binaires (PDF/DOCX/XLSX/images) qui doivent rester intacts.
+    const TEXTUAL_DOCUMENT_KINDS = new Set(['text', 'html']);
+    const withUtf8Charset = (blob, kind) => {
+      if (!TEXTUAL_DOCUMENT_KINDS.has(kind)) return blob;
+      const currentType = String(blob.type || '');
+      if (/charset=/i.test(currentType)) return blob;
+      const base = currentType.split(';')[0].trim() || 'text/plain';
+      return new Blob([blob], { type: `${base};charset=utf-8` });
+    };
+    const openDocument = async () => {
+      const target = getKnowledgeDocumentById(source.documentId);
+      if (!target) return;
+      // 1) Fichier original (PDF, XLSX, DOCX...) -> nouvel onglet / outil adapté.
+      try {
+        const original = await getKnowledgeOriginalFile(target);
+        if (original?.blob) { openInNewTab(withUtf8Charset(original.blob, target.kind)); return; }
+      } catch (error) { /* repli */ }
+      // 2) Sinon (ex. .md / .txt sans original conservé) -> texte extrait en
+      //    blob ouvert dans un nouvel onglet, pour que TOUTE source s'ouvre.
+      try {
+        const extracted = typeof buildDocumentExtractMarkdown === 'function'
+          ? buildDocumentExtractMarkdown(target)
+          : (getKnowledgeDocChunks(target) || []).join('\n\n');
+        if (extracted) {
+          openInNewTab(new Blob([extracted], { type: 'text/markdown;charset=utf-8' }));
+          return;
+        }
+      } catch (error) { /* dernier repli */ }
+      if (typeof openKnowledgeDocumentPreview === 'function') openKnowledgeDocumentPreview(target);
+    };
+    card.addEventListener('click', openDocument);
+    card.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openDocument(); }
+    });
 
     return card;
   }
@@ -8672,6 +9740,7 @@
     sourcesPanelBody.innerHTML = '';
     const ragSources = Array.isArray(payload?.ragSources) ? payload.ragSources : [];
     const webSources = Array.isArray(payload?.webSources) ? payload.webSources : [];
+    const ragNumberById = buildRagSourceNumberMap(ragSources);
     const projectSources = ragSources.filter((source) => source.sourceScope !== 'global');
     const globalSources = ragSources.filter((source) => source.sourceScope === 'global');
 
@@ -8681,8 +9750,8 @@
     // avec le compteur "Sources · N" de l'en-tete (cf. ChatGPT).
     const groups = [
       { title: currentLanguage === 'en' ? 'Web sources' : 'Sources web', cards: webSources.map((source, index) => buildWebSourcePanelCard(source, index)) },
-      { title: currentLanguage === 'en' ? 'Project sources' : 'Sources projet', cards: projectSources.map((source) => buildRagSourcePanelCard(source)) },
-      { title: currentLanguage === 'en' ? 'Global library' : 'Bibliothèque globale', cards: globalSources.map((source) => buildRagSourcePanelCard(source)) }
+      { title: currentLanguage === 'en' ? 'Project sources' : 'Sources projet', cards: projectSources.map((source) => buildRagSourcePanelCard(source, ragNumberById.get(Number(source.id)))) },
+      { title: currentLanguage === 'en' ? 'Global library' : 'Bibliothèque globale', cards: globalSources.map((source) => buildRagSourcePanelCard(source, ragNumberById.get(Number(source.id)))) }
     ].filter((group) => group.cards.length);
     const showSectionTitles = groups.length > 1;
 
@@ -8923,6 +9992,82 @@
     };
   }
 
+  // RAG vectoriel serveur (cloudflare/ragPipeline.js) : best-effort, jamais
+  // bloquant. Tant que le backend vectoriel n'est pas active cote Worker
+  // (Vectorize pas encore deploye), ces appels renvoient ok:false et le RAG
+  // navigateur (scoreKnowledgeChunk) reste utilise sans regression.
+  const RAG_REMOTE_TIMEOUT_MS = 6000;
+
+  async function callRagRemote(payload) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), RAG_REMOTE_TIMEOUT_MS);
+    try {
+      const response = await fetch(API_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json().catch(() => ({ ok: false, error: 'invalid_response' }));
+      return data;
+    } catch (error) {
+      return { ok: false, error: error?.name === 'AbortError' ? 'timeout' : 'network_error' };
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
+  async function indexDocumentRemotely(doc) {
+    if (!doc?.id) return;
+    const chunks = getKnowledgeDocChunks(doc).map((text, index) => ({
+      index,
+      text,
+      locator: extractKnowledgeChunkLocator(text, doc.kind || doc.type, index)
+    }));
+    if (!chunks.length) return;
+    try {
+      const result = await callRagRemote({
+        mode: 'rag_index',
+        documentId: doc.id,
+        projectId: getDocumentProjectId(doc) || '',
+        documentName: doc.name,
+        chunks
+      });
+      if (result?.ok) {
+        doc.vectorIndexedAt = Date.now();
+        saveKnowledgeLibrary();
+      }
+    } catch (error) {
+      assistantLog('debug', 'rag_index_remote_failed', { reason: error?.message || 'unknown' });
+    }
+  }
+
+  async function deleteDocumentRemotely(documentId) {
+    if (!documentId) return;
+    try {
+      await callRagRemote({ mode: 'rag_delete', documentId });
+    } catch (error) {
+      assistantLog('debug', 'rag_delete_remote_failed', { reason: error?.message || 'unknown' });
+    }
+  }
+
+  async function queryRagRemotely(queryText, projectId, options = {}) {
+    return callRagRemote({
+      mode: 'rag_query',
+      query: queryText,
+      projectId: projectId || '',
+      includeGlobalLibrary: Boolean(options.includeGlobalLibrary),
+      maxPassages: options.maxPassages
+    });
+  }
+
+  function scheduleVectorMigrationForExistingDocuments() {
+    const pending = (knowledgeLibrary.documents || []).filter((doc) => !doc.vectorIndexedAt);
+    if (!pending.length) return;
+    // Indexation douce en arriere-plan, une fois par document, sans bloquer l'UI.
+    pending.reduce((promise, doc) => promise.then(() => indexDocumentRemotely(doc)), Promise.resolve());
+  }
+
   function ensureSpeechSegmentSpans(bubble) {
     if (!bubble) return [];
     const content = bubble.querySelector('.ai-assistant-message-content');
@@ -9132,7 +10277,7 @@
       const ragContext = fileContext
         ? { context: '', events: [], status: 'file_context', selected: [], usedSources: [] }
         : (shouldUseProjectRagForMessage(userText, ragCandidateProject)
-          ? buildKnowledgeContextForPrompt(userText)
+          ? await buildKnowledgeContextForPrompt(userText)
           : { context: '', events: [], status: 'off_topic', selected: [], usedSources: [] });
       const knowledgeContext = ragContext.context || '';
       renderRagStatus(ragContext.status);
@@ -9271,6 +10416,9 @@
         if (displaySources.length) {
           appendRagSources(botBubble, displaySources);
         }
+        // Réponse en streaming : remplace ici aussi les [S1]/[1] par le nom de la
+        // source (le chemin addMessage ne couvre que le rechargement d'historique).
+        replaceCitationsWithSourceNames(botBubble, displaySources, normalizedWebSources);
         attachSourcesPanelTrigger(botBubble, { ragSources: displaySources, webSources: normalizedWebSources });
         speakText(cleanedReply, botBubble);
         chatHistory.push({
@@ -9286,7 +10434,40 @@
           error: data.error || 'unknown_api_error',
           diagnostic: data.diagnostic || null
         });
-        const msg = formatAssistantApiError(data);
+        const isOpenRouterExhausted = data.error === 'openrouter_error';
+        const ragExcerpts = Array.isArray(ragContext.selected) ? ragContext.selected : [];
+        let msg;
+        if (isOpenRouterExhausted && ragExcerpts.length) {
+          // Le moteur de generation (Model Router / OpenRouter) est limite,
+          // mais le RAG a bien trouve des sources pertinentes : on produit
+          // une reponse minimale de secours (titre court, 3-5 points cles,
+          // sources utilisees) plutot que de laisser l'utilisateur sans rien.
+          const topExcerpts = ragExcerpts.slice(0, 5);
+          const keyPoints = topExcerpts
+            .map((item) => `- ${truncateText(String(item.chunk || '').replace(/\s+/g, ' ').trim(), 160)}`)
+            .join('\n');
+          const sourcesList = topExcerpts
+            .map((item) => item.doc?.name || '')
+            .filter(Boolean)
+            .filter((name, index, arr) => arr.indexOf(name) === index)
+            .map((name) => `- ${name}`)
+            .join('\n');
+          msg = [
+            i18n.openRouterLimited,
+            '',
+            `### ${i18n.openRouterFallbackTitle}`,
+            '',
+            `#### ${i18n.openRouterFallbackKeyPoints}`,
+            keyPoints,
+            ...(sourcesList ? ['', `#### ${i18n.openRouterFallbackSources}`, sourcesList] : []),
+            '',
+            `_${i18n.openRouterFallbackMention}_`
+          ].join('\n');
+        } else if (isOpenRouterExhausted) {
+          msg = i18n.openRouterLimited;
+        } else {
+          msg = formatAssistantApiError(data);
+        }
         addMessage('bot', msg);
         chatHistory.push({ role: 'assistant', content: msg });
         persistActiveConversation();

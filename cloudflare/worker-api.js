@@ -16,6 +16,8 @@
  * - COMMENTS_REQUIRE_APPROVAL ("true" or "false")
  */
 
+import { computeProjectPlan } from './aiProjectManager.js';
+
 const REACTION_MAP = Object.freeze({
   thumbsup: "reactions_thumbsup",
   purpleheart: "reactions_purpleheart",
@@ -392,12 +394,22 @@ async function firstNumber(env, sql, field = "value", ...bindings) {
 
 function parseEventMeta(row) {
   if (!row?.meta) return {};
+  // meta peut arriver deja comme objet (selon le chemin d'appel) ou comme
+  // chaine JSON (cas normal depuis la colonne D1 TEXT) — on gere les deux.
+  if (typeof row.meta === "object") return row.meta;
   try {
     const parsed = JSON.parse(row.meta);
     return parsed && typeof parsed === "object" ? parsed : {};
   } catch (error) {
     return {};
   }
+}
+
+// D1/JSON peut renvoyer un booleen comme true, 1, "1" ou "true" selon le
+// chemin de serialisation (json_extract SQLite renvoie parfois un entier
+// pour un booleen). On accepte toutes ces formes equivalentes a "vrai".
+function isTruthyFlag(value) {
+  return value === true || value === 1 || value === "1" || value === "true";
 }
 
 function eventMatches(row, needles) {
@@ -420,6 +432,252 @@ function averageFromEvents(rows, fieldNames) {
   }
   if (!values.length) return null;
   return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
+}
+
+// Statistiques par modele a partir des nouveaux evenements du Model Router
+// (cloudflare/modelRouter.js) : openrouter_model_attempt/success/failed,
+// openrouter_rate_limit/credit_limit, openrouter_retry_reduced_tokens,
+// openrouter_all_models_failed. N'affecte aucun des champs existants
+// (latestOpenRouterResponseInfo, effectiveOpenRouterCheck, etc.).
+function buildOpenRouterModelStatsFromEvents(rows) {
+  const eventRows = Array.isArray(rows) ? rows : [];
+  const attempts = eventRows.filter((row) => row.event_type === "openrouter_model_attempt");
+  const successes = eventRows.filter((row) => row.event_type === "openrouter_model_success");
+  const failures = eventRows.filter((row) => row.event_type === "openrouter_model_failed");
+  const rateLimitEvents = eventRows.filter((row) => row.event_type === "openrouter_rate_limit");
+  const creditLimitEvents = eventRows.filter((row) => row.event_type === "openrouter_credit_limit");
+  const retryEvents = eventRows.filter((row) => row.event_type === "openrouter_retry_reduced_tokens");
+  const allFailedEvents = eventRows.filter((row) => row.event_type === "openrouter_all_models_failed");
+
+  // Second provider (cf. cloudflare/modelRouter.js, callCloudflareAiChat) :
+  // n'apparait que quand OpenRouter a totalement echoue.
+  const cloudflareAiAttempts = eventRows.filter((row) => row.event_type === "cloudflare_ai_attempt");
+  const cloudflareAiSuccesses = eventRows.filter((row) => row.event_type === "cloudflare_ai_success");
+  const cloudflareAiFailures = eventRows.filter((row) => row.event_type === "cloudflare_ai_failed");
+  const providerFallbackEvents = eventRows.filter((row) => row.event_type === "provider_fallback_used");
+
+  // rows sont triees created_at DESC : le premier match est donc le plus recent.
+  const lastSuccess = successes[0] ? parseEventMeta(successes[0]) : null;
+  const lastFailure = failures[0] ? parseEventMeta(failures[0]) : null;
+
+  // Provider reellement utilise lors de la derniere reponse generee, tous
+  // providers confondus (le plus recent entre un succes OpenRouter et un
+  // succes Cloudflare AI).
+  const lastCloudflareAiSuccess = cloudflareAiSuccesses[0] ? parseEventMeta(cloudflareAiSuccesses[0]) : null;
+  const lastProviderUsed = (() => {
+    const openRouterAt = successes[0]?.created_at || "";
+    const cloudflareAiAt = cloudflareAiSuccesses[0]?.created_at || "";
+    if (!openRouterAt && !cloudflareAiAt) return { provider: "", model: "", at: null };
+    if (cloudflareAiAt && (!openRouterAt || cloudflareAiAt > openRouterAt)) {
+      return { provider: "cloudflare_ai", model: lastCloudflareAiSuccess?.model || "", at: cloudflareAiAt };
+    }
+    return { provider: "openrouter", model: lastSuccess?.resolved_model || lastSuccess?.model || "", at: openRouterAt };
+  })();
+
+  const byModel = new Map();
+  const touch = (model, provider) => {
+    if (!model) return null;
+    if (!byModel.has(model)) byModel.set(model, { model, provider: provider || "openrouter", attempts: 0, successes: 0, failures: 0 });
+    return byModel.get(model);
+  };
+  attempts.forEach((row) => { const entry = touch(parseEventMeta(row).model, "openrouter"); if (entry) entry.attempts += 1; });
+  successes.forEach((row) => { const entry = touch(parseEventMeta(row).model, "openrouter"); if (entry) entry.successes += 1; });
+  failures.forEach((row) => { const entry = touch(parseEventMeta(row).model, "openrouter"); if (entry) entry.failures += 1; });
+  cloudflareAiAttempts.forEach((row) => { const entry = touch(parseEventMeta(row).model, "cloudflare_ai"); if (entry) entry.attempts += 1; });
+  cloudflareAiSuccesses.forEach((row) => { const entry = touch(parseEventMeta(row).model, "cloudflare_ai"); if (entry) entry.successes += 1; });
+  cloudflareAiFailures.forEach((row) => { const entry = touch(parseEventMeta(row).model, "cloudflare_ai"); if (entry) entry.failures += 1; });
+
+  const successRateByModel = Array.from(byModel.values())
+    .map((entry) => ({ ...entry, success_rate: entry.attempts ? Math.round((entry.successes / entry.attempts) * 1000) / 10 : 0 }))
+    .sort((a, b) => b.attempts - a.attempts);
+
+  // Modele de secours le plus fiable : on exclut le modele principal (celui
+  // du dernier succes le plus frequent en 1ere position) et openrouter/auto,
+  // pour ne retenir qu'un vrai fallback parmi les modeles secondaires testes.
+  const primaryModelGuess = successRateByModel[0]?.model || null;
+  const mostReliableFallback = successRateByModel
+    .filter((entry) => entry.model !== primaryModelGuess && entry.model !== "openrouter/auto" && entry.attempts > 0)
+    .sort((a, b) => (b.success_rate - a.success_rate) || (b.attempts - a.attempts))[0] || null;
+
+  return {
+    last_successful_model: lastSuccess?.resolved_model || lastSuccess?.model || "",
+    last_successful_at: successes[0]?.created_at || null,
+    last_blocked_model: lastFailure?.model || "",
+    last_blocked_error_type: lastFailure?.error_type || "",
+    last_blocked_at: failures[0]?.created_at || null,
+    retries_count: retryEvents.length + failures.length,
+    success_rate_by_model: successRateByModel,
+    rate_limit_count: rateLimitEvents.length,
+    credit_limit_count: creditLimitEvents.length,
+    all_models_failed_count: allFailedEvents.length,
+    most_reliable_fallback_model: mostReliableFallback?.model || "",
+    // Provider reellement utilise (OpenRouter ou Cloudflare AI en secours).
+    last_provider_used: lastProviderUsed.provider,
+    last_provider_model: lastProviderUsed.model,
+    last_provider_used_at: lastProviderUsed.at,
+    provider_fallback_count: providerFallbackEvents.length,
+    cloudflare_ai_attempts: cloudflareAiAttempts.length,
+    cloudflare_ai_successes: cloudflareAiSuccesses.length,
+    cloudflare_ai_failures: cloudflareAiFailures.length,
+    // Detail brut de la derniere erreur Cloudflare AI (name/message/stack
+    // tronque/cause), pour diagnostiquer sans devoir lire les logs Worker.
+    last_cloudflare_ai_error: cloudflareAiFailures[0]
+      ? {
+          model: parseEventMeta(cloudflareAiFailures[0]).model || "",
+          at: cloudflareAiFailures[0].created_at || null,
+          error_type: parseEventMeta(cloudflareAiFailures[0]).error_type || "",
+          upstream_error: parseEventMeta(cloudflareAiFailures[0]).upstream_error || "",
+          error_detail: parseEventMeta(cloudflareAiFailures[0]).error_detail || null,
+        }
+      : null,
+  };
+}
+
+// Lot 6 — Dynamic Model Selection (cf. cloudflare/modelRouter.js) a partir
+// des evenements model_tier_requested / model_tier_used. N'affecte pas les
+// agregations existantes (success_rate_by_model reste par modele, ceci est
+// par tier).
+function buildModelTierStatsFromEvents(rows) {
+  const eventRows = Array.isArray(rows) ? rows : [];
+  const requested = eventRows.filter((row) => row.event_type === "model_tier_requested");
+  const used = eventRows.filter((row) => row.event_type === "model_tier_used");
+
+  const lastRequestedMeta = requested[0] ? parseEventMeta(requested[0]) : null;
+  const lastUsedMeta = used[0] ? parseEventMeta(used[0]) : null;
+
+  const byTier = new Map();
+  used.forEach((row) => {
+    const meta = parseEventMeta(row);
+    const tier = meta.tier_requested || "balanced";
+    if (!byTier.has(tier)) byTier.set(tier, { tier, total: 0, success: 0 });
+    const entry = byTier.get(tier);
+    entry.total += 1;
+    if (meta.success) entry.success += 1;
+  });
+
+  const successRateByTier = Array.from(byTier.values())
+    .map((entry) => ({ ...entry, success_rate: entry.total ? Math.round((entry.success / entry.total) * 1000) / 10 : 0 }))
+    .sort((a, b) => b.total - a.total);
+
+  return {
+    last_tier_requested: lastRequestedMeta?.tier || "",
+    last_tier_requested_at: requested[0]?.created_at || null,
+    last_tier_used: lastUsedMeta?.tier_used || "",
+    last_tier_used_provider: lastUsedMeta?.provider || "",
+    last_tier_used_model: lastUsedMeta?.model || "",
+    last_tier_used_success: lastUsedMeta ? Boolean(lastUsedMeta.success) : null,
+    last_tier_used_at: used[0]?.created_at || null,
+    success_rate_by_tier: successRateByTier,
+  };
+}
+
+// Lot 7 (+ Lot 7.1 Auto-Improver) — Response Quality Controller (cf.
+// cloudflare/responseQualityController.js) a partir des evenements
+// response_quality_analyzed / _repaired / _retry / _retry_failed /
+// _improve_requested / _improved / _improve_failed / _final_sent.
+function buildResponseQualityStatsFromEvents(rows) {
+  const eventRows = Array.isArray(rows) ? rows : [];
+  const analyzed = eventRows.filter((row) => row.event_type === "response_quality_analyzed");
+  const repaired = eventRows.filter((row) => row.event_type === "response_quality_repaired");
+  const retried = eventRows.filter((row) => row.event_type === "response_quality_retry");
+  const retryFailed = eventRows.filter((row) => row.event_type === "response_quality_retry_failed");
+  const improveRequested = eventRows.filter((row) => row.event_type === "response_quality_improve_requested");
+  const improved = eventRows.filter((row) => row.event_type === "response_quality_improved");
+  const improveFailed = eventRows.filter((row) => row.event_type === "response_quality_improve_failed");
+  // response_quality_sent : nom legacy conserve pour compatibilite si des
+  // evenements anterieurs au Lot 7.1 existent encore en base.
+  const sent = eventRows.filter((row) => row.event_type === "response_quality_final_sent" || row.event_type === "response_quality_sent");
+
+  const lastSentMeta = sent[0] ? parseEventMeta(sent[0]) : null;
+
+  const scores = sent.map((row) => Number(parseEventMeta(row).score)).filter((value) => Number.isFinite(value));
+  const averageScore = scores.length ? Math.round((scores.reduce((sum, value) => sum + value, 0) / scores.length) * 10) / 10 : null;
+
+  const improveGains = improved
+    .map((row) => Number(parseEventMeta(row).score_gain))
+    .filter((value) => Number.isFinite(value));
+  const averageImproveGain = improveGains.length
+    ? Math.round((improveGains.reduce((sum, value) => sum + value, 0) / improveGains.length) * 10) / 10
+    : null;
+  const successfulImprovements = improved.filter((row) => Number(parseEventMeta(row).score_gain) > 0).length;
+
+  const issueCounts = new Map();
+  sent.forEach((row) => {
+    const issues = parseEventMeta(row).issues;
+    if (!Array.isArray(issues)) return;
+    issues.forEach((issue) => issueCounts.set(issue, (issueCounts.get(issue) || 0) + 1));
+  });
+  const topIssues = Array.from(issueCounts.entries())
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 8);
+
+  return {
+    last_score: lastSentMeta?.score ?? lastSentMeta?.score_after ?? null,
+    last_score_before: lastSentMeta?.score_before ?? null,
+    last_score_after: lastSentMeta?.score_after ?? lastSentMeta?.score ?? null,
+    last_grade: lastSentMeta?.grade || "",
+    last_action: lastSentMeta?.action || "",
+    last_at: sent[0]?.created_at || null,
+    analyzed_count: analyzed.length,
+    repaired_count: repaired.length,
+    retry_count: retried.length,
+    retry_failed_count: retryFailed.length,
+    improve_requested_count: improveRequested.length,
+    improved_count: improved.length,
+    improve_failed_count: improveFailed.length,
+    successful_improvements_count: successfulImprovements,
+    average_improve_gain: averageImproveGain,
+    average_score: averageScore,
+    top_issues: topIssues,
+  };
+}
+
+// Statistiques Prompt Orchestrator (cf. cloudflare/promptOrchestrator.js) a
+// partir des evenements prompt_intent_detected / prompt_capabilities_planned /
+// prompt_profile_used / prompt_orchestrator_error. Aucun impact sur les autres
+// agregations.
+function buildPromptOrchestratorStatsFromEvents(rows) {
+  const eventRows = Array.isArray(rows) ? rows : [];
+  const intents = eventRows.filter((row) => row.event_type === "prompt_intent_detected");
+  const profiles = eventRows.filter((row) => row.event_type === "prompt_profile_used");
+  const errors = eventRows.filter((row) => row.event_type === "prompt_orchestrator_error");
+
+  // rows triees created_at DESC : premier = plus recent.
+  const lastIntentMeta = intents[0] ? parseEventMeta(intents[0]) : null;
+
+  const countBy = (rowsList, key) => {
+    const map = new Map();
+    rowsList.forEach((row) => {
+      const value = parseEventMeta(row)[key] || row.event_value || "";
+      if (!value) return;
+      map.set(value, (map.get(value) || 0) + 1);
+    });
+    return Array.from(map.entries()).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count);
+  };
+
+  const total = intents.length;
+  const errorRate = total + errors.length > 0
+    ? Math.round((errors.length / (total + errors.length)) * 1000) / 10
+    : 0;
+
+  return {
+    intents_detected: total,
+    error_count: errors.length,
+    error_rate: errorRate,
+    last_intent: lastIntentMeta?.primaryIntent || "",
+    last_profile: lastIntentMeta?.promptProfile || "",
+    last_expected_format: lastIntentMeta?.expectedFormat || "",
+    last_complexity: lastIntentMeta?.complexity || "",
+    last_needs_rag: lastIntentMeta ? Boolean(lastIntentMeta.needsRag) : null,
+    last_needs_web: lastIntentMeta ? Boolean(lastIntentMeta.needsWeb) : null,
+    last_model_tier: lastIntentMeta?.preferredModelTier || "",
+    last_max_tokens_hint: lastIntentMeta?.maxTokensHint ?? null,
+    last_confidence: lastIntentMeta?.confidence ?? null,
+    last_at: intents[0]?.created_at || null,
+    top_intents: countBy(intents, "primaryIntent").slice(0, 6),
+    top_profiles: countBy(profiles, "promptProfile").slice(0, 6),
+  };
 }
 
 function latestOpenRouterResponseInfo(rows) {
@@ -531,6 +789,21 @@ function buildRagUsageFromEvents(rows) {
   const searches = queryRows.length;
   const matchRate = searches ? Math.round((matchRows.length / searches) * 1000) / 10 : 0;
   const averageDurationMs = averageFromEvents(queryRows.concat(matchRows, noMatchRows), ["duration_ms"]);
+
+  // vector_search=true peut etre porte par rag_query, rag_match ou
+  // rag_context_used (meme baseMeta cote client) — regroupes ici uniquement
+  // pour le debug (compte chaque flag, evenement par evenement).
+  const ragEventRows = queryRows.concat(matchRows, contextRows);
+  const parsedMetas = ragEventRows.map((row) => parseEventMeta(row));
+  const parsedMetaCount = parsedMetas.filter((meta) => meta && Object.keys(meta).length > 0).length;
+  const vectorTrueCount = parsedMetas.filter((meta) => isTruthyFlag(meta?.vector_search)).length;
+  // Le nombre REEL de recherches passees par Vectorize doit se baser sur
+  // rag_query (une ligne par recherche lancee), pas sur rag_match : une
+  // recherche vectorielle qui ne trouve aucun passage au-dessus du seuil est
+  // journalisee en rag_no_match (pas rag_match) mais a bien interroge
+  // Vectorize. Compter seulement les rag_match sous-estime l'usage reel.
+  const vectorSearches = queryRows.filter((row) => isTruthyFlag(parseEventMeta(row).vector_search)).length;
+  const vectorSearchRate = searches ? Math.round((vectorSearches / searches) * 1000) / 10 : 0;
   const documentUse = new Map();
   contextRows.forEach((row) => {
     const meta = parseEventMeta(row);
@@ -548,6 +821,14 @@ function buildRagUsageFromEvents(rows) {
     documents_indexed: Math.max(0, ...eventRows.map((row) => Number(parseEventMeta(row).documents_used || 0))),
     chunks_available: Math.max(0, ...eventRows.map((row) => Number(parseEventMeta(row).chunks_searched || 0))),
     top_documents: Array.from(documentUse.entries()).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count).slice(0, 5),
+    vector_searches: vectorSearches,
+    vector_search_rate: vectorSearchRate,
+    engine: vectorSearches > 0 ? "vectorize" : (matchRows.length > 0 ? "browser_fallback" : "n/a"),
+    // Debug temporaire (cf. investigation comptage vectoriel) — a retirer une
+    // fois le comptage confirme stable en production.
+    debug_raw_rag_events_count: ragEventRows.length,
+    debug_parsed_meta_count: parsedMetaCount,
+    debug_vector_true_count: vectorTrueCount,
   };
 }
 
@@ -1020,11 +1301,7 @@ async function handleAdminSummary(request, env) {
   });
 }
 
-async function handleAdminHealth(request, env) {
-  if (request.method !== "GET") {
-    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
-  }
-
+async function buildAdminHealthPayload(request, env) {
   const checkedAt = nowIso();
   const dbConfigured = Boolean(env.DB);
   const adminConfigured = isConfigured(env.ADMIN_TOKEN);
@@ -1106,6 +1383,10 @@ async function handleAdminHealth(request, env) {
     : null;
   const tavilyUsage = buildTavilyUsageFromEvents(recentEvents, aiHealthResult.payload, env);
   const ragUsage = buildRagUsageFromEvents(recentEvents);
+  const openRouterModelStats = buildOpenRouterModelStatsFromEvents(recentEvents);
+  const modelTierStats = buildModelTierStatsFromEvents(recentEvents);
+  const promptOrchestratorStats = buildPromptOrchestratorStatsFromEvents(recentEvents);
+  const responseQualityStats = buildResponseQualityStatsFromEvents(recentEvents);
   const effectiveOpenRouterCheck = stabilizeOpenRouterCheck(openRouterCheck, openRouterConfigured, latestOpenRouterResponse);
   const openRouterOk = Boolean(effectiveOpenRouterCheck?.ok);
   const tavilyOk = Boolean(tavilyCheck?.ok);
@@ -1256,7 +1537,7 @@ async function handleAdminHealth(request, env) {
     },
   ];
 
-  return jsonResponse(request, env, {
+  return {
     ok: true,
     version: "2.0",
     checked_at: checkedAt,
@@ -1342,6 +1623,17 @@ async function handleAdminHealth(request, env) {
       fallback_used_count: aiHealthResult.payload?.ai_state?.fallback_used_count ?? 0,
       average_latency_ms: aiHealthResult.payload?.ai_state?.average_latency_ms ?? effectiveOpenRouterCheck?.latency_ms ?? null,
       last_check: effectiveOpenRouterCheck,
+      // Model Router (cf. cloudflare/modelRouter.js) : statistiques par modele
+      // calculees a partir des nouveaux evenements openrouter_model_*.
+      model_router: openRouterModelStats,
+      // Lot 6 — Dynamic Model Selection : tier demande/utilise par
+      // l'orchestrateur (cf. cloudflare/modelRouter.js, evenements
+      // model_tier_requested / model_tier_used).
+      model_tiers: modelTierStats,
+      // Prompt Orchestrator (cf. cloudflare/promptOrchestrator.js).
+      prompt_orchestrator: promptOrchestratorStats,
+      // Lot 7 — Response Quality Controller (cf. cloudflare/responseQualityController.js).
+      response_quality: responseQualityStats,
     },
     documents: [
       { format: "PDF", status: "supported", max_tested_size: "40 pages / test navigateur", last_validation: checkedAt, reliability: "élevée" },
@@ -1447,6 +1739,28 @@ async function handleAdminHealth(request, env) {
         next_step: "Créer les vues 7j/30j et la segmentation par type d’événement.",
       },
     ],
+  };
+}
+
+async function handleAdminHealth(request, env) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const payload = await buildAdminHealthPayload(request, env);
+  return jsonResponse(request, env, payload);
+}
+
+async function handleAdminProjectPlan(request, env) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const healthPayload = await buildAdminHealthPayload(request, env);
+  const plan = computeProjectPlan(healthPayload);
+  return jsonResponse(request, env, {
+    ok: true,
+    checked_at: healthPayload.checked_at,
+    maturity: healthPayload.maturity,
+    plan,
   });
 }
 
@@ -1735,6 +2049,7 @@ async function handleAdmin(request, env, url) {
   const pathname = url.pathname;
   if (pathname === "/admin/summary") return await handleAdminSummary(request, env);
   if (pathname === "/admin/health") return await handleAdminHealth(request, env);
+  if (pathname === "/admin/project-plan") return await handleAdminProjectPlan(request, env);
   if (pathname === "/admin/comments") return await handleAdminComments(request, env, url);
   if (pathname === "/admin/comments/status") return await handleAdminCommentStatus(request, env);
   if (pathname === "/admin/comments/delete") return await handleAdminCommentDelete(request, env);

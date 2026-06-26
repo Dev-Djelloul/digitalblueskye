@@ -1,6 +1,24 @@
 -- D1 schema for Cloudflare Worker API
 -- Apply with: wrangler d1 execute <DB_NAME> --file=cloudflare/d1/schema.sql
 
+-- Texte complet des chunks indexes pour le RAG vectoriel (cloudflare/ragPipeline.js).
+-- Le vector store (Vectorize ou autre demain) ne stocke que des vecteurs +
+-- metadata compacte ; le texte complet reste toujours ici, quel que soit le
+-- backend vectoriel choisi.
+CREATE TABLE IF NOT EXISTS rag_chunks (
+  id TEXT PRIMARY KEY,
+  document_id TEXT NOT NULL,
+  project_id TEXT,
+  document_name TEXT NOT NULL,
+  chunk_index INTEGER NOT NULL,
+  locator TEXT,
+  text TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_rag_chunks_document ON rag_chunks (document_id);
+CREATE INDEX IF NOT EXISTS idx_rag_chunks_project ON rag_chunks (project_id);
+
 CREATE TABLE IF NOT EXISTS consent_logs (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   consent_id TEXT NOT NULL,

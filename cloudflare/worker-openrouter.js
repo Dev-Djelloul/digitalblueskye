@@ -12,11 +12,21 @@
  * - TAVILY_API_KEY (secret) - for real-time web search capability
  */
 
+import { computeProjectPlan, DEFAULT_V3_PLACEHOLDERS } from './aiProjectManager.js';
+import { indexDocumentChunks, deleteDocumentVectors, queryRag, diagnoseRagPipeline } from './ragPipeline.js';
+import { routeChatCompletion, diagnoseCloudflareAi } from './modelRouter.js';
+import { detectUserIntent, planCapabilities, composeSystemPrompt, isOrchestratorEnabled } from './promptOrchestrator.js';
+import { evaluateResponse, repairResponse, buildRetrySystemInstruction, buildImproveSystemInstruction, isRqcEnabled, QUALITY_ACTIONS } from './responseQualityController.js';
+
 const DEFAULT_MODEL = 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free';
 const FALLBACK_MODEL = 'openrouter/auto';
 const WORKER_BUILD = '2026-06-20-tavily-economy-v4';
 const TAVILY_SEARCH_ENDPOINT = 'https://api.tavily.com/search';
-const DEFAULT_MAX_TOKENS = 1400;
+const DEFAULT_MAX_TOKENS = 700;
+// Niveaux de tokens essayes en cascade quand un modele renvoie 402 (credit
+// insuffisant pour le nombre de tokens demande) : on reduit avant de changer
+// de modele, plutot que d'abandonner directement.
+const TOKEN_RETRY_LEVELS = [700, 500, 350];
 const WEB_SEARCH_TIMEOUT = 8000; // 8 secondes max par recherche web
 const WEB_SEARCH_CACHE_TTL = 21600000; // 6 heures de cache
 const WEB_SEARCH_DEDUPE_WINDOW = 60000; // 60 secondes
@@ -95,7 +105,9 @@ function buildSystemPrompt(language, dateContext) {
       'Markdown formatting: for structured answers, use clean Markdown: a short title; subheadings with ## or ###; bullet lists only when useful; a blank line between each section; never paste a sentence immediately after a heading or a numbered item; for tables, use a valid Markdown table with headers.',
       'Markdown heading rules: never glue a heading to a sentence. A heading marker (#, ##, ###) must always start its own line, with a blank line before it and a blank line after it. Use ## or ### only to create real Markdown headings, never as decorative characters inside a sentence.',
       'Numbered sections rule: when you use numbered steps or sections (1., 2., 3.), put each numbered item on its own line with a blank line before it; never continue a numbered item with the next number on the same line, and never glue a numbered item to the end of a previous sentence. If a numbered section has sub-points, make it a real subheading (### N. Title) followed by a bullet list.',
-      'Strict Markdown table rules: if you produce a Markdown table, it must always include a header row, a separator row, and body rows with exactly the same number of cells. Example: | Column 1 | Column 2 | then |---|---|. Put EACH table row on its OWN line, starting and ending with a | character; never put two rows on the same line and never put a table cell or row on the same line as a heading or a sentence. Never use bullet lists inside a Markdown table. To separate several items inside one cell, use <br>. Never leave an isolated | character at the end of a line. If the content is too long or complex, prefer sections with subheadings instead of a table.',
+      'No LaTeX or math notation rule: this is a plain Markdown chat, never produce LaTeX or math-mode syntax such as $...$, $$...$$, \\(...\\), \\rightarrow, \\Rightarrow, \\cdot, or any backslash command. For an arrow, type the plain Unicode character → directly (e.g. "Heraklion → Rethymnon → Chania"), never "$\\rightarrow$" or similar. This applies even when citing a source file that itself contains LaTeX: reformulate it in plain text instead of copying the LaTeX syntax.',
+      'No stray separators rule: never insert a standalone "---" line in the middle of a reply to mark a transition; "---" is only acceptable as a genuine Markdown horizontal rule on its own paragraph, surrounded by blank lines, and should be used sparingly. Never write a heading-like phrase (e.g. "Key takeaways") glued inline after a sentence without a line break — it must start on its own line as a real heading or its own paragraph.',
+      'Strict Markdown table rules: if you produce a Markdown table, it must always include a header row, a separator row, and body rows with exactly the same number of cells. Example: | Column 1 | Column 2 | then |---|---|. Put EACH table row on its OWN line, starting and ending with a | character; never put two rows on the same line and never put a table cell or row on the same line as a heading or a sentence. Never use bullet lists inside a Markdown table. To separate several items inside one cell, use <br>. Never leave an isolated | character at the end of a line. CRITICAL: each table row must fit ENTIRELY on ONE single physical line — never break a cell over several lines, never insert a real line break, a sub-list, or a colon-introduced enumeration inside a cell; if a cell needs several points, join them on the SAME line with <br> or " ; ". If a row would be too long for one line, shorten the wording rather than wrapping it. Once a table has started, every following row must keep the same | structure until the table ends; never let a row spill out as a plain paragraph with stray | characters. If the content is too long or complex, prefer sections with subheadings instead of a table.',
       'Comparisons and benchmarks: when the user asks for a benchmark, a comparison, a comparatif, or to compare several items across multiple criteria, ALWAYS answer with a real Markdown table (header row, separator row |---|, then one row per item), never with a bullet list standing in for a table.',
       'Link rules: only output a Markdown link [text](url) when the url is a real, verified address that comes from provided web search results or a provided source. Never invent a URL and never use placeholder or example domains (such as example.com or any made-up address). If you do not have a real URL, write the source name as plain text, or use a numbered citation such as [1], instead of a fake link.',
       'Response aeration for long answers: break long answers into short, clearly-titled sections; keep paragraphs to 2-4 lines; keep lists to 4-7 items, splitting into several lists if there are more; use a table only when it genuinely improves readability, never to fill space; end long structured answers with a short closing block titled "Key takeaways" summarizing the essential points in 2-4 bullets.',
@@ -117,7 +129,9 @@ function buildSystemPrompt(language, dateContext) {
     "Mise en forme Markdown : pour les réponses structurées, utilise un Markdown propre : un titre court ; des sous-titres avec ## ou ### ; des listes à puces uniquement si elles sont utiles ; une ligne vide entre chaque section ; ne colle jamais une phrase immédiatement après un titre ou un élément numéroté ; pour les tableaux, utilise un tableau Markdown valide avec en-têtes.",
     "Règles sur les titres Markdown : ne colle jamais un titre à une phrase. Un marqueur de titre (#, ##, ###) doit toujours commencer sa propre ligne, avec une ligne vide avant et une ligne vide après. N'utilise ## ou ### que pour créer de vrais titres Markdown, jamais comme caractères décoratifs au milieu d'une phrase.",
     "Règle sur les sections numérotées : lorsque tu utilises des étapes ou sections numérotées (1., 2., 3.), place chaque élément numéroté sur sa propre ligne, précédé d'une ligne vide ; ne poursuis jamais un élément numéroté par le numéro suivant sur la même ligne, et ne colle jamais un élément numéroté à la fin de la phrase précédente. Si une section numérotée comporte des sous-points, fais-en un vrai sous-titre (### N. Titre) suivi d'une liste à puces.",
-    "Règles strictes pour les tableaux Markdown : si tu produis un tableau Markdown, il doit toujours avoir une ligne d'en-tête, une ligne de séparation, puis des lignes ayant exactement le même nombre de cellules. Exemple : | Colonne 1 | Colonne 2 | puis |---|---|. Place CHAQUE ligne du tableau sur sa PROPRE ligne, en commençant et finissant par un caractère | ; ne mets jamais deux lignes sur la même ligne et ne mets jamais une cellule ou une ligne de tableau sur la même ligne qu'un titre ou une phrase. N'utilise jamais de listes à puces à l'intérieur d'un tableau Markdown. Pour séparer plusieurs éléments dans une cellule, utilise <br>. Ne laisse jamais de caractère | isolé en fin de ligne. Si le contenu est trop long ou complexe, préfère des sections avec sous-titres plutôt qu'un tableau.",
+    "Règle anti-LaTeX / notation mathématique : ceci est un chat Markdown simple, ne produis jamais de syntaxe LaTeX ou de mode mathématique comme $...$, $$...$$, \\(...\\), \\rightarrow, \\Rightarrow, \\cdot, ou toute commande commençant par un backslash. Pour une flèche, tape directement le caractère Unicode → en clair (exemple : « Héraklion → Réthymnon → Chania »), jamais « $\\rightarrow$ » ou équivalent. Cela vaut aussi quand tu t'appuies sur une source qui contient elle-même du LaTeX : reformule en texte simple plutôt que de copier la syntaxe LaTeX.",
+    "Règle anti-séparateurs parasites : n'insère jamais une ligne « --- » isolée au milieu d'une réponse pour marquer une transition ; « --- » n'est acceptable que comme vrai séparateur horizontal Markdown, sur son propre paragraphe entouré de lignes vides, et de façon rare. Ne colle jamais une expression qui ressemble à un titre (ex. « À retenir ») directement après une phrase sans saut de ligne — elle doit commencer sur sa propre ligne, en vrai titre ou en paragraphe séparé.",
+    "Règles strictes pour les tableaux Markdown : si tu produis un tableau Markdown, il doit toujours avoir une ligne d'en-tête, une ligne de séparation, puis des lignes ayant exactement le même nombre de cellules. Exemple : | Colonne 1 | Colonne 2 | puis |---|---|. Place CHAQUE ligne du tableau sur sa PROPRE ligne, en commençant et finissant par un caractère | ; ne mets jamais deux lignes sur la même ligne et ne mets jamais une cellule ou une ligne de tableau sur la même ligne qu'un titre ou une phrase. N'utilise jamais de listes à puces à l'intérieur d'un tableau Markdown. Pour séparer plusieurs éléments dans une cellule, utilise <br>. Ne laisse jamais de caractère | isolé en fin de ligne. CRITIQUE : chaque ligne du tableau doit tenir ENTIÈREMENT sur UNE seule ligne physique — ne découpe jamais une cellule sur plusieurs lignes, n'insère jamais de vrai saut de ligne, de sous-liste ou d'énumération introduite par deux-points à l'intérieur d'une cellule ; si une cellule nécessite plusieurs points, regroupe-les sur la MÊME ligne avec <br> ou « ; ». Si une ligne est trop longue pour tenir sur une ligne, raccourcis la formulation au lieu de la faire déborder. Une fois le tableau commencé, chaque ligne suivante doit conserver la même structure de | jusqu'à la fin du tableau ; ne laisse jamais une ligne ressortir en paragraphe avec des | isolés. Si le contenu est trop long ou complexe, préfère des sections avec sous-titres plutôt qu'un tableau.",
     "Comparatifs et benchmarks : lorsque l'utilisateur demande un benchmark, une comparaison, un comparatif, ou de comparer plusieurs éléments selon plusieurs critères, réponds TOUJOURS par un vrai tableau Markdown (ligne d'en-tête, ligne de séparation |---|, puis une ligne par élément), jamais par une liste à puces qui tiendrait lieu de tableau.",
     "Règles sur les liens : ne produis un lien Markdown [texte](url) que lorsque l'url est une adresse réelle et vérifiée provenant de résultats de recherche web fournis ou d'une source fournie. N'invente jamais d'URL et n'utilise jamais de domaine factice ou d'exemple (comme example.com ou toute adresse inventée). Si tu n'as pas d'URL réelle, écris le nom de la source en texte simple, ou utilise une citation numérotée comme [1], au lieu d'un faux lien.",
     "Aération des réponses longues : découpe les réponses longues en sections courtes et clairement titrées ; limite les paragraphes à 2-4 lignes ; limite les listes à 4-7 éléments, en les scindant en plusieurs listes si besoin ; n'utilise un tableau que lorsqu'il améliore réellement la lisibilité, jamais pour remplir de l'espace ; termine les réponses longues et structurées par un court bloc de clôture intitulé « À retenir » résumant les points essentiels en 2 à 4 puces.",
@@ -160,25 +174,18 @@ function getModelFallbackChain(env) {
   ].filter((value, index, array) => value && array.indexOf(value) === index);
 }
 
-function shouldTryFallback(statusCode, upstreamError) {
-  const msg = String(upstreamError || '').toLowerCase();
-  return (
-    !statusCode ||
-    statusCode === 400 ||
-    statusCode === 404 ||
-    statusCode === 408 ||
-    statusCode === 409 ||
-    statusCode === 429 ||
-    statusCode >= 500 ||
-    msg.includes('model') ||
-    msg.includes('endpoint') ||
-    msg.includes('provider returned error') ||
-    msg.includes('rate limit') ||
-    msg.includes('timeout') ||
-    msg.includes('unavailable')
-  );
+// Modeles gratuits a essayer en premier, EXCLUT openrouter/auto : ce routeur
+// paye a echoue en 402 (credit insuffisant) plutot qu'en 429, donc l'essayer
+// "immediatement" en fallback ne fait qu'ajouter un echec garanti. Il n'est
+// tente qu'en tout dernier recours, une seule fois, avec le plus petit
+// niveau de tokens (cf. boucle d'appel ci-dessous).
+function getFreeModelChain(env) {
+  return getModelFallbackChain(env).filter((model) => model !== FALLBACK_MODEL);
 }
 
+// classifyOpenRouterFailure() / shouldTryFallback() : logique deplacee dans
+// cloudflare/modelRouter.js (classifyFailure) pour la boucle de completion.
+// hasUsableOpenRouterKey reste ici, utilise par le health-check ci-dessous.
 function hasUsableOpenRouterKey(env) {
   return normalizeOpenRouterApiKey(env).length > 0;
 }
@@ -204,10 +211,6 @@ function buildOpenRouterHeaders(env, allowedOrigin) {
     'HTTP-Referer': allowedOrigin,
     'X-Title': 'Digital Blue Skye AI'
   };
-}
-
-function hasAuthorizationHeader(headers) {
-  return Boolean(headers && typeof headers.Authorization === 'string' && headers.Authorization.startsWith('Bearer '));
 }
 
 function extractTextFromContent(content) {
@@ -1269,19 +1272,6 @@ async function performWebSearch(query, env, intent = {}) {
   return promise;
 }
 
-function buildEmptyReplyDiagnostic(openRouterJson) {
-  const firstChoice = openRouterJson?.choices?.[0] || null;
-  const message = firstChoice?.message || null;
-  const content = message?.content;
-  return {
-    has_choices: Array.isArray(openRouterJson?.choices),
-    choices_length: Array.isArray(openRouterJson?.choices) ? openRouterJson.choices.length : 0,
-    first_choice_keys: firstChoice && typeof firstChoice === 'object' ? Object.keys(firstChoice) : [],
-    message_keys: message && typeof message === 'object' ? Object.keys(message) : [],
-    content_type: Array.isArray(content) ? 'array' : typeof content
-  };
-}
-
 function isHealthAuthorized(request, env) {
   const healthToken = String(env.HEALTH_CHECK_TOKEN || '').trim();
   const healthHeader = request.headers.get('X-Health-Check-Token') || '';
@@ -1363,31 +1353,7 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = 2500) {
   }
 }
 
-async function checkOpenRouterHealth(env) {
-  const configured = hasUsableOpenRouterKey(env);
-  const timeoutMs = 8000;
-  const configuredModel = env.OPENROUTER_MODEL || DEFAULT_MODEL;
-  const healthModel = env.OPENROUTER_HEALTH_MODEL || configuredModel;
-  if (!configured) {
-    return {
-      status: 'unavailable',
-      verification: 'failed',
-      configured,
-      ok: false,
-      latency_ms: null,
-      timeout_ms: timeoutMs,
-      status_code: null,
-      response_preview: '',
-      reply_detected: false,
-      model_active: configuredModel,
-      model_configured: configuredModel,
-      health_model_used: healthModel,
-      model_resolved: '',
-      provider: 'openrouter',
-      detail: 'OPENROUTER_API_KEY configurée: non.'
-    };
-  }
-
+async function pingOpenRouterHealth(env, { configured, configuredModel, healthModel, timeoutMs }) {
   const startedAt = Date.now();
   try {
     const response = await fetchWithTimeout('https://openrouter.ai/api/v1/chat/completions', {
@@ -1460,6 +1426,59 @@ async function checkOpenRouterHealth(env) {
         : 'Contrôle OpenRouter échoué: erreur réseau complète.'
     };
   }
+}
+
+async function checkOpenRouterHealth(env) {
+  const configured = hasUsableOpenRouterKey(env);
+  const timeoutMs = 8000;
+  const configuredModel = env.OPENROUTER_MODEL || DEFAULT_MODEL;
+  const healthModel = env.OPENROUTER_HEALTH_MODEL || configuredModel;
+  if (!configured) {
+    return {
+      status: 'unavailable',
+      verification: 'failed',
+      configured,
+      ok: false,
+      latency_ms: null,
+      timeout_ms: timeoutMs,
+      status_code: null,
+      response_preview: '',
+      reply_detected: false,
+      model_active: configuredModel,
+      model_configured: configuredModel,
+      health_model_used: healthModel,
+      model_resolved: '',
+      provider: 'openrouter',
+      detail: 'OPENROUTER_API_KEY configurée: non.'
+    };
+  }
+
+  const firstAttempt = await pingOpenRouterHealth(env, { configured, configuredModel, healthModel, timeoutMs });
+  if (firstAttempt.ok) return firstAttempt;
+
+  // Un seul ping isolé sur un modèle :free peut échouer ponctuellement (réponse
+  // vide, throttling) sans refléter une vraie panne. On retente une fois avec
+  // le premier modèle de la chaîne de fallback réellement utilisée par le chat,
+  // avant de déclarer le service dégradé.
+  const retryModel = getModelFallbackChain(env).find((model) => model !== healthModel) || FALLBACK_MODEL;
+  const retryAttempt = await pingOpenRouterHealth(env, {
+    configured,
+    configuredModel,
+    healthModel: retryModel,
+    timeoutMs
+  });
+
+  if (retryAttempt.ok) {
+    return {
+      ...retryAttempt,
+      detail: `Premier contrôle (${healthModel}) instable, confirmé opérationnel via le modèle de repli ${retryModel}.`
+    };
+  }
+
+  return {
+    ...firstAttempt,
+    detail: `${firstAttempt.detail} Retry via ${retryModel} également non concluant : ${retryAttempt.detail}`
+  };
 }
 
 async function checkTavilyHealth(env) {
@@ -1590,6 +1609,101 @@ async function buildAiHealthPayload(request, env, authMode) {
   };
 }
 
+const PILOTAGE_KEYWORDS = [
+  'que dois-je faire', 'priorités', 'priorite', 'plan d\'action', 'roadmap',
+  'améliorer', 'ameliorer', 'risques', 'prochaine étape', 'prochaine etape',
+  'aujourd\'hui', 'cette semaine', 'avant publication', 'v3', 'maturité', 'maturite',
+  'chantier', 'décision', 'decision', 'arbitrage'
+];
+
+function detectPilotageIntent(message) {
+  const normalized = String(message || '').toLowerCase();
+  return PILOTAGE_KEYWORDS.some((keyword) => normalized.includes(keyword));
+}
+
+async function dbCount(env, sql, params = []) {
+  if (!env?.DB) return null;
+  try {
+    const row = await env.DB.prepare(sql).bind(...params).first();
+    return Number(row?.count ?? 0);
+  } catch (error) {
+    console.warn('pilotage_db_count_failed', error instanceof Error ? error.message : String(error));
+    return null;
+  }
+}
+
+const MATURITY_STATUS_WEIGHT = {
+  operational: 9,
+  partial: 6,
+  degraded: 3,
+  unconfigured: 2,
+  development: 5
+};
+
+function estimateMaturityScore(services) {
+  const known = services.filter((s) => MATURITY_STATUS_WEIGHT[s.status] !== undefined);
+  if (!known.length) return null;
+  const avg = known.reduce((sum, s) => sum + MATURITY_STATUS_WEIGHT[s.status], 0) / known.length;
+  return Math.round(avg * 10) / 10;
+}
+
+// Construit un snapshot réel (aucune métrique inventée) à partir des contrôles
+// déjà disponibles dans ce worker (OpenRouter/Tavily) et des événements D1
+// réellement journalisés, pour alimenter aiProjectManager côté chat.
+async function buildPilotageSnapshot(request, env) {
+  const baseHealth = await buildAiHealthPayload(request, env, 'internal');
+  const services = [...(baseHealth.services || [])];
+
+  const ragQueryCount = await dbCount(env, "SELECT COUNT(*) AS count FROM ai_assistant_events WHERE event_type = 'rag_query'");
+  const ragMatchCount = await dbCount(env, "SELECT COUNT(*) AS count FROM ai_assistant_events WHERE event_type = 'rag_match'");
+  const xlsxCount = await dbCount(env, "SELECT COUNT(*) AS count FROM ai_assistant_events WHERE event_type = 'xlsx_uploaded'");
+
+  services.push({
+    name: 'RAG documentaire',
+    status: ragQueryCount ? 'partial' : 'development',
+    detail: ragQueryCount
+      ? `${ragQueryCount} recherche(s) RAG journalisée(s), ${ragMatchCount || 0} avec correspondance.`
+      : 'Aucune recherche RAG journalisée pour le moment.',
+    last_checked_at: baseHealth.checked_at
+  });
+  services.push({
+    name: 'Mémoire conversationnelle',
+    status: 'operational',
+    detail: 'Résumé et historique conservés localement côté navigateur, sans synchronisation serveur.',
+    last_checked_at: baseHealth.checked_at
+  });
+  services.push({
+    name: 'Agents spécialisés',
+    status: 'development',
+    detail: 'Non exposé comme orchestration agentique dédiée dans l\'interface actuelle.',
+    last_checked_at: baseHealth.checked_at
+  });
+  services.push({
+    name: 'Upload XLSX',
+    status: 'partial',
+    detail: xlsxCount !== null
+      ? `${xlsxCount} fichier(s) XLSX traité(s) ; consolidation multi-feuilles encore fragile.`
+      : 'Lecture XLSX côté navigateur présente, consolidation encore en cours.',
+    last_checked_at: baseHealth.checked_at
+  });
+
+  return {
+    checked_at: baseHealth.checked_at,
+    system: { version: '1.5.0' },
+    maturity: { score: estimateMaturityScore(services) },
+    services,
+    v3_placeholders: DEFAULT_V3_PLACEHOLDERS
+  };
+}
+
+function buildPilotagePromptBlock(plan, language) {
+  const en = language === 'en';
+  const json = JSON.stringify(plan, null, 2);
+  return en
+    ? `\n\nThe user is asking a project-steering / prioritization question. Use ONLY the following real, pre-computed data to answer — never invent metrics or statuses. If a field is missing, literally write "Data not available in current monitoring." Follow this structure: Synthesis (global status, maturity, top priority), Top 3 recommended actions (each with domain, why, impact, effort, risk, recommended action, acceptance criteria), Quick wins table, Risks table, Roadmap (Today / This week / V3).\n\nDECISION DATA (JSON):\n${json}`
+    : `\n\nL'utilisateur pose une question de pilotage projet / priorisation. Utilise UNIQUEMENT les données réelles et déjà calculées ci-dessous pour répondre — n'invente jamais de métrique ou de statut. Si une donnée manque, écris littéralement "Donnée non disponible dans le monitoring actuel." Suis cette structure : Synthèse (état global, maturité, priorité principale), Top 3 actions recommandées (domaine, pourquoi, impact, effort, risque, action recommandée, critères d'acceptation), tableau Quick wins, tableau Risques, Feuille de route (Aujourd'hui / Cette semaine / V3).\n\nDONNÉES DE DÉCISION (JSON) :\n${json}`;
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -1655,6 +1769,46 @@ export default {
     const mode = typeof body?.mode === 'string' ? body.mode : 'chat';
     if (mode === 'event') {
       return jsonResponse({ ok: true, tracked: true }, 200, corsHeaders);
+    }
+
+    if (mode === 'rag_diagnose') {
+      // Bout-en-bout, sans toucher OpenRouter : testable meme si le LLM est
+      // en 429/402.
+      const result = await diagnoseRagPipeline(env);
+      return jsonResponse(result, 200, corsHeaders);
+    }
+
+    if (mode === 'cloudflare_ai_diagnose') {
+      // Teste UNIQUEMENT env.AI.run() — jamais OpenRouter, jamais le RAG.
+      // curl -X POST <worker-url> -H "Content-Type: application/json" -d '{"mode":"cloudflare_ai_diagnose"}'
+      const result = await diagnoseCloudflareAi(env, { prompt: body?.prompt });
+      return jsonResponse(result, 200, corsHeaders);
+    }
+
+    if (mode === 'rag_index') {
+      const result = await indexDocumentChunks(env, {
+        documentId: body?.documentId,
+        projectId: body?.projectId,
+        documentName: body?.documentName,
+        chunks: Array.isArray(body?.chunks) ? body.chunks : []
+      });
+      return jsonResponse(result, 200, corsHeaders);
+    }
+
+    if (mode === 'rag_delete') {
+      const result = await deleteDocumentVectors(env, { documentId: body?.documentId });
+      return jsonResponse(result, 200, corsHeaders);
+    }
+
+    if (mode === 'rag_query') {
+      const result = await queryRag(env, {
+        query: body?.query,
+        projectId: body?.projectId,
+        includeGlobalLibrary: Boolean(body?.includeGlobalLibrary),
+        maxPassages: body?.maxPassages,
+        similarityThreshold: body?.similarityThreshold
+      });
+      return jsonResponse(result, 200, corsHeaders);
     }
 
     const message = typeof body?.message === 'string' ? body.message.trim() : '';
@@ -1723,8 +1877,82 @@ export default {
     const maxTokens = Number.isFinite(configuredMaxTokens) && configuredMaxTokens > 0
       ? Math.min(Math.max(configuredMaxTokens, maxTokensFloor), 2200)
       : Math.min(maxTokensFloor, 2200);
+    // La cascade de niveaux de tokens (700/500/350 par defaut) est desormais
+    // calculee a l'interieur de routeChatCompletion() a partir de ce
+    // maxTokens effectif (cf. cloudflare/modelRouter.js).
 
-    let finalSystemPrompt = systemPrompt;
+    let pilotageBlock = '';
+    if (detectPilotageIntent(message)) {
+      try {
+        const pilotageSnapshot = await buildPilotageSnapshot(request, env);
+        const pilotagePlan = computeProjectPlan(pilotageSnapshot);
+        pilotageBlock = buildPilotagePromptBlock(pilotagePlan, language);
+      } catch (error) {
+        console.warn('pilotage_snapshot_failed', error instanceof Error ? error.message : String(error));
+      }
+    }
+
+    // ── Prompt Orchestrator (Lot 5) ─────────────────────────────────────
+    // Couche de decision en amont du Model Router : detecte l'intention,
+    // planifie les capacites, et compose un prompt systeme MODULAIRE compact
+    // a la place du monolithe buildSystemPrompt(). Flag-gate
+    // (PROMPT_ORCHESTRATOR_ENABLED) + try/catch : toute erreur => repli sur le
+    // prompt monolithique existant, jamais de blocage utilisateur.
+    let promptBasePrompt = systemPrompt; // monolithe par defaut (fallback)
+    let orchestratorPlan = null;
+    let orchestratorIntent = null;
+    if (isOrchestratorEnabled(env)) {
+      try {
+        const hasRagSources = ragTelemetry.some((evt) => ['rag_match', 'rag_context_used'].includes(evt?.event_type));
+        const hasWebIntent = Boolean(shouldSearchWeb || webSearchDecision?.intent?.explicit || webSearchDecision?.intent?.mandatory);
+        const projectContext = projectMemory ? { hasMemory: true } : (body?.projectId ? { projectId: body.projectId } : null);
+
+        const intent = detectUserIntent({ userMessage: message, projectContext, hasRagSources, hasWebIntent, language });
+        const plan = planCapabilities(intent, { ragAvailable: true, webAvailable: true });
+        const composed = composeSystemPrompt({
+          intent,
+          plan,
+          dateContext,
+          webPerformed: shouldSearchWeb,
+          hasRagContext: hasRagSources,
+          hasWebContext: shouldSearchWeb
+        });
+        orchestratorIntent = intent;
+        if (composed && composed.length > 0) {
+          promptBasePrompt = composed;
+          orchestratorPlan = plan;
+        }
+
+        const orchestratorMeta = {
+          primaryIntent: intent.primaryIntent,
+          expectedFormat: intent.expectedFormat,
+          complexity: intent.complexity,
+          needsRag: intent.needsRag,
+          needsWeb: intent.needsWeb,
+          promptProfile: plan.promptProfile,
+          preferredModelTier: plan.preferredModelTier,
+          maxTokensHint: plan.maxTokensHint,
+          confidence: intent.confidence,
+          reasons: intent.reasons
+        };
+        queueAiEvent(ctx, env, request, { event_type: 'prompt_intent_detected', event_value: intent.primaryIntent, language, page_url: pageUrl, session_id: sessionId, meta: orchestratorMeta });
+        queueAiEvent(ctx, env, request, { event_type: 'prompt_capabilities_planned', event_value: plan.promptProfile, language, page_url: pageUrl, session_id: sessionId, meta: orchestratorMeta });
+        queueAiEvent(ctx, env, request, { event_type: 'prompt_profile_used', event_value: plan.promptProfile, language, page_url: pageUrl, session_id: sessionId, meta: orchestratorMeta });
+      } catch (error) {
+        console.warn('prompt_orchestrator_failed', error instanceof Error ? error.message : String(error));
+        promptBasePrompt = systemPrompt; // repli explicite
+        orchestratorPlan = null;
+        orchestratorIntent = null;
+        queueAiEvent(ctx, env, request, {
+          event_type: 'prompt_orchestrator_error',
+          event_value: 'orchestrator_failed',
+          language, page_url: pageUrl, session_id: sessionId,
+          meta: { error: compactText(error instanceof Error ? error.message : String(error), 300) }
+        });
+      }
+    }
+
+    let finalSystemPrompt = promptBasePrompt + pilotageBlock;
     let webSearchResults = [];
     let webSearchRawResults = [];
     let webSearchAnswer = '';
@@ -2025,7 +2253,7 @@ export default {
       });
       if (webSearchPerformed) {
         finalSystemPrompt = [
-          systemPrompt,
+          promptBasePrompt + pilotageBlock,
           buildWebContextPrompt(language, webSearchResults, webSearchResolvedQuery, webSearchAnswer)
         ].join('\n\n');
         safeLogJson('WEB_CONTEXT', {
@@ -2043,7 +2271,7 @@ export default {
         });
       } else {
         finalSystemPrompt = [
-          systemPrompt,
+          promptBasePrompt + pilotageBlock,
           language === 'en'
             ? `Live web search was requested, but it did not return usable results. Technical status: ${webSearchError || 'no_results'}. Be transparent about this search failure; do not invent current facts.`
             : `Une recherche web temps reel a ete demandee, mais elle n'a pas retourne de resultats exploitables. Statut technique : ${webSearchError || 'no_results'}. Sois transparent sur cet echec de recherche ; n'invente pas de faits recents.`
@@ -2057,199 +2285,114 @@ export default {
       }
     }
 
-    function buildOpenRouterPayload(modelName) {
-      const projectMemoryMessage = projectMemory
-        ? [{
-          role: 'system',
-          content: language === 'en'
-            ? `Persistent project memory: durable context provided by the user for the active project. Use this information as priority context to understand the project. If document sources are available and contradict this memory, explicitly mention the contradiction instead of silently overriding it.\n${projectMemory}`
-            : `Memoire persistante du projet : contexte durable fourni par l'utilisateur pour le projet actif. Utilise ces informations comme contexte prioritaire pour comprendre le projet. Si des sources documentaires sont disponibles et contredisent cette memoire, signale la contradiction au lieu d'ecraser silencieusement l'information.\n${projectMemory}`
-        }]
-        : [];
-      const memoryMessage = conversationSummary
-        ? [{
-          role: 'system',
-          content: language === 'en'
-            ? `Conversation memory from previous turns. Use it only for continuity and do not mention it explicitly:\n${conversationSummary}`
-            : `Memoire de conversation issue des echanges precedents. Utilise-la uniquement pour assurer la continuite et ne la mentionne pas explicitement :\n${conversationSummary}`
-        }]
-        : [];
+    // Construction des messages de conversation (hors message systeme, gere
+    // par le Model Router) : memoire projet, resume, historique, message
+    // utilisateur. Le routeur (cloudflare/modelRouter.js) ne connait que la
+    // selection de modeles/retries/tokens — il ignore tout du RAG, de Tavily
+    // et du prompt metier, qui restent ici, inchanges.
+    const projectMemoryMessage = projectMemory
+      ? [{
+        role: 'system',
+        content: language === 'en'
+          ? `Persistent project memory: durable context provided by the user for the active project. Use this information as priority context to understand the project. If document sources are available and contradict this memory, explicitly mention the contradiction instead of silently overriding it.\n${projectMemory}`
+          : `Memoire persistante du projet : contexte durable fourni par l'utilisateur pour le projet actif. Utilise ces informations comme contexte prioritaire pour comprendre le projet. Si des sources documentaires sont disponibles et contredisent cette memoire, signale la contradiction au lieu d'ecraser silencieusement l'information.\n${projectMemory}`
+      }]
+      : [];
+    const memoryMessage = conversationSummary
+      ? [{
+        role: 'system',
+        content: language === 'en'
+          ? `Conversation memory from previous turns. Use it only for continuity and do not mention it explicitly:\n${conversationSummary}`
+          : `Memoire de conversation issue des echanges precedents. Utilise-la uniquement pour assurer la continuite et ne la mentionne pas explicitement :\n${conversationSummary}`
+      }]
+      : [];
 
-      return {
-        model: modelName,
-        messages: [
-          { role: 'system', content: finalSystemPrompt },
-          ...projectMemoryMessage,
-          ...memoryMessage,
-          ...history,
-          { role: 'user', content: message }
-        ],
-        temperature: 0.35,
-        max_tokens: maxTokens
+    const conversationMessages = [
+      ...projectMemoryMessage,
+      ...memoryMessage,
+      ...history,
+      { role: 'user', content: message }
+    ];
+
+    // Pont evenementiel : le routeur ignore D1/queueAiEvent (decouplage
+    // multi-provider), il se contente d'appeler onEvent(type, payload). On
+    // traduit ici vers les evenements legacy (openrouter_request/response,
+    // utilises par le back-office, cf. worker-api.js latestOpenRouterResponseInfo)
+    // ET vers les nouveaux evenements demandes (openrouter_model_attempt,
+    // openrouter_model_success, etc.), sans rien retirer de l'existant.
+    function onRouterEvent(eventType, payload) {
+      const baseMeta = {
+        model: payload?.model,
+        provider: payload?.provider || 'openrouter',
+        status_code: payload?.status_code ?? null,
+        tokens_requested: payload?.tokens_requested ?? null,
+        attempt_index: payload?.attempt_index ?? null,
+        latency_ms: payload?.latency_ms ?? null,
+        error_type: payload?.error_type ?? null
       };
-    }
-
-    async function callOpenRouter(modelName) {
-      let upstream;
-      const startedAt = Date.now();
-      const openRouterHeaders = buildOpenRouterHeaders(env, allowedOrigin);
-      const payload = buildOpenRouterPayload(modelName);
       queueAiEvent(ctx, env, request, {
-        event_type: 'openrouter_request',
-        event_value: modelName,
+        event_type: eventType,
+        event_value: compactText(payload?.model || payload?.upstream_error || eventType, 120),
         language,
         page_url: pageUrl,
         session_id: sessionId,
-        meta: {
-          model: modelName,
-          provider: 'openrouter',
-          message_count: payload.messages.length,
-          has_web_context: webSearchPerformed,
-          has_file_context: hasFileContext
-        }
+        meta: { ...baseMeta, ...payload }
       });
-      try {
-        upstream = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-          method: 'POST',
-          headers: openRouterHeaders,
-          body: JSON.stringify(payload)
-        });
-      } catch (error) {
-        return {
-          upstream: null,
-          parsed: null,
-          transportError: error instanceof Error ? error.message : 'openrouter_fetch_failed',
-          latencyMs: Date.now() - startedAt
-        };
-      }
 
-      const raw = await upstream.text();
-      let parsed = null;
-      try {
-        parsed = raw ? JSON.parse(raw) : null;
-      } catch (error) {
-        // Keep raw payload in diagnostic response below.
-      }
-      return { upstream, parsed, latencyMs: Date.now() - startedAt };
-    }
-
-    const modelsToTry = getModelFallbackChain(env);
-    let lastError = null;
-    let parsed = null;
-    let resolvedModel = primaryModel;
-    const attempts = [];
-    let upstreamSucceeded = false;
-
-    for (const modelName of modelsToTry) {
-      const result = await callOpenRouter(modelName);
-      parsed = result.parsed;
-      resolvedModel = modelName;
-      if (!result.upstream) {
-        lastError = {
-          model: modelName,
-          status_code: 0,
-          upstream_error: result.transportError || 'openrouter_fetch_failed',
-          openrouter_key_configured: hasUsableOpenRouterKey(env),
-          authorization_header_built: true
-        };
-        attempts.push(lastError);
-        console.warn('openrouter_attempt_failed', lastError);
+      if (eventType === 'openrouter_model_attempt') {
         queueAiEvent(ctx, env, request, {
-          event_type: 'openrouter_error',
-          event_value: compactText(lastError.upstream_error, 120),
-          language,
-          page_url: pageUrl,
-          session_id: sessionId,
-          meta: {
-            model: modelName,
-            status_code: 0,
-            upstream_error: compactText(lastError.upstream_error, 300),
-            latency_ms: result.latencyMs || 0
-          }
+          event_type: 'openrouter_request',
+          event_value: payload?.model,
+          language, page_url: pageUrl, session_id: sessionId,
+          meta: { model: payload?.model, provider: 'openrouter', max_tokens: payload?.tokens_requested, has_web_context: webSearchPerformed, has_file_context: hasFileContext }
         });
-        if (!shouldTryFallback(0, lastError.upstream_error)) break;
-        continue;
-      }
-
-      if (result.upstream.ok && extractReply(parsed)) {
-        upstreamSucceeded = true;
+      } else if (eventType === 'openrouter_model_success') {
         queueAiEvent(ctx, env, request, {
           event_type: 'openrouter_response',
-          event_value: parsed?.model || modelName,
-          language,
-          page_url: pageUrl,
-          session_id: sessionId,
+          event_value: payload?.resolved_model || payload?.model,
+          language, page_url: pageUrl, session_id: sessionId,
           meta: {
-            model: modelName,
-            resolved_model: parsed?.model || modelName,
-            latency_ms: result.latencyMs || 0,
-            reply_length: extractReply(parsed).length,
-            fallback_model_used: modelName !== primaryModel,
-            status_code: result.upstream.status
+            model: payload?.model,
+            resolved_model: payload?.resolved_model || payload?.model,
+            latency_ms: payload?.latency_ms || 0,
+            reply_length: payload?.content_length || 0,
+            fallback_model_used: payload?.model !== primaryModel,
+            max_tokens: payload?.tokens_requested,
+            status_code: payload?.status_code
           }
         });
-        break;
-      }
-
-      if (result.upstream.ok) {
-        lastError = {
-          model: modelName,
-          status_code: result.upstream.status,
-          upstream_error: 'empty_openrouter_reply',
-          openrouter_key_configured: hasUsableOpenRouterKey(env),
-          authorization_header_built: hasAuthorizationHeader(buildOpenRouterHeaders(env, allowedOrigin)),
-          diagnostic: buildEmptyReplyDiagnostic(parsed)
-        };
-        attempts.push(lastError);
-        console.warn('openrouter_attempt_empty_reply', lastError);
+      } else if (eventType === 'openrouter_model_failed') {
         queueAiEvent(ctx, env, request, {
           event_type: 'openrouter_error',
-          event_value: 'empty_openrouter_reply',
-          language,
-          page_url: pageUrl,
-          session_id: sessionId,
-          meta: {
-            model: modelName,
-            status_code: result.upstream.status,
-            upstream_error: 'empty_openrouter_reply',
-            latency_ms: result.latencyMs || 0
-          }
+          event_value: compactText(payload?.upstream_error || payload?.error_type || 'openrouter_request_failed', 120),
+          language, page_url: pageUrl, session_id: sessionId,
+          meta: { model: payload?.model, status_code: payload?.status_code, upstream_error: compactText(payload?.upstream_error || '', 300), latency_ms: payload?.latency_ms || 0, max_tokens: payload?.tokens_requested }
         });
-        continue;
       }
-
-      const upstreamError =
-        parsed?.error?.message ||
-        parsed?.message ||
-        'openrouter_request_failed';
-
-      lastError = {
-        model: modelName,
-        status_code: result.upstream.status,
-        upstream_error: upstreamError,
-        openrouter_key_configured: hasUsableOpenRouterKey(env),
-        authorization_header_built: hasAuthorizationHeader(buildOpenRouterHeaders(env, allowedOrigin))
-      };
-      attempts.push(lastError);
-      console.warn('openrouter_attempt_failed', lastError);
-      queueAiEvent(ctx, env, request, {
-        event_type: 'openrouter_error',
-        event_value: compactText(upstreamError, 120),
-        language,
-        page_url: pageUrl,
-        session_id: sessionId,
-        meta: {
-          model: modelName,
-          status_code: result.upstream.status,
-          upstream_error: compactText(upstreamError, 300),
-          latency_ms: result.latencyMs || 0
-        }
-      });
-
-      if (!shouldTryFallback(result.upstream.status, upstreamError)) break;
     }
 
-    if (!upstreamSucceeded && lastError && lastError.upstream_error !== 'empty_openrouter_reply' && (!parsed || !extractReply(parsed))) {
+    // Quand l'orchestrateur a planifie, on aligne tokens/temperature sur son
+    // plan (borne au plafond 2200 / plancher DEFAULT_MAX_TOKENS deja garantis
+    // par le routeur). Sinon, comportement actuel inchange.
+    const effectiveMaxTokens = orchestratorPlan
+      ? Math.min(Math.max(Number(orchestratorPlan.maxTokensHint) || maxTokens, DEFAULT_MAX_TOKENS), 2200)
+      : maxTokens;
+    const effectiveTemperature = orchestratorPlan && Number.isFinite(orchestratorPlan.temperatureHint)
+      ? orchestratorPlan.temperatureHint
+      : 0.35;
+
+    const routerResult = await routeChatCompletion({
+      messages: conversationMessages,
+      systemPrompt: finalSystemPrompt,
+      maxTokens: effectiveMaxTokens,
+      temperature: effectiveTemperature,
+      env,
+      metadata: { language, allowedOrigin },
+      modelTier: orchestratorPlan?.preferredModelTier,
+      onEvent: onRouterEvent
+    });
+
+    if (!routerResult.ok) {
       queueAiEvent(ctx, env, request, {
         event_type: 'api_error',
         event_value: 'OpenRouter request failed',
@@ -2260,17 +2403,18 @@ export default {
           error: 'openrouter_error',
           route: url.pathname,
           mode,
-          model: lastError.model,
-          status_code: lastError.status_code
+          error_type: routerResult.errorType,
+          attempts_count: routerResult.attempts.length
         }
       });
       return jsonResponse(
         {
           ok: false,
           error: 'openrouter_error',
+          errorType: routerResult.errorType,
+          userMessage: routerResult.userMessage,
           diagnostic: {
-            ...lastError,
-            attempts
+            attempts: routerResult.attempts
           }
         },
         502,
@@ -2278,7 +2422,8 @@ export default {
       );
     }
 
-    let reply = extractReply(parsed);
+    const resolvedModel = routerResult.model;
+    let reply = routerResult.content;
     if (webSearchPerformed && looksLikeToolCall(reply)) {
       console.warn('openrouter_returned_tool_call_for_web_search', {
         resolvedModel,
@@ -2343,7 +2488,7 @@ export default {
           reply: fallbackReply,
           fallback: true,
           fallback_reason: fallbackReason,
-          diagnostic: buildEmptyReplyDiagnostic(parsed),
+          diagnostic: { router_attempts: routerResult.attempts },
           web_search_requested: shouldSearchWeb,
           web_search_performed: webSearchPerformed,
           web_search_error: webSearchError || '',
@@ -2361,15 +2506,258 @@ export default {
       );
     }
 
+    // Lot 7 (+ Lot 7.1 Auto-Improver) — Response Quality Controller (RQC).
+    // Intervient UNIQUEMENT entre la reponse finale (deja passee par le
+    // Completion Guard, cf. modelRouter.js) et l'envoi au frontend.
+    // Flag-gate (RESPONSE_QUALITY_CONTROLLER_ENABLED) + try/catch : toute
+    // erreur => `reply` reste inchange, comportement actuel garanti, jamais
+    // de blocage utilisateur.
+    let rqcAnalysis = null;
+    let rqcAction = null;
+    let rqcScoreBefore = null;
+    if (isRqcEnabled(env)) {
+      try {
+        const rqcIntentContext = {
+          expectedFormat: orchestratorIntent?.expectedFormat,
+          requiresTable: orchestratorIntent?.requiresTable,
+          requiresSources: orchestratorIntent?.requiresSources,
+          needsRag: orchestratorIntent?.needsRag,
+          needsWeb: orchestratorIntent?.needsWeb
+        };
+        const rqcLogMeta = (extra = {}) => ({
+          intent: orchestratorIntent?.primaryIntent || '',
+          profile: orchestratorPlan?.promptProfile || '',
+          ...extra
+        });
+        const pinnedRetryEnv = routerResult.provider === 'openrouter'
+          ? { ...env, OPENROUTER_MODEL: routerResult.model }
+          : env;
+
+        const firstPass = evaluateResponse(reply, {
+          intent: rqcIntentContext,
+          promptProfile: orchestratorPlan?.promptProfile,
+          expectedFormat: rqcIntentContext.expectedFormat,
+          alreadyRetried: false,
+          alreadyImproved: false
+        });
+        rqcAnalysis = firstPass.analysis;
+        rqcAction = firstPass.action;
+        rqcScoreBefore = rqcAnalysis.score;
+
+        queueAiEvent(ctx, env, request, {
+          event_type: 'response_quality_analyzed',
+          event_value: rqcAnalysis.grade,
+          language, page_url: pageUrl, session_id: sessionId,
+          meta: rqcLogMeta({ score: rqcAnalysis.score, grade: rqcAnalysis.grade, issues: rqcAnalysis.issues, action: rqcAction })
+        });
+
+        // RETRY_FULL : reponse vide/irrecuperable -> regeneration complete.
+        // Meme modele (pin via OPENROUTER_MODEL pour la chaine OpenRouter),
+        // meme temperature, meme contexte conversationnel, instruction
+        // systeme additionnelle. Maximum 1 retry — jamais de boucle
+        // (alreadyRetried=true bloque tout 2e retry, cf. decideQualityAction()).
+        if (rqcAction === QUALITY_ACTIONS.RETRY_FULL) {
+          try {
+            const retrySystemPrompt = `${finalSystemPrompt}\n\n${buildRetrySystemInstruction(language)}`;
+            const retryResult = await routeChatCompletion({
+              messages: conversationMessages,
+              systemPrompt: retrySystemPrompt,
+              maxTokens: effectiveMaxTokens,
+              temperature: effectiveTemperature,
+              env: pinnedRetryEnv,
+              metadata: { language, allowedOrigin },
+              modelTier: orchestratorPlan?.preferredModelTier,
+              onEvent: onRouterEvent
+            });
+
+            if (retryResult.ok && retryResult.content) {
+              const secondPass = evaluateResponse(retryResult.content, {
+                intent: rqcIntentContext,
+                promptProfile: orchestratorPlan?.promptProfile,
+                expectedFormat: rqcIntentContext.expectedFormat,
+                alreadyRetried: true,
+                alreadyImproved: false
+              });
+              queueAiEvent(ctx, env, request, {
+                event_type: 'response_quality_retry',
+                event_value: secondPass.analysis.grade,
+                language, page_url: pageUrl, session_id: sessionId,
+                meta: rqcLogMeta({ score: secondPass.analysis.score, grade: secondPass.analysis.grade, issues: secondPass.analysis.issues, action: secondPass.action, previous_score: rqcAnalysis.score })
+              });
+              reply = retryResult.content;
+              rqcAnalysis = secondPass.analysis;
+              rqcAction = secondPass.action;
+            } else {
+              queueAiEvent(ctx, env, request, {
+                event_type: 'response_quality_retry_failed',
+                event_value: 'retry_call_failed',
+                language, page_url: pageUrl, session_id: sessionId,
+                meta: rqcLogMeta({ score: rqcAnalysis.score, grade: rqcAnalysis.grade, issues: rqcAnalysis.issues, action: QUALITY_ACTIONS.AUTO_REPAIR })
+              });
+              rqcAction = QUALITY_ACTIONS.AUTO_REPAIR; // retry indisponible -> reparation locale plutot que blocage
+            }
+          } catch (retryError) {
+            console.warn('response_quality_retry_failed', retryError instanceof Error ? retryError.message : String(retryError));
+            queueAiEvent(ctx, env, request, {
+              event_type: 'response_quality_retry_failed',
+              event_value: compactText(retryError instanceof Error ? retryError.message : String(retryError), 200),
+              language, page_url: pageUrl, session_id: sessionId,
+              meta: rqcLogMeta({ score: rqcAnalysis?.score ?? null, grade: rqcAnalysis?.grade || '', action: QUALITY_ACTIONS.AUTO_REPAIR })
+            });
+            rqcAction = QUALITY_ACTIONS.AUTO_REPAIR;
+          }
+        }
+
+        // IMPROVE_WITH_MODEL (Lot 7.1 — Auto-Improver) : la reponse contient
+        // du contenu utile mais ne respecte pas le format demande. On
+        // demande au MEME modele de reecrire la reponse existante (passee en
+        // contexte, jamais regeneree de zero) en corrigeant uniquement les
+        // problemes identifies. Maximum 1 amelioration — jamais de boucle
+        // (alreadyImproved=true bloque toute 2e amelioration, cf.
+        // decideQualityAction()). Si l'appel echoue, repli sur repairResponse()
+        // puis envoi de la meilleure version disponible (jamais de blocage).
+        if (rqcAction === QUALITY_ACTIONS.IMPROVE_WITH_MODEL) {
+          queueAiEvent(ctx, env, request, {
+            event_type: 'response_quality_improve_requested',
+            event_value: rqcAnalysis.grade,
+            language, page_url: pageUrl, session_id: sessionId,
+            meta: rqcLogMeta({
+              score: rqcAnalysis.score,
+              grade: rqcAnalysis.grade,
+              issues: rqcAnalysis.issues,
+              missing_requirements: rqcAnalysis.missingRequirements,
+              action: rqcAction
+            })
+          });
+          try {
+            const improveInstruction = buildImproveSystemInstruction(language, {
+              repairableIssues: rqcAnalysis.repairableIssues,
+              missingRequirements: rqcAnalysis.missingRequirements
+            });
+            const improveMessages = [
+              ...conversationMessages,
+              { role: 'assistant', content: reply },
+              { role: 'user', content: improveInstruction }
+            ];
+            const improveResult = await routeChatCompletion({
+              messages: improveMessages,
+              systemPrompt: finalSystemPrompt,
+              maxTokens: effectiveMaxTokens,
+              temperature: effectiveTemperature,
+              env: pinnedRetryEnv,
+              metadata: { language, allowedOrigin },
+              modelTier: orchestratorPlan?.preferredModelTier,
+              onEvent: onRouterEvent
+            });
+
+            if (improveResult.ok && improveResult.content) {
+              const improvedPass = evaluateResponse(improveResult.content, {
+                intent: rqcIntentContext,
+                promptProfile: orchestratorPlan?.promptProfile,
+                expectedFormat: rqcIntentContext.expectedFormat,
+                alreadyRetried: true,
+                alreadyImproved: true
+              });
+              queueAiEvent(ctx, env, request, {
+                event_type: 'response_quality_improved',
+                event_value: improvedPass.analysis.grade,
+                language, page_url: pageUrl, session_id: sessionId,
+                meta: rqcLogMeta({
+                  score_before: rqcAnalysis.score,
+                  score_after: improvedPass.analysis.score,
+                  score_gain: improvedPass.analysis.score - rqcAnalysis.score,
+                  grade: improvedPass.analysis.grade,
+                  issues: improvedPass.analysis.issues,
+                  action: improvedPass.action
+                })
+              });
+              reply = improveResult.content;
+              rqcAnalysis = improvedPass.analysis;
+              rqcAction = improvedPass.action;
+            } else {
+              queueAiEvent(ctx, env, request, {
+                event_type: 'response_quality_improve_failed',
+                event_value: 'improve_call_failed',
+                language, page_url: pageUrl, session_id: sessionId,
+                meta: rqcLogMeta({ score: rqcAnalysis.score, grade: rqcAnalysis.grade, issues: rqcAnalysis.issues, action: QUALITY_ACTIONS.AUTO_REPAIR })
+              });
+              rqcAction = QUALITY_ACTIONS.AUTO_REPAIR; // amelioration indisponible -> reparation locale, jamais de blocage
+            }
+          } catch (improveError) {
+            console.warn('response_quality_improve_failed', improveError instanceof Error ? improveError.message : String(improveError));
+            queueAiEvent(ctx, env, request, {
+              event_type: 'response_quality_improve_failed',
+              event_value: compactText(improveError instanceof Error ? improveError.message : String(improveError), 200),
+              language, page_url: pageUrl, session_id: sessionId,
+              meta: rqcLogMeta({ score: rqcAnalysis?.score ?? null, grade: rqcAnalysis?.grade || '', action: QUALITY_ACTIONS.AUTO_REPAIR })
+            });
+            rqcAction = QUALITY_ACTIONS.AUTO_REPAIR;
+          }
+        }
+
+        if (rqcAction === QUALITY_ACTIONS.AUTO_REPAIR) {
+          const repaired = repairResponse(reply, rqcAnalysis);
+          if (repaired && repaired !== reply) {
+            reply = repaired;
+            queueAiEvent(ctx, env, request, {
+              event_type: 'response_quality_repaired',
+              event_value: rqcAnalysis?.grade || '',
+              language, page_url: pageUrl, session_id: sessionId,
+              meta: rqcLogMeta({ score: rqcAnalysis?.score ?? null, grade: rqcAnalysis?.grade || '', issues: rqcAnalysis?.issues || [], action: QUALITY_ACTIONS.AUTO_REPAIR })
+            });
+          }
+        }
+
+        queueAiEvent(ctx, env, request, {
+          event_type: 'response_quality_final_sent',
+          event_value: rqcAnalysis?.grade || '',
+          language, page_url: pageUrl, session_id: sessionId,
+          meta: rqcLogMeta({
+            score_before: rqcScoreBefore,
+            score_after: rqcAnalysis?.score ?? null,
+            score: rqcAnalysis?.score ?? null,
+            grade: rqcAnalysis?.grade || '',
+            issues: rqcAnalysis?.issues || [],
+            action: rqcAction || QUALITY_ACTIONS.SEND
+          })
+        });
+      } catch (error) {
+        console.warn('response_quality_controller_failed', error instanceof Error ? error.message : String(error));
+        queueAiEvent(ctx, env, request, {
+          event_type: 'response_quality_retry_failed',
+          event_value: 'rqc_failed',
+          language, page_url: pageUrl, session_id: sessionId,
+          meta: { error: compactText(error instanceof Error ? error.message : String(error), 300) }
+        });
+        // reply reste inchange (comportement actuel) — aucune interruption de service.
+      }
+    }
+
+    const resolvedProvider = routerResult.provider;
     const responseBody = {
       ok: true,
       worker_build: WORKER_BUILD,
       reply,
-      provider: 'openrouter',
+      provider: resolvedProvider,
       model: resolvedModel,
-      resolved_model: parsed?.model || resolvedModel,
+      resolved_model: resolvedModel,
       fallback_model_used: resolvedModel !== primaryModel
     };
+
+    if (resolvedProvider !== 'openrouter') {
+      // Bascule reelle vers le second provider : journalise explicitement
+      // pour que le back-office puisse distinguer "OpenRouter a repondu via
+      // un fallback de modele" de "OpenRouter a totalement echoue, Cloudflare
+      // AI a pris le relais".
+      queueAiEvent(ctx, env, request, {
+        event_type: 'provider_fallback_used',
+        event_value: resolvedProvider,
+        language,
+        page_url: pageUrl,
+        session_id: sessionId,
+        meta: { provider: resolvedProvider, model: resolvedModel, reason: 'openrouter_all_models_failed' }
+      });
+    }
 
     if (responseBody.fallback_model_used) {
       queueAiEvent(ctx, env, request, {
@@ -2381,7 +2769,7 @@ export default {
         meta: {
           fallback_reason: 'model_fallback',
           model: resolvedModel,
-          provider: 'openrouter'
+          provider: resolvedProvider
         }
       });
     }
