@@ -10497,18 +10497,32 @@
     }
   }
 
+  function resolveAssistantSubmissionText(rawText, fileContext) {
+    const text = String(rawText || '').trim();
+    const hasFileContext = String(fileContext || '').trim().length > 0;
+    if (text) return { canSubmit: true, visibleText: text, promptText: text };
+    if (hasFileContext) {
+      return {
+        canSubmit: true,
+        visibleText: i18n.sendWithoutTextWithFiles,
+        promptText: i18n.sendWithoutTextWithFiles
+      };
+    }
+    return { canSubmit: false, visibleText: '', promptText: '' };
+  }
+
   document.getElementById('ai-assistant-form').addEventListener('submit', (e) => {
     e.preventDefault();
     if (activeAssistantRequestController) return;
-    const text = input.value.trim();
-    if (!text && !pendingFileContext) return;
+    const fileContext = pendingFileContext;
+    const submission = resolveAssistantSubmissionText(input.value, fileContext);
+    if (!submission.canSubmit) return;
     setLibraryViewOpen(false);
-    const visibleText = text || i18n.sendWithoutTextWithFiles;
+    const visibleText = submission.visibleText;
     addMessage('user', visibleText);
     chatHistory.push({ role: 'user', content: visibleText });
     persistActiveConversation();
     input.value = '';
-    const fileContext = pendingFileContext;
     const attachments = pendingVisionAttachments.slice(0, 2);
     const uploadMetadata = pendingUploadMetadata.slice(0, maxLocalFilesPerPrompt);
     pendingFileContext = '';
@@ -10517,7 +10531,7 @@
     pendingLibraryDocumentNames = [];
     pendingVisionAttachments = [];
     if (fileInput) fileInput.value = '';
-    askAI(visibleText, fileContext, attachments, uploadMetadata);
+    askAI(submission.promptText, fileContext, attachments, uploadMetadata);
   });
 
   if (input) {

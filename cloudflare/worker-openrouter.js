@@ -1829,14 +1829,6 @@ export default {
       : message.slice(0, 500);
 
     if (!message) {
-      queueAiEvent(ctx, env, request, {
-        event_type: 'api_error',
-        event_value: 'Empty chat message',
-        language,
-        page_url: pageUrl,
-        session_id: sessionId,
-        meta: { error: 'empty_message', route: url.pathname, mode }
-      });
       return jsonResponse({ ok: false, error: 'empty_message' }, 400, corsHeaders);
     }
 
