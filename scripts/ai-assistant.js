@@ -142,6 +142,16 @@
         speechUnsupported: 'Voice dictation is not available on this browser',
         loading: '...',
         thinking: 'Thinking',
+        reasoningStart: 'Reading your request',
+        reasoningAnalyzing: 'Analyzing intent',
+        reasoningRagChecking: 'Checking project documents',
+        reasoningRagFound: 'Found relevant sources',
+        reasoningRagNone: 'No matching project source',
+        reasoningWebSearching: 'Searching the web',
+        reasoningWebFound: 'Reviewing search results',
+        reasoningComposing: 'Composing the answer',
+        reasoningStillWorking: 'Still working on it',
+        reasoningFinalizing: 'Finalizing the response',
         rateLimitError: 'The AI provider is temporarily saturated. Please try again in a few moments.',
         friendlyApiError: 'I hit a temporary issue. Please try again in a few seconds.',
         openRouterLimited: 'The generation engine is temporarily limited. Sources were retrieved when available, but the full reformulated answer could not be generated.',
@@ -253,6 +263,16 @@
       speechUnsupported: 'Dictée vocale non disponible sur ce navigateur',
       loading: '...',
       thinking: 'Réflexion',
+      reasoningStart: 'Lecture de la demande',
+      reasoningAnalyzing: "Analyse de l'intention",
+      reasoningRagChecking: 'Consultation des documents du projet',
+      reasoningRagFound: 'Sources pertinentes trouvées',
+      reasoningRagNone: 'Aucune source projet correspondante',
+      reasoningWebSearching: 'Recherche sur le web',
+      reasoningWebFound: 'Analyse des résultats de recherche',
+      reasoningComposing: 'Rédaction de la réponse',
+      reasoningStillWorking: 'Toujours en cours de traitement',
+      reasoningFinalizing: 'Finalisation de la réponse',
       rateLimitError: "Le fournisseur IA est temporairement saturé. Réessaie dans quelques instants.",
       friendlyApiError: "Oups, je rencontre un souci temporaire. Réessaie dans quelques secondes.",
       openRouterLimited: "Le moteur de génération est temporairement limité. Les sources ont été récupérées lorsque disponibles, mais la reformulation complète n'a pas pu être générée.",
@@ -6568,24 +6588,29 @@
     const columnCount = parsedRows[0]?.length || 0;
     if (columnCount < 2) return null;
 
-    const trailingParagraphs = [];
+    // Une cellule de donnees contenant un "|" litteral (ex: "Oui | Non selon
+    // la region", une plage horaire, une condition...) fait deborder la
+    // ligne au-dela de columnCount. On RECOLLE ce surplus dans la DERNIERE
+    // colonne de la meme ligne plutot que de l'evacuer comme paragraphe
+    // separe : sinon le texte se retrouve detache de sa ligne/colonne,
+    // "flottant" sous le tableau — symptome du texte "pas dans la bonne case".
     const repairedRows = parsedRows
       .filter((row, index) => index === 0 || row.some((cell) => cell && !/^[-–—]+$/.test(cell)))
-      .map((row, index) => {
+      .map((row) => {
         if (row.length === columnCount) return row;
         if (row.length > columnCount) {
-          const tableCells = row.slice(0, columnCount);
-          const overflow = row.slice(columnCount).join(' | ').trim();
-          if (index > 0 && overflow && !/^[-–—]+$/.test(overflow)) {
-            trailingParagraphs.push(overflow.replace(/^[-–—|\s]+/, '').trim());
-          }
-          return tableCells;
+          const tableCells = row.slice(0, columnCount - 1);
+          const mergedLastCell = row.slice(columnCount - 1).join(' / ').trim();
+          return [...tableCells, mergedLastCell];
         }
         return [...row, ...Array(columnCount - row.length).fill('')];
       });
 
     const validRows = repairedRows.filter((row) => row.length === columnCount);
-    return validRows.length >= 2 ? { rows: validRows, trailingParagraphs: trailingParagraphs.filter(Boolean) } : null;
+    // trailingParagraphs n'a plus de producteur (le surplus est desormais
+    // toujours recolle dans la derniere colonne) — le champ est conserve
+    // vide pour ne pas casser les appelants existants qui le lisent.
+    return validRows.length >= 2 ? { rows: validRows, trailingParagraphs: [] } : null;
   }
 
   function normalizeMarkdownTableRows(rows) {
@@ -6791,7 +6816,29 @@
     for (const line of output) {
       const t = line.trim();
       if (/^```/.test(t)) { flushTable(); inCodeFinal = !inCodeFinal; finalLines.push(line); continue; }
-      if (!inCodeFinal && isPipeRow(line)) { buffer.push(t); continue; }
+      if (!inCodeFinal && isPipeRow(line)) {
+        // Une légende collée au tableau ("**Titre** | Col A | Col B |", sans
+        // saut de ligne ni "|" de tête) contient elle aussi >= 2 "|" et
+        // matchait isPipeRow : elle finissait comme fausse 1ere cellule du
+        // tableau, décalant durablement toutes les colonnes. On détache le
+        // texte AVANT la première "|" (la légende) si ce qui suit cette barre
+        // est lui-même un vrai début de ligne de tableau (>= 2 cellules).
+        if (!t.startsWith('|')) {
+          const firstPipe = t.indexOf('|');
+          const prefix = t.slice(0, firstPipe).trim();
+          const candidateTableLine = t.slice(firstPipe).trim();
+          if (prefix && isMarkdownTableLine(candidateTableLine) && parseMarkdownTableCells(candidateTableLine).length >= 2) {
+            flushTable();
+            if (finalLines.length && finalLines[finalLines.length - 1] !== '') finalLines.push('');
+            finalLines.push(prefix);
+            finalLines.push('');
+            buffer.push(candidateTableLine);
+            continue;
+          }
+        }
+        buffer.push(t);
+        continue;
+      }
       flushTable();
       finalLines.push(line);
     }
@@ -7848,17 +7895,55 @@
     return bubble;
   }
 
+  // Indicateur de "réflexion en direct" façon Claude/ChatGPT : une courte
+  // ligne de statut au-dessus des points animés, qui évolue au fil des
+  // étapes réellement franchies côté client (lecture, consultation des
+  // documents projet, recherche web, rédaction) — pas un texte figé. Si
+  // aucune transition explicite n'arrive assez vite (réponse longue), une
+  // rotation de phrases génériques prend le relais pour ne jamais paraître
+  // figé, exactement comme ces assistants le font pour les réponses lentes.
   function addTypingMessage() {
     const bubble = document.createElement('article');
     bubble.className = 'ai-assistant-message ai-assistant-message--bot ai-assistant-message--typing';
     bubble.setAttribute('data-role', 'assistant');
     bubble.innerHTML = `
       <div class="ai-assistant-message-content">
-        <span class="ai-assistant-thinking-label">${i18n.thinking}</span>
+        <span class="ai-assistant-reasoning-label">${escapeHtml(i18n.reasoningStart || i18n.thinking)}</span>
         <span class="ai-assistant-typing-dots" aria-hidden="true"><span></span><span></span><span></span></span>
       </div>`;
     messagesContainer.appendChild(bubble);
     scrollConversationToBottom('auto');
+
+    const label = bubble.querySelector('.ai-assistant-reasoning-label');
+    const fillerPhrases = [i18n.reasoningAnalyzing, i18n.reasoningComposing, i18n.reasoningStillWorking, i18n.reasoningFinalizing].filter(Boolean);
+    let fillerIndex = 0;
+    let stopped = false;
+
+    function setPhase(text) {
+      if (stopped || !label || !text) return;
+      label.textContent = text;
+      label.classList.remove('is-fading-in');
+      void label.offsetWidth; // relance la transition d'apparition (reflow forcé)
+      label.classList.add('is-fading-in');
+    }
+
+    // Première transition explicite peu après la création, le temps que la
+    // détection RAG/web côté client (askAI) prenne le relais avec des
+    // phrases précises sur ce qui est réellement en train de se passer.
+    const introTimer = setTimeout(() => setPhase(i18n.reasoningAnalyzing), 900);
+    const fillerTimer = setInterval(() => {
+      setPhase(fillerPhrases[fillerIndex % fillerPhrases.length]);
+      fillerIndex += 1;
+    }, 2800);
+
+    bubble._setReasoningPhase = setPhase;
+    const originalRemove = bubble.remove.bind(bubble);
+    bubble.remove = () => {
+      stopped = true;
+      clearTimeout(introTimer);
+      clearInterval(fillerTimer);
+      originalRemove();
+    };
     return bubble;
   }
 
@@ -10274,19 +10359,27 @@
       // null) n'utilise donc aucun document ni memoire de projet.
       const conversationProject = getProjectById(getActiveSession()?.projectId) || null;
       const ragCandidateProject = conversationProject;
+      const willCheckRag = !fileContext && shouldUseProjectRagForMessage(userText, ragCandidateProject);
+      if (willCheckRag) loading._setReasoningPhase?.(i18n.reasoningRagChecking);
       const ragContext = fileContext
         ? { context: '', events: [], status: 'file_context', selected: [], usedSources: [] }
-        : (shouldUseProjectRagForMessage(userText, ragCandidateProject)
+        : (willCheckRag
           ? await buildKnowledgeContextForPrompt(userText)
           : { context: '', events: [], status: 'off_topic', selected: [], usedSources: [] });
       const knowledgeContext = ragContext.context || '';
       renderRagStatus(ragContext.status);
+      if (willCheckRag) {
+        loading._setReasoningPhase?.(ragContext.status === 'match' ? i18n.reasoningRagFound : i18n.reasoningRagNone);
+      }
       effectiveWebSearch = webSettings.tavilyEnabled !== false
         && (isWebSearchActive || (ragContext.status !== 'match' && shouldUseWebSearchForPrompt(userText)));
 
       // Activer le statut "recherche en cours" si recherche web activée
       if (effectiveWebSearch) {
         setWebSearchInProgress(true);
+        loading._setReasoningPhase?.(i18n.reasoningWebSearching);
+      } else {
+        loading._setReasoningPhase?.(i18n.reasoningComposing);
       }
 
       const contextSections = [];
