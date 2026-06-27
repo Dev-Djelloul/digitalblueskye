@@ -34,6 +34,12 @@ const RX = {
   englishSignal: /\b(the|and|is|are|of|to|for|with|in|on|what|how|why|which|please|can|you|this|that|should|i|we)\b/i
 };
 
+// Export additif (zero changement de comportement) : permet a d'autres
+// modules purs (ex. capabilityPlanner.js, Lot 8) de reutiliser ces motifs au
+// lieu de les redefinir — evite la duplication de regex entre couches de
+// detection qui partagent des concepts (tableau, comparaison, planning...).
+export { RX };
+
 function detectLanguage(userMessage, providedLanguage) {
   if (providedLanguage === 'fr' || providedLanguage === 'en') return providedLanguage;
   const msg = String(userMessage || '');

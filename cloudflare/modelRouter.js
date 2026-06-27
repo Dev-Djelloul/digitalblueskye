@@ -519,6 +519,144 @@ export async function diagnoseOpenAi(env, { prompt } = {}, fetchImpl = fetch) {
   };
 }
 
+// Nettoyage de la cle OpenRouter, factorise pour etre identique entre
+// routeChatCompletion() (appel reel) et diagnoseOpenRouterKey() (diagnostic) —
+// garantit que le diagnostic teste exactement la meme cle/header que l'appel
+// de production.
+function cleanOpenRouterApiKey(rawValue) {
+  return String(rawValue || '')
+    .trim()
+    .replace(/^["']|["']$/g, '')
+    .replace(/^OPENROUTER_API_KEY\s*=\s*/i, '')
+    .replace(/^Bearer\s+/i, '')
+    .replace(/\s+/g, '');
+}
+
+export const OPENROUTER_KEY_DIAGNOSE_URL = 'https://openrouter.ai/api/v1/key';
+
+/**
+ * Diagnostic dedie OpenRouter (Lot stabilisation) : appelle GET /api/v1/key
+ * avec exactement la meme cle/header que routeChatCompletion(), sans jamais
+ * lancer d'exception ni exposer la cle. Permet de distinguer immediatement
+ * une cle absente/mal formee, un compte sans credit, un quota/rate-limit
+ * atteint, ou une panne cote OpenRouter.
+ */
+export async function diagnoseOpenRouterKey(env, fetchImpl = fetch) {
+  const startedAt = Date.now();
+  const apiKeyPresent = Boolean(env?.OPENROUTER_API_KEY);
+  const apiKey = cleanOpenRouterApiKey(env?.OPENROUTER_API_KEY);
+  const authorizationHeaderPresent = Boolean(apiKey);
+  const authorizationHeaderPrefix = apiKey ? `Bearer ${apiKey.slice(0, 8)}...` : null;
+
+  if (!apiKeyPresent || !authorizationHeaderPresent) {
+    return {
+      ok: false,
+      provider: 'openrouter',
+      api_key_present: apiKeyPresent,
+      authorization_header_present: authorizationHeaderPresent,
+      authorization_header_prefix: authorizationHeaderPrefix,
+      http_status: 0,
+      latency_ms: Date.now() - startedAt,
+      account: null,
+      credits: null,
+      limit: null,
+      remaining: null,
+      usage: null,
+      rate_limit: null,
+      is_free_tier: null,
+      raw_response: null,
+      raw_error: 'OPENROUTER_API_KEY missing or empty after cleanup'
+    };
+  }
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 10000);
+
+  try {
+    const response = await fetchImpl(OPENROUTER_KEY_DIAGNOSE_URL, {
+      method: 'GET',
+      signal: controller.signal,
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const raw = await response.text();
+    let parsed = null;
+    try { parsed = raw ? JSON.parse(raw) : null; } catch (error) { /* parsed reste null */ }
+
+    const latencyMs = Date.now() - startedAt;
+    const data = parsed?.data || null;
+    const limitRemaining = data?.limit_remaining ?? (
+      data?.limit != null ? Math.max(0, Number(data.limit) - Number(data.usage || 0)) : null
+    );
+
+    if (!response.ok) {
+      const errorMessage = parsed?.error?.message || parsed?.message || raw || `OpenRouter key check failed (${response.status})`;
+      return {
+        ok: false,
+        provider: 'openrouter',
+        api_key_present: apiKeyPresent,
+        authorization_header_present: authorizationHeaderPresent,
+        authorization_header_prefix: authorizationHeaderPrefix,
+        http_status: response.status,
+        latency_ms: latencyMs,
+        account: null,
+        credits: null,
+        limit: null,
+        remaining: null,
+        usage: null,
+        rate_limit: null,
+        is_free_tier: null,
+        raw_response: parsed,
+        raw_error: String(errorMessage).slice(0, 500)
+      };
+    }
+
+    return {
+      ok: true,
+      provider: 'openrouter',
+      api_key_present: apiKeyPresent,
+      authorization_header_present: authorizationHeaderPresent,
+      authorization_header_prefix: authorizationHeaderPrefix,
+      http_status: response.status,
+      latency_ms: latencyMs,
+      account: data?.label ?? null,
+      credits: limitRemaining,
+      limit: data?.limit ?? null,
+      remaining: limitRemaining,
+      usage: data?.usage ?? null,
+      rate_limit: data?.rate_limit ?? null,
+      is_free_tier: data?.is_free_tier ?? null,
+      raw_response: parsed,
+      raw_error: null
+    };
+  } catch (error) {
+    const isTimeout = error?.name === 'AbortError';
+    return {
+      ok: false,
+      provider: 'openrouter',
+      api_key_present: apiKeyPresent,
+      authorization_header_present: authorizationHeaderPresent,
+      authorization_header_prefix: authorizationHeaderPrefix,
+      http_status: 0,
+      latency_ms: Date.now() - startedAt,
+      account: null,
+      credits: null,
+      limit: null,
+      remaining: null,
+      usage: null,
+      rate_limit: null,
+      is_free_tier: null,
+      raw_response: null,
+      raw_error: isTimeout ? 'timeout' : (error?.message || String(error))
+    };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export async function routeChatCompletion({
   messages,
   systemPrompt,
@@ -532,7 +670,11 @@ export async function routeChatCompletion({
   onEvent,
   fetchImpl,
   timeoutMs,
-  forceProvider
+  forceProvider,
+  // Optionnel (Lot 8, Capability Planner) : override du budget de
+  // continuations du Completion Guard a partir de expectedAnswerLength.
+  // Non fourni => comportement actuel inchange (env var uniquement).
+  maxContinuationsHint
 }) {
   const fetcher = typeof fetchImpl === 'function' ? fetchImpl : fetch;
   const language = metadata?.language === 'en' ? 'en' : 'fr';
@@ -674,12 +816,7 @@ export async function routeChatCompletion({
   const openAiPreferredResult = await attemptOpenAiPreferred();
   if (openAiPreferredResult) return openAiPreferredResult;
 
-  const apiKey = String(env?.OPENROUTER_API_KEY || '')
-    .trim()
-    .replace(/^["']|["']$/g, '')
-    .replace(/^OPENROUTER_API_KEY\s*=\s*/i, '')
-    .replace(/^Bearer\s+/i, '')
-    .replace(/\s+/g, '');
+  const apiKey = cleanOpenRouterApiKey(env?.OPENROUTER_API_KEY);
 
   const headers = {
     'Content-Type': 'application/json',
@@ -865,7 +1002,9 @@ export async function routeChatCompletion({
 
   async function finalizeOpenRouterSuccess() {
     const guardEnabled = String(env?.COMPLETION_GUARD_ENABLED ?? 'true').toLowerCase() !== 'false';
-    const maxContinuations = resolveMaxContinuations(env?.COMPLETION_GUARD_MAX_CONTINUATIONS);
+    const maxContinuations = resolveMaxContinuations(
+      maxContinuationsHint != null ? maxContinuationsHint : env?.COMPLETION_GUARD_MAX_CONTINUATIONS
+    );
 
     const requestContinuation = async (accumulated) => {
       const continuationMessages = [

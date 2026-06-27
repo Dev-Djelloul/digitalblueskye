@@ -14,8 +14,26 @@
 
 import { computeProjectPlan, DEFAULT_V3_PLACEHOLDERS } from './aiProjectManager.js';
 import { indexDocumentChunks, deleteDocumentVectors, queryRag, diagnoseRagPipeline } from './ragPipeline.js';
-import { routeChatCompletion, diagnoseCloudflareAi, diagnoseOpenAi } from './modelRouter.js';
+import { routeChatCompletion, diagnoseCloudflareAi, diagnoseOpenAi, diagnoseOpenRouterKey } from './modelRouter.js';
 import { detectUserIntent, planCapabilities, composeSystemPrompt, isOrchestratorEnabled } from './promptOrchestrator.js';
+import {
+  detectCapabilities,
+  planCapabilities as planCapabilityPlan,
+  buildExecutionPlan,
+  isCapabilityPlannerEnabled
+} from './capabilityPlanner.js';
+import {
+  detectEvidenceNeed,
+  planEvidence,
+  buildSourcePolicy,
+  isSourcePlannerEnabled
+} from './sourcePlanner.js';
+import {
+  buildExecutionIntent,
+  resolveExecutionPlan,
+  buildExecutionPolicy,
+  isExecutionPlannerEnabled
+} from './executionPlanner.js';
 import { evaluateResponse, repairResponse, buildRetrySystemInstruction, buildImproveSystemInstruction, isRqcEnabled, QUALITY_ACTIONS } from './responseQualityController.js';
 
 const DEFAULT_MODEL = 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free';
@@ -1786,6 +1804,11 @@ export default {
       return jsonResponse(result, 200, corsHeaders);
     }
 
+    if (mode === 'openrouter_key_diagnose') {
+      const result = await diagnoseOpenRouterKey(env);
+      return jsonResponse(result, 200, corsHeaders);
+    }
+
     if (mode === 'rag_index') {
       const result = await indexDocumentChunks(env, {
         documentId: body?.documentId,
@@ -1833,6 +1856,222 @@ export default {
       return jsonResponse({ ok: false, error: 'empty_message' }, 400, corsHeaders);
     }
 
+    // ── Capability Planner (Lot 8) ───────────────────────────────────────
+    // Nouvelle PREMIERE etape du pipeline, executee immediatement apres
+    // reception de la requete, avant tout autre module (web search decision,
+    // RAG, Prompt Orchestrator) :
+    //
+    //   Utilisateur -> Capability Planner -> Prompt Orchestrator ->
+    //   Dynamic Model Selection -> Model Router -> LLM
+    //
+    // Decide QUOI utiliser (capacites necessaires) avant que le Prompt
+    // Orchestrator decide COMMENT repondre (texte du prompt systeme).
+    // Flag-gate (CAPABILITY_PLANNER_ENABLED, defaut: desactive) + try/catch :
+    // toute erreur ou flag desactive => capabilityPlan reste null et TOUT le
+    // reste du pipeline se comporte exactement comme avant ce Lot.
+    let capabilityPlan = null;
+    if (isCapabilityPlannerEnabled(env)) {
+      try {
+        const hasRagSourcesHint = ragTelemetry.some((evt) => ['rag_match', 'rag_context_used'].includes(evt?.event_type));
+        const capabilities = detectCapabilities({
+          userMessage: message,
+          language,
+          history,
+          projectMemory,
+          attachments,
+          hasRagSources: hasRagSourcesHint
+        });
+        const plan = planCapabilityPlan(capabilities, { ragAvailable: true, webAvailable: true });
+        const executionPlan = buildExecutionPlan(capabilities, plan);
+        capabilityPlan = { capabilities, plan, executionPlan };
+
+        const capabilityMeta = {
+          complexity: capabilities.complexity,
+          needsRag: capabilities.needsRag,
+          needsWeb: capabilities.needsWeb,
+          needsTable: capabilities.needsTable,
+          needsSources: capabilities.needsSources,
+          needsMarkdown: capabilities.needsMarkdown,
+          needsExport: capabilities.needsExport,
+          needsLongAnswer: capabilities.needsLongAnswer,
+          confidence: capabilities.confidence,
+          preferredModelTier: plan.preferredModelTier,
+          preferredMaxTokens: plan.preferredMaxTokens,
+          reasoningEffort: plan.reasoningEffort,
+          pipeline: executionPlan.pipeline,
+          estimatedCost: executionPlan.estimatedCost,
+          estimatedLatency: executionPlan.estimatedLatency,
+          expectedAnswerLength: executionPlan.expectedAnswerLength
+        };
+        queueAiEvent(ctx, env, request, { event_type: 'capability_detected', event_value: capabilities.complexity, language, page_url: pageUrl, session_id: sessionId, meta: capabilityMeta });
+        queueAiEvent(ctx, env, request, { event_type: 'capability_plan_created', event_value: plan.preferredModelTier, language, page_url: pageUrl, session_id: sessionId, meta: capabilityMeta });
+        queueAiEvent(ctx, env, request, { event_type: 'capability_pipeline_built', event_value: executionPlan.pipeline.join(' > '), language, page_url: pageUrl, session_id: sessionId, meta: capabilityMeta });
+      } catch (error) {
+        console.warn('capability_planner_failed', error instanceof Error ? error.message : String(error));
+        capabilityPlan = null;
+        queueAiEvent(ctx, env, request, {
+          event_type: 'capability_error',
+          event_value: 'capability_planner_failed',
+          language, page_url: pageUrl, session_id: sessionId,
+          meta: { error: compactText(error instanceof Error ? error.message : String(error), 300) }
+        });
+      }
+    }
+
+    // ── Source Planner / Evidence Planner (Lot 9) ────────────────────────
+    // Etape suivante du pipeline, JUSTE APRES le Capability Planner et AVANT
+    // decideWebSearch/RAG/Prompt Orchestrator :
+    //
+    //   ... -> Capability Planner -> Source Planner -> Prompt Orchestrator ->
+    //   Dynamic Model Selection -> Model Router -> LLM -> Completion Guard ->
+    //   Response Quality Controller -> Renderer AST
+    //
+    // Decide si une reponse purement interne est suffisante ou si des
+    // preuves externes (Tavily, RAG projet, bibliotheque, memoire projet)
+    // sont recommandees/obligatoires, afin d'empecher des reponses jolies
+    // mais non verifiees (chiffres, prix, limites, dates inventes).
+    // Flag-gate (SOURCE_PLANNER_ENABLED, defaut: desactive) + try/catch :
+    // toute erreur ou flag desactive => sourcePlan reste null et TOUT le
+    // reste du pipeline se comporte exactement comme avant ce Lot.
+    let sourcePlan = null;
+    if (isSourcePlannerEnabled(env)) {
+      try {
+        const hasRagSourcesHint = ragTelemetry.some((evt) => ['rag_match', 'rag_context_used'].includes(evt?.event_type));
+        const hasProjectDocumentsHint = Boolean(body?.projectId) || ragTelemetry.length > 0 || attachments.length > 0;
+        const hasProjectMemoryHint = Boolean(projectMemory && projectMemory.trim());
+        const hasWebIntentHint = Boolean(capabilityPlan?.capabilities?.needsWeb);
+
+        const evidence = detectEvidenceNeed({
+          userMessage: message,
+          language,
+          hasRagSources: hasRagSourcesHint,
+          hasProjectDocuments: hasProjectDocumentsHint,
+          hasProjectMemory: hasProjectMemoryHint,
+          hasWebIntent: hasWebIntentHint,
+          capabilitySignals: capabilityPlan?.capabilities || null,
+          orchestratorSignals: null,
+          attachments
+        });
+        const plan = planEvidence({
+          evidence,
+          hasRagSources: hasRagSourcesHint,
+          hasProjectDocuments: hasProjectDocumentsHint,
+          hasProjectMemory: hasProjectMemoryHint,
+          webAvailable: true,
+          ragAvailable: true
+        });
+        const policy = buildSourcePolicy({ evidence, plan, language });
+        sourcePlan = { evidence, plan, policy };
+
+        const sourceMeta = {
+          evidenceNeed: evidence.evidenceNeed,
+          riskLevel: evidence.riskLevel,
+          sourceRequirement: evidence.sourceRequirement,
+          confidence: evidence.confidence,
+          useRag: plan.useRag,
+          useWeb: plan.useWeb,
+          forceWeb: plan.forceWeb,
+          forceRag: plan.forceRag,
+          requireCitations: plan.requireCitations,
+          forbidUnsupportedNumbers: plan.forbidUnsupportedNumbers,
+          fallbackBehavior: plan.fallbackBehavior,
+          reasons: evidence.reasons
+        };
+        queueAiEvent(ctx, env, request, { event_type: 'source_evidence_detected', event_value: evidence.evidenceNeed, language, page_url: pageUrl, session_id: sessionId, meta: sourceMeta });
+        queueAiEvent(ctx, env, request, { event_type: 'source_plan_created', event_value: evidence.sourceRequirement, language, page_url: pageUrl, session_id: sessionId, meta: sourceMeta });
+        queueAiEvent(ctx, env, request, { event_type: 'source_policy_built', event_value: plan.fallbackBehavior, language, page_url: pageUrl, session_id: sessionId, meta: sourceMeta });
+        if (plan.forceWeb) {
+          queueAiEvent(ctx, env, request, { event_type: 'source_web_forced', event_value: evidence.sourceRequirement, language, page_url: pageUrl, session_id: sessionId, meta: sourceMeta });
+        }
+        if (plan.forceRag) {
+          queueAiEvent(ctx, env, request, { event_type: 'source_rag_forced', event_value: evidence.sourceRequirement, language, page_url: pageUrl, session_id: sessionId, meta: sourceMeta });
+        }
+        if (plan.askClarifyingQuestion) {
+          queueAiEvent(ctx, env, request, { event_type: 'source_clarification_required', event_value: evidence.sourceRequirement, language, page_url: pageUrl, session_id: sessionId, meta: sourceMeta });
+        }
+      } catch (error) {
+        console.warn('source_planner_failed', error instanceof Error ? error.message : String(error));
+        sourcePlan = null;
+        queueAiEvent(ctx, env, request, {
+          event_type: 'source_planner_error',
+          event_value: 'source_planner_failed',
+          language, page_url: pageUrl, session_id: sessionId,
+          meta: { error: compactText(error instanceof Error ? error.message : String(error), 300) }
+        });
+      }
+    }
+
+    // ── Execution Planner (Lot 10) ───────────────────────────────────────
+    // Couche centrale de coordination, JUSTE APRES le Source Planner et
+    // AVANT decideWebSearch/RAG/Prompt Orchestrator :
+    //
+    //   ... -> Capability Planner -> Source Planner -> Execution Planner ->
+    //   Prompt Orchestrator -> Dynamic Model Selection -> Model Router ->
+    //   LLM -> Completion Guard -> Response Quality Controller -> Renderer
+    //
+    // Fusionne et arbitre les signaux du Capability Planner et du Source
+    // Planner en UN plan d'execution unique (source de verite). Le Prompt
+    // Orchestrator n'a pas encore tourne a ce stade du pipeline : il est
+    // toujours passe a null ici (orchestratorPlan n'existe qu'apres ce
+    // point) — l'arbitrage repose donc sur Capability Planner + Source
+    // Planner, exactement les deux entrees deja disponibles a cet instant.
+    // Flag-gate (EXECUTION_PLANNER_ENABLED, defaut: desactive) + try/catch :
+    // toute erreur ou flag desactive => executionPlan reste null et TOUT le
+    // reste du pipeline se comporte exactement comme avant ce Lot.
+    let executionPlan = null;
+    if (isExecutionPlannerEnabled(env)) {
+      try {
+        const intent = buildExecutionIntent({
+          userMessage: message,
+          language,
+          capabilityPlan,
+          sourcePlan,
+          orchestratorPlan: null,
+          runtimeContext: { ragAvailable: true, webAvailable: true },
+          projectContext: body?.projectId ? { projectId: body.projectId } : null,
+          webDecision: null,
+          ragTelemetry,
+          providerStatus: null
+        });
+        const plan = resolveExecutionPlan({ intent, capabilityPlan, sourcePlan, runtimeContext: { ragAvailable: true, webAvailable: true } });
+        const policy = buildExecutionPolicy({ intent, plan, language });
+        executionPlan = { intent, plan, policy };
+
+        const executionMeta = {
+          primaryGoal: intent.primaryGoal,
+          answerMode: intent.answerMode,
+          evidenceMode: intent.evidenceMode,
+          modelMode: intent.modelMode,
+          outputMode: intent.outputMode,
+          riskLevel: intent.riskLevel,
+          complexity: intent.complexity,
+          useWeb: plan.useWeb,
+          useRag: plan.useRag,
+          requireCitations: plan.requireCitations,
+          preferredModelTier: plan.preferredModelTier,
+          preferredMaxTokens: plan.preferredMaxTokens,
+          maxContinuations: plan.maxContinuations,
+          rqcStrictness: plan.rqcStrictness,
+          fallbackBehavior: plan.fallbackBehavior,
+          pipeline: plan.pipeline,
+          confidence: plan.confidence,
+          reasons: plan.reasons
+        };
+        queueAiEvent(ctx, env, request, { event_type: 'execution_intent_built', event_value: intent.primaryGoal, language, page_url: pageUrl, session_id: sessionId, meta: executionMeta });
+        queueAiEvent(ctx, env, request, { event_type: 'execution_plan_resolved', event_value: plan.preferredModelTier, language, page_url: pageUrl, session_id: sessionId, meta: executionMeta });
+        queueAiEvent(ctx, env, request, { event_type: 'execution_policy_built', event_value: plan.fallbackBehavior, language, page_url: pageUrl, session_id: sessionId, meta: executionMeta });
+      } catch (error) {
+        console.warn('execution_planner_failed', error instanceof Error ? error.message : String(error));
+        executionPlan = null;
+        queueAiEvent(ctx, env, request, {
+          event_type: 'execution_planner_error',
+          event_value: 'execution_planner_failed',
+          language, page_url: pageUrl, session_id: sessionId,
+          meta: { error: compactText(error instanceof Error ? error.message : String(error), 300) }
+        });
+      }
+    }
+
     const webSearchDecision = await decideWebSearch({
       message,
       body,
@@ -1841,7 +2080,18 @@ export default {
       hasFileContext,
       attachments
     });
-    const shouldSearchWeb = webSearchDecision.shouldSearch;
+    // Lot 9 : si le Source Planner a determine que le web est OBLIGATOIRE
+    // (sources factuelles/tarifaires/recentes), il rend la recherche web
+    // obligatoire meme si l'ancien detecteur l'aurait jugee superflue — sans
+    // jamais la retirer si elle etait deja jugee necessaire. Pur OR additif,
+    // donc sans effet quand sourcePlan est null (flag desactive/erreur).
+    // Lot 10 : l'Execution Planner devient la source de verite finale pour
+    // forceWeb quand il est actif (il a deja arbitre les signaux Capability
+    // Planner + Source Planner) ; sinon on retombe sur le Source Planner
+    // seul (Lot 9), puis sur la decision historique (comportement inchange
+    // si les deux flags sont desactives).
+    const shouldSearchWeb = webSearchDecision.shouldSearch
+      || Boolean(executionPlan ? executionPlan.plan.forceWeb : sourcePlan?.plan?.forceWeb);
     if (!shouldSearchWeb) {
       tavilyRuntimeStats.skipped += 1;
     }
@@ -1896,8 +2146,20 @@ export default {
     let orchestratorIntent = null;
     if (isOrchestratorEnabled(env)) {
       try {
-        const hasRagSources = ragTelemetry.some((evt) => ['rag_match', 'rag_context_used'].includes(evt?.event_type));
-        const hasWebIntent = Boolean(shouldSearchWeb || webSearchDecision?.intent?.explicit || webSearchDecision?.intent?.mandatory);
+        // Signaux additifs (OR) issus du Capability Planner (Lot 8), du
+        // Source Planner (Lot 9) et de l'Execution Planner (Lot 10, source
+        // de verite finale quand actif) : ne peuvent qu'AJOUTER un signal
+        // rag/web, jamais en retirer un deja detecte par les systemes
+        // existants — tous ces plans sont null si leur flag est desactive
+        // ou en cas d'erreur, donc comportement identique a avant ces Lots.
+        const hasRagSources = ragTelemetry.some((evt) => ['rag_match', 'rag_context_used'].includes(evt?.event_type))
+          || Boolean(capabilityPlan?.capabilities?.needsRag)
+          || Boolean(sourcePlan?.plan?.useRag || sourcePlan?.plan?.forceRag)
+          || Boolean(executionPlan?.plan?.useRag || executionPlan?.plan?.forceRag);
+        const hasWebIntent = Boolean(shouldSearchWeb || webSearchDecision?.intent?.explicit || webSearchDecision?.intent?.mandatory)
+          || Boolean(capabilityPlan?.capabilities?.needsWeb)
+          || Boolean(sourcePlan?.plan?.useWeb || sourcePlan?.plan?.forceWeb)
+          || Boolean(executionPlan?.plan?.useWeb || executionPlan?.plan?.forceWeb);
         const projectContext = projectMemory ? { hasMemory: true } : (body?.projectId ? { projectId: body.projectId } : null);
 
         const intent = detectUserIntent({ userMessage: message, projectContext, hasRagSources, hasWebIntent, language });
@@ -1945,7 +2207,16 @@ export default {
       }
     }
 
-    let finalSystemPrompt = promptBasePrompt + pilotageBlock;
+    // Lot 9/10 : politique de sources injectee comme bloc additionnel du
+    // prompt systeme (meme pattern que pilotageBlock). Quand l'Execution
+    // Planner est actif, sa politique CONSOLIDEE (Capability + Source)
+    // prend le pas sur celle du Source Planner seul — c'est la "politique
+    // consolidee" attendue par le Prompt Orchestrator (cf. regle 3). Sans
+    // executionPlan (flag desactive/erreur), comportement Lot 9 inchange.
+    const sourcePolicyBlock = executionPlan?.policy?.policyText
+      ? ` ${executionPlan.policy.policyText}`
+      : (sourcePlan?.policy?.policyText ? ` ${sourcePlan.policy.policyText}` : '');
+    let finalSystemPrompt = promptBasePrompt + pilotageBlock + sourcePolicyBlock;
     let webSearchResults = [];
     let webSearchRawResults = [];
     let webSearchAnswer = '';
@@ -2367,12 +2638,71 @@ export default {
     // Quand l'orchestrateur a planifie, on aligne tokens/temperature sur son
     // plan (borne au plafond 2200 / plancher DEFAULT_MAX_TOKENS deja garantis
     // par le routeur). Sinon, comportement actuel inchange.
-    const effectiveMaxTokens = orchestratorPlan
-      ? Math.min(Math.max(Number(orchestratorPlan.maxTokensHint) || maxTokens, DEFAULT_MAX_TOKENS), 2200)
-      : maxTokens;
-    const effectiveTemperature = orchestratorPlan && Number.isFinite(orchestratorPlan.temperatureHint)
-      ? orchestratorPlan.temperatureHint
-      : 0.35;
+    //
+    // Lot 10 : l'Execution Planner devient la source de verite finale pour
+    // preferredModelTier/maxTokens/temperature/maxContinuations quand il est
+    // actif (il a deja arbitre Capability Planner vs Source Planner selon
+    // les regles de priorite documentees dans executionPlanner.js). A
+    // defaut (flag desactive ou erreur), on retombe exactement sur la
+    // cascade Lot 8/9 existante — comportement identique a avant ce Lot.
+    const effectiveMaxTokens = executionPlan
+      ? Math.min(Math.max(Number(executionPlan.plan.preferredMaxTokens) || maxTokens, DEFAULT_MAX_TOKENS), 2200)
+      : capabilityPlan
+        ? Math.min(Math.max(Number(capabilityPlan.plan.preferredMaxTokens) || maxTokens, DEFAULT_MAX_TOKENS), 2200)
+        : orchestratorPlan
+          ? Math.min(Math.max(Number(orchestratorPlan.maxTokensHint) || maxTokens, DEFAULT_MAX_TOKENS), 2200)
+          : maxTokens;
+    const effectiveTemperature = executionPlan && Number.isFinite(executionPlan.plan.temperature)
+      ? executionPlan.plan.temperature
+      : (capabilityPlan && Number.isFinite(capabilityPlan.plan.temperature)
+        ? capabilityPlan.plan.temperature
+        : (orchestratorPlan && Number.isFinite(orchestratorPlan.temperatureHint)
+          ? orchestratorPlan.temperatureHint
+          : 0.35));
+    let effectiveModelTier = executionPlan?.plan?.preferredModelTier
+      || capabilityPlan?.plan?.preferredModelTier
+      || orchestratorPlan?.preferredModelTier;
+
+    // Lot 9 (repli si l'Execution Planner est desactive) : un besoin de
+    // preuve "mandatory" ou un risque "critical" justifie un modele plus
+    // capable qu'un tier "fast" — sauf question courte. Quand l'Execution
+    // Planner est actif, cette regle est deja appliquee dans
+    // resolveExecutionPlan() ; ce bloc ne s'execute donc que dans le cas de
+    // repli (executionPlan null), pour ne rien changer au comportement
+    // Lot 9 existant dans ce cas.
+    const isShortQuestion = message.trim().split(/\s+/).filter(Boolean).length <= 8;
+    if (!executionPlan && sourcePlan && effectiveModelTier === 'fast' && !isShortQuestion) {
+      const { evidenceNeed, riskLevel } = sourcePlan.evidence || {};
+      if (evidenceNeed === 'mandatory' || riskLevel === 'critical') {
+        effectiveModelTier = 'balanced';
+      }
+    }
+
+    // expectedAnswerLength -> budget de continuations du Completion Guard
+    // (DEFAULT_MAX_CONTINUATIONS=2, HARD_MAX_CONTINUATIONS=3, cf.
+    // completionGuard.js) : une reponse courte n'a quasiment jamais besoin de
+    // continuation, une reponse longue beneficie du plafond complet. Lot 10 :
+    // l'Execution Planner fournit directement maxContinuations (deja borne).
+    const maxContinuationsHint = executionPlan
+      ? executionPlan.plan.maxContinuations
+      : (capabilityPlan
+        ? ({ short: 1, medium: 2, long: 3 }[capabilityPlan.executionPlan.expectedAnswerLength] ?? undefined)
+        : undefined);
+
+    if (executionPlan) {
+      queueAiEvent(ctx, env, request, {
+        event_type: 'execution_plan_applied',
+        event_value: effectiveModelTier,
+        language, page_url: pageUrl, session_id: sessionId,
+        meta: {
+          preferredModelTier: effectiveModelTier,
+          preferredMaxTokens: effectiveMaxTokens,
+          temperature: effectiveTemperature,
+          maxContinuations: maxContinuationsHint,
+          shouldSearchWeb
+        }
+      });
+    }
 
     const routerResult = await routeChatCompletion({
       messages: conversationMessages,
@@ -2382,7 +2712,8 @@ export default {
       temperature: effectiveTemperature,
       env,
       metadata: { language, allowedOrigin },
-      modelTier: orchestratorPlan?.preferredModelTier,
+      modelTier: effectiveModelTier,
+      maxContinuationsHint,
       onEvent: onRouterEvent
     });
 
@@ -2516,7 +2847,32 @@ export default {
           requiresTable: orchestratorIntent?.requiresTable,
           requiresSources: orchestratorIntent?.requiresSources,
           needsRag: orchestratorIntent?.needsRag,
-          needsWeb: orchestratorIntent?.needsWeb
+          needsWeb: orchestratorIntent?.needsWeb,
+          // Lot 8 (Capability Planner) : champs additifs, non consommes par
+          // analyzeResponseQuality() aujourd'hui (donc aucun changement de
+          // comportement/score), exposes pour permettre a la logique RQC de
+          // s'en servir plus finement dans un lot ulterieur sans avoir a
+          // retoucher ce point d'integration.
+          expectedAnswerLength: capabilityPlan?.executionPlan?.expectedAnswerLength,
+          needsTableHint: capabilityPlan?.capabilities?.needsTable,
+          needsSourcesHint: capabilityPlan?.capabilities?.needsSources,
+          needsMarkdownHint: capabilityPlan?.capabilities?.needsMarkdown,
+          // Lot 9 (Source Planner) : memes garanties — champs additifs, non
+          // consommes par analyzeResponseQuality() aujourd'hui, donc aucun
+          // changement de score/action RQC. Le controle reel "citations
+          // exigees mais aucune source utilisee" est fait explicitement
+          // ci-dessous (cf. source_evidence_missing), sans toucher au coeur
+          // du RQC.
+          requireCitationsHint: executionPlan ? executionPlan.plan.requireCitations : sourcePlan?.plan?.requireCitations,
+          requireSourcesHint: sourcePlan?.evidence?.evidenceNeed,
+          forbidUnsupportedNumbersHint: executionPlan ? executionPlan.plan.forbidUnsupportedNumbers : sourcePlan?.plan?.forbidUnsupportedNumbers,
+          sourcePriorityHint: sourcePlan?.policy?.sourcePriority,
+          // Lot 10 : hints additifs, non consommes par analyzeResponseQuality()
+          // aujourd'hui (donc aucun changement de score/action RQC) — la
+          // "rigueur RQC" et l'"export readiness" consolidees sont exposees
+          // pour un lot ulterieur, sans avoir a retoucher ce point d'integration.
+          rqcStrictnessHint: executionPlan?.plan?.rqcStrictness,
+          exportPolicyHint: executionPlan?.plan?.exportPolicy
         };
         const rqcLogMeta = (extra = {}) => ({
           intent: orchestratorIntent?.primaryIntent || '',
@@ -2544,6 +2900,20 @@ export default {
           language, page_url: pageUrl, session_id: sessionId,
           meta: rqcLogMeta({ score: rqcAnalysis.score, grade: rqcAnalysis.grade, issues: rqcAnalysis.issues, action: rqcAction })
         });
+
+        // Lot 9 : citations exigees par le Source Planner mais aucune source
+        // reellement mobilisee pour cette reponse (ni RAG ni web) -> reponse
+        // a considerer degradee. On ne modifie pas rqcAction/reply (risque
+        // de regression sur le RQC, deja teste/verrouille) : on journalise
+        // uniquement, pour visibilite back-office (cf. carte Source Planner).
+        if (sourcePlan?.plan?.requireCitations && !hasRagSources && !webSearchPerformed) {
+          queueAiEvent(ctx, env, request, {
+            event_type: 'source_evidence_missing',
+            event_value: sourcePlan.evidence.sourceRequirement,
+            language, page_url: pageUrl, session_id: sessionId,
+            meta: { evidenceNeed: sourcePlan.evidence.evidenceNeed, riskLevel: sourcePlan.evidence.riskLevel, fallbackBehavior: sourcePlan.plan.fallbackBehavior }
+          });
+        }
 
         // RETRY_FULL : reponse vide/irrecuperable -> regeneration complete.
         // Meme modele (pin via OPENROUTER_MODEL pour la chaine OpenRouter),

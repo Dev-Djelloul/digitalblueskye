@@ -405,6 +405,41 @@ function parseEventMeta(row) {
   }
 }
 
+// Source unique des event_type Tavily reconnus — utilisee a la fois pour le
+// filtrage SQL (IN clause) et les filtres JS, afin d'eviter toute liste
+// dupliquee/desynchronisee entre les differentes fonctions de stats.
+const WEB_SEARCH_EVENT_TYPES = new Set([
+  "web_search",
+  "web_search_requested",
+  "web_search_success",
+  "web_search_error",
+  "web_search_cached",
+  "web_search_deduplicated",
+  "web_search_skipped",
+]);
+
+function isWebSearchEventType(eventType) {
+  return WEB_SEARCH_EVENT_TYPES.has(String(eventType || "").trim().toLowerCase());
+}
+
+// Statut humain normalise pour un event_type Tavily — evite de dupliquer la
+// meme cascade de comparaisons dans chaque fonction qui affiche un "dernier
+// statut" Tavily.
+function getWebSearchStatus(eventType) {
+  const type = String(eventType || "").trim().toLowerCase();
+  if (type === "web_search_success") return "success";
+  if (type === "web_search_error") return "error";
+  if (type === "web_search_cached") return "cached";
+  if (type === "web_search_deduplicated") return "deduplicated";
+  if (type === "web_search_skipped") return "skipped";
+  if (type === "web_search_requested" || type === "web_search") return "requested";
+  return "unknown";
+}
+
+function webSearchEventTypesSqlList() {
+  return Array.from(WEB_SEARCH_EVENT_TYPES).map((type) => `'${type}'`).join(", ");
+}
+
 // D1/JSON peut renvoyer un booleen comme true, 1, "1" ou "true" selon le
 // chemin de serialisation (json_extract SQLite renvoie parfois un entier
 // pour un booleen). On accepte toutes ces formes equivalentes a "vrai".
@@ -718,6 +753,212 @@ function buildPromptOrchestratorStatsFromEvents(rows) {
   };
 }
 
+// Statistiques Capability Planner (cf. cloudflare/capabilityPlanner.js, Lot
+// 8) a partir des evenements capability_detected / capability_plan_created /
+// capability_pipeline_built / capability_error. Meme pattern que
+// buildPromptOrchestratorStatsFromEvents — aucun impact sur les autres
+// agregations.
+function buildCapabilityPlannerStatsFromEvents(rows) {
+  const eventRows = Array.isArray(rows) ? rows : [];
+  const detections = eventRows.filter((row) => row.event_type === "capability_detected");
+  const plans = eventRows.filter((row) => row.event_type === "capability_plan_created");
+  const pipelines = eventRows.filter((row) => row.event_type === "capability_pipeline_built");
+  const errors = eventRows.filter((row) => row.event_type === "capability_error");
+
+  // rows triees created_at DESC : premier = plus recent. Les 3 evenements
+  // d'une meme requete partagent le meme objet meta (cf. worker-openrouter.js),
+  // donc n'importe lequel des trois donne la derniere analyse complete.
+  const lastMeta = detections[0] ? parseEventMeta(detections[0]) : (plans[0] ? parseEventMeta(plans[0]) : null);
+
+  const countBy = (rowsList, key) => {
+    const map = new Map();
+    rowsList.forEach((row) => {
+      const value = parseEventMeta(row)[key] || row.event_value || "";
+      if (!value) return;
+      map.set(value, (map.get(value) || 0) + 1);
+    });
+    return Array.from(map.entries()).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count);
+  };
+
+  // Repartition des capacites detectees (needsRag/needsWeb/needsTable/...) —
+  // compte, pour chaque requete analysee, combien de capacites "vraies" ont
+  // ete detectees, regroupees par capacite individuelle.
+  const CAPABILITY_KEYS = [
+    "needsRag", "needsWeb", "needsTable", "needsSources", "needsMarkdown",
+    "needsExport", "needsLongAnswer",
+  ];
+  const capabilityBreakdown = CAPABILITY_KEYS.map((key) => ({
+    name: key,
+    count: detections.filter((row) => parseEventMeta(row)[key] === true).length,
+  })).sort((a, b) => b.count - a.count);
+
+  const total = detections.length;
+  const errorRate = total + errors.length > 0
+    ? Math.round((errors.length / (total + errors.length)) * 1000) / 10
+    : 0;
+
+  return {
+    analyses_count: total,
+    error_count: errors.length,
+    error_rate: errorRate,
+    last_complexity: lastMeta?.complexity || "",
+    last_pipeline: Array.isArray(lastMeta?.pipeline) ? lastMeta.pipeline : (pipelines[0] ? String(pipelines[0].event_value || "").split(" > ") : []),
+    last_model_tier: lastMeta?.preferredModelTier || "",
+    last_max_tokens: lastMeta?.preferredMaxTokens ?? null,
+    last_estimated_latency_ms: lastMeta?.estimatedLatency ?? null,
+    last_estimated_cost: lastMeta?.estimatedCost ?? null,
+    last_expected_answer_length: lastMeta?.expectedAnswerLength || "",
+    last_confidence: lastMeta?.confidence ?? null,
+    last_at: detections[0]?.created_at || null,
+    top_tiers: countBy(plans, "preferredModelTier").slice(0, 6),
+    capability_breakdown: capabilityBreakdown,
+  };
+}
+
+// Statistiques Source Planner / Evidence Planner (cf.
+// cloudflare/sourcePlanner.js, Lot 9) a partir des evenements
+// source_evidence_detected / source_plan_created / source_policy_built /
+// source_web_forced / source_rag_forced / source_clarification_required /
+// source_planner_error. Meme pattern que buildCapabilityPlannerStatsFromEvents.
+function buildSourcePlannerStatsFromEvents(rows) {
+  const eventRows = Array.isArray(rows) ? rows : [];
+  const detections = eventRows.filter((row) => row.event_type === "source_evidence_detected");
+  const plans = eventRows.filter((row) => row.event_type === "source_plan_created");
+  const webForced = eventRows.filter((row) => row.event_type === "source_web_forced");
+  const ragForced = eventRows.filter((row) => row.event_type === "source_rag_forced");
+  const clarifications = eventRows.filter((row) => row.event_type === "source_clarification_required");
+  const errors = eventRows.filter((row) => row.event_type === "source_planner_error");
+
+  // rows triees created_at DESC : premier = plus recent.
+  const lastMeta = detections[0] ? parseEventMeta(detections[0]) : (plans[0] ? parseEventMeta(plans[0]) : null);
+
+  const countBy = (rowsList, key) => {
+    const map = new Map();
+    rowsList.forEach((row) => {
+      const value = parseEventMeta(row)[key] || row.event_value || "";
+      if (!value) return;
+      map.set(value, (map.get(value) || 0) + 1);
+    });
+    return Array.from(map.entries()).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count);
+  };
+
+  const topReasons = (() => {
+    const map = new Map();
+    detections.forEach((row) => {
+      const reasons = parseEventMeta(row).reasons || {};
+      Object.values(reasons).forEach((list) => {
+        (Array.isArray(list) ? list : []).forEach((reason) => {
+          map.set(reason, (map.get(reason) || 0) + 1);
+        });
+      });
+    });
+    return Array.from(map.entries()).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count).slice(0, 8);
+  })();
+
+  const total = detections.length;
+  const errorRate = total + errors.length > 0
+    ? Math.round((errors.length / (total + errors.length)) * 1000) / 10
+    : 0;
+
+  return {
+    analyses_count: total,
+    error_count: errors.length,
+    error_rate: errorRate,
+    last_evidence_need: lastMeta?.evidenceNeed || "",
+    last_risk_level: lastMeta?.riskLevel || "",
+    last_source_requirement: lastMeta?.sourceRequirement || "",
+    last_use_web: lastMeta ? Boolean(lastMeta.useWeb) : null,
+    last_use_rag: lastMeta ? Boolean(lastMeta.useRag) : null,
+    last_force_web: lastMeta ? Boolean(lastMeta.forceWeb) : null,
+    last_force_rag: lastMeta ? Boolean(lastMeta.forceRag) : null,
+    last_require_citations: lastMeta ? Boolean(lastMeta.requireCitations) : null,
+    last_forbid_unsupported_numbers: lastMeta ? Boolean(lastMeta.forbidUnsupportedNumbers) : null,
+    last_fallback_behavior: lastMeta?.fallbackBehavior || "",
+    last_confidence: lastMeta?.confidence ?? null,
+    last_at: detections[0]?.created_at || null,
+    web_forced_count: webForced.length,
+    rag_forced_count: ragForced.length,
+    clarification_required_count: clarifications.length,
+    top_reasons: topReasons,
+    evidence_need_breakdown: countBy(detections, "evidenceNeed"),
+    risk_level_breakdown: countBy(detections, "riskLevel"),
+  };
+}
+
+// Statistiques Execution Planner (cf. cloudflare/executionPlanner.js, Lot
+// 10) a partir des evenements execution_intent_built / execution_plan_resolved
+// / execution_policy_built / execution_plan_applied / execution_planner_error.
+// Meme pattern que buildCapabilityPlannerStatsFromEvents/buildSourcePlannerStatsFromEvents.
+function buildExecutionPlannerStatsFromEvents(rows) {
+  const eventRows = Array.isArray(rows) ? rows : [];
+  const intents = eventRows.filter((row) => row.event_type === "execution_intent_built");
+  const resolved = eventRows.filter((row) => row.event_type === "execution_plan_resolved");
+  const applied = eventRows.filter((row) => row.event_type === "execution_plan_applied");
+  const errors = eventRows.filter((row) => row.event_type === "execution_planner_error");
+
+  // rows triees created_at DESC : premier = plus recent.
+  const lastMeta = intents[0] ? parseEventMeta(intents[0]) : (resolved[0] ? parseEventMeta(resolved[0]) : null);
+
+  const countBy = (rowsList, key) => {
+    const map = new Map();
+    rowsList.forEach((row) => {
+      const value = parseEventMeta(row)[key] || row.event_value || "";
+      if (!value) return;
+      map.set(value, (map.get(value) || 0) + 1);
+    });
+    return Array.from(map.entries()).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count);
+  };
+
+  const topReasons = (() => {
+    const map = new Map();
+    intents.forEach((row) => {
+      const reasons = parseEventMeta(row).reasons;
+      if (Array.isArray(reasons)) {
+        reasons.forEach((reason) => map.set(reason, (map.get(reason) || 0) + 1));
+      } else if (reasons && typeof reasons === "object") {
+        Object.values(reasons).forEach((list) => {
+          (Array.isArray(list) ? list : []).forEach((reason) => map.set(reason, (map.get(reason) || 0) + 1));
+        });
+      }
+    });
+    return Array.from(map.entries()).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count).slice(0, 8);
+  })();
+
+  const total = intents.length;
+  const errorRate = total + errors.length > 0
+    ? Math.round((errors.length / (total + errors.length)) * 1000) / 10
+    : 0;
+
+  return {
+    plans_created_count: total,
+    error_count: errors.length,
+    error_rate: errorRate,
+    last_primary_goal: lastMeta?.primaryGoal || "",
+    last_answer_mode: lastMeta?.answerMode || "",
+    last_evidence_mode: lastMeta?.evidenceMode || "",
+    last_model_mode: lastMeta?.modelMode || "",
+    last_output_mode: lastMeta?.outputMode || "",
+    last_risk_level: lastMeta?.riskLevel || "",
+    last_complexity: lastMeta?.complexity || "",
+    last_pipeline: Array.isArray(lastMeta?.pipeline) ? lastMeta.pipeline : [],
+    last_model_tier: lastMeta?.preferredModelTier || "",
+    last_max_tokens: lastMeta?.preferredMaxTokens ?? null,
+    last_max_continuations: lastMeta?.maxContinuations ?? null,
+    last_rqc_strictness: lastMeta?.rqcStrictness || "",
+    last_use_web: lastMeta ? Boolean(lastMeta.useWeb) : null,
+    last_use_rag: lastMeta ? Boolean(lastMeta.useRag) : null,
+    last_require_citations: lastMeta ? Boolean(lastMeta.requireCitations) : null,
+    last_fallback_behavior: lastMeta?.fallbackBehavior || "",
+    last_confidence: lastMeta?.confidence ?? null,
+    last_at: intents[0]?.created_at || null,
+    applied_count: applied.length,
+    top_reasons: topReasons,
+    answer_mode_breakdown: countBy(intents, "answerMode"),
+    evidence_mode_breakdown: countBy(intents, "evidenceMode"),
+    model_mode_breakdown: countBy(intents, "modelMode"),
+  };
+}
+
 function latestOpenRouterResponseInfo(rows) {
   const row = rows.find((item) => item?.event_type === "openrouter_response");
   if (!row) return null;
@@ -756,11 +997,11 @@ const TAVILY_DEFAULT_QUOTA = 1000;
 function buildTavilyUsageFromEvents(rows, aiHealthPayload, env) {
   const eventRows = Array.isArray(rows) ? rows : [];
   const runtime = aiHealthPayload?.tavily_usage || {};
-  const actualCallRows = eventRows.filter((row) => ["web_search_success", "web_search_error"].includes(row.event_type));
-  const successRows = eventRows.filter((row) => row.event_type === "web_search_success");
-  const cacheRows = eventRows.filter((row) => row.event_type === "web_search_cached");
-  const dedupeRows = eventRows.filter((row) => row.event_type === "web_search_deduplicated");
-  const skippedRows = eventRows.filter((row) => row.event_type === "web_search_skipped");
+  const actualCallRows = eventRows.filter((row) => ["success", "error"].includes(getWebSearchStatus(row.event_type)));
+  const successRows = eventRows.filter((row) => getWebSearchStatus(row.event_type) === "success");
+  const cacheRows = eventRows.filter((row) => getWebSearchStatus(row.event_type) === "cached");
+  const dedupeRows = eventRows.filter((row) => getWebSearchStatus(row.event_type) === "deduplicated");
+  const skippedRows = eventRows.filter((row) => getWebSearchStatus(row.event_type) === "skipped");
   const creditsFromEvents = actualCallRows.reduce((sum, row) => {
     const meta = parseEventMeta(row);
     const value = Number(meta.estimated_credits ?? meta.credits_estimated ?? 1);
@@ -805,8 +1046,8 @@ function buildTavilyUsageFromEvents(rows, aiHealthPayload, env) {
     quota_estimated_total: quota,
     quota_source: quotaSource,
     quota_estimated_used_percent: quotaUsedPercent,
-    daily_average: averagePerPeriod(eventRows, (row) => ["web_search_success", "web_search_error"].includes(row.event_type), 1),
-    weekly_average: averagePerPeriod(eventRows, (row) => ["web_search_success", "web_search_error"].includes(row.event_type), 7),
+    daily_average: averagePerPeriod(eventRows, (row) => ["success", "error"].includes(getWebSearchStatus(row.event_type)), 1),
+    weekly_average: averagePerPeriod(eventRows, (row) => ["success", "error"].includes(getWebSearchStatus(row.event_type)), 7),
     last_call_at: runtime.last_call_at || lastEvent?.at || null,
     last_latency_ms: runtime.last_latency_ms ?? lastEvent?.latency_ms ?? null,
     last_success_at: lastSuccessAt,
@@ -1302,6 +1543,20 @@ async function requireAdmin(request, env) {
   return null;
 }
 
+// Helper partage entre handleAdminSummary et buildAdminHealthPayload : evite
+// de dupliquer la requete dediee Tavily (filtree par event_type, donc jamais
+// starvee par le bruit des autres evenements de chat).
+async function fetchTavilyEventsWindow(env, limit = 500) {
+  const result = await env.DB.prepare(
+    `SELECT id, session_id, event_type, event_value, meta, created_at
+     FROM ai_assistant_events
+     WHERE event_type IN (${webSearchEventTypesSqlList()})
+     ORDER BY created_at DESC, id DESC
+     LIMIT ?`
+  ).bind(limit).all();
+  return result.results || [];
+}
+
 async function handleAdminSummary(request, env) {
   if (request.method !== "GET") {
     return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
@@ -1315,6 +1570,7 @@ async function handleAdminSummary(request, env) {
     contactMessages,
     consentLogs,
     aiEvents,
+    tavilyEvents,
   ] = await Promise.all([
     env.DB.prepare("SELECT COUNT(*) AS count FROM article_comments").first(),
     env.DB.prepare("SELECT COUNT(*) AS count FROM article_comments WHERE status = 'pending'").first(),
@@ -1323,7 +1579,15 @@ async function handleAdminSummary(request, env) {
     env.DB.prepare("SELECT COUNT(*) AS count FROM contact_messages").first(),
     env.DB.prepare("SELECT COUNT(*) AS count FROM consent_logs").first(),
     env.DB.prepare("SELECT COUNT(*) AS count FROM ai_assistant_events").first(),
+    fetchTavilyEventsWindow(env, 500),
   ]);
+
+  // tavily_usage est calcule a partir d'une requete dediee filtree par
+  // event_type Tavily (cf. fetchTavilyEventsWindow), jamais starvee par le
+  // bruit des autres evenements de chat — cf. buildAdminHealthPayload pour
+  // le detail du probleme que ce calcul corrige (carte Tavily vide alors que
+  // les evenements existent en base).
+  const tavilyUsage = buildTavilyUsageFromEvents(tavilyEvents, null, env);
 
   return jsonResponse(request, env, {
     ok: true,
@@ -1335,6 +1599,7 @@ async function handleAdminSummary(request, env) {
       contact_messages: Number(contactMessages?.count || 0),
       consent_logs: Number(consentLogs?.count || 0),
       ai_assistant_events: Number(aiEvents?.count || 0),
+      tavily_usage: tavilyUsage,
     },
   });
 }
@@ -1358,6 +1623,15 @@ async function buildAdminHealthPayload(request, env) {
      LIMIT 500`
   ).all();
 
+  // recentEventsPromise ci-dessus melange TOUS les types d'evenements
+  // (modele, RQC, RAG, etc. — un seul tour de chat peut en emettre 10-20),
+  // donc une fenetre globale de 500 lignes peut etre entierement consommee
+  // par du bruit de chat recent et ne plus contenir aucun evenement Tavily,
+  // meme si ceux-ci existent bien en base (cause du symptome "carte Tavily
+  // parfois vide"). fetchTavilyEventsWindow() garantit jusqu'a 500
+  // evenements Tavily recents, independamment du volume des autres types.
+  const tavilyEventsPromise = fetchTavilyEventsWindow(env, 500);
+
   const aiHealthPromise = fetchAiWorkerHealth(env, aiWorkerHealthUrl, aiHealthToken, 10000);
 
   const frontendHealthPromise = frontendOrigin && frontendOrigin.startsWith("http")
@@ -1366,6 +1640,7 @@ async function buildAdminHealthPayload(request, env) {
 
   const [
     recentEventsResult,
+    tavilyEvents,
     aiHealthResult,
     frontendHealthResult,
     conversationCount,
@@ -1379,11 +1654,12 @@ async function buildAdminHealthPayload(request, env) {
     averageWebSearchMs,
   ] = await Promise.all([
     recentEventsPromise,
+    tavilyEventsPromise,
     aiHealthPromise,
     frontendHealthPromise,
     firstCount(env, "SELECT COUNT(DISTINCT session_id) AS count FROM ai_assistant_events WHERE session_id IS NOT NULL AND session_id != ''"),
     firstCount(env, "SELECT COUNT(*) AS count FROM ai_assistant_events"),
-    firstCount(env, "SELECT COUNT(*) AS count FROM ai_assistant_events WHERE event_type IN ('web_search_requested', 'web_search_skipped', 'web_search_cached', 'web_search_deduplicated', 'web_search_success', 'web_search_error', 'web_search')"),
+    firstCount(env, `SELECT COUNT(*) AS count FROM ai_assistant_events WHERE event_type IN (${webSearchEventTypesSqlList()})`),
     firstCount(env, "SELECT COUNT(*) AS count FROM ai_assistant_events WHERE event_type = 'pdf_uploaded'"),
     firstCount(env, "SELECT COUNT(*) AS count FROM ai_assistant_events WHERE event_type = 'docx_uploaded'"),
     firstCount(env, "SELECT COUNT(*) AS count FROM ai_assistant_events WHERE event_type = 'xlsx_uploaded'"),
@@ -1419,11 +1695,14 @@ async function buildAdminHealthPayload(request, env) {
   const tavilyConfigured = aiHealthAvailable
     ? Boolean(aiHealthResult.payload?.configuration?.tavily_api_key_configured)
     : null;
-  const tavilyUsage = buildTavilyUsageFromEvents(recentEvents, aiHealthResult.payload, env);
+  const tavilyUsage = buildTavilyUsageFromEvents(tavilyEvents, aiHealthResult.payload, env);
   const ragUsage = buildRagUsageFromEvents(recentEvents);
   const openRouterModelStats = buildOpenRouterModelStatsFromEvents(recentEvents);
   const modelTierStats = buildModelTierStatsFromEvents(recentEvents);
   const promptOrchestratorStats = buildPromptOrchestratorStatsFromEvents(recentEvents);
+  const capabilityPlannerStats = buildCapabilityPlannerStatsFromEvents(recentEvents);
+  const sourcePlannerStats = buildSourcePlannerStatsFromEvents(recentEvents);
+  const executionPlannerStats = buildExecutionPlannerStatsFromEvents(recentEvents);
   const responseQualityStats = buildResponseQualityStatsFromEvents(recentEvents);
   const effectiveOpenRouterCheck = stabilizeOpenRouterCheck(openRouterCheck, openRouterConfigured, latestOpenRouterResponse);
   const openRouterOk = Boolean(effectiveOpenRouterCheck?.ok);
@@ -1670,6 +1949,12 @@ async function buildAdminHealthPayload(request, env) {
       model_tiers: modelTierStats,
       // Prompt Orchestrator (cf. cloudflare/promptOrchestrator.js).
       prompt_orchestrator: promptOrchestratorStats,
+      // Lot 8 — Capability Planner (cf. cloudflare/capabilityPlanner.js).
+      capability_planner: capabilityPlannerStats,
+      // Lot 9 — Source Planner / Evidence Planner (cf. cloudflare/sourcePlanner.js).
+      source_planner: sourcePlannerStats,
+      // Lot 10 — Execution Planner (cf. cloudflare/executionPlanner.js).
+      execution_planner: executionPlannerStats,
       // Lot 7 — Response Quality Controller (cf. cloudflare/responseQualityController.js).
       response_quality: responseQualityStats,
     },

@@ -2747,6 +2747,9 @@
         ${renderModelRouterCard(aiState.model_router)}
         ${renderModelTierCard(aiState.model_tiers)}
         ${renderPromptOrchestratorCard(aiState.prompt_orchestrator)}
+        ${renderCapabilityPlannerCard(aiState.capability_planner)}
+        ${renderSourcePlannerCard(aiState.source_planner)}
+        ${renderExecutionPlannerCard(aiState.execution_planner)}
         ${renderResponseQualityCard(aiState.response_quality)}
       `;
     }
@@ -2797,6 +2800,275 @@
             <table>
               <thead><tr><th>Intent</th><th>Occurrences</th></tr></thead>
               <tbody>${intentsRows}</tbody>
+            </table>
+          </div>
+        </article>
+      `;
+    }
+
+    // Capability Planner (cf. cloudflare/capabilityPlanner.js, Lot 8) :
+    // derniere analyse + pipeline previsionnel + repartition des capacites.
+    function renderCapabilityPlannerCard(stats = {}) {
+      const s = stats || {};
+      const pipeline = Array.isArray(s.last_pipeline) ? s.last_pipeline : [];
+      const pipelineLabel = pipeline.length ? pipeline.join(" → ") : "n/a";
+      const topTiers = Array.isArray(s.top_tiers) ? s.top_tiers : [];
+      const tiersRows = topTiers.length
+        ? topTiers.map((e) => `<tr><td>${escapeHtml(e.name)}</td><td>${e.count}</td></tr>`).join("")
+        : `<tr><td colspan="2">Aucun plan créé encore.</td></tr>`;
+      const breakdown = Array.isArray(s.capability_breakdown) ? s.capability_breakdown : [];
+      const breakdownRows = breakdown.length
+        ? breakdown.map((e) => `<tr><td>${escapeHtml(e.name)}</td><td>${e.count}</td></tr>`).join("")
+        : `<tr><td colspan="2">Aucune capacité détectée encore.</td></tr>`;
+      return `
+        <article class="health-card">
+          <h2>Capability Planner</h2>
+          <div class="health-ai-grid">
+            <article class="health-ai-tile">
+              <span>Dernière analyse</span>
+              <strong>${escapeHtml(s.last_complexity || "n/a")}</strong>
+              <small>${escapeHtml(formatDate(s.last_at) || "n/a")}</small>
+            </article>
+            <article class="health-ai-tile">
+              <span>Pipeline prévu</span>
+              <strong>${escapeHtml(pipelineLabel)}</strong>
+            </article>
+            <article class="health-ai-tile">
+              <span>Tier conseillé</span>
+              <strong>${escapeHtml(s.last_model_tier || "n/a")}</strong>
+              <small>tokens estimés : ${escapeHtml(s.last_max_tokens ?? "n/a")}</small>
+            </article>
+            <article class="health-ai-tile">
+              <span>Temps estimé</span>
+              <strong>${escapeHtml(formatMs(s.last_estimated_latency_ms))}</strong>
+              <small>longueur attendue : ${escapeHtml(s.last_expected_answer_length || "n/a")}</small>
+            </article>
+            <article class="health-ai-tile">
+              <span>Coût estimé</span>
+              <strong>${escapeHtml(s.last_estimated_cost ?? "n/a")}</strong>
+              <small>unité relative (pas une devise)</small>
+            </article>
+            <article class="health-ai-tile">
+              <span>Confiance</span>
+              <strong>${escapeHtml(s.last_confidence != null ? formatPercent(s.last_confidence * 100) : "n/a")}</strong>
+            </article>
+            <article class="health-ai-tile">
+              <span>Analyses effectuées</span>
+              <strong>${escapeHtml(s.analyses_count ?? 0)}</strong>
+            </article>
+            <article class="health-ai-tile">
+              <span>Taux d'erreurs</span>
+              <strong>${escapeHtml(s.error_rate ?? 0)}%</strong>
+              <small>${escapeHtml(s.error_count ?? 0)} erreur(s)</small>
+            </article>
+          </div>
+          <h3>Top tiers conseillés</h3>
+          <div class="table-wrap health-table-wrapper">
+            <table>
+              <thead><tr><th>Tier</th><th>Occurrences</th></tr></thead>
+              <tbody>${tiersRows}</tbody>
+            </table>
+          </div>
+          <h3>Répartition des capacités</h3>
+          <div class="table-wrap health-table-wrapper">
+            <table>
+              <thead><tr><th>Capacité</th><th>Occurrences</th></tr></thead>
+              <tbody>${breakdownRows}</tbody>
+            </table>
+          </div>
+        </article>
+      `;
+    }
+
+    // Source Planner / Evidence Planner (cf. cloudflare/sourcePlanner.js,
+    // Lot 9) : derniere decision + repartition besoin de preuve / risque.
+    function renderSourcePlannerCard(stats = {}) {
+      const s = stats || {};
+      const yesNo = (v) => (v === true ? "Oui" : v === false ? "Non" : "n/a");
+      const topReasons = Array.isArray(s.top_reasons) ? s.top_reasons : [];
+      const reasonsRows = topReasons.length
+        ? topReasons.map((e) => `<tr><td>${escapeHtml(e.name)}</td><td>${e.count}</td></tr>`).join("")
+        : `<tr><td colspan="2">Aucune raison détectée encore.</td></tr>`;
+      const evidenceBreakdown = Array.isArray(s.evidence_need_breakdown) ? s.evidence_need_breakdown : [];
+      const evidenceRows = evidenceBreakdown.length
+        ? evidenceBreakdown.map((e) => `<tr><td>${escapeHtml(e.name)}</td><td>${e.count}</td></tr>`).join("")
+        : `<tr><td colspan="2">Aucune analyse encore.</td></tr>`;
+      const riskBreakdown = Array.isArray(s.risk_level_breakdown) ? s.risk_level_breakdown : [];
+      const riskRows = riskBreakdown.length
+        ? riskBreakdown.map((e) => `<tr><td>${escapeHtml(e.name)}</td><td>${e.count}</td></tr>`).join("")
+        : `<tr><td colspan="2">Aucune analyse encore.</td></tr>`;
+      return `
+        <article class="health-card">
+          <h2>Source Planner</h2>
+          <div class="health-ai-grid">
+            <article class="health-ai-tile">
+              <span>Dernière décision</span>
+              <strong>${escapeHtml(s.last_source_requirement || "n/a")}</strong>
+              <small>${escapeHtml(formatDate(s.last_at) || "n/a")}</small>
+            </article>
+            <article class="health-ai-tile">
+              <span>Besoin de preuve</span>
+              <strong>${escapeHtml(s.last_evidence_need || "n/a")}</strong>
+              <small>risque : ${escapeHtml(s.last_risk_level || "n/a")}</small>
+            </article>
+            <article class="health-ai-tile">
+              <span>Web / RAG utilisés</span>
+              <strong>${escapeHtml(yesNo(s.last_use_web))} / ${escapeHtml(yesNo(s.last_use_rag))}</strong>
+              <small>forcés : ${escapeHtml(yesNo(s.last_force_web))} / ${escapeHtml(yesNo(s.last_force_rag))}</small>
+            </article>
+            <article class="health-ai-tile">
+              <span>Citations exigées</span>
+              <strong>${escapeHtml(yesNo(s.last_require_citations))}</strong>
+              <small>chiffres non justifiés interdits : ${escapeHtml(yesNo(s.last_forbid_unsupported_numbers))}</small>
+            </article>
+            <article class="health-ai-tile">
+              <span>Comportement de repli</span>
+              <strong>${escapeHtml(s.last_fallback_behavior || "n/a")}</strong>
+            </article>
+            <article class="health-ai-tile">
+              <span>Confiance</span>
+              <strong>${escapeHtml(s.last_confidence != null ? formatPercent(s.last_confidence * 100) : "n/a")}</strong>
+            </article>
+            <article class="health-ai-tile">
+              <span>Tavily forcé</span>
+              <strong>${escapeHtml(s.web_forced_count ?? 0)}</strong>
+              <small>fois</small>
+            </article>
+            <article class="health-ai-tile">
+              <span>RAG forcé</span>
+              <strong>${escapeHtml(s.rag_forced_count ?? 0)}</strong>
+              <small>fois</small>
+            </article>
+            <article class="health-ai-tile">
+              <span>Clarifications requises</span>
+              <strong>${escapeHtml(s.clarification_required_count ?? 0)}</strong>
+            </article>
+            <article class="health-ai-tile">
+              <span>Taux d'erreurs</span>
+              <strong>${escapeHtml(s.error_rate ?? 0)}%</strong>
+              <small>${escapeHtml(s.error_count ?? 0)} erreur(s)</small>
+            </article>
+          </div>
+          <h3>Top raisons</h3>
+          <div class="table-wrap health-table-wrapper">
+            <table>
+              <thead><tr><th>Raison</th><th>Occurrences</th></tr></thead>
+              <tbody>${reasonsRows}</tbody>
+            </table>
+          </div>
+          <h3>Répartition besoin de preuve</h3>
+          <div class="table-wrap health-table-wrapper">
+            <table>
+              <thead><tr><th>evidenceNeed</th><th>Occurrences</th></tr></thead>
+              <tbody>${evidenceRows}</tbody>
+            </table>
+          </div>
+          <h3>Répartition niveau de risque</h3>
+          <div class="table-wrap health-table-wrapper">
+            <table>
+              <thead><tr><th>riskLevel</th><th>Occurrences</th></tr></thead>
+              <tbody>${riskRows}</tbody>
+            </table>
+          </div>
+        </article>
+      `;
+    }
+
+    // Execution Planner (cf. cloudflare/executionPlanner.js, Lot 10) :
+    // plan d'execution consolide (Capability + Source Planner) — derniere
+    // intention, pipeline final, parametres Model Router/Completion Guard/RQC.
+    function renderExecutionPlannerCard(stats = {}) {
+      const s = stats || {};
+      const yesNo = (v) => (v === true ? "Oui" : v === false ? "Non" : "n/a");
+      const pipeline = Array.isArray(s.last_pipeline) ? s.last_pipeline : [];
+      const pipelineLabel = pipeline.length ? pipeline.join(" → ") : "n/a";
+      const topReasons = Array.isArray(s.top_reasons) ? s.top_reasons : [];
+      const reasonsRows = topReasons.length
+        ? topReasons.map((e) => `<tr><td>${escapeHtml(e.name)}</td><td>${e.count}</td></tr>`).join("")
+        : `<tr><td colspan="2">Aucune raison détectée encore.</td></tr>`;
+      const answerModeBreakdown = Array.isArray(s.answer_mode_breakdown) ? s.answer_mode_breakdown : [];
+      const answerModeRows = answerModeBreakdown.length
+        ? answerModeBreakdown.map((e) => `<tr><td>${escapeHtml(e.name)}</td><td>${e.count}</td></tr>`).join("")
+        : `<tr><td colspan="2">Aucun plan créé encore.</td></tr>`;
+      const evidenceModeBreakdown = Array.isArray(s.evidence_mode_breakdown) ? s.evidence_mode_breakdown : [];
+      const evidenceModeRows = evidenceModeBreakdown.length
+        ? evidenceModeBreakdown.map((e) => `<tr><td>${escapeHtml(e.name)}</td><td>${e.count}</td></tr>`).join("")
+        : `<tr><td colspan="2">Aucun plan créé encore.</td></tr>`;
+      return `
+        <article class="health-card">
+          <h2>Execution Planner</h2>
+          <div class="health-ai-grid">
+            <article class="health-ai-tile">
+              <span>Dernière intention</span>
+              <strong>${escapeHtml(s.last_primary_goal || "n/a")}</strong>
+              <small>${escapeHtml(formatDate(s.last_at) || "n/a")}</small>
+            </article>
+            <article class="health-ai-tile">
+              <span>answerMode / outputMode</span>
+              <strong>${escapeHtml(s.last_answer_mode || "n/a")} / ${escapeHtml(s.last_output_mode || "n/a")}</strong>
+            </article>
+            <article class="health-ai-tile">
+              <span>evidenceMode / modelMode</span>
+              <strong>${escapeHtml(s.last_evidence_mode || "n/a")} / ${escapeHtml(s.last_model_mode || "n/a")}</strong>
+              <small>risque : ${escapeHtml(s.last_risk_level || "n/a")} · complexité : ${escapeHtml(s.last_complexity || "n/a")}</small>
+            </article>
+            <article class="health-ai-tile">
+              <span>Pipeline final</span>
+              <strong>${escapeHtml(pipelineLabel)}</strong>
+            </article>
+            <article class="health-ai-tile">
+              <span>Modèle / tier conseillé</span>
+              <strong>${escapeHtml(s.last_model_tier || "n/a")}</strong>
+              <small>max tokens : ${escapeHtml(s.last_max_tokens ?? "n/a")} · température/continuations</small>
+            </article>
+            <article class="health-ai-tile">
+              <span>Max continuations</span>
+              <strong>${escapeHtml(s.last_max_continuations ?? "n/a")}</strong>
+              <small>RQC : ${escapeHtml(s.last_rqc_strictness || "n/a")}</small>
+            </article>
+            <article class="health-ai-tile">
+              <span>Web / RAG utilisés</span>
+              <strong>${escapeHtml(yesNo(s.last_use_web))} / ${escapeHtml(yesNo(s.last_use_rag))}</strong>
+              <small>citations exigées : ${escapeHtml(yesNo(s.last_require_citations))}</small>
+            </article>
+            <article class="health-ai-tile">
+              <span>Comportement de repli</span>
+              <strong>${escapeHtml(s.last_fallback_behavior || "n/a")}</strong>
+            </article>
+            <article class="health-ai-tile">
+              <span>Confiance</span>
+              <strong>${escapeHtml(s.last_confidence != null ? formatPercent(s.last_confidence * 100) : "n/a")}</strong>
+            </article>
+            <article class="health-ai-tile">
+              <span>Plans créés</span>
+              <strong>${escapeHtml(s.plans_created_count ?? 0)}</strong>
+              <small>appliqués : ${escapeHtml(s.applied_count ?? 0)}</small>
+            </article>
+            <article class="health-ai-tile">
+              <span>Taux d'erreurs</span>
+              <strong>${escapeHtml(s.error_rate ?? 0)}%</strong>
+              <small>${escapeHtml(s.error_count ?? 0)} erreur(s)</small>
+            </article>
+          </div>
+          <h3>Top raisons</h3>
+          <div class="table-wrap health-table-wrapper">
+            <table>
+              <thead><tr><th>Raison</th><th>Occurrences</th></tr></thead>
+              <tbody>${reasonsRows}</tbody>
+            </table>
+          </div>
+          <h3>Répartition des modes (answerMode)</h3>
+          <div class="table-wrap health-table-wrapper">
+            <table>
+              <thead><tr><th>answerMode</th><th>Occurrences</th></tr></thead>
+              <tbody>${answerModeRows}</tbody>
+            </table>
+          </div>
+          <h3>Répartition des modes (evidenceMode)</h3>
+          <div class="table-wrap health-table-wrapper">
+            <table>
+              <thead><tr><th>evidenceMode</th><th>Occurrences</th></tr></thead>
+              <tbody>${evidenceModeRows}</tbody>
             </table>
           </div>
         </article>
@@ -3386,10 +3658,19 @@
     }
 
     function renderTavilyActivitySummary(rows) {
-      const usage = buildTavilyUsageFromAiRows(rows);
+      // state.summary.tavily_usage (cf. /admin/summary) est calcule cote
+      // serveur sur une fenetre dediee aux evenements Tavily (jamais starvee
+      // par le bruit des autres evenements de chat). On le prefere au calcul
+      // local sur `rows`, qui ne porte que sur la page actuellement chargee
+      // (limit/offset) et peut afficher zero meme si des recherches Tavily
+      // existent en base, simplement parce qu'elles sont hors de cette page.
+      const serverUsage = state.summary?.tavily_usage;
+      const usage = serverUsage || buildTavilyUsageFromAiRows(rows);
+      const source = serverUsage ? "fenêtre Tavily dédiée (serveur)" : "page actuellement chargée";
       return `
         <article class="health-card">
           <h2>Usage Tavily</h2>
+          <p class="health-meta"><small>Source : ${escapeHtml(source)}</small></p>
           <div class="health-ai-grid">
             <article class="health-ai-tile"><span>Recherches web exécutées</span><strong>${escapeHtml(usage.searches_executed)}</strong><small>web_search_success / error</small></article>
             <article class="health-ai-tile score-good"><span>Évitées par cache</span><strong>${escapeHtml(usage.searches_avoided_cache)}</strong><small>web_search_cached</small></article>
