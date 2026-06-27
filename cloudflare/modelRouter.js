@@ -1,19 +1,23 @@
-// Model Router — selection de modele(s), retries et cascade de max_tokens,
+ // Model Router — selection de modele(s), retries et cascade de max_tokens,
 // independant de la logique chat (prompt RAG/web/memoire) qui reste dans
-// worker-openrouter.js. Pense pour pouvoir accueillir demain d'autres
-// providers (Cloudflare AI, Mistral, OpenAI direct) sans toucher a l'appelant :
-// seul callModel() et buildModelChain() connaissent le detail "OpenRouter".
+// worker-openrouter.js.
+//
+// Providers supportes :
+// - OpenAI direct
+// - OpenRouter
+// - Cloudflare Workers AI
 //
 // Interface : routeChatCompletion({ messages, systemPrompt, userPrompt,
-// maxTokens, temperature, env, metadata, onEvent, fetchImpl })
+// maxTokens, temperature, env, metadata, onEvent, fetchImpl, modelTier,
+// forceProvider })
 //   - messages: historique de conversation (sans le message system), deja
 //     enrichi par l'appelant (memoire projet, resume, etc.)
 //   - userPrompt: optionnel, ajoute en dernier message 'user' si fourni et
 //     pas deja present comme dernier element de `messages`.
-//   - onEvent(eventType, payload): callback de telemetrie, appele pour
-//     chaque evenement (cf. EVENT_TYPES ci-dessous) — l'appelant decide quoi
-//     en faire (D1, console, etc.). Optionnel.
-//   - fetchImpl: pour les tests (simulation de reponses sans reseau reel).
+//   - onEvent(eventType, payload): callback de telemetrie.
+//   - fetchImpl: pour les tests.
+//   - modelTier: 'fast' | 'balanced' | 'strong'.
+//   - forceProvider: 'openai' pour diagnostic direct.
 
 import { applyCompletionGuard, resolveMaxContinuations, closeOpenMarkdownStructures } from './completionGuard.js';
 
@@ -22,13 +26,11 @@ export const TOKEN_RETRY_LEVELS = [700, 500, 350];
 export const LAST_RESORT_MODEL = 'openrouter/auto';
 export const MIN_USEFUL_OPENROUTER_TOKENS = 128;
 
-// Lot 6 — Dynamic Model Selection. Le Prompt Orchestrator (cf.
-// cloudflare/promptOrchestrator.js) calcule un preferredModelTier par
-// requete ('fast' | 'balanced' | 'strong') et le transmet ici via
-// routeChatCompletion({ modelTier }). Le tier ne RESTREINT jamais la chaine
-// de secours : il se contente de REORDONNER quels modeles sont essayes en
-// premier (et, pour 'fast', de tenter Cloudflare AI avant OpenRouter). Si le
-// modele priorise echoue, le fallback complet standard reste disponible.
+export const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
+export const OPENAI_DEFAULT_MODEL = 'gpt-4.1-mini';
+export const OPENAI_BALANCED_MODEL = 'gpt-4.1-mini';
+export const OPENAI_STRONG_MODEL = 'gpt-4.1';
+
 export const MODEL_TIERS = { FAST: 'fast', BALANCED: 'balanced', STRONG: 'strong' };
 const VALID_MODEL_TIERS = new Set(Object.values(MODEL_TIERS));
 
@@ -37,10 +39,22 @@ export function normalizeModelTier(tier) {
   return VALID_MODEL_TIERS.has(value) ? value : MODEL_TIERS.BALANCED;
 }
 
-// Sous-ensembles de la chaine standard consideres "rapides" / "robustes" —
-// servent uniquement a reordonner buildModelChain(), jamais a la restreindre.
 export const FAST_MODEL_HINTS = ['google/gemini-2.5-flash-lite'];
 export const STRONG_MODEL_HINTS = ['qwen/qwen3-30b-a3b', 'mistralai/mistral-small-3.2-24b-instruct'];
+
+function getOpenAiModel(env, tier = MODEL_TIERS.BALANCED) {
+  const normalizedTier = normalizeModelTier(tier);
+
+  if (normalizedTier === MODEL_TIERS.STRONG) {
+    return env?.OPENAI_STRONG_MODEL || env?.OPENAI_MODEL || OPENAI_STRONG_MODEL;
+  }
+
+  if (normalizedTier === MODEL_TIERS.BALANCED) {
+    return env?.OPENAI_BALANCED_MODEL || env?.OPENAI_MODEL || OPENAI_BALANCED_MODEL;
+  }
+
+  return env?.OPENAI_MODEL || OPENAI_DEFAULT_MODEL;
+}
 
 function reorderChainByTier(chain, modelTier) {
   if (modelTier === MODEL_TIERS.STRONG) {
@@ -58,33 +72,24 @@ function reorderChainByTier(chain, modelTier) {
   return chain;
 }
 
-// Tier "reellement utilise" pour un succes donne — sert uniquement a la
-// telemetrie (model_tier_used), pas a une decision de routage.
 function inferUsedTier(provider, model) {
   if (provider === 'cloudflare_ai') return MODEL_TIERS.FAST;
+  if (provider === 'openai') {
+    if (model === OPENAI_STRONG_MODEL || String(model || '').includes('gpt-4.1')) return MODEL_TIERS.STRONG;
+    return MODEL_TIERS.BALANCED;
+  }
   if (STRONG_MODEL_HINTS.includes(model)) return MODEL_TIERS.STRONG;
   if (FAST_MODEL_HINTS.includes(model)) return MODEL_TIERS.FAST;
   return MODEL_TIERS.BALANCED;
 }
 
-// Second provider, hors OpenRouter : Cloudflare Workers AI (env.AI binding,
-// deja present pour les embeddings RAG, cf. cloudflare/embeddings.js).
-// N'est tente qu'apres l'echec COMPLET de la chaine OpenRouter (y compris
-// openrouter/auto) — jamais en remplacement, jamais en concurrence.
-// Deux modeles essayes en cascade : si le premier echoue (modele retire du
-// catalogue, erreur de nom, quota), on retente une fois avec un second
-// modele leger avant d'abandonner.
-export const CLOUDFLARE_AI_MODEL = '@cf/meta/llama-3.1-8b-instruct';
+// Cloudflare AI : le modele 3.1 a ete deprecie le 2026-05-30.
+// On garde uniquement le modele valide confirme par diagnostic.
+export const CLOUDFLARE_AI_MODEL = '@cf/meta/llama-3.2-3b-instruct';
 export const CLOUDFLARE_AI_MODEL_CHAIN = [
-  '@cf/meta/llama-3.1-8b-instruct',
   '@cf/meta/llama-3.2-3b-instruct'
 ];
 
-// Liste par defaut si OPENROUTER_MODEL et OPENROUTER_FALLBACK_MODELS sont
-// absents. openrouter/auto est volontairement exclu d'ici : il n'est tente
-// qu'en tout dernier recours (cf. routeChatCompletion), jamais comme membre
-// normal de la chaine, car il echoue en 402 (credit) plutot qu'en 429 et
-// gaspille une tentative a chaque fois qu'on l'essaie "en cours de route".
 export const DEFAULT_MODEL_CHAIN = [
   'google/gemini-2.5-flash-lite',
   'openai/gpt-oss-120b',
@@ -101,9 +106,15 @@ export const EVENT_TYPES = {
   RETRY_REDUCED_TOKENS: 'openrouter_retry_reduced_tokens',
   ALL_MODELS_FAILED: 'openrouter_all_models_failed',
   MODEL_INVALID: 'model_invalid',
+
+  OPENAI_ATTEMPT: 'openai_attempt',
+  OPENAI_SUCCESS: 'openai_success',
+  OPENAI_FAILED: 'openai_failed',
+
   CLOUDFLARE_AI_ATTEMPT: 'cloudflare_ai_attempt',
   CLOUDFLARE_AI_SUCCESS: 'cloudflare_ai_success',
   CLOUDFLARE_AI_FAILED: 'cloudflare_ai_failed',
+
   MODEL_TIER_REQUESTED: 'model_tier_requested',
   MODEL_TIER_USED: 'model_tier_used'
 };
@@ -113,11 +124,6 @@ const USER_MESSAGES = {
   en: 'The generation engine is temporarily limited. Sources were retrieved when available, but the full reformulated answer could not be generated.'
 };
 
-// Forme attendue : "namespace/model-name" (eventuellement suivi de
-// ":free", ":nitro", etc.). Ne garantit pas que le modele existe reellement
-// cote OpenRouter (verification a froid, pas d'appel reseau ici) — sert
-// uniquement a ecarter une faute de frappe evidente dans une variable
-// d'environnement avant de gaspiller une tentative HTTP dessus.
 const MODEL_ID_SHAPE = /^[a-z0-9][a-z0-9._-]*\/[a-z0-9][a-z0-9._:-]*$/i;
 
 export function isValidModelId(modelId) {
@@ -133,14 +139,6 @@ function emit(onEvent, eventType, payload) {
   }
 }
 
-/**
- * Construit la chaine de modeles a essayer, dans l'ordre :
- * 1. env.OPENROUTER_MODEL (si valide)
- * 2. env.OPENROUTER_FALLBACK_MODELS (liste separee par virgules, valides)
- * 3. DEFAULT_MODEL_CHAIN si aucune variable n'est configuree
- * openrouter/auto n'apparait jamais ici : il est ajoute separement par
- * routeChatCompletion comme dernier recours, une seule fois.
- */
 export function buildModelChain(env, onEvent, modelTier) {
   const configuredPrimary = String(env?.OPENROUTER_MODEL || '').trim();
   const configuredFallbacks = String(env?.OPENROUTER_FALLBACK_MODELS || '')
@@ -154,7 +152,7 @@ export function buildModelChain(env, onEvent, modelTier) {
 
   const chain = [];
   for (const candidate of candidates) {
-    if (candidate === LAST_RESORT_MODEL) continue; // jamais dans la chaine normale
+    if (candidate === LAST_RESORT_MODEL) continue;
     if (!isValidModelId(candidate)) {
       emit(onEvent, EVENT_TYPES.MODEL_INVALID, { model: candidate });
       console.warn('model_invalid', candidate);
@@ -201,7 +199,7 @@ function extractReplyContent(parsed) {
   return '';
 }
 
-async function callModel({ fetchImpl, apiKey, headers, model, messages, maxTokens, temperature, timeoutMs }) {
+async function callModel({ fetchImpl, headers, model, messages, maxTokens, temperature, timeoutMs }) {
   const startedAt = Date.now();
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs || 20000);
@@ -219,7 +217,7 @@ async function callModel({ fetchImpl, apiKey, headers, model, messages, maxToken
     });
     const raw = await response.text();
     let parsed = null;
-    try { parsed = raw ? JSON.parse(raw) : null; } catch (error) { /* garde raw, parsed reste null */ }
+    try { parsed = raw ? JSON.parse(raw) : null; } catch (error) { /* parsed reste null */ }
     const finishReason = parsed?.choices?.[0]?.finish_reason || parsed?.choices?.[0]?.native_finish_reason || null;
     return { ok: response.ok, statusCode: response.status, parsed, finishReason, latencyMs: Date.now() - startedAt, isTimeout: false };
   } catch (error) {
@@ -237,16 +235,171 @@ async function callModel({ fetchImpl, apiKey, headers, model, messages, maxToken
   }
 }
 
+async function callOpenAiChat({
+  env,
+  messages,
+  model,
+  maxTokens = 1200,
+  temperature = 0.3,
+  metadata = {},
+  onEvent,
+  fetchImpl = fetch,
+  timeoutMs = 20000
+}) {
+  const startedAt = Date.now();
+
+  if (!env?.OPENAI_API_KEY) {
+    return {
+      ok: false,
+      provider: 'openai',
+      model,
+      errorType: 'provider_unavailable',
+      error: 'OPENAI_API_KEY missing',
+      latency_ms: Date.now() - startedAt
+    };
+  }
+
+  emit(onEvent, EVENT_TYPES.OPENAI_ATTEMPT, {
+    provider: 'openai',
+    model,
+    tokens_requested: maxTokens,
+    temperature,
+    ...metadata
+  });
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetchImpl(OPENAI_API_URL, {
+      method: 'POST',
+      signal: controller.signal,
+      headers: {
+        Authorization: `Bearer ${String(env.OPENAI_API_KEY).trim()}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model,
+        messages,
+        max_tokens: maxTokens,
+        temperature: Number.isFinite(temperature) ? temperature : 0.3
+      })
+    });
+
+    const raw = await response.text();
+    let parsed = null;
+    try { parsed = raw ? JSON.parse(raw) : null; } catch (error) { /* parsed reste null */ }
+
+    const latency = Date.now() - startedAt;
+
+    if (!response.ok) {
+      const errorMessage = parsed?.error?.message || parsed?.message || raw || 'OpenAI request failed';
+      const errorType =
+        response.status === 401 || response.status === 403
+          ? 'auth_error'
+          : response.status === 429
+            ? 'rate_limit'
+            : response.status >= 500
+              ? 'server_error'
+              : 'provider_error';
+
+      emit(onEvent, EVENT_TYPES.OPENAI_FAILED, {
+        provider: 'openai',
+        model,
+        status_code: response.status,
+        error_type: errorType,
+        upstream_error: String(errorMessage).slice(0, 300),
+        latency_ms: latency,
+        ...metadata
+      });
+
+      return {
+        ok: false,
+        provider: 'openai',
+        model,
+        status: response.status,
+        errorType,
+        error: errorMessage,
+        latency_ms: latency
+      };
+    }
+
+    const content = extractReplyContent(parsed);
+    const finishReason = parsed?.choices?.[0]?.finish_reason || null;
+
+    if (!content) {
+      emit(onEvent, EVENT_TYPES.OPENAI_FAILED, {
+        provider: 'openai',
+        model,
+        status_code: response.status,
+        error_type: 'empty_reply',
+        latency_ms: latency,
+        ...metadata
+      });
+
+      return {
+        ok: false,
+        provider: 'openai',
+        model,
+        status: response.status,
+        errorType: 'empty_reply',
+        error: 'empty_openai_reply',
+        latency_ms: latency
+      };
+    }
+
+    emit(onEvent, EVENT_TYPES.OPENAI_SUCCESS, {
+      provider: 'openai',
+      model,
+      latency_ms: latency,
+      finish_reason: finishReason,
+      content_length: content.length,
+      ...metadata
+    });
+
+    return {
+      ok: true,
+      provider: 'openai',
+      model,
+      content,
+      usage: parsed?.usage || null,
+      finishReason,
+      latency_ms: latency,
+      tokensRequested: maxTokens
+    };
+  } catch (error) {
+    const latency = Date.now() - startedAt;
+    const isTimeout = error?.name === 'AbortError';
+    const errorType = isTimeout ? 'timeout' : 'network_error';
+
+    emit(onEvent, EVENT_TYPES.OPENAI_FAILED, {
+      provider: 'openai',
+      model,
+      error_type: errorType,
+      upstream_error: error?.message || String(error),
+      latency_ms: latency,
+      ...metadata
+    });
+
+    return {
+      ok: false,
+      provider: 'openai',
+      model,
+      errorType,
+      error: error?.message || String(error),
+      latency_ms: latency
+    };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 function extractCloudflareAiContent(result) {
   if (typeof result?.response === 'string' && result.response.trim()) return result.response;
   if (typeof result?.result?.response === 'string' && result.result.response.trim()) return result.result.response;
   return '';
 }
 
-// Apercu non sensible du payload envoye a env.AI.run() : nombre de messages,
-// roles, longueur de chaque contenu — jamais le contenu complet (peut
-// contenir des donnees utilisateur/RAG), juste assez pour diagnostiquer un
-// payload mal forme (role invalide, contenu vide, trop de messages, etc.).
 function summarizePayloadForDiagnostic(messages, maxTokens, temperature) {
   return {
     message_count: Array.isArray(messages) ? messages.length : 0,
@@ -271,12 +424,6 @@ function describeCloudflareAiError(error) {
   return { name: 'NonErrorThrown', message: String(error), stack: '', cause: null };
 }
 
-/**
- * Second provider, hors OpenRouter : Cloudflare Workers AI (env.AI binding).
- * Ne leve jamais — retourne { ok, content, latencyMs, statusCode, error,
- * errorDetail, payloadSummary }. env.AI peut etre absent (Workers Paid pas
- * active, comme pour Vectorize) : traite comme un echec normal.
- */
 async function callCloudflareAiChat({ env, model, messages, maxTokens, temperature }) {
   const startedAt = Date.now();
   const payloadSummary = summarizePayloadForDiagnostic(messages, maxTokens, temperature);
@@ -320,12 +467,6 @@ async function callCloudflareAiChat({ env, model, messages, maxTokens, temperatu
   }
 }
 
-/**
- * Mode diagnostic independant : appelle UNIQUEMENT env.AI.run() (jamais
- * OpenRouter, jamais le RAG), pour tester directement le binding Workers AI
- * et chaque modele de la chaine. cf. mode: 'cloudflare_ai_diagnose' dans
- * worker-openrouter.js.
- */
 export async function diagnoseCloudflareAi(env, { prompt } = {}) {
   const testMessages = [
     { role: 'system', content: 'You are a diagnostic assistant. Reply with a short confirmation sentence.' },
@@ -349,10 +490,35 @@ export async function diagnoseCloudflareAi(env, { prompt } = {}) {
   return { ok, ai_binding_present: Boolean(env?.AI && typeof env.AI.run === 'function'), results };
 }
 
-/**
- * Point d'entree unique du routeur. Ne leve jamais : retourne toujours une
- * forme normalisee { ok: true, ... } ou { ok: false, ... }.
- */
+export async function diagnoseOpenAi(env, { prompt } = {}, fetchImpl = fetch) {
+  const messages = [
+    { role: 'system', content: 'You are a diagnostic assistant. Reply with one short confirmation sentence.' },
+    { role: 'user', content: prompt || 'OpenAI diagnostic test.' }
+  ];
+
+  const model = getOpenAiModel(env, MODEL_TIERS.BALANCED);
+  const result = await callOpenAiChat({
+    env,
+    messages,
+    model,
+    maxTokens: 100,
+    temperature: 0.2,
+    metadata: { diagnostic: true },
+    fetchImpl
+  });
+
+  return {
+    ok: result.ok,
+    provider: 'openai',
+    model,
+    latency_ms: result.latency_ms,
+    content_preview: result.ok ? result.content.slice(0, 200) : null,
+    error: result.error || null,
+    errorType: result.errorType || null,
+    api_key_present: Boolean(env?.OPENAI_API_KEY)
+  };
+}
+
 export async function routeChatCompletion({
   messages,
   systemPrompt,
@@ -365,35 +531,13 @@ export async function routeChatCompletion({
   cloudflareAiMaxTokens,
   onEvent,
   fetchImpl,
-  timeoutMs
+  timeoutMs,
+  forceProvider
 }) {
   const fetcher = typeof fetchImpl === 'function' ? fetchImpl : fetch;
   const language = metadata?.language === 'en' ? 'en' : 'fr';
   const requestedModelTier = normalizeModelTier(modelTier);
   emit(onEvent, EVENT_TYPES.MODEL_TIER_REQUESTED, { tier: requestedModelTier });
-  const apiKey = String(env?.OPENROUTER_API_KEY || '')
-    .trim()
-    .replace(/^["']|["']$/g, '')
-    .replace(/^OPENROUTER_API_KEY\s*=\s*/i, '')
-    .replace(/^Bearer\s+/i, '')
-    .replace(/\s+/g, '');
-
-  if (!apiKey) {
-    return {
-      ok: false,
-      provider: 'openrouter',
-      attempts: [],
-      errorType: 'unknown',
-      userMessage: USER_MESSAGES[language]
-    };
-  }
-
-  const headers = {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${apiKey}`,
-    'HTTP-Referer': metadata?.allowedOrigin || 'https://digitalblueskye.com',
-    'X-Title': 'Digital Blue Skye AI'
-  };
 
   const baseMessages = Array.isArray(messages) ? [...messages] : [];
   if (userPrompt && baseMessages[baseMessages.length - 1]?.content !== userPrompt) {
@@ -406,12 +550,145 @@ export async function routeChatCompletion({
     .map((level) => Math.min(level, effectiveMaxTokens))
     .filter((value, index, array) => index === 0 || value < array[index - 1]);
   if (!tokenRetryLevels.length) tokenRetryLevels.push(effectiveMaxTokens);
+
   const effectiveCloudflareAiMaxTokens = Math.max(
     tokenRetryLevels[tokenRetryLevels.length - 1],
     Number(cloudflareAiMaxTokens) || tokenRetryLevels[tokenRetryLevels.length - 1]
   );
 
-  const modelChain = buildModelChain(env, onEvent, requestedModelTier);
+  if (forceProvider === 'openai') {
+    const openAiModel = getOpenAiModel(env, requestedModelTier);
+    const openAiResult = await callOpenAiChat({
+      env,
+      messages: fullMessages,
+      model: openAiModel,
+      maxTokens: effectiveMaxTokens,
+      temperature,
+      metadata,
+      onEvent,
+      fetchImpl: fetcher,
+      timeoutMs
+    });
+
+    if (openAiResult.ok) {
+      emit(onEvent, EVENT_TYPES.MODEL_TIER_USED, {
+        tier_requested: requestedModelTier,
+        tier_used: inferUsedTier('openai', openAiResult.model),
+        provider: 'openai',
+        model: openAiResult.model,
+        success: true
+      });
+      return {
+        ok: true,
+        provider: 'openai',
+        model: openAiResult.model,
+        tokensRequested: effectiveMaxTokens,
+        attempts: [{
+          model: openAiResult.model,
+          provider: 'openai',
+          status_code: 200,
+          tokens_requested: effectiveMaxTokens,
+          latency_ms: openAiResult.latency_ms
+        }],
+        content: openAiResult.content,
+        usage: openAiResult.usage,
+        finishReason: openAiResult.finishReason
+      };
+    }
+
+    emit(onEvent, EVENT_TYPES.MODEL_TIER_USED, {
+      tier_requested: requestedModelTier,
+      tier_used: null,
+      provider: 'openai',
+      model: openAiModel,
+      success: false
+    });
+
+    return {
+      ok: false,
+      provider: 'openai',
+      model: openAiModel,
+      attempts: [{
+        model: openAiModel,
+        provider: 'openai',
+        status_code: openAiResult.status || 0,
+        tokens_requested: effectiveMaxTokens,
+        latency_ms: openAiResult.latency_ms,
+        error_type: openAiResult.errorType,
+        upstream_error: openAiResult.error
+      }],
+      errorType: openAiResult.errorType,
+      error: openAiResult.error,
+      userMessage: USER_MESSAGES[language]
+    };
+  }
+
+  async function attemptOpenAiPreferred() {
+    if (requestedModelTier !== MODEL_TIERS.STRONG && requestedModelTier !== MODEL_TIERS.BALANCED) {
+      return null;
+    }
+
+    const openAiModel = getOpenAiModel(env, requestedModelTier);
+    const openAiResult = await callOpenAiChat({
+      env,
+      messages: fullMessages,
+      model: openAiModel,
+      maxTokens: effectiveMaxTokens,
+      temperature,
+      metadata,
+      onEvent,
+      fetchImpl: fetcher,
+      timeoutMs
+    });
+
+    if (!openAiResult.ok) return null;
+
+    emit(onEvent, EVENT_TYPES.MODEL_TIER_USED, {
+      tier_requested: requestedModelTier,
+      tier_used: inferUsedTier('openai', openAiResult.model),
+      provider: 'openai',
+      model: openAiResult.model,
+      success: true
+    });
+
+    return {
+      ok: true,
+      provider: 'openai',
+      model: openAiResult.model,
+      tokensRequested: effectiveMaxTokens,
+      attempts: [{
+        model: openAiResult.model,
+        provider: 'openai',
+        status_code: 200,
+        tokens_requested: effectiveMaxTokens,
+        latency_ms: openAiResult.latency_ms
+      }],
+      content: openAiResult.content,
+      usage: openAiResult.usage,
+      finishReason: openAiResult.finishReason
+    };
+  }
+
+  // OpenAI direct devient prioritaire pour balanced/strong.
+  // Si OpenAI echoue, le fallback OpenRouter + Cloudflare reste intact.
+  const openAiPreferredResult = await attemptOpenAiPreferred();
+  if (openAiPreferredResult) return openAiPreferredResult;
+
+  const apiKey = String(env?.OPENROUTER_API_KEY || '')
+    .trim()
+    .replace(/^["']|["']$/g, '')
+    .replace(/^OPENROUTER_API_KEY\s*=\s*/i, '')
+    .replace(/^Bearer\s+/i, '')
+    .replace(/\s+/g, '');
+
+  const headers = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${apiKey}`,
+    'HTTP-Referer': metadata?.allowedOrigin || 'https://digitalblueskye.com',
+    'X-Title': 'Digital Blue Skye AI'
+  };
+
+  const modelChain = apiKey ? buildModelChain(env, onEvent, requestedModelTier) : [];
   const attempts = [];
   let attemptIndex = 0;
   let success = null;
@@ -425,7 +702,6 @@ export async function routeChatCompletion({
 
     const result = await callModel({
       fetchImpl: fetcher,
-      apiKey,
       headers,
       model,
       messages: fullMessages,
@@ -483,13 +759,6 @@ export async function routeChatCompletion({
     return false;
   }
 
-  // Second provider, hors OpenRouter : cascade de modeles legers (cf.
-  // CLOUDFLARE_AI_MODEL_CHAIN). Factorise pour pouvoir etre appele soit en
-  // PRIORITE (tier 'fast'), soit en dernier recours (apres echec complet de
-  // la chaine OpenRouter) — meme logique, deux points d'appel. Retourne la
-  // forme finale de routeChatCompletion en cas de succes, sinon null (et
-  // continue d'alimenter `attempts`/`lastCloudflareAiRecord` pour le flux
-  // appelant).
   let lastCloudflareAiRecord = null;
   async function attemptCloudflareAiChain(cloudflareAiTokenLimit) {
     for (const cloudflareAiModel of CLOUDFLARE_AI_MODEL_CHAIN) {
@@ -522,9 +791,7 @@ export async function routeChatCompletion({
         cloudflareAiRecord.error_type = null;
         attempts.push(cloudflareAiRecord);
         emit(onEvent, EVENT_TYPES.CLOUDFLARE_AI_SUCCESS, { ...cloudflareAiRecord, content_length: cloudflareAiResult.content.length });
-        // Pas de continuation pour le provider de secours (env.AI.run ne fournit
-        // pas de finish_reason fiable), mais on ferme tout de meme les structures
-        // Markdown laissees ouvertes par une eventuelle troncature.
+
         const guardEnabled = String(env?.COMPLETION_GUARD_ENABLED ?? 'true').toLowerCase() !== 'false';
         const closed = guardEnabled ? closeOpenMarkdownStructures(cloudflareAiResult.content) : { text: cloudflareAiResult.content, meta: null };
         emit(onEvent, EVENT_TYPES.MODEL_TIER_USED, {
@@ -554,17 +821,11 @@ export async function routeChatCompletion({
       emit(onEvent, EVENT_TYPES.CLOUDFLARE_AI_FAILED, cloudflareAiRecord);
       lastCloudflareAiRecord = cloudflareAiRecord;
 
-      // Binding absent : inutile de retenter avec un autre nom de modele, le
-      // resultat sera identique pour tous les modeles de la chaine.
       if (cloudflareAiRecord.error_type === 'provider_unavailable') break;
     }
     return null;
   }
 
-  // Lot 6 — pour le tier 'fast', on privilegie Cloudflare AI (latence plus
-  // faible) AVANT meme d'attaquer la chaine OpenRouter standard. En cas
-  // d'echec (binding absent, quota, modele retire), on retombe immediatement
-  // sur le flux normal ci-dessous — aucune perte de fallback.
   let cloudflareAiAlreadyAttempted = false;
   let earlyCloudflareAiResult = null;
   if (requestedModelTier === MODEL_TIERS.FAST) {
@@ -572,7 +833,7 @@ export async function routeChatCompletion({
     earlyCloudflareAiResult = await attemptCloudflareAiChain(effectiveCloudflareAiMaxTokens);
   }
 
-  if (!earlyCloudflareAiResult) {
+  if (!earlyCloudflareAiResult && apiKey) {
     modelLoop:
     for (const model of modelChain) {
       let retriedTransientOnce = false;
@@ -583,45 +844,29 @@ export async function routeChatCompletion({
 
         const errorType = lastFailure?.error_type;
 
-        // 402 avec credit restant trop faible : le plafond concerne la cle
-        // OpenRouter, pas un modele specifique. Continuer la cascade ne fait
-        // que multiplier les echecs; on bascule directement vers le provider
-        // de secours si disponible.
         if (openRouterCreditExhausted) break modelLoop;
 
-        // 402 (credit) : meme modele, niveau de tokens reduit.
         if (errorType === 'credit_limit' && levelIndex < tokenRetryLevels.length - 1) {
           const nextTokenLimit = tokenRetryLevels[levelIndex + 1];
           emit(onEvent, EVENT_TYPES.RETRY_REDUCED_TOKENS, { model, from_max_tokens: tokenLimit, to_max_tokens: nextTokenLimit });
           continue;
         }
 
-        // 5xx/timeout : un seul retry sur le meme modele/niveau, puis modele suivant.
         if ((errorType === 'provider_error' || errorType === 'timeout') && !retriedTransientOnce) {
           retriedTransientOnce = true;
           const retryOk = await attemptOnce(model, tokenLimit, true);
           if (retryOk) break modelLoop;
         }
 
-        // 429 (rate limit) ou tout le reste : modele suivant.
         break;
       }
     }
   }
 
-  // Completion Guard : si OpenRouter a tronque la reponse (finish_reason
-  // 'length'), on relance le MEME modele pour continuer, fusionne les
-  // morceaux et ferme les structures Markdown restees ouvertes — avant de
-  // renvoyer au worker (donc au frontend). Desactivable via
-  // env.COMPLETION_GUARD_ENABLED='false'. Applique aux deux chemins de succes
-  // OpenRouter (chaine normale + dernier recours openrouter/auto).
   async function finalizeOpenRouterSuccess() {
     const guardEnabled = String(env?.COMPLETION_GUARD_ENABLED ?? 'true').toLowerCase() !== 'false';
     const maxContinuations = resolveMaxContinuations(env?.COMPLETION_GUARD_MAX_CONTINUATIONS);
 
-    // Une continuation = un appel supplementaire au modele qui a reussi, avec
-    // la reponse partielle injectee comme tour 'assistant' + une consigne de
-    // poursuite stricte (pas de repetition, pas de reintroduction).
     const requestContinuation = async (accumulated) => {
       const continuationMessages = [
         ...fullMessages,
@@ -635,7 +880,6 @@ export async function routeChatCompletion({
       ];
       const contResult = await callModel({
         fetchImpl: fetcher,
-        apiKey,
         headers,
         model: success.model,
         messages: continuationMessages,
@@ -695,10 +939,8 @@ export async function routeChatCompletion({
     return await finalizeOpenRouterSuccess();
   }
 
-  // Dernier recours : openrouter/auto, une seule fois, au plus petit niveau
-  // de tokens — jamais essaye plus tot dans la chaine.
   const smallestTokenLimit = tokenRetryLevels[tokenRetryLevels.length - 1];
-  if (!openRouterCreditExhausted) {
+  if (apiKey && !openRouterCreditExhausted) {
     const lastResortOk = await attemptOnce(LAST_RESORT_MODEL, smallestTokenLimit, false);
     if (lastResortOk) {
       return await finalizeOpenRouterSuccess();
@@ -712,10 +954,6 @@ export async function routeChatCompletion({
     affordable_tokens: lastFailure?.affordable_tokens ?? null
   });
 
-  // Second provider, hors OpenRouter, uniquement quand toute la chaine
-  // OpenRouter (y compris openrouter/auto) a echoue. Jamais essaye avant,
-  // jamais en concurrence avec OpenRouter (sauf early-attempt tier 'fast'
-  // ci-dessus, deja gere via cloudflareAiAlreadyAttempted).
   if (!cloudflareAiAlreadyAttempted) {
     const fallbackAttempt = await attemptCloudflareAiChain(effectiveCloudflareAiMaxTokens);
     if (fallbackAttempt) return fallbackAttempt;

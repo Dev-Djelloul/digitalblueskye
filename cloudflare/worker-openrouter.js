@@ -14,7 +14,7 @@
 
 import { computeProjectPlan, DEFAULT_V3_PLACEHOLDERS } from './aiProjectManager.js';
 import { indexDocumentChunks, deleteDocumentVectors, queryRag, diagnoseRagPipeline } from './ragPipeline.js';
-import { routeChatCompletion, diagnoseCloudflareAi } from './modelRouter.js';
+import { routeChatCompletion, diagnoseCloudflareAi, diagnoseOpenAi } from './modelRouter.js';
 import { detectUserIntent, planCapabilities, composeSystemPrompt, isOrchestratorEnabled } from './promptOrchestrator.js';
 import { evaluateResponse, repairResponse, buildRetrySystemInstruction, buildImproveSystemInstruction, isRqcEnabled, QUALITY_ACTIONS } from './responseQualityController.js';
 
@@ -1778,10 +1778,11 @@ export default {
       return jsonResponse(result, 200, corsHeaders);
     }
 
-    if (mode === 'cloudflare_ai_diagnose') {
-      // Teste UNIQUEMENT env.AI.run() — jamais OpenRouter, jamais le RAG.
-      // curl -X POST <worker-url> -H "Content-Type: application/json" -d '{"mode":"cloudflare_ai_diagnose"}'
-      const result = await diagnoseCloudflareAi(env, { prompt: body?.prompt });
+    if (mode === 'openai_diagnose') {
+      const result = await diagnoseOpenAi(env, {
+        prompt: body?.prompt || 'OpenAI diagnostic test.'
+      });
+
       return jsonResponse(result, 200, corsHeaders);
     }
 
