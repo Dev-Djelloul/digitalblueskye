@@ -1329,6 +1329,10 @@
       launcherButton.classList.toggle('is-panel-open', open);
       launcherButton.setAttribute('aria-expanded', String(open));
     }
+    const collapseHandle = document.getElementById('ai-assistant-collapse-handle');
+    if (collapseHandle) {
+      collapseHandle.classList.toggle('is-panel-open', open);
+    }
   }
 
   function getDefaultHistoryPanelOpen() {
@@ -10835,24 +10839,46 @@
   }
 
   if (launcherButton && panel) {
-    launcherButton.addEventListener('click', (event) => {
-      // Shift+clic pour rabattre/dérouler le bouton sur le côté
-      if (event.shiftKey) {
-        event.preventDefault();
-        launcherButton.classList.toggle('is-collapsed');
-        localStorage.setItem('ai-assistant-collapsed', launcherButton.classList.contains('is-collapsed'));
-        return;
-      }
-      // Clic normal pour ouvrir/fermer le panel
+    launcherButton.addEventListener('click', () => {
       const isOpening = !panel.classList.contains('is-open');
       if (isOpening) placePanelInCurrentViewport();
       setAssistantPanelOpen(isOpening);
       updateScrollBottomButton();
     });
-    // Restaurer l'état de rabattement sauvegardé
-    if (localStorage.getItem('ai-assistant-collapsed') === 'true') {
-      launcherButton.classList.add('is-collapsed');
+
+    // Poignée visible pour rabattre/dérouler le bouton sur le côté de l'écran.
+    // Insérée dynamiquement pour fonctionner sur toutes les pages, que le
+    // bouton soit déjà présent dans le HTML statique ou injecté par ce script.
+    let collapseHandle = document.getElementById('ai-assistant-collapse-handle');
+    if (!collapseHandle) {
+      collapseHandle = document.createElement('button');
+      collapseHandle.id = 'ai-assistant-collapse-handle';
+      collapseHandle.className = 'ai-assistant-collapse-handle';
+      collapseHandle.type = 'button';
+      collapseHandle.innerHTML = '<span aria-hidden="true"></span>';
+      launcherButton.insertAdjacentElement('afterend', collapseHandle);
     }
+    const collapseLabel = currentLanguage === 'en' ? 'Tuck the assistant to the side' : "Rabattre l'assistant sur le côté";
+    const expandLabel = currentLanguage === 'en' ? 'Bring the assistant back' : "Déplier l'assistant";
+
+    const applyCollapseState = (collapsed) => {
+      launcherButton.classList.toggle('is-collapsed', collapsed);
+      collapseHandle.classList.toggle('is-collapsed', collapsed);
+      const label = collapsed ? expandLabel : collapseLabel;
+      collapseHandle.title = label;
+      collapseHandle.setAttribute('aria-label', label);
+      collapseHandle.setAttribute('aria-pressed', String(collapsed));
+    };
+
+    collapseHandle.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const collapsed = !launcherButton.classList.contains('is-collapsed');
+      applyCollapseState(collapsed);
+      localStorage.setItem('ai-assistant-collapsed', String(collapsed));
+    });
+
+    applyCollapseState(localStorage.getItem('ai-assistant-collapsed') === 'true');
   }
 
   if (closeButton && panel) {

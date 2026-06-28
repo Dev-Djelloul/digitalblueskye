@@ -10275,15 +10275,58 @@ body.body-menu-open .ai-assistant-launcher {
 }
 
 .ai-assistant-launcher.is-collapsed {
-  right: -32px;
-  opacity: 0.7;
-  pointer-events: auto;
-  transition: right 0.3s ease, opacity 0.2s ease;
+  opacity: 0;
+  pointer-events: none;
 }
 
-.ai-assistant-launcher.is-collapsed:hover {
-  right: -20px;
-  opacity: 1;
+.ai-assistant-collapse-handle {
+  align-items: center;
+  background: linear-gradient(135deg, rgb(93 93 255 / 92%), rgb(43 16 82 / 92%));
+  border: 1px solid rgb(var(--accent-rgb), 0.45);
+  border-radius: 10px 0 0 10px;
+  box-shadow: 0 8px 24px rgb(8 8 24 / 40%), 0 0 0 1px rgb(93 93 255 / 30%);
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  height: 48px;
+  justify-content: center;
+  padding: 0;
+  position: fixed;
+  right: 78px;
+  top: 36%;
+  transform: translateY(-50%);
+  transition: right 0.3s ease, opacity 0.2s ease, background 0.2s ease;
+  width: 22px;
+  z-index: 2101;
+}
+
+.ai-assistant-collapse-handle:hover {
+  background: linear-gradient(135deg, rgb(110 110 255 / 95%), rgb(58 24 104 / 95%));
+}
+
+.ai-assistant-collapse-handle span {
+  border-style: solid;
+  border-width: 5px 6px 5px 0;
+  border-color: transparent #fff transparent transparent;
+  display: block;
+  height: 0;
+  width: 0;
+}
+
+.ai-assistant-collapse-handle.is-collapsed {
+  right: 0;
+  border-radius: 10px 0 0 10px;
+}
+
+.ai-assistant-collapse-handle.is-collapsed span {
+  border-width: 5px 0 5px 6px;
+  border-color: transparent transparent transparent #fff;
+}
+
+.ai-assistant-collapse-handle.is-panel-open,
+body.body-menu-open .ai-assistant-collapse-handle {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .ai-assistant-panel {
