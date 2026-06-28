@@ -1965,6 +1965,16 @@ h3.title-banner {
   margin-top: 0;
 }
 
+.title-subtitle {
+  display: block;
+  font-size: 0.4em;
+  font-weight: 400;
+  opacity: 0.68;
+  margin-top: 8px;
+  letter-spacing: 0.05em;
+  text-transform: lowercase;
+}
+
 .home-page .intro-text .btn-explore {
   display: inline-flex;
   justify-content: center;
