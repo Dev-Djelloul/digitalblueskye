@@ -10306,8 +10306,8 @@ body.body-menu-open .ai-assistant-launcher {
 
 .ai-assistant-collapse-handle span {
   border-style: solid;
-  border-width: 3px 0 3px 4px;
-  border-color: transparent transparent transparent #fff;
+  border-width: 3px 4px 3px 0;
+  border-color: transparent #fff transparent transparent;
   display: block;
   height: 0;
   width: 0;
@@ -10319,8 +10319,8 @@ body.body-menu-open .ai-assistant-launcher {
 }
 
 .ai-assistant-collapse-handle.is-collapsed span {
-  border-width: 3px 4px 3px 0;
-  border-color: transparent #fff transparent transparent;
+  border-width: 3px 0 3px 4px;
+  border-color: transparent transparent transparent #fff;
 }
 
 .ai-assistant-collapse-handle.is-panel-open,
