@@ -143,6 +143,41 @@
       display: block;
     }
 
+    .sync-icon-button {
+      background: rgba(255, 255, 255, 0.04) !important;
+      background-color: rgba(255, 255, 255, 0.04) !important;
+      background-image: none !important;
+      box-shadow: none !important;
+      border-color: var(--border) !important;
+    }
+
+    .sync-icon-button:hover {
+      background: rgba(255, 255, 255, 0.08) !important;
+      background-color: rgba(255, 255, 255, 0.08) !important;
+      background-image: none !important;
+    }
+
+    .sidebar-logout-button {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      margin-top: 4px;
+      color: var(--danger);
+      border-color: rgba(255, 122, 138, 0.3);
+    }
+
+    .sidebar-logout-button:hover {
+      background: rgba(255, 122, 138, 0.08);
+      border-color: rgba(255, 122, 138, 0.45);
+    }
+
+    .sidebar-logout-icon {
+      width: 18px;
+      height: 18px;
+      display: block;
+    }
+
     button.delete-icon {
       width: 42px;
       min-width: 42px;
@@ -6180,9 +6215,13 @@
         </nav>
         <div class="premium-sidebar-footer" aria-label="État système">
           <div class="premium-system-status"><span class="sidebar-footer-label">Système</span><span>Opérationnel</span></div>
-          <div>Version <strong>1.5.0</strong></div>
-          <div>Build <strong>2026-06-27</strong></div>
+          <div>Version <strong id="sidebarVersionValue">1.5.0</strong></div>
+          <div>Build <strong id="sidebarBuildValue">2026-06-27</strong></div>
           <button id="viewLogsBtn" type="button" title="Voir les logs"><span class="sidebar-footer-label">Voir les logs</span><span class="nav-icon" aria-hidden="true">LG</span></button>
+          <button class="sidebar-logout-button" id="logoutBtn" type="button" aria-label="Se déconnecter">
+            <img src="../assets/images/ui/icons8-log-out-48.png" alt="" class="sidebar-logout-icon" aria-hidden="true">
+            <span>Déconnexion</span>
+          </button>
         </div>
       </aside>
       <button id="mobileSidebarOverlay" class="mobile-sidebar-overlay" type="button" aria-label="Fermer le menu"></button>
@@ -6196,10 +6235,9 @@
         </div>
         <div class="toolbar">
           <button id="toggleSensitive" type="button">Afficher détails</button>
-          <button id="refreshAll" class="primary refresh-icon" type="button" aria-label="Actualiser" title="Actualiser">
+          <button id="refreshAll" class="primary refresh-icon sync-icon-button" type="button" aria-label="Actualiser" title="Actualiser">
             <img class="refresh-symbol" src="../assets/images/ui/icons8-synchronize-48.png" alt="" aria-hidden="true">
           </button>
-          <button id="logoutBtn" type="button">Déconnexion</button>
         </div>
       </header>
 
@@ -11089,7 +11127,6 @@
               <select aria-label="Période"><option>Aujourd'hui</option><option>7 jours</option><option selected>30 jours</option><option>Depuis installation</option></select>
               <button type="button" id="premiumExportBtn">Exporter</button>
               ${renderIconRefreshButton("premiumRefreshBtn", "Actualiser Dashboard")}
-              <button type="button" id="premiumLogoutBtn">Déconnexion</button>
             </div>
             <p class="sync-label">Dernière synchronisation : ${escapeHtml(formatDate(health?.checked_at) || "non disponible")}</p>
           </div>
@@ -11215,7 +11252,7 @@
       return `<img class="refresh-symbol" src="../assets/images/ui/icons8-synchronize-48.png" alt="" aria-hidden="true">`;
     }
 
-    function renderIconRefreshButton(id, label, extraClass = "primary") {
+    function renderIconRefreshButton(id, label, extraClass = "primary sync-icon-button") {
       return `<button type="button" class="${escapeHtml(extraClass)} refresh-icon" id="${escapeHtml(id)}" aria-label="${escapeHtml(label)}" title="${escapeHtml(label)}">${refreshIconMarkup()}</button>`;
     }
 
@@ -12140,16 +12177,28 @@
       });
     }
 
+    function updateSidebarVersioning(system) {
+      const versioning = system?.versioning || system || {};
+      const version = versioning.version || system?.version || "n/a";
+      const build = versioning.build || system?.build || "n/a";
+      const versionEl = document.getElementById("sidebarVersionValue");
+      const buildEl = document.getElementById("sidebarBuildValue");
+      if (versionEl) versionEl.textContent = version;
+      if (buildEl) buildEl.textContent = build;
+    }
+
     async function loadSystem() {
       setNotice("#appNotice", "", "");
       try {
         const payload = await apiFetch("/admin/health");
         state.system = payload;
         renderSystem(payload);
+        updateSidebarVersioning(payload.system);
       } catch (error) {
         const fallback = buildFallbackHealth(error.message);
         state.system = fallback;
         renderSystem(fallback);
+        updateSidebarVersioning(fallback.system);
         setNotice("#appNotice", "Endpoint Santé globale non disponible. Système affiché en mode non mesuré.", "error");
       }
     }
@@ -12216,11 +12265,13 @@
         }
         state.health = payload;
         renderHealth(payload);
+        updateSidebarVersioning(payload.system);
       } catch (error) {
         state.aiPilotRows = [];
         const fallback = buildFallbackHealth(error.message);
         state.health = fallback;
         renderHealth(fallback);
+        updateSidebarVersioning(fallback.system);
         setNotice("#appNotice", "Endpoint Santé globale non disponible sur le Worker API actuel. Affichage du diagnostic local.", "error");
       }
     }
