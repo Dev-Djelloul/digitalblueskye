@@ -17,6 +17,8 @@
  */
 
 import { computeProjectPlan } from './aiProjectManager.js';
+import { buildMaturityDashboardPayload } from './maturityEngine.js';
+import { computeServiceHealthScore } from './serviceHealth.js';
 
 const REACTION_MAP = Object.freeze({
   thumbsup: "reactions_thumbsup",
@@ -190,38 +192,6 @@ function isConfigured(value) {
 
 function healthStatus(status, detail, priority) {
   return { status, detail, priority };
-}
-
-function roundOne(value) {
-  return Math.round(Number(value || 0) * 10) / 10;
-}
-
-function averageWeighted(scores) {
-  const totalWeight = scores.reduce((sum, item) => sum + Number(item.weight || 0), 0);
-  if (!totalWeight) return 0;
-  const total = scores.reduce((sum, item) => sum + Number(item.score || 0) * Number(item.weight || 0), 0);
-  return roundOne(total / totalWeight);
-}
-
-function buildDomainScores({ openRouterOk, tavilyOk, dbConfigured, frontendOk }) {
-  const domains = [
-    { domain: "IA", score: openRouterOk ? 8.1 : 6.4, weight: 1.4 },
-    { domain: "Recherche Web", score: tavilyOk ? 8.0 : 6.2, weight: 1.1 },
-    { domain: "Documents", score: 7.4, weight: 1.0 },
-    { domain: "Mémoire", score: 7.2, weight: 0.9 },
-    { domain: "UX/UI", score: frontendOk ? 8.0 : 7.2, weight: 0.9 },
-    { domain: "Sécurité", score: dbConfigured ? 8.0 : 6.6, weight: 1.2 },
-    { domain: "Observabilité", score: 6.9, weight: 1.1 },
-    { domain: "Agents", score: 4.8, weight: 0.7 },
-  ];
-  return {
-    domains,
-    global_score: averageWeighted(domains),
-    trend: "hausse",
-    delta_since_last_audit: "+0.6",
-    last_audit_score: 7.1,
-    method: "Moyenne pondérée des domaines produit et techniques.",
-  };
 }
 
 function healthVerification(ok, partial = false) {
@@ -959,6 +929,597 @@ function buildExecutionPlannerStatsFromEvents(rows) {
   };
 }
 
+// --- Agregats dedies au Tableau de bord admin ("dashboard") ---------------
+// Les fonctions ci-dessous n'inventent aucune logique metier : elles
+// recombinent les compteurs/evenements deja calcules ailleurs (Tavily, RAG,
+// planners, model router, response quality) ou lisent directement
+// ai_assistant_events, pour eviter toute valeur codee en dur cote admin/index.html.
+// Convention commune : une metrique sans donnee retourne null/"non_mesure"
+// (jamais une valeur simulee) — c'est a l'appelant (front) de l'afficher
+// comme "non mesuré" / "aucune donnée récente".
+
+function eventDayBuckets(rows, now = Date.now()) {
+  const eventRows = Array.isArray(rows) ? rows : [];
+  const todayStart = new Date(now);
+  todayStart.setHours(0, 0, 0, 0);
+  const cutoffs = {
+    today: todayStart.getTime(),
+    last_24h: now - 24 * 60 * 60 * 1000,
+    last_7d: now - 7 * 24 * 60 * 60 * 1000,
+    last_30d: now - 30 * 24 * 60 * 60 * 1000,
+  };
+  const countSince = (cutoff) => eventRows.filter((row) => {
+    const ts = Date.parse(row.created_at || "");
+    return Number.isFinite(ts) && ts >= cutoff;
+  }).length;
+  return {
+    today: countSince(cutoffs.today),
+    last_24h: countSince(cutoffs.last_24h),
+    last_7d: countSince(cutoffs.last_7d),
+    last_30d: countSince(cutoffs.last_30d),
+  };
+}
+
+// Fenetres temporelles reelles pour un compteur D1 (table/colonne created_at)
+// quand on ne dispose pas deja des lignes en memoire (comments, contacts,
+// consent_logs). Utilise firstCount() existant, donc memes garanties que les
+// autres compteurs du fichier.
+async function countSinceFromTable(env, table, cutoffIso, whereExtra = "") {
+  const extra = whereExtra ? ` AND ${whereExtra}` : "";
+  return firstCount(
+    env,
+    `SELECT COUNT(*) AS count FROM ${table} WHERE created_at >= ?${extra}`,
+    cutoffIso
+  );
+}
+
+async function buildDashboardKpisFromEvents(env, counts, aiEventsRows) {
+  const now = Date.now();
+  const todayIso = new Date(new Date(now).setHours(0, 0, 0, 0)).toISOString();
+  const sevenDaysIso = new Date(now - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+  let commentsToday = null;
+  let commentsWeek = null;
+  let contactsToday = null;
+  let contactsWeek = null;
+  let consentToday = null;
+  let consentWeek = null;
+  try {
+    [commentsToday, commentsWeek, contactsToday, contactsWeek, consentToday, consentWeek] = await Promise.all([
+      countSinceFromTable(env, "article_comments", todayIso),
+      countSinceFromTable(env, "article_comments", sevenDaysIso),
+      countSinceFromTable(env, "contact_messages", todayIso),
+      countSinceFromTable(env, "contact_messages", sevenDaysIso),
+      countSinceFromTable(env, "consent_logs", todayIso),
+      countSinceFromTable(env, "consent_logs", sevenDaysIso),
+    ]);
+  } catch (error) {
+    // Tables sans colonne created_at exploitable ou erreur D1 : on degrade
+    // proprement vers "non mesure" plutot que de casser tout le dashboard.
+    commentsToday = commentsWeek = contactsToday = contactsWeek = consentToday = consentWeek = null;
+  }
+
+  const aiBuckets = eventDayBuckets(aiEventsRows, now);
+
+  return {
+    comments: {
+      total: Number(counts.comments_total || 0),
+      pending: Number(counts.comments_pending || 0),
+      approved: Number(counts.comments_approved || 0),
+      today: commentsToday,
+      last_7d: commentsWeek,
+    },
+    contacts: {
+      total: Number(counts.contact_messages || 0),
+      today: contactsToday,
+      last_7d: contactsWeek,
+    },
+    consent_logs: {
+      total: Number(counts.consent_logs || 0),
+      today: consentToday,
+      last_7d: consentWeek,
+    },
+    ai_assistant_events: {
+      total: Number(counts.ai_assistant_events || 0),
+      today: aiBuckets.today,
+      last_24h: aiBuckets.last_24h,
+      last_7d: aiBuckets.last_7d,
+      last_30d: aiBuckets.last_30d,
+    },
+    conversations: {
+      total: Number(counts.conversations_total || 0),
+    },
+  };
+}
+
+async function buildActivitySeriesFromEvents(env, rows) {
+  const buckets = eventDayBuckets(rows, Date.now());
+  let installedSinceAt = null;
+  try {
+    const row = await env.DB.prepare("SELECT MIN(created_at) AS value FROM ai_assistant_events").first();
+    installedSinceAt = row?.value || null;
+  } catch (error) {
+    installedSinceAt = null;
+  }
+  return {
+    today: buckets.today,
+    last_24h: buckets.last_24h,
+    last_7d: buckets.last_7d,
+    last_30d: buckets.last_30d,
+    since_installation: installedSinceAt ? { since: installedSinceAt, total_events: Array.isArray(rows) ? rows.length : 0 } : null,
+  };
+}
+
+// Statut "non_mesure" explicite pour les services sans télémétrie serveur
+// dédiée — remplace les anciens statuts littéraux ("operational"/"development"
+// devinés) par une badge honnête plutôt qu'une valeur simulée.
+const DASHBOARD_NO_TELEMETRY_SERVICES = new Set([
+  "Mémoire conversationnelle",
+  "Historique",
+  "Agents spécialisés",
+  "RAG documentaire",
+]);
+
+// event_type -> { successType, errorType, countKey } pour les services dont on
+// dispose d'un signal direct dans ai_assistant_events.
+const DASHBOARD_UPLOAD_SERVICE_SIGNALS = {
+  "Upload PDF": { eventType: "pdf_uploaded", errorType: "pdf_upload_error" },
+  "Upload DOCX": { eventType: "docx_uploaded", errorType: "docx_upload_error" },
+  "Upload XLSX": { eventType: "xlsx_uploaded", errorType: "xlsx_upload_error" },
+};
+
+function computeServiceBadge({ successCount, errorCount, lastSuccessAt, lastErrorAt }) {
+  if (!successCount && !errorCount) {
+    return { status: "aucune_donnee_recente", detail: "Aucun événement récent pour ce service." };
+  }
+  const total = successCount + errorCount;
+  const successRate = total ? Math.round((successCount / total) * 1000) / 10 : 0;
+  const recentErrorIsLatest = lastErrorAt && (!lastSuccessAt || new Date(lastErrorAt) > new Date(lastSuccessAt));
+  if (recentErrorIsLatest && successRate < 50) {
+    return { status: "erreur", detail: `Taux de succès récent: ${successRate}%. Dernière erreur après le dernier succès.` };
+  }
+  if (successRate >= 90) {
+    return { status: "operational", detail: `Taux de succès récent: ${successRate}%.` };
+  }
+  if (successRate >= 50) {
+    return { status: "partiel", detail: `Taux de succès récent: ${successRate}%.` };
+  }
+  return { status: "degrade", detail: `Taux de succès récent: ${successRate}%.` };
+}
+
+// Recalcule, pour les services dont buildAdminHealthPayload() utilisait
+// jusqu'ici un statut litteral, un statut/detail derive des evenements reels.
+// `existingServices` (deja construit par buildAdminHealthPayload) est copie et
+// seules les entrees concernees sont remplacees — aucune regression sur
+// Netlify/Cloudflare Worker/OpenRouter/Tavily/Recherche web, deja calcules
+// dynamiquement.
+function buildServiceHealthFromEvents(existingServices, rows, checkedAt) {
+  const eventRows = Array.isArray(rows) ? rows : [];
+  return (Array.isArray(existingServices) ? existingServices : []).map((service) => {
+    if (DASHBOARD_NO_TELEMETRY_SERVICES.has(service.name)) {
+      return {
+        ...service,
+        status: "non_mesure",
+        detail: "Aucune télémétrie serveur dédiée à ce jour pour ce service (fonctionnalité côté navigateur).",
+        next_step: "Ajouter un événement D1 dédié si un suivi serveur devient nécessaire.",
+        verification: "partial",
+        verification_label: healthVerificationLabel("partial"),
+        last_checked_at: checkedAt,
+      };
+    }
+    const signal = DASHBOARD_UPLOAD_SERVICE_SIGNALS[service.name];
+    if (signal) {
+      const successRows = eventRows.filter((row) => row.event_type === signal.eventType);
+      const errorRows = eventRows.filter((row) => row.event_type === signal.errorType);
+      const badge = computeServiceBadge({
+        successCount: successRows.length,
+        errorCount: errorRows.length,
+        lastSuccessAt: successRows[0]?.created_at || null,
+        lastErrorAt: errorRows[0]?.created_at || null,
+      });
+      return {
+        ...service,
+        status: badge.status,
+        detail: badge.detail,
+        success_count: successRows.length,
+        error_count: errorRows.length,
+        last_success_at: successRows[0]?.created_at || null,
+        last_error_at: errorRows[0]?.created_at || null,
+        verification: errorRows.length ? "partial" : (successRows.length ? "verified" : "partial"),
+        verification_label: healthVerificationLabel(errorRows.length ? "partial" : (successRows.length ? "verified" : "partial")),
+        last_checked_at: checkedAt,
+      };
+    }
+    return service;
+  });
+}
+
+function buildModelUsageFromEvents(rows) {
+  return {
+    models: buildOpenRouterModelStatsFromEvents(rows),
+    tiers: buildModelTierStatsFromEvents(rows),
+  };
+}
+
+// Familles d'evenements connues pour porter un signal d'erreur — on derive la
+// famille depuis le prefixe de event_type plutot que de maintenir une liste
+// figee de noms, pour rester additif si de nouveaux event_type apparaissent.
+const DASHBOARD_ERROR_FAMILIES = [
+  { key: "model_router", prefixes: ["openrouter_"] },
+  { key: "tavily", prefixes: ["web_search_"] },
+  { key: "rag", prefixes: ["rag_"] },
+  { key: "completion_guard", prefixes: ["completion_guard_", "completion_"] },
+  { key: "response_quality", prefixes: ["response_quality_"] },
+  { key: "prompt_orchestrator", prefixes: ["prompt_"] },
+  { key: "capability_planner", prefixes: ["capability_"] },
+  { key: "source_planner", prefixes: ["source_"] },
+  { key: "execution_planner", prefixes: ["execution_"] },
+];
+
+function isErrorEventType(eventType) {
+  const type = String(eventType || "").toLowerCase();
+  return type.includes("error") || type.includes("failed");
+}
+
+function buildErrorStatsFromEvents(rows) {
+  const eventRows = Array.isArray(rows) ? rows : [];
+  const errorRows = eventRows.filter((row) => isErrorEventType(row.event_type));
+  const families = DASHBOARD_ERROR_FAMILIES.map(({ key, prefixes }) => {
+    const familyErrors = errorRows.filter((row) => prefixes.some((prefix) => String(row.event_type || "").startsWith(prefix)));
+    return {
+      family: key,
+      error_count: familyErrors.length,
+      last_error_at: familyErrors[0]?.created_at || null,
+      last_error_type: familyErrors[0]?.event_type || null,
+    };
+  });
+  return {
+    total_error_count: errorRows.length,
+    families,
+    status: errorRows.length === 0 ? "aucune_donnee_recente" : "des_erreurs_recentes",
+  };
+}
+
+function buildPlannerSummaryFromEvents(rows) {
+  return {
+    capability: buildCapabilityPlannerStatsFromEvents(rows),
+    source: buildSourcePlannerStatsFromEvents(rows),
+    execution: buildExecutionPlannerStatsFromEvents(rows),
+  };
+}
+
+// Remplace summaryTrend() cote front (admin/index.html), qui renvoyait des
+// chaines litterales fixes ("+0 aujourd'hui · +0 sur 7 jours", ...).
+function buildDashboardTrendsFromEvents(kpis) {
+  const trendFor = (today, last7d) => {
+    if (today == null || last7d == null) {
+      return { today: null, last_7d: null, label: "non mesuré" };
+    }
+    if (today === 0 && last7d === 0) {
+      return { today: 0, last_7d: 0, label: "aucune donnée récente" };
+    }
+    return {
+      today,
+      last_7d: last7d,
+      label: `+${today} aujourd'hui · +${last7d} sur 7 jours`,
+    };
+  };
+  return {
+    "Conversations": trendFor(kpis.ai_assistant_events.today, kpis.ai_assistant_events.last_7d),
+    "Activités IA": trendFor(kpis.ai_assistant_events.today, kpis.ai_assistant_events.last_7d),
+    "Commentaires": trendFor(kpis.comments.today, kpis.comments.last_7d),
+    "Contacts": trendFor(kpis.contacts.today, kpis.contacts.last_7d),
+    "Consentements": trendFor(kpis.consent_logs.today, kpis.consent_logs.last_7d),
+  };
+}
+
+// --- Agregats dedies a l'onglet admin "Conversations" ----------------------
+// Aucune table dediee conversations/messages : tout est derive par SQL sur
+// ai_assistant_events (group by session_id), conformement a la decision
+// actee (pas de duplication ni de risque de desynchronisation). Seules
+// conversation_tags/conversation_feedback/conversation_exports sont de
+// vraies nouvelles tables (fonctionnalites neuves, demarrent vides).
+
+function isErrorEventTypeSqlClause(column) {
+  return `(${column} LIKE '%error%' OR ${column} LIKE '%failed%')`;
+}
+
+// Construit les clauses WHERE/bindings communes a buildConversationList et
+// buildConversationFilters, pour ne pas dupliquer la logique de filtrage.
+function buildConversationWhereClauses({ q, model, hasErrors, dateFrom, dateTo }) {
+  const clauses = ["session_id IS NOT NULL", "session_id != ''"];
+  const bindings = [];
+
+  if (q) {
+    clauses.push(`session_id IN (
+      SELECT session_id FROM ai_assistant_events
+      WHERE session_id = ? OR event_value LIKE ? OR meta LIKE ?
+    )`);
+    bindings.push(q, `%${q}%`, `%${q}%`);
+  }
+  if (model) {
+    clauses.push(`session_id IN (
+      SELECT session_id FROM ai_assistant_events
+      WHERE event_type = 'openrouter_response' AND json_valid(meta)
+        AND json_extract(meta, '$.resolved_model') = ?
+    )`);
+    bindings.push(model);
+  }
+  if (hasErrors === true) {
+    clauses.push(`session_id IN (SELECT session_id FROM ai_assistant_events WHERE ${isErrorEventTypeSqlClause("event_type")})`);
+  }
+  if (dateFrom) {
+    clauses.push("created_at >= ?");
+    bindings.push(dateFrom);
+  }
+  if (dateTo) {
+    clauses.push("created_at <= ?");
+    bindings.push(dateTo);
+  }
+  return { whereSql: clauses.join(" AND "), bindings };
+}
+
+const CONVERSATION_SORT_COLUMNS = {
+  last_at: "last_at DESC",
+  messages: "message_count DESC",
+  latency: "avg_latency_ms DESC",
+};
+
+// Pagination/recherche/tri/filtres reels cote SQL (pas de chargement complet
+// en memoire) : une 1ere requete GROUP BY pagine les session_id, une 2e
+// requete bornee recupere uniquement les evenements des session_id de la
+// page courante pour calculer modele/apercu/erreurs.
+async function buildConversationList(env, { limit = 20, offset = 0, q = "", model = "", hasErrors = false, dateFrom = "", dateTo = "", sort = "last_at" } = {}) {
+  const { whereSql, bindings } = buildConversationWhereClauses({ q, model, hasErrors, dateFrom, dateTo });
+  const orderBy = CONVERSATION_SORT_COLUMNS[sort] || CONVERSATION_SORT_COLUMNS.last_at;
+  const safeLimit = Math.min(200, Math.max(1, Number(limit) || 20));
+  const safeOffset = Math.max(0, Number(offset) || 0);
+
+  const totalRow = await env.DB.prepare(
+    `SELECT COUNT(*) AS count FROM (SELECT session_id FROM ai_assistant_events WHERE ${whereSql} GROUP BY session_id)`
+  ).bind(...bindings).first();
+
+  const groupedResult = await env.DB.prepare(
+    `SELECT
+       session_id,
+       COUNT(*) AS message_count,
+       MIN(created_at) AS started_at,
+       MAX(created_at) AS last_at,
+       (SELECT AVG(CAST(json_extract(e2.meta, '$.latency_ms') AS REAL))
+          FROM ai_assistant_events e2
+          WHERE e2.session_id = ai_assistant_events.session_id
+            AND e2.event_type IN ('openrouter_response', 'assistant_response')
+            AND json_valid(e2.meta)
+            AND json_extract(e2.meta, '$.latency_ms') IS NOT NULL) AS avg_latency_ms
+     FROM ai_assistant_events
+     WHERE ${whereSql}
+     GROUP BY session_id
+     ORDER BY ${orderBy}
+     LIMIT ? OFFSET ?`
+  ).bind(...bindings, safeLimit, safeOffset).all();
+
+  const groups = groupedResult.results || [];
+  const sessionIds = groups.map((g) => g.session_id);
+
+  let eventsBySession = new Map();
+  if (sessionIds.length) {
+    const placeholders = sessionIds.map(() => "?").join(", ");
+    const eventsResult = await env.DB.prepare(
+      `SELECT id, session_id, event_type, event_value, meta, created_at
+       FROM ai_assistant_events
+       WHERE session_id IN (${placeholders})
+       ORDER BY created_at DESC, id DESC
+       LIMIT 2000`
+    ).bind(...sessionIds).all();
+    (eventsResult.results || []).forEach((row) => {
+      if (!eventsBySession.has(row.session_id)) eventsBySession.set(row.session_id, []);
+      eventsBySession.get(row.session_id).push(row);
+    });
+  }
+
+  const items = groups.map((group) => {
+    const events = eventsBySession.get(group.session_id) || [];
+    const modelRow = events.find((row) => row.event_type === "openrouter_response" || row.event_type === "assistant_response");
+    const previewRow = events.find((row) => row.event_type === "user_message") || events[events.length - 1] || null;
+    const errorCount = events.filter((row) => isErrorEventType(row.event_type)).length;
+    return {
+      session_id: group.session_id,
+      // Anonyme par construction : aucune identite utilisateur reelle
+      // n'existe (pas d'auth) — on affiche l'identifiant de session, jamais
+      // un nom invente.
+      session_label: `Session #${String(group.session_id).slice(0, 8)}`,
+      message_count: Number(group.message_count || 0),
+      started_at: group.started_at,
+      last_at: group.last_at,
+      average_latency_ms: group.avg_latency_ms != null ? Math.round(group.avg_latency_ms) : null,
+      model: modelRow ? (parseEventMeta(modelRow).resolved_model || parseEventMeta(modelRow).model || null) : null,
+      // Apercu tronque tel que stocke en base (compactText(...,120) cote
+      // worker-openrouter.js) — jamais le texte integral, jamais invente.
+      preview: previewRow ? String(previewRow.event_value || "").slice(0, 120) : "",
+      error_count: errorCount,
+      status: errorCount > 0 ? "erreur" : "operational",
+    };
+  });
+
+  return {
+    items,
+    total: Number(totalRow?.count || 0),
+    limit: safeLimit,
+    offset: safeOffset,
+  };
+}
+
+async function buildConversationSearch(env, q, pagination = {}) {
+  if (!q) {
+    return { items: [], total: 0, limit: pagination.limit || 20, offset: pagination.offset || 0, error: "missing_query" };
+  }
+  return buildConversationList(env, { ...pagination, q });
+}
+
+// Facettes reelles pour les filtres du front (modeles distincts vus, bornes
+// de dates, nombre de conversations en erreur) — jamais une liste figee.
+async function buildConversationFilters(env) {
+  const [modelsResult, boundsRow, errorSessionsRow] = await Promise.all([
+    env.DB.prepare(
+      `SELECT DISTINCT json_extract(meta, '$.resolved_model') AS model
+       FROM ai_assistant_events
+       WHERE event_type = 'openrouter_response' AND json_valid(meta)
+         AND json_extract(meta, '$.resolved_model') IS NOT NULL
+       LIMIT 50`
+    ).all(),
+    env.DB.prepare("SELECT MIN(created_at) AS min_at, MAX(created_at) AS max_at FROM ai_assistant_events").first(),
+    env.DB.prepare(
+      `SELECT COUNT(DISTINCT session_id) AS count FROM ai_assistant_events WHERE ${isErrorEventTypeSqlClause("event_type")}`
+    ).first(),
+  ]);
+  return {
+    models: (modelsResult.results || []).map((row) => row.model).filter(Boolean),
+    date_from: boundsRow?.min_at || null,
+    date_to: boundsRow?.max_at || null,
+    conversations_with_errors: Number(errorSessionsRow?.count || 0),
+  };
+}
+
+// Transforme les evenements d'une session (deja tries) en etapes de pipeline
+// ordonnees — uniquement celles reellement presentes, aucune etape inventee.
+function buildConversationTimeline(rows) {
+  const sorted = [...(Array.isArray(rows) ? rows : [])].sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
+  return sorted.map((row) => {
+    const meta = parseEventMeta(row);
+    return {
+      at: row.created_at || null,
+      step: row.event_type || "unknown",
+      event_value: row.event_value || "",
+      is_error: isErrorEventType(row.event_type),
+      detail: meta,
+    };
+  });
+}
+
+async function buildConversationDetails(env, sessionId) {
+  const [eventsResult, tagsResult, feedbackResult, exportsResult] = await Promise.all([
+    env.DB.prepare(
+      `SELECT id, session_id, event_type, event_value, meta, created_at
+       FROM ai_assistant_events WHERE session_id = ? ORDER BY created_at ASC, id ASC`
+    ).bind(sessionId).all(),
+    env.DB.prepare("SELECT id, tag, created_by, created_at FROM conversation_tags WHERE session_id = ? ORDER BY created_at DESC").bind(sessionId).all(),
+    env.DB.prepare("SELECT id, rating, note, created_by, created_at FROM conversation_feedback WHERE session_id = ? ORDER BY created_at DESC").bind(sessionId).all(),
+    env.DB.prepare("SELECT id, format, requested_by, created_at FROM conversation_exports WHERE session_id = ? ORDER BY created_at DESC").bind(sessionId).all(),
+  ]);
+
+  const events = eventsResult.results || [];
+  if (!events.length) return null;
+
+  const responseRows = events.filter((row) => row.event_type === "openrouter_response" || row.event_type === "assistant_response");
+  const usageRows = responseRows.map((row) => parseEventMeta(row).usage).filter(Boolean);
+  const tokensTotal = usageRows.length
+    ? usageRows.reduce((sum, usage) => sum + (Number(usage.total_tokens) || 0), 0)
+    : null;
+  const costTotal = usageRows.length
+    ? usageRows.reduce((sum, usage) => sum + (Number(usage.cost ?? usage.total_cost) || 0), 0) || null
+    : null;
+  const latencyValues = responseRows.map((row) => Number(parseEventMeta(row).latency_ms)).filter((value) => Number.isFinite(value));
+  const averageLatencyMs = latencyValues.length ? Math.round(latencyValues.reduce((sum, v) => sum + v, 0) / latencyValues.length) : null;
+  const modelsUsed = Array.from(new Set(responseRows.map((row) => parseEventMeta(row).resolved_model || parseEventMeta(row).model).filter(Boolean)));
+  const errorEvents = events.filter((row) => isErrorEventType(row.event_type));
+  const startedAt = events[0]?.created_at || null;
+  const lastAt = events[events.length - 1]?.created_at || null;
+  const durationMs = startedAt && lastAt ? Math.max(0, new Date(lastAt) - new Date(startedAt)) : null;
+
+  const ragUsage = buildRagUsageFromEvents(events);
+  const tavilyUsage = buildTavilyUsageFromEvents(events, null, env);
+  const planners = buildPlannerSummaryFromEvents(events);
+
+  return {
+    session_id: sessionId,
+    session_label: `Session #${String(sessionId).slice(0, 8)}`,
+    message_count: events.length,
+    started_at: startedAt,
+    last_at: lastAt,
+    duration_ms: durationMs,
+    models_used: modelsUsed,
+    average_latency_ms: averageLatencyMs,
+    tokens_total: tokensTotal,
+    cost_total: costTotal, // null si OpenRouter ne renvoie pas de champ cost — jamais estime
+    error_count: errorEvents.length,
+    rag: ragUsage,
+    web: tavilyUsage,
+    planners,
+    tags: tagsResult.results || [],
+    feedback: feedbackResult.results || [],
+    exports: exportsResult.results || [],
+    timeline: buildConversationTimeline(events),
+  };
+}
+
+async function buildConversationStats(env, { dateFrom = "", dateTo = "" } = {}) {
+  const dateClause = [];
+  const dateBindings = [];
+  if (dateFrom) { dateClause.push("created_at >= ?"); dateBindings.push(dateFrom); }
+  if (dateTo) { dateClause.push("created_at <= ?"); dateBindings.push(dateTo); }
+  const whereDate = dateClause.length ? `WHERE ${dateClause.join(" AND ")}` : "";
+
+  const [sessionsRow, messagesRow, latencyRow, usageRowsResult, feedbackRowsResult] = await Promise.all([
+    env.DB.prepare(`SELECT COUNT(DISTINCT session_id) AS count FROM ai_assistant_events ${whereDate}`).bind(...dateBindings).first(),
+    env.DB.prepare(`SELECT COUNT(*) AS count FROM ai_assistant_events ${whereDate}`).bind(...dateBindings).first(),
+    firstNumber(
+      env,
+      `SELECT AVG(CAST(json_extract(meta, '$.latency_ms') AS REAL)) AS value
+       FROM ai_assistant_events
+       WHERE event_type IN ('openrouter_response', 'assistant_response') AND json_valid(meta)
+         AND json_extract(meta, '$.latency_ms') IS NOT NULL
+         ${dateClause.length ? `AND ${dateClause.join(" AND ")}` : ""}`,
+      "value",
+      ...dateBindings
+    ),
+    env.DB.prepare(
+      `SELECT meta FROM ai_assistant_events
+       WHERE event_type IN ('openrouter_response', 'assistant_response') AND json_valid(meta)
+         AND json_extract(meta, '$.usage') IS NOT NULL
+         ${dateClause.length ? `AND ${dateClause.join(" AND ")}` : ""}`
+    ).bind(...dateBindings).all(),
+    env.DB.prepare(`SELECT rating FROM conversation_feedback ${whereDate}`).bind(...dateBindings).all(),
+  ]);
+
+  const usages = (usageRowsResult.results || []).map((row) => parseEventMeta(row).usage).filter(Boolean);
+  const tokensTotal = usages.length ? usages.reduce((sum, usage) => sum + (Number(usage.total_tokens) || 0), 0) : null;
+  const costTotal = usages.length
+    ? (usages.reduce((sum, usage) => sum + (Number(usage.cost ?? usage.total_cost) || 0), 0) || null)
+    : null;
+
+  const ratings = (feedbackRowsResult.results || []).map((row) => Number(row.rating)).filter((value) => Number.isFinite(value));
+  const averageSatisfaction = ratings.length ? Math.round((ratings.reduce((sum, v) => sum + v, 0) / ratings.length) * 10) / 10 : null;
+
+  const conversations = Number(sessionsRow?.count || 0);
+  const messages = Number(messagesRow?.count || 0);
+
+  return {
+    conversations,
+    messages,
+    // Aucune identite utilisateur reelle (pas d'auth) : "sessions" est le
+    // seul identifiant disponible — libelle explicite plutot que de fabriquer
+    // une notion d'utilisateur.
+    sessions: conversations,
+    average_messages_per_conversation: conversations ? Math.round((messages / conversations) * 10) / 10 : null,
+    average_response_ms: latencyRow,
+    tokens_total: tokensTotal,
+    cost_total: costTotal,
+    average_satisfaction: averageSatisfaction,
+    satisfaction_sample_size: ratings.length,
+  };
+}
+
+async function buildConversationAnalytics(env, recentEvents) {
+  return {
+    models: buildModelUsageFromEvents(recentEvents),
+    quality: buildResponseQualityStatsFromEvents(recentEvents),
+    rag: buildRagUsageFromEvents(recentEvents),
+    web: buildTavilyUsageFromEvents(recentEvents, null, env),
+    planners: buildPlannerSummaryFromEvents(recentEvents),
+    errors: buildErrorStatsFromEvents(recentEvents),
+  };
+}
+
 function latestOpenRouterResponseInfo(rows) {
   const row = rows.find((item) => item?.event_type === "openrouter_response");
   if (!row) return null;
@@ -1108,6 +1669,1530 @@ function buildRagUsageFromEvents(rows) {
     debug_raw_rag_events_count: ragEventRows.length,
     debug_parsed_meta_count: parsedMetaCount,
     debug_vector_true_count: vectorTrueCount,
+  };
+}
+
+// --- Agregats dedies a l'onglet admin "Sources & RAG" ----------------------
+// rag_chunks reste la granularite d'indexation (texte des passages, jamais
+// modifiee ici). rag_sources est la granularite documentaire (additive,
+// alimentee par indexDocumentChunks() cote cloudflare/ragPipeline.js). Quand
+// un document a ete indexe avant l'existence de rag_sources (ou que la ligne
+// a ete perdue), on reconstruit une source "partielle" depuis rag_chunks —
+// jamais une source fictive : son statut est explicitement "partiel".
+
+const RAG_ERROR_EVENT_SQL_CLAUSE = "(event_type LIKE 'rag%error%' OR event_type LIKE 'rag%failed%' OR event_type = 'rag_index_failed' OR event_type = 'rag_delete_failed')";
+
+export function isRagErrorEventType(eventType) {
+  const type = String(eventType || "").toLowerCase();
+  return type.startsWith("rag") && (type.includes("error") || type.includes("failed"));
+}
+
+async function buildRagProjectStats(env) {
+  const [sourceProjects, chunkProjects] = await Promise.all([
+    env.DB.prepare(
+      `SELECT project_id, COUNT(*) AS sources_count, SUM(chunks_count) AS chunks_count
+       FROM rag_sources WHERE project_id IS NOT NULL AND project_id != '' GROUP BY project_id`
+    ).all(),
+    env.DB.prepare(
+      `SELECT project_id, COUNT(DISTINCT document_id) AS documents_count, COUNT(*) AS chunks_count
+       FROM rag_chunks WHERE project_id IS NOT NULL AND project_id != '' GROUP BY project_id`
+    ).all(),
+  ]);
+  const byProject = new Map();
+  (sourceProjects.results || []).forEach((row) => {
+    byProject.set(row.project_id, {
+      project_id: row.project_id,
+      sources_count: Number(row.sources_count || 0),
+      chunks_count: Number(row.chunks_count || 0),
+    });
+  });
+  (chunkProjects.results || []).forEach((row) => {
+    if (!byProject.has(row.project_id)) {
+      byProject.set(row.project_id, {
+        project_id: row.project_id,
+        sources_count: 0,
+        chunks_count: Number(row.chunks_count || 0),
+        documents_without_source_row: Number(row.documents_count || 0),
+      });
+    }
+  });
+  return Array.from(byProject.values());
+}
+
+// Pagination/recherche/filtre/tri reels cote SQL sur rag_sources. Les
+// documents presents dans rag_chunks mais sans ligne rag_sources (indexes
+// avant la creation de cette table) sont ajoutes comme sources "partielles" —
+// jamais masques, jamais inventes.
+async function buildRagSourceList(env, { limit = 20, offset = 0, q = "", projectId = "", status = "", sort = "indexed_at" } = {}) {
+  const safeLimit = Math.min(200, Math.max(1, Number(limit) || 20));
+  const safeOffset = Math.max(0, Number(offset) || 0);
+  const clauses = [];
+  const bindings = [];
+  if (q) {
+    clauses.push("(title LIKE ? OR filename LIKE ? OR id = ?)");
+    bindings.push(`%${q}%`, `%${q}%`, q);
+  }
+  if (projectId) {
+    clauses.push("project_id = ?");
+    bindings.push(projectId);
+  }
+  if (status) {
+    clauses.push("status = ?");
+    bindings.push(status);
+  }
+  const whereSql = clauses.length ? `WHERE ${clauses.join(" AND ")}` : "";
+  const sortColumn = { indexed_at: "indexed_at DESC", title: "title ASC", chunks_count: "chunks_count DESC", size_bytes: "size_bytes DESC" }[sort] || "indexed_at DESC";
+
+  const [totalRow, sourcesResult] = await Promise.all([
+    env.DB.prepare(`SELECT COUNT(*) AS count FROM rag_sources ${whereSql}`).bind(...bindings).first(),
+    env.DB.prepare(
+      `SELECT id, project_id, title, source_type, filename, mime_type, size_bytes, checksum, status, chunks_count, indexed_at, created_at, updated_at
+       FROM rag_sources ${whereSql} ORDER BY ${sortColumn} LIMIT ? OFFSET ?`
+    ).bind(...bindings, safeLimit, safeOffset).all(),
+  ]);
+
+  const knownSources = (sourcesResult.results || []).map((row) => ({ ...row, partial: false }));
+
+  // Reconstruction des sources partielles uniquement sur la 1ere page, sans
+  // filtre projet/statut/recherche actif (sinon le tri/pagination SQL perd
+  // son sens) — evite de fabriquer une notion de pagination sur des donnees
+  // non structurees.
+  let partialSources = [];
+  if (safeOffset === 0 && !q && !projectId && !status) {
+    const orphanChunks = await env.DB.prepare(
+      `SELECT document_id, project_id, document_name, COUNT(*) AS chunks_count, MAX(created_at) AS last_chunk_at
+       FROM rag_chunks
+       WHERE document_id NOT IN (SELECT id FROM rag_sources)
+       GROUP BY document_id
+       ORDER BY last_chunk_at DESC
+       LIMIT ?`
+    ).bind(safeLimit).all();
+    partialSources = (orphanChunks.results || []).map((row) => ({
+      id: row.document_id,
+      project_id: row.project_id,
+      title: row.document_name || row.document_id,
+      source_type: null,
+      filename: row.document_name || null,
+      mime_type: null,
+      size_bytes: null,
+      checksum: null,
+      status: "partiel",
+      chunks_count: Number(row.chunks_count || 0),
+      indexed_at: row.last_chunk_at,
+      created_at: row.last_chunk_at,
+      updated_at: row.last_chunk_at,
+      partial: true,
+    }));
+  }
+
+  const total = Number(totalRow?.count || 0);
+  return {
+    items: knownSources.concat(partialSources),
+    total: total + (safeOffset === 0 ? partialSources.length : 0),
+    limit: safeLimit,
+    offset: safeOffset,
+    reconstructed_count: partialSources.length,
+  };
+}
+
+async function buildRagSourceDetails(env, sourceId) {
+  const sourceRow = await env.DB.prepare(
+    `SELECT id, project_id, title, source_type, filename, mime_type, size_bytes, checksum, status, chunks_count, indexed_at, created_at, updated_at, metadata_json
+     FROM rag_sources WHERE id = ?`
+  ).bind(sourceId).first();
+
+  const chunksResult = await env.DB.prepare(
+    `SELECT id, document_id, project_id, document_name, chunk_index, locator, text, created_at
+     FROM rag_chunks WHERE document_id = ? ORDER BY chunk_index ASC`
+  ).bind(sourceId).all();
+  const chunks = chunksResult.results || [];
+  if (!sourceRow && !chunks.length) return null;
+
+  // Recherches reelles ayant cite ce document : recoupe les evenements
+  // rag_context_used dont meta.documentId correspond — jamais une recherche
+  // inventee.
+  const citingEventsResult = await env.DB.prepare(
+    `SELECT id, session_id, event_type, event_value, meta, created_at
+     FROM ai_assistant_events
+     WHERE event_type = 'rag_context_used' AND json_valid(meta) AND meta LIKE ?
+     ORDER BY created_at DESC LIMIT 50`
+  ).bind(`%${sourceId}%`).all();
+  const citingSearches = (citingEventsResult.results || [])
+    .map((row) => ({ at: row.created_at, session_id: row.session_id, meta: parseEventMeta(row) }))
+    .filter((row) => String(row.meta.documentId || "") === sourceId);
+
+  const errorsResult = await env.DB.prepare(
+    `SELECT id, event_type, event_value, meta, created_at FROM ai_assistant_events
+     WHERE ${RAG_ERROR_EVENT_SQL_CLAUSE} AND (event_value LIKE ? OR meta LIKE ?)
+     ORDER BY created_at DESC LIMIT 20`
+  ).bind(`%${sourceId}%`, `%${sourceId}%`).all();
+
+  const source = sourceRow || {
+    id: sourceId,
+    project_id: chunks[0]?.project_id || null,
+    title: chunks[0]?.document_name || sourceId,
+    source_type: null,
+    filename: chunks[0]?.document_name || null,
+    mime_type: null,
+    size_bytes: null,
+    checksum: null,
+    status: "partiel",
+    chunks_count: chunks.length,
+    indexed_at: chunks[chunks.length - 1]?.created_at || null,
+    created_at: chunks[0]?.created_at || null,
+    updated_at: chunks[chunks.length - 1]?.created_at || null,
+    metadata_json: null,
+    partial: true,
+  };
+
+  return {
+    source,
+    chunks: chunks.map((row) => ({
+      id: row.id,
+      chunk_index: row.chunk_index,
+      content_preview: String(row.text || "").slice(0, 160),
+      token_count: null, // non mesure : aucun comptage de tokens par chunk n'est stocke
+      vector_id: row.id, // id == cle vectorielle (chunkVectorId) cote ragPipeline.js
+      source_id: row.document_id,
+      locator: row.locator || null,
+      created_at: row.created_at,
+    })),
+    citing_searches: citingSearches,
+    errors: (errorsResult.results || []).map((row) => ({ at: row.created_at, type: row.event_type, detail: row.event_value })),
+  };
+}
+
+async function buildRagChunkStats(env) {
+  const [totalsRow, projectRows] = await Promise.all([
+    env.DB.prepare("SELECT COUNT(*) AS count, COUNT(DISTINCT document_id) AS documents FROM rag_chunks").first(),
+    env.DB.prepare("SELECT project_id, COUNT(*) AS count FROM rag_chunks WHERE project_id IS NOT NULL AND project_id != '' GROUP BY project_id ORDER BY count DESC LIMIT 10").all(),
+  ]);
+  return {
+    chunks_total: Number(totalsRow?.count || 0),
+    documents_with_chunks: Number(totalsRow?.documents || 0),
+    // Aucun token_count stocke par chunk (cf. rag_chunks schema) : impossible
+    // de calculer une moyenne reelle sans l'inventer.
+    average_token_count: null,
+    by_project: (projectRows.results || []).map((row) => ({ project_id: row.project_id, chunks_count: Number(row.count || 0) })),
+  };
+}
+
+// Recherches RAG : aucune table dediee (decision actee — pas de duplication
+// des evenements). Tout est derive de rag_query/rag_match/rag_no_match/
+// rag_context_used deja journalises par le runtime RAG existant.
+export function buildRagSearchStats(rows) {
+  const eventRows = Array.isArray(rows) ? rows : [];
+  const queryRows = eventRows.filter((row) => row.event_type === "rag_query");
+  const matchRows = eventRows.filter((row) => row.event_type === "rag_match");
+  const noMatchRows = eventRows.filter((row) => row.event_type === "rag_no_match");
+  const contextRows = eventRows.filter((row) => row.event_type === "rag_context_used");
+  const searches = queryRows.length;
+  const matchRate = searches ? Math.round((matchRows.length / searches) * 1000) / 10 : null;
+  const averageLatencyMs = averageFromEvents(queryRows.concat(matchRows, noMatchRows), ["duration_ms"]);
+
+  const scoreValues = matchRows.map((row) => Number(parseEventMeta(row).top_score ?? parseEventMeta(row).score)).filter((value) => Number.isFinite(value));
+  const averageTopScore = scoreValues.length ? Math.round((scoreValues.reduce((sum, v) => sum + v, 0) / scoreValues.length) * 1000) / 1000 : null;
+
+  const projectCounts = new Map();
+  queryRows.forEach((row) => {
+    const meta = parseEventMeta(row);
+    const key = meta.projectName || meta.projectId || null;
+    if (!key) return;
+    projectCounts.set(key, (projectCounts.get(key) || 0) + 1);
+  });
+
+  const sourceCounts = new Map();
+  contextRows.forEach((row) => {
+    const meta = parseEventMeta(row);
+    const key = meta.documentName || meta.documentId;
+    if (!key) return;
+    sourceCounts.set(key, (sourceCounts.get(key) || 0) + 1);
+  });
+
+  return {
+    searches_performed: searches,
+    matches: matchRows.length,
+    no_matches: noMatchRows.length,
+    match_rate: matchRate,
+    average_top_score: averageTopScore,
+    average_latency_ms: averageLatencyMs,
+    searches_without_results: noMatchRows.length,
+    top_projects_queried: Array.from(projectCounts.entries()).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count).slice(0, 5),
+    top_sources_cited: Array.from(sourceCounts.entries()).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count).slice(0, 5),
+  };
+}
+
+async function buildRagIndexingStats(env) {
+  const statusRows = await env.DB.prepare(
+    "SELECT status, COUNT(*) AS count FROM rag_sources GROUP BY status"
+  ).all();
+  const lastIndexedRow = await env.DB.prepare(
+    "SELECT MAX(indexed_at) AS last_indexed_at FROM rag_sources"
+  ).first();
+  return {
+    by_status: (statusRows.results || []).map((row) => ({ status: row.status, count: Number(row.count || 0) })),
+    last_indexed_at: lastIndexedRow?.last_indexed_at || null,
+  };
+}
+
+// Statut Vectorize : jamais affiche "operational" sans signal reel. Calcule
+// uniquement a partir de signaux observables cote D1 (events rag_*, lignes
+// rag_sources) — le Worker API n'a pas de binding VECTOR_INDEX direct (celui-ci
+// vit cote Worker IA, cloudflare/ragPipeline.js).
+export function buildRagHealth(rows, sourcesCount, chunksCount) {
+  const eventRows = Array.isArray(rows) ? rows : [];
+  const queryRows = eventRows.filter((row) => row.event_type === "rag_query");
+  const vectorSearchRows = queryRows.filter((row) => isTruthyFlag(parseEventMeta(row).vector_search));
+  const errorRows = eventRows.filter((row) => isRagErrorEventType(row.event_type));
+  const lastQueryAt = queryRows[0]?.created_at || null;
+  const lastErrorAt = errorRows[0]?.created_at || null;
+  const lastVectorSearchAt = vectorSearchRows[0]?.created_at || null;
+
+  const hasAnyActivity = queryRows.length > 0 || sourcesCount > 0 || chunksCount > 0;
+  const hasRecentQuery = lastQueryAt && (Date.now() - new Date(lastQueryAt).getTime()) < 7 * 24 * 60 * 60 * 1000;
+  const hasRecentError = lastErrorAt && (Date.now() - new Date(lastErrorAt).getTime()) < 7 * 24 * 60 * 60 * 1000;
+
+  let status = "not_configured";
+  if (hasAnyActivity) status = "unknown";
+  if (hasRecentQuery && vectorSearchRows.length > 0 && !hasRecentError) status = "operational";
+  else if (hasRecentQuery && hasRecentError) status = "degraded";
+  else if (hasRecentQuery && vectorSearchRows.length === 0) status = "degraded";
+  else if (hasRecentError && !hasRecentQuery) status = "unavailable";
+
+  return {
+    status,
+    last_query_at: lastQueryAt,
+    last_vector_search_at: lastVectorSearchAt,
+    last_error_at: lastErrorAt,
+    recent_error_count: errorRows.length,
+    engine: vectorSearchRows.length > 0 ? "vectorize" : (queryRows.length > 0 ? "browser_fallback" : "n/a"),
+  };
+}
+
+export function buildRagCoverage(sourcesCount, sourcesWithChunksCount) {
+  if (!sourcesCount) {
+    return { sources_total: 0, sources_with_chunks: 0, coverage_rate: null, label: "aucune source indexée" };
+  }
+  const rate = Math.round((sourcesWithChunksCount / sourcesCount) * 1000) / 10;
+  return { sources_total: sourcesCount, sources_with_chunks: sourcesWithChunksCount, coverage_rate: rate, label: `${rate}%` };
+}
+
+export function buildRagFreshness(lastIndexedAt, lastSearchAt) {
+  const now = Date.now();
+  const ageMs = (iso) => (iso ? now - new Date(iso).getTime() : null);
+  return {
+    last_indexed_at: lastIndexedAt || null,
+    last_search_at: lastSearchAt || null,
+    indexed_age_ms: lastIndexedAt ? ageMs(lastIndexedAt) : null,
+    search_age_ms: lastSearchAt ? ageMs(lastSearchAt) : null,
+    label: !lastIndexedAt && !lastSearchAt ? "aucune donnée récente" : null,
+  };
+}
+
+export function buildRagErrors(rows) {
+  const eventRows = Array.isArray(rows) ? rows : [];
+  const errorRows = eventRows.filter((row) => isRagErrorEventType(row.event_type));
+  return {
+    total_error_count: errorRows.length,
+    recent: errorRows.slice(0, 20).map((row) => ({ at: row.created_at, type: row.event_type, detail: row.event_value, session_id: row.session_id })),
+    status: errorRows.length === 0 ? "aucune_erreur_recente" : "des_erreurs_recentes",
+  };
+}
+
+// Activite RAG par jour, uniquement a partir des evenements reels (pas de
+// donnees synthetiques pour combler les jours sans evenement : ces jours
+// affichent 0, jamais une valeur generee).
+export function buildRagActivitySeries(rows, days = 30) {
+  const eventRows = Array.isArray(rows) ? rows : [];
+  const relevant = eventRows.filter((row) => ["rag_query", "rag_match", "rag_no_match", "rag_context_used"].includes(row.event_type));
+  const byDay = new Map();
+  relevant.forEach((row) => {
+    const day = String(row.created_at || "").slice(0, 10);
+    if (!day) return;
+    if (!byDay.has(day)) byDay.set(day, { date: day, queries: 0, matches: 0, no_matches: 0 });
+    const entry = byDay.get(day);
+    if (row.event_type === "rag_query") entry.queries += 1;
+    if (row.event_type === "rag_match") entry.matches += 1;
+    if (row.event_type === "rag_no_match") entry.no_matches += 1;
+  });
+  return Array.from(byDay.values()).sort((a, b) => a.date.localeCompare(b.date)).slice(-days);
+}
+
+async function buildRagOverview(env, recentEvents) {
+  const [chunkStats, projects, sourcesCountRow, sourcesWithChunksRow, indexingStats] = await Promise.all([
+    buildRagChunkStats(env),
+    buildRagProjectStats(env),
+    env.DB.prepare("SELECT COUNT(*) AS count FROM rag_sources").first(),
+    env.DB.prepare("SELECT COUNT(*) AS count FROM rag_sources WHERE chunks_count > 0").first(),
+    buildRagIndexingStats(env),
+  ]);
+  const sourcesTotal = Number(sourcesCountRow?.count || 0);
+  const sourcesWithChunks = Number(sourcesWithChunksRow?.count || 0);
+  const searchStats = buildRagSearchStats(recentEvents);
+  const health = buildRagHealth(recentEvents, sourcesTotal, chunkStats.chunks_total);
+  const errors = buildRagErrors(recentEvents);
+  const coverage = buildRagCoverage(sourcesTotal, sourcesWithChunks);
+  const freshness = buildRagFreshness(indexingStats.last_indexed_at, searchStats.searches_performed ? recentEvents.find((r) => r.event_type === "rag_query")?.created_at : null);
+
+  return {
+    sources_total: sourcesTotal,
+    // Sources reconstruites depuis rag_chunks (sans ligne rag_sources)
+    // comptees a part : honnete sur leur statut "partiel".
+    sources_with_chunks: sourcesWithChunks,
+    chunks_total: chunkStats.chunks_total,
+    documents_with_chunks: chunkStats.documents_with_chunks,
+    searches_performed: searchStats.searches_performed,
+    match_rate: searchStats.match_rate,
+    average_search_latency_ms: searchStats.average_latency_ms,
+    projects_count: projects.length,
+    health,
+    coverage,
+    freshness,
+    errors_count: errors.total_error_count,
+  };
+}
+
+// --- Agregats dedies a l'onglet admin "Documents" ---------------------------
+// `documents` est la vue transverse (upload -> parsing -> chunking ->
+// indexation -> utilisation -> export), distincte de rag_sources (specialise
+// Sources & RAG). Alimentee de facon additive par indexDocumentChunks() (cf.
+// cloudflare/ragPipeline.js) et par les evenements document_* journalises
+// par le client (cloudflare/worker-openrouter.js, mode: 'event'). Si un
+// document a ete uploade mais jamais indexe (texte vide, echec), aucune
+// ligne `documents` n'existe encore : on le reconstruit alors comme entree
+// "partielle" depuis l'evenement document_uploaded — jamais un document
+// fictif.
+
+const DOCUMENT_EVENT_TYPES = [
+  "document_uploaded",
+  "document_parse_started",
+  "document_parsed",
+  "document_chunked",
+  "document_indexed",
+  "document_index_failed",
+  "document_used",
+  "document_exported",
+  "document_deleted",
+];
+
+async function fetchRecentDocumentEvents(env, limit = 2000) {
+  const placeholders = DOCUMENT_EVENT_TYPES.map(() => "?").join(", ");
+  const result = await env.DB.prepare(
+    `SELECT id, session_id, event_type, event_value, meta, created_at
+     FROM ai_assistant_events
+     WHERE event_type IN (${placeholders})
+     ORDER BY created_at DESC, id DESC LIMIT ?`
+  ).bind(...DOCUMENT_EVENT_TYPES, limit).all();
+  return result.results || [];
+}
+
+export function documentIdFromEvent(row) {
+  const meta = parseEventMeta(row);
+  return String(meta.documentId || "").trim();
+}
+
+function buildDocumentWhereClauses({ q, projectId, status }) {
+  const clauses = [];
+  const bindings = [];
+  if (q) {
+    clauses.push("(title LIKE ? OR filename LIKE ? OR id = ?)");
+    bindings.push(`%${q}%`, `%${q}%`, q);
+  }
+  if (projectId) {
+    clauses.push("project_id = ?");
+    bindings.push(projectId);
+  }
+  if (status) {
+    clauses.push("status = ?");
+    bindings.push(status);
+  }
+  return { whereSql: clauses.length ? `WHERE ${clauses.join(" AND ")}` : "", bindings };
+}
+
+const DOCUMENT_SORT_COLUMNS = {
+  indexed_at: "indexed_at DESC",
+  uploaded_at: "uploaded_at DESC",
+  title: "title ASC",
+  chunks_count: "chunks_count DESC",
+  used_count: "used_count DESC",
+  size_bytes: "size_bytes DESC",
+};
+
+async function buildDocumentList(env, { limit = 20, offset = 0, q = "", projectId = "", status = "", sort = "uploaded_at" } = {}) {
+  const safeLimit = Math.min(200, Math.max(1, Number(limit) || 20));
+  const safeOffset = Math.max(0, Number(offset) || 0);
+  const { whereSql, bindings } = buildDocumentWhereClauses({ q, projectId, status });
+  const orderBy = DOCUMENT_SORT_COLUMNS[sort] || DOCUMENT_SORT_COLUMNS.uploaded_at;
+
+  const [totalRow, docsResult] = await Promise.all([
+    env.DB.prepare(`SELECT COUNT(*) AS count FROM documents ${whereSql}`).bind(...bindings).first(),
+    env.DB.prepare(
+      `SELECT id, rag_source_id, project_id, title, filename, file_path, mime_type, source_type, size_bytes, pages_count, chunks_count, status, indexed_at, uploaded_at, updated_at, last_used_at, used_count, average_relevance, checksum
+       FROM documents ${whereSql} ORDER BY ${orderBy} LIMIT ? OFFSET ?`
+    ).bind(...bindings, safeLimit, safeOffset).all(),
+  ]);
+
+  const knownDocs = (docsResult.results || []).map((row) => ({ ...row, partial: false }));
+
+  // Documents uploades mais jamais indexes (texte vide, echec d'extraction) :
+  // reconstruits depuis document_uploaded uniquement sur la 1ere page sans
+  // filtre actif, comme pour les sources RAG partielles.
+  let partialDocs = [];
+  if (safeOffset === 0 && !q && !projectId && !status) {
+    const knownIds = new Set(knownDocs.map((d) => d.id));
+    const uploadEvents = await env.DB.prepare(
+      `SELECT id, session_id, event_type, event_value, meta, created_at
+       FROM ai_assistant_events WHERE event_type = 'document_uploaded'
+       ORDER BY created_at DESC LIMIT 200`
+    ).all();
+    const seen = new Set();
+    (uploadEvents.results || []).forEach((row) => {
+      const docId = documentIdFromEvent(row);
+      if (!docId || knownIds.has(docId) || seen.has(docId)) return;
+      seen.add(docId);
+      const meta = parseEventMeta(row);
+      partialDocs.push({
+        id: docId,
+        rag_source_id: null,
+        project_id: meta.projectId || null,
+        title: row.event_value || docId,
+        filename: row.event_value || null,
+        file_path: null,
+        mime_type: meta.mimeType || null,
+        source_type: null,
+        size_bytes: meta.sizeBytes ?? null,
+        pages_count: null,
+        chunks_count: 0,
+        status: "non_indexe",
+        indexed_at: null,
+        uploaded_at: row.created_at,
+        updated_at: row.created_at,
+        last_used_at: null,
+        used_count: 0,
+        average_relevance: null,
+        checksum: null,
+        partial: true,
+      });
+    });
+    partialDocs = partialDocs.slice(0, safeLimit);
+  }
+
+  const total = Number(totalRow?.count || 0);
+  return {
+    items: knownDocs.concat(partialDocs),
+    total: total + (safeOffset === 0 ? partialDocs.length : 0),
+    limit: safeLimit,
+    offset: safeOffset,
+    reconstructed_count: partialDocs.length,
+  };
+}
+
+async function buildDocumentDetails(env, documentId) {
+  const docRow = await env.DB.prepare(
+    `SELECT id, rag_source_id, project_id, title, filename, file_path, mime_type, source_type, size_bytes, pages_count, chunks_count, status, indexed_at, uploaded_at, updated_at, last_used_at, used_count, average_relevance, checksum, metadata_json
+     FROM documents WHERE id = ?`
+  ).bind(documentId).first();
+
+  const eventsResult = await env.DB.prepare(
+    `SELECT id, session_id, event_type, event_value, meta, created_at FROM ai_assistant_events
+     WHERE event_type IN (${DOCUMENT_EVENT_TYPES.map(() => "?").join(", ")})
+     ORDER BY created_at ASC, id ASC`
+  ).bind(...DOCUMENT_EVENT_TYPES).all();
+  const events = (eventsResult.results || []).filter((row) => documentIdFromEvent(row) === documentId);
+
+  if (!docRow && !events.length) return null;
+
+  const chunksResult = docRow?.rag_source_id
+    ? await env.DB.prepare(
+      `SELECT id, chunk_index, locator, text, created_at FROM rag_chunks WHERE document_id = ? ORDER BY chunk_index ASC`
+    ).bind(docRow.rag_source_id).all()
+    : { results: [] };
+  const chunks = (chunksResult.results || []).map((row) => ({
+    id: row.id,
+    chunk_index: row.chunk_index,
+    content_preview: String(row.text || "").slice(0, 160),
+    locator: row.locator || null,
+    created_at: row.created_at,
+  }));
+
+  const usedEvents = events.filter((row) => row.event_type === "document_used");
+  const exportEvents = events.filter((row) => row.event_type === "document_exported");
+  const errorEvents = events.filter((row) => row.event_type === "document_index_failed");
+
+  const document = docRow || {
+    id: documentId,
+    rag_source_id: null,
+    project_id: parseEventMeta(events[0]).projectId || null,
+    title: events.find((e) => e.event_type === "document_uploaded")?.event_value || documentId,
+    filename: null,
+    file_path: null,
+    mime_type: null,
+    source_type: null,
+    size_bytes: null,
+    pages_count: null,
+    chunks_count: 0,
+    status: "non_indexe",
+    indexed_at: null,
+    uploaded_at: events[0]?.created_at || null,
+    updated_at: events[events.length - 1]?.created_at || null,
+    last_used_at: usedEvents[usedEvents.length - 1]?.created_at || null,
+    used_count: usedEvents.length,
+    average_relevance: null,
+    checksum: null,
+    partial: true,
+  };
+
+  return {
+    document,
+    chunks,
+    timeline: events.map((row) => ({
+      at: row.created_at,
+      step: row.event_type,
+      event_value: row.event_value || "",
+      is_error: row.event_type === "document_index_failed",
+      detail: parseEventMeta(row),
+    })),
+    used_events: usedEvents.map((row) => ({ at: row.created_at, session_id: row.session_id, meta: parseEventMeta(row) })),
+    export_events: exportEvents.map((row) => ({ at: row.created_at, session_id: row.session_id, meta: parseEventMeta(row) })),
+    errors: errorEvents.map((row) => ({ at: row.created_at, detail: parseEventMeta(row).error || row.event_value })),
+  };
+}
+
+async function buildDocumentStats(env) {
+  const [totalsRow, sizeRow, statusRows] = await Promise.all([
+    env.DB.prepare("SELECT COUNT(*) AS count, SUM(chunks_count) AS chunks_total, AVG(chunks_count) AS avg_chunks FROM documents").first(),
+    env.DB.prepare("SELECT SUM(size_bytes) AS total_size, AVG(size_bytes) AS avg_size FROM documents WHERE size_bytes IS NOT NULL").first(),
+    env.DB.prepare("SELECT status, COUNT(*) AS count FROM documents GROUP BY status").all(),
+  ]);
+  const indexedCount = (statusRows.results || []).find((row) => row.status === "indexed")?.count || 0;
+  const total = Number(totalsRow?.count || 0);
+
+  const [indexedEventsRow, failedEventsRow] = await Promise.all([
+    env.DB.prepare("SELECT COUNT(*) AS count FROM ai_assistant_events WHERE event_type = 'document_indexed'").first(),
+    env.DB.prepare("SELECT COUNT(*) AS count FROM ai_assistant_events WHERE event_type = 'document_index_failed'").first(),
+  ]);
+  const indexedAttempts = Number(indexedEventsRow?.count || 0);
+  const failedAttempts = Number(failedEventsRow?.count || 0);
+  const totalAttempts = indexedAttempts + failedAttempts;
+  const successRate = totalAttempts ? Math.round((indexedAttempts / totalAttempts) * 1000) / 10 : null;
+
+  return {
+    documents_total: total,
+    documents_indexed: Number(indexedCount),
+    chunks_total: Number(totalsRow?.chunks_total || 0),
+    average_chunks_per_document: totalsRow?.avg_chunks != null ? Math.round(totalsRow.avg_chunks * 10) / 10 : null,
+    total_size_bytes: sizeRow?.total_size != null ? Number(sizeRow.total_size) : null,
+    average_size_bytes: sizeRow?.avg_size != null ? Math.round(Number(sizeRow.avg_size)) : null,
+    indexing_success_rate: successRate,
+    indexing_attempts: totalAttempts,
+    indexing_failures: failedAttempts,
+    // Aucune extraction de pages n'est instrumentee aujourd'hui : honnete
+    // plutot que d'inventer une moyenne.
+    average_pages: null,
+  };
+}
+
+export function buildDocumentTypeDistributionFromRows(rows) {
+  const counts = new Map();
+  (rows || []).forEach((row) => {
+    const key = row.source_type || row.mime_type || "non mesuré";
+    counts.set(key, (counts.get(key) || 0) + 1);
+  });
+  return Array.from(counts.entries()).map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value);
+}
+
+async function buildDocumentTypeDistribution(env) {
+  const result = await env.DB.prepare("SELECT source_type, mime_type FROM documents").all();
+  return buildDocumentTypeDistributionFromRows(result.results || []);
+}
+
+// Activite documentaire par jour, uniquement a partir des evenements reels —
+// aucun jour sans evenement n'affiche une valeur generee (0 reel, jamais
+// invente).
+export function buildDocumentActivitySeries(rows, days = 30) {
+  const eventRows = Array.isArray(rows) ? rows : [];
+  const byDay = new Map();
+  eventRows.forEach((row) => {
+    const day = String(row.created_at || "").slice(0, 10);
+    if (!day) return;
+    if (!byDay.has(day)) byDay.set(day, { date: day, uploaded: 0, indexed: 0, used: 0, deleted: 0, failed: 0 });
+    const entry = byDay.get(day);
+    if (row.event_type === "document_uploaded") entry.uploaded += 1;
+    if (row.event_type === "document_indexed") entry.indexed += 1;
+    if (row.event_type === "document_used") entry.used += 1;
+    if (row.event_type === "document_deleted") entry.deleted += 1;
+    if (row.event_type === "document_index_failed") entry.failed += 1;
+  });
+  return Array.from(byDay.values()).sort((a, b) => a.date.localeCompare(b.date)).slice(-days);
+}
+
+export function isDocumentErrorEventType(eventType) {
+  return eventType === "document_index_failed";
+}
+
+export function buildDocumentErrors(rows) {
+  const eventRows = Array.isArray(rows) ? rows : [];
+  const errorRows = eventRows.filter((row) => isDocumentErrorEventType(row.event_type));
+  return {
+    total_error_count: errorRows.length,
+    recent: errorRows.slice(0, 20).map((row) => ({ at: row.created_at, documentId: documentIdFromEvent(row), detail: parseEventMeta(row).error || row.event_value })),
+    status: errorRows.length === 0 ? "aucune_erreur_recente" : "des_erreurs_recentes",
+  };
+}
+
+// Statut du pipeline documentaire : jamais "operational" sans signal reel
+// (au moins un document_indexed recent, et pas d'echec recent dominant).
+export function buildDocumentHealth(rows) {
+  const eventRows = Array.isArray(rows) ? rows : [];
+  const indexedRows = eventRows.filter((row) => row.event_type === "document_indexed");
+  const failedRows = eventRows.filter((row) => row.event_type === "document_index_failed");
+  const uploadRows = eventRows.filter((row) => row.event_type === "document_uploaded");
+  const lastIndexedAt = indexedRows[0]?.created_at || null;
+  const lastFailedAt = failedRows[0]?.created_at || null;
+  const hasAnyActivity = eventRows.length > 0;
+  const hasRecentIndexed = lastIndexedAt && (Date.now() - new Date(lastIndexedAt).getTime()) < 7 * 24 * 60 * 60 * 1000;
+  const hasRecentFailed = lastFailedAt && (Date.now() - new Date(lastFailedAt).getTime()) < 7 * 24 * 60 * 60 * 1000;
+
+  let status = "not_configured";
+  if (hasAnyActivity) status = "unknown";
+  if (hasRecentIndexed && !hasRecentFailed) status = "operational";
+  else if (hasRecentIndexed && hasRecentFailed) status = "degraded";
+  else if (hasRecentFailed && !hasRecentIndexed) status = "unavailable";
+
+  return {
+    status,
+    last_indexed_at: lastIndexedAt,
+    last_failed_at: lastFailedAt,
+    uploads_count: uploadRows.length,
+    indexed_count: indexedRows.length,
+    failed_count: failedRows.length,
+  };
+}
+
+async function buildDocumentOverview(env, recentEvents) {
+  const [stats, types] = await Promise.all([
+    buildDocumentStats(env),
+    buildDocumentTypeDistribution(env),
+  ]);
+  const health = buildDocumentHealth(recentEvents);
+  const errors = buildDocumentErrors(recentEvents);
+  const activity = buildDocumentActivitySeries(recentEvents);
+  return { stats, types, health, errors, activity };
+}
+
+// --- Agregats dedies a l'onglet admin "Exports" -----------------------------
+// `exports` n'est alimentee que par des exports reellement executes (table
+// generique, conversation, document — cf. handleAdminExport /
+// handleAdminConversationExport / handleAdminDocumentExport). Aucune ligne,
+// KPI ou serie n'est jamais fabriquee : en l'absence de donnees, les
+// agregateurs renvoient null/liste vide et le front affiche "aucun export"
+// ou "non mesuré".
+
+async function fetchRecentExportEvents(env, limit = 2000) {
+  const placeholders = EXPORT_EVENT_TYPES.map(() => "?").join(", ");
+  const result = await env.DB.prepare(
+    `SELECT id, session_id, event_type, event_value, meta, created_at
+     FROM ai_assistant_events
+     WHERE event_type IN (${placeholders})
+     ORDER BY created_at DESC, id DESC LIMIT ?`
+  ).bind(...EXPORT_EVENT_TYPES, limit).all();
+  return result.results || [];
+}
+
+function exportWhereClauses({ q, exportType, exportFormat, status }) {
+  const clauses = [];
+  const bindings = [];
+  if (q) {
+    clauses.push("(filename LIKE ? OR source_module LIKE ? OR conversation_id = ?)");
+    bindings.push(`%${q}%`, `%${q}%`, q);
+  }
+  if (exportType) {
+    clauses.push("export_type = ?");
+    bindings.push(exportType);
+  }
+  if (exportFormat) {
+    clauses.push("export_format = ?");
+    bindings.push(exportFormat);
+  }
+  if (status) {
+    clauses.push("status = ?");
+    bindings.push(status);
+  }
+  return { whereSql: clauses.length ? `WHERE ${clauses.join(" AND ")}` : "", bindings };
+}
+
+const EXPORT_SORT_COLUMNS = {
+  generated_at: "generated_at DESC",
+  size_bytes: "size_bytes DESC",
+  duration_ms: "duration_ms DESC",
+  filename: "filename ASC",
+};
+
+async function buildExportList(env, { limit = 20, offset = 0, q = "", exportType = "", exportFormat = "", status = "", sort = "generated_at" } = {}) {
+  const safeLimit = Math.min(200, Math.max(1, Number(limit) || 20));
+  const safeOffset = Math.max(0, Number(offset) || 0);
+  const { whereSql, bindings } = exportWhereClauses({ q, exportType, exportFormat, status });
+  const orderBy = EXPORT_SORT_COLUMNS[sort] || EXPORT_SORT_COLUMNS.generated_at;
+
+  const [totalRow, rowsResult] = await Promise.all([
+    env.DB.prepare(`SELECT COUNT(*) AS count FROM exports ${whereSql}`).bind(...bindings).first(),
+    env.DB.prepare(
+      `SELECT id, export_type, export_format, source_module, project_id, conversation_id, filename, storage_path, size_bytes, generated_by, generated_at, completed_at, duration_ms, status, error_message, checksum, download_count, downloaded_last_at
+       FROM exports ${whereSql} ORDER BY ${orderBy} LIMIT ? OFFSET ?`
+    ).bind(...bindings, safeLimit, safeOffset).all(),
+  ]);
+
+  return {
+    items: rowsResult.results || [],
+    total: Number(totalRow?.count || 0),
+    limit: safeLimit,
+    offset: safeOffset,
+  };
+}
+
+async function buildExportDetails(env, exportId) {
+  const row = await env.DB.prepare(
+    `SELECT id, export_type, export_format, source_module, project_id, conversation_id, filename, storage_path, size_bytes, generated_by, generated_at, completed_at, duration_ms, status, error_message, checksum, download_count, downloaded_last_at, metadata_json
+     FROM exports WHERE id = ?`
+  ).bind(exportId).first();
+  if (!row) return null;
+
+  const eventsResult = await env.DB.prepare(
+    `SELECT id, session_id, event_type, event_value, meta, created_at FROM ai_assistant_events
+     WHERE event_type IN (${EXPORT_EVENT_TYPES.map(() => "?").join(", ")})
+     ORDER BY created_at ASC, id ASC`
+  ).bind(...EXPORT_EVENT_TYPES).all();
+  const linkedKey = row.conversation_id || row.source_module || String(row.id);
+  const timeline = (eventsResult.results || [])
+    .filter((evt) => {
+      const meta = parseEventMeta(evt);
+      return meta.sessionId === row.conversation_id || meta.documentId === row.conversation_id || meta.table === row.source_module || evt.event_value === linkedKey;
+    })
+    .map((evt) => ({ at: evt.created_at, step: evt.event_type, event_value: evt.event_value || "", is_error: evt.event_type === "export_failed", detail: parseEventMeta(evt) }));
+
+  return { export: row, timeline };
+}
+
+async function buildExportStats(env) {
+  const [totalsRow, statusRows, sizeRow, durationRow] = await Promise.all([
+    env.DB.prepare("SELECT COUNT(*) AS count FROM exports").first(),
+    env.DB.prepare("SELECT status, COUNT(*) AS count FROM exports GROUP BY status").all(),
+    env.DB.prepare("SELECT SUM(size_bytes) AS total_size FROM exports WHERE size_bytes IS NOT NULL").first(),
+    env.DB.prepare("SELECT AVG(duration_ms) AS avg_duration FROM exports WHERE duration_ms IS NOT NULL").first(),
+  ]);
+  const statusCounts = Object.fromEntries((statusRows.results || []).map((row) => [row.status, Number(row.count)]));
+  const total = Number(totalsRow?.count || 0);
+  const completed = statusCounts.completed || 0;
+  const failed = statusCounts.failed || 0;
+  const successRate = total ? Math.round((completed / total) * 1000) / 10 : null;
+
+  return {
+    exports_total: total,
+    exports_completed: completed,
+    exports_failed: failed,
+    total_size_bytes: sizeRow?.total_size != null ? Number(sizeRow.total_size) : null,
+    average_duration_ms: durationRow?.avg_duration != null ? Math.round(Number(durationRow.avg_duration)) : null,
+    success_rate: successRate,
+  };
+}
+
+export function buildExportFormatDistributionFromRows(rows) {
+  const counts = new Map();
+  (rows || []).forEach((row) => {
+    const key = row.export_format || "non mesuré";
+    counts.set(key, (counts.get(key) || 0) + 1);
+  });
+  return Array.from(counts.entries()).map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value);
+}
+
+async function buildExportFormatDistribution(env) {
+  const result = await env.DB.prepare("SELECT export_format FROM exports").all();
+  return buildExportFormatDistributionFromRows(result.results || []);
+}
+
+// Activite par jour : exports_completed / exports_failed / exports_downloaded
+// + volume exporte et temps moyen, uniquement a partir des lignes reellement
+// presentes en table `exports` — aucun jour sans export n'a de valeur
+// generee.
+export function buildExportActivitySeries(rows, days = 30) {
+  const exportRows = Array.isArray(rows) ? rows : [];
+  const byDay = new Map();
+  exportRows.forEach((row) => {
+    const day = String(row.generated_at || "").slice(0, 10);
+    if (!day) return;
+    if (!byDay.has(day)) byDay.set(day, { date: day, completed: 0, failed: 0, downloaded: 0, volume_bytes: 0, duration_samples: [] });
+    const entry = byDay.get(day);
+    if (row.status === "completed") entry.completed += 1;
+    if (row.status === "failed") entry.failed += 1;
+    if (Number(row.download_count) > 0) entry.downloaded += Number(row.download_count);
+    if (row.size_bytes != null) entry.volume_bytes += Number(row.size_bytes) || 0;
+    if (row.duration_ms != null) entry.duration_samples.push(Number(row.duration_ms));
+  });
+  return Array.from(byDay.values())
+    .map((entry) => ({
+      date: entry.date,
+      completed: entry.completed,
+      failed: entry.failed,
+      downloaded: entry.downloaded,
+      volume_bytes: entry.volume_bytes,
+      average_duration_ms: entry.duration_samples.length ? Math.round(entry.duration_samples.reduce((a, b) => a + b, 0) / entry.duration_samples.length) : null,
+    }))
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(-days);
+}
+
+export function isExportErrorStatus(status) {
+  return status === "failed";
+}
+
+export function buildExportErrors(rows) {
+  const exportRows = Array.isArray(rows) ? rows : [];
+  const errorRows = exportRows.filter((row) => isExportErrorStatus(row.status));
+  return {
+    total_error_count: errorRows.length,
+    recent: errorRows.slice(0, 20).map((row) => ({ at: row.generated_at, exportId: row.id, detail: row.error_message || "non mesuré" })),
+    status: errorRows.length === 0 ? "aucune_erreur_recente" : "des_erreurs_recentes",
+  };
+}
+
+// Statut du pipeline export : jamais "operational" sans signal reel (au
+// moins un export completed recent, et pas d'echec recent dominant).
+export function buildExportHealth(rows) {
+  const exportRows = Array.isArray(rows) ? rows : [];
+  const completedRows = exportRows.filter((row) => row.status === "completed");
+  const failedRows = exportRows.filter((row) => row.status === "failed");
+  const lastCompletedAt = completedRows[0]?.generated_at || null;
+  const lastFailedAt = failedRows[0]?.generated_at || null;
+  const hasAnyActivity = exportRows.length > 0;
+  const hasRecentCompleted = lastCompletedAt && (Date.now() - new Date(lastCompletedAt).getTime()) < 7 * 24 * 60 * 60 * 1000;
+  const hasRecentFailed = lastFailedAt && (Date.now() - new Date(lastFailedAt).getTime()) < 7 * 24 * 60 * 60 * 1000;
+
+  let status = "not_configured";
+  if (hasAnyActivity) status = "unknown";
+  if (hasRecentCompleted && !hasRecentFailed) status = "operational";
+  else if (hasRecentCompleted && hasRecentFailed) status = "degraded";
+  else if (hasRecentFailed && !hasRecentCompleted) status = "unavailable";
+
+  return {
+    status,
+    last_completed_at: lastCompletedAt,
+    last_failed_at: lastFailedAt,
+    completed_count: completedRows.length,
+    failed_count: failedRows.length,
+  };
+}
+
+async function buildExportOverview(env) {
+  const rowsResult = await env.DB.prepare(
+    `SELECT id, export_type, export_format, status, generated_at, size_bytes, duration_ms, download_count, error_message
+     FROM exports ORDER BY generated_at DESC LIMIT 2000`
+  ).all();
+  const rows = rowsResult.results || [];
+  const [stats, formats] = await Promise.all([
+    buildExportStats(env),
+    buildExportFormatDistribution(env),
+  ]);
+  const health = buildExportHealth(rows);
+  const errors = buildExportErrors(rows);
+  const activity = buildExportActivitySeries(rows);
+  return { stats, formats, health, errors, activity };
+}
+
+// --- Agregats dedies a l'onglet admin "Analytics" ---------------------------
+// Aucune table dediee : tout est derive par SQL/JS sur ai_assistant_events
+// (+ exports/documents/rag_sources quand pertinent), comme pour Conversations
+// et Dashboard. Pas de Math.random(), pas de buildSeries() : une serie sans
+// evenement reel renvoie un tableau vide, jamais des points generes.
+
+async function fetchRecentAnalyticsEvents(env, limit = 3000) {
+  const result = await env.DB.prepare(
+    `SELECT id, session_id, event_type, event_value, meta, created_at, user_agent
+     FROM ai_assistant_events ORDER BY created_at DESC, id DESC LIMIT ?`
+  ).bind(limit).all();
+  return result.results || [];
+}
+
+// Reprend la classification reelle deja utilisee cote front
+// (admin/index.html aiEventCategory) — aucune nouvelle taxonomie inventee.
+export function analyticsEventCategory(eventType) {
+  const type = String(eventType || "").toLowerCase();
+  if (["user_message", "assistant_response"].includes(type)) return "Messages";
+  if (type.startsWith("web_search")) return "Recherche Web";
+  if (["pdf_uploaded", "docx_uploaded", "xlsx_uploaded", "csv_uploaded", "pptx_uploaded"].includes(type) || type.startsWith("document_")) return "Documents";
+  if (type.startsWith("openrouter_") || type === "fallback_used") return "OpenRouter";
+  if (type.startsWith("export_")) return "Exports";
+  if (type.startsWith("rag_")) return "RAG";
+  if (type.includes("conversation")) return "Conversations";
+  if (type.includes("error") || type.includes("failed")) return "Erreurs";
+  return "Autres";
+}
+
+export function buildAnalyticsKpis(rows) {
+  const eventRows = Array.isArray(rows) ? rows : [];
+  const sessions = new Set(eventRows.map((row) => row.session_id).filter(Boolean));
+  const messages = eventRows.filter((row) => row.event_type === "user_message").length;
+  const responses = eventRows.filter((row) => row.event_type === "assistant_response").length;
+  const errors = eventRows.filter((row) => isErrorEventType(row.event_type)).length;
+  const total = eventRows.length;
+  const successRate = total > 0 ? Math.round(((total - errors) / total) * 1000) / 10 : null;
+  const ragQueries = eventRows.filter((row) => row.event_type === "rag_query").length;
+  const ragMatches = eventRows.filter((row) => row.event_type === "rag_match").length;
+  const ragUsageRate = ragQueries > 0 ? Math.round((ragMatches / ragQueries) * 1000) / 10 : null;
+
+  return {
+    // Aucune identite utilisateur reelle (pas d'auth) — on mesure des
+    // sessions distinctes, jamais un nombre d'"utilisateurs" invente.
+    sessions_total: sessions.size,
+    messages_sent: messages,
+    assistant_responses: responses,
+    success_rate: successRate,
+    rag_usage_rate: ragUsageRate,
+    events_total: total,
+    errors_total: errors,
+  };
+}
+
+export function buildAnalyticsActivitySeries(rows, days = 30) {
+  const eventRows = Array.isArray(rows) ? rows : [];
+  const byDay = new Map();
+  eventRows.forEach((row) => {
+    const day = String(row.created_at || "").slice(0, 10);
+    if (!day) return;
+    if (!byDay.has(day)) byDay.set(day, { date: day, messages: 0, responses: 0, rag_queries: 0, web_searches: 0, errors: 0 });
+    const entry = byDay.get(day);
+    if (row.event_type === "user_message") entry.messages += 1;
+    if (row.event_type === "assistant_response") entry.responses += 1;
+    if (row.event_type === "rag_query") entry.rag_queries += 1;
+    if (String(row.event_type || "").startsWith("web_search")) entry.web_searches += 1;
+    if (isErrorEventType(row.event_type)) entry.errors += 1;
+  });
+  return Array.from(byDay.values()).sort((a, b) => a.date.localeCompare(b.date)).slice(-days);
+}
+
+export function buildAnalyticsSessionsPerDay(rows, days = 30) {
+  const eventRows = Array.isArray(rows) ? rows : [];
+  const byDay = new Map();
+  eventRows.forEach((row) => {
+    const day = String(row.created_at || "").slice(0, 10);
+    if (!day || !row.session_id) return;
+    if (!byDay.has(day)) byDay.set(day, new Set());
+    byDay.get(day).add(row.session_id);
+  });
+  return Array.from(byDay.entries())
+    .map(([date, sessions]) => ({ date, sessions: sessions.size }))
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(-days);
+}
+
+// Classification reelle a partir du user_agent deja capture par
+// logAiEvent() (cloudflare/worker-openrouter.js) — aucune nouvelle collecte,
+// uniquement un parsing honnête d'une donnee deja stockee.
+export function classifyUserAgent(userAgent) {
+  const ua = String(userAgent || "").toLowerCase();
+  if (!ua) return "non mesuré";
+  if (/bot|crawler|spider|curl|wget|python-requests|axios|postman/.test(ua)) return "API / Script";
+  if (/ipad|tablet/.test(ua)) return "Tablet";
+  if (/mobile|iphone|android/.test(ua)) return "Mobile";
+  return "Desktop";
+}
+
+export function buildAnalyticsDeviceDistribution(rows) {
+  const eventRows = Array.isArray(rows) ? rows : [];
+  const sessionsByDevice = new Map();
+  const seenSessions = new Set();
+  eventRows.forEach((row) => {
+    if (!row.session_id || seenSessions.has(row.session_id)) return;
+    seenSessions.add(row.session_id);
+    const device = classifyUserAgent(row.user_agent);
+    sessionsByDevice.set(device, (sessionsByDevice.get(device) || 0) + 1);
+  });
+  return Array.from(sessionsByDevice.entries()).map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value);
+}
+
+export function buildAnalyticsMessageDistribution(rows) {
+  const eventRows = Array.isArray(rows) ? rows : [];
+  const counts = new Map();
+  eventRows.forEach((row) => {
+    const category = analyticsEventCategory(row.event_type);
+    counts.set(category, (counts.get(category) || 0) + 1);
+  });
+  return Array.from(counts.entries()).map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value);
+}
+
+// Reutilise les agregateurs deja valides (Capability/Source/Execution
+// Planner, Model Router, RAG, Tavily, Response Quality) plutot que de
+// dupliquer leur logique — un domaine sans evenement renvoie "non mesuré".
+export function buildAnalyticsDomainSuccess(rows, env) {
+  const eventRows = Array.isArray(rows) ? rows : [];
+  const planners = buildPlannerSummaryFromEvents(rows);
+  const ragUsage = buildRagUsageFromEvents(rows);
+  const tavilyUsage = buildTavilyUsageFromEvents(rows, null, env);
+  const quality = buildResponseQualityStatsFromEvents(rows);
+
+  const fromErrorRate = (analysesCount, errorRate) => (analysesCount > 0 ? Math.round((100 - errorRate) * 10) / 10 : null);
+  const ragTotal = (ragUsage?.searches_performed || 0);
+  const ragSuccessRate = ragTotal > 0 ? Math.round(((ragUsage?.matches || 0) / ragTotal) * 1000) / 10 : null;
+  const modelSuccesses = eventRows.filter((row) => row.event_type === "openrouter_model_success").length;
+  const modelFailures = eventRows.filter((row) => row.event_type === "openrouter_model_failed").length;
+  const modelTotal = modelSuccesses + modelFailures;
+  const modelSuccessRate = modelTotal > 0 ? Math.round((modelSuccesses / modelTotal) * 1000) / 10 : null;
+
+  const tavilySuccessRows = eventRows.filter((row) => getWebSearchStatus(row.event_type) === "success");
+  const tavilyTotal = tavilyUsage?.searches_executed || 0;
+  const tavilySuccessRate = tavilyTotal > 0 ? Math.round((tavilySuccessRows.length / tavilyTotal) * 1000) / 10 : null;
+
+  const qualityTotal = quality?.analyzed_count || 0;
+  const qualitySuccessRate = quality?.average_score != null ? Math.round(quality.average_score * 10) / 10 : null;
+
+  return [
+    { domain: "Capability Planner", success_rate: fromErrorRate(planners.capability.analyses_count, planners.capability.error_rate), sample_size: planners.capability.analyses_count },
+    { domain: "Source Planner", success_rate: fromErrorRate(planners.source.analyses_count, planners.source.error_rate), sample_size: planners.source.analyses_count },
+    { domain: "Execution Planner", success_rate: fromErrorRate(planners.execution.analyses_count, planners.execution.error_rate), sample_size: planners.execution.analyses_count },
+    { domain: "Model Router", success_rate: modelSuccessRate, sample_size: modelTotal },
+    { domain: "RAG", success_rate: ragSuccessRate, sample_size: ragTotal },
+    { domain: "Recherche Web (Tavily)", success_rate: tavilySuccessRate, sample_size: tavilyTotal },
+    { domain: "Qualité de réponse", success_rate: qualitySuccessRate, sample_size: qualityTotal },
+  ];
+}
+
+// Temps de reponse reel : latence des appels modele (openrouter_model_success,
+// meta.latency_ms — cf. cloudflare/modelRouter.js). Aucune latence
+// recalculee ni estimee.
+export function buildAnalyticsResponseTime(rows, days = 30) {
+  const eventRows = Array.isArray(rows) ? rows : [];
+  const latencyRows = eventRows
+    .filter((row) => row.event_type === "openrouter_model_success")
+    .map((row) => ({ day: String(row.created_at || "").slice(0, 10), latency: Number(parseEventMeta(row).latency_ms) }))
+    .filter((row) => row.day && Number.isFinite(row.latency));
+
+  const byDay = new Map();
+  latencyRows.forEach(({ day, latency }) => {
+    if (!byDay.has(day)) byDay.set(day, []);
+    byDay.get(day).push(latency);
+  });
+  const series = Array.from(byDay.entries())
+    .map(([date, values]) => ({ date, average_latency_ms: Math.round(values.reduce((a, b) => a + b, 0) / values.length) }))
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(-days);
+
+  const allValues = latencyRows.map((row) => row.latency);
+  const overallAverage = allValues.length ? Math.round(allValues.reduce((a, b) => a + b, 0) / allValues.length) : null;
+
+  return { series, average_latency_ms: overallAverage, sample_size: allValues.length };
+}
+
+// Heatmap reelle jour-de-semaine x heure, calculee depuis created_at (UTC).
+// Jamais de matrice generee si aucun evenement.
+export function buildAnalyticsHeatmap(rows) {
+  const eventRows = Array.isArray(rows) ? rows : [];
+  const matrix = Array.from({ length: 7 }, () => Array.from({ length: 24 }, () => 0));
+  let hasData = false;
+  eventRows.forEach((row) => {
+    const date = new Date(row.created_at);
+    if (Number.isNaN(date.getTime())) return;
+    matrix[date.getUTCDay()][date.getUTCHours()] += 1;
+    hasData = true;
+  });
+  return { matrix: hasData ? matrix : [], has_data: hasData };
+}
+
+export function buildAnalyticsEventDistribution(rows) {
+  const eventRows = Array.isArray(rows) ? rows : [];
+  const counts = new Map();
+  eventRows.forEach((row) => {
+    const category = analyticsEventCategory(row.event_type);
+    counts.set(category, (counts.get(category) || 0) + 1);
+  });
+  return Array.from(counts.entries()).map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value);
+}
+
+// Messages par modele : reutilise buildOpenRouterModelStatsFromEvents (deja
+// valide pour le Dashboard) plutot que de dupliquer le GROUP BY.
+export function buildAnalyticsModelDistribution(rows) {
+  const eventRows = Array.isArray(rows) ? rows : [];
+  const counts = new Map();
+  eventRows
+    .filter((row) => row.event_type === "openrouter_model_success" || row.event_type === "cloudflare_ai_success")
+    .forEach((row) => {
+      const meta = parseEventMeta(row);
+      const model = meta.resolved_model || meta.model || "non mesuré";
+      counts.set(model, (counts.get(model) || 0) + 1);
+    });
+  return Array.from(counts.entries()).map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value);
+}
+
+// "Intentions" : aucune classification d'intention dediee n'existe.
+// Plutot que d'en inventer une, on expose la repartition reelle des
+// capacites detectees par le Capability Planner (capability_detected,
+// needsRag/needsWeb/...), deja une classification reelle de la requete.
+export function buildAnalyticsIntentions(rows) {
+  const planners = buildPlannerSummaryFromEvents(rows);
+  const breakdown = planners.capability.capability_breakdown || [];
+  if (!breakdown.length || !breakdown.some((b) => b.count > 0)) return [];
+  const labels = {
+    needsRag: "Nécessite RAG",
+    needsWeb: "Nécessite recherche web",
+    needsTable: "Nécessite tableau",
+    needsSources: "Nécessite sources",
+    needsMarkdown: "Nécessite markdown",
+    needsExport: "Nécessite export",
+    needsLongAnswer: "Réponse longue",
+  };
+  return breakdown.filter((b) => b.count > 0).map((b) => ({ label: labels[b.name] || b.name, value: b.count }));
+}
+
+export function buildAnalyticsRealtime(rows, limit = 20) {
+  const eventRows = Array.isArray(rows) ? rows : [];
+  return eventRows.slice(0, limit).map((row) => ({
+    at: row.created_at,
+    event_type: row.event_type,
+    category: analyticsEventCategory(row.event_type),
+    event_value: row.event_value || "",
+    session_id: row.session_id || "",
+    is_error: isErrorEventType(row.event_type),
+  }));
+}
+
+async function buildAnalyticsOverview(env) {
+  const rows = await fetchRecentAnalyticsEvents(env);
+  return {
+    kpis: buildAnalyticsKpis(rows),
+    activity: buildAnalyticsActivitySeries(rows),
+    sessions_per_day: buildAnalyticsSessionsPerDay(rows),
+    device_distribution: buildAnalyticsDeviceDistribution(rows),
+    message_distribution: buildAnalyticsMessageDistribution(rows),
+    domain_success: buildAnalyticsDomainSuccess(rows, env),
+    response_time: buildAnalyticsResponseTime(rows),
+    heatmap: buildAnalyticsHeatmap(rows),
+    event_distribution: buildAnalyticsEventDistribution(rows),
+    model_distribution: buildAnalyticsModelDistribution(rows),
+    intentions: buildAnalyticsIntentions(rows),
+    realtime: buildAnalyticsRealtime(rows),
+    events_used: rows.length,
+  };
+}
+
+// --- Agregats dedies a l'onglet admin "Observabilite" -----------------------
+// Aucune table dediee : tout est derive de ai_assistant_events (meme
+// principe qu'Analytics/Conversations). Le score de sante par service
+// reutilise le module partage cloudflare/serviceHealth.js — aucune logique
+// de scoring dupliquee. Un service sans signal reel (aucun evenement
+// correspondant) renvoie status "not_configured" et des champs null, jamais
+// une valeur fabriquee ("Operationnel" par defaut interdit).
+
+const OBSERVABILITY_EVENT_LIMIT = 3000;
+
+async function fetchRecentObservabilityEvents(env, limit = OBSERVABILITY_EVENT_LIMIT) {
+  const result = await env.DB.prepare(
+    `SELECT id, session_id, event_type, event_value, meta, created_at
+     FROM ai_assistant_events ORDER BY created_at DESC, id DESC LIMIT ?`
+  ).bind(limit).all();
+  return result.results || [];
+}
+
+// Definition des services reellement observables depuis ai_assistant_events.
+// successTypes/errorTypes : event_type exacts qui constituent une requete
+// reussie/en echec pour ce service. latencyField : cle meta lue pour la
+// latence (latency_ms ou duration_ms selon l'emetteur).
+const OBSERVABILITY_SERVICES = [
+  {
+    key: "ai_worker", label: "AI Worker (OpenRouter)",
+    successTypes: ["openrouter_model_success", "cloudflare_ai_success"],
+    errorTypes: ["openrouter_model_failed", "cloudflare_ai_failed", "openrouter_all_models_failed"],
+    latencyField: "latency_ms",
+  },
+  {
+    key: "tavily", label: "Recherche Web (Tavily)",
+    successTypes: ["web_search_success"],
+    errorTypes: ["web_search_error"],
+    latencyField: "latency_ms",
+  },
+  {
+    key: "rag_pipeline", label: "RAG Pipeline (Vectorize)",
+    // Aucun event_type d'echec dedie n'est journalise pour les requetes RAG
+    // elles-memes (rag_no_match est un resultat valide, pas une erreur) — les
+    // echecs d'indexation sont deja comptabilises sous le service
+    // "Pipeline Documents" (document_index_failed). errorTypes reste vide
+    // plutot que de referencer un event_type qui n'est jamais journalise.
+    successTypes: ["rag_query", "rag_match", "rag_no_match"],
+    errorTypes: [],
+    latencyField: "duration_ms",
+  },
+  {
+    key: "documents", label: "Pipeline Documents",
+    successTypes: ["document_indexed"],
+    errorTypes: ["document_index_failed"],
+    latencyField: null,
+  },
+  {
+    key: "exports", label: "Exports",
+    successTypes: ["export_completed"],
+    errorTypes: ["export_failed"],
+    latencyField: null,
+  },
+  {
+    key: "d1_database", label: "D1 Database",
+    // Aucun evenement d1_query/d1_error n'est journalise (pas d'instrumentation
+    // dediee). Le signal disponible est indirect : chaque ligne de
+    // ai_assistant_events est elle-meme une ecriture D1 reussie. On l'utilise
+    // comme preuve faible de disponibilite, jamais comme mesure de latence.
+    successTypes: null,
+    errorTypes: [],
+    latencyField: null,
+    useAllRowsAsSuccess: true,
+  },
+];
+
+export function buildSingleServiceHealth(service, rows) {
+  const eventRows = Array.isArray(rows) ? rows : [];
+  const successRows = service.useAllRowsAsSuccess
+    ? eventRows
+    : eventRows.filter((row) => (service.successTypes || []).includes(row.event_type));
+  const errorRows = eventRows.filter((row) => (service.errorTypes || []).includes(row.event_type));
+  const totalRequests = successRows.length + errorRows.length;
+  const lastActivityAt = [...successRows, ...errorRows][0]?.created_at || null;
+
+  let averageLatencyMs = null;
+  if (service.latencyField) {
+    const latencies = successRows
+      .map((row) => Number(parseEventMeta(row)[service.latencyField]))
+      .filter((value) => Number.isFinite(value) && value > 0);
+    if (latencies.length) averageLatencyMs = Math.round(latencies.reduce((a, b) => a + b, 0) / latencies.length);
+  }
+
+  const recentWindowMs = 60 * 60 * 1000;
+  // null (pas 0) si le service n'a aucune activite mesuree : un service
+  // jamais utilise n'a pas de "0 echec recent" a saluer, juste pas de
+  // donnee. Eviter cette distinction ferait remonter un score artificiel.
+  const recentFailureCount = totalRequests > 0
+    ? errorRows.filter((row) => {
+      const ts = Date.parse(row.created_at || "");
+      return Number.isFinite(ts) && Date.now() - ts <= recentWindowMs;
+    }).length
+    : null;
+
+  const health = computeServiceHealthScore({
+    totalRequests,
+    errorCount: errorRows.length,
+    averageLatencyMs,
+    lastActivityAt,
+    recentFailureCount,
+  });
+
+  return {
+    key: service.key,
+    label: service.label,
+    ...health,
+  };
+}
+
+export function buildServiceHealth(rows) {
+  return OBSERVABILITY_SERVICES.map((service) => buildSingleServiceHealth(service, rows));
+}
+
+// Disponibilite/Etat global : moyenne ponderee des services qui ont
+// reellement un score (les "non mesure" n'abaissent jamais artificiellement
+// le score global).
+export function buildObservabilityKpis(rows, services) {
+  const eventRows = Array.isArray(rows) ? rows : [];
+  const scored = services.filter((s) => s.score != null);
+  const globalScore = scored.length ? scored.reduce((sum, s) => sum + s.score, 0) / scored.length : null;
+  const globalStatus = globalScore == null ? "not_configured" : (globalScore >= 8.5 ? "operational" : (globalScore >= 6 ? "degraded" : "unavailable"));
+
+  const availabilities = scored.map((s) => s.availability_percent).filter((v) => v != null);
+  const availability = availabilities.length ? Math.round((availabilities.reduce((a, b) => a + b, 0) / availabilities.length) * 10) / 10 : null;
+
+  const latencies = scored.map((s) => s.average_latency_ms).filter((v) => v != null);
+  const averageLatencyMs = latencies.length ? Math.round(latencies.reduce((a, b) => a + b, 0) / latencies.length) : null;
+
+  const totalRequests = services.reduce((sum, s) => sum + (s.total_requests || 0), 0);
+  const totalErrors = services.reduce((sum, s) => sum + (s.error_count || 0), 0);
+  const errorRate = totalRequests > 0 ? Math.round((totalErrors / totalRequests) * 1000) / 10 : null;
+
+  return {
+    global_status: globalStatus,
+    global_score: globalScore != null ? Math.round(globalScore * 10) / 10 : null,
+    availability_percent: availability,
+    average_latency_ms: averageLatencyMs,
+    total_requests: totalRequests,
+    total_errors: totalErrors,
+    error_rate_percent: errorRate,
+    events_analyzed: eventRows.length,
+  };
+}
+
+export function observabilitySeverity(eventType) {
+  const type = String(eventType || "").toLowerCase();
+  if (type.includes("error") || type.includes("failed")) return "error";
+  if (type.includes("skipped") || type.includes("degraded") || type.includes("retry") || type.includes("fallback") || type.includes("timeout")) return "warning";
+  return "info";
+}
+
+export function buildRealtimeLogs(rows, limit = 30) {
+  const eventRows = Array.isArray(rows) ? rows : [];
+  return eventRows.slice(0, limit).map((row) => ({
+    at: row.created_at,
+    level: observabilitySeverity(row.event_type).toUpperCase(),
+    event_type: row.event_type,
+    event_value: row.event_value || "",
+    session_id: row.session_id || "",
+  }));
+}
+
+// Alertes reelles : un service avec >= seuil d'echecs recents (1h) declenche
+// une alerte. Aucune alerte n'est jamais affichee sans evenements d'erreur
+// reels en base.
+const OBSERVABILITY_ALERT_THRESHOLDS = { elevated: 5, moderate: 1 };
+
+export function buildRealtimeAlerts(rows, services) {
+  const eventRows = Array.isArray(rows) ? rows : [];
+  const recentWindowMs = 60 * 60 * 1000;
+  const alerts = [];
+
+  services.forEach((service) => {
+    const def = OBSERVABILITY_SERVICES.find((s) => s.key === service.key);
+    if (!def) return;
+    const recentErrors = eventRows.filter((row) => {
+      if (!(def.errorTypes || []).includes(row.event_type)) return false;
+      const ts = Date.parse(row.created_at || "");
+      return Number.isFinite(ts) && Date.now() - ts <= recentWindowMs;
+    });
+    if (!recentErrors.length) return;
+    const severity = recentErrors.length >= OBSERVABILITY_ALERT_THRESHOLDS.elevated ? "Élevée" : "Moyenne";
+    alerts.push({
+      severity,
+      service: service.label,
+      message: `${recentErrors.length} erreur(s) (${def.errorTypes.join(", ")}) sur la dernière heure`,
+      at: recentErrors[0].created_at,
+    });
+  });
+
+  return alerts.sort((a, b) => new Date(b.at) - new Date(a.at));
+}
+
+export function buildSystemEvents(rows) {
+  const eventRows = Array.isArray(rows) ? rows : [];
+  const bySeverity = new Map();
+  const byType = new Map();
+  eventRows.forEach((row) => {
+    const severity = observabilitySeverity(row.event_type);
+    bySeverity.set(severity, (bySeverity.get(severity) || 0) + 1);
+    byType.set(row.event_type, (byType.get(row.event_type) || 0) + 1);
+  });
+  return {
+    total: eventRows.length,
+    by_severity: Array.from(bySeverity.entries()).map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value),
+    by_type: Array.from(byType.entries()).map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value).slice(0, 20),
+  };
+}
+
+export function buildErrorDistribution(rows, services) {
+  const eventRows = Array.isArray(rows) ? rows : [];
+  const errorRows = eventRows.filter((row) => observabilitySeverity(row.event_type) === "error");
+  const byService = services
+    .map((service) => {
+      const def = OBSERVABILITY_SERVICES.find((s) => s.key === service.key);
+      const count = errorRows.filter((row) => (def?.errorTypes || []).includes(row.event_type)).length;
+      return { label: service.label, value: count };
+    })
+    .filter((entry) => entry.value > 0)
+    .sort((a, b) => b.value - a.value);
+  return { total_errors: errorRows.length, by_service: byService };
+}
+
+// Requetes/minute : nombre d'evenements ai_assistant_events par minute sur
+// la derniere heure. Une minute sans evenement vaut 0, jamais une valeur
+// interpolee.
+export function buildRequestsPerMinute(rows, minutes = 60) {
+  const eventRows = Array.isArray(rows) ? rows : [];
+  const now = Date.now();
+  const buckets = new Map();
+  eventRows.forEach((row) => {
+    const ts = Date.parse(row.created_at || "");
+    if (!Number.isFinite(ts)) return;
+    const minutesAgo = Math.floor((now - ts) / 60000);
+    if (minutesAgo < 0 || minutesAgo >= minutes) return;
+    buckets.set(minutesAgo, (buckets.get(minutesAgo) || 0) + 1);
+  });
+  const series = [];
+  for (let i = minutes - 1; i >= 0; i -= 1) {
+    series.push({ minutes_ago: i, requests: buckets.get(i) || 0 });
+  }
+  return series;
+}
+
+export function buildServiceLatencySeries(rows, days = 30) {
+  const eventRows = Array.isArray(rows) ? rows : [];
+  return OBSERVABILITY_SERVICES.filter((s) => s.latencyField).map((service) => {
+    const successRows = eventRows.filter((row) => (service.successTypes || []).includes(row.event_type));
+    const byDay = new Map();
+    successRows.forEach((row) => {
+      const day = String(row.created_at || "").slice(0, 10);
+      const latency = Number(parseEventMeta(row)[service.latencyField]);
+      if (!day || !Number.isFinite(latency) || latency <= 0) return;
+      if (!byDay.has(day)) byDay.set(day, []);
+      byDay.get(day).push(latency);
+    });
+    const series = Array.from(byDay.entries())
+      .map(([date, values]) => ({ date, average_latency_ms: Math.round(values.reduce((a, b) => a + b, 0) / values.length) }))
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .slice(-days);
+    return { service: service.label, series };
+  });
+}
+
+export function buildServiceErrorRateSeries(rows, days = 30) {
+  const eventRows = Array.isArray(rows) ? rows : [];
+  return OBSERVABILITY_SERVICES.filter((s) => !s.useAllRowsAsSuccess).map((service) => {
+    const byDay = new Map();
+    eventRows.forEach((row) => {
+      const day = String(row.created_at || "").slice(0, 10);
+      if (!day) return;
+      const isSuccess = (service.successTypes || []).includes(row.event_type);
+      const isError = (service.errorTypes || []).includes(row.event_type);
+      if (!isSuccess && !isError) return;
+      if (!byDay.has(day)) byDay.set(day, { success: 0, error: 0 });
+      const entry = byDay.get(day);
+      if (isSuccess) entry.success += 1;
+      if (isError) entry.error += 1;
+    });
+    const series = Array.from(byDay.entries())
+      .map(([date, counts]) => ({ date, error_rate_percent: (counts.success + counts.error) > 0 ? Math.round((counts.error / (counts.success + counts.error)) * 1000) / 10 : 0 }))
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .slice(-days);
+    return { service: service.label, series };
+  });
+}
+
+// Utilisation CPU/Memoire/Stockage/Reseau : aucune API Workers exposee dans
+// ce code ne fournit ces metriques (pas de binding d'observabilite
+// d'infrastructure). Honnete plutot que fabrique.
+export function buildResourceUsage() {
+  return {
+    cpu_percent: null,
+    memory_percent: null,
+    storage_percent: null,
+    network_percent: null,
+    status: "non_mesure",
+    reason: "Aucune métrique d'infrastructure (CPU/mémoire/stockage/réseau) n'est exposée par les bindings Workers actuels.",
+  };
+}
+
+async function buildObservabilityOverview(env) {
+  const rows = await fetchRecentObservabilityEvents(env);
+  const services = buildServiceHealth(rows);
+  return {
+    kpis: buildObservabilityKpis(rows, services),
+    services,
+    alerts: buildRealtimeAlerts(rows, services),
+    logs: buildRealtimeLogs(rows),
+    latency: buildServiceLatencySeries(rows),
+    error_rate: buildServiceErrorRateSeries(rows),
+    requests_per_minute: buildRequestsPerMinute(rows),
+    resources: buildResourceUsage(),
+    error_distribution: buildErrorDistribution(rows, services),
+    system_events: buildSystemEvents(rows),
+    events_used: rows.length,
   };
 }
 
@@ -1589,17 +3674,87 @@ async function handleAdminSummary(request, env) {
   // les evenements existent en base).
   const tavilyUsage = buildTavilyUsageFromEvents(tavilyEvents, null, env);
 
+  const counts = {
+    comments_total: Number(commentsTotal?.count || 0),
+    comments_pending: Number(commentsPending?.count || 0),
+    comments_approved: Number(commentsApproved?.count || 0),
+    comments_hidden: Number(commentsHidden?.count || 0),
+    contact_messages: Number(contactMessages?.count || 0),
+    consent_logs: Number(consentLogs?.count || 0),
+    ai_assistant_events: Number(aiEvents?.count || 0),
+    conversations_total: null,
+  };
+
+  // Bloc "dashboard" additif (cf. tache d'audit du Tableau de bord) : ne
+  // remplace pas `summary` ci-dessus, consomme uniquement des sources reelles
+  // (ai_assistant_events, maturityEngine.js via buildAdminHealthPayload,
+  // compteurs D1 existants). En cas d'echec d'une sous-partie, on degrade
+  // proprement plutot que de faire echouer tout l'endpoint /admin/summary.
+  const missingSources = [];
+  const fallbackFields = [];
+  let dashboard = null;
+  let recentEventsForDashboard = [];
+  try {
+    const [health, recentEventsResult] = await Promise.all([
+      buildAdminHealthPayload(request, env),
+      env.DB.prepare(
+        `SELECT id, session_id, event_type, event_value, meta, created_at
+         FROM ai_assistant_events
+         ORDER BY created_at DESC, id DESC
+         LIMIT 1000`
+      ).all(),
+    ]);
+    recentEventsForDashboard = recentEventsResult.results || [];
+
+    const kpis = await buildDashboardKpisFromEvents(env, counts, recentEventsForDashboard);
+    const activity = await buildActivitySeriesFromEvents(env, recentEventsForDashboard);
+    const services = buildServiceHealthFromEvents(health.services, recentEventsForDashboard, health.checked_at);
+    const planners = buildPlannerSummaryFromEvents(recentEventsForDashboard);
+    const models = buildModelUsageFromEvents(recentEventsForDashboard);
+    const errors = buildErrorStatsFromEvents(recentEventsForDashboard);
+    const trends = buildDashboardTrendsFromEvents(kpis);
+
+    if (kpis.comments.today == null) {
+      fallbackFields.push("kpis.comments.today/last_7d (requête D1 indisponible)");
+    }
+    DASHBOARD_NO_TELEMETRY_SERVICES.forEach((name) => {
+      missingSources.push(`${name}: aucune télémétrie serveur dédiée`);
+    });
+
+    dashboard = {
+      maturity: health.maturity, // uniquement depuis maturityEngine.js — jamais recalculé ici
+      kpis,
+      activity,
+      services,
+      planners,
+      models,
+      quality: health.ai_state?.response_quality || null,
+      web: health.tavily_usage,
+      rag: health.rag_usage,
+      documents: health.documents,
+      errors,
+      trends,
+      charts: {
+        activity_series: activity,
+      },
+    };
+  } catch (error) {
+    dashboard = null;
+    missingSources.push(`dashboard: erreur d'agrégation (${error?.message || "inconnue"})`);
+  }
+
   return jsonResponse(request, env, {
     ok: true,
     summary: {
-      comments_total: Number(commentsTotal?.count || 0),
-      comments_pending: Number(commentsPending?.count || 0),
-      comments_approved: Number(commentsApproved?.count || 0),
-      comments_hidden: Number(commentsHidden?.count || 0),
-      contact_messages: Number(contactMessages?.count || 0),
-      consent_logs: Number(consentLogs?.count || 0),
-      ai_assistant_events: Number(aiEvents?.count || 0),
+      ...counts,
       tavily_usage: tavilyUsage,
+    },
+    dashboard,
+    dashboard_debug: {
+      events_used: recentEventsForDashboard.length,
+      time_window: "today / 24h / 7d / 30d / depuis installation",
+      missing_sources: missingSources,
+      fallback_fields: fallbackFields,
     },
   });
 }
@@ -1705,16 +3860,8 @@ async function buildAdminHealthPayload(request, env) {
   const executionPlannerStats = buildExecutionPlannerStatsFromEvents(recentEvents);
   const responseQualityStats = buildResponseQualityStatsFromEvents(recentEvents);
   const effectiveOpenRouterCheck = stabilizeOpenRouterCheck(openRouterCheck, openRouterConfigured, latestOpenRouterResponse);
-  const openRouterOk = Boolean(effectiveOpenRouterCheck?.ok);
   const tavilyOk = Boolean(tavilyCheck?.ok);
   const frontendOk = Boolean(frontendHealthResult.ok);
-
-  const scorecard = buildDomainScores({
-    openRouterOk,
-    tavilyOk,
-    dbConfigured,
-    frontendOk,
-  });
 
   const services = [
     {
@@ -1854,6 +4001,123 @@ async function buildAdminHealthPayload(request, env) {
     },
   ];
 
+  // Remplace les statuts litteraux ("operational"/"partial"/"development"
+  // devines) des services sans verification dynamique ci-dessus par un statut
+  // calcule depuis ai_assistant_events (Upload PDF/DOCX/XLSX) ou "non_mesure"
+  // explicite pour les fonctionnalites purement cote navigateur (Memoire
+  // conversationnelle, Historique, Agents specialises, RAG documentaire).
+  // Netlify/Cloudflare Worker/OpenRouter/Tavily/Recherche web restent
+  // inchanges (deja calcules dynamiquement plus haut).
+  const servicesWithRealStatus = buildServiceHealthFromEvents(services, recentEvents, checkedAt);
+
+  const checks = {
+    worker: {
+      status: dbConfigured && adminConfigured ? "operational" : "partial",
+      verification: healthVerification(dbConfigured && adminConfigured, true),
+      http_status: 200,
+      detail: "Endpoint /admin/health actif sur digitalblueskye-api.",
+    },
+    frontend: {
+      status: frontendOk ? "operational" : "partial",
+      verification: healthVerification(frontendOk, true),
+      http_status: frontendHealthResult.status,
+      detail: frontendOk ? "Frontend accessible depuis le Worker API." : "Disponibilité frontend non confirmée pendant ce contrôle.",
+    },
+    openrouter: effectiveOpenRouterCheck,
+    tavily: tavilyCheck,
+  };
+
+  const statistics = {
+    architecture_version: 1,
+    items: [
+      { key: "conversation_count", label: "Nombre de conversations", value: conversationCount, unit: "" },
+      { key: "web_search_count", label: "Nombre de recherches web", value: webSearchCount, unit: "" },
+      { key: "tavily_searches_executed", label: "Recherches Tavily exécutées", value: tavilyUsage.searches_executed, unit: "" },
+      { key: "tavily_cache_saved", label: "Recherches évitées par cache", value: tavilyUsage.searches_avoided_cache, unit: "" },
+      { key: "tavily_dedupe_saved", label: "Recherches évitées par déduplication", value: tavilyUsage.searches_avoided_deduplication, unit: "" },
+      { key: "rag_search_count", label: "Recherches RAG projet", value: ragUsage.searches_performed, unit: "" },
+      { key: "rag_match_rate", label: "Taux de match RAG", value: ragUsage.match_rate, unit: "%" },
+      { key: "pdf_count", label: "Nombre de PDF analysés", value: pdfCount, unit: "" },
+      { key: "docx_count", label: "Nombre de DOCX analysés", value: docxCount, unit: "" },
+      { key: "xlsx_count", label: "Nombre de XLSX analysés", value: xlsxCount, unit: "" },
+      { key: "openrouter_request_count", label: "Nombre de requêtes OpenRouter", value: openRouterCount || aiEventCount, unit: "" },
+      { key: "average_response_ms", label: "Temps moyen de réponse", value: averageResponseMs ?? effectiveOpenRouterCheck?.latency_ms ?? null, unit: "ms" },
+      { key: "average_web_search_ms", label: "Temps moyen de recherche web", value: averageWebSearchMs ?? tavilyCheck?.latency_ms ?? null, unit: "ms" },
+    ],
+    note: "Métriques extensibles depuis ai_assistant_events et les futurs logs serveur.",
+  };
+
+  const aiState = {
+    model_active: aiHealthResult.payload?.ai_state?.model_active || env.OPENROUTER_MODEL || "non vérifié",
+    model_configured: aiHealthResult.payload?.ai_state?.model_configured || aiHealthResult.payload?.ai_state?.model_active || env.OPENROUTER_MODEL || "non vérifié",
+    model_resolved: aiHealthResult.payload?.ai_state?.model_resolved || "",
+    health_model_used: aiHealthResult.payload?.ai_state?.health_model_used || effectiveOpenRouterCheck?.health_model_used || "",
+    last_model_used: latestOpenRouterResponse?.model || effectiveOpenRouterCheck?.last_model_used || "",
+    provider: "openrouter",
+    fallback_active: Boolean(aiHealthResult.payload?.ai_state?.fallback_active),
+    last_successful_call_at: latestOpenRouterResponse?.at || aiHealthResult.payload?.ai_state?.last_successful_call_at || null,
+    openrouter_error_count: effectiveOpenRouterCheck?.verification === "failed" ? 1 : 0,
+    fallback_used_count: aiHealthResult.payload?.ai_state?.fallback_used_count ?? 0,
+    average_latency_ms: aiHealthResult.payload?.ai_state?.average_latency_ms ?? effectiveOpenRouterCheck?.latency_ms ?? null,
+    last_check: effectiveOpenRouterCheck,
+    model_router: openRouterModelStats,
+    model_tiers: modelTierStats,
+    prompt_orchestrator: promptOrchestratorStats,
+    capability_planner: capabilityPlannerStats,
+    source_planner: sourcePlannerStats,
+    execution_planner: executionPlannerStats,
+    response_quality: responseQualityStats,
+  };
+
+  // Statut/fiabilite derives des compteurs reels (pdfCount/docxCount/xlsxCount,
+  // deja calcules plus haut depuis ai_assistant_events) au lieu de litteraux
+  // figes. CSV/PPTX n'ont aucun event_type dedie aujourd'hui -> "non_mesure"
+  // explicite plutot qu'une fiabilite simulee.
+  const documentReliabilityFromCount = (count) => {
+    if (!count) return { status: "aucune_donnee_recente", reliability: "non mesuré" };
+    if (count >= 10) return { status: "supported", reliability: "élevée" };
+    return { status: "partial", reliability: "moyenne" };
+  };
+  // success_rate: null partout — aucun event_type d'erreur dedie aux uploads
+  // n'existe a ce jour dans ai_assistant_events, donc impossible de calculer
+  // un taux de succes reel ; le front affiche "non mesuré" plutot qu'un % simule.
+  const documents = [
+    { format: "PDF", ...documentReliabilityFromCount(pdfCount), max_tested_size: `${pdfCount} document(s) traité(s)`, last_validation: checkedAt, success_rate: null },
+    { format: "DOCX", ...documentReliabilityFromCount(docxCount), max_tested_size: `${docxCount} document(s) traité(s)`, last_validation: checkedAt, success_rate: null },
+    { format: "XLSX", ...documentReliabilityFromCount(xlsxCount), max_tested_size: `${xlsxCount} document(s) traité(s)`, last_validation: checkedAt, success_rate: null },
+    { format: "CSV", status: "non_mesure", reliability: "non mesuré", max_tested_size: "Aucun événement D1 dédié", last_validation: checkedAt, success_rate: null },
+    { format: "PPTX", status: "non_mesure", reliability: "non mesuré", max_tested_size: "Aucun événement D1 dédié", last_validation: checkedAt, success_rate: null },
+  ];
+
+  const uniqueEvents = Array.from(
+    new Map(recentEvents.concat(tavilyEvents).map((row) => [row.id ?? `${row.event_type}:${row.created_at}:${row.event_value}`, row])).values()
+  );
+  const maturityDashboard = buildMaturityDashboardPayload({
+    events: uniqueEvents,
+    tavilyUsage,
+    ragUsage,
+    aiState,
+    services: servicesWithRealStatus,
+    documents,
+    checks,
+    statistics: {
+      average_response_ms: averageResponseMs ?? effectiveOpenRouterCheck?.latency_ms ?? null,
+      average_web_search_ms: averageWebSearchMs ?? tavilyCheck?.latency_ms ?? null,
+    },
+    runtime: {
+      dbConfigured,
+      adminConfigured,
+      conversationCount,
+      aiEventCount,
+      webSearchCount,
+      pdfCount,
+      docxCount,
+      xlsxCount,
+      openRouterCount,
+    },
+  });
+  const { maturity, scorecard } = maturityDashboard;
+
   return {
     ok: true,
     version: "2.0",
@@ -1867,11 +4131,7 @@ async function buildAdminHealthPayload(request, env) {
       ai_worker: "digitalblueskye-ai",
       ai_worker_health_url: aiWorkerHealthUrl,
     },
-    maturity: {
-      score: scorecard.global_score,
-      max: 10,
-      detail: "Score global calculé par moyenne pondérée des domaines V2.",
-    },
+    maturity,
     scorecard,
     configuration: {
       openrouter_api_key_configured: openRouterConfigured,
@@ -1883,88 +4143,19 @@ async function buildAdminHealthPayload(request, env) {
       api_worker: aiHealthDiagnostics,
       ai_worker: aiHealthResult.payload?.health_diagnostics || null,
     },
-    checks: {
-      worker: {
-        status: dbConfigured && adminConfigured ? "operational" : "partial",
-        verification: healthVerification(dbConfigured && adminConfigured, true),
-        http_status: 200,
-        detail: "Endpoint /admin/health actif sur digitalblueskye-api.",
-      },
-      frontend: {
-        status: frontendOk ? "operational" : "partial",
-        verification: healthVerification(frontendOk, true),
-        http_status: frontendHealthResult.status,
-        detail: frontendOk ? "Frontend accessible depuis le Worker API." : "Disponibilité frontend non confirmée pendant ce contrôle.",
-      },
-      openrouter: effectiveOpenRouterCheck,
-      tavily: tavilyCheck,
-    },
+    checks,
     tavily_usage: tavilyUsage,
     rag_usage: ragUsage,
-    services,
-    statistics: {
-      architecture_version: 1,
-      items: [
-        { key: "conversation_count", label: "Nombre de conversations", value: conversationCount, unit: "" },
-        { key: "web_search_count", label: "Nombre de recherches web", value: webSearchCount, unit: "" },
-        { key: "tavily_searches_executed", label: "Recherches Tavily exécutées", value: tavilyUsage.searches_executed, unit: "" },
-        { key: "tavily_cache_saved", label: "Recherches évitées par cache", value: tavilyUsage.searches_avoided_cache, unit: "" },
-        { key: "tavily_dedupe_saved", label: "Recherches évitées par déduplication", value: tavilyUsage.searches_avoided_deduplication, unit: "" },
-        { key: "rag_search_count", label: "Recherches RAG projet", value: ragUsage.searches_performed, unit: "" },
-        { key: "rag_match_rate", label: "Taux de match RAG", value: ragUsage.match_rate, unit: "%" },
-        { key: "pdf_count", label: "Nombre de PDF analysés", value: pdfCount, unit: "" },
-        { key: "docx_count", label: "Nombre de DOCX analysés", value: docxCount, unit: "" },
-        { key: "xlsx_count", label: "Nombre de XLSX analysés", value: xlsxCount, unit: "" },
-        { key: "openrouter_request_count", label: "Nombre de requêtes OpenRouter", value: openRouterCount || aiEventCount, unit: "" },
-        { key: "average_response_ms", label: "Temps moyen de réponse", value: averageResponseMs ?? effectiveOpenRouterCheck?.latency_ms ?? null, unit: "ms" },
-        { key: "average_web_search_ms", label: "Temps moyen de recherche web", value: averageWebSearchMs ?? tavilyCheck?.latency_ms ?? null, unit: "ms" },
-      ],
-      note: "Métriques extensibles depuis ai_assistant_events et les futurs logs serveur.",
-    },
+    services: servicesWithRealStatus,
+    statistics,
     recent_activity: {
       limit: 20,
       has_more: recentEvents.length > 20,
       next_offset: recentEvents.length > 20 ? 20 : null,
       items: recentEvents.slice(0, 20).map(formatHealthActivity),
     },
-    ai_state: {
-      model_active: aiHealthResult.payload?.ai_state?.model_active || env.OPENROUTER_MODEL || "non vérifié",
-      model_configured: aiHealthResult.payload?.ai_state?.model_configured || aiHealthResult.payload?.ai_state?.model_active || env.OPENROUTER_MODEL || "non vérifié",
-      model_resolved: aiHealthResult.payload?.ai_state?.model_resolved || "",
-      health_model_used: aiHealthResult.payload?.ai_state?.health_model_used || effectiveOpenRouterCheck?.health_model_used || "",
-      last_model_used: latestOpenRouterResponse?.model || effectiveOpenRouterCheck?.last_model_used || "",
-      provider: "openrouter",
-      fallback_active: Boolean(aiHealthResult.payload?.ai_state?.fallback_active),
-      last_successful_call_at: latestOpenRouterResponse?.at || aiHealthResult.payload?.ai_state?.last_successful_call_at || null,
-      openrouter_error_count: effectiveOpenRouterCheck?.verification === "failed" ? 1 : 0,
-      fallback_used_count: aiHealthResult.payload?.ai_state?.fallback_used_count ?? 0,
-      average_latency_ms: aiHealthResult.payload?.ai_state?.average_latency_ms ?? effectiveOpenRouterCheck?.latency_ms ?? null,
-      last_check: effectiveOpenRouterCheck,
-      // Model Router (cf. cloudflare/modelRouter.js) : statistiques par modele
-      // calculees a partir des nouveaux evenements openrouter_model_*.
-      model_router: openRouterModelStats,
-      // Lot 6 — Dynamic Model Selection : tier demande/utilise par
-      // l'orchestrateur (cf. cloudflare/modelRouter.js, evenements
-      // model_tier_requested / model_tier_used).
-      model_tiers: modelTierStats,
-      // Prompt Orchestrator (cf. cloudflare/promptOrchestrator.js).
-      prompt_orchestrator: promptOrchestratorStats,
-      // Lot 8 — Capability Planner (cf. cloudflare/capabilityPlanner.js).
-      capability_planner: capabilityPlannerStats,
-      // Lot 9 — Source Planner / Evidence Planner (cf. cloudflare/sourcePlanner.js).
-      source_planner: sourcePlannerStats,
-      // Lot 10 — Execution Planner (cf. cloudflare/executionPlanner.js).
-      execution_planner: executionPlannerStats,
-      // Lot 7 — Response Quality Controller (cf. cloudflare/responseQualityController.js).
-      response_quality: responseQualityStats,
-    },
-    documents: [
-      { format: "PDF", status: "supported", max_tested_size: "40 pages / test navigateur", last_validation: checkedAt, reliability: "élevée" },
-      { format: "DOCX", status: "supported", max_tested_size: "Document texte standard", last_validation: checkedAt, reliability: "élevée" },
-      { format: "XLSX", status: "partial", max_tested_size: "Multi-feuilles à stabiliser", last_validation: checkedAt, reliability: "moyenne" },
-      { format: "CSV", status: "partial", max_tested_size: "Import texte simple", last_validation: checkedAt, reliability: "moyenne" },
-      { format: "PPTX", status: "partial", max_tested_size: "Extraction expérimentale", last_validation: checkedAt, reliability: "moyenne" },
-    ],
+    ai_state: aiState,
+    documents,
     current_capabilities: [
       "Chat IA",
       "Recherche web temps réel",
@@ -2339,6 +4530,52 @@ async function handleAdminAiEventDelete(request, env) {
   return jsonResponse(request, env, { ok: true, deleted: Number(result.meta.changes || 0) });
 }
 
+// --- Onglet admin "Exports" : table transverse exports -----------------------
+// N'enregistre que des exports reellement executes par les endpoints
+// existants (table generique, conversation, document). Aucune ligne n'est
+// jamais fabriquee pour remplir l'UI.
+
+const EXPORT_EVENT_TYPES = [
+  "export_requested",
+  "export_started",
+  "export_completed",
+  "export_failed",
+  "export_downloaded",
+  "export_deleted",
+  "export_expired",
+];
+
+async function logExportEvent(env, eventType, eventValue, meta, generatedBy = "admin") {
+  await env.DB.prepare(
+    `INSERT INTO ai_assistant_events (session_id, event_type, event_value, meta, created_at, ip_address, user_agent)
+     VALUES (?, ?, ?, ?, datetime('now'), 'admin', 'admin-panel')`
+  ).bind(String(generatedBy || "admin"), eventType, String(eventValue || "").slice(0, 255), JSON.stringify(meta || {})).run();
+}
+
+async function insertExportRecord(env, record) {
+  const result = await env.DB.prepare(
+    `INSERT INTO exports (export_type, export_format, source_module, project_id, conversation_id, filename, storage_path, size_bytes, generated_by, completed_at, duration_ms, status, error_message, checksum, metadata_json)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  ).bind(
+    record.export_type,
+    record.export_format,
+    record.source_module || null,
+    record.project_id || null,
+    record.conversation_id || null,
+    record.filename || null,
+    record.storage_path || null,
+    record.size_bytes ?? null,
+    record.generated_by || "admin",
+    record.completed_at || null,
+    record.duration_ms ?? null,
+    record.status || "completed",
+    record.error_message || null,
+    record.checksum || null,
+    JSON.stringify(record.metadata || {})
+  ).run();
+  return result?.meta?.last_row_id ?? null;
+}
+
 async function handleAdminExport(request, env, url) {
   if (request.method !== "GET") {
     return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
@@ -2354,15 +4591,1095 @@ async function handleAdminExport(request, env, url) {
     return jsonResponse(request, env, { ok: false, error: "Invalid format" }, 400);
   }
 
-  const rows = await env.DB.prepare(`SELECT ${columns.join(", ")} FROM ${table} ORDER BY id DESC`).all();
+  const startedAt = Date.now();
+  await logExportEvent(env, "export_requested", table, { table, format });
+  let rows;
+  try {
+    rows = await env.DB.prepare(`SELECT ${columns.join(", ")} FROM ${table} ORDER BY id DESC`).all();
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    await logExportEvent(env, "export_failed", table, { table, format, error: detail });
+    await insertExportRecord(env, {
+      export_type: "table_export", export_format: format, source_module: table,
+      status: "failed", error_message: detail, duration_ms: Date.now() - startedAt,
+    });
+    return jsonResponse(request, env, { ok: false, error: "Export failed" }, 500);
+  }
   const filename = `${table}-${new Date().toISOString().replaceAll(":", "").replace(/\.\d+Z$/, "Z")}.json`;
-  return new Response(JSON.stringify({ ok: true, table, items: rows.results || [] }, null, 2), {
+  const body = JSON.stringify({ ok: true, table, items: rows.results || [] }, null, 2);
+  await logExportEvent(env, "export_completed", table, { table, format, size_bytes: body.length });
+  await insertExportRecord(env, {
+    export_type: "table_export", export_format: format, source_module: table, filename,
+    size_bytes: body.length, status: "completed", duration_ms: Date.now() - startedAt,
+  });
+  return new Response(body, {
     status: 200,
     headers: {
       ...corsHeaders(request, env),
       "Content-Disposition": `attachment; filename="${filename}"`,
     },
   });
+}
+
+function parseConversationListParams(url) {
+  return {
+    limit: Number(url.searchParams.get("limit")) || 20,
+    offset: Number(url.searchParams.get("offset")) || 0,
+    q: String(url.searchParams.get("q") || "").trim(),
+    model: String(url.searchParams.get("model") || "").trim(),
+    hasErrors: url.searchParams.get("has_errors") === "true",
+    dateFrom: String(url.searchParams.get("date_from") || "").trim(),
+    dateTo: String(url.searchParams.get("date_to") || "").trim(),
+    sort: String(url.searchParams.get("sort") || "last_at").trim(),
+  };
+}
+
+function conversationSessionIdFromPath(pathname, suffix = "") {
+  const prefix = "/admin/conversations/";
+  if (!pathname.startsWith(prefix)) return "";
+  let rest = pathname.slice(prefix.length);
+  if (suffix) {
+    if (!rest.endsWith(suffix)) return "";
+    rest = rest.slice(0, -suffix.length);
+  }
+  try {
+    return decodeURIComponent(rest);
+  } catch {
+    return rest;
+  }
+}
+
+async function handleAdminConversationsList(request, env, url) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const params = parseConversationListParams(url);
+  const list = await buildConversationList(env, params);
+  return jsonResponse(request, env, {
+    ok: true,
+    ...list,
+    conversation_debug: {
+      events_used: list.items.length,
+      time_window: "pagination réelle (GROUP BY session_id), pas de fenêtre fixe",
+      missing_sources: [],
+      fallback_fields: [],
+    },
+  });
+}
+
+async function handleAdminConversationsSearch(request, env, url) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const params = parseConversationListParams(url);
+  const result = await buildConversationSearch(env, params.q, params);
+  return jsonResponse(request, env, { ok: true, ...result });
+}
+
+async function handleAdminConversationsFilters(request, env) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const filters = await buildConversationFilters(env);
+  return jsonResponse(request, env, { ok: true, filters });
+}
+
+async function handleAdminConversationsStats(request, env, url) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const dateFrom = String(url.searchParams.get("date_from") || "").trim();
+  const dateTo = String(url.searchParams.get("date_to") || "").trim();
+  const stats = await buildConversationStats(env, { dateFrom, dateTo });
+  return jsonResponse(request, env, {
+    ok: true,
+    stats,
+    conversation_debug: {
+      events_used: stats.messages,
+      time_window: dateFrom || dateTo ? `${dateFrom || "…"} → ${dateTo || "…"}` : "toutes données disponibles",
+      missing_sources: stats.tokens_total == null ? ["Coût/Tokens: aucun usage OpenRouter capturé sur la période"] : [],
+      fallback_fields: stats.average_satisfaction == null ? ["satisfaction: aucune ligne conversation_feedback"] : [],
+    },
+  });
+}
+
+async function handleAdminConversationsAnalytics(request, env) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const recentEventsResult = await env.DB.prepare(
+    `SELECT id, session_id, event_type, event_value, meta, created_at
+     FROM ai_assistant_events ORDER BY created_at DESC, id DESC LIMIT 2000`
+  ).all();
+  const recentEvents = recentEventsResult.results || [];
+  const analytics = await buildConversationAnalytics(env, recentEvents);
+  return jsonResponse(request, env, {
+    ok: true,
+    analytics,
+    conversation_debug: {
+      events_used: recentEvents.length,
+      time_window: "2000 événements les plus récents",
+      missing_sources: [],
+      fallback_fields: [],
+    },
+  });
+}
+
+async function handleAdminConversationsTimeline(request, env, url) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const sessionId = String(url.searchParams.get("session_id") || "").trim();
+  if (!sessionId) {
+    return jsonResponse(request, env, { ok: false, error: "Missing session_id" }, 400);
+  }
+  const eventsResult = await env.DB.prepare(
+    `SELECT id, session_id, event_type, event_value, meta, created_at
+     FROM ai_assistant_events WHERE session_id = ? ORDER BY created_at ASC, id ASC`
+  ).bind(sessionId).all();
+  const events = eventsResult.results || [];
+  return jsonResponse(request, env, {
+    ok: true,
+    session_id: sessionId,
+    timeline: buildConversationTimeline(events),
+    conversation_debug: {
+      events_used: events.length,
+      time_window: "historique complet de la session",
+      missing_sources: events.length === 0 ? ["Aucun événement pour cette session"] : [],
+      fallback_fields: [],
+    },
+  });
+}
+
+async function handleAdminConversationDetails(request, env, sessionId) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const details = await buildConversationDetails(env, sessionId);
+  if (!details) {
+    return jsonResponse(request, env, { ok: false, error: "Conversation not found" }, 404);
+  }
+  return jsonResponse(request, env, {
+    ok: true,
+    conversation: details,
+    conversation_debug: {
+      events_used: details.message_count,
+      time_window: "historique complet de la session",
+      missing_sources: details.cost_total == null ? ["Coût: aucun usage.cost renvoyé par le provider pour cette session"] : [],
+      fallback_fields: ["Aperçu des messages tronqué à 120 caractères (compactText côté worker-openrouter.js)"],
+    },
+  });
+}
+
+async function handleAdminConversationTags(request, env, sessionId) {
+  if (request.method !== "POST") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const input = await readJsonBody(request);
+  const tag = String(input?.tag || "").trim();
+  if (!sessionId || !tag) {
+    return jsonResponse(request, env, { ok: false, error: "Missing session id or tag" }, 422);
+  }
+  const createdBy = String(input?.created_by || "admin").trim();
+  await env.DB.prepare(
+    "INSERT INTO conversation_tags (session_id, tag, created_by) VALUES (?, ?, ?)"
+  ).bind(sessionId, tag, createdBy).run();
+  return jsonResponse(request, env, { ok: true });
+}
+
+async function handleAdminConversationFeedback(request, env, sessionId) {
+  if (request.method !== "POST") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const input = await readJsonBody(request);
+  const rating = input?.rating != null ? Number(input.rating) : null;
+  const note = String(input?.note || "").trim();
+  if (!sessionId || (rating == null && !note)) {
+    return jsonResponse(request, env, { ok: false, error: "Missing session id, rating or note" }, 422);
+  }
+  const createdBy = String(input?.created_by || "admin").trim();
+  await env.DB.prepare(
+    "INSERT INTO conversation_feedback (session_id, rating, note, created_by) VALUES (?, ?, ?, ?)"
+  ).bind(sessionId, Number.isFinite(rating) ? rating : null, note || null, createdBy).run();
+  return jsonResponse(request, env, { ok: true });
+}
+
+async function handleAdminConversationExport(request, env, sessionId) {
+  if (request.method !== "POST") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const input = await readJsonBody(request);
+  const format = String(input?.format || "json").trim().toLowerCase();
+  if (!sessionId || !["json", "csv"].includes(format)) {
+    return jsonResponse(request, env, { ok: false, error: "Missing session id or invalid format" }, 422);
+  }
+  const startedAt = Date.now();
+  const requestedBy = String(input?.requested_by || "admin").trim();
+  await logExportEvent(env, "export_requested", sessionId, { sessionId, format }, requestedBy);
+  const eventsResult = await env.DB.prepare(
+    `SELECT id, session_id, event_type, event_value, meta, created_at
+     FROM ai_assistant_events WHERE session_id = ? ORDER BY created_at ASC, id ASC`
+  ).bind(sessionId).all();
+  const rows = eventsResult.results || [];
+  await env.DB.prepare(
+    "INSERT INTO conversation_exports (session_id, format, requested_by) VALUES (?, ?, ?)"
+  ).bind(sessionId, format, requestedBy).run();
+
+  if (format === "csv") {
+    const columns = ["id", "session_id", "event_type", "event_value", "created_at"];
+    const body = toCsv(columns, rows);
+    await logExportEvent(env, "export_completed", sessionId, { sessionId, format, size_bytes: body.length }, requestedBy);
+    await insertExportRecord(env, {
+      export_type: "conversation", export_format: format, source_module: "conversations", conversation_id: sessionId,
+      filename: `conversation-${sessionId.slice(0, 8)}.csv`, size_bytes: body.length, generated_by: requestedBy,
+      status: "completed", duration_ms: Date.now() - startedAt,
+    });
+    return new Response(body, {
+      status: 200,
+      headers: { ...corsHeaders(request, env, "text/csv; charset=utf-8") },
+    });
+  }
+  const jsonBody = JSON.stringify({ ok: true, session_id: sessionId, items: rows });
+  await logExportEvent(env, "export_completed", sessionId, { sessionId, format, size_bytes: jsonBody.length }, requestedBy);
+  await insertExportRecord(env, {
+    export_type: "conversation", export_format: format, source_module: "conversations", conversation_id: sessionId,
+    filename: `conversation-${sessionId.slice(0, 8)}.json`, size_bytes: jsonBody.length, generated_by: requestedBy,
+    status: "completed", duration_ms: Date.now() - startedAt,
+  });
+  return jsonResponse(request, env, { ok: true, session_id: sessionId, items: rows });
+}
+
+async function fetchRecentRagEvents(env, limit = 2000) {
+  const result = await env.DB.prepare(
+    `SELECT id, session_id, event_type, event_value, meta, created_at
+     FROM ai_assistant_events
+     WHERE event_type LIKE 'rag%'
+     ORDER BY created_at DESC, id DESC LIMIT ?`
+  ).bind(limit).all();
+  return result.results || [];
+}
+
+function parseRagSourceListParams(url) {
+  return {
+    limit: Number(url.searchParams.get("limit")) || 20,
+    offset: Number(url.searchParams.get("offset")) || 0,
+    q: String(url.searchParams.get("q") || "").trim(),
+    projectId: String(url.searchParams.get("project_id") || "").trim(),
+    status: String(url.searchParams.get("status") || "").trim(),
+    sort: String(url.searchParams.get("sort") || "indexed_at").trim(),
+  };
+}
+
+function ragDebugBlock({ events, sourcesTotal, chunksTotal }) {
+  const missing = [];
+  if (!sourcesTotal && !chunksTotal) missing.push("Aucune source ni chunk indexé en base D1");
+  if (!events.length) missing.push("Aucun événement rag_* trouvé sur la fenêtre observée");
+  return {
+    events_used: events.length,
+    tables_used: ["rag_sources", "rag_chunks", "ai_assistant_events"],
+    vectorize_signals: ["rag_query.meta.vector_search", "rag_match/rag_no_match", "rag_context_used.meta.documentId"],
+    missing_sources: missing,
+    fallback_fields: ["token_count par chunk: non mesuré (non stocké)", "checksum: non mesuré si non transmis par le client"],
+    time_window: "2000 événements rag_* les plus récents",
+  };
+}
+
+async function handleAdminRagOverview(request, env) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const events = await fetchRecentRagEvents(env);
+  const [overview, sources, projects, chunks, errors] = await Promise.all([
+    buildRagOverview(env, events),
+    buildRagSourceList(env, { limit: 20, offset: 0 }),
+    buildRagProjectStats(env),
+    buildRagChunkStats(env),
+    Promise.resolve(buildRagErrors(events)),
+  ]);
+  const searches = buildRagSearchStats(events);
+  const activity = buildRagActivitySeries(events);
+  return jsonResponse(request, env, {
+    ok: true,
+    rag: {
+      overview,
+      projects,
+      sources: sources.items,
+      chunks,
+      searches,
+      health: overview.health,
+      freshness: overview.freshness,
+      coverage: overview.coverage,
+      errors,
+      activity,
+      debug: ragDebugBlock({ events, sourcesTotal: overview.sources_total, chunksTotal: chunks.chunks_total }),
+    },
+  });
+}
+
+async function handleAdminRagSourcesList(request, env, url) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const params = parseRagSourceListParams(url);
+  const list = await buildRagSourceList(env, params);
+  return jsonResponse(request, env, { ok: true, ...list });
+}
+
+async function handleAdminRagSourceDetails(request, env, sourceId) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const details = await buildRagSourceDetails(env, sourceId);
+  if (!details) {
+    return jsonResponse(request, env, { ok: false, error: "Source not found" }, 404);
+  }
+  return jsonResponse(request, env, { ok: true, ...details });
+}
+
+async function handleAdminRagProjects(request, env) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const projects = await buildRagProjectStats(env);
+  return jsonResponse(request, env, { ok: true, projects });
+}
+
+async function handleAdminRagChunks(request, env, url) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const sourceId = String(url.searchParams.get("source_id") || "").trim();
+  if (sourceId) {
+    const details = await buildRagSourceDetails(env, sourceId);
+    return jsonResponse(request, env, { ok: true, chunks: details?.chunks || [] });
+  }
+  const stats = await buildRagChunkStats(env);
+  return jsonResponse(request, env, { ok: true, chunks: stats });
+}
+
+async function handleAdminRagSearches(request, env) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const events = await fetchRecentRagEvents(env);
+  const searches = buildRagSearchStats(events);
+  return jsonResponse(request, env, { ok: true, searches });
+}
+
+async function handleAdminRagHealth(request, env) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const events = await fetchRecentRagEvents(env);
+  const [sourcesCountRow, chunkStats] = await Promise.all([
+    env.DB.prepare("SELECT COUNT(*) AS count FROM rag_sources").first(),
+    buildRagChunkStats(env),
+  ]);
+  const health = buildRagHealth(events, Number(sourcesCountRow?.count || 0), chunkStats.chunks_total);
+  return jsonResponse(request, env, { ok: true, health });
+}
+
+async function handleAdminRagActivity(request, env, url) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const days = Math.min(90, Math.max(1, Number(url.searchParams.get("days")) || 30));
+  const events = await fetchRecentRagEvents(env);
+  const activity = buildRagActivitySeries(events, days);
+  return jsonResponse(request, env, { ok: true, activity });
+}
+
+async function handleAdminRagErrors(request, env) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const events = await fetchRecentRagEvents(env);
+  const errors = buildRagErrors(events);
+  return jsonResponse(request, env, { ok: true, errors });
+}
+
+function ragSourceIdFromPath(pathname) {
+  const prefix = "/admin/rag/sources/";
+  if (!pathname.startsWith(prefix)) return "";
+  const rest = pathname.slice(prefix.length);
+  try {
+    return decodeURIComponent(rest);
+  } catch {
+    return rest;
+  }
+}
+
+async function handleAdminRag(request, env, url) {
+  const pathname = url.pathname;
+  if (pathname === "/admin/rag") return await handleAdminRagOverview(request, env);
+  if (pathname === "/admin/rag/sources") return await handleAdminRagSourcesList(request, env, url);
+  if (pathname === "/admin/rag/projects") return await handleAdminRagProjects(request, env);
+  if (pathname === "/admin/rag/chunks") return await handleAdminRagChunks(request, env, url);
+  if (pathname === "/admin/rag/searches") return await handleAdminRagSearches(request, env);
+  if (pathname === "/admin/rag/health") return await handleAdminRagHealth(request, env);
+  if (pathname === "/admin/rag/activity") return await handleAdminRagActivity(request, env, url);
+  if (pathname === "/admin/rag/errors") return await handleAdminRagErrors(request, env);
+
+  const sourceId = ragSourceIdFromPath(pathname);
+  if (sourceId) return await handleAdminRagSourceDetails(request, env, sourceId);
+
+  return jsonResponse(request, env, { ok: false, error: "Not found" }, 404);
+}
+
+function parseDocumentListParams(url) {
+  return {
+    limit: Number(url.searchParams.get("limit")) || 20,
+    offset: Number(url.searchParams.get("offset")) || 0,
+    q: String(url.searchParams.get("q") || "").trim(),
+    projectId: String(url.searchParams.get("project_id") || "").trim(),
+    status: String(url.searchParams.get("status") || "").trim(),
+    sort: String(url.searchParams.get("sort") || "uploaded_at").trim(),
+  };
+}
+
+function documentIdFromPath(pathname, suffix = "") {
+  const prefix = "/admin/documents/";
+  if (!pathname.startsWith(prefix)) return "";
+  let rest = pathname.slice(prefix.length);
+  if (suffix) {
+    if (!rest.endsWith(suffix)) return "";
+    rest = rest.slice(0, -suffix.length);
+  }
+  try {
+    return decodeURIComponent(rest);
+  } catch {
+    return rest;
+  }
+}
+
+function documentDebugBlock({ events, documentsTotal }) {
+  const missing = [];
+  if (!documentsTotal) missing.push("Aucun document indexé en base D1 (table documents vide)");
+  if (!events.length) missing.push("Aucun événement document_* trouvé sur la fenêtre observée");
+  return {
+    events_used: events.length,
+    tables_used: ["documents", "rag_chunks", "ai_assistant_events"],
+    missing_sources: missing,
+    fallback_fields: ["pages_count: non mesuré (extraction de pages non instrumentée)", "average_relevance: non mesuré sans recherches RAG associées"],
+    time_window: "2000 événements document_* les plus récents",
+  };
+}
+
+async function handleAdminDocumentsList(request, env, url) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const params = parseDocumentListParams(url);
+  const list = await buildDocumentList(env, params);
+  return jsonResponse(request, env, { ok: true, ...list });
+}
+
+async function handleAdminDocumentDetails(request, env, documentId) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const details = await buildDocumentDetails(env, documentId);
+  if (!details) {
+    return jsonResponse(request, env, { ok: false, error: "Document not found" }, 404);
+  }
+  return jsonResponse(request, env, { ok: true, ...details });
+}
+
+async function handleAdminDocumentsStats(request, env) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const stats = await buildDocumentStats(env);
+  return jsonResponse(request, env, { ok: true, stats });
+}
+
+async function handleAdminDocumentsActivity(request, env, url) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const days = Math.min(90, Math.max(1, Number(url.searchParams.get("days")) || 30));
+  const events = await fetchRecentDocumentEvents(env);
+  const activity = buildDocumentActivitySeries(events, days);
+  return jsonResponse(request, env, { ok: true, activity });
+}
+
+async function handleAdminDocumentsTypes(request, env) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const types = await buildDocumentTypeDistribution(env);
+  return jsonResponse(request, env, { ok: true, types });
+}
+
+async function handleAdminDocumentsHealth(request, env) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const events = await fetchRecentDocumentEvents(env);
+  const health = buildDocumentHealth(events);
+  return jsonResponse(request, env, { ok: true, health });
+}
+
+async function handleAdminDocumentsExports(request, env, url) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const result = await env.DB.prepare(
+    `SELECT id, session_id, event_type, event_value, meta, created_at FROM ai_assistant_events
+     WHERE event_type = 'document_exported' ORDER BY created_at DESC LIMIT 100`
+  ).all();
+  const exports = (result.results || []).map((row) => ({
+    at: row.created_at,
+    session_id: row.session_id,
+    documentId: documentIdFromEvent(row),
+    meta: parseEventMeta(row),
+  }));
+  return jsonResponse(request, env, { ok: true, exports });
+}
+
+async function handleAdminDocumentExport(request, env, documentId) {
+  if (request.method !== "POST") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const input = await readJsonBody(request);
+  const format = String(input?.format || "json").trim().toLowerCase();
+  if (!documentId || !["json"].includes(format)) {
+    return jsonResponse(request, env, { ok: false, error: "Missing document id or invalid format" }, 422);
+  }
+  const startedAt = Date.now();
+  const requestedBy = String(input?.requested_by || "admin").trim();
+  await logExportEvent(env, "export_requested", documentId, { documentId, format }, requestedBy);
+  const details = await buildDocumentDetails(env, documentId);
+  if (!details) {
+    await logExportEvent(env, "export_failed", documentId, { documentId, format, error: "document_not_found" }, requestedBy);
+    return jsonResponse(request, env, { ok: false, error: "Document not found" }, 404);
+  }
+  await env.DB.prepare(
+    `INSERT INTO ai_assistant_events (session_id, event_type, event_value, meta, created_at, ip_address, user_agent)
+     VALUES (?, 'document_exported', ?, ?, datetime('now'), 'admin', 'admin-panel')`
+  ).bind(requestedBy, details.document.title || documentId, JSON.stringify({ documentId, format, requested_by: requestedBy })).run();
+  const responseBody = JSON.stringify({ ok: true, document: details.document, chunks: details.chunks });
+  await logExportEvent(env, "export_completed", documentId, { documentId, format, size_bytes: responseBody.length }, requestedBy);
+  await insertExportRecord(env, {
+    export_type: "document", export_format: format, source_module: "documents", project_id: details.document.project_id || null,
+    filename: `document-${String(documentId).slice(0, 24)}.${format}`, size_bytes: responseBody.length, generated_by: requestedBy,
+    status: "completed", duration_ms: Date.now() - startedAt,
+  });
+  return jsonResponse(request, env, { ok: true, document: details.document, chunks: details.chunks });
+}
+
+async function handleAdminDocumentsOverview(request, env) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const events = await fetchRecentDocumentEvents(env);
+  const overview = await buildDocumentOverview(env, events);
+  const list = await buildDocumentList(env, { limit: 20, offset: 0 });
+  return jsonResponse(request, env, {
+    ok: true,
+    documents: {
+      overview: overview.stats,
+      items: list.items,
+      total: list.total,
+      types: overview.types,
+      health: overview.health,
+      errors: overview.errors,
+      activity: overview.activity,
+      debug: documentDebugBlock({ events, documentsTotal: overview.stats.documents_total }),
+    },
+  });
+}
+
+async function handleAdminDocuments(request, env, url) {
+  const pathname = url.pathname;
+  if (pathname === "/admin/documents") return await handleAdminDocumentsList(request, env, url);
+  if (pathname === "/admin/documents/stats") return await handleAdminDocumentsStats(request, env);
+  if (pathname === "/admin/documents/activity") return await handleAdminDocumentsActivity(request, env, url);
+  if (pathname === "/admin/documents/types") return await handleAdminDocumentsTypes(request, env);
+  if (pathname === "/admin/documents/health") return await handleAdminDocumentsHealth(request, env);
+  if (pathname === "/admin/documents/exports") return await handleAdminDocumentsExports(request, env, url);
+  if (pathname === "/admin/documents/overview") return await handleAdminDocumentsOverview(request, env);
+
+  let documentId = documentIdFromPath(pathname, "/export");
+  if (documentId) return await handleAdminDocumentExport(request, env, documentId);
+
+  documentId = documentIdFromPath(pathname);
+  if (documentId) return await handleAdminDocumentDetails(request, env, documentId);
+
+  return jsonResponse(request, env, { ok: false, error: "Not found" }, 404);
+}
+
+function parseExportListParams(url) {
+  return {
+    limit: Number(url.searchParams.get("limit")) || 20,
+    offset: Number(url.searchParams.get("offset")) || 0,
+    q: String(url.searchParams.get("q") || "").trim(),
+    exportType: String(url.searchParams.get("export_type") || "").trim(),
+    exportFormat: String(url.searchParams.get("export_format") || "").trim(),
+    status: String(url.searchParams.get("status") || "").trim(),
+    sort: String(url.searchParams.get("sort") || "generated_at").trim(),
+  };
+}
+
+function exportIdFromPath(pathname, suffix = "") {
+  const prefix = "/admin/exports/";
+  if (!pathname.startsWith(prefix)) return null;
+  let rest = pathname.slice(prefix.length);
+  if (suffix) {
+    if (!rest.endsWith(suffix)) return null;
+    rest = rest.slice(0, -suffix.length);
+  }
+  const id = Number(rest);
+  return Number.isInteger(id) && id > 0 ? id : null;
+}
+
+function exportsDebugBlock({ rows, exportsTotal }) {
+  const missing = [];
+  if (!exportsTotal) missing.push("Aucun export enregistré en base D1 (table exports vide)");
+  if (!rows.length) missing.push("Aucun événement export_* trouvé sur la fenêtre observée");
+  return {
+    events_used: rows.length,
+    tables_used: ["exports", "conversation_exports", "ai_assistant_events"],
+    missing_sources: missing,
+    fallback_fields: ["storage_path: non mesuré (exports générés à la demande, jamais persistés sur disque)", "checksum: non mesuré sauf calcul explicite"],
+    time_window: "2000 exports les plus récents",
+  };
+}
+
+async function handleAdminExportsList(request, env, url) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const params = parseExportListParams(url);
+  const list = await buildExportList(env, params);
+  return jsonResponse(request, env, { ok: true, ...list });
+}
+
+async function handleAdminExportDetails(request, env, exportId) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const details = await buildExportDetails(env, exportId);
+  if (!details) {
+    return jsonResponse(request, env, { ok: false, error: "Export not found" }, 404);
+  }
+  return jsonResponse(request, env, { ok: true, ...details });
+}
+
+async function handleAdminExportsStats(request, env) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const stats = await buildExportStats(env);
+  return jsonResponse(request, env, { ok: true, stats });
+}
+
+async function handleAdminExportsActivity(request, env, url) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const days = Math.min(90, Math.max(1, Number(url.searchParams.get("days")) || 30));
+  const rowsResult = await env.DB.prepare(
+    `SELECT id, export_type, export_format, status, generated_at, size_bytes, duration_ms, download_count, error_message FROM exports ORDER BY generated_at DESC LIMIT 2000`
+  ).all();
+  const activity = buildExportActivitySeries(rowsResult.results || [], days);
+  return jsonResponse(request, env, { ok: true, activity });
+}
+
+async function handleAdminExportsFormats(request, env) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const formats = await buildExportFormatDistribution(env);
+  return jsonResponse(request, env, { ok: true, formats });
+}
+
+async function handleAdminExportsErrors(request, env) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const rowsResult = await env.DB.prepare(
+    `SELECT id, export_type, export_format, status, generated_at, error_message FROM exports WHERE status = 'failed' ORDER BY generated_at DESC LIMIT 100`
+  ).all();
+  const errors = buildExportErrors(rowsResult.results || []);
+  return jsonResponse(request, env, { ok: true, errors });
+}
+
+async function handleAdminExportsHealth(request, env) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const rowsResult = await env.DB.prepare(
+    `SELECT id, export_type, export_format, status, generated_at FROM exports ORDER BY generated_at DESC LIMIT 2000`
+  ).all();
+  const health = buildExportHealth(rowsResult.results || []);
+  return jsonResponse(request, env, { ok: true, health });
+}
+
+async function handleAdminExportsOverview(request, env) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const overview = await buildExportOverview(env);
+  const list = await buildExportList(env, { limit: 20, offset: 0 });
+  const totalRow = await env.DB.prepare("SELECT COUNT(*) AS count FROM exports").first();
+  return jsonResponse(request, env, {
+    ok: true,
+    exports: {
+      overview: overview.stats,
+      items: list.items,
+      total: list.total,
+      formats: overview.formats,
+      health: overview.health,
+      errors: overview.errors,
+      activity: overview.activity,
+      debug: exportsDebugBlock({ rows: list.items, exportsTotal: Number(totalRow?.count || 0) }),
+    },
+  });
+}
+
+async function handleAdminExportDownload(request, env, exportId) {
+  if (request.method !== "POST") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const row = await env.DB.prepare("SELECT id, export_type, export_format, source_module, conversation_id, filename FROM exports WHERE id = ?").bind(exportId).first();
+  if (!row) {
+    return jsonResponse(request, env, { ok: false, error: "Export not found" }, 404);
+  }
+  await env.DB.prepare(
+    "UPDATE exports SET download_count = download_count + 1, downloaded_last_at = datetime('now') WHERE id = ?"
+  ).bind(exportId).run();
+  await logExportEvent(env, "export_downloaded", row.filename || String(exportId), { exportId, export_type: row.export_type, export_format: row.export_format });
+  return jsonResponse(request, env, { ok: true, export_id: exportId, message: "Téléchargement enregistré. Le fichier original n'étant pas persisté sur disque, relancez l'export pour régénérer le contenu." });
+}
+
+async function handleAdminExportRetry(request, env, exportId) {
+  if (request.method !== "POST") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const row = await env.DB.prepare("SELECT id, export_type, export_format, source_module, conversation_id, project_id, status FROM exports WHERE id = ?").bind(exportId).first();
+  if (!row) {
+    return jsonResponse(request, env, { ok: false, error: "Export not found" }, 404);
+  }
+  if (row.status !== "failed") {
+    return jsonResponse(request, env, { ok: false, error: "Seuls les exports en échec peuvent être relancés" }, 422);
+  }
+  const startedAt = Date.now();
+  await logExportEvent(env, "export_requested", row.filename || String(exportId), { exportId, retry: true });
+
+  if (row.export_type === "table_export" && row.source_module && ALLOWED_EXPORT_TABLES[row.source_module]) {
+    const columns = ALLOWED_EXPORT_TABLES[row.source_module];
+    try {
+      const rows = await env.DB.prepare(`SELECT ${columns.join(", ")} FROM ${row.source_module} ORDER BY id DESC`).all();
+      const body = JSON.stringify({ ok: true, table: row.source_module, items: rows.results || [] }, null, 2);
+      await logExportEvent(env, "export_completed", row.source_module, { exportId, retry: true, size_bytes: body.length });
+      const newId = await insertExportRecord(env, {
+        export_type: "table_export", export_format: row.export_format, source_module: row.source_module,
+        filename: `${row.source_module}-retry.json`, size_bytes: body.length, status: "completed", duration_ms: Date.now() - startedAt,
+      });
+      return jsonResponse(request, env, { ok: true, export_id: newId, status: "completed" });
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error);
+      await logExportEvent(env, "export_failed", row.source_module, { exportId, retry: true, error: detail });
+      const newId = await insertExportRecord(env, {
+        export_type: "table_export", export_format: row.export_format, source_module: row.source_module,
+        status: "failed", error_message: detail, duration_ms: Date.now() - startedAt,
+      });
+      return jsonResponse(request, env, { ok: false, export_id: newId, error: detail }, 500);
+    }
+  }
+
+  return jsonResponse(request, env, { ok: false, error: "Type d'export non rejouable automatiquement dans ce lot" }, 422);
+}
+
+async function handleAdminExports(request, env, url) {
+  const pathname = url.pathname;
+  if (pathname === "/admin/exports") return await handleAdminExportsList(request, env, url);
+  if (pathname === "/admin/exports/stats") return await handleAdminExportsStats(request, env);
+  if (pathname === "/admin/exports/activity") return await handleAdminExportsActivity(request, env, url);
+  if (pathname === "/admin/exports/formats") return await handleAdminExportsFormats(request, env);
+  if (pathname === "/admin/exports/errors") return await handleAdminExportsErrors(request, env);
+  if (pathname === "/admin/exports/health") return await handleAdminExportsHealth(request, env);
+  if (pathname === "/admin/exports/overview") return await handleAdminExportsOverview(request, env);
+
+  let exportId = exportIdFromPath(pathname, "/download");
+  if (exportId) return await handleAdminExportDownload(request, env, exportId);
+
+  exportId = exportIdFromPath(pathname, "/retry");
+  if (exportId) return await handleAdminExportRetry(request, env, exportId);
+
+  exportId = exportIdFromPath(pathname);
+  if (exportId) return await handleAdminExportDetails(request, env, exportId);
+
+  return jsonResponse(request, env, { ok: false, error: "Not found" }, 404);
+}
+
+function analyticsDebugBlock(eventsUsed) {
+  const missing = [];
+  if (!eventsUsed) missing.push("Aucun événement ai_assistant_events trouvé sur la fenêtre observée");
+  return {
+    events_used: eventsUsed,
+    tables_used: ["ai_assistant_events"],
+    missing_sources: missing,
+    fallback_fields: [
+      "sessions_total : sessions distinctes (pas d'authentification réelle, pas d'identité utilisateur)",
+      "device_distribution : dérivé du user_agent déjà capturé, \"non mesuré\" si absent",
+      "intentions : dérivé de la classification réelle du Capability Planner (capability_detected), aucune taxonomie d'intention dédiée n'existe",
+    ],
+    time_window: "3000 événements ai_assistant_events les plus récents",
+  };
+}
+
+async function handleAdminAnalyticsOverview(request, env) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const overview = await buildAnalyticsOverview(env);
+  return jsonResponse(request, env, { ok: true, analytics: { ...overview, debug: analyticsDebugBlock(overview.events_used) } });
+}
+
+async function handleAdminAnalyticsActivity(request, env, url) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const days = Math.min(90, Math.max(1, Number(url.searchParams.get("days")) || 30));
+  const rows = await fetchRecentAnalyticsEvents(env);
+  return jsonResponse(request, env, {
+    ok: true,
+    activity: buildAnalyticsActivitySeries(rows, days),
+    sessions_per_day: buildAnalyticsSessionsPerDay(rows, days),
+  });
+}
+
+async function handleAdminAnalyticsModels(request, env) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const rows = await fetchRecentAnalyticsEvents(env);
+  return jsonResponse(request, env, { ok: true, models: buildAnalyticsModelDistribution(rows) });
+}
+
+async function handleAdminAnalyticsEvents(request, env) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const rows = await fetchRecentAnalyticsEvents(env);
+  return jsonResponse(request, env, { ok: true, events: buildAnalyticsEventDistribution(rows) });
+}
+
+async function handleAdminAnalyticsHeatmap(request, env) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const rows = await fetchRecentAnalyticsEvents(env);
+  return jsonResponse(request, env, { ok: true, heatmap: buildAnalyticsHeatmap(rows) });
+}
+
+async function handleAdminAnalyticsSessions(request, env) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const rows = await fetchRecentAnalyticsEvents(env);
+  return jsonResponse(request, env, { ok: true, sessions: buildAnalyticsDeviceDistribution(rows), sessions_per_day: buildAnalyticsSessionsPerDay(rows) });
+}
+
+async function handleAdminAnalyticsMessages(request, env) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const rows = await fetchRecentAnalyticsEvents(env);
+  return jsonResponse(request, env, { ok: true, messages: buildAnalyticsMessageDistribution(rows) });
+}
+
+async function handleAdminAnalyticsIntentions(request, env) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const rows = await fetchRecentAnalyticsEvents(env);
+  return jsonResponse(request, env, { ok: true, intentions: buildAnalyticsIntentions(rows) });
+}
+
+async function handleAdminAnalyticsPerformance(request, env, url) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const days = Math.min(90, Math.max(1, Number(url.searchParams.get("days")) || 30));
+  const rows = await fetchRecentAnalyticsEvents(env);
+  return jsonResponse(request, env, { ok: true, performance: buildAnalyticsResponseTime(rows, days) });
+}
+
+async function handleAdminAnalyticsErrors(request, env) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const rows = await fetchRecentAnalyticsEvents(env);
+  return jsonResponse(request, env, { ok: true, errors: buildErrorStatsFromEvents(rows) });
+}
+
+async function handleAdminAnalyticsRealtime(request, env, url) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const limit = Math.min(100, Math.max(1, Number(url.searchParams.get("limit")) || 20));
+  const rows = await fetchRecentAnalyticsEvents(env, Math.max(limit, 200));
+  return jsonResponse(request, env, { ok: true, realtime: buildAnalyticsRealtime(rows, limit) });
+}
+
+async function handleAdminAnalytics(request, env, url) {
+  const pathname = url.pathname;
+  if (pathname === "/admin/analytics" || pathname === "/admin/analytics/overview") return await handleAdminAnalyticsOverview(request, env);
+  if (pathname === "/admin/analytics/activity") return await handleAdminAnalyticsActivity(request, env, url);
+  if (pathname === "/admin/analytics/models") return await handleAdminAnalyticsModels(request, env);
+  if (pathname === "/admin/analytics/events") return await handleAdminAnalyticsEvents(request, env);
+  if (pathname === "/admin/analytics/heatmap") return await handleAdminAnalyticsHeatmap(request, env);
+  if (pathname === "/admin/analytics/sessions") return await handleAdminAnalyticsSessions(request, env);
+  if (pathname === "/admin/analytics/messages") return await handleAdminAnalyticsMessages(request, env);
+  if (pathname === "/admin/analytics/intentions") return await handleAdminAnalyticsIntentions(request, env);
+  if (pathname === "/admin/analytics/performance") return await handleAdminAnalyticsPerformance(request, env, url);
+  if (pathname === "/admin/analytics/errors") return await handleAdminAnalyticsErrors(request, env);
+  if (pathname === "/admin/analytics/realtime") return await handleAdminAnalyticsRealtime(request, env, url);
+
+  return jsonResponse(request, env, { ok: false, error: "Not found" }, 404);
+}
+
+function observabilityDebugBlock(eventsUsed, services) {
+  const missing = [];
+  if (!eventsUsed) missing.push("Aucun événement ai_assistant_events trouvé sur la fenêtre observée");
+  const notConfigured = (services || []).filter((s) => s.status === "not_configured").map((s) => s.label);
+  if (notConfigured.length) missing.push(`Services sans signal réel : ${notConfigured.join(", ")}`);
+  return {
+    events_used: eventsUsed,
+    tables_used: ["ai_assistant_events"],
+    missing_sources: missing,
+    fallback_fields: [
+      "cpu_percent/memory_percent/storage_percent/network_percent : non mesuré (aucun binding d'observabilité d'infrastructure exposé)",
+      "D1 Database : disponibilité estimée depuis l'activité d'écriture observée, pas de mesure de latence D1 dédiée",
+    ],
+    time_window: `${OBSERVABILITY_EVENT_LIMIT} événements les plus récents`,
+  };
+}
+
+async function handleAdminObservabilityOverview(request, env) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const overview = await buildObservabilityOverview(env);
+  return jsonResponse(request, env, { ok: true, observability: { ...overview, debug: observabilityDebugBlock(overview.events_used, overview.services) } });
+}
+
+async function handleAdminObservabilityServices(request, env) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const rows = await fetchRecentObservabilityEvents(env);
+  return jsonResponse(request, env, { ok: true, services: buildServiceHealth(rows) });
+}
+
+async function handleAdminObservabilityLogs(request, env, url) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const limit = Math.min(200, Math.max(1, Number(url.searchParams.get("limit")) || 30));
+  const rows = await fetchRecentObservabilityEvents(env, Math.max(limit, 200));
+  return jsonResponse(request, env, { ok: true, logs: buildRealtimeLogs(rows, limit) });
+}
+
+async function handleAdminObservabilityErrors(request, env) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const rows = await fetchRecentObservabilityEvents(env);
+  const services = buildServiceHealth(rows);
+  return jsonResponse(request, env, { ok: true, errors: buildErrorDistribution(rows, services) });
+}
+
+async function handleAdminObservabilityAlerts(request, env) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const rows = await fetchRecentObservabilityEvents(env);
+  const services = buildServiceHealth(rows);
+  return jsonResponse(request, env, { ok: true, alerts: buildRealtimeAlerts(rows, services) });
+}
+
+async function handleAdminObservabilityLatency(request, env, url) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const days = Math.min(90, Math.max(1, Number(url.searchParams.get("days")) || 30));
+  const rows = await fetchRecentObservabilityEvents(env);
+  return jsonResponse(request, env, { ok: true, latency: buildServiceLatencySeries(rows, days) });
+}
+
+async function handleAdminObservabilityRequests(request, env, url) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const minutes = Math.min(180, Math.max(1, Number(url.searchParams.get("minutes")) || 60));
+  const rows = await fetchRecentObservabilityEvents(env);
+  return jsonResponse(request, env, { ok: true, requests_per_minute: buildRequestsPerMinute(rows, minutes) });
+}
+
+async function handleAdminObservabilityResources(request, env) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  return jsonResponse(request, env, { ok: true, resources: buildResourceUsage() });
+}
+
+async function handleAdminObservabilityEvents(request, env) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const rows = await fetchRecentObservabilityEvents(env);
+  return jsonResponse(request, env, { ok: true, system_events: buildSystemEvents(rows) });
+}
+
+async function handleAdminObservabilityRealtime(request, env, url) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const limit = Math.min(100, Math.max(1, Number(url.searchParams.get("limit")) || 20));
+  const rows = await fetchRecentObservabilityEvents(env, Math.max(limit, 200));
+  return jsonResponse(request, env, { ok: true, realtime: buildRealtimeLogs(rows, limit) });
+}
+
+async function handleAdminObservability(request, env, url) {
+  const pathname = url.pathname;
+  if (pathname === "/admin/observability" || pathname === "/admin/observability/overview") return await handleAdminObservabilityOverview(request, env);
+  if (pathname === "/admin/observability/services") return await handleAdminObservabilityServices(request, env);
+  if (pathname === "/admin/observability/logs") return await handleAdminObservabilityLogs(request, env, url);
+  if (pathname === "/admin/observability/errors") return await handleAdminObservabilityErrors(request, env);
+  if (pathname === "/admin/observability/alerts") return await handleAdminObservabilityAlerts(request, env);
+  if (pathname === "/admin/observability/latency") return await handleAdminObservabilityLatency(request, env, url);
+  if (pathname === "/admin/observability/requests") return await handleAdminObservabilityRequests(request, env, url);
+  if (pathname === "/admin/observability/resources") return await handleAdminObservabilityResources(request, env);
+  if (pathname === "/admin/observability/events") return await handleAdminObservabilityEvents(request, env);
+  if (pathname === "/admin/observability/realtime") return await handleAdminObservabilityRealtime(request, env, url);
+
+  return jsonResponse(request, env, { ok: false, error: "Not found" }, 404);
+}
+
+async function handleAdminConversations(request, env, url) {
+  const pathname = url.pathname;
+  if (pathname === "/admin/conversations") return await handleAdminConversationsList(request, env, url);
+  if (pathname === "/admin/conversations/search") return await handleAdminConversationsSearch(request, env, url);
+  if (pathname === "/admin/conversations/filters") return await handleAdminConversationsFilters(request, env);
+  if (pathname === "/admin/conversations/stats") return await handleAdminConversationsStats(request, env, url);
+  if (pathname === "/admin/conversations/analytics") return await handleAdminConversationsAnalytics(request, env);
+  if (pathname === "/admin/conversations/timeline") return await handleAdminConversationsTimeline(request, env, url);
+
+  let sessionId = conversationSessionIdFromPath(pathname, "/tags");
+  if (sessionId) return await handleAdminConversationTags(request, env, sessionId);
+  sessionId = conversationSessionIdFromPath(pathname, "/feedback");
+  if (sessionId) return await handleAdminConversationFeedback(request, env, sessionId);
+  sessionId = conversationSessionIdFromPath(pathname, "/export");
+  if (sessionId) return await handleAdminConversationExport(request, env, sessionId);
+
+  sessionId = conversationSessionIdFromPath(pathname);
+  if (sessionId) return await handleAdminConversationDetails(request, env, sessionId);
+
+  return jsonResponse(request, env, { ok: false, error: "Not found" }, 404);
 }
 
 async function handleAdmin(request, env, url) {
@@ -2383,6 +5700,24 @@ async function handleAdmin(request, env, url) {
   if (pathname === "/admin/ai-events") return await handleAdminAiEvents(request, env, url);
   if (pathname === "/admin/ai-events/delete") return await handleAdminAiEventDelete(request, env);
   if (pathname === "/admin/export") return await handleAdminExport(request, env, url);
+  if (pathname === "/admin/conversations" || pathname.startsWith("/admin/conversations/")) {
+    return await handleAdminConversations(request, env, url);
+  }
+  if (pathname === "/admin/rag" || pathname.startsWith("/admin/rag/")) {
+    return await handleAdminRag(request, env, url);
+  }
+  if (pathname === "/admin/documents" || pathname.startsWith("/admin/documents/")) {
+    return await handleAdminDocuments(request, env, url);
+  }
+  if (pathname === "/admin/exports" || pathname.startsWith("/admin/exports/")) {
+    return await handleAdminExports(request, env, url);
+  }
+  if (pathname === "/admin/analytics" || pathname.startsWith("/admin/analytics/")) {
+    return await handleAdminAnalytics(request, env, url);
+  }
+  if (pathname === "/admin/observability" || pathname.startsWith("/admin/observability/")) {
+    return await handleAdminObservability(request, env, url);
+  }
   return jsonResponse(request, env, { ok: false, error: "Not found" }, 404);
 }
 

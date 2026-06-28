@@ -106,3 +106,131 @@ CREATE TABLE IF NOT EXISTS tavily_search_dedupe (
   completed_at INTEGER,
   result_json TEXT
 );
+
+-- Onglet Conversations (admin) : pas de duplication de ai_assistant_events,
+-- ces 3 tables couvrent uniquement les fonctionnalites reellement nouvelles
+-- (tags, feedback interne admin, historique d'export). Demarrent vides.
+CREATE TABLE IF NOT EXISTS conversation_tags (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  session_id TEXT NOT NULL,
+  tag TEXT NOT NULL,
+  created_by TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS conversation_feedback (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  session_id TEXT NOT NULL,
+  rating INTEGER,
+  note TEXT,
+  created_by TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS conversation_exports (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  session_id TEXT NOT NULL,
+  format TEXT NOT NULL,
+  requested_by TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_conv_tags_session ON conversation_tags (session_id);
+CREATE INDEX IF NOT EXISTS idx_conv_feedback_session ON conversation_feedback (session_id);
+CREATE INDEX IF NOT EXISTS idx_conv_exports_session ON conversation_exports (session_id);
+
+-- Onglet Sources & RAG (admin) : rag_chunks reste la granularite d'indexation
+-- (texte des passages). rag_sources est la granularite documentaire (un
+-- document = une source), alimentee de facon additive par
+-- indexDocumentChunks() (cloudflare/ragPipeline.js) a chaque indexation.
+-- Le front ne doit jamais construire de source a partir de donnees inventees :
+-- si une ligne n'existe pas ici, l'agregateur reconstruit une source
+-- "partielle" depuis rag_chunks (GROUP BY document_id), jamais une source
+-- fictive.
+CREATE TABLE IF NOT EXISTS rag_sources (
+  id TEXT PRIMARY KEY,
+  project_id TEXT,
+  title TEXT NOT NULL,
+  source_type TEXT,
+  filename TEXT,
+  mime_type TEXT,
+  size_bytes INTEGER,
+  checksum TEXT,
+  status TEXT NOT NULL DEFAULT 'indexed',
+  chunks_count INTEGER NOT NULL DEFAULT 0,
+  indexed_at TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  metadata_json TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_rag_sources_project ON rag_sources (project_id);
+CREATE INDEX IF NOT EXISTS idx_rag_sources_status ON rag_sources (status);
+
+-- Onglet Documents (admin) : table transverse, distincte de rag_sources.
+-- rag_sources reste specialisee pour l'onglet Sources & RAG (statut
+-- d'indexation vectorielle). documents est la vue documentaire generale
+-- (upload, parsing, utilisation, export), alimentee de facon additive a
+-- chaque etape reelle du pipeline (cloudflare/ragPipeline.js indexation,
+-- evenements document_* journalises par le client cloudflare/worker-openrouter.js).
+-- rag_source_id reference rag_sources.id quand le document est indexe dans le
+-- RAG vectoriel ; NULL si le document existe mais n'a pas (encore) ete indexe.
+CREATE TABLE IF NOT EXISTS documents (
+  id TEXT PRIMARY KEY,
+  rag_source_id TEXT,
+  project_id TEXT,
+  title TEXT NOT NULL,
+  filename TEXT,
+  file_path TEXT,
+  mime_type TEXT,
+  source_type TEXT,
+  size_bytes INTEGER,
+  pages_count INTEGER,
+  chunks_count INTEGER NOT NULL DEFAULT 0,
+  status TEXT NOT NULL DEFAULT 'uploaded',
+  indexed_at TEXT,
+  uploaded_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  last_used_at TEXT,
+  used_count INTEGER NOT NULL DEFAULT 0,
+  average_relevance REAL,
+  checksum TEXT,
+  metadata_json TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_documents_project ON documents (project_id);
+CREATE INDEX IF NOT EXISTS idx_documents_status ON documents (status);
+CREATE INDEX IF NOT EXISTS idx_documents_rag_source ON documents (rag_source_id);
+
+-- Onglet Exports (admin) : table transverse, alimentee de facon additive par
+-- chaque export reellement genere par le Worker API (cloudflare/worker-api.js
+-- handleAdminExport / handleAdminConversationExport / handleAdminDocumentExport).
+-- N'enregistre que des exports reellement executes — jamais une ligne
+-- fabriquee pour remplir l'UI. conversation_exports (lot Conversations)
+-- reste la table specialisee pour le detail conversation ; `exports` est la
+-- vue consolidee transverse pour l'onglet Exports.
+CREATE TABLE IF NOT EXISTS exports (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  export_type TEXT NOT NULL,
+  export_format TEXT NOT NULL,
+  source_module TEXT,
+  project_id TEXT,
+  conversation_id TEXT,
+  filename TEXT,
+  storage_path TEXT,
+  size_bytes INTEGER,
+  generated_by TEXT,
+  generated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  completed_at TEXT,
+  duration_ms INTEGER,
+  status TEXT NOT NULL DEFAULT 'completed',
+  error_message TEXT,
+  checksum TEXT,
+  download_count INTEGER NOT NULL DEFAULT 0,
+  downloaded_last_at TEXT,
+  metadata_json TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_exports_type ON exports (export_type);
+CREATE INDEX IF NOT EXISTS idx_exports_status ON exports (status);
+CREATE INDEX IF NOT EXISTS idx_exports_generated_at ON exports (generated_at);

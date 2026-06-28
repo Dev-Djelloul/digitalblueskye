@@ -999,6 +999,22 @@ function queueAiEvent(ctx, env, request, event) {
   if (ctx?.waitUntil) ctx.waitUntil(promise);
 }
 
+// Pipeline documentaire (onglet admin Documents, cf. cloudflare/worker-api.js
+// buildDocument*) : seuls ces event_type peuvent etre journalises via
+// `mode: 'event'`, ailleurs ce mode est rejete (pas de logger D1 generique
+// exposable publiquement).
+const DOCUMENT_TRACKED_EVENT_TYPES = [
+  'document_uploaded',
+  'document_parse_started',
+  'document_parsed',
+  'document_chunked',
+  'document_indexed',
+  'document_index_failed',
+  'document_used',
+  'document_exported',
+  'document_deleted'
+];
+
 function normalizeAttachmentKind(attachment) {
   const kind = String(attachment?.kind || '').trim().toLowerCase();
   if (['pdf', 'docx', 'xlsx', 'csv', 'pptx'].includes(kind)) return kind;
@@ -1786,6 +1802,21 @@ export default {
 
     const mode = typeof body?.mode === 'string' ? body.mode : 'chat';
     if (mode === 'event') {
+      // Pipeline documentaire (onglet admin Documents) : seul un allowlist
+      // explicite d'event_type peut etre journalise par ce canal cote
+      // client, pour eviter d'exposer un logger D1 arbitraire sur un
+      // endpoint public. Aucune autre valeur n'est acceptee.
+      const eventType = String(body?.event_type || '');
+      if (!DOCUMENT_TRACKED_EVENT_TYPES.includes(eventType)) {
+        return jsonResponse({ ok: false, error: 'event_type_not_allowed' }, 400, corsHeaders);
+      }
+      queueAiEvent(ctx, env, request, {
+        session_id: body?.sessionId || body?.session_id,
+        event_type: eventType,
+        event_value: body?.event_value,
+        page_url: body?.pageUrl || body?.page_url,
+        meta: body?.meta || {}
+      });
       return jsonResponse({ ok: true, tracked: true }, 200, corsHeaders);
     }
 
@@ -1814,7 +1845,11 @@ export default {
         documentId: body?.documentId,
         projectId: body?.projectId,
         documentName: body?.documentName,
-        chunks: Array.isArray(body?.chunks) ? body.chunks : []
+        chunks: Array.isArray(body?.chunks) ? body.chunks : [],
+        mimeType: typeof body?.mimeType === 'string' ? body.mimeType.slice(0, 128) : null,
+        sizeBytes: body?.sizeBytes,
+        checksum: typeof body?.checksum === 'string' ? body.checksum.slice(0, 128) : null,
+        sourceType: typeof body?.sourceType === 'string' ? body.sourceType.slice(0, 64) : null
       });
       return jsonResponse(result, 200, corsHeaders);
     }
@@ -2622,7 +2657,10 @@ export default {
             reply_length: payload?.content_length || 0,
             fallback_model_used: payload?.model !== primaryModel,
             max_tokens: payload?.tokens_requested,
-            status_code: payload?.status_code
+            status_code: payload?.status_code,
+            // usage tel que renvoye par OpenRouter (prompt_tokens/completion_tokens/
+            // total_tokens, et cost si fourni) — jamais recalcule ni fabrique.
+            usage: payload?.usage || null
           }
         });
       } else if (eventType === 'openrouter_model_failed') {
@@ -3151,7 +3189,11 @@ export default {
         provider: resolvedProvider,
         model: resolvedModel,
         fallback: responseBody.fallback_model_used,
-        web_search_performed: webSearchPerformed
+        web_search_performed: webSearchPerformed,
+        // usage tel que renvoye par le provider (OpenRouter/OpenAI), jamais
+        // recalcule — permet un vrai KPI cout/tokens cote conversation sans
+        // toucher au comportement du Model Router.
+        usage: routerResult.usage || null
       }
     });
 

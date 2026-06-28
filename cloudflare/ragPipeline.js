@@ -19,7 +19,7 @@ function chunkVectorId(documentId, chunkIndex) {
  * légère) + texte complet en D1 (le vector store ne stocke jamais de texte
  * long, quel que soit le backend choisi demain).
  */
-export async function indexDocumentChunks(env, { documentId, projectId, documentName, chunks }) {
+export async function indexDocumentChunks(env, { documentId, projectId, documentName, chunks, mimeType, sizeBytes, checksum, sourceType }) {
   const provider = getVectorStoreProvider(env);
   if (!provider) return { ok: false, error: 'vector_store_unavailable' };
   if (!documentId || !Array.isArray(chunks) || !chunks.length) {
@@ -58,6 +58,67 @@ export async function indexDocumentChunks(env, { documentId, projectId, document
          VALUES (?, ?, ?, ?, ?, ?, ?)
          ON CONFLICT(id) DO UPDATE SET text = excluded.text, locator = excluded.locator, document_name = excluded.document_name`
       ).bind(row.id, documentId, projectId || null, documentName || '', row.chunkIndex, row.locator, row.text).run()));
+      // Granularite documentaire (onglet admin Sources & RAG) : additif,
+      // n'affecte jamais la recherche vectorielle (rag_chunks reste la seule
+      // source de verite pour queryRag()).
+      await env.DB.prepare(
+        `INSERT INTO rag_sources (id, project_id, title, source_type, filename, mime_type, size_bytes, checksum, status, chunks_count, indexed_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'indexed', ?, datetime('now'), datetime('now'))
+         ON CONFLICT(id) DO UPDATE SET
+           project_id = excluded.project_id,
+           title = excluded.title,
+           source_type = excluded.source_type,
+           filename = excluded.filename,
+           mime_type = excluded.mime_type,
+           size_bytes = excluded.size_bytes,
+           checksum = excluded.checksum,
+           status = 'indexed',
+           chunks_count = excluded.chunks_count,
+           indexed_at = datetime('now'),
+           updated_at = datetime('now')`
+      ).bind(
+        documentId,
+        projectId || null,
+        documentName || documentId,
+        sourceType || null,
+        documentName || null,
+        mimeType || null,
+        Number.isFinite(Number(sizeBytes)) ? Number(sizeBytes) : null,
+        checksum || null,
+        items.length
+      ).run();
+      // Onglet admin Documents (vue transverse) : additif, separe de
+      // rag_sources (specialise Sources & RAG). rag_source_id == documentId
+      // car c'est la meme indexation qui a produit la ligne rag_sources
+      // ci-dessus. uploaded_at n'est jamais ecrase une fois pose (COALESCE).
+      await env.DB.prepare(
+        `INSERT INTO documents (id, rag_source_id, project_id, title, filename, mime_type, source_type, size_bytes, checksum, status, chunks_count, indexed_at, uploaded_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'indexed', ?, datetime('now'), datetime('now'), datetime('now'))
+         ON CONFLICT(id) DO UPDATE SET
+           rag_source_id = excluded.rag_source_id,
+           project_id = excluded.project_id,
+           title = excluded.title,
+           filename = excluded.filename,
+           mime_type = excluded.mime_type,
+           source_type = excluded.source_type,
+           size_bytes = excluded.size_bytes,
+           checksum = excluded.checksum,
+           status = 'indexed',
+           chunks_count = excluded.chunks_count,
+           indexed_at = datetime('now'),
+           updated_at = datetime('now')`
+      ).bind(
+        documentId,
+        documentId,
+        projectId || null,
+        documentName || documentId,
+        documentName || null,
+        mimeType || null,
+        sourceType || null,
+        Number.isFinite(Number(sizeBytes)) ? Number(sizeBytes) : null,
+        checksum || null,
+        items.length
+      ).run();
     }
     return { ok: true, indexed: items.length, skipped: chunks.length - items.length };
   } catch (error) {
@@ -79,7 +140,11 @@ export async function deleteDocumentVectors(env, { documentId }) {
       knownIds = (rows?.results || []).map((row) => row.id);
     }
     if (knownIds.length) await provider.deleteByIds({ namespace: NAMESPACE, ids: knownIds });
-    if (env?.DB) await env.DB.prepare('DELETE FROM rag_chunks WHERE document_id = ?').bind(documentId).run();
+    if (env?.DB) {
+      await env.DB.prepare('DELETE FROM rag_chunks WHERE document_id = ?').bind(documentId).run();
+      await env.DB.prepare('DELETE FROM rag_sources WHERE id = ?').bind(documentId).run();
+      await env.DB.prepare('DELETE FROM documents WHERE id = ?').bind(documentId).run();
+    }
     return { ok: true, deleted: knownIds.length };
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error);

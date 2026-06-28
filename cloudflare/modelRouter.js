@@ -861,7 +861,7 @@ export async function routeChatCompletion({
       if (content) {
         record.error_type = null;
         attempts.push(record);
-        emit(onEvent, EVENT_TYPES.MODEL_SUCCESS, { ...record, content_length: content.length, resolved_model: result.parsed?.model || model, finish_reason: result.finishReason });
+        emit(onEvent, EVENT_TYPES.MODEL_SUCCESS, { ...record, content_length: content.length, resolved_model: result.parsed?.model || model, finish_reason: result.finishReason, usage: result.parsed?.usage || null });
         success = {
           model,
           content,

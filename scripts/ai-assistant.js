@@ -4060,12 +4060,14 @@
 
   async function deleteKnowledgeDocument(docId) {
     if (!docId) return;
+    const removedDoc = (knowledgeLibrary.documents || []).find((doc) => doc.id === docId) || { id: docId };
     knowledgeLibrary.documents = (knowledgeLibrary.documents || []).filter((doc) => doc.id !== docId);
     if (activePreviewDocId === docId) closeMediaPreview();
     if (activeLibraryMenuDocId === docId) closeLibraryCardMenu();
     activeLibraryStatus = i18n.libraryDeleted;
     await deleteKnowledgeOriginalFile(docId);
     deleteDocumentRemotely(docId);
+    trackDocumentEvent('document_deleted', removedDoc);
     saveKnowledgeLibrary();
   }
 
@@ -4274,8 +4276,17 @@
     try {
       for (const file of selected) {
         try {
+          trackDocumentEvent('document_uploaded', {
+            id: buildKnowledgeDocumentId(file?.name),
+            name: file?.name,
+            projectId: targetProject?.id || null
+          }, {
+            mimeType: String(file?.type || ''),
+            sizeBytes: Number(file?.size) || 0
+          });
           let extracted;
           try {
+            trackDocumentEvent('document_parse_started', { id: buildKnowledgeDocumentId(file?.name), name: file?.name, projectId: targetProject?.id || null });
             extracted = await extractKnowledgeDocumentFromFile(file);
           } catch (error) {
             assistantLog('warn', 'library_extract_total_failed', {
@@ -4290,6 +4301,8 @@
             doc,
             ...(knowledgeLibrary.documents || []).filter((existing) => existing.name !== doc.name)
           ].slice(0, maxKnowledgeDocuments);
+          trackDocumentEvent('document_parsed', doc, { textLength: doc.textLength, kind: doc.kind, importWarning: extracted?.importWarning || null });
+          trackDocumentEvent('document_chunked', doc, { chunksCount: doc.chunks.length });
           indexDocumentRemotely(doc);
           importedNames.push(file.name);
         } catch (error) {
@@ -4604,9 +4617,22 @@
           documentType: group.doc.type || 'Document',
           locators: group.items.map((item) => item.locator),
           sourceScope: projectOwnDocIds.has(group.doc.id) ? 'project' : 'global',
-          excerpt: String(bestItem?.chunk || '').replace(/\s+/g, ' ').trim().slice(0, 220)
+          excerpt: String(bestItem?.chunk || '').replace(/\s+/g, ' ').trim().slice(0, 220),
+          bestScore: bestItem?.score ?? null
         };
       });
+
+    // Un evenement document_used par document reellement cite dans cette
+    // reponse (et seulement ceux-la) — permet de mesurer l'utilisation reelle
+    // par document dans l'onglet admin Documents, sans agreger plusieurs
+    // documents dans un seul evenement (rag_context_used reste agrege).
+    usedSources.forEach((source) => {
+      trackDocumentEvent('document_used', { id: source.documentId, name: source.documentName, projectId: activeProject.id }, {
+        score: source.bestScore,
+        sourceScope: source.sourceScope,
+        locatorsCount: source.locators.length
+      });
+    });
 
     const intro = currentLanguage === 'en'
       ? [
@@ -10102,6 +10128,29 @@
     }
   }
 
+  // Instrumentation reelle du pipeline documentaire (onglet admin
+  // Documents) : best-effort, jamais bloquant pour l'experience utilisateur.
+  // Chaque etape reellement franchie (upload, parsing, chunking, indexation,
+  // utilisation RAG, suppression) emet un evenement ; aucune etape non
+  // franchie n'est journalisee.
+  function trackDocumentEvent(eventType, doc, meta = {}) {
+    try {
+      callRagRemote({
+        mode: 'event',
+        event_type: eventType,
+        sessionId: getActiveSession()?.id || '',
+        event_value: doc?.name || doc?.documentId || '',
+        meta: {
+          documentId: doc?.id || doc?.documentId || '',
+          projectId: doc?.projectId || getDocumentProjectId(doc) || '',
+          ...meta
+        }
+      });
+    } catch (error) {
+      assistantLog('debug', 'document_event_track_failed', { eventType, reason: error?.message || 'unknown' });
+    }
+  }
+
   async function indexDocumentRemotely(doc) {
     if (!doc?.id) return;
     const chunks = getKnowledgeDocChunks(doc).map((text, index) => ({
@@ -10116,14 +10165,21 @@
         documentId: doc.id,
         projectId: getDocumentProjectId(doc) || '',
         documentName: doc.name,
-        chunks
+        chunks,
+        mimeType: doc.mimeType || doc.type || '',
+        sizeBytes: Number(doc.size) || 0,
+        sourceType: doc.kind || doc.type || ''
       });
       if (result?.ok) {
         doc.vectorIndexedAt = Date.now();
         saveKnowledgeLibrary();
+        trackDocumentEvent('document_indexed', doc, { chunksIndexed: result.indexed, skipped: result.skipped });
+      } else {
+        trackDocumentEvent('document_index_failed', doc, { error: result?.error || 'unknown' });
       }
     } catch (error) {
       assistantLog('debug', 'rag_index_remote_failed', { reason: error?.message || 'unknown' });
+      trackDocumentEvent('document_index_failed', doc, { error: error?.message || 'unknown' });
     }
   }
 
