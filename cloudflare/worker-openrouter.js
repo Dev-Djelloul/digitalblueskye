@@ -34,6 +34,12 @@ import {
   buildExecutionPolicy,
   isExecutionPlannerEnabled
 } from './executionPlanner.js';
+import {
+  detectToolNeeds,
+  planToolUsage,
+  buildToolExecutionPolicy,
+  isToolPlannerEnabled
+} from './toolPlanner.js';
 import { evaluateResponse, repairResponse, buildRetrySystemInstruction, buildImproveSystemInstruction, isRqcEnabled, QUALITY_ACTIONS } from './responseQualityController.js';
 
 const DEFAULT_MODEL = 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free';
@@ -122,7 +128,7 @@ function buildSystemPrompt(language, dateContext) {
       'Format: always respect the format requested by the user. For long answers, use clear headings, concise paragraphs, useful lists, and tables only when they improve readability.',
       'Markdown formatting: for structured answers, use clean Markdown: a short title; subheadings with ## or ###; bullet lists only when useful; a blank line between each section; never paste a sentence immediately after a heading or a numbered item; for tables, use a valid Markdown table with headers.',
       'Markdown heading rules: never glue a heading to a sentence. A heading marker (#, ##, ###) must always start its own line, with a blank line before it and a blank line after it. Use ## or ### only to create real Markdown headings, never as decorative characters inside a sentence.',
-      'Numbered sections rule: when you use numbered steps or sections (1., 2., 3.), put each numbered item on its own line with a blank line before it; never continue a numbered item with the next number on the same line, and never glue a numbered item to the end of a previous sentence. If a numbered section has sub-points, make it a real subheading (### N. Title) followed by a bullet list.',
+      'List formatting rule: always format lists (numbered or bulleted) with one item per line and a blank line before the first item. Never put multiple list items on the same line (never "1. First. 2. Second."), never glue a list to a colon (never "points: 1. First"), and never mix list items with prose on the same line. If you start a numbered list after a colon or sentence, always add a blank line first. Example: "Here are the steps:\\n\\n1. First step\\n2. Second step\\n3. Third step" (with blank line before "1.").',
       'No LaTeX or math notation rule: this is a plain Markdown chat, never produce LaTeX or math-mode syntax such as $...$, $$...$$, \\(...\\), \\rightarrow, \\Rightarrow, \\cdot, or any backslash command. For an arrow, type the plain Unicode character → directly (e.g. "Heraklion → Rethymnon → Chania"), never "$\\rightarrow$" or similar. This applies even when citing a source file that itself contains LaTeX: reformulate it in plain text instead of copying the LaTeX syntax.',
       'No stray separators rule: never insert a standalone "---" line in the middle of a reply to mark a transition; "---" is only acceptable as a genuine Markdown horizontal rule on its own paragraph, surrounded by blank lines, and should be used sparingly. Never write a heading-like phrase (e.g. "Key takeaways") glued inline after a sentence without a line break — it must start on its own line as a real heading or its own paragraph.',
       'Strict Markdown table rules: if you produce a Markdown table, it must always include a header row, a separator row, and body rows with exactly the same number of cells. Example: | Column 1 | Column 2 | then |---|---|. Put EACH table row on its OWN line, starting and ending with a | character; never put two rows on the same line and never put a table cell or row on the same line as a heading or a sentence. Never use bullet lists inside a Markdown table. To separate several items inside one cell, use <br>. Never leave an isolated | character at the end of a line. CRITICAL: each table row must fit ENTIRELY on ONE single physical line — never break a cell over several lines, never insert a real line break, a sub-list, or a colon-introduced enumeration inside a cell; if a cell needs several points, join them on the SAME line with <br> or " ; ". If a row would be too long for one line, shorten the wording rather than wrapping it. Once a table has started, every following row must keep the same | structure until the table ends; never let a row spill out as a plain paragraph with stray | characters. If the content is too long or complex, prefer sections with subheadings instead of a table.',
@@ -146,7 +152,7 @@ function buildSystemPrompt(language, dateContext) {
     "Format : respecte toujours le format demandé par l'utilisateur. Pour les réponses longues, utilise des titres clairs, des paragraphes courts, des listes utiles et des tableaux uniquement lorsqu'ils améliorent réellement la lisibilité.",
     "Mise en forme Markdown : pour les réponses structurées, utilise un Markdown propre : un titre court ; des sous-titres avec ## ou ### ; des listes à puces uniquement si elles sont utiles ; une ligne vide entre chaque section ; ne colle jamais une phrase immédiatement après un titre ou un élément numéroté ; pour les tableaux, utilise un tableau Markdown valide avec en-têtes.",
     "Règles sur les titres Markdown : ne colle jamais un titre à une phrase. Un marqueur de titre (#, ##, ###) doit toujours commencer sa propre ligne, avec une ligne vide avant et une ligne vide après. N'utilise ## ou ### que pour créer de vrais titres Markdown, jamais comme caractères décoratifs au milieu d'une phrase.",
-    "Règle sur les sections numérotées : lorsque tu utilises des étapes ou sections numérotées (1., 2., 3.), place chaque élément numéroté sur sa propre ligne, précédé d'une ligne vide ; ne poursuis jamais un élément numéroté par le numéro suivant sur la même ligne, et ne colle jamais un élément numéroté à la fin de la phrase précédente. Si une section numérotée comporte des sous-points, fais-en un vrai sous-titre (### N. Titre) suivi d'une liste à puces.",
+    "Règle sur le formatage des listes : formate toujours les listes (numérotées ou à puces) avec un élément par ligne et une ligne vide avant le premier élément. Ne mets jamais plusieurs éléments de liste sur la même ligne (jamais « 1. Premier. 2. Deuxième. »), ne colle jamais une liste après un deux-points (jamais « points : 1. Premier »), et ne mélange jamais les éléments de liste avec du texte sur la même ligne. Si tu commences une liste numérotée après un deux-points ou une phrase, ajoute toujours une ligne vide avant. Exemple : « Voici les étapes :\\n\\n1. Première étape\\n2. Deuxième étape\\n3. Troisième étape » (avec ligne vide avant « 1. »).",
     "Règle anti-LaTeX / notation mathématique : ceci est un chat Markdown simple, ne produis jamais de syntaxe LaTeX ou de mode mathématique comme $...$, $$...$$, \\(...\\), \\rightarrow, \\Rightarrow, \\cdot, ou toute commande commençant par un backslash. Pour une flèche, tape directement le caractère Unicode → en clair (exemple : « Héraklion → Réthymnon → Chania »), jamais « $\\rightarrow$ » ou équivalent. Cela vaut aussi quand tu t'appuies sur une source qui contient elle-même du LaTeX : reformule en texte simple plutôt que de copier la syntaxe LaTeX.",
     "Règle anti-séparateurs parasites : n'insère jamais une ligne « --- » isolée au milieu d'une réponse pour marquer une transition ; « --- » n'est acceptable que comme vrai séparateur horizontal Markdown, sur son propre paragraphe entouré de lignes vides, et de façon rare. Ne colle jamais une expression qui ressemble à un titre (ex. « À retenir ») directement après une phrase sans saut de ligne — elle doit commencer sur sa propre ligne, en vrai titre ou en paragraphe séparé.",
     "Règles strictes pour les tableaux Markdown : si tu produis un tableau Markdown, il doit toujours avoir une ligne d'en-tête, une ligne de séparation, puis des lignes ayant exactement le même nombre de cellules. Exemple : | Colonne 1 | Colonne 2 | puis |---|---|. Place CHAQUE ligne du tableau sur sa PROPRE ligne, en commençant et finissant par un caractère | ; ne mets jamais deux lignes sur la même ligne et ne mets jamais une cellule ou une ligne de tableau sur la même ligne qu'un titre ou une phrase. N'utilise jamais de listes à puces à l'intérieur d'un tableau Markdown. Pour séparer plusieurs éléments dans une cellule, utilise <br>. Ne laisse jamais de caractère | isolé en fin de ligne. CRITIQUE : chaque ligne du tableau doit tenir ENTIÈREMENT sur UNE seule ligne physique — ne découpe jamais une cellule sur plusieurs lignes, n'insère jamais de vrai saut de ligne, de sous-liste ou d'énumération introduite par deux-points à l'intérieur d'une cellule ; si une cellule nécessite plusieurs points, regroupe-les sur la MÊME ligne avec <br> ou « ; ». Si une ligne est trop longue pour tenir sur une ligne, raccourcis la formulation au lieu de la faire déborder. Une fois le tableau commencé, chaque ligne suivante doit conserver la même structure de | jusqu'à la fin du tableau ; ne laisse jamais une ligne ressortir en paragraphe avec des | isolés. Si le contenu est trop long ou complexe, préfère des sections avec sous-titres plutôt qu'un tableau.",
@@ -2107,6 +2113,74 @@ export default {
       }
     }
 
+    // ── Tool Planner (Lot 11) ────────────────────────────────────────────
+    // Couche additive, JUSTE APRES l'Execution Planner et AVANT
+    // decideWebSearch/Prompt Orchestrator :
+    //
+    //   ... -> Source Planner -> Execution Planner -> Tool Planner ->
+    //   Prompt Orchestrator -> Dynamic Model Selection -> Model Router ->
+    //   LLM -> Completion Guard -> Response Quality Controller -> Renderer
+    //
+    // Traduit les signaux deja arbitres (capabilityPlan/sourcePlan/
+    // executionPlan) en un PLAN D'OUTILLAGE explicite et journalisable. Ne
+    // remplace ni n'execute aucun outil : se contente de produire un signal
+    // additif lu plus bas (shouldSearchWeb, finalSystemPrompt) sans jamais
+    // retirer une decision deja prise par les modules en amont (pur OR
+    // additif, comme le Lot 9/10). Flag-gate (TOOL_PLANNER_ENABLED, defaut:
+    // desactive) + try/catch : toute erreur ou flag desactive => toolPlan
+    // reste null et le reste du pipeline se comporte exactement comme avant
+    // ce Lot.
+    let toolPlan = null;
+    if (isToolPlannerEnabled(env)) {
+      try {
+        const detection = detectToolNeeds({
+          userMessage: message,
+          language,
+          capabilityPlan,
+          sourcePlan,
+          executionPlan,
+          hasUploadedFiles: hasFileContext || attachments.length > 0,
+          hasRagSources: ragTelemetry.some((evt) => ['rag_match', 'rag_context_used'].includes(evt?.event_type)),
+          hasWebAccess: true,
+          hasExports: true,
+          hasCalculator: true,
+          hasDocumentParser: true,
+          hasOcr: true,
+          hasImageTools: true
+        });
+        const plan = planToolUsage({ detection });
+        const policy = buildToolExecutionPolicy({ plan, language });
+        toolPlan = { detection, plan, policy };
+
+        const toolMeta = {
+          toolsNeeded: plan.toolsNeeded,
+          toolsOptional: plan.toolsOptional,
+          toolsForbidden: plan.toolsForbidden,
+          primaryTool: plan.primaryTool,
+          toolSequence: plan.toolSequence,
+          parallelTools: plan.parallelTools,
+          requiresToolExecution: plan.requiresToolExecution,
+          requiresClarification: plan.requiresClarification,
+          requiresUserFile: plan.requiresUserFile,
+          requiresUserImage: plan.requiresUserImage,
+          confidence: plan.confidence,
+          reasons: plan.reasons
+        };
+        queueAiEvent(ctx, env, request, { event_type: 'tool_needs_detected', event_value: plan.primaryTool, language, page_url: pageUrl, session_id: sessionId, meta: toolMeta });
+        queueAiEvent(ctx, env, request, { event_type: 'tool_plan_created', event_value: plan.toolsNeeded.join(','), language, page_url: pageUrl, session_id: sessionId, meta: toolMeta });
+        queueAiEvent(ctx, env, request, { event_type: 'tool_policy_built', event_value: plan.requiresClarification ? 'clarification' : 'proceed', language, page_url: pageUrl, session_id: sessionId, meta: toolMeta });
+      } catch (error) {
+        console.warn('tool_planner_failed', error instanceof Error ? error.message : String(error));
+        toolPlan = null;
+        queueAiEvent(ctx, env, request, {
+          event_type: 'tool_planner_error',
+          event_value: 'tool_planner_failed',
+          language, page_url: pageUrl, session_id: sessionId,
+          meta: { error: compactText(error instanceof Error ? error.message : String(error), 300) }
+        });
+      }
+    }
+
     const webSearchDecision = await decideWebSearch({
       message,
       body,
@@ -2125,8 +2199,13 @@ export default {
     // Planner + Source Planner) ; sinon on retombe sur le Source Planner
     // seul (Lot 9), puis sur la decision historique (comportement inchange
     // si les deux flags sont desactives).
+    // Lot 11 : le Tool Planner peut additivement confirmer le besoin de
+    // web_search (ex. citations exigees sans RAG disponible) — jamais le
+    // retirer si deja decide par un module en amont. Pur OR additif, sans
+    // effet quand toolPlan est null (flag desactive/erreur).
     const shouldSearchWeb = webSearchDecision.shouldSearch
-      || Boolean(executionPlan ? executionPlan.plan.forceWeb : sourcePlan?.plan?.forceWeb);
+      || Boolean(executionPlan ? executionPlan.plan.forceWeb : sourcePlan?.plan?.forceWeb)
+      || Boolean(toolPlan?.plan?.toolsNeeded?.includes('web_search'));
     if (!shouldSearchWeb) {
       tavilyRuntimeStats.skipped += 1;
     }
@@ -2251,7 +2330,12 @@ export default {
     const sourcePolicyBlock = executionPlan?.policy?.policyText
       ? ` ${executionPlan.policy.policyText}`
       : (sourcePlan?.policy?.policyText ? ` ${sourcePlan.policy.policyText}` : '');
-    let finalSystemPrompt = promptBasePrompt + pilotageBlock + sourcePolicyBlock;
+    // Lot 11 : politique d'outillage (fichier/image requis, clarification,
+    // export pret) ajoutee comme bloc additionnel supplementaire — n'ecrase
+    // jamais sourcePolicyBlock, vient toujours en complement. Sans toolPlan
+    // (flag desactive/erreur), bloc vide, comportement inchange.
+    const toolPolicyBlock = toolPlan?.policy?.policyText ? ` ${toolPlan.policy.policyText}` : '';
+    let finalSystemPrompt = promptBasePrompt + pilotageBlock + sourcePolicyBlock + toolPolicyBlock;
     let webSearchResults = [];
     let webSearchRawResults = [];
     let webSearchAnswer = '';

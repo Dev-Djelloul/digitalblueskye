@@ -307,6 +307,8 @@
   const driveIconUrl = resolveUiIconUrl('icons8-google-drive-64.png');
   const deleteIconUrl = resolveUiIconUrl('icons8-delete-48.png');
   const webIconUrl = resolveUiIconUrl('icons8-web.gif');
+  const sendIconUrl = resolveUiIconUrl('icons8-send-64.png');
+  const stopIconUrl = resolveUiIconUrl('icons8-stop-64.png');
   const sidebarIconUrl = resolveUiIconUrl('icons8-sidebar-50.png');
   const createNewIconUrl = resolveUiIconUrl('icons8-create-new-64.png');
   const newFolderIconUrl = resolveUiIconUrl('icons8-new-folder-64.png');
@@ -892,7 +894,7 @@
   }
 
   function createStopButtonMarkup() {
-    return `<button id="ai-assistant-stop" class="ai-assistant-stop-btn" type="button" title="${i18n.stopRequest}" aria-label="${i18n.stopRequest}" hidden><span aria-hidden="true"></span>${i18n.stop}</button>`;
+    return `<button id="ai-assistant-stop" class="ai-assistant-stop-btn" type="button" title="${i18n.stopRequest}" aria-label="${i18n.stopRequest}" hidden><img src="${stopIconUrl}" alt="" aria-hidden="true" style="width: 24px; height: 24px;"></button>`;
   }
 
   function createVoiceControlsMarkup(micIconUrl, voiceIconUrl) {
@@ -942,7 +944,7 @@
             <textarea id="ai-assistant-input" autocomplete="off" placeholder="${i18n.inputPlaceholder}" rows="1"></textarea>
             ${createVoiceControlsMarkup(micIconUrl, voiceIconUrl)}
             ${createStopButtonMarkup()}
-            <button type="submit" class="ai-assistant-send-btn">${i18n.send}</button>
+            <button type="submit" class="ai-assistant-send-btn"><img src="${sendIconUrl}" alt="${i18n.send}" style="width: 24px; height: 24px;"></button>
           </form>
           <span class="ai-assistant-resize-handle ai-assistant-resize-handle--nw" data-resize-corner="nw" aria-hidden="true"></span>
           <span class="ai-assistant-resize-handle ai-assistant-resize-handle--ne" data-resize-corner="ne" aria-hidden="true"></span>
@@ -6870,7 +6872,106 @@
     }
     flushTable();
 
-    return finalLines.join('\n').replace(/\n{3,}/g, '\n\n');
+    const normalized = finalLines.join('\n').replace(/\n{3,}/g, '\n\n');
+    // Applique aussi la normalisation des listes compactes après les autres traitements
+    return normalizeMarkdownLists(normalized);
+  }
+
+  // ─── NORMALISATION DES LISTES COMPACTES ────────────────────────────────────
+  // Corrige les listes compactes collées (ex: "Voici: 1. **A**: détail. 2. **B**").
+  // Préserve blocs de code, tableaux, nombres décimaux, versions et dates.
+  function normalizeMarkdownLists(rawText) {
+    const lines = String(rawText || '').replace(/\r\n?/g, '\n').split('\n');
+    const result = [];
+    let inCodeBlock = false;
+
+    for (let i = 0; i < lines.length; i += 1) {
+      const line = lines[i];
+      const trimmed = line.trim();
+
+      // Détecte et bascule les blocs de code
+      if (/^```/.test(trimmed)) {
+        inCodeBlock = !inCodeBlock;
+        result.push(line);
+        continue;
+      }
+
+      // Lignes dans les blocs de code : préservées telles quelles
+      if (inCodeBlock || trimmed.startsWith('|')) {
+        result.push(line);
+        continue;
+      }
+
+      // La ligne contient-elle une liste compacte après un deux-points ou du texte ?
+      // Patterns à détecter :
+      // - "texte: 1. item. 2. item"
+      // - "texte: - item. - item"
+      // Mais pas :
+      // - "1.23" (nombre décimal)
+      // - "v1.2.3" (version)
+      // - "2025-01-15" (date)
+      // - "13:45" (heure)
+
+      let processed = line;
+
+      // Ajoute une ligne vide AVANT une liste numérotée collée après un deux-points ou texte
+      processed = processed.replace(
+        /([.!?:])\s+(?=\d+[.)]\s+[\w*[\-])/g,
+        (match, punct) => {
+          const beforeMatch = processed.substring(0, processed.indexOf(match));
+          if (/\d$/.test(beforeMatch)) return match;
+          return `${punct}\n\n`;
+        }
+      );
+
+      // Ajoute une ligne vide AVANT une liste à puces collée après un deux-points ou texte
+      processed = processed.replace(
+        /([.!?:])\s+(?=-\s+)/g,
+        (match, punct) => {
+          const beforeMatch = processed.substring(0, processed.indexOf(match));
+          if (/\d$/.test(beforeMatch)) return match;
+          return `${punct}\n\n`;
+        }
+      );
+
+      // Divise les items de liste compacte numérotés :
+      // "1. item. 2. item" -> "1. item.\n2. item"
+      processed = processed.replace(
+        /(\d+[.)]\s+[^\n]*?)\.\s+(?=\d+[.)]\s)/g,
+        (match, beforeNum) => {
+          const lastChar = beforeNum.trim().charAt(beforeNum.trim().length - 1);
+          if (/\d/.test(lastChar)) return match;
+          return `${beforeNum}.\n`;
+        }
+      );
+
+      // Divise les items de liste à puces compactes :
+      // "- item. - item" -> "- item.\n- item"
+      processed = processed.replace(
+        /(-\s+[^\n]*?)\.\s+(?=-\s)/g,
+        '$1.\n'
+      );
+
+      // Ajoute une ligne vide APRÈS une liste compacte (avant la suite du texte)
+      // si une ligne de liste n'est pas suivie d'une autre ligne de liste
+      if (/^\s*(\d+[.)]\s+|-\s+)/.test(processed)) {
+        const nextLine = i + 1 < lines.length ? lines[i + 1].trim() : '';
+        // Si la ligne suivante n'est pas une liste, ajouter une ligne vide après cette liste
+        if (nextLine && !/^\s*(\d+[.)]\s+|-\s+|#{1,6}\s)/.test(nextLine) && nextLine !== '') {
+          // Mais seulement à la fin de tous les items consécutifs
+          const isLastListItem = !(/^\s*(\d+[.)]\s+|-\s+)/.test(nextLine));
+          if (isLastListItem) {
+            result.push(processed);
+            result.push('');
+            continue;
+          }
+        }
+      }
+
+      result.push(processed);
+    }
+
+    return result.join('\n').replace(/\n{3,}/g, '\n\n');
   }
 
   // ─── FONCTION DE RENDU MARKDOWN AMÉLIORÉE ───────────────────────────────────
@@ -7627,7 +7728,10 @@
   function renderMarkdownToHtml(rawText) {
     if (!AI_MARKDOWN_AST_PHASE2_ENABLED) return formatBotMessageHtml(rawText);
     try {
-      const blocks = parseMarkdownToBlocks(rawText);
+      // Normalise les listes compactes AVANT parsing AST, pour que les deux chemins
+      // (Phase 2 AST + Phase 1 fallback formatBotMessageHtml) les traitent correctement.
+      const normalized = normalizeMarkdownBeforeRender(rawText);
+      const blocks = parseMarkdownToBlocks(normalized);
       const html = renderBlocksToHtml(blocks);
       if (!html && String(rawText || '').trim()) {
         throw new Error('ast_render_empty_for_non_empty_input');
@@ -7701,7 +7805,9 @@
   function buildMarkdownExportText(rawExportText) {
     if (!AI_MARKDOWN_AST_PHASE3_ENABLED) return rawExportText;
     try {
-      const md = renderBlocksToMarkdown(parseMarkdownToBlocks(rawExportText));
+      // Normalise aussi pour le Markdown export
+      const normalized = normalizeMarkdownBeforeRender(rawExportText);
+      const md = renderBlocksToMarkdown(parseMarkdownToBlocks(normalized));
       if (!md && String(rawExportText || '').trim()) throw new Error('ast_md_empty_for_non_empty_input');
       return md;
     } catch (error) {
@@ -7725,7 +7831,9 @@
     try {
       const text = String(bubble?._assistantRawText || contentNode?.innerText || '').trim();
       if (!text) throw new Error('empty_export_text');
-      const bodyHtml = renderBlocksToHtml(parseMarkdownToBlocks(text));
+      // Normalise aussi pour l'export, avant parsing AST
+      const normalized = normalizeMarkdownBeforeRender(text);
+      const bodyHtml = renderBlocksToHtml(parseMarkdownToBlocks(normalized));
       if (!bodyHtml) throw new Error('ast_export_body_empty');
       const payload = bubble?._sourcesPayload;
       if (payload && ((payload.ragSources && payload.ragSources.length) || (payload.webSources && payload.webSources.length))) {
