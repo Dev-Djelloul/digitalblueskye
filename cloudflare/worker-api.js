@@ -4020,8 +4020,16 @@ async function buildAdminHealthPayload(request, env) {
   // (jamais de secret) ; les variables d'environnement restent prioritaires si définies
   // (utile pour un déploiement Pages/CI qui connaît son propre commit).
   const commitSha = env.COMMIT_SHA || env.CF_PAGES_COMMIT_SHA || BUILD_INFO?.commit || "local";
+  const commitFull = env.COMMIT_SHA_FULL || BUILD_INFO?.commitFull || commitSha;
   const gitBranch = env.BUILD_BRANCH || env.CF_PAGES_BRANCH || BUILD_INFO?.branch || "unknown";
   const deployedAt = env.LAST_DEPLOYED_AT || BUILD_INFO?.buildDate || checkedAt;
+  const buildDateLabel = BUILD_INFO?.buildDateLabel || "n/a";
+  const buildTimeLabel = BUILD_INFO?.buildTimeLabel || "n/a";
+  // Les URL GitHub ne sont jamais reconstruites depuis des secrets : elles viennent
+  // uniquement du remote Git local lu par generate-build-info.mjs, ou d'une variable
+  // d'environnement explicite si le pipeline de déploiement la fournit.
+  const githubCommitUrl = env.GITHUB_COMMIT_URL || BUILD_INFO?.githubCommitUrl || null;
+  const githubBranchUrl = env.GITHUB_BRANCH_URL || BUILD_INFO?.githubBranchUrl || null;
 
   const recentEventsPromise = env.DB.prepare(
     `SELECT id, session_id, event_type, event_value, meta, created_at
@@ -4389,7 +4397,12 @@ async function buildAdminHealthPayload(request, env) {
       version: appVersion,
       build: buildNumber,
       commit: commitSha,
+      commitFull,
       branch: gitBranch,
+      buildDateLabel,
+      buildTimeLabel,
+      githubCommitUrl,
+      githubBranchUrl,
       last_deployed_at: deployedAt,
       api_worker: "digitalblueskye-api",
       ai_worker: "digitalblueskye-ai",
@@ -4398,8 +4411,14 @@ async function buildAdminHealthPayload(request, env) {
     versioning: {
       version: appVersion,
       build: buildNumber,
+      buildDate: deployedAt,
+      buildDateLabel,
+      buildTimeLabel,
       commit: commitSha,
+      commitFull,
       branch: gitBranch,
+      githubCommitUrl,
+      githubBranchUrl,
       deployedAt,
     },
     maturity,

@@ -5037,6 +5037,16 @@
       text-align: right;
     }
 
+    .version-link {
+      color: inherit;
+      text-decoration: none;
+      border-bottom: 1px dotted currentColor;
+    }
+
+    .version-link:hover {
+      opacity: 0.85;
+    }
+
     .intel-tool-row {
       grid-template-columns: minmax(110px, 0.75fr) minmax(90px, 1fr) auto;
     }
@@ -10549,6 +10559,10 @@
           build: checkedAt.slice(0, 10),
           commit: "n/a",
           branch: "n/a",
+          buildDateLabel: "n/a",
+          buildTimeLabel: "n/a",
+          githubCommitUrl: null,
+          githubBranchUrl: null,
           last_deployed_at: checkedAt,
           api_worker: "digitalblueskye-api",
           ai_worker: "digitalblueskye-ai",
@@ -11278,6 +11292,26 @@
       return `<div class="intel-kv-row"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`;
     }
 
+    function isSafeGithubUrl(url) {
+      if (!url || typeof url !== "string") return false;
+      try {
+        const parsed = new URL(url);
+        return parsed.protocol === "https:" && parsed.hostname === "github.com";
+      } catch {
+        return false;
+      }
+    }
+
+    function renderIntelKvLink(label, text, url) {
+      const safeLabel = escapeHtml(label);
+      const safeText = escapeHtml(text || "non disponible");
+      if (!text || !isSafeGithubUrl(url)) {
+        return `<div class="intel-kv-row"><span>${safeLabel}</span><strong>${safeText}</strong></div>`;
+      }
+      const safeUrl = escapeHtml(url);
+      return `<div class="intel-kv-row"><span>${safeLabel}</span><strong><a class="version-link" href="${safeUrl}" target="_blank" rel="noopener noreferrer">${safeText} ↗</a></strong></div>`;
+    }
+
     function plannerCount(stats, keys = []) {
       for (const key of keys) {
         const value = Number(stats?.[key]);
@@ -12002,8 +12036,10 @@
           <article class="intelligence-card"><header><h2>Versioning</h2></header><div class="intel-kv-list">
             ${renderIntelKv("Version", system.version || "non disponible")}
             ${renderIntelKv("Build", system.build || "non disponible")}
-            ${renderIntelKv("Commit", system.commit || "non disponible")}
-            ${renderIntelKv("Branche", system.branch || "non disponible")}
+            ${renderIntelKv("Date de build", system.buildDateLabel || "non disponible")}
+            ${renderIntelKv("Heure de build", system.buildTimeLabel || "non disponible")}
+            ${renderIntelKvLink("Commit", system.commit, system.githubCommitUrl)}
+            ${renderIntelKvLink("Branche", system.branch, system.githubBranchUrl)}
             ${renderIntelKv("Dernier déploiement", formatDate(system.last_deployed_at) || "non disponible")}
           </div></article>
           <article class="intelligence-card"><header><h2>Workers & stockage</h2></header><div class="intel-kv-list">
