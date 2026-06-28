@@ -30,13 +30,14 @@
     <title data-i18n="meta.homeTitle">Digitalblueskye | Chef de projet digital & IA</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Gelasio:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <link
       href="https://fonts.googleapis.com/css2?family=Iceland&display=swap"
       rel="stylesheet"
     />
     <link rel="preconnect" href="https://player.canva.com" />
-    <link rel="stylesheet" href="/styles/style.css" />
+    <link rel="stylesheet" href="/styles/style.css?v=20260628-gelasio" />
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
     <link
       rel="stylesheet"
@@ -653,16 +654,45 @@
       <div id="ai-assistant-quick-actions" class="ai-assistant-quick-actions"></div>
 
       <form id="ai-assistant-form" class="ai-assistant-form">
-        <input
+        <div id="ai-assistant-attachment-preview-tray" class="ai-assistant-attachment-preview-tray" hidden></div>
+        <div class="ai-assistant-attach" id="ai-assistant-attach">
+          <button id="ai-assistant-attach-toggle" class="ai-assistant-attach-toggle" type="button" aria-haspopup="true" aria-expanded="false" data-i18n-title="assistant.attach" title="Ajouter" aria-label="Ajouter">+</button>
+          <button id="ai-assistant-web-search" class="ai-assistant-web-search-btn" type="button" title="Rechercher sur le web" aria-label="Rechercher sur le web" aria-pressed="false">
+            <img src="/assets/images/ui/icons8-web.gif" alt="" width="18" height="18" aria-hidden="true">
+          </button>
+          <div id="ai-assistant-attach-menu" class="ai-assistant-attach-menu" role="menu" aria-label="Options d'ajout">
+            <button id="ai-assistant-attach-file" class="ai-assistant-attach-item" type="button" role="menuitem">
+              <img src="/assets/images/ui/icons8-files-64.png" alt="" aria-hidden="true">
+              <span>Fichiers</span>
+            </button>
+            <button id="ai-assistant-attach-drive" class="ai-assistant-attach-item" type="button" role="menuitem">
+              <img src="/assets/images/ui/icons8-google-drive-64.png" alt="" aria-hidden="true">
+              <span>Google Drive</span>
+            </button>
+          </div>
+        </div>
+        <textarea
           id="ai-assistant-input"
-          type="text"
           autocomplete="off"
           data-i18n-placeholder="assistant.inputPlaceholder"
-          placeholder="Posez votre question..."
-        />
-        <button type="submit" class="ai-assistant-send-btn" data-i18n-title="assistant.send" title="Envoyer" aria-label="Envoyer">
-          <img src="/assets/images/ui/icons8-send-64.png" alt="" style="width: 24px; height: 24px;" aria-hidden="true">
-        </button>
+          placeholder="Message pour Agent IA Digital Blue Skye"
+          rows="1"
+        ></textarea>
+        <div class="ai-assistant-composer-right">
+          <select id="ai-assistant-voice-select" class="ai-assistant-voice-select ai-assistant-voice-select--composer" aria-label="Voix" title="Voix"></select>
+          <button id="ai-assistant-mic" type="button" class="ai-assistant-voice-btn" title="Dicter" aria-label="Dicter">
+            <img src="/assets/images/ui/icons8-mic-48.png" alt="" aria-hidden="true">
+          </button>
+          <button id="ai-assistant-tts" type="button" class="ai-assistant-voice-btn is-active" title="Voix" aria-label="Voix">
+            <img src="/assets/images/ui/icons8-voice-64.png" alt="" aria-hidden="true">
+          </button>
+          <button id="ai-assistant-stop" class="ai-assistant-stop-btn" type="button" title="Stopper la demande en cours" aria-label="Stopper la demande en cours" hidden>
+            <img src="/assets/images/ui/icons8-stop-64.png" alt="" aria-hidden="true">
+          </button>
+          <button type="submit" class="ai-assistant-send-btn" data-i18n-title="assistant.send" title="Envoyer" aria-label="Envoyer">
+            <img src="/assets/images/ui/icons8-send-64.png" alt="" aria-hidden="true">
+          </button>
+        </div>
       </form>
       <span class="ai-assistant-resize-handle ai-assistant-resize-handle--nw" data-resize-corner="nw" aria-hidden="true"></span>
       <span class="ai-assistant-resize-handle ai-assistant-resize-handle--ne" data-resize-corner="ne" aria-hidden="true"></span>

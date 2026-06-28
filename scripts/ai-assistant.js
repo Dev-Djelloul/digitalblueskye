@@ -102,6 +102,8 @@
         deleteChat: 'Delete',
         sessionDefault: 'New conversation',
         selectedFiles: 'Selected files:',
+        fileLimitReached: 'Attachment limit reached: maximum 15 files.',
+        fileLimitPartial: 'Only the first available slots were added. Maximum: 15 files.',
         fileReady: 'Files are ready for analysis:',
         fileUnsupported: 'Unsupported file type:',
         fileReadFailed: 'Unable to read file:',
@@ -223,6 +225,8 @@
       deleteChat: 'Supprimer',
       sessionDefault: 'Nouvelle conversation',
       selectedFiles: 'Fichiers sélectionnés :',
+      fileLimitReached: 'Limite de pièces jointes atteinte : maximum 15 fichiers.',
+      fileLimitPartial: 'Seuls les premiers emplacements disponibles ont été ajoutés. Maximum : 15 fichiers.',
       fileReady: 'Fichiers prêts pour analyse :',
       fileUnsupported: 'Type de fichier non pris en charge :',
       fileReadFailed: 'Impossible de lire le fichier :',
@@ -940,11 +944,14 @@
           </button>
           <div id="ai-assistant-quick-actions" class="ai-assistant-quick-actions"></div>
           <form id="ai-assistant-form" class="ai-assistant-form">
+            <div id="ai-assistant-attachment-preview-tray" class="ai-assistant-attachment-preview-tray" hidden></div>
             ${createAttachControlsMarkup()}
             <textarea id="ai-assistant-input" autocomplete="off" placeholder="${i18n.inputPlaceholder}" rows="1"></textarea>
-            ${createVoiceControlsMarkup(micIconUrl, voiceIconUrl)}
-            ${createStopButtonMarkup()}
-            <button type="submit" class="ai-assistant-send-btn"><img src="${sendIconUrl}" alt="${i18n.send}" style="width: 24px; height: 24px;"></button>
+            <div class="ai-assistant-composer-right">
+              ${createVoiceControlsMarkup(micIconUrl, voiceIconUrl)}
+              ${createStopButtonMarkup()}
+              <button type="submit" class="ai-assistant-send-btn"><img src="${sendIconUrl}" alt="${i18n.send}"></button>
+            </div>
           </form>
           <span class="ai-assistant-resize-handle ai-assistant-resize-handle--nw" data-resize-corner="nw" aria-hidden="true"></span>
           <span class="ai-assistant-resize-handle ai-assistant-resize-handle--ne" data-resize-corner="ne" aria-hidden="true"></span>
@@ -1233,7 +1240,9 @@
   let areRecentChatsCollapsed = false;
   let pendingFileContext = '';
   let pendingFileNames = [];
+  let pendingFileContextBlocks = [];
   let pendingUploadMetadata = [];
+  let pendingAttachmentPreviews = [];
   let pendingLibraryDocumentNames = [];
   let pendingVisionAttachments = [];
   let driveAccessToken = '';
@@ -2800,7 +2809,7 @@
   let jsZipLoaderPromise = null;
   let html2PdfLoaderPromise = null;
   let jsPdfLoaderPromise = null;
-  const maxLocalFilesPerPrompt = 4;
+  const maxLocalFilesPerPrompt = 15;
   const maxTextCharsPerFile = 12000;
   const maxDocumentCharsPerFile = 60000;
   const maxExcelContextCharsPerFile = 120000;
@@ -2827,12 +2836,42 @@
     if (!kind) return null;
     const extension = getFileExtension(file?.name) || kind;
     return {
-      name: extension ? `.${extension}` : '',
+      id: getFileAttachmentId(file, 'file'),
+      name: file?.name || (extension ? `document.${extension}` : 'document'),
       type: String(file?.type || '').slice(0, 120),
       size: Number(file?.size || 0) || 0,
       extractedTextLength: Number(extractedTextLength || 0) || 0,
       kind
     };
+  }
+
+  function getFileAttachmentId(file, prefix = 'file') {
+    const name = String(file?.name || 'document');
+    const type = String(file?.type || getFileExtension(name) || 'application/octet-stream');
+    const size = Number(file?.size || 0) || 0;
+    const modified = Number(file?.lastModified || 0) || 0;
+    return `${prefix}:${name}:${type}:${size}:${modified}`;
+  }
+
+  function getPendingAttachmentKey(item) {
+    if (item?.id) return String(item.id);
+    const name = String(item?.name || '').trim().toLowerCase();
+    const type = String(item?.type || item?.mimeType || item?.kind || '').trim().toLowerCase();
+    const size = Number(item?.size || 0) || 0;
+    return `${name}|${type}|${size}`;
+  }
+
+  function mergePendingItems(existing, incoming, limit = maxLocalFilesPerPrompt) {
+    const merged = [];
+    const seen = new Set();
+    [...(existing || []), ...(incoming || [])].forEach((item) => {
+      if (!item || merged.length >= limit) return;
+      const key = getPendingAttachmentKey(item);
+      if (seen.has(key)) return;
+      seen.add(key);
+      merged.push(item);
+    });
+    return merged;
   }
 
   function isReadableTextFile(file) {
@@ -3189,13 +3228,13 @@
   }
 
   async function buildVisionAttachments(files) {
-    const selected = Array.from(files || []).filter((file) => isImageFile(file)).slice(0, 2);
+    const selected = Array.from(files || []).filter((file) => isImageFile(file)).slice(0, maxLocalFilesPerPrompt);
     const readyNames = [], failedNames = [], attachments = [];
     for (const file of selected) {
       try {
         const url = await readFileAsDataUrl(file);
         if (!url.startsWith('data:image/')) { failedNames.push(file.name); continue; }
-        attachments.push({ type: 'image_url', name: file.name, url });
+        attachments.push({ id: getFileAttachmentId(file, 'image'), type: 'image_url', name: file.name, url, size: Number(file.size || 0) || 0 });
         readyNames.push(file.name);
       } catch (error) { failedNames.push(file.name); }
     }
@@ -3622,7 +3661,7 @@
 
   async function buildLocalFileContext(files) {
     const selected = Array.from(files || []).slice(0, maxLocalFilesPerPrompt);
-    const readableNames = [], unsupportedNames = [], failedNames = [], noTextNames = [], snippets = [], attachments = [];
+    const readableNames = [], unsupportedNames = [], failedNames = [], noTextNames = [], snippets = [], contextBlocks = [], attachments = [];
     for (const file of selected) {
       if (!isReadableTextFile(file)) {
         if (isPdfFile(file)) {
@@ -3637,7 +3676,7 @@
               extractedTextLength: pdfResult.text.length,
               extractedTextPreview: pdfResult.text.slice(0, 300)
             });
-            snippets.push(buildDocumentContextBlock({
+            const contextBlock = buildDocumentContextBlock({
               label: 'PDF',
               fileName: file.name,
               text: pdfResult.text,
@@ -3647,7 +3686,9 @@
                 `Pages extraites: ${pdfResult.extractedPages}`,
                 `OCR utilisé: ${pdfResult.ocrUsed ? 'oui' : 'non'}`
               ]
-            }));
+            });
+            snippets.push(contextBlock);
+            contextBlocks.push({ id: getFileAttachmentId(file, 'file'), name: file.name, text: contextBlock });
             readableNames.push(file.name);
             attachments.push(buildAttachmentTelemetry(file, pdfResult.text.length));
             continue;
@@ -3662,12 +3703,14 @@
               extractedTextPreview: docxText.slice(0, 300)
             });
             if (!docxText) { noTextNames.push(file.name); continue; }
-            snippets.push(buildDocumentContextBlock({
+            const contextBlock = buildDocumentContextBlock({
               label: 'Word DOCX',
               fileName: file.name,
               text: docxText,
               maxChars: maxDocumentCharsPerFile
-            }));
+            });
+            snippets.push(contextBlock);
+            contextBlocks.push({ id: getFileAttachmentId(file, 'file'), name: file.name, text: contextBlock });
             readableNames.push(file.name);
             attachments.push(buildAttachmentTelemetry(file, docxText.length));
             continue;
@@ -3684,7 +3727,7 @@
               extractedTextPreview: excelResult.text.slice(0, 300)
             });
             if (!excelResult.text) { noTextNames.push(file.name); continue; }
-            snippets.push(buildDocumentContextBlock({
+            const contextBlock = buildDocumentContextBlock({
               label: `Excel ${getFileExtension(file.name).toUpperCase()}`,
               fileName: file.name,
               text: excelResult.text,
@@ -3696,7 +3739,9 @@
                 `${currentLanguage === 'en' ? 'Non-empty rows' : 'Lignes non vides'}: ${excelResult.totalNonEmptyRows || 0}`,
                 `${currentLanguage === 'en' ? 'Detailed row listing limited' : 'Liste détaillée des lignes limitée'}: ${excelResult.detailedRowsWereLimited ? 'oui' : 'non'}`
               ]
-            }));
+            });
+            snippets.push(contextBlock);
+            contextBlocks.push({ id: getFileAttachmentId(file, 'file'), name: file.name, text: contextBlock });
             readableNames.push(file.name);
             attachments.push(buildAttachmentTelemetry(file, excelResult.text.length));
             assistantLog('debug', 'excel_context_ready', {
@@ -3717,7 +3762,7 @@
               extractedTextPreview: pptResult.text.slice(0, 300)
             });
             if (!pptResult.text) { noTextNames.push(file.name); continue; }
-            snippets.push(buildDocumentContextBlock({
+            const contextBlock = buildDocumentContextBlock({
               label: `PowerPoint ${getFileExtension(file.name).toUpperCase()}`,
               fileName: file.name,
               text: pptResult.text,
@@ -3726,7 +3771,9 @@
                 `${currentLanguage === 'en' ? 'Slides' : 'Diapositives'}: ${pptResult.slideCount}`,
                 `${currentLanguage === 'en' ? 'Slides extracted' : 'Diapositives extraites'}: ${pptResult.extractedSlides}`
               ]
-            }));
+            });
+            snippets.push(contextBlock);
+            contextBlocks.push({ id: getFileAttachmentId(file, 'file'), name: file.name, text: contextBlock });
             readableNames.push(file.name);
             attachments.push(buildAttachmentTelemetry(file, pptResult.text.length));
             continue;
@@ -3737,7 +3784,9 @@
           const ocrText = await extractTextFromImage(file, currentLanguage);
           if (!ocrText) { noTextNames.push(file.name); continue; }
           const excerpt = ocrText.length > maxImageOcrCharsPerFile ? `${ocrText.slice(0, maxImageOcrCharsPerFile)}\n...[truncated]` : ocrText;
-          snippets.push(`Fichier image (OCR): ${file.name}\n${excerpt}`);
+          const contextBlock = `Fichier image (OCR): ${file.name}\n${excerpt}`;
+          snippets.push(contextBlock);
+          contextBlocks.push({ id: getFileAttachmentId(file, 'image'), name: file.name, text: contextBlock });
           readableNames.push(file.name);
           continue;
         } catch (error) { failedNames.push(file.name); continue; }
@@ -3746,13 +3795,15 @@
         const raw = await readFileAsText(file);
         const trimmed = raw.replace(/\r/g, '').trim();
         const excerpt = trimmed.length > maxTextCharsPerFile ? `${trimmed.slice(0, maxTextCharsPerFile)}\n...[truncated]` : trimmed;
-        snippets.push(`Fichier: ${file.name}\n${excerpt || '[empty file]'}`);
+        const contextBlock = `Fichier: ${file.name}\n${excerpt || '[empty file]'}`;
+        snippets.push(contextBlock);
+        contextBlocks.push({ id: getFileAttachmentId(file, 'file'), name: file.name, text: contextBlock });
         readableNames.push(file.name);
         const telemetry = buildAttachmentTelemetry(file, trimmed.length);
         if (telemetry) attachments.push(telemetry);
       } catch (error) { failedNames.push(file.name); }
     }
-    return { context: snippets.join('\n\n'), readableNames, unsupportedNames, failedNames, noTextNames, attachments: attachments.filter(Boolean) };
+    return { context: snippets.join('\n\n'), contextBlocks, readableNames, unsupportedNames, failedNames, noTextNames, attachments: attachments.filter(Boolean) };
   }
 
   function normalizeKnowledgeText(text) {
@@ -5609,6 +5660,7 @@
       ['IA', [['Modele par defaut', 'ai.defaultModel'], ['Fournisseur prefere', 'ai.preferredProvider'], ['Fallback automatique', 'ai.automaticFallback']]],
       ['Recherche Web', [['Tavily active', 'web.tavilyEnabled'], ['Mode economique', 'web.economyMode'], ['Mode expert', 'web.expertMode'], ['Limite de resultats', 'web.maxResults']]],
       ['Documents', [['Taille maximale (Mo)', 'documents.maxSizeMb'], ['Chunking', 'documents.chunking'], ['Indexation automatique', 'documents.automaticIndexing'], ['RAG automatique', 'documents.automaticRag'], ['Passages RAG max', 'documents.ragMaxPassages'], ['Bibliothèque globale RAG', 'documents.ragUseGlobalLibrary'], ['Citer les sources', 'documents.ragCitations']]],
+      ['Voix', null],
       ['Apparence', [['Theme', 'appearance.theme']]],
       ['Donnees', null]
     ];
@@ -5621,6 +5673,11 @@
       section.appendChild(heading);
       if (title === 'Donnees') {
         renderDataSettingsSection(section);
+        settingsSections.appendChild(section);
+        return;
+      }
+      if (title === 'Voix') {
+        renderVoiceSettingsSection(section);
         settingsSections.appendChild(section);
         return;
       }
@@ -5637,6 +5694,19 @@
       });
       settingsSections.appendChild(section);
     });
+  }
+
+  function renderVoiceSettingsSection(section) {
+    const label = document.createElement('label');
+    label.innerHTML = `<span>${currentLanguage === 'en' ? 'Assistant voice' : 'Voix de l’assistant'}</span><select id="ai-assistant-settings-voice-select" class="ai-assistant-voice-select"></select>`;
+    section.appendChild(label);
+    const note = document.createElement('p');
+    note.className = 'ai-assistant-project-empty';
+    note.textContent = currentLanguage === 'en'
+      ? 'The selected voice is saved locally in this browser and used for text-to-speech playback.'
+      : 'La voix sélectionnée est enregistrée localement dans ce navigateur et utilisée pour la lecture vocale des réponses.';
+    section.appendChild(note);
+    populateVoiceSelect(currentLanguage === 'en' ? 'en' : 'fr');
   }
 
   function renderDataSettingsSection(section) {
@@ -5973,27 +6043,30 @@
   }
 
   function populateVoiceSelect(lang) {
-    if (!voiceSelect) return;
     const candidates = getVoicesForLanguage(lang);
     const preferredVoiceURI = getStoredVoicePreference(lang);
     const bestVoice = chooseBestTtsVoice(lang);
     const selectedVoice = selectedTtsVoices[lang] || bestVoice;
-    voiceSelect.innerHTML = '';
-    const autoOption = document.createElement('option');
-    autoOption.value = '';
-    autoOption.textContent = i18n.voiceSelectAuto;
-    voiceSelect.appendChild(autoOption);
-    candidates.forEach((voice) => {
-      const option = document.createElement('option');
-      option.value = voice.voiceURI;
-      option.textContent = voice.name || voice.voiceURI;
-      voiceSelect.appendChild(option);
+    const selects = [voiceSelect, document.getElementById('ai-assistant-settings-voice-select')].filter(Boolean);
+    selects.forEach((select) => {
+      select.innerHTML = '';
+      const autoOption = document.createElement('option');
+      autoOption.value = '';
+      autoOption.textContent = i18n.voiceSelectAuto;
+      select.appendChild(autoOption);
+      candidates.forEach((voice) => {
+        const option = document.createElement('option');
+        option.value = voice.voiceURI;
+        option.textContent = voice.name || voice.voiceURI;
+        select.appendChild(option);
+      });
+      if (preferredVoiceURI && candidates.some((voice) => voice.voiceURI === preferredVoiceURI)) {
+        select.value = preferredVoiceURI;
+      } else {
+        select.value = '';
+        if (selectedVoice && selectedVoice.voiceURI !== (bestVoice?.voiceURI || '')) select.value = selectedVoice.voiceURI;
+      }
     });
-    if (preferredVoiceURI && candidates.some((voice) => voice.voiceURI === preferredVoiceURI)) {
-      voiceSelect.value = preferredVoiceURI; return;
-    }
-    voiceSelect.value = '';
-    if (selectedVoice && selectedVoice.voiceURI !== (bestVoice?.voiceURI || '')) voiceSelect.value = selectedVoice.voiceURI;
   }
 
   function refreshTtsVoices() {
@@ -6172,6 +6245,13 @@
   }
   if (settingsSections) {
     settingsSections.addEventListener('change', (event) => {
+      if (event.target?.id === 'ai-assistant-settings-voice-select') {
+        const activeLang = currentLanguage === 'en' ? 'en' : 'fr';
+        setStoredVoicePreference(activeLang, event.target.value || '');
+        selectedTtsVoices[activeLang] = resolveVoiceForLanguage(activeLang);
+        populateVoiceSelect(activeLang);
+        return;
+      }
       const path = event.target?.dataset?.settingsPath;
       if (!path) return;
       const [group, key] = path.split('.');
@@ -6407,6 +6487,13 @@
 
   if (attachToggle) attachToggle.addEventListener('click', () => toggleAttachMenu());
 
+  document.getElementById('ai-assistant-form')?.addEventListener('click', (event) => {
+    const removeButton = event.target.closest?.('[data-attachment-remove]');
+    if (!removeButton) return;
+    event.preventDefault();
+    removePendingAttachment(removeButton.dataset.attachmentRemove);
+  });
+
   if (fileInput) {
     if (attachFileButton) {
       attachFileButton.addEventListener('click', () => {
@@ -6416,8 +6503,16 @@
     }
 
     async function processSelectedFiles(files) {
-      const normalizedFiles = Array.from(files || []);
+      const existingCount = pendingAttachmentPreviews.length;
+      const remainingSlots = Math.max(0, maxLocalFilesPerPrompt - existingCount);
+      if (remainingSlots <= 0) {
+        addMessage('bot', i18n.fileLimitReached);
+        return;
+      }
+      const selectedFiles = Array.from(files || []);
+      const normalizedFiles = selectedFiles.slice(0, remainingSlots);
       if (!normalizedFiles.length) return;
+      if (selectedFiles.length > remainingSlots) addMessage('bot', i18n.fileLimitPartial);
       const hasImages = normalizedFiles.some((file) => isImageFile(file));
       const hasPdf = normalizedFiles.some((file) => isPdfFile(file));
       const hasDocx = normalizedFiles.some((file) => isDocxFile(file));
@@ -6433,10 +6528,37 @@
       if (pdfLoadingBubble) pdfLoadingBubble.remove();
       if (docxLoadingBubble) docxLoadingBubble.remove();
       if (excelLoadingBubble) excelLoadingBubble.remove();
-      pendingFileContext = result.context;
-      pendingFileNames = result.readableNames;
-      pendingUploadMetadata = result.attachments || [];
-      pendingVisionAttachments = vision.attachments;
+      pendingFileNames = Array.from(new Set([...pendingFileNames, ...result.readableNames].filter(Boolean))).slice(0, maxLocalFilesPerPrompt);
+      pendingFileContextBlocks = mergePendingItems(pendingFileContextBlocks, result.contextBlocks || []);
+      pendingUploadMetadata = mergePendingItems(pendingUploadMetadata, result.attachments || []);
+      pendingVisionAttachments = mergePendingItems(pendingVisionAttachments, vision.attachments);
+      rebuildPendingFileContext();
+      const fileByName = new Map(normalizedFiles.map((file) => [file.name, file]));
+      const imagePreviews = vision.attachments.map((attachment) => {
+        const sourceFile = fileByName.get(attachment.name);
+        return {
+          id: attachment.id || getFileAttachmentId(sourceFile, 'image'),
+          type: 'image',
+          kind: 'image',
+          name: attachment.name,
+          url: attachment.url,
+          size: Number(sourceFile?.size || 0) || 0
+        };
+      });
+      const documentPreviews = result.readableNames
+        .filter((name) => !vision.readyNames.includes(name))
+        .map((name) => {
+          const sourceFile = fileByName.get(name);
+          return {
+            id: getFileAttachmentId(sourceFile, 'file'),
+            type: 'file',
+            kind: getTelemetryFileKind(sourceFile) || getFileExtension(name) || 'file',
+            name,
+            size: Number(sourceFile?.size || 0) || 0
+          };
+        });
+      pendingAttachmentPreviews = mergePendingItems(pendingAttachmentPreviews, [...imagePreviews, ...documentPreviews]);
+      renderPendingAttachmentPreviews();
       if (hasDocx) {
         assistantLog('debug', 'docx_context_ready', {
           docxFileNames: normalizedFiles.filter((file) => isDocxFile(file)).map((file) => file.name),
@@ -6453,8 +6575,9 @@
           visionAttachmentsCount: pendingVisionAttachments.length
         });
       }
-      if (result.readableNames.length) addMessage('bot', `${i18n.fileReady} ${result.readableNames.join(', ')}`);
-      if (vision.readyNames.length) addMessage('bot', `${i18n.imageReady} ${vision.readyNames.join(', ')}`);
+      const imageReadyNameSet = new Set(vision.readyNames);
+      const readableDocumentNames = result.readableNames.filter((name) => !imageReadyNameSet.has(name));
+      if (readableDocumentNames.length && !pendingAttachmentPreviews.length) addMessage('bot', `${i18n.fileReady} ${readableDocumentNames.join(', ')}`);
       if (vision.failedNames.length) addMessage('bot', `${i18n.imageReadFailed} ${vision.failedNames.join(', ')}`);
       if (result.unsupportedNames.length) addMessage('bot', `${i18n.fileUnsupported} ${result.unsupportedNames.join(', ')}`);
       if (result.failedNames.length) {
@@ -6501,9 +6624,12 @@
         try {
           const docs = await openDrivePicker();
           if (!docs.length) return;
+          const remainingSlots = Math.max(0, maxLocalFilesPerPrompt - pendingAttachmentPreviews.length);
+          if (remainingSlots <= 0) { addMessage('bot', i18n.fileLimitReached); return; }
+          if (docs.length > remainingSlots) addMessage('bot', i18n.fileLimitPartial);
           const files = [], failed = [];
           const token = driveAccessToken || await ensureDriveToken(false);
-          for (const doc of docs.slice(0, 4)) {
+          for (const doc of docs.slice(0, remainingSlots)) {
             try { files.push(await downloadDriveFile(doc, token)); }
             catch (error) { failed.push(doc?.name || doc?.id || 'file'); }
           }
@@ -8036,6 +8162,70 @@
     messagesContainer.appendChild(bubble);
     scrollConversationToBottom('auto');
     return bubble;
+  }
+
+  function getAssistantAttachmentPreviewTray() {
+    const form = document.getElementById('ai-assistant-form');
+    if (!form) return null;
+    let tray = document.getElementById('ai-assistant-attachment-preview-tray');
+    if (!tray) {
+      tray = document.createElement('div');
+      tray.id = 'ai-assistant-attachment-preview-tray';
+      tray.className = 'ai-assistant-attachment-preview-tray';
+      form.prepend(tray);
+    }
+    return tray;
+  }
+
+  function rebuildPendingFileContext() {
+    pendingFileContext = pendingFileContextBlocks.map((block) => block.text).filter(Boolean).join('\n\n');
+  }
+
+  function getAttachmentKindLabel(preview) {
+    const kind = String(preview?.kind || '').toUpperCase();
+    if (preview?.type === 'image') return currentLanguage === 'en' ? 'Image' : 'Image';
+    return kind || (currentLanguage === 'en' ? 'Document' : 'Document');
+  }
+
+  function renderPendingAttachmentPreviews() {
+    const tray = getAssistantAttachmentPreviewTray();
+    if (!tray) return;
+    const previews = pendingAttachmentPreviews.slice(0, maxLocalFilesPerPrompt);
+    tray.hidden = previews.length === 0;
+    tray.innerHTML = previews.map((preview) => {
+      const name = String(preview.name || 'document');
+      const id = String(preview.id || name);
+      const isImage = preview.type === 'image' && preview.url;
+      const body = isImage
+        ? `<img class="ai-assistant-attachment-preview-thumb" src="${escapeHtml(preview.url)}" alt="${escapeHtml(name)}" loading="lazy">`
+        : `<span class="ai-assistant-attachment-preview-file-icon">${escapeHtml(getAttachmentKindLabel(preview).slice(0, 4))}</span>`;
+      const meta = [
+        getAttachmentKindLabel(preview),
+        preview.size ? fileSizeLabel(preview.size) : ''
+      ].filter(Boolean).join(' · ');
+      return `
+        <article class="ai-assistant-attachment-preview ${isImage ? 'ai-assistant-attachment-preview--image' : 'ai-assistant-attachment-preview--file'}" data-attachment-id="${escapeHtml(id)}">
+          ${body}
+          <div class="ai-assistant-attachment-preview-meta">
+            <strong>${escapeHtml(name)}</strong>
+            <span>${escapeHtml(meta || (currentLanguage === 'en' ? 'Ready' : 'Prêt'))}</span>
+          </div>
+          <button class="ai-assistant-attachment-preview-remove" type="button" data-attachment-remove="${escapeHtml(id)}" aria-label="${escapeHtml(currentLanguage === 'en' ? `Remove ${name}` : `Supprimer ${name}`)}">×</button>
+        </article>`;
+    }).join('');
+  }
+
+  function removePendingAttachment(id) {
+    const target = String(id || '');
+    const removed = pendingAttachmentPreviews.find((preview) => String(preview.id || preview.name) === target);
+    if (!removed) return;
+    pendingAttachmentPreviews = pendingAttachmentPreviews.filter((preview) => String(preview.id || preview.name) !== target);
+    pendingFileNames = pendingFileNames.filter((name) => name !== removed.name);
+    pendingVisionAttachments = pendingVisionAttachments.filter((attachment) => String(attachment.id || attachment.name) !== target);
+    pendingUploadMetadata = pendingUploadMetadata.filter((attachment) => String(attachment.id || attachment.name) !== target);
+    pendingFileContextBlocks = pendingFileContextBlocks.filter((block) => String(block.id || block.name) !== target);
+    rebuildPendingFileContext();
+    renderPendingAttachmentPreviews();
   }
 
   // Indicateur de "réflexion en direct" façon Claude/ChatGPT : une courte
@@ -10766,8 +10956,9 @@
   function resolveAssistantSubmissionText(rawText, fileContext) {
     const text = String(rawText || '').trim();
     const hasFileContext = String(fileContext || '').trim().length > 0;
+    const hasPendingAttachments = pendingVisionAttachments.length > 0 || pendingUploadMetadata.length > 0 || pendingAttachmentPreviews.length > 0;
     if (text) return { canSubmit: true, visibleText: text, promptText: text };
-    if (hasFileContext) {
+    if (hasFileContext || hasPendingAttachments) {
       return {
         canSubmit: true,
         visibleText: i18n.sendWithoutTextWithFiles,
@@ -10775,6 +10966,13 @@
       };
     }
     return { canSubmit: false, visibleText: '', promptText: '' };
+  }
+
+  function resizeAssistantComposer() {
+    if (!input || input.tagName !== 'TEXTAREA') return;
+    input.style.height = 'auto';
+    const nextHeight = Math.min(input.scrollHeight, 156);
+    input.style.height = `${Math.max(34, nextHeight)}px`;
   }
 
   document.getElementById('ai-assistant-form').addEventListener('submit', (e) => {
@@ -10789,18 +10987,24 @@
     chatHistory.push({ role: 'user', content: visibleText });
     persistActiveConversation();
     input.value = '';
-    const attachments = pendingVisionAttachments.slice(0, 2);
+    resizeAssistantComposer();
+    const attachments = pendingVisionAttachments.slice(0, maxLocalFilesPerPrompt);
     const uploadMetadata = pendingUploadMetadata.slice(0, maxLocalFilesPerPrompt);
     pendingFileContext = '';
     pendingFileNames = [];
+    pendingFileContextBlocks = [];
     pendingUploadMetadata = [];
+    pendingAttachmentPreviews = [];
     pendingLibraryDocumentNames = [];
     pendingVisionAttachments = [];
+    renderPendingAttachmentPreviews();
     if (fileInput) fileInput.value = '';
     askAI(submission.promptText, fileContext, attachments, uploadMetadata);
   });
 
   if (input) {
+    resizeAssistantComposer();
+    input.addEventListener('input', resizeAssistantComposer);
     input.addEventListener('keydown', (event) => {
       if (event.key === 'Enter' && !event.shiftKey) {
         event.preventDefault();
@@ -10838,6 +11042,7 @@
         const transcript = event.results?.[0]?.[0]?.transcript?.trim();
         if (!transcript) return;
         input.value = transcript;
+        resizeAssistantComposer();
         input.focus();
       };
     }
