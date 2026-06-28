@@ -4911,8 +4911,13 @@
     }
     if (sessionExportButton) { sessionExportButton.title = i18n.exportChat; sessionExportButton.setAttribute('aria-label', i18n.exportChat); }
     if (sessionDeleteButton) { sessionDeleteButton.title = i18n.deleteChat; sessionDeleteButton.setAttribute('aria-label', i18n.deleteChat); }
-    if (stopButton) { stopButton.title = i18n.stopRequest; stopButton.setAttribute('aria-label', i18n.stopRequest); stopButton.lastChild.textContent = i18n.stop; }
-    if (assistantSendButton) assistantSendButton.textContent = i18n.send;
+    if (stopButton) { stopButton.title = i18n.stopRequest; stopButton.setAttribute('aria-label', i18n.stopRequest); }
+    if (assistantSendButton) {
+      assistantSendButton.title = i18n.send;
+      assistantSendButton.setAttribute('aria-label', i18n.send);
+      const sendIcon = assistantSendButton.querySelector('img');
+      if (sendIcon) sendIcon.alt = i18n.send;
+    }
     if (voiceSelect) { voiceSelect.title = i18n.voiceSelectLabel; voiceSelect.setAttribute('aria-label', i18n.voiceSelectLabel); }
     refreshBubbleActionLabels();
     if (syncDefaultSessionTitles()) saveSessionsState();
