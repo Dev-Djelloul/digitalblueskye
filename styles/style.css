@@ -10283,7 +10283,7 @@ body.body-menu-open .ai-assistant-launcher {
   align-items: center;
   background: linear-gradient(135deg, rgb(93 93 255 / 92%), rgb(43 16 82 / 92%));
   border: 1px solid rgb(var(--accent-rgb), 0.45);
-  border-radius: 10px 0 0 10px;
+  border-radius: 999px 0 0 999px;
   box-shadow: 0 8px 24px rgb(8 8 24 / 40%), 0 0 0 1px rgb(93 93 255 / 30%);
   color: #fff;
   cursor: pointer;
@@ -10296,7 +10296,7 @@ body.body-menu-open .ai-assistant-launcher {
   top: 36%;
   transform: translateY(-50%);
   transition: right 0.3s ease, opacity 0.2s ease, background 0.2s ease;
-  width: 22px;
+  width: 18px;
   z-index: 2101;
 }
 
@@ -10306,8 +10306,8 @@ body.body-menu-open .ai-assistant-launcher {
 
 .ai-assistant-collapse-handle span {
   border-style: solid;
-  border-width: 5px 6px 5px 0;
-  border-color: transparent #fff transparent transparent;
+  border-width: 3px 0 3px 4px;
+  border-color: transparent transparent transparent #fff;
   display: block;
   height: 0;
   width: 0;
@@ -10315,12 +10315,12 @@ body.body-menu-open .ai-assistant-launcher {
 
 .ai-assistant-collapse-handle.is-collapsed {
   right: 0;
-  border-radius: 10px 0 0 10px;
+  border-radius: 999px 0 0 999px;
 }
 
 .ai-assistant-collapse-handle.is-collapsed span {
-  border-width: 5px 0 5px 6px;
-  border-color: transparent transparent transparent #fff;
+  border-width: 3px 4px 3px 0;
+  border-color: transparent #fff transparent transparent;
 }
 
 .ai-assistant-collapse-handle.is-panel-open,
