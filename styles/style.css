@@ -10235,16 +10235,16 @@ body.body-menu-open #footer {
   color: #fff;
   cursor: pointer;
   display: inline-flex;
-  height: 40px;
+  height: 56px;
   justify-content: center;
   left: auto;
   padding: 0;
   position: fixed;
-  right: 0;
+  right: 16px;
   top: 36%;
   transform: translateY(-50%);
-  transition: transform 0.2s ease, opacity 0.2s ease, filter 0.2s ease;
-  width: 40px;
+  transition: right 0.25s ease, transform 0.2s ease, opacity 0.2s ease, filter 0.2s ease;
+  width: 56px;
   z-index: 2100;
 }
 
@@ -10255,9 +10255,9 @@ body.body-menu-open #footer {
 
 .ai-assistant-launcher__robot {
   display: block;
-  height: 36px;
+  height: 40px;
   object-fit: contain;
-  width: 36px;
+  width: 40px;
 }
 
 .ai-assistant-launcher.is-panel-open {
@@ -10276,23 +10276,23 @@ body.body-menu-open .ai-assistant-launcher {
 }
 
 .ai-assistant-collapse-handle {
-  align-items: center;
   background: linear-gradient(135deg, rgb(93 93 255 / 92%), rgb(43 16 82 / 92%));
   border: 1px solid rgb(var(--accent-rgb), 0.45);
-  border-radius: 8px 0 0 8px;
+  border-radius: 28px 0 0 28px;
   box-shadow: 0 8px 24px rgb(8 8 24 / 40%), 0 0 0 1px rgb(93 93 255 / 30%);
   color: #fff;
   cursor: pointer;
-  display: inline-flex;
-  height: 40px;
-  justify-content: center;
+  height: 56px;
   padding: 0;
   position: fixed;
-  right: 40px;
+  /* Chevauche l'emplacement du bouton robot (même ancrage "right") : son
+     extrémité droite passe derrière lui, ne laissant dépasser qu'un
+     croissant sur la gauche. */
+  right: 16px;
   top: 36%;
   transform: translateY(-50%);
-  transition: right 0.3s ease, opacity 0.2s ease, background 0.2s ease;
-  width: 14px;
+  transition: right 0.3s ease, width 0.3s ease, opacity 0.2s ease, background 0.2s ease;
+  width: 80px;
   z-index: 2099;
 }
 
@@ -10306,16 +10306,22 @@ body.body-menu-open .ai-assistant-launcher {
   border-color: transparent #fff transparent transparent;
   display: block;
   height: 0;
+  left: 7px;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
   width: 0;
 }
 
 .ai-assistant-collapse-handle.is-collapsed {
   right: 0;
+  width: 24px;
 }
 
 .ai-assistant-collapse-handle.is-collapsed span {
   border-width: 3px 0 3px 4px;
   border-color: transparent transparent transparent #fff;
+  left: 8px;
 }
 
 .ai-assistant-collapse-handle.is-panel-open,
@@ -15103,7 +15109,7 @@ body.ai-assistant-sidebar-is-resizing * {
 @media (width <= 768px) {
   .ai-assistant-launcher {
     top: 60%;
-    right: 0;
+    right: 15px;
     transform: translateY(-50%);
   }
 
