@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
-  <title>Back-Office</title>
+  <title>Digital Blue Skye Studio IA</title>
   <style>
     @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 
@@ -6105,11 +6105,11 @@
         <div class="login-brand">
           <img src="../assets/images/logo/AI.png" alt="" width="64" height="64">
           <div>
-            <h1>Digital Blue Skye Studio IA</h1>
-            <p class="login-tagline">Le centre de pilotage de l'écosystème de mon Intelligence Artificielle</p>
+            <h1 data-i18n="studio.login.title">Digital Blue Skye Studio IA</h1>
+            <p class="login-tagline" data-i18n="studio.login.tagline">Le centre de pilotage de l'écosystème de mon Intelligence Artificielle</p>
           </div>
         </div>
-        <p class="login-subtitle">Supervision des modèles, orchestration des pipelines, gestion des connaissances (RAG), observabilité, qualité des réponses, mémoire projet et gouvernance des agents — réunis dans un seul tableau de bord décisionnel.</p>
+        <p class="login-subtitle" data-i18n="studio.login.subtitle">Supervision des modèles, orchestration des pipelines, gestion des connaissances (RAG), observabilité, qualité des réponses, mémoire projet et gouvernance des agents — réunis dans un seul tableau de bord décisionnel.</p>
         <div class="login-capabilities" aria-label="Capacités du Studio">
           <span class="capability-pill" style="--pill-color:#4fd1ff;">IA</span>
           <span class="capability-pill" style="--pill-color:#7c5cff;">RAG</span>
@@ -6120,17 +6120,17 @@
         </div>
       </header>
       <div id="loginNotice" class="notice"></div>
-      <p class="login-access-caption">Accès sécurisé par token administrateur</p>
+      <p class="login-access-caption" data-i18n="studio.login.accessCaption">Accès sécurisé par token administrateur</p>
       <form id="loginForm" class="login-grid">
-        <label>
+        <label data-i18n="studio.login.urlApiLabel">
           URL API
-          <input id="apiBaseInput" type="url" placeholder="https://digitalblueskye-api...workers.dev">
+          <input id="apiBaseInput" type="url" data-i18n-placeholder="studio.login.urlApiPlaceholder" placeholder="https://digitalblueskye-api...workers.dev">
         </label>
-        <label>
+        <label data-i18n="studio.login.tokenAdminLabel">
           Token admin
           <input id="tokenInput" type="password" autocomplete="current-password" required>
         </label>
-        <button class="primary" type="submit">Connexion</button>
+        <button class="primary" type="submit" data-i18n="studio.login.connectButton">Connexion</button>
       </form>
     </section>
 
@@ -12917,5 +12917,6 @@
       });
     }
   </script>
+  <script src="/scripts/translator.js"></script>
 </body>
 </html>
