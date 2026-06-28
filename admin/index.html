@@ -137,6 +137,12 @@
       display: block;
     }
 
+    .refresh-symbol {
+      width: 20px;
+      height: 20px;
+      display: block;
+    }
+
     button.delete-icon {
       width: 42px;
       min-width: 42px;
@@ -248,6 +254,26 @@
       justify-content: space-between;
       gap: 16px;
       margin-bottom: 22px;
+    }
+
+    .mobile-menu-button {
+      display: none;
+      width: 42px;
+      min-width: 42px;
+      height: 42px;
+      padding: 0;
+      border-radius: 10px;
+      border: 1px solid rgba(104, 128, 170, 0.24);
+      background: rgba(18, 25, 43, 0.82);
+      color: #eef4ff;
+      place-items: center;
+    }
+
+    .mobile-menu-button img {
+      width: 22px;
+      height: 22px;
+      display: block;
+      object-fit: contain;
     }
 
     .brand h1 {
@@ -1501,79 +1527,207 @@
       position: fixed;
       inset: 0 auto 0 0;
       z-index: 8;
-      width: 260px;
+      width: 252px;
       display: grid;
       grid-template-rows: auto 1fr auto;
-      gap: 24px;
-      padding: 24px 18px;
+      gap: 12px;
+      padding: 12px 10px;
       border-right: 1px solid rgba(79, 209, 255, 0.12);
       background: linear-gradient(180deg, rgba(7, 12, 26, 0.96), rgba(10, 15, 32, 0.98));
       box-shadow: 16px 0 44px rgba(0, 0, 0, 0.22);
       backdrop-filter: blur(22px);
+      transition: width 200ms cubic-bezier(0.4, 0, 0.2, 1), padding 200ms cubic-bezier(0.4, 0, 0.2, 1);
+      overflow: hidden;
     }
 
     .premium-brand {
       display: grid;
-      grid-template-columns: 40px minmax(0, 1fr);
-      gap: 12px;
+      grid-template-columns: 36px minmax(0, 1fr) 30px;
+      gap: 8px;
       align-items: center;
+      padding: 6px 4px;
+      border-radius: 8px;
+      transition: all 200ms ease;
+    }
+
+    .sidebar-toggle {
+      width: 30px;
+      min-width: 30px;
+      height: 30px;
+      padding: 0;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      color: #c8d3ec;
+      background: transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .sidebar-toggle:hover {
+      border-color: rgba(124, 92, 255, 0.28);
+      background: rgba(255, 255, 255, 0.045);
+      color: #fff;
     }
 
     .premium-logo {
-      width: 40px;
-      height: 40px;
+      width: 36px;
+      height: 36px;
+      min-width: 36px;
       display: grid;
       place-items: center;
-      border-radius: 14px;
+      border-radius: 8px;
       border: 1px solid rgba(79, 209, 255, 0.32);
       background: rgba(79, 209, 255, 0.09);
       color: #4fd1ff;
       font-weight: 700;
       letter-spacing: 0;
+      font-size: 12px;
+      transition: all 150ms ease;
+      overflow: hidden;
+    }
+
+    .premium-logo img {
+      width: 28px;
+      height: 28px;
+      display: block;
+      object-fit: contain;
+    }
+
+    .premium-brand:hover .premium-logo {
+      border-color: rgba(79, 209, 255, 0.56);
+      background: rgba(79, 209, 255, 0.14);
+    }
+
+    .premium-brand-text {
+      min-width: 0;
+      overflow: hidden;
     }
 
     .premium-brand strong {
       display: block;
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 700;
-      line-height: 1.15;
+      line-height: 1.2;
       color: #f7f9ff;
+      white-space: normal;
+      overflow: hidden;
+      text-overflow: clip;
+      overflow-wrap: anywhere;
     }
 
     .premium-brand span {
       display: block;
-      margin-top: 3px;
+      margin-top: 2px;
       color: #98a6c7;
-      font-size: 13px;
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .premium-context {
       width: 100%;
       min-height: 38px;
-      justify-content: space-between;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      justify-content: flex-start;
       border-radius: 10px;
       background: rgba(255, 255, 255, 0.035);
       color: #f7f9ff;
+      padding: 0 10px;
+      text-align: left;
     }
 
     .premium-nav {
       display: grid;
       align-content: start;
-      gap: 7px;
+      gap: 4px;
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(104, 128, 170, 0.3) transparent;
+      padding-right: 4px;
+      transition: scrollbar-color 200ms ease;
+    }
+
+    .premium-nav::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .premium-nav::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .premium-nav::-webkit-scrollbar-thumb {
+      background: rgba(104, 128, 170, 0.3);
+      border-radius: 3px;
+    }
+
+    .premium-nav::-webkit-scrollbar-thumb:hover {
+      background: rgba(104, 128, 170, 0.5);
     }
 
     .premium-nav .tab {
       width: 100%;
-      min-height: 40px;
+      min-height: 36px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
       justify-content: flex-start;
       border: 1px solid transparent;
-      border-radius: 10px;
+      border-radius: 8px;
       background: transparent;
       color: #a9b5d2;
       box-shadow: none;
-      padding: 0 12px;
+      padding: 0 10px;
       text-align: left;
       font-weight: 500;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    .nav-icon {
+      width: 22px;
+      min-width: 22px;
+      height: 22px;
+      display: inline-grid;
+      place-items: center;
+      color: #c8d3ec;
+      font-weight: 600;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      transition: color 150ms ease;
+    }
+
+    .nav-icon img {
+      width: 18px;
+      height: 18px;
+      display: block;
+      object-fit: contain;
+      opacity: 0.9;
+    }
+
+    .nav-label,
+    .premium-brand-text,
+    .sidebar-footer-label {
+      min-width: 0;
+      transition: opacity 200ms ease, visibility 200ms ease;
+    }
+
+    body.sidebar-collapsed .nav-label,
+    body.sidebar-collapsed .premium-brand-text,
+    body.sidebar-collapsed .sidebar-footer-label {
+      opacity: 0;
+      visibility: hidden;
     }
 
     .premium-nav .tab:hover {
@@ -1582,7 +1736,14 @@
       color: #fff;
     }
 
-    .premium-nav .tab.active {
+    .premium-context:hover {
+      border-color: rgba(124, 92, 255, 0.28);
+      background: rgba(255, 255, 255, 0.045);
+      color: #fff;
+    }
+
+    .premium-nav .tab.active,
+    .premium-context.active {
       border-color: rgba(124, 92, 255, 0.58);
       background: linear-gradient(135deg, rgba(124, 92, 255, 0.74), rgba(47, 130, 255, 0.34));
       color: #fff;
@@ -1591,13 +1752,48 @@
 
     .premium-sidebar-footer {
       display: grid;
-      gap: 12px;
-      border: 1px solid rgba(79, 209, 255, 0.12);
-      border-radius: 14px;
-      background: rgba(255, 255, 255, 0.035);
-      padding: 14px;
+      gap: 6px;
+      border-top: 1px solid rgba(79, 209, 255, 0.12);
+      border-radius: 0;
+      background: transparent;
+      padding: 8px 0 0 0;
       color: #a9b5d2;
-      font-size: 13px;
+      font-size: 11px;
+      margin-top: auto;
+      transition: all 200ms ease;
+    }
+
+    .premium-sidebar-footer > div:not(.premium-system-status) {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      line-height: 1.2;
+    }
+
+    .premium-sidebar-footer button {
+      width: 100%;
+      min-height: 36px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      justify-content: flex-start;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      background: transparent;
+      color: #a9b5d2;
+      padding: 0 11px;
+      text-align: left;
+      font-weight: 500;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+      white-space: nowrap;
+    }
+
+    .premium-sidebar-footer button:hover {
+      border-color: rgba(124, 92, 255, 0.28);
+      background: rgba(255, 255, 255, 0.045);
+      color: #fff;
     }
 
     .premium-system-status {
@@ -1607,6 +1803,9 @@
       gap: 10px;
       color: #f7f9ff;
       font-weight: 650;
+      font-size: 12px;
+      margin-bottom: 8px;
+      padding-bottom: 8px;
     }
 
     #appView {
@@ -1628,7 +1827,208 @@
 
     .shell:has(#appView:not(.hidden)) {
       max-width: none;
-      padding: 20px 24px 34px 284px;
+      padding: 12px 14px 24px 260px;
+      transition: padding-left 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @media (max-width: 768px) {
+      .shell:has(#appView:not(.hidden)) {
+        padding: 12px 12px 24px 12px;
+      }
+    }
+
+    body.sidebar-collapsed .premium-sidebar {
+      width: 76px;
+      padding-inline: 8px;
+    }
+
+    body.sidebar-collapsed .shell:has(#appView:not(.hidden)) {
+      padding-left: 92px;
+    }
+
+    body.sidebar-collapsed .premium-brand {
+      grid-template-columns: 1fr;
+      justify-items: center;
+      gap: 8px;
+    }
+
+    body.sidebar-collapsed .premium-brand-text,
+    body.sidebar-collapsed .nav-label,
+    body.sidebar-collapsed .premium-context .nav-label,
+    body.sidebar-collapsed .premium-sidebar-footer .sidebar-footer-label,
+    body.sidebar-collapsed .premium-system-status span:nth-child(2),
+    body.sidebar-collapsed .premium-sidebar-footer > div:not(.premium-system-status) {
+      display: none;
+    }
+
+    body.sidebar-collapsed .sidebar-toggle {
+      position: static;
+    }
+
+    body.sidebar-collapsed .premium-nav .tab,
+    body.sidebar-collapsed .premium-context {
+      justify-content: center;
+      padding-inline: 0;
+      width: 44px;
+      min-width: 44px;
+    }
+
+    body.sidebar-collapsed .premium-nav .tab .nav-icon,
+    body.sidebar-collapsed .premium-context .nav-icon {
+      margin: 0;
+    }
+
+    body.sidebar-collapsed .premium-system-status {
+      justify-content: center;
+      gap: 0;
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+
+    body.sidebar-collapsed .premium-system-status::after {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--dash-green, #30d158);
+      box-shadow: 0 0 0 3px rgba(48, 209, 88, 0.18);
+    }
+
+    body.sidebar-collapsed .premium-sidebar-footer {
+      padding: 8px 0 0 0;
+    }
+
+    body.sidebar-collapsed .premium-sidebar-footer button {
+      width: 44px;
+      min-width: 44px;
+      padding-inline: 0;
+      justify-content: center;
+    }
+
+    .mobile-sidebar-overlay {
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      .mobile-menu-button {
+        display: grid;
+      }
+
+      .premium-sidebar {
+        position: fixed;
+        width: min(286px, calc(100vw - 28px));
+        left: 0;
+        top: 0;
+        height: 100vh;
+        z-index: 999;
+        transform: translateX(-110%);
+        transition: transform 220ms cubic-bezier(0.4, 0, 0.2, 1);
+        border-right: 1px solid rgba(79, 209, 255, 0.12);
+        display: grid;
+      }
+
+      body.sidebar-collapsed .premium-sidebar {
+        width: min(286px, calc(100vw - 28px));
+        padding: 16px 14px;
+      }
+
+      body.sidebar-collapsed .premium-brand {
+        grid-template-columns: 36px minmax(0, 1fr) 30px;
+        justify-items: stretch;
+      }
+
+      body.sidebar-collapsed .premium-brand-text,
+      body.sidebar-collapsed .nav-label,
+      body.sidebar-collapsed .premium-context .nav-label,
+      body.sidebar-collapsed .premium-sidebar-footer .sidebar-footer-label,
+      body.sidebar-collapsed .premium-system-status span:nth-child(2),
+      body.sidebar-collapsed .premium-sidebar-footer > div:not(.premium-system-status) {
+        display: block;
+        opacity: 1;
+        visibility: visible;
+      }
+
+      body.sidebar-collapsed .premium-nav .tab,
+      body.sidebar-collapsed .premium-context,
+      body.sidebar-collapsed .premium-sidebar-footer button {
+        width: 100%;
+        min-width: 0;
+        justify-content: flex-start;
+        padding-inline: 10px;
+      }
+
+      .shell:has(#appView:not(.hidden)) {
+        padding-left: 12px;
+      }
+
+      body.sidebar-mobile-open .premium-sidebar {
+        transform: translateX(0);
+      }
+
+      .mobile-sidebar-overlay {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 998;
+        backdrop-filter: blur(4px);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 180ms ease;
+      }
+
+      body.sidebar-mobile-open .mobile-sidebar-overlay {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      body.sidebar-mobile-open {
+        overflow: hidden;
+      }
+    }
+
+    #appView > .panel,
+    .health-dashboard,
+    .premium-card,
+    .intelligence-card,
+    .export-card,
+    .export-side-card,
+    .document-card,
+    .document-side-card {
+      min-width: 0;
+    }
+
+    .table-wrap {
+      max-width: 100%;
+      overflow-x: auto;
+      overflow-y: visible;
+      grid-column: 1/-1;
+      border: 1px solid rgba(104, 128, 170, 0.12);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .table-wrap table {
+      font-size: 13px;
+      width: 100%;
+    }
+
+    .table-wrap th,
+    .table-wrap td {
+      padding: 8px 10px;
+      white-space: nowrap;
+    }
+
+    .table-wrap th {
+      font-weight: 600;
+    }
+
+    .cell-text,
+    .intel-kv-row strong,
+    .intel-event-row span,
+    .premium-nav .tab {
+      overflow-wrap: anywhere;
     }
 
     body:has(#appView:not(.hidden)) .back-link {
@@ -1657,20 +2057,29 @@
       font-size: 13px;
     }
 
-    #healthPanel.panel {
+    #healthPanel.panel,
+    #exportsPanel.panel,
+    #analyticsPanel.panel,
+    #observabilityPanel.panel {
       border: 0;
       background: transparent;
       box-shadow: none;
       overflow: visible;
     }
 
-    #healthPanel > .panel-head {
+    #healthPanel > .panel-head,
+    #exportsPanel > .panel-head,
+    #analyticsPanel > .panel-head,
+    #observabilityPanel > .panel-head {
       display: none;
     }
 
-    #healthContent.premium-dashboard {
+    #healthContent.premium-dashboard,
+    #exportsContent.premium-dashboard,
+    #analyticsContent.premium-dashboard,
+    #observabilityContent.premium-dashboard {
       display: grid;
-      gap: 14px;
+      gap: 10px;
       padding: 0;
       color: #eef4ff;
     }
@@ -1690,11 +2099,22 @@
     }
 
     .premium-dashboard-header {
-      display: flex;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
       align-items: flex-start;
-      justify-content: space-between;
-      gap: 16px;
-      margin-bottom: 4px;
+      gap: 12px;
+      margin-bottom: 2px;
+    }
+
+    @media (max-width: 1200px) {
+      .premium-dashboard-header {
+        grid-template-columns: 1fr;
+      }
+
+      .premium-actions {
+        grid-column: 1/-1;
+        justify-content: flex-start;
+      }
     }
 
     .premium-dashboard-title {
@@ -1705,12 +2125,12 @@
     .premium-dashboard-title h1 {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       margin: 0;
-      font-size: clamp(24px, 2vw, 34px);
+      font-size: clamp(20px, 1.8vw, 28px);
       font-weight: 700;
       letter-spacing: 0;
-      line-height: 1.08;
+      line-height: 1.1;
     }
 
     .realtime-badge {
@@ -1730,7 +2150,8 @@
     .sync-label {
       margin: 0;
       color: var(--dash-muted);
-      font-size: 13px;
+      font-size: 12px;
+      line-height: 1.3;
     }
 
     .premium-actions {
@@ -1738,22 +2159,45 @@
       justify-content: flex-end;
       align-items: center;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: 8px;
+      min-width: fit-content;
     }
 
     .premium-actions select,
     .premium-actions button {
       width: auto;
-      min-height: 40px;
-      border-radius: 10px;
-      border-color: rgba(104, 128, 170, 0.24);
+      min-height: 36px;
+      padding: 0 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(104, 128, 170, 0.24);
       background: rgba(18, 25, 43, 0.72);
       color: #eef4ff;
+      font-size: 12px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 1200px) {
+      .premium-actions select,
+      .premium-actions button {
+        padding: 0 8px;
+        font-size: 11px;
+      }
     }
 
     .premium-actions .primary {
       border-color: rgba(124, 92, 255, 0.8);
       background: linear-gradient(135deg, #7c5cff, #8f6cff);
+    }
+
+    .premium-actions .refresh-icon,
+    .intelligence-actions .refresh-icon,
+    .toolbar .refresh-icon {
+      width: 40px;
+      min-width: 40px;
+      padding: 0;
+      display: inline-grid;
+      place-items: center;
     }
 
     .premium-grid {
@@ -1762,24 +2206,41 @@
     }
 
     .premium-top-grid {
-      grid-template-columns: minmax(560px, 1fr) minmax(280px, 0.32fr);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       align-items: stretch;
     }
 
     .premium-bottom-grid {
-      grid-template-columns: minmax(420px, 1.1fr) minmax(320px, 0.7fr) minmax(280px, 0.55fr);
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       align-items: stretch;
+    }
+
+    @media (max-width: 1400px) {
+      .premium-bottom-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 1000px) {
+      .premium-top-grid,
+      .premium-bottom-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     .premium-card,
     .domain-card {
       border: 1px solid var(--dash-border);
-      border-radius: 16px;
+      border-radius: 14px;
       background: linear-gradient(180deg, rgba(18, 25, 43, 0.92), rgba(13, 20, 36, 0.88));
       box-shadow: 0 18px 42px rgba(0, 0, 0, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.035);
       backdrop-filter: blur(18px);
       transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
       animation: premiumCardIn 0.15s ease both;
+      padding: 16px;
+      display: grid;
+      gap: 12px;
+      align-content: start;
     }
 
     .premium-card:hover,
@@ -1789,11 +2250,73 @@
       box-shadow: 0 22px 54px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
     }
 
+    /* Unify legacy card classes */
+    .intelligence-card,
+    .export-card,
+    .export-side-card,
+    .document-card,
+    .document-side-card,
+    .source-card,
+    .source-side-card,
+    .conversation-detail-card {
+      border: 1px solid var(--dash-border);
+      border-radius: 14px;
+      background: linear-gradient(180deg, rgba(18, 25, 43, 0.92), rgba(13, 20, 36, 0.88));
+      box-shadow: 0 18px 42px rgba(0, 0, 0, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.035);
+      backdrop-filter: blur(18px);
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+      animation: premiumCardIn 0.15s ease both;
+      padding: 16px;
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }
+
+    .intelligence-card:hover,
+    .export-card:hover,
+    .export-side-card:hover,
+    .document-card:hover,
+    .document-side-card:hover,
+    .source-card:hover,
+    .source-side-card:hover,
+    .conversation-detail-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(79, 209, 255, 0.28);
+      box-shadow: 0 22px 54px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+
+    .intelligence-card h2,
+    .export-card h2,
+    .export-side-card h2,
+    .document-card h2,
+    .document-side-card h2,
+    .source-card h2,
+    .source-side-card h2,
+    .conversation-detail-card h2 {
+      margin: 0 0 8px 0;
+      font-size: 14px;
+      font-weight: 700;
+      color: #f8fbff;
+      grid-column: 1/-1;
+    }
+
     .premium-hero {
       display: grid;
-      grid-template-columns: minmax(190px, 0.9fr) minmax(170px, 0.58fr) minmax(220px, 1fr) minmax(220px, 0.9fr);
-      gap: 18px;
-      padding: 22px;
+      grid-template-columns: minmax(170px, 0.8fr) minmax(140px, 0.45fr) minmax(180px, 0.85fr);
+      gap: 14px;
+      padding: 18px;
+      grid-column: 1/-1;
+    }
+
+    .premium-hero .quick-kpis {
+      grid-column: 1/-1;
+      margin-top: 4px;
+    }
+
+    @media (max-width: 1000px) {
+      .premium-hero {
+        grid-template-columns: 1fr;
+      }
     }
 
     .hero-score {
@@ -1804,10 +2327,11 @@
 
     .hero-score h2,
     .premium-card h2 {
-      margin: 0;
-      font-size: 15px;
+      margin: 0 0 8px 0;
+      font-size: 14px;
       font-weight: 700;
       color: #f8fbff;
+      grid-column: 1/-1;
     }
 
     .hero-score-value {
@@ -1892,15 +2416,37 @@
 
     .quick-kpis {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px 18px;
-      padding-left: 18px;
-      border-left: 1px solid rgba(104, 128, 170, 0.18);
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      padding: 0;
+      border: none;
     }
 
     .quick-kpi {
       display: grid;
       gap: 5px;
+      padding: 14px;
+      border: 1px solid rgba(104, 128, 170, 0.15);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.025);
+      transition: all 150ms ease;
+    }
+
+    .quick-kpi:hover {
+      border-color: rgba(79, 209, 255, 0.28);
+      background: rgba(79, 209, 255, 0.08);
+    }
+
+    @media (max-width: 1400px) {
+      .quick-kpis {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 768px) {
+      .quick-kpis {
+        grid-template-columns: 1fr;
+      }
     }
 
     .quick-kpi span,
@@ -1911,17 +2457,19 @@
     }
 
     .quick-kpi strong {
-      font-size: 22px;
+      font-size: 18px;
       font-weight: 700;
       color: #f8fbff;
-      line-height: 1.05;
+      line-height: 1.1;
+      overflow-wrap: anywhere;
+      word-break: break-word;
     }
 
     .quick-kpi small,
     .trend-positive {
       color: var(--dash-green);
-      font-size: 12px;
-      font-weight: 700;
+      font-size: 11px;
+      font-weight: 600;
     }
 
     .trend-negative {
@@ -1940,11 +2488,12 @@
       padding: 18px;
       display: grid;
       gap: 14px;
+      grid-column: 1/-1;
     }
 
     .history-row {
       display: grid;
-      grid-template-columns: 112px minmax(0, 1fr);
+      grid-template-columns: 90px minmax(0, 1fr) 48px;
       gap: 10px;
       align-items: center;
     }
@@ -2088,6 +2637,63 @@
       display: flex;
       justify-content: flex-end;
       gap: 6px;
+    }
+
+    /* Disponibilité / Qualité / Maturité — repli automatique en colonnes plus
+       etroites sur mobile via auto-fit, sans media query dediee. */
+    .domain-dimensions {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 7px;
+    }
+
+    .domain-dimension {
+      display: grid;
+      gap: 2px;
+      padding: 6px 8px;
+      border-radius: 9px;
+      background: rgba(104, 128, 170, 0.08);
+      text-align: center;
+    }
+
+    .domain-dimension span {
+      color: var(--dash-muted);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .domain-dimension strong {
+      color: #eaf1ff;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .domain-dimension strong.non-mesure {
+      color: #8f9db8;
+      font-weight: 600;
+    }
+
+    .domain-explanation {
+      margin: 0;
+      color: #b8c5dd;
+      font-size: 12px;
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      cursor: help;
+    }
+
+    @media (max-width: 480px) {
+      .domain-dimensions {
+        grid-template-columns: repeat(3, minmax(60px, 1fr));
+      }
+
+      .domain-dimension {
+        padding: 5px 4px;
+      }
     }
 
     .mini-dot {
@@ -2286,21 +2892,60 @@
     }
 
     .conversation-toolbar {
-      display: grid;
-      grid-template-columns: 108px minmax(220px, 1fr) auto auto;
-      gap: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
       align-items: center;
     }
 
-    .conversation-toolbar input,
     .conversation-toolbar select,
+    .conversation-toolbar input[type="search"],
+    .conversation-toolbar input[type="text"],
     .conversation-toolbar button {
-      width: 100%;
-      min-height: 40px;
-      border-radius: 10px;
-      border-color: rgba(104, 128, 170, 0.24);
-      background: rgba(18, 25, 43, 0.78);
+      min-height: 36px;
+      padding: 0 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(104, 128, 170, 0.24);
+      background: rgba(18, 25, 43, 0.72);
       color: #eef4ff;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .conversation-toolbar select {
+      flex: 0 1 170px;
+      min-width: 140px;
+    }
+
+    .conversation-toolbar input[type="search"] {
+      flex: 2 1 280px;
+      min-width: 220px;
+      cursor: text;
+    }
+
+    .conversation-toolbar label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex: 0 0 auto;
+      min-height: 36px;
+      padding: 0 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(104, 128, 170, 0.24);
+      background: rgba(18, 25, 43, 0.72);
+      color: #eef4ff;
+      font-size: 13px;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .conversation-toolbar input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      min-height: 16px;
+      flex: 0 0 auto;
+      accent-color: #7c5cff;
+      cursor: pointer;
     }
 
     .conversation-toolbar .primary {
@@ -2317,15 +2962,17 @@
 
     .conversation-kpis {
       display: grid;
-      grid-template-columns: repeat(6, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
       gap: 12px;
     }
 
     .conversation-kpi {
       display: grid;
-      gap: 10px;
-      min-height: 136px;
-      padding: 16px;
+      gap: 8px;
+      min-height: 120px;
+      padding: 14px;
+      min-width: 0;
+      overflow: hidden;
       border: 1px solid rgba(104, 128, 170, 0.2);
       border-radius: 14px;
       background: linear-gradient(180deg, rgba(18, 25, 43, 0.92), rgba(13, 20, 36, 0.88));
@@ -2341,15 +2988,18 @@
 
     .conversation-kpi strong {
       color: #f8fbff;
-      font-size: 28px;
+      font-size: 22px;
       font-weight: 700;
-      line-height: 1;
+      line-height: 1.15;
+      overflow-wrap: anywhere;
+      word-break: break-word;
     }
 
     .conversation-kpi small {
       color: #30d158;
       font-size: 12px;
       font-weight: 700;
+      overflow-wrap: anywhere;
     }
 
     .conversation-kpi canvas {
@@ -2366,33 +3016,41 @@
 
     .conversation-list-card,
     .conversation-detail-card {
-      border: 1px solid rgba(104, 128, 170, 0.2);
-      border-radius: 16px;
-      background: linear-gradient(180deg, rgba(18, 25, 43, 0.94), rgba(13, 20, 36, 0.9));
-      box-shadow: 0 18px 42px rgba(0, 0, 0, 0.24);
+      border: 1px solid var(--dash-border);
+      border-radius: 14px;
+      background: linear-gradient(180deg, rgba(18, 25, 43, 0.92), rgba(13, 20, 36, 0.88));
+      box-shadow: 0 18px 42px rgba(0, 0, 0, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.035);
       overflow: hidden;
       animation: premiumCardIn 0.15s ease both;
+      display: grid;
+      gap: 12px;
+      padding: 16px;
     }
 
     .conversation-list-card h2,
     .conversation-detail-card h2 {
       margin: 0;
-      padding: 18px;
-      font-size: 17px;
+      padding: 0;
+      font-size: 14px;
       font-weight: 700;
+      grid-column: 1/-1;
     }
 
     .conversation-detail-card > header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 18px;
+      padding: 0;
       border-bottom: 1px solid rgba(104, 128, 170, 0.12);
+      margin-bottom: 8px;
+      padding-bottom: 8px;
+      grid-column: 1/-1;
     }
 
     .conversation-detail-card > header h2 {
       padding: 0;
       margin: 0;
+      font-size: 14px;
     }
 
     .conversation-detail-card > header .badge {
@@ -2402,8 +3060,8 @@
     .conversation-table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 0;
-      table-layout: fixed;
+      min-width: 800px;
+      table-layout: auto;
     }
 
     .conversation-table th:nth-child(1),
@@ -2446,16 +3104,23 @@
       position: static;
       background: rgba(255, 255, 255, 0.025);
       color: #8f9db8;
-      border-color: rgba(104, 128, 170, 0.14);
+      border: 1px solid rgba(104, 128, 170, 0.12);
+      padding: 8px 10px;
       font-size: 12px;
       font-weight: 600;
       text-transform: none;
     }
 
     .conversation-table td {
-      border-color: rgba(104, 128, 170, 0.12);
+      border: 1px solid rgba(104, 128, 170, 0.12);
       color: #dce6f8;
+      padding: 8px 10px;
       vertical-align: middle;
+      font-size: 13px;
+    }
+
+    .conversation-table {
+      grid-column: 1/-1;
     }
 
     .conversation-table tr {
@@ -2822,22 +3487,32 @@
       font-size: 14px;
     }
 
-    .sources-toolbar {
-      display: grid;
-      grid-template-columns: 108px minmax(230px, 1fr) auto auto;
-      gap: 10px;
+    .sources-toolbar,
+    .documents-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
       align-items: center;
+      margin-bottom: 12px;
+      grid-column: 1/-1;
     }
 
     .sources-toolbar input,
     .sources-toolbar select,
-    .sources-toolbar button {
-      width: 100%;
-      min-height: 40px;
-      border-radius: 10px;
-      border-color: rgba(104, 128, 170, 0.24);
-      background: rgba(18, 25, 43, 0.78);
+    .sources-toolbar button,
+    .documents-toolbar input,
+    .documents-toolbar select,
+    .documents-toolbar button {
+      min-height: 36px;
+      padding: 0 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(104, 128, 170, 0.24);
+      background: rgba(18, 25, 43, 0.72);
       color: #eef4ff;
+      font-size: 13px;
+      flex: 1;
+      min-width: 100px;
+      cursor: pointer;
     }
 
     .sources-toolbar .primary {
@@ -2852,22 +3527,32 @@
       font-size: 13px;
     }
 
-    .sources-kpis {
+    .sources-kpis,
+    .documents-kpis {
       display: grid;
-      grid-template-columns: repeat(6, minmax(0, 1fr));
-      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 10px;
+      grid-column: 1/-1;
     }
 
-    .sources-kpi {
+    .sources-kpi,
+    .documents-kpi {
       display: grid;
-      gap: 10px;
-      min-height: 136px;
-      padding: 16px;
-      border: 1px solid rgba(104, 128, 170, 0.2);
-      border-radius: 14px;
-      background: linear-gradient(180deg, rgba(18, 25, 43, 0.92), rgba(13, 20, 36, 0.88));
-      box-shadow: 0 18px 42px rgba(0, 0, 0, 0.22);
+      gap: 6px;
+      padding: 12px;
+      min-width: 0;
+      overflow: hidden;
+      border: 1px solid rgba(104, 128, 170, 0.15);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.025);
       animation: premiumCardIn 0.15s ease both;
+      transition: all 150ms ease;
+    }
+
+    .sources-kpi:hover,
+    .documents-kpi:hover {
+      border-color: rgba(79, 209, 255, 0.28);
+      background: rgba(79, 209, 255, 0.08);
     }
 
     .sources-kpi span {
@@ -2878,9 +3563,11 @@
 
     .sources-kpi strong {
       color: #f8fbff;
-      font-size: 28px;
+      font-size: 20px;
       font-weight: 700;
-      line-height: 1;
+      line-height: 1.15;
+      overflow-wrap: anywhere;
+      word-break: break-word;
     }
 
     .sources-kpi small {
@@ -2896,42 +3583,61 @@
 
     .sources-layout {
       display: grid;
-      grid-template-columns: minmax(820px, 1fr) minmax(330px, 0.4fr);
-      gap: 14px;
+      grid-template-columns: 1fr;
+      gap: 12px;
       align-items: start;
     }
 
     .source-card,
     .source-side-card {
-      border: 1px solid rgba(104, 128, 170, 0.2);
-      border-radius: 16px;
-      background: linear-gradient(180deg, rgba(18, 25, 43, 0.94), rgba(13, 20, 36, 0.9));
-      box-shadow: 0 18px 42px rgba(0, 0, 0, 0.24);
+      border: 1px solid var(--dash-border);
+      border-radius: 14px;
+      background: linear-gradient(180deg, rgba(18, 25, 43, 0.92), rgba(13, 20, 36, 0.88));
+      box-shadow: 0 18px 42px rgba(0, 0, 0, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.035);
       overflow: hidden;
       animation: premiumCardIn 0.15s ease both;
+      padding: 16px;
+      display: grid;
+      gap: 12px;
     }
 
     .source-card h2,
     .source-side-card h2 {
       margin: 0;
-      padding: 18px;
-      font-size: 17px;
+      padding: 0;
+      font-size: 14px;
       font-weight: 700;
+      grid-column: 1/-1;
+      margin-bottom: 8px;
     }
 
-    .source-tabs {
+    .source-tabs,
+    .document-tabs {
       display: flex;
       flex-wrap: wrap;
-      gap: 7px;
-      padding: 0 14px 14px;
-      border-bottom: 1px solid rgba(104, 128, 170, 0.14);
+      gap: 6px;
+      padding: 0 0 8px 0;
+      border-bottom: 1px solid rgba(104, 128, 170, 0.12);
+      margin-bottom: 8px;
+      grid-column: 1/-1;
     }
 
-    .source-tabs button {
-      min-height: 34px;
-      border-radius: 8px;
-      padding: 0 12px;
+    .source-tabs button,
+    .document-tabs button {
+      min-height: 32px;
+      border-radius: 6px;
+      padding: 0 10px;
       background: rgba(255, 255, 255, 0.045);
+      border: 1px solid transparent;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 150ms ease;
+    }
+
+    .source-tabs button:hover,
+    .document-tabs button:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(124, 92, 255, 0.28);
     }
 
     .source-tabs button.active {
@@ -2950,18 +3656,24 @@
       position: static;
       background: rgba(255, 255, 255, 0.025);
       color: #8f9db8;
-      border-color: rgba(104, 128, 170, 0.14);
+      border: 1px solid rgba(104, 128, 170, 0.12);
+      padding: 8px 10px;
       font-size: 11px;
       font-weight: 600;
       text-transform: none;
       white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .source-table td {
-      border-color: rgba(104, 128, 170, 0.12);
+      border: 1px solid rgba(104, 128, 170, 0.12);
+      padding: 8px 10px;
       color: #dce6f8;
       vertical-align: middle;
       white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .source-table th:nth-child(1),
@@ -3128,6 +3840,14 @@
       background: var(--item-color);
     }
 
+    .source-type-list div {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .source-type-list strong {
+      white-space: nowrap;
+    }
+
     .rag-performance-row {
       grid-template-columns: minmax(140px, 1fr) minmax(90px, 0.8fr) auto;
     }
@@ -3137,8 +3857,14 @@
     }
 
     .rag-live-row {
-      grid-template-columns: minmax(120px, 1fr) minmax(130px, 1fr) 70px 64px;
+      grid-template-columns: minmax(90px, 0.7fr) minmax(90px, 0.7fr) minmax(140px, 1.2fr);
       color: #cbd6ea;
+    }
+
+    .rag-live-row strong {
+      text-align: right;
+      overflow-wrap: anywhere;
+      white-space: normal;
     }
 
     .rag-bottom-grid {
@@ -3168,12 +3894,21 @@
 
     .top-source-row {
       display: grid;
-      grid-template-columns: minmax(150px, 1fr) minmax(160px, 1.3fr) 52px;
+      grid-template-columns: minmax(0, 1fr) auto;
       gap: 10px;
       align-items: center;
       margin: 9px 0;
       color: #dce6f8;
       font-size: 13px;
+    }
+
+    .top-source-row span {
+      overflow-wrap: anywhere;
+      min-width: 0;
+    }
+
+    .top-source-row strong {
+      white-space: nowrap;
     }
 
     .top-source-bar {
@@ -3290,9 +4025,11 @@
 
     .documents-kpi strong {
       color: #f8fbff;
-      font-size: 28px;
+      font-size: 20px;
       font-weight: 700;
-      line-height: 1;
+      line-height: 1.15;
+      overflow-wrap: anywhere;
+      word-break: break-word;
     }
 
     .documents-kpi small {
@@ -3308,8 +4045,8 @@
 
     .documents-layout {
       display: grid;
-      grid-template-columns: minmax(820px, 1fr) minmax(330px, 0.4fr);
-      gap: 14px;
+      grid-template-columns: 1fr;
+      gap: 12px;
       align-items: start;
     }
 
@@ -3317,12 +4054,15 @@
     .document-side-card,
     .documents-evolution-card,
     .top-documents-card {
-      border: 1px solid rgba(104, 128, 170, 0.2);
-      border-radius: 16px;
-      background: linear-gradient(180deg, rgba(18, 25, 43, 0.94), rgba(13, 20, 36, 0.9));
-      box-shadow: 0 18px 42px rgba(0, 0, 0, 0.24);
+      border: 1px solid var(--dash-border);
+      border-radius: 14px;
+      background: linear-gradient(180deg, rgba(18, 25, 43, 0.92), rgba(13, 20, 36, 0.88));
+      box-shadow: 0 18px 42px rgba(0, 0, 0, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.035);
       overflow: hidden;
       animation: premiumCardIn 0.15s ease both;
+      padding: 16px;
+      display: grid;
+      gap: 12px;
     }
 
     .document-card h2,
@@ -3330,9 +4070,11 @@
     .documents-evolution-card h2,
     .top-documents-card h2 {
       margin: 0;
-      padding: 18px;
-      font-size: 17px;
+      padding: 0;
+      font-size: 14px;
       font-weight: 700;
+      grid-column: 1/-1;
+      margin-bottom: 8px;
     }
 
     .document-tabs {
@@ -3366,18 +4108,24 @@
       position: static;
       background: rgba(255, 255, 255, 0.025);
       color: #8f9db8;
-      border-color: rgba(104, 128, 170, 0.14);
+      border: 1px solid rgba(104, 128, 170, 0.12);
+      padding: 8px 10px;
       font-size: 11px;
       font-weight: 600;
       text-transform: none;
       white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .document-table td {
-      border-color: rgba(104, 128, 170, 0.12);
+      border: 1px solid rgba(104, 128, 170, 0.12);
+      padding: 8px 10px;
       color: #dce6f8;
       vertical-align: middle;
       white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .document-table th:nth-child(1),
@@ -3583,15 +4331,29 @@
     }
 
     .document-activity-row {
-      grid-template-columns: 34px minmax(0, 1fr) 56px 10px;
-      align-items: start;
+      display: block;
     }
 
-    .document-activity-row strong,
+    .document-activity-row > div {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .document-activity-row strong {
+      white-space: nowrap;
+      color: #f8fbff;
+    }
+
     .document-activity-row span {
       display: block;
       overflow-wrap: anywhere;
       line-height: 1.35;
+      flex: 1;
+      min-width: 0;
+      color: var(--dash-muted);
+      font-size: 12px;
     }
 
     .document-activity-row time {
@@ -3614,6 +4376,793 @@
     .documents-evolution-card canvas {
       height: 220px !important;
       padding: 0 18px 18px;
+    }
+
+    #intelligencePanel.panel {
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+      overflow: visible;
+    }
+
+    #systemPanel.panel,
+    #settingsPanel.panel {
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+      overflow: visible;
+    }
+
+    #intelligencePanel > .panel-head,
+    #systemPanel > .panel-head,
+    #settingsPanel > .panel-head {
+      display: none;
+    }
+
+    #intelligenceContent.intelligence-dashboard,
+    #systemContent.intelligence-dashboard,
+    #settingsContent.intelligence-dashboard {
+      display: grid;
+      gap: 16px;
+      padding: 0;
+      color: #eef4ff;
+      font-family: Inter, "Google Sans Flex", ui-sans-serif, system-ui, sans-serif;
+    }
+
+    .intelligence-header {
+      display: grid;
+      grid-template-columns: minmax(360px, 1fr) minmax(320px, auto);
+      align-items: start;
+      gap: 18px;
+      padding: 18px;
+      border: 1px solid rgba(104, 128, 170, 0.18);
+      border-radius: 16px;
+      background:
+        radial-gradient(circle at top right, rgba(124, 92, 255, 0.18), transparent 34%),
+        linear-gradient(180deg, rgba(18, 25, 43, 0.88), rgba(13, 20, 36, 0.72));
+      box-shadow: 0 18px 42px rgba(0, 0, 0, 0.2);
+    }
+
+    .intelligence-title h1 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0;
+      font-size: clamp(24px, 2vw, 34px);
+      font-weight: 700;
+      line-height: 1.08;
+    }
+
+    .intelligence-title p,
+    .intelligence-sync {
+      margin: 8px 0 0;
+      color: #a7b4cf;
+      font-size: 14px;
+    }
+
+    .intelligence-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .intelligence-actions button,
+    .intelligence-actions select {
+      min-height: 40px;
+      border-radius: 10px;
+      border-color: rgba(104, 128, 170, 0.24);
+      background: rgba(18, 25, 43, 0.78);
+      color: #eef4ff;
+    }
+
+    .intelligence-actions select:disabled {
+      cursor: not-allowed;
+      color: #8f9db8;
+      opacity: 0.8;
+    }
+
+    .intelligence-actions .primary {
+      border-color: rgba(124, 92, 255, 0.8);
+      background: linear-gradient(135deg, #7c5cff, #7b35ff);
+    }
+
+    .intelligence-card {
+      border: 1px solid rgba(104, 128, 170, 0.2);
+      border-radius: 16px;
+      background: linear-gradient(180deg, rgba(18, 25, 43, 0.94), rgba(13, 20, 36, 0.9));
+      box-shadow: 0 18px 42px rgba(0, 0, 0, 0.24);
+      overflow: hidden;
+      animation: premiumCardIn 0.15s ease both;
+    }
+
+    .intelligence-card > header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 18px;
+      border-bottom: 1px solid rgba(104, 128, 170, 0.14);
+    }
+
+    .intelligence-card h2 {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 700;
+    }
+
+    .intel-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      min-height: 24px;
+      width: fit-content;
+      border-radius: 999px;
+      padding: 3px 9px;
+      background: rgba(104, 128, 170, 0.14);
+      color: #c8d3ec;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .intel-badge.sain,
+    .intel-badge.actif {
+      background: rgba(48, 209, 88, 0.14);
+      color: #30d158;
+    }
+
+    .intel-badge.degrade {
+      background: rgba(255, 181, 71, 0.14);
+      color: #ffb547;
+    }
+
+    .intel-badge.erreur {
+      background: rgba(255, 95, 109, 0.14);
+      color: #ff5f6d;
+    }
+
+    .intel-badge.non-mesure,
+    .intel-badge.signal-absent {
+      background: rgba(143, 157, 184, 0.12);
+      color: #a7b4cf;
+    }
+
+    .decision-card {
+      display: grid;
+      grid-template-columns: minmax(260px, 0.9fr) minmax(0, 1.4fr);
+      gap: 0;
+    }
+
+    .settings-status-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      padding: 18px;
+    }
+
+    .settings-status-card {
+      display: grid;
+      gap: 10px;
+      padding: 14px;
+      border: 1px solid rgba(104, 128, 170, 0.14);
+      border-radius: 12px;
+      background: rgba(7, 12, 26, 0.34);
+      min-width: 0;
+    }
+
+    .settings-status-card strong {
+      color: #f8fbff;
+      font-size: 15px;
+    }
+
+    .settings-status-card span {
+      color: #98a6c7;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .settings-audit-grid,
+    .settings-tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+      padding: 18px;
+    }
+
+    .settings-audit-card,
+    .settings-tool-card {
+      display: grid;
+      align-content: start;
+      gap: 10px;
+      min-width: 0;
+      padding: 13px;
+      border: 1px solid rgba(104, 128, 170, 0.14);
+      border-radius: 12px;
+      background: rgba(7, 12, 26, 0.34);
+    }
+
+    .settings-tool-card.is-unavailable {
+      opacity: 0.72;
+      background: rgba(7, 12, 26, 0.24);
+    }
+
+    .settings-tool-card.is-enabled {
+      border-color: rgba(48, 209, 88, 0.3);
+      background:
+        radial-gradient(circle at top right, rgba(48, 209, 88, 0.08), transparent 42%),
+        rgba(7, 12, 26, 0.34);
+    }
+
+    .settings-tool-head {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .settings-tool-head strong,
+    .settings-audit-card strong {
+      color: #f8fbff;
+      font-size: 15px;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+    }
+
+    .settings-tool-card p,
+    .settings-audit-card span {
+      margin: 0;
+      color: #98a6c7;
+      font-size: 13px;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
+
+    .tool-toggle {
+      position: relative;
+      width: 48px;
+      min-width: 48px;
+      height: 28px;
+      padding: 0;
+      border: 1px solid rgba(104, 128, 170, 0.24);
+      border-radius: 999px;
+      background: rgba(104, 128, 170, 0.16);
+      cursor: pointer;
+      transition: 200ms ease;
+    }
+
+    .tool-toggle::after {
+      content: "";
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      background: #98a6c7;
+      transition: 200ms ease;
+    }
+
+    .tool-toggle[aria-checked="true"] {
+      border-color: rgba(48, 209, 88, 0.45);
+      background: rgba(48, 209, 88, 0.22);
+    }
+
+    .tool-toggle[aria-checked="true"]::after {
+      transform: translateX(20px);
+      background: #30d158;
+    }
+
+    .tool-toggle:disabled {
+      cursor: not-allowed;
+      opacity: 0.48;
+    }
+
+    .settings-tool-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .settings-note {
+      margin: 18px 18px 0;
+      padding: 14px 16px;
+      border: 1px solid rgba(79, 209, 255, 0.22);
+      border-radius: 12px;
+      background: rgba(79, 209, 255, 0.07);
+      color: #c8d3ec;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .settings-tool-state {
+      display: grid;
+      gap: 6px;
+      padding-top: 2px;
+      border-top: 1px solid rgba(104, 128, 170, 0.12);
+    }
+
+    .settings-tool-state div {
+      display: grid;
+      grid-template-columns: 74px minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+      min-width: 0;
+      color: #dce6f8;
+      font-size: 12px;
+    }
+
+    .settings-tool-state span {
+      color: #98a6c7;
+      overflow-wrap: anywhere;
+    }
+
+    .settings-tool-state strong {
+      color: #f8fbff;
+      text-align: right;
+      overflow-wrap: anywhere;
+    }
+
+    .settings-tool-card.is-unavailable .settings-tool-state strong,
+    .settings-tool-card.is-unavailable .settings-tool-head strong {
+      color: #c8d3ec;
+    }
+
+    .decision-focus {
+      display: grid;
+      align-content: center;
+      gap: 12px;
+      padding: 22px;
+      border-right: 1px solid rgba(104, 128, 170, 0.14);
+      background: linear-gradient(180deg, rgba(124, 92, 255, 0.1), rgba(79, 209, 255, 0.03));
+    }
+
+    .decision-focus strong {
+      color: #f8fbff;
+      font-size: clamp(24px, 3vw, 40px);
+      line-height: 1.02;
+    }
+
+    .decision-focus span {
+      color: #98a6c7;
+      font-size: 13px;
+    }
+
+    .decision-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      padding: 18px;
+    }
+
+    .decision-item {
+      display: grid;
+      gap: 7px;
+      min-height: 82px;
+      padding: 12px;
+      border: 1px solid rgba(104, 128, 170, 0.14);
+      border-radius: 12px;
+      background: rgba(7, 12, 26, 0.34);
+    }
+
+    .decision-item span {
+      color: #98a6c7;
+      font-size: 12px;
+    }
+
+    .decision-item strong {
+      color: #f8fbff;
+      font-size: 14px;
+      line-height: 1.3;
+      overflow-wrap: anywhere;
+    }
+
+    .cognitive-pipeline {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(168px, 1fr));
+      gap: 14px;
+      padding: 18px;
+      overflow-x: visible;
+    }
+
+    .pipeline-step {
+      position: relative;
+      display: grid;
+      gap: 10px;
+      min-height: 184px;
+      padding: 16px;
+      border: 1px solid rgba(104, 128, 170, 0.18);
+      border-radius: 14px;
+      background:
+        radial-gradient(circle at top right, color-mix(in srgb, var(--step-color, #7c5cff) 16%, transparent), transparent 42%),
+        rgba(7, 12, 26, 0.44);
+    }
+
+    .pipeline-step:not(:last-child)::after {
+      content: "";
+      position: absolute;
+      top: 34px;
+      right: -14px;
+      width: 14px;
+      height: 1px;
+      background: rgba(48, 209, 88, 0.72);
+    }
+
+    .pipeline-topline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .pipeline-index {
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      background: color-mix(in srgb, var(--step-color, #7c5cff) 18%, transparent);
+      color: var(--step-color, #7c5cff);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .pipeline-icon {
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      border: 1px solid rgba(104, 128, 170, 0.18);
+      background: rgba(255, 255, 255, 0.045);
+      color: var(--step-color, #7c5cff);
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .pipeline-step strong {
+      color: #f8fbff;
+      font-size: 14px;
+      line-height: 1.25;
+    }
+
+    .pipeline-step span,
+    .pipeline-step small {
+      color: #98a6c7;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .pipeline-step .status-ok {
+      color: #30d158;
+      font-weight: 700;
+    }
+
+    .pipeline-meta {
+      display: grid;
+      gap: 6px;
+      margin-top: auto;
+    }
+
+    .pipeline-reason {
+      min-height: 32px;
+      color: #c8d3ec;
+      overflow-wrap: anywhere;
+    }
+
+    .intelligence-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 0 18px 18px;
+    }
+
+    .intelligence-strip span {
+      min-height: 28px;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      border-radius: 999px;
+      padding: 4px 10px;
+      background: rgba(255, 255, 255, 0.045);
+      color: #c8d3ec;
+      font-size: 12px;
+    }
+
+    .intelligence-title .intelligence-strip {
+      padding: 0;
+      margin-top: 12px;
+    }
+
+    .intelligence-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .intelligence-grid.two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .intelligence-grid.two .intelligence-visual-layout {
+      grid-template-columns: 1fr;
+    }
+
+    .intelligence-grid.two .intel-radial-panel {
+      min-height: 176px;
+      border-right: 0;
+      border-bottom: 1px solid rgba(104, 128, 170, 0.14);
+    }
+
+    .intelligence-grid.two .intel-radial {
+      width: min(118px, 100%);
+    }
+
+    .intelligence-grid.two .intel-progress-list {
+      padding-top: 14px;
+    }
+
+    .intel-kv-list,
+    .intel-tool-list,
+    .intel-events {
+      display: grid;
+      gap: 10px;
+      padding: 18px;
+    }
+
+    .intel-kv-row,
+    .intel-tool-row,
+    .intel-event-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      min-height: 34px;
+      color: #dce6f8;
+      font-size: 13px;
+    }
+
+    .intel-kv-row span,
+    .intel-tool-row span,
+    .intel-event-row span {
+      color: #98a6c7;
+    }
+
+    .intel-kv-row strong,
+    .intel-tool-row strong,
+    .intel-event-row strong {
+      color: #f8fbff;
+      font-weight: 700;
+      text-align: right;
+    }
+
+    .intel-tool-row {
+      grid-template-columns: minmax(110px, 0.75fr) minmax(90px, 1fr) auto;
+    }
+
+    .intel-tool-bar {
+      height: 8px;
+      border-radius: 99px;
+      background: rgba(104, 128, 170, 0.16);
+      overflow: hidden;
+    }
+
+    .intel-tool-bar span {
+      display: block;
+      width: var(--tool-value, 0%);
+      height: 100%;
+      border-radius: inherit;
+      background: var(--tool-color, #4fd1ff);
+    }
+
+    .intel-tool-bar.is-empty span {
+      display: none;
+    }
+
+    .intel-event-row {
+      grid-template-columns: 80px 120px minmax(180px, 0.7fr) minmax(0, 1fr) auto;
+      border-bottom: 1px solid rgba(104, 128, 170, 0.1);
+      padding-bottom: 10px;
+    }
+
+    .intel-event-row:last-child {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .intel-event-row code {
+      color: #c8d3ec;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .quality-score {
+      display: grid;
+      place-items: center;
+      min-height: 180px;
+      padding: 18px;
+      border-right: 1px solid rgba(104, 128, 170, 0.14);
+    }
+
+    .quality-score strong {
+      color: #a66cff;
+      font-size: 42px;
+      line-height: 1;
+    }
+
+    .quality-layout {
+      display: grid;
+      grid-template-columns: 220px minmax(0, 1fr);
+    }
+
+    .intelligence-visual-layout {
+      display: grid;
+      grid-template-columns: minmax(150px, 190px) minmax(0, 1fr);
+      gap: 0;
+      min-width: 0;
+    }
+
+    .intel-radial-panel {
+      display: grid;
+      place-items: center;
+      align-content: center;
+      gap: 8px;
+      min-height: 196px;
+      min-width: 0;
+      padding: 16px 14px;
+      border-right: 1px solid rgba(104, 128, 170, 0.14);
+      text-align: center;
+    }
+
+    .intel-radial {
+      --radial-color: #7c5cff;
+      --radial-value: 0%;
+      position: relative;
+      width: min(132px, 100%);
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background:
+        radial-gradient(circle at center, rgba(13, 20, 36, 0.98) 0 58%, transparent 59%),
+        conic-gradient(var(--radial-color) var(--radial-value), rgba(104, 128, 170, 0.16) 0);
+      box-shadow: inset 0 0 0 1px rgba(104, 128, 170, 0.18), 0 18px 38px rgba(0, 0, 0, 0.18);
+    }
+
+    .intel-radial::after {
+      content: "";
+      position: absolute;
+      inset: 11px;
+      border-radius: inherit;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .intel-radial-value {
+      display: grid;
+      gap: 3px;
+      place-items: center;
+      width: 72%;
+      min-width: 0;
+      z-index: 1;
+    }
+
+    .intel-radial strong {
+      color: #f8fbff;
+      max-width: 100%;
+      font-size: clamp(20px, 2vw, 26px);
+      line-height: 1;
+      overflow-wrap: anywhere;
+    }
+
+    .intel-radial span {
+      color: #98a6c7;
+      max-width: 100%;
+      font-size: 11px;
+      line-height: 1.1;
+      overflow-wrap: anywhere;
+    }
+
+    .intel-radial-copy {
+      display: grid;
+      gap: 4px;
+      max-width: 100%;
+      color: #98a6c7;
+      font-size: 12px;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+    }
+
+    .intel-progress-list {
+      display: grid;
+      gap: 10px;
+      min-width: 0;
+      padding: 16px 18px;
+    }
+
+    .intel-progress-row {
+      display: grid;
+      grid-template-columns: minmax(108px, 0.74fr) minmax(72px, 1fr) minmax(78px, 0.54fr);
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      min-height: 32px;
+      color: #dce6f8;
+      font-size: 13px;
+    }
+
+    .intel-progress-row > span {
+      color: #98a6c7;
+      min-width: 0;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+    }
+
+    .intel-progress-track {
+      height: 9px;
+      min-width: 0;
+      border-radius: 999px;
+      background: rgba(104, 128, 170, 0.16);
+      overflow: hidden;
+    }
+
+    .intel-progress-track i {
+      display: block;
+      width: var(--progress-value, 0%);
+      height: 100%;
+      border-radius: inherit;
+      background: var(--progress-color, #7c5cff);
+      box-shadow: 0 0 18px color-mix(in srgb, var(--progress-color, #7c5cff) 34%, transparent);
+      transition: width 200ms ease;
+    }
+
+    .intel-progress-track.is-empty i {
+      display: none;
+    }
+
+    .intel-progress-row strong {
+      color: #f8fbff;
+      font-weight: 700;
+      text-align: right;
+      min-width: 0;
+      line-height: 1.2;
+      overflow-wrap: anywhere;
+    }
+
+    .intel-mini-bars {
+      display: grid;
+      grid-template-columns: repeat(var(--bars-count, 4), minmax(14px, 1fr));
+      align-items: end;
+      gap: 8px;
+      min-height: 44px;
+      max-height: 64px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+
+    .intel-mini-bars span {
+      min-height: 4px;
+      height: var(--bar-value, 0%);
+      border-radius: 8px 8px 3px 3px;
+      background: var(--bar-color, #7c5cff);
+      opacity: var(--bar-opacity, 0.95);
+    }
+
+    .intel-service-stack {
+      display: flex;
+      width: 100%;
+      height: 12px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(104, 128, 170, 0.16);
+      grid-column: 1 / -1;
+    }
+
+    .intel-service-stack span {
+      width: var(--stack-value, 0%);
+      background: var(--stack-color, #7c5cff);
     }
 
     @keyframes premiumCardIn {
@@ -3653,8 +5202,18 @@
       .rag-bottom-grid,
       .documents-header,
       .documents-layout,
-      .documents-bottom-grid {
+      .documents-bottom-grid,
+      .intelligence-grid,
+      .intelligence-grid.two,
+      .decision-card,
+      .quality-layout,
+      .intelligence-visual-layout {
         grid-template-columns: 1fr;
+      }
+
+      .intel-radial-panel {
+        border-right: 0;
+        border-bottom: 1px solid rgba(104, 128, 170, 0.14);
       }
 
       .domain-grid,
@@ -3677,6 +5236,24 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
+      .cognitive-pipeline {
+        grid-template-columns: repeat(10, 128px);
+      }
+
+      .quality-score {
+        border-right: 0;
+        border-bottom: 1px solid rgba(104, 128, 170, 0.14);
+      }
+
+      .decision-focus {
+        border-right: 0;
+        border-bottom: 1px solid rgba(104, 128, 170, 0.14);
+      }
+
+      .decision-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
       .filters,
       .login-grid {
         grid-template-columns: 1fr 1fr;
@@ -3694,19 +5271,19 @@
       }
 
       .premium-sidebar {
-        position: static;
-        width: 100%;
-        margin-bottom: 16px;
-        border-right: 0;
-        border-bottom: 1px solid rgba(79, 209, 255, 0.12);
+        position: fixed;
+        width: min(286px, calc(100vw - 28px));
+        margin-bottom: 0;
+        border-right: 1px solid rgba(79, 209, 255, 0.12);
+        border-bottom: 0;
       }
 
       .premium-nav {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: 1fr;
       }
 
       .premium-nav .premium-context {
-        grid-column: 1 / -1;
+        grid-column: auto;
       }
 
       .shell:has(#appView:not(.hidden)) {
@@ -3766,8 +5343,51 @@
       .exports-header,
       .exports-layout,
       .exports-bottom-grid,
+      .intelligence-grid,
+      .intelligence-grid.two,
+      .decision-card,
+      .decision-grid,
+      .quality-layout,
       .event-donut-wrap {
         grid-template-columns: 1fr;
+      }
+
+      .intelligence-header {
+        display: grid;
+      }
+
+      .intelligence-actions {
+        justify-content: stretch;
+      }
+
+      .intelligence-actions button,
+      .intelligence-actions select {
+        width: 100%;
+      }
+
+      .cognitive-pipeline {
+        grid-template-columns: 1fr;
+        overflow-x: visible;
+      }
+
+      .pipeline-step:not(:last-child)::after {
+        top: auto;
+        right: auto;
+        bottom: -10px;
+        left: 28px;
+        width: 1px;
+        height: 10px;
+      }
+
+      .intel-event-row,
+      .intel-tool-row {
+        grid-template-columns: 1fr;
+      }
+
+      .intel-event-row strong,
+      .intel-tool-row strong,
+      .intel-kv-row strong {
+        text-align: left;
       }
 
       .sources-toolbar,
@@ -3851,15 +5471,17 @@
 
       .exports-kpis {
         display: grid;
-        grid-template-columns: repeat(6, minmax(0, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
         gap: 12px;
       }
 
       .export-kpi {
         display: grid;
         gap: 10px;
-        min-height: 136px;
-        padding: 16px;
+        min-height: 120px;
+        padding: 14px;
+        min-width: 0;
+        overflow: hidden;
         border: 1px solid rgba(104, 128, 170, 0.2);
         border-radius: 14px;
         background: linear-gradient(180deg, rgba(18, 25, 43, 0.92), rgba(13, 20, 36, 0.88));
@@ -3875,9 +5497,11 @@
 
       .export-kpi strong {
         color: #f8fbff;
-        font-size: 28px;
+        font-size: 20px;
         font-weight: 700;
-        line-height: 1;
+        line-height: 1.15;
+        overflow-wrap: anywhere;
+        word-break: break-word;
       }
 
       .export-kpi small {
@@ -3893,10 +5517,10 @@
 
       .exports-layout {
         display: grid !important;
-        grid-template-columns: 1fr 330px !important;
-        gap: 14px;
+        grid-template-columns: 1fr;
+        gap: 12px;
         align-items: start;
-        padding: 18px;
+        padding: 0;
       }
 
       .export-card,
@@ -3916,32 +5540,36 @@
       .exports-evolution-card h2,
       .top-exports-card h2 {
         margin: 0;
-        padding: 18px;
-        font-size: 17px;
+        padding: 0;
+        font-size: 14px;
         font-weight: 700;
+        grid-column: 1/-1;
+        margin-bottom: 8px;
       }
 
       .export-table {
         width: 100%;
-        min-width: 900px;
-        table-layout: fixed;
         border-collapse: collapse;
+        font-size: 13px;
+        grid-column: 1/-1;
       }
 
       .export-table th {
         position: static;
         background: rgba(255, 255, 255, 0.025);
         color: #8f9db8;
-        border-color: rgba(104, 128, 170, 0.14);
-        font-size: 11px;
+        border: 1px solid rgba(104, 128, 170, 0.12);
+        padding: 8px 10px;
+        font-size: 12px;
         font-weight: 600;
         text-transform: none;
         white-space: nowrap;
       }
 
       .export-table td {
-        border-color: rgba(104, 128, 170, 0.12);
+        border: 1px solid rgba(104, 128, 170, 0.12);
         color: #dce6f8;
+        padding: 8px 10px;
         vertical-align: middle;
         white-space: nowrap;
       }
@@ -3958,21 +5586,25 @@
       }
 
       .exports-toolbar {
-        display: grid;
-        grid-template-columns: 108px minmax(230px, 1fr) auto auto;
-        gap: 10px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
         align-items: center;
+        margin-bottom: 12px;
       }
 
       .exports-toolbar input,
       .exports-toolbar select,
       .exports-toolbar button {
-        width: 100%;
-        min-height: 40px;
-        border-radius: 10px;
-        border-color: rgba(104, 128, 170, 0.24);
-        background: rgba(18, 25, 43, 0.78);
+        min-height: 36px;
+        padding: 0 10px;
+        border-radius: 8px;
+        border: 1px solid rgba(104, 128, 170, 0.24);
+        background: rgba(18, 25, 43, 0.72);
         color: #eef4ff;
+        font-size: 13px;
+        flex: 1;
+        min-width: 100px;
       }
 
       .exports-toolbar .primary {
@@ -4007,24 +5639,30 @@
         border: 1px solid rgba(255, 95, 109, 0.3);
       }
 
-      .exports-side-grid {
+      .exports-side-grid,
+      .source-grid,
+      .document-grid {
         display: grid;
-        gap: 14px;
+        gap: 12px;
         grid-auto-rows: max-content;
         grid-template-columns: 1fr;
       }
 
       .exports-kpis-side {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
         gap: 10px;
-        padding: 14px;
+        padding: 0;
       }
 
-      .exports-recent-list {
+      .exports-recent-list,
+      .source-list,
+      .document-list,
+      .detail-inner {
         display: grid;
         gap: 8px;
-        padding: 18px;
+        padding: 0;
+        grid-column: 1/-1;
       }
 
       .analytics-heatmap {
@@ -4399,39 +6037,46 @@
     <section id="appView" class="hidden">
       <aside class="premium-sidebar" aria-label="Navigation Back Office">
         <div class="premium-brand">
-          <div class="premium-logo" aria-hidden="true">AI</div>
-          <div>
-            <strong>Digital Blue Skye AI</strong>
+          <div class="premium-logo" aria-hidden="true"><img src="../assets/images/logo/AI.png" alt=""></div>
+          <div class="premium-brand-text">
+            <strong>Digital Blue Skye Studio</strong>
             <span>Back Office</span>
           </div>
+          <button id="sidebarToggle" class="sidebar-toggle" type="button" aria-label="Replier la sidebar" title="Replier la sidebar">‹</button>
         </div>
         <nav class="premium-nav" aria-label="Navigation principale">
-          <button class="premium-context" type="button" aria-label="Vue globale">Vue globale <span aria-hidden="true">⌄</span></button>
-          <button class="tab active" type="button" data-tab="health">Tableau de bord</button>
-          <button class="tab" type="button" data-tab="ai">Conversations</button>
-          <button class="tab" type="button" data-tab="pilotage">Sources & RAG</button>
-          <button class="tab" type="button" data-tab="documents">Documents</button>
-          <button class="tab" type="button" data-tab="exports">Exports</button>
-          <button class="tab" type="button" data-tab="analytics">Analytics</button>
-          <button class="tab" type="button" data-tab="observability">Observabilité</button>
-          <button class="tab" type="button" data-tab="health">Système</button>
-          <button class="tab" type="button" data-tab="health">Paramètres</button>
+          <button id="globalViewBtn" class="premium-context active" type="button" aria-label="Vue globale" title="Vue globale"><span class="nav-icon" aria-hidden="true"><img src="../assets/images/ui/icons8-eye-64.png" alt=""></span><span class="nav-label">Vue globale</span></button>
+          <button class="tab" type="button" data-tab="ai" title="Conversations"><span class="nav-icon" aria-hidden="true">CV</span><span class="nav-label">Conversations</span></button>
+          <button class="tab" type="button" data-tab="pilotage" title="Sources & RAG"><span class="nav-icon" aria-hidden="true">RG</span><span class="nav-label">Sources & RAG</span></button>
+          <button class="tab" type="button" data-tab="documents" title="Documents"><span class="nav-icon" aria-hidden="true">DC</span><span class="nav-label">Documents</span></button>
+          <button class="tab" type="button" data-tab="exports" title="Exports"><span class="nav-icon" aria-hidden="true">EX</span><span class="nav-label">Exports</span></button>
+          <button class="tab" type="button" data-tab="analytics" title="Analytics"><span class="nav-icon" aria-hidden="true">AN</span><span class="nav-label">Analytics</span></button>
+          <button class="tab" type="button" data-tab="observability" title="Observabilité"><span class="nav-icon" aria-hidden="true">OB</span><span class="nav-label">Observabilité</span></button>
+          <button class="tab" type="button" data-tab="intelligence" title="Intelligence IA"><span class="nav-icon" aria-hidden="true">IA</span><span class="nav-label">Intelligence IA</span></button>
+          <button class="tab" type="button" data-tab="system" title="Système"><span class="nav-icon" aria-hidden="true">SY</span><span class="nav-label">Système</span></button>
+          <button class="tab" type="button" data-tab="settings" title="Paramètres"><span class="nav-icon" aria-hidden="true">PR</span><span class="nav-label">Paramètres</span></button>
         </nav>
         <div class="premium-sidebar-footer" aria-label="État système">
-          <div class="premium-system-status"><span>Système</span><span>Opérationnel</span></div>
+          <div class="premium-system-status"><span class="sidebar-footer-label">Système</span><span>Opérationnel</span></div>
           <div>Version <strong>1.5.0</strong></div>
           <div>Build <strong>2026-06-27</strong></div>
-          <button type="button">Voir les logs</button>
+          <button id="viewLogsBtn" type="button" title="Voir les logs"><span class="sidebar-footer-label">Voir les logs</span><span class="nav-icon" aria-hidden="true">LG</span></button>
         </div>
       </aside>
+      <button id="mobileSidebarOverlay" class="mobile-sidebar-overlay" type="button" aria-label="Fermer le menu"></button>
       <header class="topbar">
+        <button id="mobileSidebarBtn" class="mobile-menu-button" type="button" aria-label="Ouvrir le menu" title="Menu">
+          <img src="../assets/images/ui/icons8-sidebar-50.png" alt="" aria-hidden="true">
+        </button>
         <div class="brand">
           <h1>Maturité & Performance</h1>
           <p id="apiLabel"></p>
         </div>
         <div class="toolbar">
           <button id="toggleSensitive" type="button">Afficher détails</button>
-          <button id="refreshAll" class="primary" type="button">Actualiser</button>
+          <button id="refreshAll" class="primary refresh-icon" type="button" aria-label="Actualiser" title="Actualiser">
+            <img class="refresh-symbol" src="../assets/images/ui/icons8-synchronize-48.png" alt="" aria-hidden="true">
+          </button>
           <button id="logoutBtn" type="button">Déconnexion</button>
         </div>
       </header>
@@ -4579,6 +6224,54 @@
           </div>
         </div>
         <div id="observabilityContent" class="health health-dashboard observability-dashboard"></div>
+      </section>
+
+      <section id="intelligencePanel" class="panel hidden" aria-label="Intelligence IA Digital Blue Skye AI">
+        <div class="panel-head">
+          <div>
+            <strong>Intelligence IA</strong>
+            <span class="exports-realtime">Données réelles</span>
+            <div id="intelligenceMeta" class="health-meta"></div>
+          </div>
+          <div class="actions">
+            <button id="refreshIntelligenceBtn" class="refresh-icon" type="button" aria-label="Actualiser Intelligence IA" title="Actualiser Intelligence IA">
+              <img src="../assets/images/ui/icons8-synchronize-48.png" alt="" aria-hidden="true">
+            </button>
+          </div>
+        </div>
+        <div id="intelligenceContent" class="health health-dashboard intelligence-dashboard"></div>
+      </section>
+
+      <section id="systemPanel" class="panel hidden" aria-label="Système Digital Blue Skye AI">
+        <div class="panel-head">
+          <div>
+            <strong>Système</strong>
+            <span class="exports-realtime">Données /admin/health</span>
+            <div id="systemMeta" class="health-meta"></div>
+          </div>
+          <div class="actions">
+            <button id="refreshSystemBtn" class="refresh-icon" type="button" aria-label="Actualiser Système" title="Actualiser Système">
+              <img src="../assets/images/ui/icons8-synchronize-48.png" alt="" aria-hidden="true">
+            </button>
+          </div>
+        </div>
+        <div id="systemContent" class="health health-dashboard intelligence-dashboard"></div>
+      </section>
+
+      <section id="settingsPanel" class="panel hidden" aria-label="Paramètres Digital Blue Skye AI">
+        <div class="panel-head">
+          <div>
+            <strong>Paramètres</strong>
+            <span class="exports-realtime">Configuration honnête</span>
+            <div id="settingsMeta" class="health-meta"></div>
+          </div>
+          <div class="actions">
+            <button id="refreshSettingsBtn" class="refresh-icon" type="button" aria-label="Actualiser Paramètres" title="Actualiser Paramètres">
+              <img src="../assets/images/ui/icons8-synchronize-48.png" alt="" aria-hidden="true">
+            </button>
+          </div>
+        </div>
+        <div id="settingsContent" class="health health-dashboard intelligence-dashboard"></div>
       </section>
     </section>
   </main>
@@ -5162,6 +6855,9 @@
       else if (state.tab === "exports") await loadExports();
       else if (state.tab === "analytics") await loadAnalytics();
       else if (state.tab === "observability") await loadObservability();
+      else if (state.tab === "intelligence") await loadIntelligence();
+      else if (state.tab === "system") await loadSystem();
+      else if (state.tab === "settings") await loadSettings();
       else await loadRows();
     }
 
@@ -6044,52 +7740,75 @@
       const health = exp.health || {};
       const items = exp.items;
       const noExports = !items.list.length;
+      const totalExports = Number(stats.exports_total || 0);
+      const completedExports = Number(stats.exports_completed || 0);
+      const failedExports = Number(stats.exports_failed || 0);
+      const successRate = stats.success_rate || null;
+      const totalSize = stats.total_size_bytes || null;
+      const avgDuration = stats.average_duration_ms || null;
+      const lastCompleted = health.last_completed_at ? formatDate(health.last_completed_at) : "jamais";
       return `
-        <div class="exports-header">
-          <div class="exports-toolbar">
-            <input type="search" id="exportSearchInput" placeholder="Rechercher un export..." aria-label="Rechercher un export" value="${escapeHtml(items.q)}">
-            <select id="exportStatusFilter" aria-label="Filtrer par statut">
-              <option value="">Tous les statuts</option>
-              <option value="completed" ${items.status === "completed" ? "selected" : ""}>Réussi</option>
-              <option value="failed" ${items.status === "failed" ? "selected" : ""}>Échec</option>
-            </select>
-            <span class="exports-realtime">${exportHealthBadge(health.status)}</span>
+        <div class="premium-dashboard-header">
+          <div class="premium-dashboard-title">
+            <h1>Gestion des exports <span class="realtime-badge">${statusDot()}Actif</span></h1>
+            <p>Historique complet de tous les exports générés depuis l'installation</p>
+          </div>
+          <div>
+            <div class="premium-actions" aria-label="Contrôles des exports">
+              <input type="search" id="exportSearchInput" placeholder="Chercher un export..." aria-label="Rechercher un export" value="${escapeHtml(items.q)}" style="min-height:40px;border-radius:10px;border-color:rgba(104,128,170,0.24);background:rgba(18,25,43,0.72);color:#eef4ff;padding:0 12px;">
+              <select id="exportStatusFilter" aria-label="Filtrer par statut" style="min-height:40px;border-radius:10px;border-color:rgba(104,128,170,0.24);background:rgba(18,25,43,0.72);color:#eef4ff;">
+                <option value="">Tous les statuts</option>
+                <option value="completed" ${items.status === "completed" ? "selected" : ""}>Réussi</option>
+                <option value="failed" ${items.status === "failed" ? "selected" : ""}>Échec</option>
+              </select>
+              ${renderIconRefreshButton("premiumRefreshExportsBtn", "Actualiser Exports")}
+            </div>
+            <p class="sync-label">Dernier export réussi : ${escapeHtml(lastCompleted)}</p>
           </div>
         </div>
-        <section class="exports-layout">
-          <article class="export-card">
+        <section class="premium-grid premium-top-grid">
+          <article class="premium-card">
+            <h2>Statistiques principales</h2>
+            <div class="quick-kpis">
+              <div class="quick-kpi"><span>Exports totaux</span><strong>${escapeHtml(premiumNumber(totalExports, "0"))}</strong><small>tous statuts</small></div>
+              <div class="quick-kpi"><span>Exports réussis</span><strong>${escapeHtml(premiumNumber(completedExports, "0"))}</strong><small>génération complète</small></div>
+              <div class="quick-kpi"><span>Taux de succès</span><strong>${escapeHtml(successRate != null ? formatPercent(successRate) : "non mesuré")}</strong><small>${escapeHtml(premiumNumber(totalExports, "0"))} export(s)</small></div>
+              <div class="quick-kpi"><span>Échecs</span><strong>${escapeHtml(premiumNumber(failedExports, "0"))}</strong><small>erreur ou abandon</small></div>
+            </div>
+          </article>
+          <article class="premium-card">
+            <h2>Volume et performances</h2>
+            <div class="quick-kpis">
+              <div class="quick-kpi"><span>Volume total</span><strong>${escapeHtml(totalSize != null ? formatExportBytesLabel(totalSize) : "non mesuré")}</strong><small>données exportées</small></div>
+              <div class="quick-kpi"><span>Latence moyenne</span><strong>${escapeHtml(avgDuration != null ? formatExportDurationLabel(avgDuration) : "non mesuré")}</strong><small>temps de génération</small></div>
+              <div class="quick-kpi"><span>Formats utilisés</span><strong>${escapeHtml(premiumNumber(exp.formats.length, "0"))}</strong><small>type(s) disponible(s)</small></div>
+              <div class="quick-kpi"><span>Activité (30j)</span><strong>${escapeHtml(premiumNumber(exp.activity.length, "0"))}</strong><small>jour(s) avec exports</small></div>
+            </div>
+          </article>
+        </section>
+        <section class="premium-grid">
+          <article class="premium-card" style="grid-column:1/-1;">
             <h2>Tous les exports</h2>
             <div class="table-wrap">
               <table class="export-table">
                 <thead><tr><th>Export</th><th>Format</th><th>Taille</th><th>Généré par</th><th>Date</th><th>Statut</th><th>Téléchargements</th><th>Actions</th></tr></thead>
-                <tbody>${noExports ? `<tr><td colspan="8">Aucun export.</td></tr>` : items.list.map(renderExportRow).join("")}</tbody>
+                <tbody>${noExports ? `<tr><td colspan="8" style="padding:20px;text-align:center;color:#97a5c2;">Aucun export.</td></tr>` : items.list.map(renderExportRow).join("")}</tbody>
               </table>
             </div>
             ${renderExportsPagination()}
           </article>
-          <div class="exports-side-grid">
-            <article class="export-side-card">
-              <h2>Statistiques clés</h2>
-              <div class="exports-kpis-side">
-                ${renderExportsKpi("Exports totaux", premiumNumber(stats.exports_total, "0"), "Table exports (D1)", 0)}
-                ${renderExportsKpi("Exports réussis", premiumNumber(stats.exports_completed, "0"), "Statut = completed", 1)}
-                ${renderExportsKpi("Volume total exporté", stats.total_size_bytes != null ? formatExportBytesLabel(stats.total_size_bytes) : "non mesuré", "Somme size_bytes", 2)}
-                ${renderExportsKpi("Temps moyen de génération", stats.average_duration_ms != null ? formatExportDurationLabel(stats.average_duration_ms) : "non mesuré", "Moyenne duration_ms", 3)}
-                ${renderExportsKpi("Taux de réussite", stats.success_rate != null ? formatPercent(stats.success_rate) : "non mesuré", `${premiumNumber(stats.exports_total, "0")} export(s)`, 4)}
-                ${renderExportsKpi("Erreurs d'export", premiumNumber(stats.exports_failed, "0"), "Statut = failed", 5)}
-              </div>
-            </article>
-            <article class="export-side-card">
-              <h2>Répartition par format</h2>
-              ${renderExportFormatsList(exp.formats)}
-            </article>
-            <article class="export-side-card">
-              <h2>Activité d'export (par jour)</h2>
-              ${renderExportsActivityList(exp.activity)}
-            </article>
-          </div>
         </section>
-        <section class="exports-bottom-grid">
+        <section class="premium-grid premium-bottom-grid">
+          <article class="premium-card">
+            <h2>Répartition par format</h2>
+            ${renderExportFormatsList(exp.formats)}
+          </article>
+          <article class="premium-card">
+            <h2>Activité d'export (par jour)</h2>
+            ${renderExportsActivityList(exp.activity)}
+          </article>
+        </section>
+        <section class="premium-grid">
           ${renderExportDetail(exp.detail)}
         </section>
       `;
@@ -6101,7 +7820,7 @@
         ? `Dernier export réussi : ${formatDate(health.last_completed_at)}`
         : "Aucune activité d'export récente";
       const content = $("#exportsContent");
-      content.className = "health health-dashboard exports-dashboard";
+      content.className = "premium-dashboard exports-dashboard";
       content.innerHTML = renderExportsDashboard();
     }
 
@@ -6297,84 +8016,94 @@
       const a = state.analyticsAdmin;
       const kpis = a.kpis || {};
       const rt = a.responseTime || {};
+      const sessions = Number(kpis.sessions_total || 0);
+      const messages = Number(kpis.messages_sent || 0);
+      const responses = Number(kpis.assistant_responses || 0);
+      const successRate = kpis.success_rate || null;
+      const ragRate = kpis.rag_usage_rate || null;
+      const errors = Number(kpis.errors_total || 0);
+      const avgLatency = rt.average_latency_ms || null;
+      const eventsUsed = a.debug?.events_used || 0;
       return `
-        <div class="exports-header">
-          <div class="exports-toolbar">
-            <span class="exports-realtime">${statusDot()}${escapeHtml(premiumNumber(a.debug?.events_used, "0"))} événement(s) analysés</span>
+        <div class="premium-dashboard-header">
+          <div class="premium-dashboard-title">
+            <h1>Analytique & Activité <span class="realtime-badge">${statusDot()}Temps réel</span></h1>
+            <p>Analyse comportementale complète sur ${escapeHtml(premiumNumber(eventsUsed, "0"))} événement(s) observés</p>
+          </div>
+          <div>
+            <div class="premium-actions" aria-label="Contrôles analytiques">
+              ${renderIconRefreshButton("premiumRefreshAnalyticsBtn", "Actualiser Analytics")}
+            </div>
+            <p class="sync-label">Fenêtre d'observation : 30 derniers jours</p>
           </div>
         </div>
-        <section class="exports-kpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;">
-          ${renderAnalyticsKpi("Sessions distinctes", premiumNumber(kpis.sessions_total, "0"), "Pas d'identité réelle (pas d'auth)")}
-          ${renderAnalyticsKpi("Messages envoyés", premiumNumber(kpis.messages_sent, "0"), "event_type = user_message")}
-          ${renderAnalyticsKpi("Réponses IA", premiumNumber(kpis.assistant_responses, "0"), "event_type = assistant_response")}
-          ${renderAnalyticsKpi("Taux de succès global", kpis.success_rate != null ? formatPercent(kpis.success_rate) : "non mesuré", `${premiumNumber(kpis.events_total, "0")} événement(s)`)}
-          ${renderAnalyticsKpi("Utilisation RAG", kpis.rag_usage_rate != null ? formatPercent(kpis.rag_usage_rate) : "non mesuré", "rag_match / rag_query")}
-          ${renderAnalyticsKpi("Erreurs", premiumNumber(kpis.errors_total, "0"), "event_type contient error/failed")}
+        <section class="premium-grid premium-top-grid">
+          <article class="premium-card">
+            <h2>Engagement utilisateurs</h2>
+            <div class="quick-kpis">
+              <div class="quick-kpi"><span>Sessions distinctes</span><strong>${escapeHtml(premiumNumber(sessions, "0"))}</strong><small>sans identité réelle (pas d'auth)</small></div>
+              <div class="quick-kpi"><span>Messages envoyés</span><strong>${escapeHtml(premiumNumber(messages, "0"))}</strong><small>user_message événements</small></div>
+              <div class="quick-kpi"><span>Réponses IA</span><strong>${escapeHtml(premiumNumber(responses, "0"))}</strong><small>assistant_response événements</small></div>
+              <div class="quick-kpi"><span>Messages / session</span><strong>${escapeHtml(sessions > 0 ? premiumNumber(Math.round(messages / sessions), "0") : "non mesuré")}</strong><small>taux de conversation</small></div>
+            </div>
+          </article>
+          <article class="premium-card">
+            <h2>Qualité & Fiabilité</h2>
+            <div class="quick-kpis">
+              <div class="quick-kpi"><span>Taux de succès</span><strong>${escapeHtml(successRate != null ? formatPercent(successRate) : "non mesuré")}</strong><small>complétions réussies</small></div>
+              <div class="quick-kpi"><span>Utilisation RAG</span><strong>${escapeHtml(ragRate != null ? formatPercent(ragRate) : "non mesuré")}</strong><small>rag_match vs rag_query</small></div>
+              <div class="quick-kpi"><span>Latence moyenne</span><strong>${escapeHtml(avgLatency != null ? formatExportDurationLabel(avgLatency) : "non mesuré")}</strong><small>${escapeHtml(premiumNumber(rt.sample_size, "0"))} appel(s) mesuré(s)</small></div>
+              <div class="quick-kpi"><span>Erreurs totales</span><strong>${escapeHtml(premiumNumber(errors, "0"))}</strong><small>event_type contient error</small></div>
+            </div>
+          </article>
         </section>
-        <section class="exports-layout">
-          <article class="export-card">
-            <h2>Évolution de l'activité (30j)</h2>
+        <section class="premium-grid">
+          <article class="premium-card" style="grid-column:1/-1;">
+            <h2>Évolution de l'activité (30 derniers jours)</h2>
             ${renderAnalyticsDaySeries(a.activity, [
-              { key: "messages", label: "Msg" },
+              { key: "messages", label: "Messages" },
               { key: "responses", label: "Réponses" },
               { key: "rag_queries", label: "RAG" },
               { key: "web_searches", label: "Web" },
               { key: "errors", label: "Erreurs" },
             ])}
           </article>
-          <div class="exports-side-grid">
-            <article class="export-side-card">
-              <h2>Utilisateurs par jour (sessions distinctes)</h2>
-              ${renderAnalyticsDaySeries(a.sessionsPerDay, [{ key: "sessions", label: "Sessions" }])}
-            </article>
-            <article class="export-side-card">
-              <h2>Répartition des sessions (device)</h2>
-              ${renderAnalyticsBarList(a.deviceDistribution)}
-            </article>
-            <article class="export-side-card">
-              <h2>Répartition des messages</h2>
-              ${renderAnalyticsBarList(a.messageDistribution)}
-            </article>
-          </div>
         </section>
-        <section class="exports-layout">
-          <article class="export-card">
+        <section class="premium-grid premium-bottom-grid">
+          <article class="premium-card">
+            <h2>Sessions par jour</h2>
+            ${renderAnalyticsDaySeries(a.sessionsPerDay, [{ key: "sessions", label: "Sessions" }])}
+          </article>
+          <article class="premium-card">
+            <h2>Latence modèle (par jour)</h2>
+            ${renderAnalyticsDaySeries(rt.series, [{ key: "average_latency_ms", label: "ms" }])}
+          </article>
+        </section>
+        <section class="premium-grid premium-bottom-grid">
+          <article class="premium-card">
+            <h2>Répartition des sessions (device)</h2>
+            ${renderAnalyticsBarList(a.deviceDistribution)}
+          </article>
+          <article class="premium-card">
+            <h2>Messages par modèle</h2>
+            ${renderAnalyticsBarList(a.modelDistribution)}
+          </article>
+          <article class="premium-card">
+            <h2>Capacités détectées</h2>
+            ${renderAnalyticsBarList(a.intentions)}
+          </article>
+        </section>
+        <section class="premium-grid">
+          <article class="premium-card" style="grid-column:1/-1;">
             <h2>Taux de succès par domaine</h2>
             ${renderAnalyticsDomainSuccessList(a.domainSuccess)}
           </article>
-          <div class="exports-side-grid">
-            <article class="export-side-card">
-              <h2>Temps de réponse modèle</h2>
-              <div class="exports-kpis-side">
-                ${renderAnalyticsKpi("Latence moyenne", rt.average_latency_ms != null ? formatExportDurationLabel(rt.average_latency_ms) : "non mesuré", `${premiumNumber(rt.sample_size, "0")} appel(s) modèle mesuré(s)`)}
-              </div>
-              ${renderAnalyticsDaySeries(rt.series, [{ key: "average_latency_ms", label: "ms" }])}
-            </article>
-            <article class="export-side-card">
-              <h2>Messages par modèle</h2>
-              ${renderAnalyticsBarList(a.modelDistribution)}
-            </article>
-          </div>
         </section>
-        <section class="exports-layout">
-          <article class="export-card">
+        <section class="premium-grid premium-bottom-grid">
+          <article class="premium-card" style="grid-column:1/-1;">
             <h2>Heatmap d'activité (jour × heure, UTC)</h2>
             ${renderAnalyticsHeatmapGrid(a.heatmap)}
           </article>
-          <div class="exports-side-grid">
-            <article class="export-side-card">
-              <h2>Répartition des événements</h2>
-              ${renderAnalyticsBarList(a.eventDistribution)}
-            </article>
-            <article class="export-side-card">
-              <h2>Capacités détectées (Capability Planner)</h2>
-              ${renderAnalyticsBarList(a.intentions)}
-            </article>
-            <article class="export-side-card">
-              <h2>Activité en temps réel</h2>
-              ${renderAnalyticsRealtimeList(a.realtime)}
-            </article>
-          </div>
         </section>
       `;
     }
@@ -6385,7 +8114,7 @@
         ? `${a.debug.events_used} événement(s) sur la fenêtre observée`
         : "Aucune donnée analytique récente";
       const content = $("#analyticsContent");
-      content.className = "health health-dashboard analytics-dashboard";
+      content.className = "premium-dashboard analytics-dashboard";
       content.innerHTML = renderAnalyticsDashboard();
     }
 
@@ -6421,6 +8150,17 @@
     // ai_assistant_events + cloudflare/serviceHealth.js (module partage de
     // scoring). Un service sans signal reel affiche "non mesuré"/"Non
     // configuré", jamais "Opérationnel" par defaut.
+
+    function observabilityStatusLabel(status) {
+      const map = {
+        operational: "Opérationnel",
+        degraded: "Dégradé",
+        unavailable: "Indisponible",
+        not_configured: "Non configuré",
+        unknown: "Inconnu",
+      };
+      return map[status] || map.unknown;
+    }
 
     function observabilityStatusBadge(status) {
       const map = {
@@ -6548,60 +8288,88 @@
       const kpis = o.kpis || {};
       const systemEvents = o.systemEvents || {};
       const errorDist = o.errorDistribution || {};
+      const globalScore = kpis.global_score != null ? Number(kpis.global_score) : null;
+      const availability = kpis.availability_percent || null;
+      const avgLatency = kpis.average_latency_ms || null;
+      const totalRequests = Number(kpis.total_requests || 0);
+      const totalErrors = Number(kpis.total_errors || 0);
+      const errorRate = kpis.error_rate_percent || null;
+      const eventsAnalyzed = Number(kpis.events_analyzed || 0);
+      const servicesCount = o.services.length || 0;
+      const globalStatus = kpis.global_status || "unknown";
       return `
-        <div class="exports-header">
-          <div class="exports-toolbar">
-            <span class="exports-realtime">${observabilityStatusBadge(kpis.global_status)}</span>
+        <div class="premium-dashboard-header">
+          <div class="premium-dashboard-title">
+            <h1>Observabilité & Santé du système <span class="realtime-badge">${statusDot()}Temps réel</span></h1>
+            <p>Monitoring de ${escapeHtml(premiumNumber(servicesCount, "0"))} service(s) sur ${escapeHtml(premiumNumber(eventsAnalyzed, "0"))} événement(s) analysés</p>
+          </div>
+          <div>
+            <div class="premium-actions" aria-label="Contrôles observabilité">
+              ${renderIconRefreshButton("premiumRefreshObservabilityBtn", "Actualiser Observabilité")}
+            </div>
+            <p class="sync-label">État : ${escapeHtml(observabilityStatusLabel(globalStatus))}</p>
           </div>
         </div>
-        <section class="exports-kpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;">
-          ${renderObservabilityKpi("État global", kpis.global_score != null ? `${kpis.global_score}/10` : "non mesuré", `${premiumNumber(o.services.length, "0")} service(s) suivis`)}
-          ${renderObservabilityKpi("Disponibilité", kpis.availability_percent != null ? formatPercent(kpis.availability_percent) : "non mesuré", "moyenne des services mesurés")}
-          ${renderObservabilityKpi("Latence moyenne", kpis.average_latency_ms != null ? formatExportDurationLabel(kpis.average_latency_ms) : "non mesuré", "tous services confondus")}
-          ${renderObservabilityKpi("Requêtes totales", premiumNumber(kpis.total_requests, "0"), `${premiumNumber(kpis.events_analyzed, "0")} événement(s) analysés`)}
-          ${renderObservabilityKpi("Taux d'erreurs", kpis.error_rate_percent != null ? formatPercent(kpis.error_rate_percent) : "non mesuré", `${premiumNumber(kpis.total_errors, "0")} erreur(s)`)}
-          ${renderObservabilityKpi("Erreurs", premiumNumber(kpis.total_errors, "0"), "toutes sources")}
+        <section class="premium-grid premium-top-grid">
+          <article class="premium-card">
+            <h2>État global du système</h2>
+            <div class="quick-kpis">
+              <div class="quick-kpi"><span>Score global</span><strong>${escapeHtml(globalScore != null ? `${Math.round(globalScore)}/10` : "non mesuré")}</strong><small>santé système</small></div>
+              <div class="quick-kpi"><span>Disponibilité</span><strong>${escapeHtml(availability != null ? formatPercent(availability) : "non mesuré")}</strong><small>moyenne des services</small></div>
+              <div class="quick-kpi"><span>Requêtes totales</span><strong>${escapeHtml(premiumNumber(totalRequests, "0"))}</strong><small>appels mesurés</small></div>
+              <div class="quick-kpi"><span>Services monitorés</span><strong>${escapeHtml(premiumNumber(servicesCount, "0"))}</strong><small>endpoints suivis</small></div>
+            </div>
+          </article>
+          <article class="premium-card">
+            <h2>Performance & Fiabilité</h2>
+            <div class="quick-kpis">
+              <div class="quick-kpi"><span>Latence moyenne</span><strong>${escapeHtml(avgLatency != null ? formatExportDurationLabel(avgLatency) : "non mesuré")}</strong><small>temps de réponse</small></div>
+              <div class="quick-kpi"><span>Taux d'erreurs</span><strong>${escapeHtml(errorRate != null ? formatPercent(errorRate) : "non mesuré")}</strong><small>erreurs / requêtes</small></div>
+              <div class="quick-kpi"><span>Erreurs totales</span><strong>${escapeHtml(premiumNumber(totalErrors, "0"))}</strong><small>toutes sources</small></div>
+              <div class="quick-kpi"><span>Alertes actives</span><strong>${escapeHtml(premiumNumber(o.alerts.length, "0"))}</strong><small>seuils dépassés</small></div>
+            </div>
+          </article>
         </section>
-        <section class="exports-layout">
-          <article class="export-card">
+        <section class="premium-grid">
+          <article class="premium-card" style="grid-column:1/-1;">
             <h2>Vue d'ensemble des services</h2>
             <div class="table-wrap">
               <table class="document-table">
                 <thead><tr><th>Service</th><th>Statut</th><th>Disponibilité</th><th>Latence (moy.)</th><th>Requêtes</th><th>Erreurs</th><th>Taux d'erreurs</th></tr></thead>
-                <tbody>${o.services.length ? o.services.map(renderObservabilityServiceRow).join("") : `<tr><td colspan="7">Aucun service mesuré.</td></tr>`}</tbody>
+                <tbody>${servicesCount ? o.services.map(renderObservabilityServiceRow).join("") : `<tr><td colspan="7" style="padding:20px;text-align:center;color:#97a5c2;">Aucun service mesuré.</td></tr>`}</tbody>
               </table>
             </div>
           </article>
-          <div class="exports-side-grid">
-            <article class="export-side-card">
-              <h2>Alertes actives</h2>
-              ${renderObservabilityAlertsList(o.alerts)}
-            </article>
-            <article class="export-side-card">
-              <h2>Logs en temps réel</h2>
-              ${renderObservabilityLogsList(o.logs)}
-            </article>
-          </div>
         </section>
-        <section class="exports-layout">
-          <article class="export-card">
-            <h2>Latence par service (dernier jour mesuré)</h2>
+        <section class="premium-grid premium-bottom-grid">
+          <article class="premium-card">
+            <h2>Latence par service (dernier jour)</h2>
             ${renderObservabilityLatencySeries(o.latency)}
           </article>
-          <div class="exports-side-grid">
-            <article class="export-side-card">
-              <h2>Utilisation des ressources</h2>
-              ${renderObservabilityResources(o.resources)}
-            </article>
-            <article class="export-side-card">
-              <h2>Répartition des erreurs par service</h2>
-              ${renderObservabilityBarList(errorDist.by_service)}
-            </article>
-            <article class="export-side-card">
-              <h2>Événements système (par sévérité)</h2>
-              ${renderObservabilityBarList(systemEvents.by_severity)}
-            </article>
-          </div>
+          <article class="premium-card">
+            <h2>Utilisation des ressources</h2>
+            ${renderObservabilityResources(o.resources)}
+          </article>
+        </section>
+        <section class="premium-grid premium-bottom-grid">
+          <article class="premium-card">
+            <h2>Répartition des erreurs par service</h2>
+            ${renderObservabilityBarList(errorDist.by_service)}
+          </article>
+          <article class="premium-card">
+            <h2>Événements système (par sévérité)</h2>
+            ${renderObservabilityBarList(systemEvents.by_severity)}
+          </article>
+          <article class="premium-card">
+            <h2>Alertes actives</h2>
+            ${renderObservabilityAlertsList(o.alerts)}
+          </article>
+        </section>
+        <section class="premium-grid">
+          <article class="premium-card" style="grid-column:1/-1;">
+            <h2>Logs en temps réel</h2>
+            ${renderObservabilityLogsList(o.logs)}
+          </article>
         </section>
       `;
     }
@@ -6612,7 +8380,7 @@
         ? `${o.debug.events_used} événement(s) sur la fenêtre observée`
         : "Aucune donnée d'observabilité récente";
       const content = $("#observabilityContent");
-      content.className = "health health-dashboard observability-dashboard";
+      content.className = "premium-dashboard observability-dashboard";
       content.innerHTML = renderObservabilityDashboard();
     }
 
@@ -7011,6 +8779,7 @@
         ${renderCapabilityPlannerCard(aiState.capability_planner)}
         ${renderSourcePlannerCard(aiState.source_planner)}
         ${renderExecutionPlannerCard(aiState.execution_planner)}
+        ${renderToolPlannerCard(aiState.tool_planner)}
         ${renderResponseQualityCard(aiState.response_quality)}
       `;
     }
@@ -7330,6 +9099,86 @@
             <table>
               <thead><tr><th>evidenceMode</th><th>Occurrences</th></tr></thead>
               <tbody>${evidenceModeRows}</tbody>
+            </table>
+          </div>
+        </article>
+      `;
+    }
+
+    // Tool Planner (cf. cloudflare/toolPlanner.js, Lot 11) : dernier outil
+    // principal, outils requis/optionnels, sequence prevue, clarification/
+    // fichier requis, confiance, top raisons, repartition des outils utilises.
+    function renderToolPlannerCard(stats = {}) {
+      const s = stats || {};
+      const yesNo = (v) => (v === true ? "Oui" : v === false ? "Non" : "n/a");
+      const toolsNeeded = Array.isArray(s.last_tools_needed) ? s.last_tools_needed : [];
+      const toolsOptional = Array.isArray(s.last_tools_optional) ? s.last_tools_optional : [];
+      const toolSequence = Array.isArray(s.last_tool_sequence) ? s.last_tool_sequence : [];
+      const topReasons = Array.isArray(s.top_reasons) ? s.top_reasons : [];
+      const reasonsRows = topReasons.length
+        ? topReasons.map((e) => `<tr><td>${escapeHtml(e.name)}</td><td>${e.count}</td></tr>`).join("")
+        : `<tr><td colspan="2">Aucune raison détectée encore.</td></tr>`;
+      const usageBreakdown = Array.isArray(s.tool_usage_breakdown) ? s.tool_usage_breakdown : [];
+      const usageRows = usageBreakdown.length
+        ? usageBreakdown.map((e) => `<tr><td>${escapeHtml(e.name)}</td><td>${e.count}</td></tr>`).join("")
+        : `<tr><td colspan="2">Aucun plan d'outillage créé encore.</td></tr>`;
+      return `
+        <article class="health-card">
+          <h2>Tool Planner</h2>
+          <div class="health-ai-grid">
+            <article class="health-ai-tile">
+              <span>Dernier outil principal</span>
+              <strong>${escapeHtml(s.last_primary_tool || "n/a")}</strong>
+              <small>${escapeHtml(formatDate(s.last_at) || "n/a")}</small>
+            </article>
+            <article class="health-ai-tile">
+              <span>Outils requis</span>
+              <strong>${toolsNeeded.length ? escapeHtml(toolsNeeded.join(", ")) : "n/a"}</strong>
+            </article>
+            <article class="health-ai-tile">
+              <span>Outils optionnels</span>
+              <strong>${toolsOptional.length ? escapeHtml(toolsOptional.join(", ")) : "n/a"}</strong>
+            </article>
+            <article class="health-ai-tile">
+              <span>Séquence prévue</span>
+              <strong>${toolSequence.length ? escapeHtml(toolSequence.join(" → ")) : "n/a"}</strong>
+            </article>
+            <article class="health-ai-tile">
+              <span>Clarification requise</span>
+              <strong>${escapeHtml(yesNo(s.last_requires_clarification))}</strong>
+              <small>${escapeHtml(s.clarification_required_count ?? 0)} fois sur la fenêtre observée</small>
+            </article>
+            <article class="health-ai-tile">
+              <span>Fichier requis</span>
+              <strong>${escapeHtml(yesNo(s.last_requires_user_file))}</strong>
+              <small>${escapeHtml(s.user_file_required_count ?? 0)} fois · image : ${escapeHtml(s.user_image_required_count ?? 0)} fois</small>
+            </article>
+            <article class="health-ai-tile">
+              <span>Confiance</span>
+              <strong>${escapeHtml(s.last_confidence != null ? formatPercent(s.last_confidence * 100) : "n/a")}</strong>
+            </article>
+            <article class="health-ai-tile">
+              <span>Plans créés</span>
+              <strong>${escapeHtml(s.plans_created_count ?? 0)}</strong>
+            </article>
+            <article class="health-ai-tile">
+              <span>Taux d'erreurs</span>
+              <strong>${escapeHtml(s.error_rate ?? 0)}%</strong>
+              <small>${escapeHtml(s.error_count ?? 0)} erreur(s)</small>
+            </article>
+          </div>
+          <h3>Top raisons</h3>
+          <div class="table-wrap health-table-wrapper">
+            <table>
+              <thead><tr><th>Raison</th><th>Occurrences</th></tr></thead>
+              <tbody>${reasonsRows}</tbody>
+            </table>
+          </div>
+          <h3>Répartition des outils utilisés</h3>
+          <div class="table-wrap health-table-wrapper">
+            <table>
+              <thead><tr><th>Outil</th><th>Occurrences</th></tr></thead>
+              <tbody>${usageRows}</tbody>
             </table>
           </div>
         </article>
@@ -7979,6 +9828,14 @@
       return value == null ? "non mesuré" : `${value}${suffix}`;
     }
 
+    // Le cout exact n'est jamais invente : OpenRouter ne renvoie usage.cost
+    // que pour certains providers/modeles. Quand il est absent, ce n'est pas
+    // "non mesure" (laisse croire a une instrumentation manquante) mais bien
+    // une donnee non fournie par le provider en amont.
+    function costNonFourni(value, suffix = "") {
+      return value == null ? "non fourni par l'API" : `${value}${suffix}`;
+    }
+
     function conversationStatusBadge(status) {
       if (status === "erreur") return `<span class="badge unavailable">${statusDot()}Erreur</span>`;
       return `<span class="badge operational">${statusDot()}Opérationnel</span>`;
@@ -8082,13 +9939,13 @@
               <div><span>Modèle(s)</span><strong>${escapeHtml(detail.models_used?.join(", ") || "non mesuré")}</strong></div>
               <div><span>Latence moyenne</span><strong>${escapeHtml(nonMesure(detail.average_latency_ms, " ms"))}</strong></div>
               <div><span>Tokens</span><strong>${escapeHtml(nonMesure(detail.tokens_total))}</strong></div>
-              <div><span>Coût</span><strong>${escapeHtml(nonMesure(detail.cost_total))}</strong></div>
+              <div><span>Coût</span><strong>${escapeHtml(costNonFourni(detail.cost_total))}</strong></div>
               <div><span>Erreurs</span><strong>${escapeHtml(detail.error_count)}</strong></div>
               <div><span>RAG / Web</span><strong>${escapeHtml(detail.rag?.searches_performed || 0)} / ${escapeHtml(detail.web?.searches_executed || 0)}</strong></div>
             </div>
           </section>
           <section class="detail-inner">
-            <h2 style="padding:0 0 10px;">Pipeline (Capability/Source/Execution Planner, Model Router, RAG, Tavily, Completion Guard…)</h2>
+            <h2 style="padding:0 0 10px;">Pipeline (Capability/Source/Execution/Tool Planner, Model Router, RAG, Tavily, Completion Guard…)</h2>
             ${renderConversationTimelineList(detail.timeline)}
           </section>
           <section class="detail-inner">
@@ -8260,7 +10117,7 @@
           ${renderConversationKpi("Messages / conversation", nonMesure(stats.average_messages_per_conversation), "Moyenne réelle", "#ffb547", 3)}
           ${renderConversationKpi("Satisfaction", stats.average_satisfaction != null ? `${stats.average_satisfaction} / 5` : "non mesuré", `${stats.satisfaction_sample_size || 0} avis admin enregistrés`, "#4fd1ff", 4)}
           ${renderConversationKpi("Temps moyen réponse", nonMesure(stats.average_response_ms, " ms"), "Depuis openrouter_response/assistant_response", "#ff5f6d", 5)}
-          ${renderConversationKpi("Coût total", nonMesure(stats.cost_total), "Dépend de usage.cost OpenRouter", "#ff8a5c", 6)}
+          ${renderConversationKpi("Coût total", costNonFourni(stats.cost_total), "OpenRouter ne renvoie pas toujours usage.cost", "#ff8a5c", 6)}
           ${renderConversationKpi("Tokens", nonMesure(stats.tokens_total), "Dépend de usage OpenRouter", "#5ce1ff", 7)}
         </section>
         <section class="conversation-layout">
@@ -8966,9 +10823,38 @@
       return [["Modules actifs", premiumNumber(metrics.planner_analyses, "0")], ["Pipeline", premiumNumber(metrics.applied_plans, "0")], ["Erreurs", premiumNumber(metrics.errors, "0")], ["Couverture", premiumNumber(metrics.agent_events, "0")]];
     }
 
+    // Statut categoriel expose par maturityEngine.js (domain.status : valeur
+    // anglaise stable operational/degraded/quality_issue/limited_maturity/
+    // not_developed/no_data) -> classe de badge premium deja existante
+    // (.intel-badge.actif/.erreur/.degrade/.non-mesure/.signal-absent).
+    // On mappe sur la cle stable, jamais sur le libelle francais traduit
+    // (status_label), pour rester fiable si le libelle est reformule cote
+    // backend.
+    function domainStatusBadgeClass(status) {
+      const map = {
+        operational: "actif",
+        degraded: "erreur",
+        quality_issue: "degrade",
+        limited_maturity: "degrade",
+        not_developed: "non-mesure",
+        no_data: "signal-absent",
+      };
+      return map[String(status || "")] || "non-mesure";
+    }
+
+    // Dimension nullable (availability_score/quality_score/maturity_score) :
+    // "non mesuré" si la donnée n'existe pas, jamais une valeur fabriquée.
+    function renderDomainDimension(label, value) {
+      const isMeasured = value !== null && value !== undefined && Number.isFinite(Number(value));
+      const text = isMeasured ? `${escapeHtml(premiumDecimal(value, 1))}/10` : "non mesuré";
+      return `<div class="domain-dimension"><span>${escapeHtml(label)}</span><strong class="${isMeasured ? "" : "non-mesure"}">${text}</strong></div>`;
+    }
+
     function renderPremiumDomainCard(domain, index) {
       const color = scoreColor(domain.score);
       const stats = domainStats(domain);
+      const statusLabel = domain.status_label || scoreLabel(domain.score);
+      const explanation = String(domain.explanation || "").trim();
       return `
         <article class="domain-card" style="--score-color:${color}; animation-delay:${index * 18}ms;">
           <header>
@@ -8976,16 +10862,44 @@
               <span class="domain-icon">${iconSvg(domainIcon(domain.domain))}</span>
               <h3>${escapeHtml(domain.domain)}</h3>
             </div>
-            <span class="health-chip">${escapeHtml(scoreLabel(domain.score))}</span>
+            <span class="intel-badge ${domainStatusBadgeClass(domain.status)}">${escapeHtml(statusLabel)}</span>
           </header>
           <div class="domain-score"><strong>${escapeHtml(premiumDecimal(domain.score, 1))}</strong><span>/10</span></div>
           <canvas id="domainChart${index}" aria-label="Courbe statistique ${escapeHtml(domain.domain)} sur 30 jours"></canvas>
+          <div class="domain-dimensions" aria-label="Disponibilité, qualité, maturité">
+            ${renderDomainDimension("Disponibilité", domain.availability_score)}
+            ${renderDomainDimension("Qualité", domain.quality_score)}
+            ${renderDomainDimension("Maturité", domain.maturity_score)}
+          </div>
           <div class="domain-stats">
             ${stats.map(([label, value]) => `<div class="domain-stat"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`).join("")}
           </div>
+          ${explanation ? `<p class="domain-explanation" title="${escapeHtml(explanation)}">${escapeHtml(explanation)}</p>` : ""}
           <div class="domain-health" aria-label="Indicateurs de santé"><span class="mini-dot"></span><span class="mini-dot"></span><span class="mini-dot"></span></div>
         </article>
       `;
+    }
+
+    function buildEventDistribution(health) {
+      const scorecard = health?.scorecard || {};
+      const maturity = health?.maturity || {};
+      const domains = Array.isArray(scorecard.domains) ? scorecard.domains : [];
+      const stats = health?.statistics?.items || [];
+      const statByKey = (key) => stats.find((item) => item.key === key)?.value;
+      const eventCount = statByKey("openrouter_request_count") || statByKey("conversation_count") || domains.reduce((sum, domain) => sum + Number(domain.evidence_count || 0), 0);
+      const aiDomain = domains.find((domain) => domain.domain === "IA") || {};
+      const webDomain = domains.find((domain) => /Recherche/.test(domain.domain)) || {};
+      const documentDomain = domains.find((domain) => /Documents/.test(domain.domain)) || {};
+      const memoryDomain = domains.find((domain) => /Mémoire/.test(domain.domain)) || {};
+      const eventDistribution = [
+        ["IA / LLM", Number(aiDomain.evidence_count || aiDomain.metrics?.responses || 0), "#2f8cff"],
+        ["Recherche Web", Number(webDomain.evidence_count || webDomain.metrics?.searches || 0), "#30d158"],
+        ["Documents", Number(documentDomain.evidence_count || documentDomain.metrics?.events || 0), "#ffb547"],
+        ["Mémoire / RAG", Number(memoryDomain.evidence_count || memoryDomain.metrics?.rag_searches || 0), "#a66cff"],
+        ["Système / Autres", Math.max(0, Number(eventCount || 0) - domains.reduce((sum, item) => sum + Number(item.evidence_count || 0), 0)), "#4fd1ff"],
+      ].map((item) => ({ label: item[0], value: item[1], color: item[2] }));
+      const eventTotal = eventDistribution.reduce((sum, item) => sum + Number(item.value || 0), 0) || Number(eventCount || 0);
+      return { eventDistribution, eventTotal, eventCount, aiDomain, webDomain, documentDomain, memoryDomain };
     }
 
     function renderPremiumDashboard(health) {
@@ -8997,24 +10911,12 @@
       const globalScore = Number(scorecard.global_score ?? maturity.score);
       const percent = Math.round(Math.max(0, Math.min(10, Number(globalScore) || 0)) * 10);
       const color = scoreColor(globalScore);
-      const eventCount = statByKey("openrouter_request_count") || statByKey("conversation_count") || domains.reduce((sum, domain) => sum + Number(domain.evidence_count || 0), 0);
-      const aiDomain = domains.find((domain) => domain.domain === "IA") || {};
-      const webDomain = domains.find((domain) => /Recherche/.test(domain.domain)) || {};
-      const documentDomain = domains.find((domain) => /Documents/.test(domain.domain)) || {};
-      const memoryDomain = domains.find((domain) => /Mémoire/.test(domain.domain)) || {};
+      const { eventDistribution, eventTotal, eventCount, aiDomain, webDomain } = buildEventDistribution(health);
       const errorCount = domains.reduce((sum, domain) => sum + Number(domain.metrics?.errors || domain.metrics?.failures || 0), 0);
       const successRate = aiDomain.metrics?.success_rate ?? webDomain.metrics?.success_rate ?? null;
       const avgLatency = statByKey("average_response_ms") ?? aiDomain.metrics?.average_latency_ms;
       const level = Math.max(1, Math.min(5, Math.ceil(percent / 20)));
       const activeSegments = Math.max(1, Math.round(percent / 10));
-      const eventDistribution = [
-        ["IA / LLM", Number(aiDomain.evidence_count || aiDomain.metrics?.responses || 0), "#2f8cff"],
-        ["Recherche Web", Number(webDomain.evidence_count || webDomain.metrics?.searches || 0), "#30d158"],
-        ["Documents", Number(documentDomain.evidence_count || documentDomain.metrics?.events || 0), "#ffb547"],
-        ["Mémoire / RAG", Number(memoryDomain.evidence_count || memoryDomain.metrics?.rag_searches || 0), "#a66cff"],
-        ["Système / Autres", Math.max(0, Number(eventCount || 0) - domains.reduce((sum, item) => sum + Number(item.evidence_count || 0), 0)), "#4fd1ff"],
-      ].map((item) => ({ label: item[0], value: item[1], color: item[2] }));
-      const eventTotal = eventDistribution.reduce((sum, item) => sum + Number(item.value || 0), 0) || Number(eventCount || 0);
       return `
         <div class="premium-dashboard-header">
           <div class="premium-dashboard-title">
@@ -9025,7 +10927,7 @@
             <div class="premium-actions" aria-label="Commandes dashboard">
               <select aria-label="Période"><option>Aujourd'hui</option><option>7 jours</option><option selected>30 jours</option><option>Depuis installation</option></select>
               <button type="button" id="premiumExportBtn">Exporter</button>
-              <button type="button" class="primary" id="premiumRefreshBtn">Actualiser</button>
+              ${renderIconRefreshButton("premiumRefreshBtn", "Actualiser Dashboard")}
               <button type="button" id="premiumLogoutBtn">Déconnexion</button>
             </div>
             <p class="sync-label">Dernière synchronisation : ${escapeHtml(formatDate(health?.checked_at) || "non disponible")}</p>
@@ -9101,23 +11003,984 @@
         const color = scoreColor(domain.score);
         registerPremiumChart(`domainChart${index}`, { type: "line", data: { labels, datasets: [{ data: buildSeries(index + 1, Number(domain.score || 0), 30, 0.8), borderColor: color, backgroundColor: `${color}24`, fill: true }] }, options: chartOptions({ scales: { x: { display: false }, y: { display: false, min: 0, max: 10 } }, plugins: { legend: { display: false }, tooltip: { enabled: false } } }) });
       });
-      [0, 1, 2, 3].forEach((index) => registerPremiumChart(`historyChart${index}`, { type: "line", data: { labels, datasets: [{ data: buildSeries(index + 7, Math.max(0, globalScore - index * 0.3), 30, 0.55), borderColor: ["#ffb547", "#a66cff", "#30d158", "#2f8cff"][index], fill: false }] }, options: chartOptions({ scales: { x: { display: false }, y: { display: false } }, plugins: { legend: { display: false }, tooltip: { enabled: false } } }) }));
+      [0, 1, 2, 3].forEach((index) => registerPremiumChart(`historyChart${index}`, { type: "line", data: { labels, datasets: [{ data: buildSeries(index + 7, Math.max(0, globalScore - index * 0.3), 30, 0.55), borderColor: ["#ffb547", "#a66cff", "#30d158", "#2f8cff"][index], backgroundColor: ["#ffb547", "#a66cff", "#30d158", "#2f8cff"][index], pointRadius: 3, pointHoverRadius: 4, fill: false }] }, options: chartOptions({ scales: { x: { display: false }, y: { display: false } }, elements: { point: { radius: 3, hoverRadius: 4 }, line: { tension: 0, borderWidth: 2 } }, plugins: { legend: { display: false }, tooltip: { enabled: false } } }) }));
       const activityBase = domains.reduce((acc, domain) => {
         acc[domain.domain] = Math.max(1, Number(domain.evidence_count || domain.score || 1));
         return acc;
       }, {});
       registerPremiumChart("activityChart", {
         type: "line",
-        data: { labels, datasets: [["Réponses IA", activityBase.IA || 1, "#2f8cff"], ["Recherches Web", activityBase["Recherche Web"] || 1, "#30d158"], ["Exports", activityBase.Documents || 1, "#a66cff"], ["Erreurs", domains.reduce((sum, domain) => sum + Number(domain.metrics?.errors || domain.metrics?.failures || 0), 0) || 1, "#ff5f6d"], ["Mémoire", activityBase["Mémoire"] || 1, "#4fd1ff"], ["RAG", Number(health?.rag_usage?.searches_performed || 1), "#ffb547"], ["Tavily", Number(health?.tavily_usage?.searches_executed || 1), "#7c5cff"]].map(([label, base, color], index) => ({ label, data: buildSeries(index + 11, Math.min(300, Number(base) || 1), 30, 18), borderColor: color, backgroundColor: "transparent", pointRadius: 0 })) },
-        options: chartOptions({ plugins: { legend: { display: true, labels: { color: "#c8d3ec", boxWidth: 12, usePointStyle: true } } }, scales: { x: { grid: { color: "rgba(104,128,170,0.08)" }, ticks: { color: "#7f8ca8", maxTicksLimit: 6 } }, y: { beginAtZero: true, grid: { color: "rgba(104,128,170,0.1)" }, ticks: { color: "#7f8ca8", maxTicksLimit: 4 } } } }),
+        data: { labels, datasets: [["Réponses IA", activityBase.IA || 1, "#2f8cff"], ["Recherches Web", activityBase["Recherche Web"] || 1, "#30d158"], ["Exports", activityBase.Documents || 1, "#a66cff"], ["Erreurs", domains.reduce((sum, domain) => sum + Number(domain.metrics?.errors || domain.metrics?.failures || 0), 0) || 1, "#ff5f6d"], ["Mémoire", activityBase["Mémoire"] || 1, "#4fd1ff"], ["RAG", Number(health?.rag_usage?.searches_performed || 1), "#ffb547"], ["Tavily", Number(health?.tavily_usage?.searches_executed || 1), "#7c5cff"]].map(([label, base, color], index) => ({ label, data: buildSeries(index + 11, Math.min(300, Number(base) || 1), 30, 18), borderColor: color, backgroundColor: "transparent", pointBackgroundColor: color, pointBorderColor: color, pointRadius: 3, pointHoverRadius: 4 })) },
+        options: chartOptions({ plugins: { legend: { display: true, labels: { color: "#c8d3ec", boxWidth: 12, usePointStyle: true } } }, elements: { point: { radius: 3, hoverRadius: 4 }, line: { tension: 0, borderWidth: 2 } }, scales: { x: { grid: { color: "rgba(104,128,170,0.08)" }, ticks: { color: "#7f8ca8", maxTicksLimit: 6 } }, y: { beginAtZero: true, grid: { color: "rgba(104,128,170,0.1)" }, ticks: { color: "#7f8ca8", maxTicksLimit: 4 } } } }),
       });
-      const eventValues = [Number(domains.find((domain) => domain.domain === "IA")?.evidence_count || 0), Number(domains.find((domain) => /Recherche/.test(domain.domain))?.evidence_count || 0), Number(domains.find((domain) => /Documents/.test(domain.domain))?.evidence_count || 0), Number(domains.find((domain) => /Mémoire/.test(domain.domain))?.evidence_count || 0), Number(domains.find((domain) => /Observ/.test(domain.domain))?.evidence_count || 0)].map((value) => Math.max(1, value));
-      registerPremiumChart("eventDonutChart", { type: "doughnut", data: { labels: ["IA / LLM", "Recherche Web", "Documents", "Mémoire / RAG", "Système / Autres"], datasets: [{ data: eventValues, backgroundColor: ["#2f8cff", "#30d158", "#ffb547", "#a66cff", "#4fd1ff"], borderWidth: 0, cutout: "62%" }] }, options: chartOptions({ scales: {}, plugins: { legend: { display: false } } }) });
+      const { eventDistribution } = buildEventDistribution(health);
+      registerPremiumChart("eventDonutChart", { type: "doughnut", data: { labels: eventDistribution.map((item) => item.label), datasets: [{ data: eventDistribution.map((item) => item.value), backgroundColor: eventDistribution.map((item) => item.color), borderWidth: 0, cutout: "62%" }] }, options: chartOptions({ scales: {}, plugins: { legend: { display: false } } }) });
       registerPremiumChart("radarChart", {
         type: "radar",
         data: { labels: domains.map((domain) => domain.domain), datasets: [{ label: "Score actuel", data: domains.map((domain) => Number(domain.score || 0)), borderColor: "#2f8cff", backgroundColor: "rgba(47,140,255,0.18)", pointBackgroundColor: "#4fd1ff", borderWidth: 2 }, { label: "Objectif", data: domains.map(() => 9), borderColor: "#30d158", backgroundColor: "rgba(48,209,88,0.08)", pointBackgroundColor: "#30d158", borderWidth: 1.5, borderDash: [5, 5] }] },
         options: chartOptions({ scales: { r: { min: 0, max: 10, ticks: { display: false }, grid: { color: "rgba(104,128,170,0.22)" }, angleLines: { color: "rgba(104,128,170,0.18)" }, pointLabels: { color: "#c8d3ec", font: { size: 12 } } } }, plugins: { legend: { display: true, labels: { color: "#c8d3ec", boxWidth: 12, usePointStyle: true } } } }),
       });
+    }
+
+    function measured(value, suffix = "") {
+      if (value === null || value === undefined || value === "") return "non mesuré";
+      return `${value}${suffix}`;
+    }
+
+    function measuredNumber(value) {
+      return value === null || value === undefined || value === "" ? "non mesuré" : premiumNumber(value, "non mesuré");
+    }
+
+    function clampPercent(value) {
+      const number = Number(value);
+      if (!Number.isFinite(number)) return null;
+      return Math.max(0, Math.min(100, number));
+    }
+
+    function normalizeScorePercent(value) {
+      const number = Number(value);
+      if (!Number.isFinite(number)) return null;
+      if (number <= 1) return clampPercent(number * 100);
+      if (number <= 10) return clampPercent(number * 10);
+      return clampPercent(number);
+    }
+
+    function numericSignal(value) {
+      const number = Number(value);
+      return Number.isFinite(number) ? number : null;
+    }
+
+    function refreshIconMarkup() {
+      return `<img class="refresh-symbol" src="../assets/images/ui/icons8-synchronize-48.png" alt="" aria-hidden="true">`;
+    }
+
+    function renderIconRefreshButton(id, label, extraClass = "primary") {
+      return `<button type="button" class="${escapeHtml(extraClass)} refresh-icon" id="${escapeHtml(id)}" aria-label="${escapeHtml(label)}" title="${escapeHtml(label)}">${refreshIconMarkup()}</button>`;
+    }
+
+    function renderIntelProgressRow(label, value, percent, color = "#7c5cff") {
+      const safePercent = clampPercent(percent);
+      const isEmpty = safePercent === null;
+      const displayValue = value === null || value === undefined || value === "" ? "non mesuré" : String(value);
+      return `
+        <div class="intel-progress-row">
+          <span>${escapeHtml(label)}</span>
+          <div class="intel-progress-track ${isEmpty ? "is-empty" : ""}" aria-label="${escapeHtml(label)} ${escapeHtml(displayValue)}">
+            <i style="--progress-value:${isEmpty ? 0 : safePercent}%; --progress-color:${color};"></i>
+          </div>
+          <strong>${escapeHtml(displayValue)}</strong>
+        </div>
+      `;
+    }
+
+    function renderIntelRadial(label, value, percent, color = "#7c5cff", caption = "") {
+      const safePercent = clampPercent(percent);
+      const displayValue = value === null || value === undefined || value === "" ? "non mesuré" : String(value);
+      return `
+        <div class="intel-radial-panel">
+          <div class="intel-radial" style="--radial-value:${safePercent ?? 0}%; --radial-color:${color};" role="img" aria-label="${escapeHtml(label)} ${escapeHtml(displayValue)}">
+            <div class="intel-radial-value"><strong>${escapeHtml(displayValue)}</strong><span>${escapeHtml(label)}</span></div>
+          </div>
+          <div class="intel-radial-copy">
+            <strong>${escapeHtml(safePercent === null ? "Aucune progression mesurée" : `${Math.round(safePercent)}%`)}</strong>
+            <span>${escapeHtml(caption || "Signal /admin/health")}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderIntelMiniBars(values, color = "#7c5cff") {
+      const numeric = values.map(numericSignal).filter((value) => value !== null);
+      if (!numeric.length) return `<div class="intel-mini-bars" style="--bars-count:1;"><span style="--bar-value:4%; --bar-color:rgba(104,128,170,0.28); --bar-opacity:0.45;"></span></div>`;
+      const max = Math.max(...numeric, 1);
+      return `
+        <div class="intel-mini-bars" style="--bars-count:${numeric.length};">
+          ${numeric.map((value) => `<span style="--bar-value:${percentFromCount(value, max)}%; --bar-color:${color};"></span>`).join("")}
+        </div>
+      `;
+    }
+
+    function renderServiceStack(operational, warnings, critical, total) {
+      if (!total) return "";
+      return `
+        <div class="intel-service-stack" aria-label="Répartition santé services">
+          <span style="--stack-value:${percentFromCount(operational, total)}%; --stack-color:#30d158;"></span>
+          <span style="--stack-value:${percentFromCount(warnings, total)}%; --stack-color:#ffb547;"></span>
+          <span style="--stack-value:${percentFromCount(critical, total)}%; --stack-color:#ff5f6d;"></span>
+        </div>
+      `;
+    }
+
+    function percentFromCount(value, max) {
+      const count = Number(value);
+      const highest = Number(max);
+      if (!Number.isFinite(count) || count <= 0 || !Number.isFinite(highest) || highest <= 0) return 0;
+      return Math.max(4, Math.min(100, Math.round((count / highest) * 100)));
+    }
+
+    function activityItems(health, prefixes = []) {
+      const items = Array.isArray(health?.recent_activity?.items) ? health.recent_activity.items : [];
+      return items.filter((item) => prefixes.some((prefix) => String(item.type || "").startsWith(prefix)));
+    }
+
+    function activityCount(health, prefixes = []) {
+      return activityItems(health, prefixes).length;
+    }
+
+    function renderIntelKv(label, value) {
+      return `<div class="intel-kv-row"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`;
+    }
+
+    function plannerCount(stats, keys = []) {
+      for (const key of keys) {
+        const value = Number(stats?.[key]);
+        if (Number.isFinite(value)) return value;
+      }
+      return null;
+    }
+
+    function firstMeasured(...values) {
+      return values.find((value) => value !== null && value !== undefined && value !== "") ?? null;
+    }
+
+    function intelStatus(status) {
+      const normalized = String(status || "").toLowerCase();
+      if (["actif", "active", "operational", "sain", "healthy"].includes(normalized)) return { label: "Actif", className: "actif" };
+      if (["disponible", "available"].includes(normalized)) return { label: "Disponible", className: "actif" };
+      if (["inactive", "inactif"].includes(normalized)) return { label: "Inactif", className: "non-mesure" };
+      if (normalized.includes("non expos")) return { label: "Non exposé", className: "signal-absent" };
+      if (normalized.includes("error") || normalized.includes("failed") || normalized.includes("erreur")) return { label: "Erreur", className: "erreur" };
+      if (normalized.includes("degrad") || normalized.includes("partial")) return { label: "Dégradé", className: "degrade" };
+      if (normalized.includes("absent")) return { label: "Signal absent", className: "signal-absent" };
+      if (normalized.includes("impl")) return { label: "Non implémenté", className: "signal-absent" };
+      if (normalized.includes("lecture")) return { label: "Lecture seule", className: "non-mesure" };
+      if (normalized.includes("local")) return { label: "Branché local", className: "actif" };
+      if (normalized.includes("aucune")) return { label: "Aucune donnée", className: "signal-absent" };
+      return { label: "Non mesuré", className: "non-mesure" };
+    }
+
+    function renderIntelBadge(status) {
+      const item = intelStatus(status);
+      return `<span class="intel-badge ${item.className}">${escapeHtml(item.label)}</span>`;
+    }
+
+    function settingsToolPrefs() {
+      try {
+        const storage = window.localStorage;
+        if (!storage) return {};
+        const parsed = JSON.parse(storage.getItem("dbs_tool_activation") || "{}");
+        return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+      } catch {
+        return {};
+      }
+    }
+
+    function saveSettingsToolPref(key, enabled) {
+      const prefs = settingsToolPrefs();
+      prefs[key] = Boolean(enabled);
+      try {
+        window.localStorage?.setItem("dbs_tool_activation", JSON.stringify(prefs));
+        return true;
+      } catch {
+        setNotice("#appNotice", "Préférence locale non persistée : localStorage indisponible.", "error");
+        return false;
+      }
+    }
+
+    function documentSupport(health, format) {
+      const docs = Array.isArray(health?.documents) ? health.documents : [];
+      return docs.find((item) => String(item.format || "").toUpperCase() === format);
+    }
+
+    function hasMeasuredValue(value) {
+      return value !== null && value !== undefined && value !== "" && value !== "n/a";
+    }
+
+    function measuredPositive(value) {
+      const number = Number(value);
+      return Number.isFinite(number) && number > 0;
+    }
+
+    function makeSettingsTool(key, title, backendAvailable, backendDetail, detail) {
+      const prefs = settingsToolPrefs();
+      const hasLocalPreference = Object.prototype.hasOwnProperty.call(prefs, key);
+      const localPreference = hasLocalPreference ? prefs[key] === true : false;
+      const isBackendKnown = backendAvailable === true || backendAvailable === false;
+      const effectiveEnabled = backendAvailable === true && localPreference === true;
+      const backendState = backendAvailable === true
+        ? "Disponible"
+        : (backendAvailable === false ? "Non exposé backend" : "Backend inconnu");
+      const effectiveState = effectiveEnabled
+        ? "Actif"
+        : (backendAvailable === true ? "Inactif localement" : (backendAvailable === false ? "Non implémenté" : "Non exposé backend"));
+      return {
+        key,
+        title,
+        backendAvailable: backendAvailable === true,
+        isBackendKnown,
+        backendState,
+        backendDetail,
+        detail,
+        localPreference,
+        localPreferenceLabel: hasLocalPreference ? (localPreference ? "Activée" : "Désactivée") : "Non définie",
+        effectiveEnabled,
+        effectiveState,
+        persistence: hasLocalPreference ? "localStorage: dbs_tool_activation" : "Préférence par défaut locale",
+      };
+    }
+
+    function settingsTools(health = {}) {
+      const backendKnown = Boolean(health?.checked_at && !health?.fallback);
+      const config = health.configuration || {};
+      const ai = health.ai_state || {};
+      const tool = ai.tool_planner || {};
+      const rag = health.rag_usage || {};
+      const tavily = health.tavily_usage || {};
+      const pdf = documentSupport(health, "PDF");
+      const docx = documentSupport(health, "DOCX");
+      const exportsCount = activityCount(health, ["export"]);
+      const toolPlannerAvailable = backendKnown && Boolean(
+        plannerCount(tool, ["plans_created_count"]) !== null
+        || Array.isArray(tool.tool_usage_breakdown)
+        || hasMeasuredValue(tool.last_primary_tool)
+      );
+      const tavilyAvailable = backendKnown && Boolean(
+        config.tavily_api_key_configured === true
+        || measuredPositive(tavily.searches_executed)
+        || hasMeasuredValue(tavily.endpoint)
+      );
+      const ragAvailable = backendKnown && Boolean(
+        rag.project_rag_active === true
+        || measuredPositive(rag.searches_performed)
+        || measuredPositive(rag.contexts_used)
+      );
+      const exportsAvailable = backendKnown && Boolean(exportsCount > 0 || health.exports_enabled === true || health.exports_available === true);
+      return [
+        makeSettingsTool("tool_planner", "Tool Planner", backendKnown ? toolPlannerAvailable : null, toolPlannerAvailable ? "ai_state.tool_planner mesuré" : "ai_state.tool_planner absent ou non mesuré", "Planification d’outils lue depuis /admin/health."),
+        makeSettingsTool("web_search", "Web Search / Tavily", backendKnown ? tavilyAvailable : null, tavilyAvailable ? "Tavily configuré ou activité mesurée" : "Tavily non exposé comme disponible", "Recherche web disponible seulement si Tavily est exposé ou mesuré."),
+        makeSettingsTool("rag", "RAG", backendKnown ? ragAvailable : null, ragAvailable ? "Signaux RAG mesurés" : "Aucun signal RAG disponible", "Recherche documentaire basée sur les signaux RAG de /admin/health."),
+        makeSettingsTool("pdf", "PDF", backendKnown ? Boolean(pdf) : null, pdf ? `Document support: ${pdf.status || "détecté"}` : "Support PDF non exposé", "Support document PDF exposé par /admin/health."),
+        makeSettingsTool("docx", "DOCX", backendKnown ? Boolean(docx) : null, docx ? `Document support: ${docx.status || "détecté"}` : "Support DOCX non exposé", "Support document DOCX exposé par /admin/health."),
+        makeSettingsTool("exports", "Exports", backendKnown ? exportsAvailable : null, exportsAvailable ? "Exports mesurés ou explicitement disponibles" : "Disponibilité exports non exposée par /admin/health", "Les actions réelles restent dans l’onglet Exports."),
+        makeSettingsTool("ocr", "OCR", backendKnown ? false : null, "Aucun compteur OCR exposé par /admin/health", "Impossible à activer sans signal backend."),
+        makeSettingsTool("vision", "Vision", backendKnown ? false : null, "Aucun provider Vision exposé par /admin/health", "Impossible à activer sans signal backend."),
+        makeSettingsTool("images", "Images", backendKnown ? false : null, "Aucun pipeline image mesuré par /admin/health", "Impossible à activer sans signal backend."),
+        makeSettingsTool("calculator", "Calculatrice", backendKnown ? false : null, "Aucun outil calculatrice exposé par /admin/health", "Impossible à activer sans signal backend."),
+        makeSettingsTool("github", "GitHub", backendKnown ? false : null, "Aucune intégration GitHub admin exposée par /admin/health", "Impossible à activer sans signal backend."),
+      ];
+    }
+
+    function renderSettingsStateRow(label, value) {
+      return `<div><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`;
+    }
+
+    function renderSettingsToolCard(tool) {
+      const cardClass = tool.effectiveEnabled ? "is-enabled" : (tool.backendAvailable ? "" : "is-unavailable");
+      const backendLabel = tool.backendAvailable ? "Disponible" : "Non exposé";
+      const studioLabel = tool.localPreferenceLabel;
+      const effectiveLabel = tool.effectiveEnabled ? "Actif" : (tool.backendAvailable ? "Inactif" : "Non implémenté");
+      return `
+        <article class="settings-tool-card ${cardClass}">
+          <div class="settings-tool-head">
+            <strong>${escapeHtml(tool.title)}</strong>
+            <button class="tool-toggle" type="button" role="switch" aria-label="Préférence locale ${escapeHtml(tool.title)}" aria-checked="${tool.localPreference ? "true" : "false"}" data-tool-key="${escapeHtml(tool.key)}" ${tool.backendAvailable ? "" : "disabled"}></button>
+          </div>
+          <div class="settings-tool-state">
+            ${renderSettingsStateRow("Backend", backendLabel)}
+            ${renderSettingsStateRow("Studio", tool.backendAvailable ? studioLabel : `${studioLabel} ignorée`)}
+            ${renderSettingsStateRow("Effectif", effectiveLabel)}
+            ${renderSettingsStateRow("Persistance", tool.persistence)}
+          </div>
+          <div class="settings-tool-meta">
+            ${renderIntelBadge(tool.effectiveEnabled ? "actif" : (tool.backendAvailable ? "disponible" : "non exposé"))}
+          </div>
+        </article>
+      `;
+    }
+
+    function latestPipelineDecision(health) {
+      const ai = health?.ai_state || {};
+      const quality = ai.response_quality || {};
+      const source = ai.source_planner || {};
+      const tool = ai.tool_planner || {};
+      const router = ai.model_router || {};
+      const tier = ai.model_tiers || {};
+      const confidence = firstMeasured(tool.last_confidence, ai.execution_planner?.last_confidence, source.last_confidence, ai.capability_planner?.last_confidence);
+      const usedSources = [
+        source.last_use_rag || health?.rag_usage?.searches_performed ? "RAG" : "",
+        source.last_use_web || health?.tavily_usage?.searches_executed ? "Web" : "",
+      ].filter(Boolean).join(" + ");
+      const hasPipelineData = Boolean(
+        ai.capability_planner?.analyses_count
+        || source.plans_created_count
+        || ai.execution_planner?.plans_created_count
+        || tool.plans_created_count
+        || ai.prompt_orchestrator?.intents_detected
+      );
+      return {
+        intent: firstMeasured(ai.prompt_orchestrator?.last_intent, ai.execution_planner?.last_primary_goal, "non mesuré"),
+        evidence: firstMeasured(source.last_evidence_need, source.last_source_requirement, "non mesuré"),
+        tool: firstMeasured(tool.last_primary_tool, "non mesuré"),
+        sources: usedSources || "non mesuré",
+        model: firstMeasured(ai.last_model_used, router.last_provider_model, ai.model_resolved, "non mesuré"),
+        tier: firstMeasured(tier.last_tier_used, tier.last_tier_requested, "non mesuré"),
+        latency: formatMs(ai.average_latency_ms),
+        quality: firstMeasured(quality.average_score, quality.last_score_after, "non mesuré"),
+        confidence: confidence == null ? "non mesuré" : formatPercent(Number(confidence) * 100),
+        status: hasPipelineData ? "sain" : "signal absent",
+      };
+    }
+
+    function renderDecisionItem(label, value) {
+      return `<div class="decision-item"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`;
+    }
+
+    function renderLatestDecisionCard(health) {
+      const decision = latestPipelineDecision(health);
+      return `
+        <article class="intelligence-card decision-card">
+          <div class="decision-focus">
+            ${renderIntelBadge(decision.status)}
+            <strong>${escapeHtml(decision.intent)}</strong>
+            <span>Dernière décision cognitive consolidée depuis /admin/health.</span>
+          </div>
+          <div class="decision-grid">
+            ${renderDecisionItem("Besoin de preuve", decision.evidence)}
+            ${renderDecisionItem("Outil principal", decision.tool)}
+            ${renderDecisionItem("Sources utilisées", decision.sources)}
+            ${renderDecisionItem("Modèle utilisé", decision.model)}
+            ${renderDecisionItem("Tier modèle", decision.tier)}
+            ${renderDecisionItem("Latence", decision.latency)}
+            ${renderDecisionItem("Score qualité", String(decision.quality))}
+            ${renderDecisionItem("Confiance pipeline", decision.confidence)}
+            ${renderDecisionItem("État global", intelStatus(decision.status).label)}
+          </div>
+        </article>
+      `;
+    }
+
+    function mainReason(stats) {
+      const top = Array.isArray(stats?.top_reasons) ? stats.top_reasons[0]?.name : null;
+      return firstMeasured(top, stats?.last_fallback_behavior, stats?.last_source_requirement, stats?.last_primary_goal, stats?.last_intent, "aucune donnée");
+    }
+
+    function renderPipelineStep(index, title, stats, detail, color = "#7c5cff", icon = "AI") {
+      const count = plannerCount(stats, ["plans_created_count", "analyses_count", "intents_detected", "attempts", "total", "analyzed_count", "sent_count", "provider_fallback_count", "cloudflare_ai_attempts", "all_models_failed_count"]);
+      const hasSignal = count !== null && count > 0;
+      const errorCount = Number(stats?.error_count || stats?.cloudflare_ai_failures || 0);
+      const status = errorCount > 0 && !hasSignal ? "erreur" : (hasSignal ? "actif" : "signal absent");
+      const confidence = stats?.last_confidence == null ? "non mesuré" : formatPercent(Number(stats.last_confidence) * 100);
+      return `
+        <article class="pipeline-step" style="--step-color:${color};">
+          <div class="pipeline-topline"><div class="pipeline-index">${index}</div><div class="pipeline-icon">${escapeHtml(icon)}</div></div>
+          <strong>${escapeHtml(title)}</strong>
+          <span>${escapeHtml(detail || "aucune donnée")}</span>
+          ${renderIntelBadge(status)}
+          <div class="pipeline-meta">
+            <small>${count === null ? "volume non mesuré" : `${escapeHtml(premiumNumber(count, "0"))} signal(s)`}</small>
+            <small>Confiance: ${escapeHtml(confidence)}</small>
+            <small class="pipeline-reason">Raison: ${escapeHtml(mainReason(stats))}</small>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderIntelligencePipeline(health) {
+      const ai = health?.ai_state || {};
+      const quality = ai.response_quality || {};
+      const guard = ai.completion_guard || {};
+      const completionTotal = (guard.truncated_count || 0) + (guard.continued_count || 0)
+        + (guard.continuation_failed_count || 0) + (guard.structure_closed_count || 0);
+      const tierTotal = Array.isArray(ai.model_tiers?.success_rate_by_tier)
+        ? ai.model_tiers.success_rate_by_tier.reduce((sum, item) => sum + Number(item.total || 0), 0)
+        : null;
+      const llmStats = {
+        attempts: Number(ai.model_router?.openrouter_attempts || 0) + Number(ai.model_router?.cloudflare_ai_attempts || 0),
+      };
+      const completionStats = completionTotal ? { total: completionTotal, error_count: guard.continuation_failed_count || 0 } : {};
+      const completionDetail = completionTotal
+        ? `${guard.continued_count || 0} continuation(s) · ${guard.truncated_count || 0} troncature(s) détectée(s)`
+        : "Aucun signal completion";
+      return `
+        <article class="intelligence-card">
+          <header><h2>Pipeline cognitif</h2><span class="badge operational">${statusDot()}Données /admin/health</span></header>
+          <div class="cognitive-pipeline">
+            ${renderPipelineStep(1, "Capability Planner", ai.capability_planner, ai.capability_planner?.last_complexity || "Complexité et capacités", "#a66cff", "CP")}
+            ${renderPipelineStep(2, "Source Planner", ai.source_planner, ai.source_planner?.last_source_requirement || "Sources et preuves", "#4fd1ff", "SP")}
+            ${renderPipelineStep(3, "Execution Planner", ai.execution_planner, ai.execution_planner?.last_primary_goal || "Plan d'exécution", "#30d158", "EX")}
+            ${renderPipelineStep(4, "Tool Planner", ai.tool_planner, ai.tool_planner?.last_primary_tool || "Plan d'outillage", "#ffb547", "TL")}
+            ${renderPipelineStep(5, "Prompt Orchestrator", ai.prompt_orchestrator, ai.prompt_orchestrator?.last_intent || "Profil de prompt", "#a66cff", "PR")}
+            ${renderPipelineStep(6, "Model Router", ai.model_router, ai.model_router?.last_provider_used || "Provider", "#30d158", "MR")}
+            ${renderPipelineStep(7, "Model Tier", { total: tierTotal }, ai.model_tiers?.last_tier_used || ai.model_tiers?.last_tier_requested || "Tier", "#ffb547", "MT")}
+            ${renderPipelineStep(8, "LLM", llmStats, ai.last_model_used || ai.model_active || "Modèle", "#4fd1ff", "LLM")}
+            ${renderPipelineStep(9, "Completion Guard", completionStats, completionDetail, "#ffb547", "CG")}
+            ${renderPipelineStep(10, "Response Quality", quality, quality.last_grade ? `Note ${quality.last_grade}` : "Score qualité", "#ff5f6d", "RQ")}
+          </div>
+          <div class="intelligence-strip">
+            <span>Modèle utilisé: ${escapeHtml(ai.last_model_used || ai.model_resolved || "non mesuré")}</span>
+            <span>Provider: ${escapeHtml(ai.model_router?.last_provider_used || ai.provider || "non mesuré")}</span>
+            <span>Latence: ${escapeHtml(formatMs(ai.average_latency_ms))}</span>
+            <span>Score global: ${escapeHtml(measured(health?.maturity?.score, "/10"))}</span>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderMemoryContextSection(health) {
+      const rag = health?.rag_usage || {};
+      const stats = health?.statistics?.items || [];
+      const stat = (key) => stats.find((item) => item.key === key)?.value;
+      return `
+        <article class="intelligence-card">
+          <header><h2>Mémoire & Contexte</h2></header>
+          <div class="intel-kv-list">
+            ${renderIntelKv("Mémoire conversationnelle", "locale")}
+            ${renderIntelKv("Mémoire projet", rag.project_rag_active ? "active" : "non mesuré")}
+            ${renderIntelKv("Mémoire utilisateur", "non mesuré")}
+            ${renderIntelKv("Contexte actif", measuredNumber(rag.contexts_used))}
+            ${renderIntelKv("Taille contexte", measuredNumber(rag.context_size_tokens))}
+            ${renderIntelKv("Historique", measuredNumber(stat("conversation_count")))}
+            ${renderIntelKv("Citations", measuredNumber(rag.citations_generated))}
+            ${renderIntelKv("RAG utilisé", measuredNumber(rag.searches_performed))}
+          </div>
+        </article>
+      `;
+    }
+
+    function renderModelsSection(health) {
+      const ai = health?.ai_state || {};
+      const router = ai.model_router || {};
+      const tiers = ai.model_tiers || {};
+      const byModel = Array.isArray(router.success_rate_by_model) ? router.success_rate_by_model : [];
+      const openRouter = byModel.filter((item) => item.provider !== "cloudflare_ai").reduce((acc, item) => {
+        acc.successes += Number(item.successes || 0);
+        acc.failures += Number(item.failures || 0);
+        return acc;
+      }, { successes: 0, failures: 0 });
+      return `
+        <article class="intelligence-card">
+          <header><h2>Modèles IA</h2></header>
+          <div class="intel-kv-list">
+            ${renderIntelKv("Cloudflare AI", `${measuredNumber(router.cloudflare_ai_successes)} succès / ${measuredNumber(router.cloudflare_ai_failures)} échecs`)}
+            ${renderIntelKv("OpenRouter", byModel.length ? `${premiumNumber(openRouter.successes, "0")} succès / ${premiumNumber(openRouter.failures, "0")} échecs` : "non mesuré")}
+            ${renderIntelKv("Fallback", measuredNumber(router.provider_fallback_count))}
+            ${renderIntelKv("Tier", tiers.last_tier_used || tiers.last_tier_requested || "non mesuré")}
+            ${renderIntelKv("Modèle réellement utilisé", ai.last_model_used || router.last_provider_model || "non mesuré")}
+            ${renderIntelKv("Latence", formatMs(ai.average_latency_ms))}
+            ${renderIntelKv("Coût estimé (Capability Planner)", measured(ai.capability_planner?.last_estimated_cost))}
+          </div>
+        </article>
+      `;
+    }
+
+    function renderToolsSection(health) {
+      const ai = health?.ai_state || {};
+      const tool = ai.tool_planner || {};
+      const tavily = health?.tavily_usage || {};
+      const rag = health?.rag_usage || {};
+      const docs = Array.isArray(health?.documents) ? health.documents : [];
+      const docCount = (format) => docs.find((item) => String(item.format || "").toUpperCase() === format)?.max_tested_size || "non mesuré";
+      const tools = [
+        ["Tool Planner", plannerCount(tool, ["plans_created_count"]), "#7c5cff"],
+        ["Web Search", tavily.searches_executed, "#4fd1ff"],
+        ["RAG", rag.searches_performed, "#30d158"],
+        ["OCR", null, "#8b95a7"],
+        ["Vision", null, "#8b95a7"],
+        ["PDF", docCount("PDF"), "#ef4444"],
+        ["DOCX", docCount("DOCX"), "#2f8cff"],
+        ["Images", null, "#8b95a7"],
+        ["Exports", activityCount(health, ["export"]), "#ffb547"],
+        ["Calculatrice", null, "#8b95a7"],
+        ["GitHub", null, "#8b95a7"],
+      ];
+      const numericMax = Math.max(...tools.map(([, value]) => Number(value)).filter(Number.isFinite), 1);
+      return `
+        <article class="intelligence-card">
+          <header><h2>Outils & Capacités</h2></header>
+          <div class="intel-tool-list">
+            ${tools.map(([label, value, color]) => `
+              <div class="intel-tool-row">
+                <span>${escapeHtml(label)}</span>
+                <div class="intel-tool-bar ${Number.isFinite(Number(value)) ? "" : "is-empty"}"><span style="--tool-value:${percentFromCount(value, numericMax)}%; --tool-color:${color};"></span></div>
+                <strong>${escapeHtml(value === null || value === undefined || value === "" ? "signal absent" : String(value))}</strong>
+              </div>
+            `).join("")}
+          </div>
+        </article>
+      `;
+    }
+
+    function renderQualitySection(health) {
+      const quality = health?.ai_state?.response_quality || {};
+      const guard = health?.ai_state?.completion_guard || {};
+      const completionTotal = (guard.truncated_count || 0) + (guard.continued_count || 0)
+        + (guard.continuation_failed_count || 0) + (guard.structure_closed_count || 0);
+      const scoreRaw = firstMeasured(quality.average_score, quality.last_score_after);
+      const scorePercent = normalizeScorePercent(scoreRaw);
+      const confidencePercent = quality.last_confidence != null ? normalizeScorePercent(quality.last_confidence) : null;
+      const bars = [
+        ["Response Quality", quality.analyzed_count, "#a66cff"],
+        ["Completion Guard", completionTotal || null, "#4fd1ff"],
+        ["Hallucinations", quality.hallucination_count, "#ff5f6d"],
+        ["Citations", quality.citation_rate, "#30d158"],
+        ["Réparations", quality.repaired_count, "#ffb547"],
+        ["Confiance", confidencePercent != null ? formatPercent(confidencePercent) : "non mesuré", confidencePercent, "#7c5cff"],
+      ];
+      const countMax = Math.max(...bars.map(([, value]) => Number(value)).filter(Number.isFinite), 1);
+      return `
+        <article class="intelligence-card">
+          <header><h2>Qualité & Fiabilité</h2></header>
+          <div class="intelligence-visual-layout">
+            ${renderIntelRadial("Score qualité", scoreRaw ?? "non mesuré", scorePercent, "#a66cff", "Response Quality Controller")}
+            <div class="intel-progress-list">
+              ${bars.map(([label, value, percentOrColor, maybeColor]) => {
+                const explicitPercent = typeof percentOrColor === "number" ? percentOrColor : null;
+                const color = maybeColor || percentOrColor;
+                const percent = explicitPercent ?? percentFromCount(value, countMax);
+                const display = label === "Completion Guard" && completionTotal
+                  ? `${premiumNumber(completionTotal, "0")} · ${guard.continuation_failed_count || 0} échec(s)`
+                  : (typeof value === "string" ? value : measuredNumber(value));
+                return renderIntelProgressRow(label, display, value == null && explicitPercent == null ? null : percent, color);
+              }).join("")}
+              ${renderIntelMiniBars([quality.analyzed_count, completionTotal, quality.hallucination_count, quality.citation_rate, quality.repaired_count], "#a66cff")}
+            </div>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderMaturitySection(health) {
+      const services = Array.isArray(health?.services) ? health.services : [];
+      const operational = services.filter((service) => normalizedHealthStatus(service.status) === "operational").length;
+      const critical = services.filter((service) => normalizedHealthStatus(service.status) === "unavailable").length;
+      const warnings = services.filter((service) => normalizedHealthStatus(service.status) === "partial").length;
+      const events = Array.isArray(health?.recent_activity?.items) ? health.recent_activity.items : [];
+      const pipelineErrors = events.filter((event) => /error|failed/i.test(`${event.type || ""} ${event.detail || ""}`)).length;
+      const maturityScore = firstMeasured(health?.scorecard?.global_score, health?.maturity?.score);
+      const maturityPercent = normalizeScorePercent(maturityScore);
+      const servicePercent = services.length ? (operational / services.length) * 100 : null;
+      const totalIssues = critical + warnings + pipelineErrors;
+      const issuePercent = services.length || events.length ? clampPercent((totalIssues / Math.max(services.length + events.length, 1)) * 100) : null;
+      return `
+        <article class="intelligence-card">
+          <header><h2>Maturité & Santé</h2></header>
+          <div class="intelligence-visual-layout">
+            ${renderIntelRadial("Maturité", maturityScore != null ? measured(maturityScore, "/10") : "non mesuré", maturityPercent, "#ffb547", "Maturity Engine")}
+            <div class="intel-progress-list">
+              ${renderServiceStack(operational, warnings, critical, services.length)}
+              ${renderIntelProgressRow("Service Health", services.length ? `${operational} / ${services.length}` : "non mesuré", servicePercent, "#30d158")}
+              ${renderIntelProgressRow("Erreurs critiques", services.length || pipelineErrors ? premiumNumber(critical + pipelineErrors, "0") : "non mesuré", issuePercent, "#ff5f6d")}
+              ${renderIntelProgressRow("Avertissements", services.length ? premiumNumber(warnings, "0") : "non mesuré", services.length ? (warnings / services.length) * 100 : null, "#ffb547")}
+              ${renderIntelProgressRow("Logs", measuredNumber(health?.recent_activity?.items?.length), events.length ? percentFromCount(events.length, Math.max(events.length, 1)) : null, "#4fd1ff")}
+              ${renderIntelProgressRow("État pipeline", pipelineErrors ? "dégradé" : (events.length ? "sain" : "signal absent"), events.length ? (pipelineErrors ? 42 : 100) : null, pipelineErrors ? "#ffb547" : "#30d158")}
+              ${renderIntelMiniBars([operational, warnings, critical, pipelineErrors, events.length], "#ffb547")}
+            </div>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderPipelineEvents(health) {
+      const prefixes = ["capability_", "source_", "execution_", "tool_", "prompt_", "model_", "response_quality_", "completion_"];
+      const events = activityItems(health, prefixes);
+      const family = (type) => {
+        const value = String(type || "");
+        if (value.startsWith("capability_")) return "Capability";
+        if (value.startsWith("source_")) return "Source";
+        if (value.startsWith("execution_")) return "Execution";
+        if (value.startsWith("tool_")) return "Tool";
+        if (value.startsWith("prompt_")) return "Prompt";
+        if (value.startsWith("model_")) return "Model";
+        if (value.startsWith("completion_")) return "Completion";
+        if (value.startsWith("response_quality_")) return "Quality";
+        return "Pipeline";
+      };
+      return `
+        <article class="intelligence-card">
+          <header><h2>Événements récents du pipeline</h2><span>${escapeHtml(events.length ? `${events.length} événement(s)` : "aucune donnée")}</span></header>
+          <div class="intel-events">
+            ${events.length ? events.map((event) => `
+              <div class="intel-event-row">
+                <span>${escapeHtml(formatTime(event.at) || "n/a")}</span>
+                <span>${escapeHtml(family(event.type))}</span>
+                <code>${escapeHtml(event.type || "event")}</code>
+                <span>${escapeHtml(event.detail || event.label || "aucun détail")}</span>
+                ${renderIntelBadge(String(event.type || "").includes("error") || String(event.type || "").includes("failed") ? "erreur" : "sain")}
+              </div>
+            `).join("") : `<div class="intel-event-row"><span>non mesuré</span><span>Pipeline</span><code>pipeline</code><span>Aucun événement pipeline récent exposé par /admin/health.</span>${renderIntelBadge("aucune donnée")}</div>`}
+          </div>
+        </article>
+      `;
+    }
+
+    function renderIntelligenceDashboard(health) {
+      const hasMeasuredData = Boolean(health?.checked_at && !health?.fallback);
+      const headerStatus = hasMeasuredData ? renderIntelBadge("sain") : renderIntelBadge("aucune donnée");
+      return `
+        <div class="intelligence-header">
+          <div class="intelligence-title">
+            <h1>Intelligence IA <span class="realtime-badge">${statusDot()}Temps réel</span></h1>
+            <p>Cockpit du pipeline cognitif, des modèles, des outils et de la qualité IA.</p>
+            <div class="intelligence-strip"><span>Statut global: ${headerStatus}</span><span>Source: /admin/health</span></div>
+          </div>
+          <div>
+            <div class="intelligence-actions">
+              <select aria-label="Période Intelligence IA" title="Période implémentée côté interface, données lues depuis /admin/health"><option selected>Période implémentée</option><option>Dernier état</option><option>24h</option><option>7 jours</option><option>30 jours</option></select>
+              ${renderIconRefreshButton("intelligenceRefreshInline", "Actualiser Intelligence IA")}
+            </div>
+            <p class="intelligence-sync">Dernière synchronisation : ${escapeHtml(formatDate(health?.checked_at) || "non disponible")}</p>
+          </div>
+        </div>
+        ${renderLatestDecisionCard(health)}
+        ${renderIntelligencePipeline(health)}
+        <section class="intelligence-grid">
+          ${renderMemoryContextSection(health)}
+          ${renderModelsSection(health)}
+          ${renderToolsSection(health)}
+        </section>
+        <section class="intelligence-grid two">
+          ${renderQualitySection(health)}
+          ${renderMaturitySection(health)}
+        </section>
+        ${renderPipelineEvents(health)}
+      `;
+    }
+
+    function renderIntelligence(health) {
+      $("#intelligenceMeta").textContent = `Dernière synchronisation: ${formatDate(health?.checked_at) || "non disponible"}`;
+      const content = $("#intelligenceContent");
+      content.className = "health health-dashboard intelligence-dashboard";
+      content.innerHTML = renderIntelligenceDashboard(health || {});
+      const refreshButton = $("#intelligenceRefreshInline");
+      if (refreshButton) refreshButton.addEventListener("click", () => loadIntelligence());
+    }
+
+    async function loadIntelligence() {
+      setNotice("#appNotice", "", "");
+      try {
+        const payload = await apiFetch("/admin/health");
+        state.intelligence = payload;
+        renderIntelligence(payload);
+      } catch (error) {
+        const fallback = buildFallbackHealth(error.message);
+        state.intelligence = fallback;
+        renderIntelligence(fallback);
+        setNotice("#appNotice", "Endpoint Santé globale non disponible. Intelligence IA affichée en mode non mesuré.", "error");
+      }
+    }
+
+    // ─── Carte "Modules IA" (onglet Système) ───────────────────────────────
+    // Remplace l'ancienne carte "Flags connus" (CAPABILITY_PLANNER_ENABLED…)
+    // qui n'affichait que des libellés figés "non exposé", sans aucun rapport
+    // avec l'état réel du pipeline IA. Chaque module ci-dessous lit
+    // exclusivement des champs déjà présents dans health.ai_state (mêmes
+    // agrégateurs que l'onglet Intelligence IA) : aucune table D1, aucun
+    // endpoint, aucune télémétrie ni event_type supplémentaire.
+    function computeAiModuleStatus({ exists, count, errorCount }) {
+      if (!exists) return { emoji: "⚪", label: "Non installé", className: "non-mesure" };
+      const safeCount = Number(count) || 0;
+      const safeErrors = Number(errorCount) || 0;
+      const total = safeCount + safeErrors;
+      const errorRate = total > 0 ? safeErrors / total : 0;
+      if (total > 0 && errorRate > 0.25) return { emoji: "🟡", label: "Faible activité", className: "degrade" };
+      if (safeCount > 0) return { emoji: "🟢", label: "Actif", className: "actif" };
+      return { emoji: "🔴", label: "Aucun signal", className: "erreur" };
+    }
+
+    function buildAiModulesOverview(health) {
+      const ai = health?.ai_state || null;
+      const exists = Boolean(ai);
+      const cp = ai?.capability_planner || {};
+      const sp = ai?.source_planner || {};
+      const ep = ai?.execution_planner || {};
+      const tp = ai?.tool_planner || {};
+      const po = ai?.prompt_orchestrator || {};
+      const rq = ai?.response_quality || {};
+      const cg = ai?.completion_guard || {};
+      const mr = ai?.model_router || {};
+      const mt = ai?.model_tiers || {};
+
+      const byModel = Array.isArray(mr.success_rate_by_model) ? mr.success_rate_by_model : [];
+      const routerAttempts = byModel.reduce((sum, item) => sum + (Number(item.attempts) || 0), 0);
+      const routerSuccesses = byModel.reduce((sum, item) => sum + (Number(item.successes) || 0), 0);
+      const routerLastAt = [mr.last_successful_at, mr.last_blocked_at].filter(Boolean).sort().slice(-1)[0] || null;
+
+      const byTier = Array.isArray(mt.success_rate_by_tier) ? mt.success_rate_by_tier : [];
+      const tierTotal = byTier.reduce((sum, item) => sum + (Number(item.total) || 0), 0);
+      const tierSuccesses = byTier.reduce((sum, item) => sum + (Number(item.success) || 0), 0);
+
+      const completionTotal = (Number(cg.truncated_count) || 0) + (Number(cg.continued_count) || 0)
+        + (Number(cg.continuation_failed_count) || 0) + (Number(cg.structure_closed_count) || 0);
+
+      return [
+        {
+          key: "capability_planner", name: "Capability Planner", exists,
+          count: cp.analyses_count, countLabel: "analyse(s)",
+          errorCount: cp.error_count, lastAt: cp.last_at,
+          summary: "Détection automatique des capacités de la requête.",
+        },
+        {
+          key: "source_planner", name: "Source Planner", exists,
+          count: sp.analyses_count, countLabel: "analyse(s)",
+          errorCount: sp.error_count, lastAt: sp.last_at,
+          summary: "Analyse des besoins de sources et de preuves.",
+        },
+        {
+          key: "execution_planner", name: "Execution Planner", exists,
+          count: ep.plans_created_count, countLabel: "plan(s) créé(s)",
+          errorCount: ep.error_count, lastAt: ep.last_at,
+          summary: "Construction du plan d'exécution de la réponse.",
+        },
+        {
+          key: "tool_planner", name: "Tool Planner", exists,
+          count: tp.plans_created_count, countLabel: "plan(s) créé(s)",
+          errorCount: tp.error_count, lastAt: tp.last_at,
+          summary: "Détection des besoins d'outils.",
+        },
+        {
+          key: "prompt_orchestrator", name: "Prompt Orchestrator", exists,
+          count: po.intents_detected, countLabel: "intention(s) détectée(s)",
+          errorCount: po.error_count, lastAt: po.last_at,
+          summary: "Détection d'intention et profil de prompt.",
+        },
+        {
+          key: "response_quality", name: "Response Quality", exists,
+          count: rq.analyzed_count, countLabel: "réponse(s) analysée(s)",
+          errorCount: (Number(rq.retry_failed_count) || 0) + (Number(rq.improve_failed_count) || 0),
+          lastAt: rq.last_at,
+          summary: "Contrôle qualité et auto-amélioration des réponses.",
+        },
+        {
+          key: "completion_guard", name: "Completion Guard", exists,
+          count: completionTotal, countLabel: "signal(aux)",
+          errorCount: cg.continuation_failed_count, lastAt: cg.last_at,
+          summary: "Gestion des réponses tronquées et des continuations.",
+        },
+        {
+          key: "model_router", name: "Model Router", exists,
+          count: routerAttempts, countLabel: "appel(s)",
+          errorCount: mr.all_models_failed_count, lastAt: routerLastAt,
+          summary: "Sélection et fallback des modèles OpenRouter / Cloudflare AI.",
+        },
+        {
+          key: "model_tiers", name: "Model Tier", exists,
+          count: tierTotal, countLabel: "sélection(s) de tier",
+          errorCount: tierTotal - tierSuccesses, lastAt: mt.last_tier_used_at,
+          summary: "Choix du niveau de modèle (tier) selon la complexité.",
+        },
+        {
+          // Connectivité brute du LLM actif : distinct du Model Router (qui
+          // détaille le fallback/la sélection multi-modèles). Ici, on lit
+          // uniquement les champs racine de ai_state (jamais dupliqués) :
+          // réponses réellement générées avec succès, dernier appel réussi,
+          // et le flag d'échec de vérification (0 ou 1, déjà présent).
+          key: "llm", name: "LLM", exists,
+          count: routerSuccesses, countLabel: "réponse(s) générée(s)",
+          errorCount: ai?.openrouter_error_count, lastAt: ai?.last_successful_call_at,
+          summary: `Connectivité brute du modèle actif (${escapeHtml(ai?.model_active || "non vérifié")}).`,
+        },
+      ].map((module) => ({ ...module, status: computeAiModuleStatus(module) }));
+    }
+
+    function renderAiModuleCard(module) {
+      const { emoji, label, className } = module.status;
+      const countText = module.count === null || module.count === undefined
+        ? "volume non mesuré"
+        : `${escapeHtml(premiumNumber(module.count, "0"))} ${module.countLabel}`;
+      const errorText = module.errorCount === null || module.errorCount === undefined
+        ? "non mesuré"
+        : `${escapeHtml(premiumNumber(module.errorCount, "0"))} erreur(s)`;
+      return `
+        <article class="pipeline-step ai-module-step">
+          <div class="pipeline-topline"><strong>${escapeHtml(module.name)}</strong></div>
+          <span class="intel-badge ${className}">${emoji} ${escapeHtml(label)}</span>
+          <div class="pipeline-meta">
+            <small>${countText}</small>
+            <small>${errorText}</small>
+            <small>Dernière activité : ${escapeHtml(formatDate(module.lastAt) || "non mesuré")}</small>
+            <small class="pipeline-reason">${escapeHtml(module.summary)}</small>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderAiModulesSection(health) {
+      const modules = buildAiModulesOverview(health);
+      const activeCount = modules.filter((module) => module.status.label === "Actif").length;
+      const totalModules = modules.length;
+      const pipelinePercent = totalModules ? Math.round((activeCount / totalModules) * 100) : 0;
+      return `
+        <article class="intelligence-card">
+          <header><h2>Modules IA</h2><span class="badge operational">${statusDot()}Données /admin/health</span></header>
+          <div class="cognitive-pipeline ai-modules-grid">
+            ${modules.map(renderAiModuleCard).join("")}
+          </div>
+          <div class="intelligence-strip ai-modules-gauge">
+            <span>Santé globale du pipeline IA</span>
+            <span>${activeCount} module(s) actif(s) / ${totalModules}</span>
+            <span>Pipeline IA : ${pipelinePercent}%</span>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderSystemDashboard(health = {}) {
+      const system = health.system || {};
+      const config = health.configuration || {};
+      const checks = health.checks || {};
+      const services = Array.isArray(health.services) ? health.services : [];
+      const recent = Array.isArray(health.recent_activity?.items) ? health.recent_activity.items : [];
+      const errors = recent.filter((event) => /error|failed|erreur/i.test(`${event.type || ""} ${event.detail || ""}`));
+      const providers = [
+        ["OpenRouter", config.openrouter_api_key_configured === true ? "configuré" : (config.openrouter_api_key_configured === false ? "non configuré" : "non mesuré")],
+        ["Tavily", config.tavily_api_key_configured === true ? "configuré" : (config.tavily_api_key_configured === false ? "non configuré" : "non mesuré")],
+        ["Cloudflare AI", system.ai_worker ? "worker connu" : "non mesuré"],
+      ];
+      const endpoints = [
+        ["/admin/summary", "utilisé"],
+        ["/admin/health", checks.worker?.http_status ? `HTTP ${checks.worker.http_status}` : "utilisé"],
+        ["/admin/rag", "utilisé"],
+        ["/admin/documents/overview", "utilisé"],
+        ["/admin/observability/overview", "utilisé"],
+      ];
+      return `
+        <div class="intelligence-header">
+          <div class="intelligence-title">
+            <h1>Système <span class="realtime-badge">${statusDot()}Données réelles</span></h1>
+            <p>État technique exposé par /admin/health, sans lecture directe des secrets ni des flags Worker.</p>
+          </div>
+          <p class="intelligence-sync">Dernière synchronisation : ${escapeHtml(formatDate(health.checked_at) || "non disponible")}</p>
+        </div>
+        <section class="intelligence-grid">
+          <article class="intelligence-card"><header><h2>Versioning</h2></header><div class="intel-kv-list">
+            ${renderIntelKv("Version", system.version || "non disponible")}
+            ${renderIntelKv("Build", system.build || "non disponible")}
+            ${renderIntelKv("Commit", system.commit || "non disponible")}
+            ${renderIntelKv("Dernier déploiement", formatDate(system.last_deployed_at) || "non disponible")}
+          </div></article>
+          <article class="intelligence-card"><header><h2>Workers & stockage</h2></header><div class="intel-kv-list">
+            ${renderIntelKv("API Worker", system.api_worker || "non mesuré")}
+            ${renderIntelKv("AI Worker", system.ai_worker || "non mesuré")}
+            ${renderIntelKv("D1", checks.worker ? "binding détecté côté API" : "non mesuré")}
+            ${renderIntelKv("Vectorize", health.rag_usage?.project_rag_active ? "signal RAG actif" : "non mesuré")}
+          </div></article>
+          <article class="intelligence-card"><header><h2>État global</h2></header><div class="intel-kv-list">
+            ${renderIntelKv("Maturité", measured(health.maturity?.score, "/10"))}
+            ${renderIntelKv("Services", services.length ? premiumNumber(services.length, "0") : "non mesuré")}
+            ${renderIntelKv("Erreurs récentes", errors.length ? premiumNumber(errors.length, "0") : "aucune donnée")}
+            ${renderIntelKv("Source", config.source || "non mesuré")}
+          </div></article>
+        </section>
+        <section class="intelligence-grid two">
+          <article class="intelligence-card"><header><h2>Providers IA</h2></header><div class="intel-kv-list">${providers.map(([k, v]) => renderIntelKv(k, v)).join("")}</div></article>
+          <article class="intelligence-card"><header><h2>Endpoints critiques</h2></header><div class="intel-kv-list">${endpoints.map(([k, v]) => renderIntelKv(k, v)).join("")}</div></article>
+        </section>
+        ${renderAiModulesSection(health)}
+        <article class="intelligence-card"><header><h2>Erreurs récentes</h2><span>${escapeHtml(errors.length ? `${errors.length} signal(s)` : "aucune donnée")}</span></header><div class="intel-events">
+          ${errors.length ? errors.slice(0, 8).map((event) => `<div class="intel-event-row"><span>${escapeHtml(formatTime(event.at) || "n/a")}</span><span>Système</span><code>${escapeHtml(event.type || "event")}</code><span>${escapeHtml(event.detail || event.label || "aucun détail")}</span>${renderIntelBadge("erreur")}</div>`).join("") : `<div class="intel-event-row"><span>non mesuré</span><span>Système</span><code>logs</code><span>Aucune erreur récente exposée par /admin/health.</span>${renderIntelBadge("aucune donnée")}</div>`}
+        </div></article>
+      `;
+    }
+
+    function renderSettingsDashboard(health = {}) {
+      const config = health.configuration || {};
+      const tools = settingsTools(health);
+      const activeTools = tools.filter((tool) => tool.effectiveEnabled).length;
+      const availableTools = tools.filter((tool) => tool.backendAvailable).length;
+      const backendKnown = Boolean(health?.checked_at && !health?.fallback);
+      const items = [
+        ["Endpoint consommé", "/admin/health uniquement. Aucun endpoint d’écriture détecté pour les paramètres.", "lecture seule"],
+        ["Persistance", "Activation des outils enregistrée dans localStorage pour ce navigateur.", "branché local"],
+        ["Backend connu", backendKnown ? `Dernier état reçu le ${formatDate(health.checked_at) || "n/a"}` : "Backend inconnu ou /admin/health indisponible.", backendKnown ? "actif" : "aucune donnée"],
+        ["Outils effectifs", `${activeTools} actif(s) sur ${availableTools} disponible(s) backend.`, activeTools ? "actif" : "aucune donnée"],
+        ["Modèles IA", `OpenRouter: ${config.openrouter_api_key_configured === true ? "configuré" : "non mesuré"}. Sélection de modèle non modifiable ici.`, "lecture seule"],
+        ["Recherche web", `Tavily: ${config.tavily_api_key_configured === true ? "configuré" : "non mesuré"}. Quotas non modifiables ici.`, "lecture seule"],
+        ["Sécurité", "Secrets masqués. Aucun secret n’est affiché ni éditable dans le Studio.", "lecture seule"],
+      ];
+      return `
+        <div class="intelligence-header">
+          <div class="intelligence-title">
+            <h1>Paramètres <span class="realtime-badge">${statusDot()}Honnête</span></h1>
+            <p>Audit de configuration et activation locale des outils disponibles dans le Studio.</p>
+          </div>
+          <p class="intelligence-sync">Aucun paramètre backend modifié depuis cet écran.</p>
+        </div>
+        <article class="intelligence-card">
+          <header><h2>Audit de l’onglet Paramètres</h2><span>${renderIntelBadge("lecture seule")}</span></header>
+          <div class="settings-audit-grid">
+            ${items.map(([title, detail, status]) => `
+              <div class="settings-audit-card">
+                <strong>${escapeHtml(title)}</strong>
+                <span>${escapeHtml(detail)}</span>
+                ${renderIntelBadge(status)}
+              </div>
+            `).join("")}
+          </div>
+        </article>
+        <article class="intelligence-card">
+          <header><h2>Activation des outils</h2><span>${escapeHtml(`${activeTools} / ${availableTools} actifs`)}</span></header>
+          <div class="settings-note">
+            Ces switches configurent uniquement les préférences locales du Studio. Ils ne modifient pas les Workers Cloudflare et n’activent aucun endpoint backend. Règle appliquée : effectiveEnabled = backendAvailable === true && localPreference === true.
+          </div>
+          <div class="settings-tools-grid">
+            ${tools.map((tool) => renderSettingsToolCard(tool)).join("")}
+          </div>
+        </article>
+      `;
+    }
+
+    function renderSystem(health = {}) {
+      $("#systemMeta").textContent = `Dernière synchronisation: ${formatDate(health.checked_at) || "non disponible"}`;
+      const content = $("#systemContent");
+      content.className = "health health-dashboard intelligence-dashboard";
+      content.innerHTML = renderSystemDashboard(health);
+    }
+
+    function renderSettings(health = {}) {
+      $("#settingsMeta").textContent = "Activation locale des outils";
+      const content = $("#settingsContent");
+      content.className = "health health-dashboard intelligence-dashboard";
+      content.innerHTML = renderSettingsDashboard(health);
+      bindSettingsToolToggles();
+    }
+
+    function bindSettingsToolToggles() {
+      document.querySelectorAll("#settingsContent .tool-toggle[data-tool-key]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const key = button.dataset.toolKey;
+          const next = button.getAttribute("aria-checked") !== "true";
+          const saved = saveSettingsToolPref(key, next);
+          renderSettings(state.settings || {});
+          if (saved) setNotice("#appNotice", `Préférence locale ${next ? "activée" : "désactivée"} pour ${key}.`, "success");
+        });
+      });
+    }
+
+    async function loadSystem() {
+      setNotice("#appNotice", "", "");
+      try {
+        const payload = await apiFetch("/admin/health");
+        state.system = payload;
+        renderSystem(payload);
+      } catch (error) {
+        const fallback = buildFallbackHealth(error.message);
+        state.system = fallback;
+        renderSystem(fallback);
+        setNotice("#appNotice", "Endpoint Santé globale non disponible. Système affiché en mode non mesuré.", "error");
+      }
+    }
+
+    async function loadSettings() {
+      setNotice("#appNotice", "", "");
+      try {
+        const payload = await apiFetch("/admin/health");
+        state.settings = payload;
+        renderSettings(payload);
+      } catch (error) {
+        const fallback = buildFallbackHealth(error.message);
+        state.settings = fallback;
+        renderSettings(fallback);
+      }
     }
 
     function renderHealth(health) {
@@ -9143,172 +12006,15 @@
       });
       const logoutButton = $("#premiumLogoutBtn");
       if (logoutButton) logoutButton.addEventListener("click", logout);
+
+      // Refresh buttons for Exports, Analytics, Observability
+      const refreshExportsBtn = $("#premiumRefreshExportsBtn");
+      if (refreshExportsBtn) refreshExportsBtn.addEventListener("click", () => loadExports());
+      const refreshAnalyticsBtn = $("#premiumRefreshAnalyticsBtn");
+      if (refreshAnalyticsBtn) refreshAnalyticsBtn.addEventListener("click", () => loadAnalytics());
+      const refreshObservabilityBtn = $("#premiumRefreshObservabilityBtn");
+      if (refreshObservabilityBtn) refreshObservabilityBtn.addEventListener("click", () => loadObservability());
       return;
-      const maturity = health?.maturity || {};
-      const configuration = health?.configuration || {};
-      const system = health?.system || {};
-      const scorecard = health?.scorecard || {};
-      const aiRows = Array.isArray(state.aiPilotRows) ? state.aiPilotRows : [];
-      const statistics = {
-        items: aiStatisticsItems(aiRows),
-        note: "Statistiques calculées depuis ai_assistant_events.",
-      };
-      const recentActivity = aiRecentActivity(aiRows);
-      const aiState = health?.ai_state || {};
-      const tavilyUsage = health?.tavily_usage || {};
-      const ragUsage = health?.rag_usage || {};
-      const services = Array.isArray(health?.services) ? health.services : [];
-      const priorities = Array.isArray(health?.next_priorities) ? health.next_priorities : [];
-      const documents = Array.isArray(health?.documents) ? health.documents : [];
-      const visibleServices = filteredHealthServices(services);
-      const visibleDocuments = filteredDocuments(documents);
-      const v3 = Array.isArray(health?.v3_placeholders) ? health.v3_placeholders : [];
-        $("#healthMeta").innerHTML = `
-        <span>Dernier contrôle: ${escapeHtml(formatDate(health?.checked_at) || "non disponible")}</span>
-        ${health?.fallback ? `<span>Mode local: endpoint Santé globale non déployé</span>` : ""}
-        <span>OPENROUTER_API_KEY: ${formatConfigured(configuration.openrouter_api_key_configured)}</span>
-        <span>TAVILY_API_KEY: ${formatConfigured(configuration.tavily_api_key_configured)}</span>
-        <span>Tavily ultra-éco: ${health?.tavily_usage?.ultra_economy_mode_active ? "actif" : "inactif"}</span>
-        <span>Source secrets: ${escapeHtml(configuration.source || "digitalblueskye-ai")}</span>
-      `;
-      $("#healthContent").innerHTML = `
-        ${renderGlobalHealth(health, services, maturity)}
-        <article class="health-card">
-          <h2>Versioning système</h2>
-          ${renderHealthKv([
-            ["Version", system.version || "1.5.0"],
-            ["Build", system.build || health?.checked_at?.slice(0, 10)],
-            ["Commit", system.commit || "n/a"],
-            ["Dernier déploiement", formatDate(system.last_deployed_at) || formatDate(health?.checked_at)],
-          ])}
-        </article>
-        ${renderHealthDiagnostics(health?.health_diagnostics)}
-        <div class="health-grid">
-          <article class="health-card">
-            <h2>Maturité Digital Blue Skye AI</h2>
-            <p class="health-score"><strong>${escapeHtml(maturity.score ?? "n/a")}</strong><span>/ ${escapeHtml(maturity.max || 10)}</span></p>
-            <p>${escapeHtml(maturity.detail || "")}</p>
-          </article>
-          <article class="health-card">
-            <h2>Capacités actuelles</h2>
-            ${renderHealthList(health?.current_capabilities)}
-          </article>
-        </div>
-        ${renderScorecard(scorecard)}
-        ${renderServiceCards(services)}
-        ${renderProductHealth(services)}
-        <article class="health-card">
-          <h2>Statistiques</h2>
-          ${renderHealthMetrics(statistics.items)}
-          <p>${escapeHtml(statistics.note || "Métriques extensibles.")}</p>
-        </article>
-        ${renderAiStateCards(aiState)}
-        ${renderTavilyConsumption(tavilyUsage, configuration)}
-        ${renderRagPilotage(ragUsage)}
-        <article class="health-card">
-          <h2>Services</h2>
-          <div class="health-section-toolbar" aria-label="Filtres services">
-            <input id="healthServiceSearch" type="search" placeholder="Rechercher un service" value="${escapeHtml(state.healthServiceSearch)}">
-            <select id="healthServiceStatus" aria-label="Filtrer par statut">
-              <option value="all" ${state.healthServiceStatus === "all" ? "selected" : ""}>Tous les statuts</option>
-              <option value="operational" ${state.healthServiceStatus === "operational" ? "selected" : ""}>Opérationnels</option>
-              <option value="partial" ${state.healthServiceStatus === "partial" ? "selected" : ""}>Partiels</option>
-              <option value="unavailable" ${state.healthServiceStatus === "unavailable" ? "selected" : ""}>En erreur</option>
-            </select>
-            <select id="healthServicePriority" aria-label="Filtrer par priorité">
-              <option value="all" ${state.healthServicePriority === "all" ? "selected" : ""}>Toutes les priorités</option>
-              <option value="critical" ${state.healthServicePriority === "critical" ? "selected" : ""}>Critique</option>
-              <option value="important" ${state.healthServicePriority === "important" ? "selected" : ""}>Important</option>
-              <option value="improvement" ${state.healthServicePriority === "improvement" ? "selected" : ""}>Amélioration</option>
-              <option value="information" ${state.healthServicePriority === "information" ? "selected" : ""}>Information</option>
-            </select>
-            <select id="healthServiceSort" aria-label="Trier les services">
-              <option value="priority" ${state.healthServiceSort === "priority" ? "selected" : ""}>Priorité</option>
-              <option value="latency" ${state.healthServiceSort === "latency" ? "selected" : ""}>Latence</option>
-              <option value="name" ${state.healthServiceSort === "name" ? "selected" : ""}>Nom</option>
-            </select>
-          </div>
-          <div class="table-wrap health-table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  <th>Service</th>
-                  <th>Statut</th>
-                  <th>Contrôle</th>
-                  <th>Détail</th>
-                  <th>Dernier contrôle</th>
-                  <th>Priorité d’amélioration</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${visibleServices.map((service) => {
-                  const rowStatus = getScoreStatus(scoreFromStatus(service.status));
-                  return `
-                  <tr class="${rowStatus.className}">
-                    <td data-label="Service"><div class="service-heading">${iconSvg(iconForService(service.name))}<strong>${escapeHtml(service.name)}</strong></div></td>
-                    <td data-label="Statut">${statusBadge(service.status)}</td>
-                    <td data-label="Contrôle">${verificationBadge(service.verification)}</td>
-                    <td data-label="Détail"><div class="cell-text">${escapeHtml(service.detail)}</div></td>
-                    <td data-label="Dernier contrôle">${escapeHtml(formatDate(service.last_checked_at))}</td>
-                    <td data-label="Priorité d’amélioration"><div class="cell-text">${escapeHtml(service.priority)}</div></td>
-                  </tr>
-                `;
-                }).join("") || `<tr><td colspan="6">Aucune donnée de santé globale.</td></tr>`}
-              </tbody>
-            </table>
-          </div>
-        </article>
-        ${renderRecentActivity(recentActivity)}
-        <article class="health-card health-compact-table">
-          <h2>Documents</h2>
-          <div class="health-section-toolbar" aria-label="Filtres documents">
-            <select id="documentFormatFilter" aria-label="Filtrer par format">
-              <option value="all" ${state.documentFormat === "all" ? "selected" : ""}>Tous les formats</option>
-              ${documents.map((doc) => String(doc.format || "").toLowerCase()).filter((value, index, list) => value && list.indexOf(value) === index).map((format) => `
-                <option value="${escapeHtml(format)}" ${state.documentFormat === format ? "selected" : ""}>${escapeHtml(format.toUpperCase())}</option>
-              `).join("")}
-            </select>
-          </div>
-          <div class="table-wrap health-table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  <th>Format</th>
-                  <th>Support</th>
-                  <th>Taille maximale testée</th>
-                  <th>Dernière utilisation</th>
-                  <th>Taux de succès</th>
-                  <th>Fiabilité</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${visibleDocuments.map((doc) => `
-                  <tr>
-                    <td data-label="Format"><strong>${escapeHtml(doc.format)}</strong></td>
-                    <td data-label="Support">${statusBadge(doc.status || "unsupported")}</td>
-                    <td data-label="Taille maximale testée">${escapeHtml(doc.max_tested_size)}</td>
-                    <td data-label="Dernière utilisation">${escapeHtml(formatDate(doc.last_validation))}</td>
-                    <td data-label="Taux de succès">${escapeHtml(documentSuccessRate(doc))}</td>
-                    <td data-label="Fiabilité">${statusBadge(String(doc.reliability || "").includes("élev") ? "operational" : (String(doc.reliability || "").includes("moy") ? "partial" : "unavailable"))} ${escapeHtml(doc.reliability)}</td>
-                  </tr>
-                `).join("") || `<tr><td colspan="6">Aucun suivi documentaire.</td></tr>`}
-              </tbody>
-            </table>
-          </div>
-        </article>
-        <div class="health-grid">
-          <article class="health-card">
-            <h2>En développement</h2>
-            ${renderHealthList(health?.in_development)}
-          </article>
-          <article class="health-card">
-            <h2>Sécurité</h2>
-            <p>Les secrets ne sont jamais affichés. Seule la présence des clés API est exposée en oui/non.</p>
-          </article>
-        </div>
-        ${renderRoadmap(priorities)}
-        ${renderV3Preparation(v3)}
-      `;
     }
 
     async function loadHealth() {
@@ -9337,6 +12043,7 @@
 
     function setActiveTab(tabName) {
       document.querySelectorAll(".tab").forEach((tab) => tab.classList.toggle("active", tab.dataset.tab === tabName));
+      $("#globalViewBtn")?.classList.toggle("active", tabName === "health");
       state.tab = tabName;
       state.offset = 0;
       state.selectedIds.clear();
@@ -9348,7 +12055,10 @@
       const isExports = tabName === "exports";
       const isAnalytics = tabName === "analytics";
       const isObservability = tabName === "observability";
-      $("#dataPanel").classList.toggle("hidden", isHealth || isAi || isPilotage || isDocuments || isExports || isAnalytics || isObservability);
+      const isIntelligence = tabName === "intelligence";
+      const isSystem = tabName === "system";
+      const isSettings = tabName === "settings";
+      $("#dataPanel").classList.toggle("hidden", isHealth || isAi || isPilotage || isDocuments || isExports || isAnalytics || isObservability || isIntelligence || isSystem || isSettings);
       $("#aiPanel").classList.toggle("hidden", !isAi);
       $("#healthPanel").classList.toggle("hidden", !isHealth);
       $("#pilotagePanel").classList.toggle("hidden", !isPilotage);
@@ -9356,7 +12066,10 @@
       $("#exportsPanel").classList.toggle("hidden", !isExports);
       $("#analyticsPanel").classList.toggle("hidden", !isAnalytics);
       $("#observabilityPanel").classList.toggle("hidden", !isObservability);
-      if (!isHealth && !isAi && !isPilotage && !isDocuments && !isExports && !isAnalytics && !isObservability) renderFilters();
+      $("#intelligencePanel").classList.toggle("hidden", !isIntelligence);
+      $("#systemPanel").classList.toggle("hidden", !isSystem);
+      $("#settingsPanel").classList.toggle("hidden", !isSettings);
+      if (!isHealth && !isAi && !isPilotage && !isDocuments && !isExports && !isAnalytics && !isObservability && !isIntelligence && !isSystem && !isSettings) renderFilters();
     }
 
     async function changeStatus(id, status) {
@@ -9416,6 +12129,7 @@
       $("#appView").classList.remove("hidden");
       $("#scrollTopBtn").classList.remove("hidden");
       $("#apiLabel").textContent = state.apiBase;
+      applySidebarState(localStorage.getItem("dbs_sidebar_collapsed") === "true");
       setActiveTab(state.tab);
     }
 
@@ -9457,9 +12171,14 @@
           else if (state.tab === "exports") await loadExports();
           else if (state.tab === "analytics") await loadAnalytics();
           else if (state.tab === "observability") await loadObservability();
+          else if (state.tab === "intelligence") await loadIntelligence();
+          else if (state.tab === "system") await loadSystem();
+          else if (state.tab === "settings") await loadSettings();
           else await loadRows();
         } catch (error) {
           setNotice("#appNotice", error.message, "error");
+        } finally {
+          closeMobileSidebar();
         }
       });
     });
@@ -9947,6 +12666,85 @@
       } catch (error) {
         setNotice("#appNotice", error.message, "error");
       }
+    });
+
+    $("#refreshIntelligenceBtn").addEventListener("click", async () => {
+      try {
+        await loadIntelligence();
+        setNotice("#appNotice", "Intelligence IA actualisée.", "success");
+      } catch (error) {
+        setNotice("#appNotice", error.message, "error");
+      }
+    });
+
+    $("#refreshSystemBtn").addEventListener("click", async () => {
+      try {
+        await loadSystem();
+        setNotice("#appNotice", "Système actualisé.", "success");
+      } catch (error) {
+        setNotice("#appNotice", error.message, "error");
+      }
+    });
+
+    $("#refreshSettingsBtn").addEventListener("click", async () => {
+      try {
+        await loadSettings();
+        setNotice("#appNotice", "Paramètres actualisés.", "success");
+      } catch (error) {
+        setNotice("#appNotice", error.message, "error");
+      }
+    });
+
+    function applySidebarState(collapsed) {
+      document.body.classList.toggle("sidebar-collapsed", collapsed);
+      const button = $("#sidebarToggle");
+      if (button) {
+        button.textContent = collapsed ? "›" : "‹";
+        button.setAttribute("aria-label", collapsed ? "Déplier la sidebar" : "Replier la sidebar");
+        button.title = collapsed ? "Déplier la sidebar" : "Replier la sidebar";
+      }
+      localStorage.setItem("dbs_sidebar_collapsed", collapsed ? "true" : "false");
+    }
+
+    $("#sidebarToggle").addEventListener("click", () => {
+      if (window.matchMedia("(max-width: 768px)").matches) {
+        closeMobileSidebar();
+        return;
+      }
+      applySidebarState(!document.body.classList.contains("sidebar-collapsed"));
+    });
+
+    function openMobileSidebar() {
+      document.body.classList.add("sidebar-mobile-open");
+      $("#mobileSidebarBtn")?.setAttribute("aria-expanded", "true");
+    }
+
+    function closeMobileSidebar() {
+      document.body.classList.remove("sidebar-mobile-open");
+      $("#mobileSidebarBtn")?.setAttribute("aria-expanded", "false");
+    }
+
+    $("#mobileSidebarBtn")?.addEventListener("click", () => {
+      if (document.body.classList.contains("sidebar-mobile-open")) closeMobileSidebar();
+      else openMobileSidebar();
+    });
+
+    $("#mobileSidebarOverlay")?.addEventListener("click", closeMobileSidebar);
+
+    $("#globalViewBtn").addEventListener("click", async () => {
+      setActiveTab("health");
+      await loadHealth();
+      closeMobileSidebar();
+      $("#healthPanel").scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+
+    $("#viewLogsBtn").addEventListener("click", async () => {
+      setActiveTab("observability");
+      await loadObservability();
+      requestAnimationFrame(() => {
+        const logsHeading = Array.from(document.querySelectorAll("#observabilityPanel h2")).find((heading) => /logs/i.test(heading.textContent || ""));
+        (logsHeading || $("#observabilityPanel")).scrollIntoView({ behavior: "smooth", block: "start" });
+      });
     });
 
     $("#exportBtn").addEventListener("click", async () => {

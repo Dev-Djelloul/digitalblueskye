@@ -135,4 +135,39 @@ const realRows = [
   assert.equal(tavilyRate.series[0].error_rate_percent, 50);
 }
 
+// --- Regression dediee : fenetre vs historique complet ----------------------
+// Couvre le constat "Recherche Web (Tavily) / RAG Pipeline / Exports
+// affichent Non configure alors qu'ils ont deja ete utilises" : un service a
+// fort volume (Pipeline Documents) peut faire sortir de la fenetre des
+// OBSERVABILITY_EVENT_LIMIT derniers evenements un service a faible volume
+// mais reellement deja utilise. La verification lifetime doit distinguer
+// "jamais configure" (aucun signal, ni fenetre ni historique) de "deja
+// utilise, pas dans la fenetre recente" — sans jamais fabriquer de
+// requetes/erreurs au-dela de ce qui est reellement mesure.
+
+{
+  // Fenetre saturee par Pipeline Documents : aucun signal Tavily dans les
+  // evenements recents analyses, mais Tavily a bien ete utilise par le passe.
+  const windowedRows = Array.from({ length: 50 }, () => ({ event_type: "document_indexed", created_at: now }));
+  const tavily = { key: "tavily", label: "Recherche Web (Tavily)", successTypes: ["web_search_success"], errorTypes: ["web_search_error"], latencyField: "latency_ms" };
+
+  const withoutLifetime = buildSingleServiceHealth(tavily, windowedRows);
+  assert.equal(withoutLifetime.status, "not_configured", "sans verification lifetime, le bug reproduit bien le constat initial");
+
+  const withLifetime = buildSingleServiceHealth(tavily, windowedRows, { tavily: { count: 42, last_at: "2026-05-01T10:00:00.000Z" } });
+  assert.notEqual(withLifetime.status, "not_configured", "un service deja utilise hors fenetre ne doit plus afficher Non configure");
+  assert.equal(withLifetime.last_activity_at, "2026-05-01T10:00:00.000Z", "la derniere activite reelle (hors fenetre) doit être remontee, jamais une date fabriquee");
+  assert.equal(withLifetime.total_requests, 0, "les requetes hors fenetre ne sont jamais comptabilisees comme si elles etaient recentes");
+}
+
+{
+  // Service jamais utilise, ni dans la fenetre ni dans l'historique complet :
+  // doit rester strictement Non configure, jamais de faux positif.
+  const windowedRows = Array.from({ length: 50 }, () => ({ event_type: "document_indexed", created_at: now }));
+  const exports = { key: "exports", label: "Exports", successTypes: ["export_completed"], errorTypes: ["export_failed"], latencyField: null };
+  const services = buildServiceHealth(windowedRows, { exports: { count: 0, last_at: null } });
+  const exportService = services.find((s) => s.key === "exports");
+  assert.equal(exportService.status, "not_configured", "un service jamais utilise (fenetre + historique) doit rester non_configure");
+}
+
 console.log("observabilityAdmin.test.mjs: all assertions passed");

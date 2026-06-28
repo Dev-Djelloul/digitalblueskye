@@ -362,6 +362,23 @@ async function firstNumber(env, sql, field = "value", ...bindings) {
   return Number.isFinite(value) ? value : null;
 }
 
+// Compte les lignes correspondant au premier event_type de la liste qui
+// produit un resultat non nul, dans l'ordre fourni (le premier type est le
+// signal le plus authoritaire/precis ; les suivants ne servent que de
+// repli si renommage ou variation d'instrumentation). Garantit qu'un
+// compteur fondamental n'affiche jamais 0 quand au moins un des event_type
+// listes existe reellement dans les rows — sans sur-compter (pas d'union/
+// somme, qui doublerait le compte si plusieurs event_type co-occurrent pour
+// une meme analyse).
+function countByPreferredEventType(rows, eventTypes) {
+  const eventRows = Array.isArray(rows) ? rows : [];
+  for (const type of eventTypes) {
+    const count = eventRows.filter((row) => row.event_type === type).length;
+    if (count > 0) return count;
+  }
+  return 0;
+}
+
 function parseEventMeta(row) {
   if (!row?.meta) return {};
   // meta peut arriver deja comme objet (selon le chemin d'appel) ou comme
@@ -604,7 +621,7 @@ function buildModelTierStatsFromEvents(rows) {
 // cloudflare/responseQualityController.js) a partir des evenements
 // response_quality_analyzed / _repaired / _retry / _retry_failed /
 // _improve_requested / _improved / _improve_failed / _final_sent.
-function buildResponseQualityStatsFromEvents(rows) {
+export function buildResponseQualityStatsFromEvents(rows) {
   const eventRows = Array.isArray(rows) ? rows : [];
   const analyzed = eventRows.filter((row) => row.event_type === "response_quality_analyzed");
   const repaired = eventRows.filter((row) => row.event_type === "response_quality_repaired");
@@ -676,11 +693,54 @@ function buildResponseQualityStatsFromEvents(rows) {
   };
 }
 
+// Completion Guard (cf. cloudflare/completionGuard.js) a partir des
+// evenements completion_truncated / completion_continued /
+// completion_continuation_failed / completion_structure_closed, deja logues
+// par onRouterEvent() dans worker-openrouter.js (aucun nouvel event_type
+// requis, aucune table ajoutee). Meme pattern que les autres agregateurs
+// planners : une metrique sans donnee retourne null, jamais une valeur
+// simulee.
+export function buildCompletionGuardStatsFromEvents(rows) {
+  const eventRows = Array.isArray(rows) ? rows : [];
+  const truncated = eventRows.filter((row) => row.event_type === "completion_truncated");
+  const continued = eventRows.filter((row) => row.event_type === "completion_continued");
+  const continuationFailed = eventRows.filter((row) => row.event_type === "completion_continuation_failed");
+  const structureClosed = eventRows.filter((row) => row.event_type === "completion_structure_closed");
+
+  // rows triees created_at DESC : premier = plus recent.
+  const lastEvent = [...truncated, ...continued, ...continuationFailed, ...structureClosed]
+    .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))[0] || null;
+  const lastMeta = lastEvent ? parseEventMeta(lastEvent) : null;
+
+  const continuationCounts = continued
+    .map((row) => Number(parseEventMeta(row).continuations))
+    .filter((value) => Number.isFinite(value));
+  const averageContinuations = continuationCounts.length
+    ? Math.round((continuationCounts.reduce((sum, value) => sum + value, 0) / continuationCounts.length) * 10) / 10
+    : null;
+
+  const totalSignals = truncated.length + continued.length + continuationFailed.length + structureClosed.length;
+
+  return {
+    truncated_count: truncated.length,
+    continued_count: continued.length,
+    continuation_failed_count: continuationFailed.length,
+    structure_closed_count: structureClosed.length,
+    average_continuations: averageContinuations,
+    last_event_type: lastEvent?.event_type || "",
+    last_at: lastEvent?.created_at || null,
+    last_still_truncated: lastMeta ? Boolean(lastMeta.still_truncated) : null,
+    // signal absent (pas d'erreur) si aucun event_type completion_* n'a
+    // encore ete produit, distinct d'un statut "actif" base sur un volume reel.
+    status: totalSignals === 0 ? "signal absent" : (continuationFailed.length > 0 ? "erreur" : "actif"),
+  };
+}
+
 // Statistiques Prompt Orchestrator (cf. cloudflare/promptOrchestrator.js) a
 // partir des evenements prompt_intent_detected / prompt_capabilities_planned /
 // prompt_profile_used / prompt_orchestrator_error. Aucun impact sur les autres
 // agregations.
-function buildPromptOrchestratorStatsFromEvents(rows) {
+export function buildPromptOrchestratorStatsFromEvents(rows) {
   const eventRows = Array.isArray(rows) ? rows : [];
   const intents = eventRows.filter((row) => row.event_type === "prompt_intent_detected");
   const profiles = eventRows.filter((row) => row.event_type === "prompt_profile_used");
@@ -728,7 +788,7 @@ function buildPromptOrchestratorStatsFromEvents(rows) {
 // capability_pipeline_built / capability_error. Meme pattern que
 // buildPromptOrchestratorStatsFromEvents — aucun impact sur les autres
 // agregations.
-function buildCapabilityPlannerStatsFromEvents(rows) {
+export function buildCapabilityPlannerStatsFromEvents(rows) {
   const eventRows = Array.isArray(rows) ? rows : [];
   const detections = eventRows.filter((row) => row.event_type === "capability_detected");
   const plans = eventRows.filter((row) => row.event_type === "capability_plan_created");
@@ -766,9 +826,14 @@ function buildCapabilityPlannerStatsFromEvents(rows) {
   const errorRate = total + errors.length > 0
     ? Math.round((errors.length / (total + errors.length)) * 1000) / 10
     : 0;
+  // analyses_count : capability_detected (signal primaire) avec repli sur
+  // capability_plan_created si le premier est absent — jamais une somme des
+  // deux, qui doublerait le compte puisque les 3 evenements partagent la
+  // meme analyse (cf. commentaire ci-dessus).
+  const analysesCount = countByPreferredEventType(eventRows, ["capability_detected", "capability_plan_created"]);
 
   return {
-    analyses_count: total,
+    analyses_count: analysesCount,
     error_count: errors.length,
     error_rate: errorRate,
     last_complexity: lastMeta?.complexity || "",
@@ -790,7 +855,7 @@ function buildCapabilityPlannerStatsFromEvents(rows) {
 // source_evidence_detected / source_plan_created / source_policy_built /
 // source_web_forced / source_rag_forced / source_clarification_required /
 // source_planner_error. Meme pattern que buildCapabilityPlannerStatsFromEvents.
-function buildSourcePlannerStatsFromEvents(rows) {
+export function buildSourcePlannerStatsFromEvents(rows) {
   const eventRows = Array.isArray(rows) ? rows : [];
   const detections = eventRows.filter((row) => row.event_type === "source_evidence_detected");
   const plans = eventRows.filter((row) => row.event_type === "source_plan_created");
@@ -829,9 +894,13 @@ function buildSourcePlannerStatsFromEvents(rows) {
   const errorRate = total + errors.length > 0
     ? Math.round((errors.length / (total + errors.length)) * 1000) / 10
     : 0;
+  // analyses_count : source_evidence_detected (signal primaire) avec repli
+  // sur source_plan_created si le premier est absent — meme logique que
+  // buildCapabilityPlannerStatsFromEvents (pas de sur-comptage par somme).
+  const analysesCount = countByPreferredEventType(eventRows, ["source_evidence_detected", "source_plan_created"]);
 
   return {
-    analyses_count: total,
+    analyses_count: analysesCount,
     error_count: errors.length,
     error_rate: errorRate,
     last_evidence_need: lastMeta?.evidenceNeed || "",
@@ -859,7 +928,7 @@ function buildSourcePlannerStatsFromEvents(rows) {
 // 10) a partir des evenements execution_intent_built / execution_plan_resolved
 // / execution_policy_built / execution_plan_applied / execution_planner_error.
 // Meme pattern que buildCapabilityPlannerStatsFromEvents/buildSourcePlannerStatsFromEvents.
-function buildExecutionPlannerStatsFromEvents(rows) {
+export function buildExecutionPlannerStatsFromEvents(rows) {
   const eventRows = Array.isArray(rows) ? rows : [];
   const intents = eventRows.filter((row) => row.event_type === "execution_intent_built");
   const resolved = eventRows.filter((row) => row.event_type === "execution_plan_resolved");
@@ -898,9 +967,15 @@ function buildExecutionPlannerStatsFromEvents(rows) {
   const errorRate = total + errors.length > 0
     ? Math.round((errors.length / (total + errors.length)) * 1000) / 10
     : 0;
+  // BUG CORRIGE : plans_created_count lisait `total` = intents.length =
+  // count(execution_intent_built), pas le plan reellement cree
+  // (`resolved` = count(execution_plan_resolved) etait calcule plus haut
+  // mais jamais utilise). error_rate/breakdowns restent bases sur les
+  // intents (etape amont, seule porteuse des metadonnees de repartition).
+  const plansCreatedCount = resolved.length;
 
   return {
-    plans_created_count: total,
+    plans_created_count: plansCreatedCount,
     error_count: errors.length,
     error_rate: errorRate,
     last_primary_goal: lastMeta?.primaryGoal || "",
@@ -1180,11 +1255,82 @@ function buildErrorStatsFromEvents(rows) {
   };
 }
 
+// Statistiques Tool Planner (cf. cloudflare/toolPlanner.js, Lot 11) a partir
+// des evenements tool_needs_detected / tool_plan_created / tool_policy_built
+// / tool_planner_error. Meme pattern que buildExecutionPlannerStatsFromEvents.
+export function buildToolPlannerStatsFromEvents(rows) {
+  const eventRows = Array.isArray(rows) ? rows : [];
+  const detections = eventRows.filter((row) => row.event_type === "tool_needs_detected");
+  const plans = eventRows.filter((row) => row.event_type === "tool_plan_created");
+  const policies = eventRows.filter((row) => row.event_type === "tool_policy_built");
+  const errors = eventRows.filter((row) => row.event_type === "tool_planner_error");
+
+  // rows triees created_at DESC : premier = plus recent.
+  const lastMeta = detections[0] ? parseEventMeta(detections[0]) : (plans[0] ? parseEventMeta(plans[0]) : null);
+
+  const countToolUsage = (rowsList) => {
+    const map = new Map();
+    rowsList.forEach((row) => {
+      const tools = parseEventMeta(row).toolsNeeded;
+      (Array.isArray(tools) ? tools : []).forEach((tool) => map.set(tool, (map.get(tool) || 0) + 1));
+    });
+    return Array.from(map.entries()).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count);
+  };
+
+  const topReasons = (() => {
+    const map = new Map();
+    detections.forEach((row) => {
+      const reasons = parseEventMeta(row).reasons;
+      if (reasons && typeof reasons === "object") {
+        Object.values(reasons).forEach((list) => {
+          (Array.isArray(list) ? list : []).forEach((reason) => map.set(reason, (map.get(reason) || 0) + 1));
+        });
+      }
+    });
+    return Array.from(map.entries()).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count).slice(0, 8);
+  })();
+
+  const clarifications = policies.filter((row) => row.event_value === "clarification" || parseEventMeta(row).requiresClarification);
+  const userFileRequired = detections.filter((row) => parseEventMeta(row).requiresUserFile);
+  const userImageRequired = detections.filter((row) => parseEventMeta(row).requiresUserImage);
+
+  const total = detections.length;
+  const errorRate = total + errors.length > 0
+    ? Math.round((errors.length / (total + errors.length)) * 1000) / 10
+    : 0;
+  // BUG CORRIGE : plans_created_count lisait `total` = detections.length =
+  // count(tool_needs_detected), pas le plan reellement cree (`plans` =
+  // count(tool_plan_created) etait calcule plus haut mais jamais utilise).
+  // error_rate/breakdowns restent bases sur les detections (etape amont,
+  // seule porteuse des metadonnees de repartition).
+  const plansCreatedCount = plans.length;
+
+  return {
+    plans_created_count: plansCreatedCount,
+    error_count: errors.length,
+    error_rate: errorRate,
+    last_primary_tool: lastMeta?.primaryTool || "",
+    last_tools_needed: Array.isArray(lastMeta?.toolsNeeded) ? lastMeta.toolsNeeded : [],
+    last_tools_optional: Array.isArray(lastMeta?.toolsOptional) ? lastMeta.toolsOptional : [],
+    last_tool_sequence: Array.isArray(lastMeta?.toolSequence) ? lastMeta.toolSequence : [],
+    last_requires_clarification: lastMeta ? Boolean(lastMeta.requiresClarification) : null,
+    last_requires_user_file: lastMeta ? Boolean(lastMeta.requiresUserFile) : null,
+    last_confidence: lastMeta?.confidence ?? null,
+    last_at: detections[0]?.created_at || null,
+    clarification_required_count: clarifications.length,
+    user_file_required_count: userFileRequired.length,
+    user_image_required_count: userImageRequired.length,
+    top_reasons: topReasons,
+    tool_usage_breakdown: countToolUsage(detections),
+  };
+}
+
 function buildPlannerSummaryFromEvents(rows) {
   return {
     capability: buildCapabilityPlannerStatsFromEvents(rows),
     source: buildSourcePlannerStatsFromEvents(rows),
     execution: buildExecutionPlannerStatsFromEvents(rows),
+    tool: buildToolPlannerStatsFromEvents(rows),
   };
 }
 
@@ -2890,6 +3036,41 @@ async function fetchRecentObservabilityEvents(env, limit = OBSERVABILITY_EVENT_L
   return result.results || [];
 }
 
+// Verification "lifetime" (hors fenetre des OBSERVABILITY_EVENT_LIMIT
+// derniers evenements) : un service a fort volume (ex. Pipeline Documents)
+// peut faire sortir de la fenetre analysee des evenements plus anciens mais
+// reels d'un autre service (Tavily, RAG, Exports). Sans ce controle, ces
+// services apparaissent a tort comme "not_configured" alors qu'ils ont deja
+// ete utilises. Une seule requete groupee, sans LIMIT, sur les seuls
+// event_type reellement attendus par OBSERVABILITY_SERVICES.
+async function fetchObservabilityLifetimeStats(env, services) {
+  const types = Array.from(new Set(
+    services.flatMap((service) => [...(service.successTypes || []), ...(service.errorTypes || [])])
+  ));
+  if (!types.length) return {};
+  const placeholders = types.map(() => "?").join(",");
+  const result = await env.DB.prepare(
+    `SELECT event_type, COUNT(*) AS count, MAX(created_at) AS last_at
+     FROM ai_assistant_events WHERE event_type IN (${placeholders}) GROUP BY event_type`
+  ).bind(...types).all();
+  const rows = result.results || [];
+  const byType = new Map(rows.map((row) => [row.event_type, row]));
+  const statsByServiceKey = {};
+  services.forEach((service) => {
+    const relevantTypes = [...(service.successTypes || []), ...(service.errorTypes || [])];
+    let count = 0;
+    let lastAt = null;
+    relevantTypes.forEach((type) => {
+      const row = byType.get(type);
+      if (!row) return;
+      count += Number(row.count || 0);
+      if (row.last_at && (!lastAt || row.last_at > lastAt)) lastAt = row.last_at;
+    });
+    statsByServiceKey[service.key] = { count, last_at: lastAt };
+  });
+  return statsByServiceKey;
+}
+
 // Definition des services reellement observables depuis ai_assistant_events.
 // successTypes/errorTypes : event_type exacts qui constituent une requete
 // reussie/en echec pour ce service. latencyField : cle meta lue pour la
@@ -2943,14 +3124,25 @@ const OBSERVABILITY_SERVICES = [
   },
 ];
 
-export function buildSingleServiceHealth(service, rows) {
+export function buildSingleServiceHealth(service, rows, lifetimeStats = {}) {
   const eventRows = Array.isArray(rows) ? rows : [];
   const successRows = service.useAllRowsAsSuccess
     ? eventRows
     : eventRows.filter((row) => (service.successTypes || []).includes(row.event_type));
   const errorRows = eventRows.filter((row) => (service.errorTypes || []).includes(row.event_type));
   const totalRequests = successRows.length + errorRows.length;
-  const lastActivityAt = [...successRows, ...errorRows][0]?.created_at || null;
+  // Si la fenetre analysee (OBSERVABILITY_EVENT_LIMIT derniers evenements)
+  // ne contient aucun signal pour ce service, on verifie l'historique
+  // complet avant de conclure "not_configured" : un service a faible volume
+  // (Tavily, RAG, Exports) peut etre reellement configure et deja utilise,
+  // mais simplement evince de la fenetre par un autre service a fort volume
+  // (ex. Pipeline Documents). On ne fabrique jamais de requetes/erreurs
+  // au-dela de la fenetre : seule la derniere activite reelle remonte, pour
+  // que le statut reflete "deja utilise, pas recemment" plutot que "jamais
+  // configure".
+  const lifetime = lifetimeStats[service.key];
+  const lastActivityAt = [...successRows, ...errorRows][0]?.created_at
+    || (totalRequests === 0 && lifetime?.count > 0 ? lifetime.last_at : null);
 
   let averageLatencyMs = null;
   if (service.latencyField) {
@@ -2986,8 +3178,8 @@ export function buildSingleServiceHealth(service, rows) {
   };
 }
 
-export function buildServiceHealth(rows) {
-  return OBSERVABILITY_SERVICES.map((service) => buildSingleServiceHealth(service, rows));
+export function buildServiceHealth(rows, lifetimeStats = {}) {
+  return OBSERVABILITY_SERVICES.map((service) => buildSingleServiceHealth(service, rows, lifetimeStats));
 }
 
 // Disponibilite/Etat global : moyenne ponderee des services qui ont
@@ -3180,7 +3372,8 @@ export function buildResourceUsage() {
 
 async function buildObservabilityOverview(env) {
   const rows = await fetchRecentObservabilityEvents(env);
-  const services = buildServiceHealth(rows);
+  const lifetimeStats = await fetchObservabilityLifetimeStats(env, OBSERVABILITY_SERVICES);
+  const services = buildServiceHealth(rows, lifetimeStats);
   return {
     kpis: buildObservabilityKpis(rows, services),
     services,
@@ -3642,6 +3835,60 @@ async function fetchTavilyEventsWindow(env, limit = 500) {
   return result.results || [];
 }
 
+// Memes symptome et meme remede que fetchTavilyEventsWindow() ci-dessus : les
+// evenements planners (capability_/source_/execution_/tool_/prompt_/
+// response_quality_/completion_) sont a faible volume (quelques dizaines au
+// total) face au bruit de chat (openrouter_*, assistant_response,
+// user_message, model_tier_used... plusieurs par tour). Avec la seule fenetre
+// globale recentEvents (LIMIT 500, tous types confondus, cf. plus bas), ils
+// se retrouvent integralement evinces dès que quelques dizaines de tours de
+// chat se sont ecoules depuis leur emission — d'ou des compteurs ai_state a
+// 0 alors que ces evenements existent bien en base. Fenetre dediee, comme
+// pour Tavily, independante du volume des autres types d'evenements.
+export function plannerEventTypesSqlClause() {
+  return [
+    "event_type LIKE 'capability_%'",
+    "event_type LIKE 'source_%'",
+    "event_type LIKE 'execution_%'",
+    "event_type LIKE 'tool_%'",
+    "event_type LIKE 'prompt_%'",
+    "event_type LIKE 'response_quality_%'",
+    "event_type LIKE 'completion_%'",
+  ].join(" OR ");
+}
+
+export async function fetchPlannerEventsWindow(env, limit = 500) {
+  const result = await env.DB.prepare(
+    `SELECT id, session_id, event_type, event_value, meta, created_at
+     FROM ai_assistant_events
+     WHERE ${plannerEventTypesSqlClause()}
+     ORDER BY created_at DESC, id DESC
+     LIMIT ?`
+  ).bind(limit).all();
+  return result.results || [];
+}
+
+// Debug non sensible pour diagnostiquer en production si la fenetre dediee
+// fetchPlannerEventsWindow() ramene bien des lignes (cf. symptome "ai_state
+// planners a zero malgre evenements D1 existants"). Jamais de meta complet —
+// uniquement event_type + created_at, deja non sensibles par construction
+// (aucune donnee utilisateur dans ces deux colonnes).
+export function buildPlannerEventsDebugInfo(plannerEvents) {
+  const rows = Array.isArray(plannerEvents) ? plannerEvents : [];
+  const eventTypes = Array.from(new Set(rows.map((row) => row.event_type).filter(Boolean)));
+  const latestAt = rows.reduce((latest, row) => {
+    if (!row.created_at) return latest;
+    if (!latest) return row.created_at;
+    return new Date(row.created_at) > new Date(latest) ? row.created_at : latest;
+  }, null);
+  return {
+    count: rows.length,
+    event_types: eventTypes,
+    latest_at: latestAt,
+    sample: rows.slice(0, 5).map((row) => ({ event_type: row.event_type, created_at: row.created_at })),
+  };
+}
+
 async function handleAdminSummary(request, env) {
   if (request.method !== "GET") {
     return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
@@ -3786,6 +4033,7 @@ async function buildAdminHealthPayload(request, env) {
   // parfois vide"). fetchTavilyEventsWindow() garantit jusqu'a 500
   // evenements Tavily recents, independamment du volume des autres types.
   const tavilyEventsPromise = fetchTavilyEventsWindow(env, 500);
+  const plannerEventsPromise = fetchPlannerEventsWindow(env, 500);
 
   const aiHealthPromise = fetchAiWorkerHealth(env, aiWorkerHealthUrl, aiHealthToken, 10000);
 
@@ -3796,6 +4044,7 @@ async function buildAdminHealthPayload(request, env) {
   const [
     recentEventsResult,
     tavilyEvents,
+    plannerEvents,
     aiHealthResult,
     frontendHealthResult,
     conversationCount,
@@ -3810,6 +4059,7 @@ async function buildAdminHealthPayload(request, env) {
   ] = await Promise.all([
     recentEventsPromise,
     tavilyEventsPromise,
+    plannerEventsPromise,
     aiHealthPromise,
     frontendHealthPromise,
     firstCount(env, "SELECT COUNT(DISTINCT session_id) AS count FROM ai_assistant_events WHERE session_id IS NOT NULL AND session_id != ''"),
@@ -3854,11 +4104,17 @@ async function buildAdminHealthPayload(request, env) {
   const ragUsage = buildRagUsageFromEvents(recentEvents);
   const openRouterModelStats = buildOpenRouterModelStatsFromEvents(recentEvents);
   const modelTierStats = buildModelTierStatsFromEvents(recentEvents);
-  const promptOrchestratorStats = buildPromptOrchestratorStatsFromEvents(recentEvents);
-  const capabilityPlannerStats = buildCapabilityPlannerStatsFromEvents(recentEvents);
-  const sourcePlannerStats = buildSourcePlannerStatsFromEvents(recentEvents);
-  const executionPlannerStats = buildExecutionPlannerStatsFromEvents(recentEvents);
-  const responseQualityStats = buildResponseQualityStatsFromEvents(recentEvents);
+  // plannerEvents (fenetre dediee, cf. fetchPlannerEventsWindow) plutot que
+  // recentEvents (fenetre globale LIMIT 500 tous types confondus) : ces
+  // evenements sont a faible volume et se faisaient evincer par le bruit de
+  // chat (openrouter_*, assistant_response...), d'ou des compteurs a 0.
+  const promptOrchestratorStats = buildPromptOrchestratorStatsFromEvents(plannerEvents);
+  const capabilityPlannerStats = buildCapabilityPlannerStatsFromEvents(plannerEvents);
+  const sourcePlannerStats = buildSourcePlannerStatsFromEvents(plannerEvents);
+  const executionPlannerStats = buildExecutionPlannerStatsFromEvents(plannerEvents);
+  const toolPlannerStats = buildToolPlannerStatsFromEvents(plannerEvents);
+  const responseQualityStats = buildResponseQualityStatsFromEvents(plannerEvents);
+  const completionGuardStats = buildCompletionGuardStatsFromEvents(plannerEvents);
   const effectiveOpenRouterCheck = stabilizeOpenRouterCheck(openRouterCheck, openRouterConfigured, latestOpenRouterResponse);
   const tavilyOk = Boolean(tavilyCheck?.ok);
   const frontendOk = Boolean(frontendHealthResult.ok);
@@ -4066,7 +4322,9 @@ async function buildAdminHealthPayload(request, env) {
     capability_planner: capabilityPlannerStats,
     source_planner: sourcePlannerStats,
     execution_planner: executionPlannerStats,
+    tool_planner: toolPlannerStats,
     response_quality: responseQualityStats,
+    completion_guard: completionGuardStats,
   };
 
   // Statut/fiabilite derives des compteurs reels (pdfCount/docxCount/xlsxCount,
@@ -4155,6 +4413,9 @@ async function buildAdminHealthPayload(request, env) {
       items: recentEvents.slice(0, 20).map(formatHealthActivity),
     },
     ai_state: aiState,
+    dashboard_debug: {
+      planner_events: buildPlannerEventsDebugInfo(plannerEvents),
+    },
     documents,
     current_capabilities: [
       "Chat IA",
@@ -5572,7 +5833,8 @@ async function handleAdminObservabilityServices(request, env) {
     return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
   }
   const rows = await fetchRecentObservabilityEvents(env);
-  return jsonResponse(request, env, { ok: true, services: buildServiceHealth(rows) });
+  const lifetimeStats = await fetchObservabilityLifetimeStats(env, OBSERVABILITY_SERVICES);
+  return jsonResponse(request, env, { ok: true, services: buildServiceHealth(rows, lifetimeStats) });
 }
 
 async function handleAdminObservabilityLogs(request, env, url) {
