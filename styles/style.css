@@ -10240,7 +10240,7 @@ body.body-menu-open #footer {
   left: auto;
   padding: 0;
   position: fixed;
-  right: 16px;
+  right: 0;
   top: 36%;
   transform: translateY(-50%);
   transition: right 0.25s ease, transform 0.2s ease, opacity 0.2s ease, filter 0.2s ease;
@@ -10288,11 +10288,11 @@ body.body-menu-open .ai-assistant-launcher {
   /* Chevauche l'emplacement du bouton robot (même ancrage "right") : son
      extrémité droite passe derrière lui, ne laissant dépasser qu'un
      croissant sur la gauche. */
-  right: 16px;
+  right: 0;
   top: 36%;
   transform: translateY(-50%);
   transition: right 0.3s ease, width 0.3s ease, opacity 0.2s ease, background 0.2s ease;
-  width: 80px;
+  width: 72px;
   z-index: 2099;
 }
 
@@ -10306,7 +10306,7 @@ body.body-menu-open .ai-assistant-launcher {
   border-color: transparent #fff transparent transparent;
   display: block;
   height: 0;
-  left: 7px;
+  left: 6px;
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
@@ -15109,7 +15109,7 @@ body.ai-assistant-sidebar-is-resizing * {
 @media (width <= 768px) {
   .ai-assistant-launcher {
     top: 60%;
-    right: 15px;
+    right: 0;
     transform: translateY(-50%);
   }
 
