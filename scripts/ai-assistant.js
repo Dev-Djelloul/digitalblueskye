@@ -10835,12 +10835,24 @@
   }
 
   if (launcherButton && panel) {
-    launcherButton.addEventListener('click', () => {
+    launcherButton.addEventListener('click', (event) => {
+      // Shift+clic pour rabattre/dérouler le bouton sur le côté
+      if (event.shiftKey) {
+        event.preventDefault();
+        launcherButton.classList.toggle('is-collapsed');
+        localStorage.setItem('ai-assistant-collapsed', launcherButton.classList.contains('is-collapsed'));
+        return;
+      }
+      // Clic normal pour ouvrir/fermer le panel
       const isOpening = !panel.classList.contains('is-open');
       if (isOpening) placePanelInCurrentViewport();
       setAssistantPanelOpen(isOpening);
       updateScrollBottomButton();
     });
+    // Restaurer l'état de rabattement sauvegardé
+    if (localStorage.getItem('ai-assistant-collapsed') === 'true') {
+      launcherButton.classList.add('is-collapsed');
+    }
   }
 
   if (closeButton && panel) {
