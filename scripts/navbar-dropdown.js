@@ -50,13 +50,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const adminLink = document.createElement('a');
     adminLink.className = 'header-admin-link header-social-link';
-    adminLink.href = '/pages/admin.html';
+    adminLink.href = '/admin/index.html';
     adminLink.setAttribute('aria-label', 'Accès admin');
-    adminLink.title = 'Admin DigitalBlueSkye';
+    adminLink.title = 'Digital Blue Skye Studio';
     adminLink.innerHTML = `
       <img
         class="header-social-icon"
-        src="/assets/images/ui/icons8-admin-48.png"
+        src="/assets/images/logo/AI.png"
         alt=""
         width="22"
         height="22"
