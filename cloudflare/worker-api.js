@@ -19,6 +19,7 @@
 import { computeProjectPlan } from './aiProjectManager.js';
 import { buildMaturityDashboardPayload } from './maturityEngine.js';
 import { computeServiceHealthScore } from './serviceHealth.js';
+import { BUILD_INFO } from './build-info.js';
 
 const REACTION_MAP = Object.freeze({
   thumbsup: "reactions_thumbsup",
@@ -4015,8 +4016,12 @@ async function buildAdminHealthPayload(request, env) {
   const aiHealthToken = env.AI_HEALTH_TOKEN || env.HEALTH_CHECK_TOKEN || "";
   const appVersion = env.APP_VERSION || "1.5.0";
   const buildNumber = env.BUILD_NUMBER || checkedAt.slice(0, 10);
-  const commitSha = env.COMMIT_SHA || env.CF_PAGES_COMMIT_SHA || "";
-  const deployedAt = env.LAST_DEPLOYED_AT || checkedAt;
+  // BUILD_INFO est généré par scripts/generate-build-info.mjs à partir de Git local
+  // (jamais de secret) ; les variables d'environnement restent prioritaires si définies
+  // (utile pour un déploiement Pages/CI qui connaît son propre commit).
+  const commitSha = env.COMMIT_SHA || env.CF_PAGES_COMMIT_SHA || BUILD_INFO?.commit || "local";
+  const gitBranch = env.BUILD_BRANCH || env.CF_PAGES_BRANCH || BUILD_INFO?.branch || "unknown";
+  const deployedAt = env.LAST_DEPLOYED_AT || BUILD_INFO?.buildDate || checkedAt;
 
   const recentEventsPromise = env.DB.prepare(
     `SELECT id, session_id, event_type, event_value, meta, created_at
@@ -4383,11 +4388,19 @@ async function buildAdminHealthPayload(request, env) {
     system: {
       version: appVersion,
       build: buildNumber,
-      commit: commitSha ? commitSha.slice(0, 12) : null,
+      commit: commitSha,
+      branch: gitBranch,
       last_deployed_at: deployedAt,
       api_worker: "digitalblueskye-api",
       ai_worker: "digitalblueskye-ai",
       ai_worker_health_url: aiWorkerHealthUrl,
+    },
+    versioning: {
+      version: appVersion,
+      build: buildNumber,
+      commit: commitSha,
+      branch: gitBranch,
+      deployedAt,
     },
     maturity,
     scorecard,

@@ -10548,6 +10548,7 @@
           version: "1.5.0",
           build: checkedAt.slice(0, 10),
           commit: "n/a",
+          branch: "n/a",
           last_deployed_at: checkedAt,
           api_worker: "digitalblueskye-api",
           ai_worker: "digitalblueskye-ai",
@@ -12002,6 +12003,7 @@
             ${renderIntelKv("Version", system.version || "non disponible")}
             ${renderIntelKv("Build", system.build || "non disponible")}
             ${renderIntelKv("Commit", system.commit || "non disponible")}
+            ${renderIntelKv("Branche", system.branch || "non disponible")}
             ${renderIntelKv("Dernier déploiement", formatDate(system.last_deployed_at) || "non disponible")}
           </div></article>
           <article class="intelligence-card"><header><h2>Workers & stockage</h2></header><div class="intel-kv-list">

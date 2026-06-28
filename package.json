@@ -6,6 +6,9 @@
     "wrangler": "^4.104.0"
   },
   "scripts": {
-    "lint:css": "stylelint \"styles/**/*.css\""
+    "lint:css": "stylelint \"styles/**/*.css\"",
+    "build:info": "node scripts/generate-build-info.mjs",
+    "predeploy:api": "npm run build:info",
+    "deploy:api": "wrangler deploy -c cloudflare/wrangler.api.toml"
   }
 }
