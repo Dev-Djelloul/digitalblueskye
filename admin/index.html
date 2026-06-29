@@ -2231,10 +2231,6 @@
     }
 
     body.sidebar-collapsed .sidebar-footer-item:not(.premium-system-status),
-    body.sidebar-collapsed .premium-sidebar-footer > button {
-      display: none !important;
-    }
-
     body.sidebar-collapsed .sidebar-footer-item,
     body.sidebar-collapsed .premium-sidebar-footer button {
       width: 44px;
@@ -2253,6 +2249,10 @@
       margin: 0;
       width: 22px;
       height: 22px;
+    }
+
+    body.sidebar-collapsed .premium-sidebar-footer button .sidebar-footer-label {
+      display: none !important;
     }
 
     .mobile-sidebar-overlay {
