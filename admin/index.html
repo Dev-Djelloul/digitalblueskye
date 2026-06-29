@@ -602,7 +602,25 @@
     }
 
     .panel-head strong {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
       font-weight: 650;
+    }
+
+    .panel-title-icon {
+      display: inline-grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 10px;
+      border: 1px solid rgba(79, 209, 255, 0.32);
+      background: rgba(79, 209, 255, 0.09);
+      color: #4fd1ff;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0;
+      line-height: 1;
     }
 
     .panel {
@@ -1814,15 +1832,15 @@
     .premium-brand-text {
       min-width: 0;
       overflow: hidden;
-      text-align: center;
+      text-align: left;
     }
 
     .premium-brand strong {
       display: block;
-      font-size: 11px;
+      font-size: 14px;
       font-weight: 700;
-      line-height: 1.1;
-      white-space: nowrap;
+      line-height: 1.12;
+      white-space: normal;
       overflow: hidden;
       text-overflow: ellipsis;
       background: linear-gradient(90deg,
@@ -1861,6 +1879,10 @@
       color: #f7f9ff;
       padding: 0 10px;
       text-align: left;
+    }
+
+    .premium-context .nav-label {
+      font-weight: 500;
     }
 
     .premium-nav {
@@ -1983,13 +2005,7 @@
       transition: all 200ms ease;
     }
 
-    .premium-sidebar-footer > div:not(.premium-system-status) {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      line-height: 1.2;
-    }
-
+    .sidebar-footer-item,
     .premium-sidebar-footer button {
       width: 100%;
       min-height: 36px;
@@ -2010,6 +2026,11 @@
       white-space: nowrap;
     }
 
+    .sidebar-footer-item strong {
+      font-weight: 600;
+      color: #dfe7ff;
+    }
+
     .premium-sidebar-footer button:hover {
       border-color: rgba(124, 92, 255, 0.28);
       background: rgba(255, 255, 255, 0.045);
@@ -2017,40 +2038,37 @@
     }
 
     .premium-system-status {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
       color: #f7f9ff;
-      font-weight: 650;
-      font-size: 12px;
-      margin-bottom: 8px;
-      padding-bottom: 8px;
+      font-weight: 500;
+      display: grid;
+      grid-template-columns: 22px minmax(0, 1fr) auto;
     }
 
-    .premium-system-status span:last-child {
+    .sidebar-status-value {
       display: flex;
       align-items: center;
       gap: 6px;
+      min-width: 0;
     }
 
-    .premium-system-status span:last-child::before {
+    .sidebar-status-value::before {
       content: '';
       width: 8px;
+      min-width: 8px;
       height: 8px;
       border-radius: 50%;
       background: var(--success);
     }
 
-    .premium-system-status .status-operational span:last-child::before {
+    .premium-system-status.status-operational .sidebar-status-value::before {
       background: var(--success);
     }
 
-    .premium-system-status .status-warning span:last-child::before {
+    .premium-system-status.status-warning .sidebar-status-value::before {
       background: var(--warning);
     }
 
-    .premium-system-status .status-error span:last-child::before {
+    .premium-system-status.status-error .sidebar-status-value::before {
       background: var(--danger);
     }
 
@@ -2084,12 +2102,12 @@
     }
 
     body.sidebar-collapsed .premium-sidebar {
-      width: 60px;
+      width: 60px !important;
       padding: 8px;
     }
 
     body.sidebar-collapsed .shell:has(#appView:not(.hidden)) {
-      padding-left: 76px;
+      padding-left: 76px !important;
     }
 
     body.sidebar-collapsed .premium-brand {
@@ -2106,8 +2124,7 @@
     body.sidebar-collapsed .nav-label,
     body.sidebar-collapsed .premium-context .nav-label,
     body.sidebar-collapsed .premium-sidebar-footer .sidebar-footer-label,
-    body.sidebar-collapsed .premium-system-status span:nth-child(2),
-    body.sidebar-collapsed .premium-sidebar-footer > div:not(.premium-system-status) {
+    body.sidebar-collapsed .sidebar-status-value {
       display: none;
     }
 
@@ -2173,6 +2190,7 @@
       border-top: 1px solid rgba(79, 209, 255, 0.12);
     }
 
+    body.sidebar-collapsed .sidebar-footer-item,
     body.sidebar-collapsed .premium-sidebar-footer button {
       width: 44px;
       height: 44px;
@@ -2220,8 +2238,7 @@
       body.sidebar-collapsed .nav-label,
       body.sidebar-collapsed .premium-context .nav-label,
       body.sidebar-collapsed .premium-sidebar-footer .sidebar-footer-label,
-      body.sidebar-collapsed .premium-system-status span:nth-child(2),
-      body.sidebar-collapsed .premium-sidebar-footer > div:not(.premium-system-status) {
+      body.sidebar-collapsed .sidebar-status-value {
         display: block;
         opacity: 1;
         visibility: visible;
@@ -2229,6 +2246,7 @@
 
       body.sidebar-collapsed .premium-nav .tab,
       body.sidebar-collapsed .premium-context,
+      body.sidebar-collapsed .sidebar-footer-item,
       body.sidebar-collapsed .premium-sidebar-footer button {
         width: 100%;
         min-width: 0;
@@ -2500,7 +2518,6 @@
     }
 
     .premium-actions .refresh-icon,
-    .intelligence-actions .refresh-icon,
     .toolbar .refresh-icon {
       width: 40px;
       min-width: 40px;
@@ -4786,38 +4803,10 @@
       line-height: 1.08;
     }
 
-    .intelligence-title p,
-    .intelligence-sync {
+    .intelligence-title p {
       margin: 8px 0 0;
       color: #a7b4cf;
       font-size: 14px;
-    }
-
-    .intelligence-actions {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-      gap: 10px;
-    }
-
-    .intelligence-actions button,
-    .intelligence-actions select {
-      min-height: 40px;
-      border-radius: 10px;
-      border-color: rgba(104, 128, 170, 0.24);
-      background: rgba(18, 25, 43, 0.78);
-      color: #eef4ff;
-    }
-
-    .intelligence-actions select:disabled {
-      cursor: not-allowed;
-      color: #8f9db8;
-      opacity: 0.8;
-    }
-
-    .intelligence-actions .primary {
-      border-color: rgba(124, 92, 255, 0.8);
-      background: linear-gradient(135deg, #7c5cff, #7b35ff);
     }
 
     .intelligence-card {
@@ -5719,15 +5708,6 @@
         display: grid;
       }
 
-      .intelligence-actions {
-        justify-content: stretch;
-      }
-
-      .intelligence-actions button,
-      .intelligence-actions select {
-        width: 100%;
-      }
-
       .cognitive-pipeline {
         grid-template-columns: 1fr;
         overflow-x: visible;
@@ -6432,10 +6412,10 @@
           <button class="tab" type="button" data-tab="settings" title="Paramètres"><span class="nav-icon" aria-hidden="true">PR</span><span class="nav-label">Paramètres</span></button>
         </nav>
         <div class="premium-sidebar-footer" aria-label="État système">
-          <div class="premium-system-status status-operational"><span class="sidebar-footer-label">Système</span><span>Opérationnel</span></div>
-          <div>Version <strong id="sidebarVersionValue">1.5.0</strong></div>
-          <div>Build <strong id="sidebarBuildValue">2026-06-27</strong></div>
-          <button id="viewLogsBtn" type="button" title="Voir les logs"><span class="sidebar-footer-label">Voir les logs</span><span class="nav-icon" aria-hidden="true">LG</span></button>
+          <div class="sidebar-footer-item premium-system-status status-operational"><span class="nav-icon" aria-hidden="true">SY</span><span class="sidebar-footer-label">Système</span><span class="sidebar-status-value">Opérationnel</span></div>
+          <div class="sidebar-footer-item"><span class="nav-icon" aria-hidden="true">VR</span><span class="sidebar-footer-label">Version <strong id="sidebarVersionValue">1.5.0</strong></span></div>
+          <div class="sidebar-footer-item"><span class="nav-icon" aria-hidden="true">BD</span><span class="sidebar-footer-label">Build <strong id="sidebarBuildValue">2026-06-27</strong></span></div>
+          <button id="viewLogsBtn" type="button" title="Logs"><span class="nav-icon" aria-hidden="true">LG</span><span class="sidebar-footer-label">Logs</span></button>
           <button class="sidebar-logout-button" id="logoutBtn" type="button" title="Déconnexion" aria-label="Se déconnecter">
             <img src="../assets/images/ui/icons8-log-out-48.png" alt="" class="sidebar-logout-icon" aria-hidden="true">
             <span class="sidebar-footer-label">Déconnexion</span>
@@ -6608,11 +6588,11 @@
       <section id="intelligencePanel" class="panel hidden" aria-label="Intelligence IA Digital Blue Skye AI">
         <div class="panel-head">
           <div>
-            <strong>Intelligence IA</strong>
+            <strong><span class="panel-title-icon" aria-hidden="true">IA</span>Intelligence IA</strong>
             <span class="exports-realtime">Données réelles</span>
             <div id="intelligenceMeta" class="health-meta"></div>
           </div>
-          <div class="actions">
+          <div class="actions dashboard-header-actions">
             <button id="refreshIntelligenceBtn" class="refresh-icon" type="button" aria-label="Actualiser Intelligence IA" title="Actualiser Intelligence IA">
               <img src="../assets/images/ui/icons8-synchronize-48.png" alt="" aria-hidden="true">
             </button>
@@ -6624,11 +6604,11 @@
       <section id="systemPanel" class="panel hidden" aria-label="Système Digital Blue Skye AI">
         <div class="panel-head">
           <div>
-            <strong>Système</strong>
+            <strong><span class="panel-title-icon" aria-hidden="true">SY</span>Système</strong>
             <span class="exports-realtime">Données /admin/health</span>
             <div id="systemMeta" class="health-meta"></div>
           </div>
-          <div class="actions">
+          <div class="actions dashboard-header-actions">
             <button id="refreshSystemBtn" class="refresh-icon" type="button" aria-label="Actualiser Système" title="Actualiser Système">
               <img src="../assets/images/ui/icons8-synchronize-48.png" alt="" aria-hidden="true">
             </button>
@@ -6640,11 +6620,11 @@
       <section id="settingsPanel" class="panel hidden" aria-label="Paramètres Digital Blue Skye AI">
         <div class="panel-head">
           <div>
-            <strong>Paramètres</strong>
+            <strong><span class="panel-title-icon" aria-hidden="true">PR</span>Paramètres</strong>
             <span class="exports-realtime">Configuration honnête</span>
             <div id="settingsMeta" class="health-meta"></div>
           </div>
-          <div class="actions">
+          <div class="actions dashboard-header-actions">
             <button id="refreshSettingsBtn" class="refresh-icon" type="button" aria-label="Actualiser Paramètres" title="Actualiser Paramètres">
               <img src="../assets/images/ui/icons8-synchronize-48.png" alt="" aria-hidden="true">
             </button>
@@ -11371,10 +11351,10 @@
       return `
         <div class="premium-dashboard-header">
           <div class="premium-dashboard-title">
-            <h1>Maturité & Performance <span class="realtime-badge">${statusDot()}Temps réel</span></h1>
+            <h1>${iconSvg("chart")} Maturité & Performance <span class="realtime-badge">${statusDot()}Temps réel</span></h1>
             <p>Score calculé dynamiquement depuis les événements D1 et les statistiques Workers</p>
           </div>
-          <div>
+          <div class="dashboard-header-actions">
             <div class="premium-actions" aria-label="Commandes dashboard">
               ${renderPeriodSelector()}
               <button type="button" id="premiumExportBtn">Exporter</button>
@@ -12166,16 +12146,16 @@
       return `
         <div class="intelligence-header">
           <div class="intelligence-title">
-            <h1>Intelligence IA <span class="realtime-badge">${statusDot()}Temps réel</span></h1>
+            <h1>${iconSvg("brain")} Intelligence IA <span class="realtime-badge">${statusDot()}Temps réel</span></h1>
             <p>Cockpit du pipeline cognitif, des modèles, des outils et de la qualité IA.</p>
             <div class="intelligence-strip"><span>Statut global: ${headerStatus}</span><span>Source: /admin/health</span></div>
           </div>
-          <div>
-            <div class="intelligence-actions">
+          <div class="dashboard-header-actions">
+            <div class="premium-actions" aria-label="Contrôles Intelligence IA">
               <select aria-label="Période Intelligence IA" title="Période implémentée côté interface, données lues depuis /admin/health"><option selected>Période implémentée</option><option>Dernier état</option><option>24h</option><option>7 jours</option><option>30 jours</option></select>
               ${renderIconRefreshButton("intelligenceRefreshInline", "Actualiser Intelligence IA")}
             </div>
-            <p class="intelligence-sync">Dernière synchronisation : ${escapeHtml(formatDate(health?.checked_at) || "non disponible")}</p>
+            <p class="sync-label">Dernière synchronisation : ${escapeHtml(formatDate(health?.checked_at) || "non disponible")}</p>
           </div>
         </div>
         ${renderLatestDecisionCard(health)}
@@ -12199,7 +12179,10 @@
       content.className = "health health-dashboard intelligence-dashboard";
       content.innerHTML = renderIntelligenceDashboard(health || {});
       const refreshButton = $("#intelligenceRefreshInline");
-      if (refreshButton) refreshButton.addEventListener("click", () => loadIntelligence());
+      if (refreshButton) refreshButton.addEventListener("click", async () => {
+        await loadIntelligence();
+        setNotice("#appNotice", "Intelligence IA actualisée.", "success");
+      });
     }
 
     async function loadIntelligence() {
@@ -12393,10 +12376,16 @@
       return `
         <div class="intelligence-header">
           <div class="intelligence-title">
-            <h1>Système <span class="realtime-badge">${statusDot()}Données réelles</span></h1>
+            <h1>${iconSvg("pulse")} Système <span class="realtime-badge">${statusDot()}Données réelles</span></h1>
             <p>État technique exposé par /admin/health, sans lecture directe des secrets ni des flags Worker.</p>
           </div>
-          <p class="intelligence-sync">Dernière synchronisation : ${escapeHtml(formatDate(health.checked_at) || "non disponible")}</p>
+          <div class="dashboard-header-actions">
+            <div class="premium-actions" aria-label="Contrôles Système">
+              <select aria-label="Période Système" title="Période implémentée côté interface, données lues depuis /admin/health"><option selected>Période implémentée</option><option>Dernier état</option><option>24h</option><option>7 jours</option><option>30 jours</option></select>
+              ${renderIconRefreshButton("systemRefreshInline", "Actualiser Système")}
+            </div>
+            <p class="sync-label">Dernière synchronisation : ${escapeHtml(formatDate(health.checked_at) || "non disponible")}</p>
+          </div>
         </div>
         <section class="intelligence-grid">
           <article class="intelligence-card"><header><h2>Versioning</h2></header><div class="intel-kv-list">
@@ -12450,10 +12439,16 @@
       return `
         <div class="intelligence-header">
           <div class="intelligence-title">
-            <h1>Paramètres <span class="realtime-badge">${statusDot()}Honnête</span></h1>
+            <h1>${iconSvg("shield")} Paramètres <span class="realtime-badge">${statusDot()}Honnête</span></h1>
             <p>Audit de configuration et activation locale des outils disponibles dans le Studio.</p>
           </div>
-          <p class="intelligence-sync">Aucun paramètre backend modifié depuis cet écran.</p>
+          <div class="dashboard-header-actions">
+            <div class="premium-actions" aria-label="Contrôles Paramètres">
+              <select aria-label="Période Paramètres" title="Période implémentée côté interface, données lues depuis /admin/health"><option selected>Période implémentée</option><option>Dernier état</option><option>24h</option><option>7 jours</option><option>30 jours</option></select>
+              ${renderIconRefreshButton("settingsRefreshInline", "Actualiser Paramètres")}
+            </div>
+            <p class="sync-label">Aucun paramètre backend modifié depuis cet écran.</p>
+          </div>
         </div>
         <article class="intelligence-card">
           <header><h2>Audit de l’onglet Paramètres</h2><span>${renderIntelBadge("lecture seule")}</span></header>
@@ -12484,6 +12479,11 @@
       const content = $("#systemContent");
       content.className = "health health-dashboard intelligence-dashboard";
       content.innerHTML = renderSystemDashboard(health);
+      const refreshButton = $("#systemRefreshInline");
+      if (refreshButton) refreshButton.addEventListener("click", async () => {
+        await loadSystem();
+        setNotice("#appNotice", "Système actualisé.", "success");
+      });
     }
 
     function renderSettings(health = {}) {
@@ -12492,6 +12492,11 @@
       content.className = "health health-dashboard intelligence-dashboard";
       content.innerHTML = renderSettingsDashboard(health);
       bindSettingsToolToggles();
+      const refreshButton = $("#settingsRefreshInline");
+      if (refreshButton) refreshButton.addEventListener("click", async () => {
+        await loadSettings();
+        setNotice("#appNotice", "Paramètres actualisés.", "success");
+      });
     }
 
     function bindSettingsToolToggles() {
@@ -13342,6 +13347,19 @@
 
     function applySidebarState(collapsed) {
       document.body.classList.toggle("sidebar-collapsed", collapsed);
+      const sidebar = document.querySelector(".premium-sidebar");
+      const shell = document.querySelector(".shell");
+      if (collapsed) {
+        sidebar?.style.removeProperty("width");
+        shell?.style.removeProperty("padding-left");
+      } else {
+        const savedWidth = Number(localStorage.getItem("premiumSidebarWidth") || 0);
+        if (sidebar && shell && savedWidth > 0) {
+          const clampedWidth = Math.max(180, Math.min(500, savedWidth));
+          sidebar.style.width = `${clampedWidth}px`;
+          shell.style.setProperty("padding-left", `${clampedWidth + 16}px`);
+        }
+      }
       const button = $("#sidebarToggle");
       if (button) {
         button.textContent = collapsed ? "›" : "‹";
