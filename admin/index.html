@@ -244,13 +244,8 @@
       width: 100%;
       max-width: 1480px;
       margin-inline: auto;
-      padding: 28px clamp(96px, 5vw, 132px) 100px;
+      padding: 28px clamp(96px, 5vw, 132px) 36px;
       overflow-x: hidden;
-    }
-
-    .shell > section,
-    .shell > article {
-      padding-right: 100px !important;
     }
 
     .back-link {
@@ -643,7 +638,6 @@
 
     .panel > :not(.panel-head) {
       padding: 24px;
-      padding-right: 100px;
       display: grid;
       gap: 20px;
     }
@@ -12867,7 +12861,7 @@
     function showApp() {
       $("#loginView").classList.add("hidden");
       $("#appView").classList.remove("hidden");
-      $("#scrollTopBtn").classList.remove("hidden");
+      $("#scrollTopBtn").classList.add("hidden");
       $("#apiLabel").textContent = state.apiBase;
       applySidebarState(localStorage.getItem("dbs_sidebar_collapsed") === "true");
       setActiveTab(state.tab);
@@ -13520,6 +13514,19 @@
 
     $("#scrollTopBtn").addEventListener("click", () => {
       window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    // Afficher le bouton "Retour en haut" seulement après avoir scrollé à 50% de la page
+    window.addEventListener("scroll", () => {
+      const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const scrollPosition = window.scrollY;
+      const scrollThreshold = scrollHeight / 2; // 50% de la page
+
+      if (scrollPosition > scrollThreshold) {
+        $("#scrollTopBtn").classList.remove("hidden");
+      } else {
+        $("#scrollTopBtn").classList.add("hidden");
+      }
     });
 
     document.querySelector(".back-link").addEventListener("click", (event) => {
