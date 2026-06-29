@@ -11989,10 +11989,10 @@ button.ai-assistant-project-row {
 .ai-assistant-project-settings textarea,
 .ai-assistant-project-settings select,
 .ai-assistant-settings-section input {
-  background: rgb(8 9 22 / 32%);
-  border: 1px solid rgb(255 255 255 / 11%);
+  background: rgb(240 245 255 / 95%);
+  border: 1px solid rgb(200 210 230 / 40%);
   border-radius: 9px;
-  color: rgb(246 247 255 / 92%);
+  color: rgb(20 22 42 / 92%);
   font-family: var(--font-body);
   font-size: 0.8rem;
   min-width: 0;
@@ -12002,8 +12002,8 @@ button.ai-assistant-project-row {
 
 .ai-assistant-project-settings,
 .ai-assistant-settings-section {
-  background: rgb(255 255 255 / 5%);
-  border: 1px solid rgb(255 255 255 / 8%);
+  background: linear-gradient(135deg, rgb(45 55 120 / 85%), rgb(35 45 100 / 85%));
+  border: 1px solid rgb(100 120 200 / 25%);
   border-radius: 12px;
   display: grid;
   gap: 12px;
@@ -14971,7 +14971,7 @@ body.ai-assistant-sidebar-is-resizing * {
 [data-theme="light"] .ai-assistant-settings-section h4,
 [data-theme="light"] .ai-assistant-media-card-body strong,
 [data-theme="light"] .ai-assistant-chat-media-body strong {
-  color: #2f2b5f;
+  color: #1a1240;
 }
 
 [data-theme="light"] .ai-assistant-library-import,
@@ -15017,7 +15017,7 @@ body.ai-assistant-sidebar-is-resizing * {
 [data-theme="light"] .ai-assistant-settings-section label,
 [data-theme="light"] .ai-assistant-media-card-body span,
 [data-theme="light"] .ai-assistant-chat-media-body span {
-  color: rgb(47 43 95 / 58%);
+  color: rgb(30 25 70 / 80%);
 }
 
 [data-theme="light"] .ai-assistant-project-stat,
@@ -15028,8 +15028,8 @@ body.ai-assistant-sidebar-is-resizing * {
 [data-theme="light"] .ai-assistant-project-settings,
 [data-theme="light"] .ai-assistant-settings-section,
 [data-theme="light"] .ai-assistant-project-tabs {
-  background: rgb(255 255 255 / 64%);
-  border-color: rgb(93 93 255 / 12%);
+  background: linear-gradient(135deg, rgb(200 215 255 / 48%), rgb(180 200 255 / 48%));
+  border-color: rgb(93 93 255 / 28%);
 }
 
 /* Boutons bleus de l'onglet Sources/Documents — en mode clair, ces boutons heritaient
