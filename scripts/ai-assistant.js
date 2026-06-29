@@ -563,12 +563,11 @@
   // duplique aucune logique : chaque icone declenche le bouton existant de la
   // barre laterale complete (recherche, nouvelle discussion, bibliotheque…).
   function createSidebarRailMarkup() {
-    const searchSvg = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>';
     return `
       <nav id="ai-assistant-rail" class="ai-assistant-rail" aria-label="${currentLanguage === 'en' ? 'Sidebar' : 'Barre latérale'}">
         <div class="ai-assistant-rail-group">
           <button class="ai-assistant-rail-btn" type="button" data-rail="toggle" title="${i18n.historyToggle}" aria-label="${i18n.historyToggle}"><img src="${sidebarIconUrl}" alt="" aria-hidden="true"></button>
-          <button class="ai-assistant-rail-btn" type="button" data-rail="search" title="${i18n.searchConversations}" aria-label="${i18n.searchConversations}">${searchSvg}</button>
+          <button class="ai-assistant-rail-btn" type="button" data-rail="search" title="${i18n.searchConversations}" aria-label="${i18n.searchConversations}"><img src="${searchIconUrl}" alt="" aria-hidden="true"></button>
           <button class="ai-assistant-rail-btn" type="button" data-rail="new" title="${i18n.newChat}" aria-label="${i18n.newChat}"><img src="${createNewIconUrl}" alt="" aria-hidden="true"></button>
           <button class="ai-assistant-rail-btn" type="button" data-rail="library" title="${i18n.library}" aria-label="${i18n.library}"><img src="${libraryIconUrl}" alt="" aria-hidden="true"></button>
           <button class="ai-assistant-rail-btn" type="button" data-rail="projects" title="${currentLanguage === 'en' ? 'Projects' : 'Projets'}" aria-label="${currentLanguage === 'en' ? 'Projects' : 'Projets'}"><img src="${projectSectionIconUrl}" alt="" aria-hidden="true"></button>
@@ -708,14 +707,13 @@
   function ensureSearchModal() {
     if (document.getElementById('ai-assistant-search-modal')) return;
     const host = document.getElementById('ai-assistant-panel') || document.body;
-    const searchSvg = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>';
     const placeholder = currentLanguage === 'en' ? 'Search chats...' : 'Rechercher des discussions…';
     host.insertAdjacentHTML('beforeend', `
       <div id="ai-assistant-search-modal" class="ai-assistant-search-modal" aria-hidden="true" hidden>
         <div class="ai-assistant-search-modal-backdrop" data-search-close></div>
         <div class="ai-assistant-search-dialog" role="dialog" aria-modal="true" aria-label="${placeholder}">
           <div class="ai-assistant-search-input-row">
-            <span class="ai-assistant-search-input-icon" aria-hidden="true">${searchSvg}</span>
+            <img src="${searchIconUrl}" alt="" class="ai-assistant-search-input-icon" aria-hidden="true">
             <input id="ai-assistant-search-modal-input" class="ai-assistant-search-modal-input" type="search" autocomplete="off" placeholder="${placeholder}" aria-label="${placeholder}">
             <button class="ai-assistant-search-modal-close" type="button" data-search-close aria-label="${currentLanguage === 'en' ? 'Close' : 'Fermer'}">&times;</button>
           </div>
