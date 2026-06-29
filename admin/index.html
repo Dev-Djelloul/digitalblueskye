@@ -8360,7 +8360,10 @@
       content.className = "premium-dashboard exports-dashboard";
       content.innerHTML = renderExportsDashboard();
       const refreshButton = $("#premiumRefreshExportsBtn");
-      if (refreshButton) refreshButton.addEventListener("click", () => loadExports());
+      if (refreshButton) refreshButton.addEventListener("click", async () => {
+        await loadExports();
+        setNotice("#appNotice", "Exports actualisés.", "success");
+      });
     }
 
     async function loadExportDetail(exportId) {
@@ -8656,7 +8659,10 @@
       content.className = "premium-dashboard analytics-dashboard";
       content.innerHTML = renderAnalyticsDashboard();
       const refreshButton = $("#premiumRefreshAnalyticsBtn");
-      if (refreshButton) refreshButton.addEventListener("click", () => loadAnalytics());
+      if (refreshButton) refreshButton.addEventListener("click", async () => {
+        await loadAnalytics();
+        setNotice("#appNotice", "Analytics actualisées.", "success");
+      });
     }
 
     async function loadAnalytics() {
@@ -8958,7 +8964,10 @@
       content.className = "premium-dashboard observability-dashboard";
       content.innerHTML = renderObservabilityDashboard();
       const refreshButton = $("#premiumRefreshObservabilityBtn");
-      if (refreshButton) refreshButton.addEventListener("click", () => loadObservability());
+      if (refreshButton) refreshButton.addEventListener("click", async () => {
+        await loadObservability();
+        setNotice("#appNotice", "Observabilité actualisée.", "success");
+      });
     }
 
     async function loadObservability() {
