@@ -5332,6 +5332,41 @@
       padding: 18px;
     }
 
+    .versioning-columns {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .versioning-column:first-child {
+      border-right: 1px solid rgba(104, 128, 170, 0.14);
+    }
+
+    .versioning-column h3 {
+      margin: 18px 18px 0;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(104, 128, 170, 0.14);
+      color: #98a6c7;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .versioning-column .intel-kv-list {
+      padding-top: 12px;
+    }
+
+    @media (max-width: 900px) {
+      .versioning-columns {
+        grid-template-columns: 1fr;
+      }
+
+      .versioning-column:first-child {
+        border-right: 0;
+        border-bottom: 1px solid rgba(104, 128, 170, 0.14);
+      }
+    }
+
     .intel-kv-row,
     .intel-tool-row,
     .intel-event-row {
@@ -12483,6 +12518,15 @@
       const system = health.system || {};
       const config = health.configuration || {};
       const checks = health.checks || {};
+      // Versioning propre au Worker AI (digitalblueskye-ai), distinct du
+      // versioning du Worker API ci-dessus. Source prioritaire :
+      // health_diagnostics.ai_worker.versioning (cf. buildAiWorkerVersioning()
+      // dans worker-openrouter.js, fusionne par worker-api.js) ; fallback sur
+      // la reference courte versioning.ai_worker_versioning si la premiere est
+      // absente. "non disponible" partout si le Worker AI n'a jamais repondu.
+      const aiVersioning = health.health_diagnostics?.ai_worker?.versioning
+        || health.versioning?.ai_worker_versioning
+        || {};
       const services = Array.isArray(health.services) ? health.services : [];
       const recent = Array.isArray(health.recent_activity?.items) ? health.recent_activity.items : [];
       const errors = recent.filter((event) => /error|failed|erreur/i.test(`${event.type || ""} ${event.detail || ""}`));
@@ -12513,15 +12557,34 @@
           </div>
         </div>
         <section class="intelligence-grid">
-          <article class="intelligence-card"><header><h2>Versioning</h2></header><div class="intel-kv-list">
-            ${renderIntelKv("Version", system.version || "non disponible")}
-            ${renderIntelKv("Build", system.build || "non disponible")}
-            ${renderIntelKv("Date de build", system.buildDateLabel || "non disponible")}
-            ${renderIntelKv("Heure de build", system.buildTimeLabel || "non disponible")}
-            ${renderIntelKvLink("Commit", system.commit, system.githubCommitUrl)}
-            ${renderIntelKvLink("Branche", system.branch, system.githubBranchUrl)}
-            ${renderIntelKv("Dernier déploiement", formatDate(system.last_deployed_at) || "non disponible")}
-          </div></article>
+          <article class="intelligence-card versioning-card"><header><h2>Versioning</h2></header>
+            <div class="versioning-columns">
+              <div class="versioning-column">
+                <h3>API Worker</h3>
+                <div class="intel-kv-list">
+                  ${renderIntelKv("Version", system.version || "non disponible")}
+                  ${renderIntelKv("Build", system.build || "non disponible")}
+                  ${renderIntelKv("Date de build", system.buildDateLabel || "non disponible")}
+                  ${renderIntelKv("Heure de build", system.buildTimeLabel || "non disponible")}
+                  ${renderIntelKvLink("Commit", system.commit, system.githubCommitUrl)}
+                  ${renderIntelKvLink("Branche", system.branch, system.githubBranchUrl)}
+                  ${renderIntelKv("Dernier déploiement", formatDate(system.last_deployed_at) || "non disponible")}
+                </div>
+              </div>
+              <div class="versioning-column">
+                <h3>AI Worker</h3>
+                <div class="intel-kv-list">
+                  ${renderIntelKv("Version", aiVersioning.version || "non disponible")}
+                  ${renderIntelKv("Build", aiVersioning.build || "non disponible")}
+                  ${renderIntelKv("Date de build", aiVersioning.buildDateLabel || "non disponible")}
+                  ${renderIntelKv("Heure de build", aiVersioning.buildTimeLabel || "non disponible")}
+                  ${renderIntelKvLink("Commit", aiVersioning.commit, aiVersioning.githubCommitUrl)}
+                  ${renderIntelKvLink("Branche", aiVersioning.branch, aiVersioning.githubBranchUrl)}
+                  ${renderIntelKv("Dernier déploiement", formatDate(aiVersioning.last_deployed_at) || "non disponible")}
+                </div>
+              </div>
+            </div>
+          </article>
           <article class="intelligence-card"><header><h2>Workers & stockage</h2></header><div class="intel-kv-list">
             ${renderIntelKv("API Worker", system.api_worker || "non mesuré")}
             ${renderIntelKv("AI Worker", system.ai_worker || "non mesuré")}

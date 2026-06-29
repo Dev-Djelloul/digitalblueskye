@@ -4492,6 +4492,11 @@ async function buildAdminHealthPayload(request, env) {
       githubCommitUrl,
       githubBranchUrl,
       deployedAt,
+      // Reference courte vers le versioning du Worker AI (cf.
+      // buildAiWorkerVersioning() dans worker-openrouter.js), en plus de
+      // health_diagnostics.ai_worker.versioning ci-dessous — pratique pour
+      // un consommateur qui ne lit que .versioning sans health_diagnostics.
+      ai_worker_versioning: aiHealthResult.payload?.versioning || null,
     },
     maturity,
     scorecard,
@@ -4503,7 +4508,19 @@ async function buildAdminHealthPayload(request, env) {
     },
     health_diagnostics: {
       api_worker: aiHealthDiagnostics,
-      ai_worker: aiHealthResult.payload?.health_diagnostics || null,
+      // Le Worker AI expose son propre health_diagnostics (worker, environment,
+      // auth_mode, detected_variable_names, etc.) ainsi qu'un bloc versioning
+      // distinct (commit/branch/build propres a digitalblueskye-ai, cf.
+      // buildAiWorkerVersioning() dans worker-openrouter.js). On les fusionne
+      // ici pour exposer une seule entree ai_worker.versioning cote admin,
+      // sans casser les champs existants ni masquer un Worker AI qui ne
+      // repondrait pas (reste null dans ce cas).
+      ai_worker: aiHealthResult.payload?.health_diagnostics
+        ? {
+            ...aiHealthResult.payload.health_diagnostics,
+            versioning: aiHealthResult.payload?.versioning || null,
+          }
+        : null,
     },
     checks,
     tavily_usage: tavilyUsage,

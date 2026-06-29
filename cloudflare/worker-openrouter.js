@@ -41,6 +41,7 @@ import {
   isToolPlannerEnabled
 } from './toolPlanner.js';
 import { evaluateResponse, repairResponse, buildRetrySystemInstruction, buildImproveSystemInstruction, isRqcEnabled, QUALITY_ACTIONS } from './responseQualityController.js';
+import { BUILD_INFO } from './build-info.js';
 
 const DEFAULT_MODEL = 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free';
 const FALLBACK_MODEL = 'openrouter/auto';
@@ -1336,6 +1337,38 @@ function buildHealthDiagnostics(request, env, authMode) {
   };
 }
 
+// BUILD_INFO est genere par scripts/generate-build-info.mjs a partir de Git
+// local (jamais de secret) ; les variables d'environnement restent
+// prioritaires si definies. Memes regles de fallback que system.* dans
+// buildAdminHealthPayload() (worker-api.js), pour que les deux Workers
+// exposent un versioning coherent meme si BUILD_INFO est absent/partiel.
+function buildAiWorkerVersioning(env, checkedAt) {
+  const appVersion = env.APP_VERSION || '1.5.0';
+  const buildNumber = env.BUILD_NUMBER || checkedAt.slice(0, 10);
+  const commitSha = env.COMMIT_SHA || BUILD_INFO?.commit || 'unknown';
+  const commitFull = env.COMMIT_SHA_FULL || BUILD_INFO?.commitFull || commitSha;
+  const gitBranch = env.BUILD_BRANCH || BUILD_INFO?.branch || 'unknown';
+  const deployedAt = env.LAST_DEPLOYED_AT || BUILD_INFO?.buildDate || checkedAt;
+  const buildDateLabel = BUILD_INFO?.buildDateLabel || 'unknown';
+  const buildTimeLabel = BUILD_INFO?.buildTimeLabel || 'non disponible';
+  const githubCommitUrl = env.GITHUB_COMMIT_URL || BUILD_INFO?.githubCommitUrl || null;
+  const githubBranchUrl = env.GITHUB_BRANCH_URL || BUILD_INFO?.githubBranchUrl || null;
+
+  return {
+    version: appVersion,
+    build: buildNumber,
+    commit: commitSha,
+    commitFull,
+    branch: gitBranch,
+    buildDateLabel,
+    buildTimeLabel,
+    githubCommitUrl,
+    githubBranchUrl,
+    last_deployed_at: deployedAt,
+    worker: 'digitalblueskye-ai'
+  };
+}
+
 function buildTavilyRuntimeMetrics(env) {
   const cacheTotal = tavilyRuntimeStats.cacheHits + tavilyRuntimeStats.cacheMisses;
   const cacheHitRate = cacheTotal ? Math.round((tavilyRuntimeStats.cacheHits / cacheTotal) * 1000) / 10 : 0;
@@ -1585,6 +1618,7 @@ async function buildAiHealthPayload(request, env, authMode) {
     checked_at: checkedAt,
     service: 'digitalblueskye-ai',
     worker_build: WORKER_BUILD,
+    versioning: buildAiWorkerVersioning(env, checkedAt),
     health_diagnostics: buildHealthDiagnostics(request, env, authMode),
     configuration: {
       openrouter_api_key_configured: openRouterConfigured,
