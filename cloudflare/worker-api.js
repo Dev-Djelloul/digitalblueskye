@@ -3825,14 +3825,19 @@ async function requireAdmin(request, env) {
 // Helper partage entre handleAdminSummary et buildAdminHealthPayload : evite
 // de dupliquer la requete dediee Tavily (filtree par event_type, donc jamais
 // starvee par le bruit des autres evenements de chat).
-async function fetchTavilyEventsWindow(env, limit = 500) {
+async function fetchTavilyEventsWindow(env, limit = 500, cutoffIso = null) {
+  // cutoffIso optionnel : les appels existants sans cutoff (limit seul)
+  // restent inchanges, cf. usage hors fenetre datee a la ligne ~3915
+  // (/admin/summary, hors perimetre de ce lot range).
+  const dateClause = cutoffIso ? "AND datetime(created_at) >= datetime(?)" : "";
+  const bindings = cutoffIso ? [cutoffIso, limit] : [limit];
   const result = await env.DB.prepare(
     `SELECT id, session_id, event_type, event_value, meta, created_at
      FROM ai_assistant_events
-     WHERE event_type IN (${webSearchEventTypesSqlList()})
+     WHERE event_type IN (${webSearchEventTypesSqlList()}) ${dateClause}
      ORDER BY created_at DESC, id DESC
      LIMIT ?`
-  ).bind(limit).all();
+  ).bind(...bindings).all();
   return result.results || [];
 }
 
@@ -3858,14 +3863,17 @@ export function plannerEventTypesSqlClause() {
   ].join(" OR ");
 }
 
-export async function fetchPlannerEventsWindow(env, limit = 500) {
+export async function fetchPlannerEventsWindow(env, limit = 500, cutoffIso = null) {
+  // cutoffIso optionnel, meme contrat que fetchTavilyEventsWindow() ci-dessus.
+  const dateClause = cutoffIso ? "AND datetime(created_at) >= datetime(?)" : "";
+  const bindings = cutoffIso ? [cutoffIso, limit] : [limit];
   const result = await env.DB.prepare(
     `SELECT id, session_id, event_type, event_value, meta, created_at
      FROM ai_assistant_events
-     WHERE ${plannerEventTypesSqlClause()}
+     WHERE ${plannerEventTypesSqlClause()} ${dateClause}
      ORDER BY created_at DESC, id DESC
      LIMIT ?`
-  ).bind(limit).all();
+  ).bind(...bindings).all();
   return result.results || [];
 }
 
@@ -4007,8 +4015,35 @@ async function handleAdminSummary(request, env) {
   });
 }
 
+// Whitelist stricte : la valeur query string ?range= n'est JAMAIS interpolee
+// directement dans du SQL — uniquement les champs numeriques (days/limit) de
+// cette table, deja connus et fixes a la deploiement, sont relayes vers les
+// requetes parametrees (bind), jamais l'entree utilisateur brute.
+const ADMIN_RANGE_PRESETS = Object.freeze({
+  "7d": { key: "7d", label: "7 jours", days: 7, limit: 300 },
+  "30d": { key: "30d", label: "30 jours", days: 30, limit: 1000 },
+  "90d": { key: "90d", label: "90 jours", days: 90, limit: 3000 },
+});
+const ADMIN_RANGE_DEFAULT = ADMIN_RANGE_PRESETS["30d"];
+
+function parseAdminRange(requestUrl) {
+  let rawRange = "";
+  try {
+    rawRange = new URL(requestUrl).searchParams.get("range") || "";
+  } catch (error) {
+    rawRange = "";
+  }
+  return ADMIN_RANGE_PRESETS[rawRange] || ADMIN_RANGE_DEFAULT;
+}
+
 async function buildAdminHealthPayload(request, env) {
   const checkedAt = nowIso();
+  const range = parseAdminRange(request.url);
+  // Cutoff calcule une seule fois en JS (et non recalcule par "now" dans
+  // chaque requete SQL parallele) pour garantir que toutes les requetes de
+  // cette fonction (evenements, compteurs, moyennes) partagent exactement la
+  // meme borne temporelle, sans deriver de quelques millisecondes entre elles.
+  const rangeCutoffIso = new Date(Date.now() - range.days * 24 * 60 * 60 * 1000).toISOString();
   const dbConfigured = Boolean(env.DB);
   const adminConfigured = isConfigured(env.ADMIN_TOKEN);
   const frontendOrigin = env.ALLOWED_ORIGIN || "Origine dynamique via CORS";
@@ -4031,22 +4066,30 @@ async function buildAdminHealthPayload(request, env) {
   const githubCommitUrl = env.GITHUB_COMMIT_URL || BUILD_INFO?.githubCommitUrl || null;
   const githubBranchUrl = env.GITHUB_BRANCH_URL || BUILD_INFO?.githubBranchUrl || null;
 
+  // datetime(created_at) normalise les deux formats de timestamp presents en
+  // base ("YYYY-MM-DD HH:MM:SS" via datetime('now') et "YYYY-MM-DDTHH:MM:SS.SSSZ"
+  // via new Date().toISOString(), selon le chemin d'insertion historique) —
+  // une comparaison de chaines brutes serait faussee par le separateur
+  // different ('espace' vs 'T'). range.limit reste une borne de securite,
+  // jamais une valeur libre (cf. ADMIN_RANGE_PRESETS).
   const recentEventsPromise = env.DB.prepare(
     `SELECT id, session_id, event_type, event_value, meta, created_at
      FROM ai_assistant_events
+     WHERE datetime(created_at) >= datetime(?)
      ORDER BY created_at DESC, id DESC
-     LIMIT 500`
-  ).all();
+     LIMIT ?`
+  ).bind(rangeCutoffIso, range.limit).all();
 
   // recentEventsPromise ci-dessus melange TOUS les types d'evenements
   // (modele, RQC, RAG, etc. — un seul tour de chat peut en emettre 10-20),
-  // donc une fenetre globale de 500 lignes peut etre entierement consommee
-  // par du bruit de chat recent et ne plus contenir aucun evenement Tavily,
-  // meme si ceux-ci existent bien en base (cause du symptome "carte Tavily
-  // parfois vide"). fetchTavilyEventsWindow() garantit jusqu'a 500
-  // evenements Tavily recents, independamment du volume des autres types.
-  const tavilyEventsPromise = fetchTavilyEventsWindow(env, 500);
-  const plannerEventsPromise = fetchPlannerEventsWindow(env, 500);
+  // donc une fenetre globale peut etre entierement consommee par du bruit de
+  // chat recent et ne plus contenir aucun evenement Tavily, meme si ceux-ci
+  // existent bien en base sur la meme periode (cause du symptome "carte
+  // Tavily parfois vide"). fetchTavilyEventsWindow() garantit jusqu'a
+  // range.limit evenements Tavily recents sur la meme fenetre temporelle,
+  // independamment du volume des autres types.
+  const tavilyEventsPromise = fetchTavilyEventsWindow(env, range.limit, rangeCutoffIso);
+  const plannerEventsPromise = fetchPlannerEventsWindow(env, range.limit, rangeCutoffIso);
 
   const aiHealthPromise = fetchAiWorkerHealth(env, aiWorkerHealthUrl, aiHealthToken, 10000);
 
@@ -4075,20 +4118,29 @@ async function buildAdminHealthPayload(request, env) {
     plannerEventsPromise,
     aiHealthPromise,
     frontendHealthPromise,
-    firstCount(env, "SELECT COUNT(DISTINCT session_id) AS count FROM ai_assistant_events WHERE session_id IS NOT NULL AND session_id != ''"),
-    firstCount(env, "SELECT COUNT(*) AS count FROM ai_assistant_events"),
-    firstCount(env, `SELECT COUNT(*) AS count FROM ai_assistant_events WHERE event_type IN (${webSearchEventTypesSqlList()})`),
-    firstCount(env, "SELECT COUNT(*) AS count FROM ai_assistant_events WHERE event_type = 'pdf_uploaded'"),
-    firstCount(env, "SELECT COUNT(*) AS count FROM ai_assistant_events WHERE event_type = 'docx_uploaded'"),
-    firstCount(env, "SELECT COUNT(*) AS count FROM ai_assistant_events WHERE event_type = 'xlsx_uploaded'"),
-    firstCount(env, "SELECT COUNT(*) AS count FROM ai_assistant_events WHERE event_type = 'openrouter_request'"),
+    // Mêmes compteurs qu'avant ce lot, desormais bornes a la fenetre range
+    // selectionnee (datetime(created_at) >= datetime(rangeCutoffIso)) — sinon
+    // ces totaux seraient restes "depuis toujours" alors que les evenements
+    // et le score affiches a cote sont, eux, filtres par periode : on aurait
+    // reintroduit une incoherence du meme type que celle corrigee au lot
+    // precedent (libelle de periode qui ne correspond pas aux chiffres).
+    firstCount(env, "SELECT COUNT(DISTINCT session_id) AS count FROM ai_assistant_events WHERE session_id IS NOT NULL AND session_id != '' AND datetime(created_at) >= datetime(?)", rangeCutoffIso),
+    firstCount(env, "SELECT COUNT(*) AS count FROM ai_assistant_events WHERE datetime(created_at) >= datetime(?)", rangeCutoffIso),
+    firstCount(env, `SELECT COUNT(*) AS count FROM ai_assistant_events WHERE event_type IN (${webSearchEventTypesSqlList()}) AND datetime(created_at) >= datetime(?)`, rangeCutoffIso),
+    firstCount(env, "SELECT COUNT(*) AS count FROM ai_assistant_events WHERE event_type = 'pdf_uploaded' AND datetime(created_at) >= datetime(?)", rangeCutoffIso),
+    firstCount(env, "SELECT COUNT(*) AS count FROM ai_assistant_events WHERE event_type = 'docx_uploaded' AND datetime(created_at) >= datetime(?)", rangeCutoffIso),
+    firstCount(env, "SELECT COUNT(*) AS count FROM ai_assistant_events WHERE event_type = 'xlsx_uploaded' AND datetime(created_at) >= datetime(?)", rangeCutoffIso),
+    firstCount(env, "SELECT COUNT(*) AS count FROM ai_assistant_events WHERE event_type = 'openrouter_request' AND datetime(created_at) >= datetime(?)", rangeCutoffIso),
     firstNumber(
       env,
       `SELECT AVG(CAST(json_extract(meta, '$.latency_ms') AS REAL)) AS value
        FROM ai_assistant_events
        WHERE event_type IN ('openrouter_response', 'assistant_response')
          AND json_valid(meta)
-         AND json_extract(meta, '$.latency_ms') IS NOT NULL`
+         AND json_extract(meta, '$.latency_ms') IS NOT NULL
+         AND datetime(created_at) >= datetime(?)`,
+      "value",
+      rangeCutoffIso
     ).then((value) => value == null ? null : Math.round(value)),
     firstNumber(
       env,
@@ -4096,7 +4148,10 @@ async function buildAdminHealthPayload(request, env) {
        FROM ai_assistant_events
        WHERE event_type = 'web_search_success'
          AND json_valid(meta)
-         AND json_extract(meta, '$.latency_ms') IS NOT NULL`
+         AND json_extract(meta, '$.latency_ms') IS NOT NULL
+         AND datetime(created_at) >= datetime(?)`,
+      "value",
+      rangeCutoffIso
     ).then((value) => value == null ? null : Math.round(value)),
   ]);
 
@@ -4393,6 +4448,23 @@ async function buildAdminHealthPayload(request, env) {
     ok: true,
     version: "2.0",
     checked_at: checkedAt,
+    // Periode reellement appliquee aux requetes D1 ci-dessus (evenements,
+    // compteurs, latences moyennes) — jamais juste un libelle decoratif. Le
+    // front doit lire ce champ pour afficher la fenetre active, plutot que de
+    // se fier a la valeur du <select> qu'il a lui-meme envoyee.
+    range: {
+      key: range.key,
+      label: range.label,
+      days: range.days,
+      applied: true,
+      source: "D1 ai_assistant_events.created_at",
+      cutoff_at: rangeCutoffIso,
+    },
+    // Total reel d'evenements D1 sur la fenetre range appliquee (meme
+    // compteur que runtime.aiEventCount passe au moteur de maturite) —
+    // expose au niveau racine pour permettre une verification simple
+    // (curl ... | jq '.events_total') que le volume varie bien selon range.
+    events_total: aiEventCount,
     system: {
       version: appVersion,
       build: buildNumber,

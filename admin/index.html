@@ -6526,6 +6526,11 @@
       selectedIds: new Set(),
       summary: null,
       health: null,
+      // Periode de la Vue globale : etat memoire de session uniquement (pas
+      // de localStorage) — recharge a "30d" a chaque ouverture, jamais une
+      // source de verite metier persistee. /admin/health?range=... reste la
+      // seule source de verite pour les donnees elles-memes.
+      globalRange: "30d",
       aiPilotRows: [],
       healthServiceSearch: "",
       healthServiceStatus: "all",
@@ -10635,13 +10640,18 @@
       `;
     }
 
-    function buildFallbackHealth(reason) {
+    function buildFallbackHealth(reason, range) {
       const checkedAt = new Date().toISOString();
+      const requestedRange = GLOBAL_RANGE_OPTIONS.find((opt) => opt.key === range) || GLOBAL_RANGE_OPTIONS[1];
       return {
         ok: true,
         checked_at: checkedAt,
         fallback: true,
         fallback_reason: reason || "Endpoint /admin/health non disponible.",
+        // applied: false — la periode demandee n'a PAS pu etre filtree par le
+        // backend (ce payload est un repli local), contrairement a une vraie
+        // reponse /admin/health ou range.applied vaut toujours true.
+        range: { key: requestedRange.key, label: requestedRange.label, applied: false },
         system: {
           version: "1.5.0",
           build: checkedAt.slice(0, 10),
@@ -11135,13 +11145,23 @@
       return { eventDistribution, eventTotal, eventCount, aiDomain, webDomain, documentDomain, memoryDomain };
     }
 
-    // Periode 7/30/90 jours : pas encore de parametre range cote backend
-    // (/admin/health lit toujours une fenetre fixe des derniers evenements,
-    // jamais une vraie plage calendaire) — le selecteur reste donc desactive
-    // avec un libelle honnete plutot que de laisser croire a un filtrage actif
-    // qui n'existe pas. Chantier dedie a prevoir pour le parametre range reel.
+    // Periode 7/30/90 jours : desormais un vrai parametre range applique cote
+    // backend (/admin/health?range=7d|30d|90d filtre ai_assistant_events par
+    // datetime(created_at), cf. cloudflare/worker-api.js parseAdminRange()).
+    // L'option selectionnee reflete state.globalRange (memoire de session,
+    // jamais localStorage) — pas de valeur "decorative" qui ne correspondrait
+    // pas a ce qui a ete reellement envoye/applique.
+    const GLOBAL_RANGE_OPTIONS = [
+      { key: "7d", label: "7 jours" },
+      { key: "30d", label: "30 jours" },
+      { key: "90d", label: "90 jours" },
+    ];
+
     function renderPeriodSelector() {
-      return `<select aria-label="Période" title="Fenêtre = derniers événements disponibles, pas encore une vraie période calendaire 7/30/90 jours (chantier à venir)" disabled><option selected>Derniers événements disponibles</option></select>`;
+      const options = GLOBAL_RANGE_OPTIONS.map(
+        (opt) => `<option value="${opt.key}" ${state.globalRange === opt.key ? "selected" : ""}>${escapeHtml(opt.label)}</option>`
+      ).join("");
+      return `<select id="globalRangeSelect" aria-label="Période" title="Filtre la Vue globale sur la période sélectionnée (appliqué côté serveur sur ai_assistant_events.created_at)">${options}</select>`;
     }
 
     function renderPremiumDashboard(health) {
@@ -11160,10 +11180,16 @@
       const avgLatency = statByKey("average_response_ms") ?? aiDomain.metrics?.average_latency_ms;
       const level = Math.max(1, Math.min(5, Math.ceil(percent / 20)));
       const activeSegments = Math.max(1, Math.round(percent / 10));
-      // Evolution reelle (2 points : fenetre precedente vs fenetre actuelle),
-      // calculee cote backend par calculateHistoricalEvolution() — jamais une
-      // serie de 30 jours fabriquee. evidence_count nul sur les deux moities
-      // => points absents, on l'affiche comme "donnees insuffisantes".
+      // health.range : periode reellement appliquee cote backend (cf.
+      // parseAdminRange() dans worker-api.js), jamais une valeur decorative —
+      // tous les libelles "(30j)"/"sur 30 jours" ci-dessous en derivent.
+      const range = health?.range || { label: "période sélectionnée", days: 30 };
+      const rangeLabel = range.label || "période sélectionnée";
+      // Evolution reelle (2 points : fenetre precedente vs fenetre actuelle,
+      // par split de la fenetre range deja filtree), calculee cote backend
+      // par calculateHistoricalEvolution() — jamais une serie fabriquee.
+      // evidence_count nul sur les deux moities => points absents, affiche
+      // comme "donnees insuffisantes".
       const evolution = scorecard.mini_charts?.maturity_evolution || [];
       const hasEvolution = evolution.length >= 2
         && evolution.every((point) => point?.score !== null && point?.score !== undefined);
@@ -11193,11 +11219,11 @@
             <div class="hero-chart">
               <h2>Évolution du score (fenêtre précédente / actuelle)</h2>
               ${hasEvolution
-                ? `<canvas id="globalEvolutionChart" aria-label="Évolution du score global entre la fenêtre précédente et la fenêtre actuelle"></canvas><small class="chart-data-note">2 mesures disponibles · pas encore de série calendaire</small>`
+                ? `<canvas id="globalEvolutionChart" aria-label="Évolution du score global entre la fenêtre précédente et la fenêtre actuelle"></canvas><small class="chart-data-note">2 mesures réelles sur ${escapeHtml(rangeLabel)} · pas une série quotidienne complète</small>`
                 : `<p class="chart-empty-state">Données insuffisantes pour une évolution (fenêtre actuelle trop courte ou sans historique mesurable).</p>`}
             </div>
             <div class="quick-kpis">
-              <div class="quick-kpi"><span>Événements (fenêtre analysée)</span><strong>${escapeHtml(premiumNumber(eventCount, "0"))}</strong><small>Signal observé</small></div>
+              <div class="quick-kpi"><span>Événements sur ${escapeHtml(rangeLabel)}</span><strong>${escapeHtml(premiumNumber(eventCount, "0"))}</strong><small>Signal observé</small></div>
               <div class="quick-kpi"><span>Réponses IA</span><strong>${escapeHtml(premiumNumber(aiDomain.metrics?.responses, "0"))}</strong><small>RQC ${escapeHtml(aiDomain.metrics?.rqc_grade || "non mesurable")}</small></div>
               <div class="quick-kpi"><span>Taux de succès</span><strong>${escapeHtml(formatPercent(successRate))}</strong><small>IA + Web</small></div>
               <div class="quick-kpi"><span>Temps moyen</span><strong>${escapeHtml(formatMs(avgLatency))}</strong><small>Latence moyenne</small></div>
@@ -11205,7 +11231,7 @@
           </article>
           <article class="premium-card maturity-history">
             <h2>Évolution de la maturité</h2>
-            <p class="chart-data-note">Comparaison réelle entre les deux moitiés (par date) de la fenêtre d'événements analysée — pas encore de vraies périodes calendaires (7j/30j/90j).</p>
+            <p class="chart-data-note">Comparaison réelle entre les deux moitiés (par date) de la fenêtre ${escapeHtml(rangeLabel)} appliquée côté serveur.</p>
             ${hasEvolution
               ? evolution.map((point) => `
                 <div class="history-row"><span>${escapeHtml(point.label || "")}</span><small>${escapeHtml(premiumNumber(point.events, "0"))} événement(s)</small><strong>${escapeHtml(premiumDecimal(point.score, 1))}</strong></div>
@@ -11221,11 +11247,11 @@
         <section class="premium-grid premium-bottom-grid">
           <article class="premium-card activity-card">
             <h2>Activité globale</h2>
-            <p class="chart-data-note">Volumes réels mesurés sur la fenêtre analysée (capture actuelle, pas une série temporelle).</p>
+            <p class="chart-data-note">Volumes réels mesurés sur ${escapeHtml(rangeLabel)} (capture actuelle, pas une série temporelle).</p>
             <canvas id="activityChart" aria-label="Volumes actuels par catégorie"></canvas>
           </article>
           <article class="premium-card event-donut-card">
-            <h2>Répartition des événements (fenêtre analysée)</h2>
+            <h2>Répartition des événements sur ${escapeHtml(rangeLabel)}</h2>
             <div class="event-donut-wrap"><div class="event-donut"><canvas id="eventDonutChart" aria-label="Répartition des événements"></canvas><div class="event-donut-center"><strong>${escapeHtml(premiumNumber(eventTotal, "0"))}</strong><span>Total</span></div></div>
             <div class="event-list">${eventDistribution.map((item) => `<div><i style="--item-color:${item.color}"></i><span>${escapeHtml(item.label)}</span><strong>${escapeHtml(premiumNumber(item.value, "0"))}</strong></div>`).join("")}</div></div>
           </article>
@@ -12362,15 +12388,22 @@
         // Le disabled empeche aussi tout double-clic pendant le fetch en cours.
         refreshButton.disabled = true;
         refreshButton.classList.add("is-loading");
+        // Pas d'argument : loadHealth() recharge state.globalRange (periode
+        // deja selectionnee), jamais un retour silencieux a "30d".
         loadHealth();
+      });
+      const rangeSelect = $("#globalRangeSelect");
+      if (rangeSelect) rangeSelect.addEventListener("change", () => {
+        loadHealth(rangeSelect.value);
       });
       const exportButton = $("#premiumExportBtn");
       if (exportButton) exportButton.addEventListener("click", () => {
+        const rangeKey = health?.range?.key || state.globalRange || "30d";
         const blob = new Blob([JSON.stringify(health, null, 2)], { type: "application/json" });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
-        link.download = `digital-blue-skye-dashboard-${new Date().toISOString().slice(0, 10)}.json`;
+        link.download = `digitalblueskye-health-${rangeKey}-${new Date().toISOString().slice(0, 10)}.json`;
         link.click();
         URL.revokeObjectURL(url);
       });
@@ -12387,11 +12420,18 @@
       return;
     }
 
-    async function loadHealth() {
+    async function loadHealth(range) {
+      // range : etat memoire de session uniquement (state.globalRange), pas
+      // de localStorage. Si aucun argument n'est fourni (ex. clic sur le
+      // bouton sync), on recharge la periode deja selectionnee plutot que de
+      // revenir silencieusement a "30d" — cf. exigence "le bouton sync doit
+      // recharger la periode actuellement selectionnee".
+      const selectedRange = GLOBAL_RANGE_OPTIONS.some((opt) => opt.key === range) ? range : state.globalRange;
+      state.globalRange = selectedRange;
       setNotice("#appNotice", "", "");
       try {
         const [payload, aiPayload] = await Promise.all([
-          apiFetch("/admin/health"),
+          apiFetch(`/admin/health?range=${encodeURIComponent(selectedRange)}`),
           apiFetch("/admin/ai-events?limit=200&offset=0").catch(() => ({ items: [] })),
         ]);
         state.aiPilotRows = aiPayload.items || [];
@@ -12405,7 +12445,7 @@
         updateSidebarVersioning(payload.system);
       } catch (error) {
         state.aiPilotRows = [];
-        const fallback = buildFallbackHealth(error.message);
+        const fallback = buildFallbackHealth(error.message, selectedRange);
         state.health = fallback;
         renderHealth(fallback);
         updateSidebarVersioning(fallback.system);
