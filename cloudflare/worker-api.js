@@ -3391,15 +3391,42 @@ export function buildResourceUsage() {
 // controle. Retourne {} (aucun signal) si le Worker AI ne repond pas —
 // jamais une valeur fabriquee : buildSingleServiceHealth() retombe alors
 // sur les signaux bases evenements seuls, comme avant.
+//
+// Cas particulier Tavily : contrairement a OpenRouter/Vectorize, on ne
+// declenche jamais d'appel reseau synthetique juste pour un health-check
+// (chaque recherche Tavily consomme un credit reel et limite). Le signal
+// "actif" vient donc de la consommation reelle deja journalisee en D1 :
+// l'issue du DERNIER appel Tavily reellement effectue par un utilisateur,
+// quelle que soit son anciennete (contrairement a errorRateScore qui ne
+// regarde que la fenetre d'evenements recents analysee par Observabilite,
+// elle-meme evincable par du bruit haut volume). true si ce dernier appel
+// reel a reussi, false s'il a echoue, null si Tavily n'a jamais ete appele.
+async function fetchLastRealEventOutcome(env, successTypes = [], errorTypes = []) {
+  const types = [...successTypes, ...errorTypes];
+  if (!types.length || !env.DB) return null;
+  const placeholders = types.map(() => "?").join(",");
+  const row = await env.DB.prepare(
+    `SELECT event_type FROM ai_assistant_events
+     WHERE event_type IN (${placeholders})
+     ORDER BY created_at DESC, id DESC LIMIT 1`
+  ).bind(...types).first();
+  if (!row) return null;
+  return successTypes.includes(row.event_type);
+}
+
 async function fetchObservabilityActiveProbes(env) {
   const aiWorkerHealthUrl = env.AI_WORKER_HEALTH_URL || "https://digitalblueskye-ai.djelloulabid75.workers.dev/admin/health";
   const aiHealthToken = env.AI_HEALTH_TOKEN || env.HEALTH_CHECK_TOKEN || "";
-  const aiHealthResult = await fetchAiWorkerHealth(env, aiWorkerHealthUrl, aiHealthToken, 6000);
+  const tavilyService = OBSERVABILITY_SERVICES.find((service) => service.key === "tavily");
+  const [aiHealthResult, tavilyLastOutcomeOk] = await Promise.all([
+    fetchAiWorkerHealth(env, aiWorkerHealthUrl, aiHealthToken, 6000),
+    fetchLastRealEventOutcome(env, tavilyService?.successTypes, tavilyService?.errorTypes),
+  ]);
   const checks = aiHealthResult?.payload?.checks || null;
-  if (!checks) return {};
   return {
-    ai_worker: typeof checks.openrouter?.ok === "boolean" ? checks.openrouter.ok : null,
-    rag_pipeline: typeof checks.vectorize?.ok === "boolean" ? checks.vectorize.ok : null,
+    ai_worker: typeof checks?.openrouter?.ok === "boolean" ? checks.openrouter.ok : null,
+    rag_pipeline: typeof checks?.vectorize?.ok === "boolean" ? checks.vectorize.ok : null,
+    tavily: tavilyLastOutcomeOk,
   };
 }
 
