@@ -10303,11 +10303,11 @@ body.body-menu-open .ai-assistant-launcher {
 
 .ai-assistant-collapse-handle span {
   border-style: solid;
-  border-width: 3px 4px 3px 0;
-  border-color: transparent #fff transparent transparent;
+  border-width: 3px 0 3px 4px;
+  border-color: transparent transparent transparent #fff;
   display: block;
   height: 0;
-  left: 6px;
+  left: 8px;
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
@@ -10320,9 +10320,9 @@ body.body-menu-open .ai-assistant-launcher {
 }
 
 .ai-assistant-collapse-handle.is-collapsed span {
-  border-width: 3px 0 3px 4px;
-  border-color: transparent transparent transparent #fff;
-  left: 8px;
+  border-width: 3px 4px 3px 0;
+  border-color: transparent #fff transparent transparent;
+  left: 6px;
 }
 
 .ai-assistant-collapse-handle.is-panel-open,
