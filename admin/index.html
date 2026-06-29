@@ -244,7 +244,7 @@
       width: 100%;
       max-width: 1480px;
       margin-inline: auto;
-      padding: 28px clamp(96px, 5vw, 132px) 36px;
+      padding: 28px clamp(96px, 5vw, 132px) 100px;
       overflow-x: hidden;
     }
 
@@ -2091,13 +2091,13 @@
 
     .shell:has(#appView:not(.hidden)) {
       max-width: none;
-      padding: 24px 14px 24px 260px;
+      padding: 24px 14px 100px 260px;
       transition: padding-left 200ms cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     @media (max-width: 768px) {
       .shell:has(#appView:not(.hidden)) {
-        padding: 24px 12px 24px 12px;
+        padding: 24px 12px 100px 12px;
       }
     }
 
@@ -2188,6 +2188,11 @@
       gap: 6px;
       padding: 12px 0 0;
       border-top: 1px solid rgba(79, 209, 255, 0.12);
+    }
+
+    body.sidebar-collapsed .sidebar-footer-item:not(.premium-system-status),
+    body.sidebar-collapsed .premium-sidebar-footer > button {
+      display: none !important;
     }
 
     body.sidebar-collapsed .sidebar-footer-item,
@@ -6412,10 +6417,10 @@
           <button class="tab" type="button" data-tab="settings" title="Paramètres"><span class="nav-icon" aria-hidden="true">PR</span><span class="nav-label">Paramètres</span></button>
         </nav>
         <div class="premium-sidebar-footer" aria-label="État système">
-          <div class="sidebar-footer-item premium-system-status status-operational"><span class="nav-icon" aria-hidden="true">SY</span><span class="sidebar-footer-label">Système</span><span class="sidebar-status-value">Opérationnel</span></div>
-          <div class="sidebar-footer-item"><span class="nav-icon" aria-hidden="true">VR</span><span class="sidebar-footer-label">Version <strong id="sidebarVersionValue">1.5.0</strong></span></div>
-          <div class="sidebar-footer-item"><span class="nav-icon" aria-hidden="true">BD</span><span class="sidebar-footer-label">Build <strong id="sidebarBuildValue">2026-06-27</strong></span></div>
-          <button id="viewLogsBtn" type="button" title="Logs"><span class="nav-icon" aria-hidden="true">LG</span><span class="sidebar-footer-label">Logs</span></button>
+          <div class="sidebar-footer-item premium-system-status status-operational"><span class="sidebar-footer-label">Système</span><span class="sidebar-status-value">Opérationnel</span></div>
+          <div class="sidebar-footer-item"><span class="sidebar-footer-label">Version <strong id="sidebarVersionValue">1.5.0</strong></span></div>
+          <div class="sidebar-footer-item"><span class="sidebar-footer-label">Build <strong id="sidebarBuildValue">2026-06-27</strong></span></div>
+          <button id="viewLogsBtn" type="button" title="Logs"><span class="sidebar-footer-label">Logs</span></button>
           <button class="sidebar-logout-button" id="logoutBtn" type="button" title="Déconnexion" aria-label="Se déconnecter">
             <img src="../assets/images/ui/icons8-log-out-48.png" alt="" class="sidebar-logout-icon" aria-hidden="true">
             <span class="sidebar-footer-label">Déconnexion</span>
