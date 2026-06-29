@@ -297,13 +297,7 @@
   let i18n = getI18n(currentLanguage);
 
   function resolveUiIconUrl(fileName) {
-    const scriptEl = Array.from(document.scripts).find((script) => {
-      const srcAttr = script.getAttribute('src') || '';
-      return /(^|\/)scripts\/ai-assistant\.js(\?.*)?$/.test(srcAttr);
-    });
-    if (scriptEl?.src) {
-      return new URL(`../assets/images/ui/${fileName}`, scriptEl.src).toString();
-    }
+    // Utilise le chemin racine absolu qui fonctionne partout (localhost, Netlify, etc.)
     return `/assets/images/ui/${fileName}`;
   }
   const copyPasteIconUrl = resolveUiIconUrl('icons8-copy-paste-48.png');
