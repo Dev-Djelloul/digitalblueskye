@@ -10343,8 +10343,8 @@ body.body-menu-open .ai-assistant-launcher {
 
 [data-theme="light"] .ai-assistant-collapse-handle {
   background: rgb(255 255 255 / 96%);
-  border-color: rgb(255 95 109 / 45%);
-  box-shadow: 0 8px 24px rgb(88 74 136 / 18%), 0 0 0 1px rgb(255 95 109 / 22%);
+  border-color: rgb(200 34 255 / 45%);
+  box-shadow: 0 8px 24px rgb(88 74 136 / 18%), 0 0 0 1px rgb(200 34 255 / 22%);
 }
 
 [data-theme="light"] .ai-assistant-collapse-handle:hover {
