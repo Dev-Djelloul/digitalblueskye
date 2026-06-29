@@ -375,7 +375,7 @@
             <button id="ai-assistant-recent-toggle" class="ai-assistant-section-toggle" type="button" aria-expanded="true" aria-controls="ai-assistant-session-list">
               <span class="ai-assistant-section-chevron" aria-hidden="true">›</span>
               <img class="ai-assistant-section-icon" src="${conversationSectionIconUrl}" alt="" aria-hidden="true">
-              <span class="ai-assistant-session-label ai-assistant-section-title">Discussions recentes</span>
+              <span class="ai-assistant-session-label ai-assistant-section-title">Discussions récentes</span>
               <span id="ai-assistant-recent-count" class="ai-assistant-section-count">(0)</span>
             </button>
           </div>
@@ -4883,7 +4883,7 @@
     if (attachFileLabel) attachFileLabel.textContent = i18n.attachFiles;
     const attachDriveLabel = attachDriveButton?.querySelector('span');
     if (attachDriveLabel) attachDriveLabel.textContent = i18n.attachDrive;
-    if (sessionLabel) sessionLabel.textContent = currentLanguage === 'en' ? 'Recent discussions' : 'Discussions recentes';
+    if (sessionLabel) sessionLabel.textContent = currentLanguage === 'en' ? 'Recent discussions' : 'Discussions récentes';
     if (sessionSearchInput) {
       sessionSearchInput.placeholder = i18n.searchConversations;
       sessionSearchInput.setAttribute('aria-label', i18n.searchConversations);
@@ -5143,7 +5143,7 @@
     if (sessionSelect) sessionSelect.innerHTML = '';
     if (sessionList) sessionList.innerHTML = '';
     const sorted = [...sessionsState.sessions].sort((a, b) => b.updatedAt - a.updatedAt);
-    // "Discussions recentes" ne montre que les discussions independantes (hors
+    // "Discussions récentes" ne montre que les discussions independantes (hors
     // projet) ; les conversations d'un projet vivent dans la page du projet.
     const standalone = sorted.filter((session) => !getSessionProjectId(session));
     if (recentCount) recentCount.textContent = `(${standalone.length})`;
@@ -5867,7 +5867,7 @@
   }
 
   // Nouvelle discussion STANDALONE (bouton "Nouvelle discussion" du panneau /
-  // du rail) : independante de tout projet, affichee dans "Discussions recentes".
+  // du rail) : independante de tout projet, affichee dans "Discussions récentes".
   function createNewSession() {
     setLibraryViewOpen(false);
     const next = makeDefaultSession(null);
@@ -5884,7 +5884,7 @@
   }
 
   // Nouvelle conversation RATTACHEE a un projet (bouton de la page projet) :
-  // elle apparait dans la page du projet, pas dans "Discussions recentes".
+  // elle apparait dans la page du projet, pas dans "Discussions récentes".
   function createProjectConversation(projectId) {
     const project = getProjectById(projectId);
     if (!project) return;
