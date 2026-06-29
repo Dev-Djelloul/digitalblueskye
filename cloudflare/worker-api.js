@@ -3044,30 +3044,64 @@ async function fetchRecentObservabilityEvents(env, limit = OBSERVABILITY_EVENT_L
 // services apparaissent a tort comme "not_configured" alors qu'ils ont deja
 // ete utilises. Une seule requete groupee, sans LIMIT, sur les seuls
 // event_type reellement attendus par OBSERVABILITY_SERVICES.
+// Champs meta.* exploitables comme duree (cf. latencyField des entrees de
+// OBSERVABILITY_SERVICES) — calcules tous les deux par type d'evenement
+// dans la requete groupee ci-dessous (cout negligeable, evite une 2e
+// requete par champ). Toute valeur absente reste NULL, jamais 0.
+const LIFETIME_LATENCY_FIELDS = ["latency_ms", "duration_ms"];
+
 async function fetchObservabilityLifetimeStats(env, services) {
   const types = Array.from(new Set(
     services.flatMap((service) => [...(service.successTypes || []), ...(service.errorTypes || [])])
   ));
   if (!types.length) return {};
   const placeholders = types.map(() => "?").join(",");
+  const latencyColumns = LIFETIME_LATENCY_FIELDS
+    .map((field) => `AVG(CASE WHEN json_extract(meta, '$.${field}') IS NOT NULL THEN CAST(json_extract(meta, '$.${field}') AS REAL) END) AS avg_${field}`)
+    .join(",\n       ");
   const result = await env.DB.prepare(
-    `SELECT event_type, COUNT(*) AS count, MAX(created_at) AS last_at
+    `SELECT event_type, COUNT(*) AS count, MAX(created_at) AS last_at,
+       ${latencyColumns}
      FROM ai_assistant_events WHERE event_type IN (${placeholders}) GROUP BY event_type`
   ).bind(...types).all();
   const rows = result.results || [];
   const byType = new Map(rows.map((row) => [row.event_type, row]));
+
+  // Aucune activite reelle = aucune disponibilite/latence "mesuree" pour ce
+  // service depuis toujours, pas seulement la fenetre recente — distinct de
+  // "jamais utilise" (services sans activeProbe ni lifetime, restant
+  // "non mesure").
   const statsByServiceKey = {};
   services.forEach((service) => {
-    const relevantTypes = [...(service.successTypes || []), ...(service.errorTypes || [])];
-    let count = 0;
+    const successTypes = service.successTypes || [];
+    const errorTypes = service.errorTypes || [];
+    let successCount = 0;
+    let errorCount = 0;
     let lastAt = null;
-    relevantTypes.forEach((type) => {
+    let latencyWeightedSum = 0;
+    let latencyWeight = 0;
+    const latencyColumn = service.latencyField ? `avg_${service.latencyField}` : null;
+
+    [...successTypes, ...errorTypes].forEach((type) => {
       const row = byType.get(type);
       if (!row) return;
-      count += Number(row.count || 0);
+      const typeCount = Number(row.count || 0);
+      if (successTypes.includes(type)) successCount += typeCount;
+      if (errorTypes.includes(type)) errorCount += typeCount;
       if (row.last_at && (!lastAt || row.last_at > lastAt)) lastAt = row.last_at;
+      if (latencyColumn && successTypes.includes(type) && row[latencyColumn] != null) {
+        latencyWeightedSum += Number(row[latencyColumn]) * typeCount;
+        latencyWeight += typeCount;
+      }
     });
-    statsByServiceKey[service.key] = { count, last_at: lastAt };
+
+    statsByServiceKey[service.key] = {
+      count: successCount + errorCount,
+      success_count: successCount,
+      error_count: errorCount,
+      last_at: lastAt,
+      average_latency_ms: latencyWeight > 0 ? Math.round(latencyWeightedSum / latencyWeight) : null,
+    };
   });
   return statsByServiceKey;
 }
@@ -3131,33 +3165,43 @@ export function buildSingleServiceHealth(service, rows, lifetimeStats = {}, acti
     ? eventRows
     : eventRows.filter((row) => (service.successTypes || []).includes(row.event_type));
   const errorRows = eventRows.filter((row) => (service.errorTypes || []).includes(row.event_type));
-  const totalRequests = successRows.length + errorRows.length;
+  const windowedTotalRequests = successRows.length + errorRows.length;
   // Si la fenetre analysee (OBSERVABILITY_EVENT_LIMIT derniers evenements)
-  // ne contient aucun signal pour ce service, on verifie l'historique
-  // complet avant de conclure "not_configured" : un service a faible volume
-  // (Tavily, RAG, Exports) peut etre reellement configure et deja utilise,
-  // mais simplement evince de la fenetre par un autre service a fort volume
-  // (ex. Pipeline Documents). On ne fabrique jamais de requetes/erreurs
-  // au-dela de la fenetre : seule la derniere activite reelle remonte, pour
-  // que le statut reflete "deja utilise, pas recemment" plutot que "jamais
-  // configure".
+  // ne contient aucun signal pour ce service, on se rabat sur l'historique
+  // complet (lifetimeStats, requete sans LIMIT sur les seuls event_type de
+  // ce service) plutot que de conclure "non mesure" : un service a faible
+  // volume (Tavily, RAG, Exports) peut etre reellement configure et deja
+  // utilise, mais simplement evince de la fenetre par un autre service a
+  // fort volume (ex. Pipeline Documents). Disponibilite/latence/requetes
+  // refletent alors l'historique complet plutot que la fenetre recente —
+  // jamais une valeur fabriquee au-dela de ce que lifetimeStats a reellement
+  // mesure en base.
   const lifetime = lifetimeStats[service.key];
+  const usingLifetimeFallback = windowedTotalRequests === 0 && Number(lifetime?.count || 0) > 0;
+  const totalRequests = usingLifetimeFallback ? lifetime.count : windowedTotalRequests;
+  const errorCount = usingLifetimeFallback ? Number(lifetime.error_count || 0) : errorRows.length;
   const lastActivityAt = [...successRows, ...errorRows][0]?.created_at
-    || (totalRequests === 0 && lifetime?.count > 0 ? lifetime.last_at : null);
+    || (usingLifetimeFallback ? lifetime.last_at : null);
 
   let averageLatencyMs = null;
   if (service.latencyField) {
-    const latencies = successRows
-      .map((row) => Number(parseEventMeta(row)[service.latencyField]))
-      .filter((value) => Number.isFinite(value) && value > 0);
-    if (latencies.length) averageLatencyMs = Math.round(latencies.reduce((a, b) => a + b, 0) / latencies.length);
+    if (usingLifetimeFallback) {
+      averageLatencyMs = lifetime.average_latency_ms ?? null;
+    } else {
+      const latencies = successRows
+        .map((row) => Number(parseEventMeta(row)[service.latencyField]))
+        .filter((value) => Number.isFinite(value) && value > 0);
+      if (latencies.length) averageLatencyMs = Math.round(latencies.reduce((a, b) => a + b, 0) / latencies.length);
+    }
   }
 
   const recentWindowMs = 60 * 60 * 1000;
-  // null (pas 0) si le service n'a aucune activite mesuree : un service
-  // jamais utilise n'a pas de "0 echec recent" a saluer, juste pas de
-  // donnee. Eviter cette distinction ferait remonter un score artificiel.
-  const recentFailureCount = totalRequests > 0
+  // null (pas 0) si le service n'a aucune activite mesuree DANS LA FENETRE :
+  // le fallback lifetime ci-dessus repond a "disponibilite/latence
+  // globales", pas a "y a-t-il eu un echec dans la derniere heure" — une
+  // question a laquelle on ne peut honnetement repondre que si la fenetre
+  // recente contient elle-meme des evenements de ce service.
+  const recentFailureCount = windowedTotalRequests > 0
     ? errorRows.filter((row) => {
       const ts = Date.parse(row.created_at || "");
       return Number.isFinite(ts) && Date.now() - ts <= recentWindowMs;
@@ -3174,7 +3218,7 @@ export function buildSingleServiceHealth(service, rows, lifetimeStats = {}, acti
 
   const health = computeServiceHealthScore({
     totalRequests,
-    errorCount: errorRows.length,
+    errorCount,
     averageLatencyMs,
     lastActivityAt,
     recentFailureCount,
