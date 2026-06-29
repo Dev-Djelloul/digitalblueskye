@@ -8359,6 +8359,8 @@
       const content = $("#exportsContent");
       content.className = "premium-dashboard exports-dashboard";
       content.innerHTML = renderExportsDashboard();
+      const refreshButton = $("#premiumRefreshExportsBtn");
+      if (refreshButton) refreshButton.addEventListener("click", () => loadExports());
     }
 
     async function loadExportDetail(exportId) {
@@ -8653,6 +8655,8 @@
       const content = $("#analyticsContent");
       content.className = "premium-dashboard analytics-dashboard";
       content.innerHTML = renderAnalyticsDashboard();
+      const refreshButton = $("#premiumRefreshAnalyticsBtn");
+      if (refreshButton) refreshButton.addEventListener("click", () => loadAnalytics());
     }
 
     async function loadAnalytics() {
@@ -8953,6 +8957,8 @@
       const content = $("#observabilityContent");
       content.className = "premium-dashboard observability-dashboard";
       content.innerHTML = renderObservabilityDashboard();
+      const refreshButton = $("#premiumRefreshObservabilityBtn");
+      if (refreshButton) refreshButton.addEventListener("click", () => loadObservability());
     }
 
     async function loadObservability() {
@@ -12808,14 +12814,6 @@
       });
       const logoutButton = $("#premiumLogoutBtn");
       if (logoutButton) logoutButton.addEventListener("click", logout);
-
-      // Refresh buttons for Exports, Analytics, Observability
-      const refreshExportsBtn = $("#premiumRefreshExportsBtn");
-      if (refreshExportsBtn) refreshExportsBtn.addEventListener("click", () => loadExports());
-      const refreshAnalyticsBtn = $("#premiumRefreshAnalyticsBtn");
-      if (refreshAnalyticsBtn) refreshAnalyticsBtn.addEventListener("click", () => loadAnalytics());
-      const refreshObservabilityBtn = $("#premiumRefreshObservabilityBtn");
-      if (refreshObservabilityBtn) refreshObservabilityBtn.addEventListener("click", () => loadObservability());
 
       // Sidebar resize functionality
       const sidebar = document.querySelector(".premium-sidebar");
