@@ -11097,6 +11097,61 @@ body.body-menu-open .ai-assistant-collapse-handle {
   box-shadow: 0 30px 80px rgb(88 74 136 / 22%);
 }
 
+[data-theme="light"] .ai-assistant-search-modal-backdrop {
+  background: rgb(47 43 95 / 18%);
+}
+
+[data-theme="light"] .ai-assistant-search-dialog {
+  background: linear-gradient(180deg, rgb(255 255 255 / 99%), rgb(245 244 255 / 99%));
+  border-color: rgb(93 93 255 / 18%);
+  box-shadow: 0 30px 80px rgb(88 74 136 / 22%);
+}
+
+[data-theme="light"] .ai-assistant-search-input-row {
+  border-bottom-color: rgb(93 93 255 / 12%);
+}
+
+[data-theme="light"] .ai-assistant-search-input-icon {
+  color: rgb(47 43 95 / 60%);
+}
+
+[data-theme="light"] .ai-assistant-search-modal-input {
+  color: #2f2b5f;
+}
+
+[data-theme="light"] .ai-assistant-search-modal-input::placeholder {
+  color: rgb(47 43 95 / 45%);
+}
+
+[data-theme="light"] .ai-assistant-search-modal-close {
+  color: rgb(47 43 95 / 70%);
+}
+
+[data-theme="light"] .ai-assistant-search-modal-close:hover {
+  color: #2f2b5f;
+}
+
+[data-theme="light"] .ai-assistant-search-result {
+  color: #2f2b5f;
+}
+
+[data-theme="light"] .ai-assistant-search-result:hover,
+[data-theme="light"] .ai-assistant-search-result.is-active {
+  background: rgb(93 93 255 / 8%);
+}
+
+[data-theme="light"] .ai-assistant-search-result-title {
+  color: #2f2b5f;
+}
+
+[data-theme="light"] .ai-assistant-search-result-meta {
+  color: rgb(47 43 95 / 55%);
+}
+
+[data-theme="light"] .ai-assistant-search-empty {
+  color: rgb(47 43 95 / 55%);
+}
+
 [data-theme="light"] .ai-assistant-input-modal-title {
   color: #2f2b5f;
 }
