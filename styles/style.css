@@ -10384,13 +10384,13 @@ body.body-menu-open .ai-assistant-collapse-handle {
     0 0 26px rgb(123 86 255 / 26%);
   display: flex;
   flex-direction: column;
-  height: calc(100dvh - 130px - 16px);
-  max-height: calc(100dvh - 130px - 16px);
+  height: calc(100dvh - 24px);
+  max-height: calc(100dvh - 24px);
   opacity: 0;
   pointer-events: none;
   position: fixed;
   resize: none;
-  top: 130px;
+  top: 12px;
   transform: translateX(-50%) scale(0.98);
   transition: opacity 0.25s ease, transform 0.25s ease;
   overflow: hidden;
@@ -15544,9 +15544,9 @@ body.ai-assistant-sidebar-is-resizing * {
   }
 
   .ai-assistant-panel {
-    height: calc(100dvh - 104px - 12px);
-    max-height: calc(100dvh - 104px - 12px);
-    top: 104px;
+    height: calc(100dvh - 16px);
+    max-height: calc(100dvh - 16px);
+    top: 8px;
     width: calc(100vw - 14px);
   }
 
