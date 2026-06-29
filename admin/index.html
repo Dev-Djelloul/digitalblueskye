@@ -2566,6 +2566,20 @@
       min-width: 200px;
     }
 
+    .static-state-label {
+      display: inline-flex;
+      align-items: center;
+      min-height: 36px;
+      padding: 0 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(104, 128, 170, 0.24);
+      background: rgba(18, 25, 43, 0.72);
+      color: var(--dash-muted, #a7b4cf);
+      font-size: 12px;
+      white-space: nowrap;
+      cursor: default;
+    }
+
     @media (max-width: 1200px) {
       .premium-actions select,
       .premium-actions button,
@@ -6743,6 +6757,10 @@
       // source de verite metier persistee. /admin/health?range=... reste la
       // seule source de verite pour les donnees elles-memes.
       globalRange: "30d",
+      // Periode de l'onglet Intelligence IA : meme logique que globalRange
+      // (memoire de session uniquement), mais etat independant puisque les
+      // deux onglets peuvent afficher des fenetres differentes.
+      intelligenceRange: "7d",
       aiPilotRows: [],
       healthServiceSearch: "",
       healthServiceStatus: "all",
@@ -11402,6 +11420,17 @@
       return `<select id="globalRangeSelect" aria-label="Période" title="Filtre la Vue globale sur la période sélectionnée (appliqué côté serveur sur ai_assistant_events.created_at)">${options}</select>`;
     }
 
+    // Meme principe que renderPeriodSelector(), mais pour l'onglet
+    // Intelligence IA : etat independant (state.intelligenceRange), id
+    // distinct (#intelligenceRangeSelect) pour ne pas interferer avec le
+    // select de la Vue globale.
+    function renderIntelligencePeriodSelector() {
+      const options = GLOBAL_RANGE_OPTIONS.map(
+        (opt) => `<option value="${opt.key}" ${state.intelligenceRange === opt.key ? "selected" : ""}>${escapeHtml(opt.label)}</option>`
+      ).join("");
+      return `<select id="intelligenceRangeSelect" aria-label="Période Intelligence IA" title="Filtre Intelligence IA sur la période sélectionnée (appliqué côté serveur sur ai_assistant_events.created_at)">${options}</select>`;
+    }
+
     function renderPremiumDashboard(health) {
       const scorecard = health?.scorecard || {};
       const maturity = health?.maturity || {};
@@ -12235,7 +12264,7 @@
           </div>
           <div class="dashboard-header-actions">
             <div class="premium-actions" aria-label="Contrôles Intelligence IA">
-              <select aria-label="Période Intelligence IA" title="Période implémentée côté interface, données lues depuis /admin/health"><option selected>Période implémentée</option><option>Dernier état</option><option>24h</option><option>7 jours</option><option>30 jours</option></select>
+              ${renderIntelligencePeriodSelector()}
               ${renderIconRefreshButton("intelligenceRefreshInline", "Actualiser Intelligence IA")}
             </div>
             <p class="sync-label">Dernière synchronisation : ${escapeHtml(formatDate(health?.checked_at) || "non disponible")}</p>
@@ -12263,15 +12292,28 @@
       content.innerHTML = renderIntelligenceDashboard(health || {});
       const refreshButton = $("#intelligenceRefreshInline");
       if (refreshButton) refreshButton.addEventListener("click", async () => {
+        // Pas d'argument : recharge la periode deja selectionnee (state.intelligenceRange),
+        // jamais un retour silencieux vers la valeur par defaut — meme logique que
+        // le bouton sync de la Vue globale (cf. loadHealth()).
         await loadIntelligence();
         setNotice("#appNotice", "Intelligence IA actualisée.", "success");
       });
+      const rangeSelect = $("#intelligenceRangeSelect");
+      if (rangeSelect) rangeSelect.addEventListener("change", () => {
+        loadIntelligence(rangeSelect.value);
+      });
     }
 
-    async function loadIntelligence() {
+    async function loadIntelligence(range) {
+      // Meme principe que loadHealth(range) pour la Vue globale : si aucun
+      // argument valide n'est fourni, on recharge la periode deja
+      // selectionnee (state.intelligenceRange) plutot que de revenir
+      // silencieusement a la valeur par defaut.
+      const selectedRange = GLOBAL_RANGE_OPTIONS.some((opt) => opt.key === range) ? range : state.intelligenceRange;
+      state.intelligenceRange = selectedRange;
       setNotice("#appNotice", "", "");
       try {
-        const payload = await apiFetch("/admin/health");
+        const payload = await apiFetch(`/admin/health?range=${encodeURIComponent(selectedRange)}`);
         state.intelligence = payload;
         renderIntelligence(payload);
       } catch (error) {
@@ -12464,7 +12506,7 @@
           </div>
           <div class="dashboard-header-actions">
             <div class="premium-actions" aria-label="Contrôles Système">
-              <select aria-label="Période Système" title="Période implémentée côté interface, données lues depuis /admin/health"><option selected>Période implémentée</option><option>Dernier état</option><option>24h</option><option>7 jours</option><option>30 jours</option></select>
+              <span class="static-state-label">État courant lu depuis /admin/health</span>
               ${renderIconRefreshButton("systemRefreshInline", "Actualiser Système")}
             </div>
             <p class="sync-label">Dernière synchronisation : ${escapeHtml(formatDate(health.checked_at) || "non disponible")}</p>
@@ -12527,7 +12569,7 @@
           </div>
           <div class="dashboard-header-actions">
             <div class="premium-actions" aria-label="Contrôles Paramètres">
-              <select aria-label="Période Paramètres" title="Période implémentée côté interface, données lues depuis /admin/health"><option selected>Période implémentée</option><option>Dernier état</option><option>24h</option><option>7 jours</option><option>30 jours</option></select>
+              <span class="static-state-label">État courant lu depuis /admin/health</span>
               ${renderIconRefreshButton("settingsRefreshInline", "Actualiser Paramètres")}
             </div>
             <p class="sync-label">Aucun paramètre backend modifié depuis cet écran.</p>
