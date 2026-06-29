@@ -366,7 +366,7 @@
               <span class="ai-assistant-section-title">Projets</span>
               <span id="ai-assistant-project-count" class="ai-assistant-section-count">(0)</span>
             </button>
-            <button id="ai-assistant-project-create" type="button" title="Creer un projet" aria-label="Creer un projet">+</button>
+            <button id="ai-assistant-project-create" type="button" title="Créer un projet" aria-label="Créer un projet">+</button>
           </div>
           <div id="ai-assistant-project-list" class="ai-assistant-project-list" role="list"></div>
         </div>
