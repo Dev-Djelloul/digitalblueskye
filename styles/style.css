@@ -10625,8 +10625,10 @@ body.body-menu-open .ai-assistant-collapse-handle {
    La barre laterale complete s'ouvre A COTE (a droite) du rail. */
 .ai-assistant-rail {
   align-items: center;
-  background: rgb(255 255 255 / 5%);
-  border: 1px solid rgb(255 255 255 / 9%);
+  background:
+    linear-gradient(180deg, rgb(19 23 52 / 96%), rgb(12 15 35 / 96%)),
+    rgb(14 17 40 / 95%);
+  border: 1px solid rgb(93 93 255 / 26%);
   border-radius: 18px;
   bottom: 12px;
   display: flex;
@@ -14698,8 +14700,8 @@ body.ai-assistant-sidebar-is-resizing * {
 }
 
 [data-theme="light"] .ai-assistant-session-search-wrap {
-  background: rgb(93 93 255 / 8%);
-  border-color: rgb(93 93 255 / 20%);
+  background: rgb(93 93 255 / 16%);
+  border-color: rgb(93 93 255 / 38%);
 }
 
 [data-theme="light"] .ai-assistant-session-search,
@@ -14715,11 +14717,11 @@ body.ai-assistant-sidebar-is-resizing * {
 }
 
 [data-theme="light"] .ai-assistant-session-search-icon {
-  border-color: rgb(47 43 95 / 58%);
+  border-color: rgb(47 43 95 / 72%);
 }
 
 [data-theme="light"] .ai-assistant-session-search-icon::after {
-  background: rgb(47 43 95 / 58%);
+  background: rgb(47 43 95 / 72%);
 }
 
 [data-theme="light"] .ai-assistant-sidebar-action {
@@ -15303,6 +15305,13 @@ body.ai-assistant-sidebar-is-resizing * {
   box-shadow:
     0 18px 42px rgb(47 43 95 / 14%),
     inset 0 1px 0 rgb(255 255 255 / 80%);
+}
+
+[data-theme="light"] .ai-assistant-rail {
+  background:
+    linear-gradient(180deg, rgb(249 250 255 / 96%), rgb(239 241 255 / 94%)),
+    rgb(248 249 255 / 96%);
+  border-color: rgb(93 93 255 / 20%);
 }
 
 [data-theme="light"] .ai-assistant-attachment-preview {
