@@ -10341,6 +10341,24 @@ body.body-menu-open .ai-assistant-launcher {
   left: 6px;
 }
 
+[data-theme="light"] .ai-assistant-collapse-handle {
+  background: rgb(255 255 255 / 96%);
+  border-color: rgb(93 93 255 / 32%);
+  box-shadow: 0 8px 24px rgb(88 74 136 / 18%), 0 0 0 1px rgb(93 93 255 / 16%);
+}
+
+[data-theme="light"] .ai-assistant-collapse-handle:hover {
+  background: rgb(255 255 255 / 100%);
+}
+
+[data-theme="light"] .ai-assistant-collapse-handle span {
+  border-color: transparent transparent transparent #2f2b5f;
+}
+
+[data-theme="light"] .ai-assistant-collapse-handle.is-collapsed span {
+  border-color: transparent #2f2b5f transparent transparent;
+}
+
 .ai-assistant-collapse-handle.is-panel-open,
 body.body-menu-open .ai-assistant-collapse-handle {
   opacity: 0;
