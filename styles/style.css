@@ -823,7 +823,14 @@ section#skills,
 }
 
 [data-theme="light"] .intro-text .text-content h1 {
-  background: linear-gradient(45deg, #5d5dff, #c822ff);
+  background: linear-gradient(90deg,
+    #4fd1ff 0%,
+    #7c5cff 16%,
+    #30d158 32%,
+    #ffb547 48%,
+    #ff5f6d 64%,
+    #b16cff 100%
+  );
   background-clip: text;
   color: transparent;
   -webkit-background-clip: text;
