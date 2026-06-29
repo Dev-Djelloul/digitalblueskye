@@ -10384,14 +10384,14 @@ body.body-menu-open .ai-assistant-collapse-handle {
     0 0 26px rgb(123 86 255 / 26%);
   display: flex;
   flex-direction: column;
-  height: min(88vh, 860px);
-  max-height: calc(100dvh - 64px);
+  height: calc(100dvh - 130px - 16px);
+  max-height: calc(100dvh - 130px - 16px);
   opacity: 0;
   pointer-events: none;
   position: fixed;
   resize: none;
-  top: 58%;
-  transform: translate(-50%, -48%) scale(0.98);
+  top: 130px;
+  transform: translateX(-50%) scale(0.98);
   transition: opacity 0.25s ease, transform 0.25s ease;
   overflow: hidden;
   width: min(940px, calc(100vw - 24px));
@@ -10417,7 +10417,7 @@ body.body-menu-open .ai-assistant-collapse-handle {
 .ai-assistant-panel.is-open {
   opacity: 1;
   pointer-events: auto;
-  transform: translate(-50%, -50%) scale(1);
+  transform: translateX(-50%) scale(1);
 }
 
 .ai-assistant-panel.is-expanded {
@@ -15544,9 +15544,9 @@ body.ai-assistant-sidebar-is-resizing * {
   }
 
   .ai-assistant-panel {
-    height: min(76vh, 720px);
-    max-height: calc(100dvh - 108px);
-    top: 56%;
+    height: calc(100dvh - 104px - 12px);
+    max-height: calc(100dvh - 104px - 12px);
+    top: 104px;
     width: calc(100vw - 14px);
   }
 
