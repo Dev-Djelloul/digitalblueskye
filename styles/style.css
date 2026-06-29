@@ -10370,6 +10370,7 @@ body.body-menu-open .ai-assistant-collapse-handle {
   --ai-sources-width: clamp(264px, 26cqw, 320px);
   --ai-thread-gutter: 30px;
   --ai-rail-space: 74px;
+  --ai-merged-rail-space: 62px;
   backdrop-filter: blur(22px) saturate(150%);
   background: linear-gradient(180deg, rgb(20 22 42 / 82%), rgb(11 13 28 / 88%));
   border: 2px solid transparent;
@@ -10633,7 +10634,7 @@ body.body-menu-open .ai-assistant-collapse-handle {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  left: var(--ai-rail-space, 12px);
+  left: var(--ai-merged-rail-space, 62px);
   opacity: 0;
   overflow: visible;
   padding: 18px 14px 14px;
@@ -10644,6 +10645,50 @@ body.body-menu-open .ai-assistant-collapse-handle {
   transition: opacity 0.22s ease, transform 0.22s ease;
   width: var(--ai-history-width);
   z-index: 7;
+}
+
+/* Fusion visuelle rail + panneau lateral en un seul bloc continu (facon ChatGPT) :
+   quand l'historique est ouvert, le rail perd son propre fond/bordure/coins a droite
+   et se fond directement dans le panneau, qui vient combler l'espace sans interstice. */
+.ai-assistant-panel.has-rail.has-history-open .ai-assistant-rail {
+  background: transparent;
+  border-color: transparent;
+  border-bottom-right-radius: 0;
+  border-top-right-radius: 0;
+  box-shadow: none;
+}
+
+.ai-assistant-panel.has-rail.has-history-open .ai-assistant-session-bar {
+  border-bottom-left-radius: 0;
+  border-top-left-radius: 0;
+}
+
+.ai-assistant-sidebar-shell {
+  display: none;
+}
+
+.ai-assistant-panel.has-rail.has-history-open .ai-assistant-sidebar-shell {
+  background:
+    radial-gradient(circle at 18% 0%, rgb(121 230 255 / 15%), transparent 36%),
+    radial-gradient(circle at 88% 14%, rgb(200 34 255 / 18%), transparent 38%),
+    linear-gradient(180deg, rgb(29 28 61 / 88%), rgb(14 13 34 / 92%)),
+    linear-gradient(145deg, rgb(121 230 255 / 34%), rgb(157 125 255 / 30%), rgb(200 34 255 / 26%));
+  background-clip: padding-box, border-box;
+  background-origin: border-box;
+  border: 1px solid transparent;
+  border-radius: 20px;
+  bottom: 12px;
+  box-shadow:
+    18px 0 44px rgb(0 0 0 / 26%),
+    inset 0 1px 0 rgb(255 255 255 / 10%),
+    0 0 24px rgb(93 93 255 / 10%);
+  display: block;
+  left: 12px;
+  pointer-events: none;
+  position: absolute;
+  top: 74px;
+  width: calc(50px + var(--ai-history-width));
+  z-index: 6;
 }
 
 /* Rail d'icones permanent (facon ChatGPT), toujours visible au bord gauche.
@@ -12383,7 +12428,7 @@ button.ai-assistant-project-row {
 .ai-assistant-panel.has-history-open .ai-assistant-library-view,
 .ai-assistant-panel.has-history-open .ai-assistant-project-view,
 .ai-assistant-panel.has-history-open .ai-assistant-settings-view {
-  margin-left: calc(var(--ai-rail-space, 0px) + var(--ai-history-width) + 18px);
+  margin-left: calc(var(--ai-merged-rail-space, 62px) + var(--ai-history-width) + 18px);
 }
 
 .ai-assistant-media-preview {
@@ -12611,11 +12656,11 @@ button.ai-assistant-project-row {
 
 .ai-assistant-panel.has-history-open .ai-assistant-messages,
 .ai-assistant-panel.has-history-open .ai-assistant-quick-actions {
-  padding-left: calc(var(--ai-rail-space, 0px) + var(--ai-history-width) + 18px + var(--ai-thread-gutter, 30px));
+  padding-left: calc(var(--ai-merged-rail-space, 62px) + var(--ai-history-width) + 18px + var(--ai-thread-gutter, 30px));
 }
 
 .ai-assistant-panel.has-history-open .ai-assistant-form {
-  margin-left: calc(var(--ai-rail-space, 0px) + var(--ai-history-width) + 18px + var(--ai-thread-gutter, 30px));
+  margin-left: calc(var(--ai-merged-rail-space, 62px) + var(--ai-history-width) + 18px + var(--ai-thread-gutter, 30px));
 }
 
 .ai-assistant-panel.has-history-open .ai-assistant-scroll-bottom {
@@ -14255,7 +14300,7 @@ body.ai-assistant-sidebar-is-resizing * {
 }
 
 .ai-assistant-panel.has-history-open .ai-assistant-form::before {
-  left: calc(var(--ai-rail-space, 0px) + var(--ai-history-width) + 18px + var(--ai-thread-gutter, 30px));
+  left: calc(var(--ai-merged-rail-space, 62px) + var(--ai-history-width) + 18px + var(--ai-thread-gutter, 30px));
 }
 
 .ai-assistant-panel.has-sources-open .ai-assistant-form::before {
@@ -15393,6 +15438,24 @@ body.ai-assistant-sidebar-is-resizing * {
     linear-gradient(180deg, rgb(249 250 255 / 96%), rgb(239 241 255 / 94%)),
     rgb(248 249 255 / 96%);
   border-color: rgb(93 93 255 / 20%);
+}
+
+[data-theme="light"] .ai-assistant-panel.has-rail.has-history-open .ai-assistant-rail {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+[data-theme="light"] .ai-assistant-panel.has-rail.has-history-open .ai-assistant-sidebar-shell {
+  background:
+    radial-gradient(circle at 18% 0%, rgb(93 93 255 / 10%), transparent 36%),
+    radial-gradient(circle at 88% 14%, rgb(200 34 255 / 10%), transparent 38%),
+    linear-gradient(180deg, rgb(255 255 255 / 94%), rgb(244 242 255 / 96%)),
+    linear-gradient(145deg, rgb(93 93 255 / 32%), rgb(200 34 255 / 24%));
+  box-shadow:
+    18px 0 34px rgb(88 74 136 / 12%),
+    inset 0 1px 0 rgb(255 255 255 / 80%),
+    0 0 18px rgb(93 93 255 / 8%);
 }
 
 [data-theme="light"] .ai-assistant-attachment-preview {

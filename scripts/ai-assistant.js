@@ -581,6 +581,9 @@
   function ensureSidebarRail() {
     const host = document.getElementById('ai-assistant-panel');
     if (!host || document.getElementById('ai-assistant-rail')) return;
+    if (!document.getElementById('ai-assistant-sidebar-shell')) {
+      host.insertAdjacentHTML('beforeend', '<div id="ai-assistant-sidebar-shell" class="ai-assistant-sidebar-shell" aria-hidden="true"></div>');
+    }
     host.insertAdjacentHTML('beforeend', createSidebarRailMarkup());
     host.classList.add('has-rail');
     const rail = document.getElementById('ai-assistant-rail');
