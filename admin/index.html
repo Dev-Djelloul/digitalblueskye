@@ -2070,8 +2070,35 @@
     .premium-system-status {
       color: #f7f9ff;
       font-weight: 500;
-      display: grid;
-      grid-template-columns: 22px minmax(0, 1fr) auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      position: relative;
+    }
+
+    .premium-system-status::before {
+      content: '';
+      width: 8px;
+      min-width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      flex-shrink: 0;
+    }
+
+    .premium-system-status.status-operational::before {
+      background: var(--success);
+      box-shadow: 0 0 0 2px rgba(84, 214, 161, 0.2);
+    }
+
+    .premium-system-status.status-warning::before {
+      background: var(--warning);
+      box-shadow: 0 0 0 2px rgba(255, 181, 71, 0.2);
+    }
+
+    .premium-system-status.status-error::before {
+      background: var(--danger);
+      box-shadow: 0 0 0 2px rgba(255, 59, 48, 0.2);
     }
 
     .sidebar-status-value {
@@ -7036,6 +7063,26 @@
       state.summary = payload.summary || {};
       state.dashboard = payload.dashboard || null;
       renderSummary(state.summary, state.dashboard);
+      updateSystemStatus(payload.dashboard);
+    }
+
+    function updateSystemStatus(dashboard) {
+      const statusEl = document.querySelector(".premium-system-status");
+      if (!statusEl) return;
+
+      // Déterminer le statut global basé sur la santé
+      let newStatus = "status-operational";
+
+      // Vérifier s'il y a des erreurs critiques
+      if (dashboard?.health?.error_count > 0 || dashboard?.stats?.errors_total > 0) {
+        newStatus = "status-error";
+      } else if (dashboard?.health?.warning_count > 0 || dashboard?.stats?.warnings_total > 0) {
+        newStatus = "status-warning";
+      }
+
+      // Mettre à jour les classes de statut
+      statusEl.classList.remove("status-operational", "status-warning", "status-error");
+      statusEl.classList.add(newStatus);
     }
 
     function renderFilters() {
