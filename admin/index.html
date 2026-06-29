@@ -2032,11 +2032,12 @@
     }
 
     body.sidebar-collapsed .premium-brand {
-      grid-template-columns: 1fr;
-      justify-items: center;
-      gap: 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
       width: 44px;
-      height: 44px;
+      padding: 0;
       margin: 0 auto;
     }
 
@@ -2050,8 +2051,11 @@
     }
 
     body.sidebar-collapsed .sidebar-toggle {
-      position: static;
-      display: none;
+      width: 44px;
+      height: 44px;
+      padding: 0;
+      border-radius: 10px;
+      font-size: 18px;
     }
 
     body.sidebar-collapsed .premium-nav {
