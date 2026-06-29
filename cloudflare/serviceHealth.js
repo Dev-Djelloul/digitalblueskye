@@ -40,6 +40,20 @@ function scoreFromRecentFailures(recentFailureCount, toleratedCount) {
   return clamp(10 - (recentFailureCount / Math.max(1, toleratedCount)) * 10, 0, 10);
 }
 
+// Signal direct issu d'un controle actif reel (ex. ping OpenRouter,
+// requete de lecture Vectorize) — distinct des signaux derives d'evenements
+// passes (errorRate/recency/failures). Permet a un service utilise par
+// rafales (RAG, recherche web, modele IA) de ne pas etre juge "degrade"
+// uniquement parce qu'aucune requete n'a transite recemment dans la
+// fenetre d'evenements analysee, alors que le service repond reellement a
+// l'instant du controle. null si aucun controle actif n'est disponible
+// pour ce service (le signal est alors simplement absent du calcul,
+// jamais remplace par une valeur optimiste).
+function scoreFromActiveProbe(activeProbeOk) {
+  if (activeProbeOk == null) return null;
+  return activeProbeOk ? 10 : 0;
+}
+
 // Combine les signaux disponibles en moyenne ponderee — un signal absent
 // (score null) ne participe pas au calcul, il n'abaisse jamais le score
 // artificiellement.
@@ -75,19 +89,25 @@ export function computeServiceHealthScore({
   staleWindowMs = 24 * 60 * 60 * 1000,
   recentFailureCount = null,
   toleratedFailureCount = 5,
+  activeProbeOk = null,
 } = {}) {
-  const hasAnyData = totalRequests > 0 || lastActivityAt != null;
+  const hasAnyData = totalRequests > 0 || lastActivityAt != null || activeProbeOk != null;
 
   const errorRateScore = scoreFromErrorRate(errorCount, totalRequests);
   const latencyScore = scoreFromLatency(averageLatencyMs, latencyTargetMs, latencyMaxMs);
   const recencyScore = scoreFromRecency(lastActivityAt, freshWindowMs, staleWindowMs);
   const failureScore = scoreFromRecentFailures(recentFailureCount, toleratedFailureCount);
+  const activeProbeScore = scoreFromActiveProbe(activeProbeOk);
 
   const score = combineServiceSignals([
     { score: errorRateScore, weight: 3 },
     { score: latencyScore, weight: 2 },
     { score: recencyScore, weight: 2 },
     { score: failureScore, weight: 2 },
+    // Poids le plus eleve : un controle actif reussi/echoue MAINTENANT est
+    // une preuve plus directe de l'etat du service qu'une recence
+    // d'evenements passes, surtout pour un service a usage par rafales.
+    { score: activeProbeScore, weight: 4 },
   ]);
 
   const errorRatePercent = totalRequests > 0 ? Math.round((errorCount / totalRequests) * 1000) / 10 : null;
@@ -102,5 +122,6 @@ export function computeServiceHealthScore({
     error_count: errorCount,
     average_latency_ms: averageLatencyMs ?? null,
     last_activity_at: lastActivityAt,
+    active_probe_ok: activeProbeOk,
   };
 }

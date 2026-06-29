@@ -13,7 +13,7 @@
  */
 
 import { computeProjectPlan, DEFAULT_V3_PLACEHOLDERS } from './aiProjectManager.js';
-import { indexDocumentChunks, deleteDocumentVectors, queryRag, diagnoseRagPipeline } from './ragPipeline.js';
+import { indexDocumentChunks, deleteDocumentVectors, queryRag, diagnoseRagPipeline, checkVectorizeHealth } from './ragPipeline.js';
 import { routeChatCompletion, diagnoseCloudflareAi, diagnoseOpenAi, diagnoseOpenRouterKey } from './modelRouter.js';
 import { detectUserIntent, planCapabilities, composeSystemPrompt, isOrchestratorEnabled } from './promptOrchestrator.js';
 import {
@@ -1592,9 +1592,10 @@ async function buildAiHealthPayload(request, env, authMode) {
   const openRouterConfigured = hasUsableOpenRouterKey(env);
   const tavilyConfigured = normalizeTavilyApiKey(env?.TAVILY_API_KEY).length > 0;
   const mistralConfigured = String(env?.MISTRAL_API_KEY || '').trim().length > 0;
-  const [openRouterCheck, tavilyCheck] = await Promise.all([
+  const [openRouterCheck, tavilyCheck, vectorizeCheck] = await Promise.all([
     checkOpenRouterHealth(env),
-    checkTavilyHealth(env)
+    checkTavilyHealth(env),
+    checkVectorizeHealth(env)
   ]);
   const tavilyMetrics = buildTavilyRuntimeMetrics(env);
 
@@ -1648,7 +1649,8 @@ async function buildAiHealthPayload(request, env, authMode) {
     },
     checks: {
       openrouter: openRouterCheck,
-      tavily: tavilyCheck
+      tavily: tavilyCheck,
+      vectorize: vectorizeCheck
     },
     tavily_usage: tavilyMetrics,
     services: [
@@ -1678,6 +1680,15 @@ async function buildAiHealthPayload(request, env, authMode) {
         detail: tavilyCheck.ok ? 'Recherche temps réel vérifiée via Tavily.' : 'Recherche web demandable, mais contrôle Tavily incomplet.',
         last_checked_at: checkedAt,
         priority: tavilyConfigured ? 'Ajouter un contrôle externe de disponibilité.' : 'Brancher Tavily pour les recherches temps réel.'
+      },
+      {
+        name: 'Vectorize (RAG)',
+        status: vectorizeCheck.status,
+        verification: vectorizeCheck.verification,
+        latency_ms: vectorizeCheck.latency_ms,
+        detail: vectorizeCheck.detail,
+        last_checked_at: checkedAt,
+        priority: vectorizeCheck.configured ? 'Surveiller la latence des requêtes Vectorize.' : 'Activer le binding VECTOR_INDEX (cf. wrangler.ai.toml).'
       }
     ]
   };

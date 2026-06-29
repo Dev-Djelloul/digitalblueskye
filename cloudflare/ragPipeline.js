@@ -1,5 +1,5 @@
 import { getVectorStoreProvider } from './vectorStore/index.js';
-import { embedText } from './embeddings.js';
+import { embedText, EMBEDDING_DIMENSIONS } from './embeddings.js';
 
 const NAMESPACE = 'rag';
 const DEFAULT_SIMILARITY_THRESHOLD = 0.72;
@@ -227,6 +227,58 @@ export async function queryRag(env, { query, projectId, includeGlobalLibrary, ma
     const detail = error instanceof Error ? error.message : String(error);
     console.warn('rag_query_failed', detail);
     return { ok: false, error: 'query_failed', detail };
+  }
+}
+
+/**
+ * Probe de sante active et en lecture seule pour Vectorize (aucun
+ * upsert/delete, contrairement a diagnoseRagPipeline ci-dessous) : confirme
+ * que l'index repond reellement a une requete, independamment de toute
+ * activite recente de recherche RAG. Sert a distinguer "le pipeline est
+ * casse" de "personne n'a fait de recherche RAG recemment" cote
+ * Observabilite (cf. buildSingleServiceHealth() dans worker-api.js, qui
+ * decotait jusqu'ici le score rag_pipeline a la seule recence des
+ * evenements rag_query/rag_match, meme quand Vectorize repondait
+ * normalement). N'embarque jamais de cle d'embedding reelle : un vecteur
+ * nul de la bonne dimension suffit a tester la connectivite/latence.
+ */
+export async function checkVectorizeHealth(env) {
+  const provider = getVectorStoreProvider(env);
+  if (!provider) {
+    return {
+      status: 'unconfigured',
+      verification: 'partial',
+      configured: false,
+      ok: false,
+      latency_ms: null,
+      vectorize_error: 'missing_vector_index_binding',
+      detail: 'VECTOR_INDEX non lié : binding Vectorize absent de ce Worker.'
+    };
+  }
+  const startedAt = Date.now();
+  try {
+    const probeVector = new Array(EMBEDDING_DIMENSIONS).fill(0);
+    await provider.query({ namespace: NAMESPACE, vector: probeVector, topK: 1 });
+    return {
+      status: 'operational',
+      verification: 'partial',
+      configured: true,
+      ok: true,
+      latency_ms: Date.now() - startedAt,
+      vectorize_error: '',
+      detail: 'Requête de lecture Vectorize (topK=1, vecteur nul) réussie — aucune écriture effectuée.'
+    };
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    return {
+      status: 'degraded',
+      verification: 'partial',
+      configured: true,
+      ok: false,
+      latency_ms: Date.now() - startedAt,
+      vectorize_error: detail,
+      detail: `Requête de lecture Vectorize en échec : ${detail}`
+    };
   }
 }
 

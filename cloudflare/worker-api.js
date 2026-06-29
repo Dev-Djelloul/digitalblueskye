@@ -3125,7 +3125,7 @@ const OBSERVABILITY_SERVICES = [
   },
 ];
 
-export function buildSingleServiceHealth(service, rows, lifetimeStats = {}) {
+export function buildSingleServiceHealth(service, rows, lifetimeStats = {}, activeProbes = {}) {
   const eventRows = Array.isArray(rows) ? rows : [];
   const successRows = service.useAllRowsAsSuccess
     ? eventRows
@@ -3164,12 +3164,21 @@ export function buildSingleServiceHealth(service, rows, lifetimeStats = {}) {
     }).length
     : null;
 
+  // activeProbeOk : signal direct issu d'un controle reel au moment de la
+  // requete (ex. checks.openrouter.ok / checks.vectorize.ok renvoyes par
+  // /admin/health du Worker AI), distinct de toute activite passee. Reste
+  // null (signal absent du calcul) pour les services sans controle actif
+  // disponible (documents, exports, d1_database) ou si le Worker AI n'a pas
+  // repondu — jamais une valeur fabriquee.
+  const activeProbeOk = typeof activeProbes?.[service.key] === "boolean" ? activeProbes[service.key] : null;
+
   const health = computeServiceHealthScore({
     totalRequests,
     errorCount: errorRows.length,
     averageLatencyMs,
     lastActivityAt,
     recentFailureCount,
+    activeProbeOk,
   });
 
   return {
@@ -3179,8 +3188,8 @@ export function buildSingleServiceHealth(service, rows, lifetimeStats = {}) {
   };
 }
 
-export function buildServiceHealth(rows, lifetimeStats = {}) {
-  return OBSERVABILITY_SERVICES.map((service) => buildSingleServiceHealth(service, rows, lifetimeStats));
+export function buildServiceHealth(rows, lifetimeStats = {}, activeProbes = {}) {
+  return OBSERVABILITY_SERVICES.map((service) => buildSingleServiceHealth(service, rows, lifetimeStats, activeProbes));
 }
 
 // Disponibilite/Etat global : moyenne ponderee des services qui ont
@@ -3371,10 +3380,34 @@ export function buildResourceUsage() {
   };
 }
 
+// Controles actifs reels (pas derives d'evenements passes) disponibles pour
+// certains services Observabilite : le Worker AI expose deja ces probes
+// dans son propre /admin/health (checks.openrouter pour le modele IA,
+// checks.vectorize pour Vectorize, cf. buildAiHealthPayload() et
+// checkVectorizeHealth() dans worker-openrouter.js/ragPipeline.js). Sans ce
+// signal, un service utilise par rafales (recherches RAG/IA espacees de
+// plusieurs heures) decotait jusqu'ici a la seule recence des evenements,
+// "Indisponible" alors que le service repond reellement a l'instant du
+// controle. Retourne {} (aucun signal) si le Worker AI ne repond pas —
+// jamais une valeur fabriquee : buildSingleServiceHealth() retombe alors
+// sur les signaux bases evenements seuls, comme avant.
+async function fetchObservabilityActiveProbes(env) {
+  const aiWorkerHealthUrl = env.AI_WORKER_HEALTH_URL || "https://digitalblueskye-ai.djelloulabid75.workers.dev/admin/health";
+  const aiHealthToken = env.AI_HEALTH_TOKEN || env.HEALTH_CHECK_TOKEN || "";
+  const aiHealthResult = await fetchAiWorkerHealth(env, aiWorkerHealthUrl, aiHealthToken, 6000);
+  const checks = aiHealthResult?.payload?.checks || null;
+  if (!checks) return {};
+  return {
+    ai_worker: typeof checks.openrouter?.ok === "boolean" ? checks.openrouter.ok : null,
+    rag_pipeline: typeof checks.vectorize?.ok === "boolean" ? checks.vectorize.ok : null,
+  };
+}
+
 async function buildObservabilityOverview(env) {
   const rows = await fetchRecentObservabilityEvents(env);
   const lifetimeStats = await fetchObservabilityLifetimeStats(env, OBSERVABILITY_SERVICES);
-  const services = buildServiceHealth(rows, lifetimeStats);
+  const activeProbes = await fetchObservabilityActiveProbes(env);
+  const services = buildServiceHealth(rows, lifetimeStats, activeProbes);
   return {
     kpis: buildObservabilityKpis(rows, services),
     services,
@@ -5955,7 +5988,8 @@ async function handleAdminObservabilityServices(request, env) {
   }
   const rows = await fetchRecentObservabilityEvents(env);
   const lifetimeStats = await fetchObservabilityLifetimeStats(env, OBSERVABILITY_SERVICES);
-  return jsonResponse(request, env, { ok: true, services: buildServiceHealth(rows, lifetimeStats) });
+  const activeProbes = await fetchObservabilityActiveProbes(env);
+  return jsonResponse(request, env, { ok: true, services: buildServiceHealth(rows, lifetimeStats, activeProbes) });
 }
 
 async function handleAdminObservabilityLogs(request, env, url) {
