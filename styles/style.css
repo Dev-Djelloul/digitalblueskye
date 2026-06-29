@@ -13175,7 +13175,14 @@ body.ai-assistant-sidebar-is-resizing * {
 }
 
 .ai-assistant-title {
-  background: linear-gradient(92deg, #9ec4ff 0%, #9d7dff 45%, #e086ff 100%);
+  background: linear-gradient(90deg,
+    #4fd1ff 0%,
+    #7c5cff 16%,
+    #30d158 32%,
+    #ffb547 48%,
+    #ff5f6d 64%,
+    #b16cff 100%
+  );
   background-clip: text;
   color: transparent;
   font-family: var(--font-body);
