@@ -395,6 +395,10 @@
           </button>
         </div>
         </div>
+        <button id="ai-assistant-sidebar-profile" class="ai-assistant-sidebar-profile" type="button" aria-haspopup="menu" aria-label="${currentLanguage === 'en' ? 'Profile' : 'Profil'}">
+          <img class="ai-assistant-sidebar-profile-avatar" src="/assets/images/portrait/my-notion-face-transparent.png" alt="" aria-hidden="true">
+          <span id="ai-assistant-sidebar-profile-name" class="ai-assistant-sidebar-profile-name">${currentLanguage === 'en' ? 'My profile' : 'Mon profil'}</span>
+        </button>
         <span id="ai-assistant-sidebar-resize" class="ai-assistant-sidebar-resize" role="separator" aria-orientation="vertical" tabindex="0" title="${i18n.resizeSidebar}" aria-label="${i18n.resizeSidebar}"></span>
         <div id="ai-assistant-session-menu" class="ai-assistant-session-context-menu" role="menu" aria-hidden="true">
           <button id="ai-assistant-session-menu-rename" type="button" role="menuitem">
@@ -567,13 +571,6 @@
       <nav id="ai-assistant-rail" class="ai-assistant-rail" aria-label="${currentLanguage === 'en' ? 'Sidebar' : 'Barre latérale'}">
         <div class="ai-assistant-rail-group">
           <button class="ai-assistant-rail-btn" type="button" data-rail="toggle" title="${i18n.historyToggle}" aria-label="${i18n.historyToggle}"><img src="${sidebarIconUrl}" alt="" aria-hidden="true"></button>
-          <button class="ai-assistant-rail-btn" type="button" data-rail="search" title="${i18n.searchConversations}" aria-label="${i18n.searchConversations}"><img src="${searchIconUrl}" alt="" aria-hidden="true"></button>
-          <button class="ai-assistant-rail-btn" type="button" data-rail="new" title="${i18n.newChat}" aria-label="${i18n.newChat}"><img src="${createNewIconUrl}" alt="" aria-hidden="true"></button>
-          <button class="ai-assistant-rail-btn" type="button" data-rail="library" title="${i18n.library}" aria-label="${i18n.library}"><img src="${libraryIconUrl}" alt="" aria-hidden="true"></button>
-          <button class="ai-assistant-rail-btn" type="button" data-rail="projects" title="${currentLanguage === 'en' ? 'Projects' : 'Projets'}" aria-label="${currentLanguage === 'en' ? 'Projects' : 'Projets'}"><img src="${projectSectionIconUrl}" alt="" aria-hidden="true"></button>
-        </div>
-        <div class="ai-assistant-rail-group ai-assistant-rail-group--bottom">
-          <button class="ai-assistant-rail-btn ai-assistant-rail-avatar" type="button" data-rail="profile" title="${currentLanguage === 'en' ? 'Profile' : 'Profil'}" aria-label="${currentLanguage === 'en' ? 'Profile' : 'Profil'}" aria-haspopup="menu"><img src="/assets/images/portrait/my-notion-face-transparent.png" alt="" aria-hidden="true"></button>
         </div>
       </nav>`;
   }
@@ -592,36 +589,11 @@
     rail.addEventListener('click', (event) => {
       const btn = event.target.closest('[data-rail]');
       if (!btn) return;
-      switch (btn.dataset.rail) {
-        case 'toggle':
-          trigger('ai-assistant-history-toggle');
-          break;
-        case 'new':
-          trigger('ai-assistant-session-new');
-          break;
-        case 'search':
-          openSearchModal();
-          break;
-        case 'library':
-          trigger('ai-assistant-session-library');
-          break;
-        case 'projects':
-          if (!isHistoryOpen()) trigger('ai-assistant-history-toggle');
-          areProjectsCollapsed = false;
-          applySidebarSectionState();
-          setTimeout(() => document.getElementById('ai-assistant-projects-section')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 90);
-          break;
-        case 'settings':
-          trigger('ai-assistant-settings-open');
-          break;
-        case 'profile':
-          toggleProfileMenu(btn);
-          break;
-        default:
-          break;
-      }
+      if (btn.dataset.rail === 'toggle') trigger('ai-assistant-history-toggle');
       rail.querySelectorAll('.ai-assistant-rail-btn').forEach((b) => b.classList.toggle('is-active', b.dataset.rail === 'toggle' && isHistoryOpen()));
     });
+    const sidebarProfileBtn = document.getElementById('ai-assistant-sidebar-profile');
+    if (sidebarProfileBtn) sidebarProfileBtn.addEventListener('click', () => toggleProfileMenu(sidebarProfileBtn));
   }
 
   // Menu profil (facon ChatGPT) ancre au bouton avatar du rail : en-tete
@@ -666,7 +638,7 @@
     });
     document.addEventListener('click', (event) => {
       if (menu.hidden) return;
-      if (event.target.closest('#ai-assistant-profile-menu') || event.target.closest('[data-rail="profile"]')) return;
+      if (event.target.closest('#ai-assistant-profile-menu') || event.target.closest('#ai-assistant-sidebar-profile')) return;
       closeProfileMenu();
     });
     document.addEventListener('keydown', (event) => {
@@ -679,15 +651,18 @@
     const menu = document.getElementById('ai-assistant-profile-menu');
     if (!menu) return;
     const profile = assistantSettingsState.profile || {};
+    const fallbackName = currentLanguage === 'en' ? 'My profile' : 'Mon profil';
     const nameEl = document.getElementById('ai-assistant-profile-menu-name');
     const emailEl = document.getElementById('ai-assistant-profile-menu-email');
-    if (nameEl) nameEl.textContent = String(profile.name || '').trim() || (currentLanguage === 'en' ? 'My profile' : 'Mon profil');
+    if (nameEl) nameEl.textContent = String(profile.name || '').trim() || fallbackName;
     if (emailEl) emailEl.textContent = String(profile.email || '').trim();
+    const sidebarNameEl = document.getElementById('ai-assistant-sidebar-profile-name');
+    if (sidebarNameEl) sidebarNameEl.textContent = String(profile.name || '').trim() || fallbackName;
     menu.hidden = false;
     menu.setAttribute('aria-hidden', 'false');
     void menu.offsetWidth;
     menu.classList.add('is-open');
-    document.querySelector('[data-rail="profile"]')?.classList.add('is-active');
+    document.getElementById('ai-assistant-sidebar-profile')?.classList.add('is-active');
   }
 
   function closeProfileMenu() {
@@ -695,7 +670,7 @@
     if (!menu) return;
     menu.classList.remove('is-open');
     menu.setAttribute('aria-hidden', 'true');
-    document.querySelector('[data-rail="profile"]')?.classList.remove('is-active');
+    document.getElementById('ai-assistant-sidebar-profile')?.classList.remove('is-active');
     setTimeout(() => { menu.hidden = true; }, 160);
   }
 
@@ -1550,6 +1525,14 @@
       assistantLog('warn', 'settings_load_failed', { reason: error?.message || 'invalid_settings_storage' });
       assistantSettingsState = defaults;
     }
+    syncSidebarProfileName();
+  }
+
+  function syncSidebarProfileName() {
+    const sidebarNameEl = document.getElementById('ai-assistant-sidebar-profile-name');
+    if (!sidebarNameEl) return;
+    const name = String(assistantSettingsState.profile?.name || '').trim();
+    sidebarNameEl.textContent = name || (currentLanguage === 'en' ? 'My profile' : 'Mon profil');
   }
 
   function saveAssistantSettingsState() {
@@ -1558,6 +1541,7 @@
     } catch (error) {
       assistantLog('warn', 'settings_save_failed', { reason: error?.message || 'local_storage_unavailable' });
     }
+    syncSidebarProfileName();
   }
 
   function getProjectById(projectId) {

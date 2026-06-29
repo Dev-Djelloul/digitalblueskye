@@ -10757,20 +10757,55 @@ body.body-menu-open .ai-assistant-collapse-handle {
   width: 20px;
 }
 
-.ai-assistant-rail-avatar img {
+/* Avatar de profil ancre tout en bas du panneau lateral deplie (facon ChatGPT),
+   en dehors de la zone de defilement pour rester toujours visible. */
+.ai-assistant-sidebar-profile {
+  align-items: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: rgb(246 247 255 / 92%);
+  cursor: pointer;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 10px;
+  margin: 4px 14px 14px;
+  padding: 8px 10px;
+  text-align: left;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.ai-assistant-sidebar-profile:hover,
+.ai-assistant-sidebar-profile.is-active {
+  background: rgb(255 255 255 / 8%);
+  border-color: rgb(121 230 255 / 28%);
+}
+
+.ai-assistant-sidebar-profile-avatar {
   border-radius: 50%;
+  flex: 0 0 auto;
   height: 30px;
+  object-fit: cover;
   width: 30px;
 }
 
-/* Menu profil ancre au bouton avatar du rail (pop-up vers le haut). */
+.ai-assistant-sidebar-profile-name {
+  font-family: var(--font-body);
+  font-size: 0.84rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Menu profil ancre a l'avatar en bas du panneau lateral (pop-up vers le haut). */
 .ai-assistant-profile-menu {
   background: linear-gradient(180deg, rgb(26 26 52 / 97%), rgb(15 14 34 / 98%));
   border: 1px solid rgb(255 255 255 / 14%);
   border-radius: 14px;
   bottom: 14px;
   box-shadow: 0 18px 44px rgb(0 0 0 / 50%);
-  left: 70px;
+  left: var(--ai-merged-rail-space, 62px);
   opacity: 0;
   padding: 8px;
   pointer-events: none;
@@ -10888,6 +10923,16 @@ body.body-menu-open .ai-assistant-collapse-handle {
 
 [data-theme="light"] .ai-assistant-profile-menu-item svg {
   color: rgb(47 43 95 / 70%);
+}
+
+[data-theme="light"] .ai-assistant-sidebar-profile {
+  color: #2f2b5f;
+}
+
+[data-theme="light"] .ai-assistant-sidebar-profile:hover,
+[data-theme="light"] .ai-assistant-sidebar-profile.is-active {
+  background: rgb(93 93 255 / 10%);
+  border-color: rgb(93 93 255 / 24%);
 }
 
 /* Le rail remplace le toggle d'historique du header (evite le doublon). */
