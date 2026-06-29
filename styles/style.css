@@ -15162,10 +15162,14 @@ body.ai-assistant-sidebar-is-resizing * {
 
 [data-theme="light"] .ai-assistant-stop-btn,
 [data-theme="light"] .ai-assistant-send-btn {
-  background: #2f2b5f;
-  border-color: rgb(47 43 95 / 18%);
-  color: #fff;
-  -webkit-text-fill-color: #fff;
+  background: rgb(200 34 255 / 16%);
+  border-color: rgb(200 34 255 / 32%);
+  color: #c822ff;
+  -webkit-text-fill-color: #c822ff;
+}
+
+[data-theme="light"] .ai-assistant-send-btn:hover {
+  background: rgb(200 34 255 / 26%);
 }
 
 [data-theme="light"] .ai-assistant-subtitle,
