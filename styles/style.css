@@ -558,8 +558,17 @@ section#skills,
 /* Titres et paragraphes dans la section texte */
 .intro-text .text-content p,
 .intro-text .text-content h1 {
-  background: linear-gradient(45deg, var(--accent-color), #c822ff);
+  background: linear-gradient(90deg,
+    #4fd1ff 0%,    /* IA - Cyan */
+    #7c5cff 16%,   /* RAG - Violet */
+    #30d158 32%,   /* Observabilité - Vert */
+    #ffb547 48%,   /* Agents - Orange */
+    #ff5f6d 64%,   /* Analytics - Rose */
+    #b16cff 100%   /* Gouvernance - Violet */
+  );
   background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
   color: transparent;
   text-decoration: none;
   transition: transform 0.3s;
