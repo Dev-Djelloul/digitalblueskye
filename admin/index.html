@@ -5335,10 +5335,12 @@
     .versioning-columns {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
     }
 
     .versioning-column:first-child {
       border-right: 1px solid rgba(104, 128, 170, 0.14);
+      padding-right: 4px;
     }
 
     .versioning-column h3 {
@@ -5352,8 +5354,36 @@
       letter-spacing: 0.04em;
     }
 
+    /* Les libelles ("Date de build", "Dernier deploiement"...) sont trop
+       longs pour tenir sur une seule ligne dans une colonne a moitie moins
+       large que les cartes intel-kv-list habituelles (3 colonnes) : le
+       wrapping sur 2 lignes combine a align-items:center et un gap de 10px
+       faisait visuellement se chevaucher deux lignes consecutives. On
+       empile donc libelle/valeur verticalement (au lieu du grid 2 colonnes
+       habituel) uniquement dans ce contexte, avec assez d'air entre chaque
+       ligne. */
     .versioning-column .intel-kv-list {
-      padding-top: 12px;
+      padding: 16px 18px 18px;
+      gap: 16px;
+    }
+
+    .versioning-column .intel-kv-row {
+      grid-template-columns: 1fr;
+      align-items: flex-start;
+      min-height: 0;
+      gap: 4px;
+    }
+
+    .versioning-column .intel-kv-row span {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .versioning-column .intel-kv-row strong {
+      text-align: left;
+      font-size: 14px;
+      word-break: break-word;
     }
 
     @media (max-width: 900px) {
@@ -5364,6 +5394,7 @@
       .versioning-column:first-child {
         border-right: 0;
         border-bottom: 1px solid rgba(104, 128, 170, 0.14);
+        padding-right: 0;
       }
     }
 
