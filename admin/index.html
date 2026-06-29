@@ -2023,18 +2023,21 @@
     }
 
     body.sidebar-collapsed .premium-sidebar {
-      width: 76px;
-      padding-inline: 8px;
+      width: 60px;
+      padding: 8px;
     }
 
     body.sidebar-collapsed .shell:has(#appView:not(.hidden)) {
-      padding-left: 92px;
+      padding-left: 76px;
     }
 
     body.sidebar-collapsed .premium-brand {
       grid-template-columns: 1fr;
       justify-items: center;
-      gap: 8px;
+      gap: 4px;
+      width: 44px;
+      height: 44px;
+      margin: 0 auto;
     }
 
     body.sidebar-collapsed .premium-brand-text,
@@ -2048,34 +2051,42 @@
 
     body.sidebar-collapsed .sidebar-toggle {
       position: static;
+      display: none;
     }
 
     body.sidebar-collapsed .premium-nav {
-      gap: 8px;
+      gap: 6px;
       padding-right: 0;
+      padding-left: 0;
     }
 
     body.sidebar-collapsed .premium-nav .tab,
     body.sidebar-collapsed .premium-context {
       justify-content: center;
-      padding-inline: 0;
+      align-items: center;
+      padding: 0;
       width: 44px;
-      min-width: 44px;
       height: 44px;
-      min-height: 44px;
+      margin: 0 auto;
+      border-radius: 10px;
     }
 
     body.sidebar-collapsed .premium-nav .tab .nav-icon,
     body.sidebar-collapsed .premium-context .nav-icon {
       margin: 0;
+      width: 22px;
+      height: 22px;
     }
 
     body.sidebar-collapsed .premium-system-status {
       justify-content: center;
+      align-items: center;
       gap: 0;
-      margin-bottom: 0;
-      padding-bottom: 0;
-      border-bottom: none;
+      margin: 6px auto 0;
+      padding: 0;
+      width: 44px;
+      height: 44px;
+      border: none;
     }
 
     body.sidebar-collapsed .premium-system-status::after {
@@ -2083,25 +2094,29 @@
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: var(--dash-green, #30d158);
-      box-shadow: 0 0 0 3px rgba(48, 209, 88, 0.18);
+      background: var(--success);
+      box-shadow: 0 0 0 3px rgba(84, 214, 161, 0.18);
+      position: static;
     }
 
     body.sidebar-collapsed .premium-sidebar-footer {
-      padding: 12px 0 0 0;
-      gap: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding: 12px 0 0;
       border-top: 1px solid rgba(79, 209, 255, 0.12);
     }
 
     body.sidebar-collapsed .premium-sidebar-footer button {
       width: 44px;
-      min-width: 44px;
       height: 44px;
-      min-height: 44px;
-      padding-inline: 0;
-      justify-content: center;
+      padding: 0;
+      margin: 0;
       display: flex;
       align-items: center;
+      justify-content: center;
+      border-radius: 10px;
     }
 
     .mobile-sidebar-overlay {
