@@ -317,6 +317,7 @@
   const createNewIconUrl = resolveUiIconUrl('icons8-create-new-64.png');
   const newFolderIconUrl = resolveUiIconUrl('icons8-new-folder-64.png');
   const libraryIconUrl = resolveUiIconUrl('icons8-library-64.png');
+  const searchIconUrl = resolveUiIconUrl('icons8-search-64.png');
   const projectSectionIconUrl = resolveUiIconUrl('icons8-project-64.png');
   const conversationSectionIconUrl = resolveUiIconUrl('icons8-conversation-64.png');
 
@@ -351,7 +352,7 @@
         <div class="ai-assistant-sidebar-scroll">
         <div class="ai-assistant-sidebar-nav">
           <label class="ai-assistant-session-search-wrap" for="ai-assistant-session-search">
-            <span class="ai-assistant-session-search-icon" aria-hidden="true"></span>
+            <img src="${searchIconUrl}" alt="" class="ai-assistant-session-search-icon" aria-hidden="true">
             <input id="ai-assistant-session-search" class="ai-assistant-session-search" type="search" autocomplete="off" placeholder="${i18n.searchConversations}" aria-label="${i18n.searchConversations}">
           </label>
           <button id="ai-assistant-session-new" class="ai-assistant-session-new ai-assistant-sidebar-action" type="button" title="${i18n.newChat}" aria-label="${i18n.newChat}">
