@@ -499,7 +499,7 @@
           <div id="ai-assistant-project-tabs" class="ai-assistant-project-tabs" role="tablist" aria-label="Sections projet">
             <button type="button" data-project-tab="conversations">Conversations</button>
             <button type="button" data-project-tab="sources">Sources</button>
-            <button type="button" data-project-tab="memory">Memoire</button>
+            <button type="button" data-project-tab="memory">Mémoire</button>
             <button type="button" data-project-tab="rag">RAG</button>
             <button type="button" data-project-tab="stats">Statistiques</button>
             <button type="button" data-project-tab="settings">Paramètres</button>
@@ -1832,7 +1832,7 @@
       ? documents.map((doc) => `<tr><td>${escapeHtml(doc.name)}</td><td>${escapeHtml(doc.type)}</td><td>${doc.chunks}</td><td>${escapeHtml(fileSizeLabel(doc.size))}</td></tr>`).join('')
       : '<tr><td colspan="4">Aucun document associe.</td></tr>';
     const nextSteps = [
-      'Verifier que la memoire projet resume les objectifs et contraintes actuels.',
+      'Verifier que la mémoire projet resume les objectifs et contraintes actuels.',
       'Importer ou rattacher les documents sources manquants.',
       'Utiliser le perimetre RAG adapte avant les prochaines analyses.',
       'Exporter regulierement le projet pour archivage ou partage.'
@@ -1878,7 +1878,7 @@
         <div class="card"><span>Perimetre RAG</span><strong>${escapeHtml(getProjectRagScopeLabel(rag.scope))}</strong></div>
       </div>
     </header>
-    <section><h2>Memoire projet</h2><p>${escapeHtml(project.memory || 'Aucune memoire projet renseignee.')}</p></section>
+    <section><h2>Mémoire projet</h2><p>${escapeHtml(project.memory || 'Aucune mémoire projet renseignee.')}</p></section>
     <section><h2>Conversations associees</h2><table><thead><tr><th>Conversation</th><th>Messages</th><th>Activite</th></tr></thead><tbody>${conversationRows}</tbody></table></section>
     <section><h2>Sources associees</h2><table><thead><tr><th>Source</th><th>Type</th><th>Chunks</th><th>Taille</th></tr></thead><tbody>${documentRows}</tbody></table></section>
     <section><h2>Prochaines etapes recommandees</h2><ul>${nextSteps.map((step) => `<li>${escapeHtml(step)}</li>`).join('')}</ul></section>
@@ -2293,7 +2293,7 @@
       projectDeleteSummary.textContent = [
         `${stats.conversations} conversation${stats.conversations > 1 ? 's' : ''}`,
         `${stats.documents} source${stats.documents > 1 ? 's' : ''}`,
-        `${countProjectMemories(project)} memoire${countProjectMemories(project) > 1 ? 's' : ''} associee${countProjectMemories(project) > 1 ? 's' : ''}`
+        `${countProjectMemories(project)} mémoire${countProjectMemories(project) > 1 ? 's' : ''} associee${countProjectMemories(project) > 1 ? 's' : ''}`
       ].join(' • ');
     }
     projectDeleteDialog.hidden = false;
@@ -4592,7 +4592,7 @@
       'que disent les sources', 'que disent les documents',
       'documents du projet', 'document du projet', 'sources du projet',
       'résume les blocages', 'resume les blocages', 'blocages techniques',
-      'mémoire projet', 'memoire projet',
+      'mémoire projet', 'mémoire projet',
       'compare', 'comparer', 'comparaison',
       'audit', 'mvp', 'backend', 'frontend', 'questionnaire', 'matching',
       'from the sources', 'in the documents', 'according to the sources', 'according to the documents',
@@ -5287,8 +5287,8 @@
         ['Conversations', stats.conversations],
         ['Sources', stats.documents],
         ['Chunks', stats.chunks],
-        ['Taille indexee', fileSizeFromChars(stats.indexedSize)],
-        ['Derniere activite', stats.lastActivity ? formatProjectDate(stats.lastActivity) : '-']
+        ['Taille indexée', fileSizeFromChars(stats.indexedSize)],
+        ['Dernière activité', stats.lastActivity ? formatProjectDate(stats.lastActivity) : '-']
       ].forEach(([label, value]) => {
         const item = document.createElement('div');
         item.className = 'ai-assistant-project-stat';
@@ -5424,7 +5424,7 @@
     const textarea = document.createElement('textarea');
     textarea.className = 'ai-assistant-project-memory';
     textarea.value = project.memory || '';
-    textarea.placeholder = 'Memoire persistante du projet : objectifs, preferences, contexte durable.';
+    textarea.placeholder = 'Mémoire persistante du projet : objectifs, preferences, contexte durable.';
     textarea.rows = 7;
     textarea.addEventListener('change', () => {
       project.memory = textarea.value.slice(0, 2500);
@@ -5456,7 +5456,7 @@
       <div><span>Conversations</span><strong>${stats.conversations}</strong></div>
       <div><span>Sources</span><strong>${stats.documents}</strong></div>
       <div><span>Chunks indexes</span><strong>${stats.chunks}</strong></div>
-      <div><span>Taille indexee</span><strong>${fileSizeFromChars(stats.indexedSize)}</strong></div>`;
+      <div><span>Taille indexée</span><strong>${fileSizeFromChars(stats.indexedSize)}</strong></div>`;
     container.appendChild(block);
   }
 
@@ -5927,7 +5927,7 @@
 
     const summary = normalizeSessionSummary(session?.summary);
     if (summary) {
-      lines.push('## Memoire de conversation', '', summary, '');
+      lines.push('## Mémoire de conversation', '', summary, '');
     }
 
     lines.push('## Echanges', '');
@@ -10710,9 +10710,9 @@
     try {
       const dateContext = getAssistantCurrentDateContext();
       const webSettings = assistantSettingsState.web || {};
-      // Le contexte projet (RAG + memoire) suit la CONVERSATION active, pas le
+      // Le contexte projet (RAG + mémoire) suit la CONVERSATION active, pas le
       // projet globalement selectionne : une discussion standalone (projectId
-      // null) n'utilise donc aucun document ni memoire de projet.
+      // null) n'utilise donc aucun document ni mémoire de projet.
       const conversationProject = getProjectById(getActiveSession()?.projectId) || null;
       const ragCandidateProject = conversationProject;
       const willCheckRag = !fileContext && shouldUseProjectRagForMessage(userText, ragCandidateProject);
@@ -10810,7 +10810,7 @@
         webSearchManualToggle: isWebSearchActive,
         ragStatus: ragContext.status,
         ragEvents: ragContext.events?.length || 0,
-        // Debug temporaire — diagnostic injection memoire projet (a retirer une fois valide)
+        // Debug temporaire — diagnostic injection mémoire projet (a retirer une fois valide)
         projectId: payload.projectId,
         projectName: payload.projectName,
         projectMemoryLength: payload.projectMemory.length,
