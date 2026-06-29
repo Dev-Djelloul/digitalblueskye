@@ -2050,12 +2050,19 @@
       position: static;
     }
 
+    body.sidebar-collapsed .premium-nav {
+      gap: 8px;
+      padding-right: 0;
+    }
+
     body.sidebar-collapsed .premium-nav .tab,
     body.sidebar-collapsed .premium-context {
       justify-content: center;
       padding-inline: 0;
       width: 44px;
       min-width: 44px;
+      height: 44px;
+      min-height: 44px;
     }
 
     body.sidebar-collapsed .premium-nav .tab .nav-icon,
@@ -2081,14 +2088,20 @@
     }
 
     body.sidebar-collapsed .premium-sidebar-footer {
-      padding: 8px 0 0 0;
+      padding: 12px 0 0 0;
+      gap: 8px;
+      border-top: 1px solid rgba(79, 209, 255, 0.12);
     }
 
     body.sidebar-collapsed .premium-sidebar-footer button {
       width: 44px;
       min-width: 44px;
+      height: 44px;
+      min-height: 44px;
       padding-inline: 0;
       justify-content: center;
+      display: flex;
+      align-items: center;
     }
 
     .mobile-sidebar-overlay {
