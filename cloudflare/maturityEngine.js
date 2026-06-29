@@ -65,6 +65,11 @@ function combineSignals(signals) {
 }
 
 function calculateDynamicWeight(score, evidenceCount) {
+  // score === null signifie "non mesurable" (cf. roundScoreOrNull) : un tel
+  // domaine ne doit jamais peser dans la moyenne globale, meme avec un poids
+  // minimal de 1. Number(null) vaut 0 (donc Number.isFinite() === true), ce
+  // qui masquerait silencieusement ce cas si on ne l'excluait pas explicitement.
+  if (score === null || score === undefined) return 0;
   const scoreValue = Number(score);
   if (!Number.isFinite(scoreValue)) return 0;
   return Math.max(1, Math.log10(Math.max(1, Number(evidenceCount || 0)) + 1));
@@ -430,8 +435,15 @@ function calculateDomainScores(input = {}) {
         success_rate: calculateSuccessRate(aiSuccesses, aiAttempts),
         responses: aiSuccesses,
         average_latency_ms: aiLatency || null,
-        rqc_grade: responseQuality.last_grade || "",
-        rqc_average_score: responseQuality.average_score ?? null,
+        // BUG CORRIGE : last_grade vient du dernier evenement
+        // response_quality_final_sent de toute la fenetre, independamment du
+        // compteur aiSuccesses (assistant_response/openrouter_response) de
+        // cette MEME fenetre — d'ou l'incoherence "Reponses IA: 0 / RQC: A"
+        // (une note RQC ancienne pouvait survivre alors qu'aucune reponse IA
+        // n'est mesuree sur la fenetre actuelle). On n'expose la note que si
+        // au moins une reponse IA est reellement mesuree ici.
+        rqc_grade: aiSuccesses > 0 ? (responseQuality.last_grade || null) : null,
+        rqc_average_score: aiSuccesses > 0 ? (responseQuality.average_score ?? null) : null,
         completion_guard_events: completionGuardSignals,
         interrupted_responses: interruptions,
         quota_incidents: quotaIncidents,
@@ -566,7 +578,13 @@ function calculateDomainScores(input = {}) {
   const roundScoreOrNull = (value) => (value === null || value === undefined ? null : (Number.isFinite(Number(value)) ? roundOne(value) : null));
 
   return domainSpecs.map((item) => {
-    const score = Number.isFinite(Number(item.score)) ? roundOne(item.score) : 0;
+    // BUG CORRIGE : Number.isFinite(Number(null)) vaut true (Number(null)===0),
+    // donc l'ancienne garde laissait passer un score volontairement null
+    // (domaine non mesurable) comme un vrai 0.0/10 — exactement la confusion
+    // que ce module veut eliminer ailleurs. On reutilise roundScoreOrNull, qui
+    // verifie explicitement null/undefined, pour rester coherent avec
+    // availability_score/quality_score/maturity_score ci-dessous.
+    const score = roundScoreOrNull(item.score);
     const weight = calculateDynamicWeight(score, item.evidence_count);
     const availabilityScore = roundScoreOrNull(item.availability_score);
     const qualityScore = roundScoreOrNull(item.quality_score);
@@ -592,7 +610,10 @@ function calculateDomainScores(input = {}) {
 }
 
 function weightedAverage(domains) {
-  const usable = domains.filter((item) => Number(item.weight || 0) > 0 && Number.isFinite(Number(item.score)));
+  // item.score peut etre null (domaine non mesurable) : on l'exclut
+  // explicitement avant la conversion numerique, sinon Number(null)===0
+  // ferait passer un domaine non mesure comme un vrai score de 0.
+  const usable = domains.filter((item) => item.score !== null && item.score !== undefined && Number(item.weight || 0) > 0 && Number.isFinite(Number(item.score)));
   if (!usable.length) return 0;
   const totalWeight = usable.reduce((sum, item) => sum + Number(item.weight), 0);
   const total = usable.reduce((sum, item) => sum + Number(item.score) * Number(item.weight), 0);

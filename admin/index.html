@@ -143,6 +143,22 @@
       display: block;
     }
 
+    @keyframes adminRefreshSpin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    button.refresh-icon:disabled,
+    button.refresh-icon.is-loading {
+      cursor: wait;
+      opacity: 0.65;
+    }
+
+    button.refresh-icon.is-loading .refresh-symbol,
+    button.refresh-icon.is-loading img {
+      animation: adminRefreshSpin 0.9s linear infinite;
+    }
+
     .sync-icon-button {
       background: rgba(255, 255, 255, 0.04) !important;
       background-color: rgba(255, 255, 255, 0.04) !important;
@@ -2547,6 +2563,29 @@
       height: 122px !important;
     }
 
+    .chart-data-note {
+      color: #8f9db8;
+      font-size: 11px;
+      font-style: italic;
+      line-height: 1.4;
+      margin: 0;
+    }
+
+    .chart-empty-state {
+      align-items: center;
+      background: rgba(104, 128, 170, 0.08);
+      border: 1px dashed rgba(104, 128, 170, 0.28);
+      border-radius: 10px;
+      color: #8f9db8;
+      display: flex;
+      font-size: 12px;
+      justify-content: center;
+      margin: 0;
+      min-height: 80px;
+      padding: 12px;
+      text-align: center;
+    }
+
     .quick-kpis {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -2615,6 +2654,11 @@
       color: var(--dash-orange);
       font-size: 12px;
       font-weight: 700;
+    }
+
+    .trend-row .non-mesure,
+    .trend-icon.non-mesure {
+      color: #8f9db8 !important;
     }
 
     .maturity-history {
@@ -2740,6 +2784,12 @@
     .domain-score span {
       color: #b8c5dd;
       font-size: 14px;
+    }
+
+    .domain-score strong.non-mesure {
+      color: #8f9db8;
+      font-size: 18px;
+      font-weight: 600;
     }
 
     .domain-card canvas {
@@ -6160,7 +6210,7 @@
     <section id="loginView" class="login">
       <header class="login-hero">
         <div class="login-brand">
-          <img src="../assets/images/logo/AI.png" alt="" width="64" height="64">
+          <a href="/" title="Retour à l'accueil"><img src="../assets/images/logo/AI.png" alt="Retour à l'accueil" width="64" height="64"></a>
           <div>
             <h1 data-i18n="studio.login.title">Digital Blue Skye Studio IA</h1>
             <p class="login-tagline" data-i18n="studio.login.tagline">Le centre de pilotage de l'écosystème de mon Intelligence Artificielle</p>
@@ -6194,7 +6244,7 @@
     <section id="appView" class="hidden">
       <aside class="premium-sidebar" aria-label="Navigation Back Office">
         <div class="premium-brand">
-          <div class="premium-logo" aria-hidden="true"><img src="../assets/images/logo/AI.png" alt=""></div>
+          <div class="premium-logo"><a href="/" title="Retour à l'accueil" aria-label="Retour à l'accueil"><img src="../assets/images/logo/AI.png" alt="Retour à l'accueil"></a></div>
           <div class="premium-brand-text">
             <strong>Digital Blue Skye Studio</strong>
             <span>Back Office</span>
@@ -10886,13 +10936,20 @@
       };
     }
 
+    // BUG EVITE : Number(null) vaut 0, qui est lui-meme Number.isFinite() ===
+    // true. Sans verification explicite de null/undefined en amont, un score
+    // ou une metrique volontairement null (non mesurable) s'afficherait comme
+    // un vrai "0" — exactement la confusion que ce lot corrige cote backend
+    // (maturityEngine.js) ; il ne faut pas la reintroduire ici cote affichage.
     function premiumNumber(value, fallback = "n/a") {
+      if (value === null || value === undefined || value === "") return fallback;
       const number = Number(value);
       if (!Number.isFinite(number)) return fallback;
       return new Intl.NumberFormat("fr-FR").format(Math.round(number));
     }
 
     function premiumDecimal(value, digits = 1, fallback = "n/a") {
+      if (value === null || value === undefined || value === "") return fallback;
       const number = Number(value);
       if (!Number.isFinite(number)) return fallback;
       return number.toFixed(digits);
@@ -10929,30 +10986,6 @@
       return "file";
     }
 
-    function buildSeries(seed, base, length = 30, volatility = 0.7) {
-      const values = [];
-      let current = Number.isFinite(Number(base)) ? Number(base) : 5;
-      const target = current;
-      for (let index = 0; index < length; index += 1) {
-        const wave = Math.sin((index + 1) * (seed + 2) * 0.47) * volatility;
-        const pulse = Math.cos((index + seed) * 0.31) * volatility * 0.45;
-        current = Math.max(0, current * 0.86 + target * 0.14 + wave * 0.18 + pulse * 0.12);
-        values.push(Number(current.toFixed(2)));
-      }
-      values[values.length - 1] = Number(target.toFixed(2));
-      return values;
-    }
-
-    function last30Labels() {
-      const labels = [];
-      const formatter = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short" });
-      for (let offset = 29; offset >= 0; offset -= 1) {
-        const date = new Date();
-        date.setDate(date.getDate() - offset);
-        labels.push(formatter.format(date));
-      }
-      return labels;
-    }
 
     function destroyPremiumCharts() {
       (state.premiumCharts || []).forEach((chart) => {
@@ -10999,7 +11032,7 @@
       const metrics = domain.metrics || {};
       const name = String(domain.domain || "");
       if (name.includes("IA")) {
-        return [["Réponses", premiumNumber(metrics.responses, "0")], ["Taux succès", formatPercent(metrics.success_rate)], ["Temps moyen", formatMs(metrics.average_latency_ms)], ["RQC", metrics.rqc_grade || "n/a"]];
+        return [["Réponses", premiumNumber(metrics.responses, "0")], ["Taux succès", formatPercent(metrics.success_rate)], ["Temps moyen", formatMs(metrics.average_latency_ms)], ["RQC", metrics.rqc_grade || "non mesurable"]];
       }
       if (name.includes("Recherche")) {
         return [["Recherches", premiumNumber(metrics.searches, "0")], ["Taux succès", formatPercent(metrics.success_rate)], ["Cache hit", formatPercent(metrics.cache_hit_rate)], ["Temps moyen", formatMs(metrics.average_latency_ms)]];
@@ -11063,8 +11096,9 @@
             </div>
             <span class="intel-badge ${domainStatusBadgeClass(domain.status)}">${escapeHtml(statusLabel)}</span>
           </header>
-          <div class="domain-score"><strong>${escapeHtml(premiumDecimal(domain.score, 1))}</strong><span>/10</span></div>
-          <canvas id="domainChart${index}" aria-label="Courbe statistique ${escapeHtml(domain.domain)} sur 30 jours"></canvas>
+          <div class="domain-score">${domain.score === null || domain.score === undefined
+            ? `<strong class="non-mesure">Non mesuré</strong>`
+            : `<strong>${escapeHtml(premiumDecimal(domain.score, 1))}</strong><span>/10</span>`}</div>
           <div class="domain-dimensions" aria-label="Disponibilité, qualité, maturité">
             ${renderDomainDimension("Disponibilité", domain.availability_score)}
             ${renderDomainDimension("Qualité", domain.quality_score)}
@@ -11101,6 +11135,15 @@
       return { eventDistribution, eventTotal, eventCount, aiDomain, webDomain, documentDomain, memoryDomain };
     }
 
+    // Periode 7/30/90 jours : pas encore de parametre range cote backend
+    // (/admin/health lit toujours une fenetre fixe des derniers evenements,
+    // jamais une vraie plage calendaire) — le selecteur reste donc desactive
+    // avec un libelle honnete plutot que de laisser croire a un filtrage actif
+    // qui n'existe pas. Chantier dedie a prevoir pour le parametre range reel.
+    function renderPeriodSelector() {
+      return `<select aria-label="Période" title="Fenêtre = derniers événements disponibles, pas encore une vraie période calendaire 7/30/90 jours (chantier à venir)" disabled><option selected>Derniers événements disponibles</option></select>`;
+    }
+
     function renderPremiumDashboard(health) {
       const scorecard = health?.scorecard || {};
       const maturity = health?.maturity || {};
@@ -11113,9 +11156,17 @@
       const { eventDistribution, eventTotal, eventCount, aiDomain, webDomain } = buildEventDistribution(health);
       const errorCount = domains.reduce((sum, domain) => sum + Number(domain.metrics?.errors || domain.metrics?.failures || 0), 0);
       const successRate = aiDomain.metrics?.success_rate ?? webDomain.metrics?.success_rate ?? null;
+      const cacheHitRate = webDomain.metrics?.cache_hit_rate ?? null;
       const avgLatency = statByKey("average_response_ms") ?? aiDomain.metrics?.average_latency_ms;
       const level = Math.max(1, Math.min(5, Math.ceil(percent / 20)));
       const activeSegments = Math.max(1, Math.round(percent / 10));
+      // Evolution reelle (2 points : fenetre precedente vs fenetre actuelle),
+      // calculee cote backend par calculateHistoricalEvolution() — jamais une
+      // serie de 30 jours fabriquee. evidence_count nul sur les deux moities
+      // => points absents, on l'affiche comme "donnees insuffisantes".
+      const evolution = scorecard.mini_charts?.maturity_evolution || [];
+      const hasEvolution = evolution.length >= 2
+        && evolution.every((point) => point?.score !== null && point?.score !== undefined);
       return `
         <div class="premium-dashboard-header">
           <div class="premium-dashboard-title">
@@ -11124,7 +11175,7 @@
           </div>
           <div>
             <div class="premium-actions" aria-label="Commandes dashboard">
-              <select aria-label="Période"><option>Aujourd'hui</option><option>7 jours</option><option selected>30 jours</option><option>Depuis installation</option></select>
+              ${renderPeriodSelector()}
               <button type="button" id="premiumExportBtn">Exporter</button>
               ${renderIconRefreshButton("premiumRefreshBtn", "Actualiser Dashboard")}
             </div>
@@ -11139,19 +11190,27 @@
               <span class="health-chip">Niveau actuel : ${escapeHtml(maturity.level || scorecard.level || scoreLabel(globalScore))}</span>
             </div>
             <div class="hero-donut"><canvas id="globalScoreDonut" aria-label="Progression circulaire du score global"></canvas><div class="hero-donut-center"><strong>${percent}%</strong><span>Objectif 100%</span></div></div>
-            <div class="hero-chart"><h2>Évolution globale</h2><canvas id="globalEvolutionChart" aria-label="Évolution globale sur 30 jours"></canvas></div>
+            <div class="hero-chart">
+              <h2>Évolution du score (fenêtre précédente / actuelle)</h2>
+              ${hasEvolution
+                ? `<canvas id="globalEvolutionChart" aria-label="Évolution du score global entre la fenêtre précédente et la fenêtre actuelle"></canvas><small class="chart-data-note">2 mesures disponibles · pas encore de série calendaire</small>`
+                : `<p class="chart-empty-state">Données insuffisantes pour une évolution (fenêtre actuelle trop courte ou sans historique mesurable).</p>`}
+            </div>
             <div class="quick-kpis">
-              <div class="quick-kpi"><span>Événements (30j)</span><strong>${escapeHtml(premiumNumber(eventCount, "0"))}</strong><small>Signal observé</small></div>
-              <div class="quick-kpi"><span>Réponses IA</span><strong>${escapeHtml(premiumNumber(aiDomain.metrics?.responses, "0"))}</strong><small>RQC ${escapeHtml(aiDomain.metrics?.rqc_grade || "n/a")}</small></div>
+              <div class="quick-kpi"><span>Événements (fenêtre analysée)</span><strong>${escapeHtml(premiumNumber(eventCount, "0"))}</strong><small>Signal observé</small></div>
+              <div class="quick-kpi"><span>Réponses IA</span><strong>${escapeHtml(premiumNumber(aiDomain.metrics?.responses, "0"))}</strong><small>RQC ${escapeHtml(aiDomain.metrics?.rqc_grade || "non mesurable")}</small></div>
               <div class="quick-kpi"><span>Taux de succès</span><strong>${escapeHtml(formatPercent(successRate))}</strong><small>IA + Web</small></div>
               <div class="quick-kpi"><span>Temps moyen</span><strong>${escapeHtml(formatMs(avgLatency))}</strong><small>Latence moyenne</small></div>
             </div>
           </article>
           <article class="premium-card maturity-history">
             <h2>Évolution de la maturité</h2>
-            ${["Aujourd'hui", "7 jours", "30 jours", "Depuis installation"].map((label, index) => `
-              <div class="history-row"><span>${label}</span><canvas id="historyChart${index}" aria-label="Mini courbe ${label}"></canvas><strong>${escapeHtml(premiumDecimal(Math.max(0, globalScore - index * 0.3), 1))}</strong></div>
-            `).join("")}
+            <p class="chart-data-note">Comparaison réelle entre les deux moitiés (par date) de la fenêtre d'événements analysée — pas encore de vraies périodes calendaires (7j/30j/90j).</p>
+            ${hasEvolution
+              ? evolution.map((point) => `
+                <div class="history-row"><span>${escapeHtml(point.label || "")}</span><small>${escapeHtml(premiumNumber(point.events, "0"))} événement(s)</small><strong>${escapeHtml(premiumDecimal(point.score, 1))}</strong></div>
+              `).join("")
+              : `<p class="chart-empty-state">Données insuffisantes : pas assez d'événements pour comparer deux fenêtres.</p>`}
           </article>
         </section>
         <section class="domain-section-head">
@@ -11160,24 +11219,34 @@
         </section>
         <section class="domain-grid">${domains.map(renderPremiumDomainCard).join("")}</section>
         <section class="premium-grid premium-bottom-grid">
-          <article class="premium-card activity-card"><h2>Activité globale</h2><canvas id="activityChart" aria-label="Graphique d'activité globale multi-lignes"></canvas></article>
+          <article class="premium-card activity-card">
+            <h2>Activité globale</h2>
+            <p class="chart-data-note">Volumes réels mesurés sur la fenêtre analysée (capture actuelle, pas une série temporelle).</p>
+            <canvas id="activityChart" aria-label="Volumes actuels par catégorie"></canvas>
+          </article>
           <article class="premium-card event-donut-card">
-            <h2>Répartition des événements (30j)</h2>
+            <h2>Répartition des événements (fenêtre analysée)</h2>
             <div class="event-donut-wrap"><div class="event-donut"><canvas id="eventDonutChart" aria-label="Répartition des événements"></canvas><div class="event-donut-center"><strong>${escapeHtml(premiumNumber(eventTotal, "0"))}</strong><span>Total</span></div></div>
             <div class="event-list">${eventDistribution.map((item) => `<div><i style="--item-color:${item.color}"></i><span>${escapeHtml(item.label)}</span><strong>${escapeHtml(premiumNumber(item.value, "0"))}</strong></div>`).join("")}</div></div>
           </article>
           <article class="premium-card trend-card">
             <h2>Tendances clés</h2>
             <div class="trend-list">
-              <div class="trend-row"><div class="trend-icon trend-positive">↑</div><strong class="trend-positive">${escapeHtml(formatPercent(successRate || 0))}</strong><span>Qualité des réponses IA</span></div>
-              <div class="trend-row"><div class="trend-icon trend-positive">↑</div><strong class="trend-positive">${escapeHtml(formatPercent(webDomain.metrics?.cache_hit_rate || 0))}</strong><span>Utilisation du cache web</span></div>
-              <div class="trend-row"><div class="trend-icon trend-negative">↓</div><strong class="trend-negative">${escapeHtml(premiumNumber(errorCount, "0"))}</strong><span>Erreurs critiques détectées</span></div>
-              <div class="trend-row"><div class="trend-icon trend-stable">→</div><strong class="trend-stable">Stable</strong><span>Pipeline système</span></div>
+              ${renderTrendRow("Qualité des réponses IA", successRate)}
+              ${renderTrendRow("Utilisation du cache web", cacheHitRate)}
+              <div class="trend-row"><div class="trend-icon ${errorCount > 0 ? "trend-negative" : "trend-stable"}">${errorCount > 0 ? "↓" : "→"}</div><strong class="${errorCount > 0 ? "trend-negative" : "trend-stable"}">${escapeHtml(premiumNumber(errorCount, "0"))}</strong><span>Erreurs critiques détectées</span></div>
+              ${renderPipelineTrendRow(scorecard)}
             </div>
           </article>
         </section>
         <section class="premium-grid premium-top-grid">
-          <article class="premium-card radar-card"><h2>Radar de maturité</h2><canvas id="radarChart" aria-label="Radar de maturité par domaine"></canvas></article>
+          <article class="premium-card radar-card">
+            <h2>Radar de maturité</h2>
+            <canvas id="radarChart" aria-label="Radar de maturité par domaine mesuré"></canvas>
+            ${domains.some((domain) => domain.score === null || domain.score === undefined)
+              ? `<small class="chart-data-note">Domaine(s) non mesuré(s) exclu(s) du radar : ${escapeHtml(domains.filter((domain) => domain.score === null || domain.score === undefined).map((domain) => domain.domain).join(", "))}.</small>`
+              : ""}
+          </article>
           <article class="premium-card maturity-level-card">
             <h2>Niveau de maturité</h2><h3>Niveau ${level}</h3><p class="level-subtitle">${escapeHtml(maturity.level || "Assistant augmenté")}</p>
             <div class="level-bar" aria-label="Progression vers le niveau suivant">${Array.from({ length: 10 }, (_, index) => `<span class="level-segment ${index < activeSegments ? "active" : ""}"></span>`).join("")}</div>
@@ -11187,35 +11256,94 @@
       `;
     }
 
+    // Pas d'icone/couleur positive si la donnee est absente (null) : avant
+    // ce lot, formatPercent(value || 0) affichait "0%" avec une fleche verte
+    // "tendance positive" meme sans aucune mesure — exactement le signal
+    // optimiste trompeur que l'audit a identifie.
+    function renderTrendRow(label, rate) {
+      const measured = rate !== null && rate !== undefined && Number.isFinite(Number(rate));
+      const icon = measured ? "↑" : "•";
+      const cssClass = measured ? "trend-positive" : "trend-stable non-mesure";
+      const value = measured ? formatPercent(rate) : "non mesuré";
+      return `<div class="trend-row"><div class="trend-icon ${cssClass}">${icon}</div><strong class="${cssClass}">${escapeHtml(value)}</strong><span>${escapeHtml(label)}</span></div>`;
+    }
+
+    // "Pipeline systeme : Stable" etait un texte littéral, jamais calculé.
+    // On le remplace par scorecard.trend (hausse/baisse/stable/non mesuré),
+    // seul signal global réellement calculé par calculateTrend() a partir de
+    // la comparaison fenetre precedente / fenetre actuelle.
+    function renderPipelineTrendRow(scorecard) {
+      const trend = scorecard?.trend || "non mesuré";
+      const map = {
+        hausse: { icon: "↑", cssClass: "trend-positive" },
+        baisse: { icon: "↓", cssClass: "trend-negative" },
+        stable: { icon: "→", cssClass: "trend-stable" },
+      };
+      const { icon, cssClass } = map[trend] || { icon: "•", cssClass: "trend-stable non-mesure" };
+      const label = map[trend] ? trend.charAt(0).toUpperCase() + trend.slice(1) : "Non mesuré";
+      return `<div class="trend-row"><div class="trend-icon ${cssClass}">${icon}</div><strong class="${cssClass}">${escapeHtml(label)}</strong><span>Tendance du score global</span></div>`;
+    }
+
     function initializePremiumDashboardCharts(health) {
       destroyPremiumCharts();
       if (!window.Chart) return;
       const scorecard = health?.scorecard || {};
       const domains = Array.isArray(scorecard.domains) ? scorecard.domains : [];
-      const labels = last30Labels();
       const globalScore = Number(scorecard.global_score || health?.maturity?.score || 0);
       const globalColor = scoreColor(globalScore);
       registerPremiumChart("globalScoreDonut", { type: "doughnut", data: { datasets: [{ data: [Math.max(0, globalScore), Math.max(0, 10 - globalScore)], backgroundColor: [globalColor, "rgba(104,128,170,0.18)"], borderWidth: 0, cutout: "76%" }] }, options: chartOptions({ scales: {}, plugins: { legend: { display: false }, tooltip: { enabled: false } } }) });
-      registerPremiumChart("globalEvolutionChart", { type: "line", data: { labels, datasets: [{ data: buildSeries(3, globalScore, 30, 0.9), borderColor: "#2f8cff", backgroundColor: "rgba(47,140,255,0.14)", fill: true }] }, options: chartOptions({ scales: { x: { grid: { display: false }, ticks: { color: "#7f8ca8", maxTicksLimit: 5 } }, y: { min: 0, max: 10, grid: { color: "rgba(104,128,170,0.1)" }, ticks: { color: "#7f8ca8", maxTicksLimit: 4 } } } }) });
-      domains.forEach((domain, index) => {
-        const color = scoreColor(domain.score);
-        registerPremiumChart(`domainChart${index}`, { type: "line", data: { labels, datasets: [{ data: buildSeries(index + 1, Number(domain.score || 0), 30, 0.8), borderColor: color, backgroundColor: `${color}24`, fill: true }] }, options: chartOptions({ scales: { x: { display: false }, y: { display: false, min: 0, max: 10 } }, plugins: { legend: { display: false }, tooltip: { enabled: false } } }) });
-      });
-      [0, 1, 2, 3].forEach((index) => registerPremiumChart(`historyChart${index}`, { type: "line", data: { labels, datasets: [{ data: buildSeries(index + 7, Math.max(0, globalScore - index * 0.3), 30, 0.55), borderColor: ["#ffb547", "#a66cff", "#30d158", "#2f8cff"][index], backgroundColor: ["#ffb547", "#a66cff", "#30d158", "#2f8cff"][index], pointRadius: 3, pointHoverRadius: 4, fill: false }] }, options: chartOptions({ scales: { x: { display: false }, y: { display: false } }, elements: { point: { radius: 3, hoverRadius: 4 }, line: { tension: 0, borderWidth: 2 } }, plugins: { legend: { display: false }, tooltip: { enabled: false } } }) }));
-      const activityBase = domains.reduce((acc, domain) => {
-        acc[domain.domain] = Math.max(1, Number(domain.evidence_count || domain.score || 1));
-        return acc;
-      }, {});
+      // Evolution reelle (2 points calcules par calculateHistoricalEvolution()
+      // cote backend, jamais une serie de 30 jours fabriquee par buildSeries).
+      // Le canvas n'est meme pas rendu cote HTML si les 2 points ne sont pas
+      // mesurables (cf. renderPremiumDashboard / hasEvolution) — on protege
+      // quand meme l'appel ici si l'element est absent du DOM.
+      const evolution = scorecard.mini_charts?.maturity_evolution || [];
+      const hasEvolution = evolution.length >= 2
+        && evolution.every((point) => point?.score !== null && point?.score !== undefined);
+      if (hasEvolution && document.getElementById("globalEvolutionChart")) {
+        registerPremiumChart("globalEvolutionChart", {
+          type: "line",
+          data: {
+            labels: evolution.map((point) => point.label || ""),
+            datasets: [{ data: evolution.map((point) => Number(point.score)), borderColor: "#2f8cff", backgroundColor: "rgba(47,140,255,0.14)", fill: true, pointRadius: 4, pointHoverRadius: 5 }],
+          },
+          options: chartOptions({ scales: { x: { grid: { display: false }, ticks: { color: "#7f8ca8" } }, y: { min: 0, max: 10, grid: { color: "rgba(104,128,170,0.1)" }, ticks: { color: "#7f8ca8", maxTicksLimit: 4 } } } }),
+        });
+      }
+      // Activite globale : capture reelle des volumes actuels par categorie
+      // (barres, un seul point par categorie), plus jamais une fausse serie
+      // de 30 jours generee par Math.sin/Math.cos.
+      const aiDomain = domains.find((domain) => domain.domain === "IA") || {};
+      const webDomain = domains.find((domain) => /Recherche/.test(domain.domain)) || {};
+      const documentDomain = domains.find((domain) => /Documents/.test(domain.domain)) || {};
+      const memoryDomain = domains.find((domain) => /Mémoire/.test(domain.domain)) || {};
+      const activityCategories = [
+        ["Réponses IA", Number(aiDomain.metrics?.responses || 0), "#2f8cff"],
+        ["Recherches Web", Number(webDomain.metrics?.searches || 0), "#30d158"],
+        ["Exports documents", Number(documentDomain.metrics?.exports || 0), "#a66cff"],
+        ["Erreurs", domains.reduce((sum, domain) => sum + Number(domain.metrics?.errors || domain.metrics?.failures || 0), 0), "#ff5f6d"],
+        ["Conversations mémoire", Number(memoryDomain.metrics?.conversations || 0), "#4fd1ff"],
+        ["Recherches RAG", Number(health?.rag_usage?.searches_performed || 0), "#ffb547"],
+        ["Recherches Tavily", Number(health?.tavily_usage?.searches_executed || 0), "#7c5cff"],
+      ];
       registerPremiumChart("activityChart", {
-        type: "line",
-        data: { labels, datasets: [["Réponses IA", activityBase.IA || 1, "#2f8cff"], ["Recherches Web", activityBase["Recherche Web"] || 1, "#30d158"], ["Exports", activityBase.Documents || 1, "#a66cff"], ["Erreurs", domains.reduce((sum, domain) => sum + Number(domain.metrics?.errors || domain.metrics?.failures || 0), 0) || 1, "#ff5f6d"], ["Mémoire", activityBase["Mémoire"] || 1, "#4fd1ff"], ["RAG", Number(health?.rag_usage?.searches_performed || 1), "#ffb547"], ["Tavily", Number(health?.tavily_usage?.searches_executed || 1), "#7c5cff"]].map(([label, base, color], index) => ({ label, data: buildSeries(index + 11, Math.min(300, Number(base) || 1), 30, 18), borderColor: color, backgroundColor: "transparent", pointBackgroundColor: color, pointBorderColor: color, pointRadius: 3, pointHoverRadius: 4 })) },
-        options: chartOptions({ plugins: { legend: { display: true, labels: { color: "#c8d3ec", boxWidth: 12, usePointStyle: true } } }, elements: { point: { radius: 3, hoverRadius: 4 }, line: { tension: 0, borderWidth: 2 } }, scales: { x: { grid: { color: "rgba(104,128,170,0.08)" }, ticks: { color: "#7f8ca8", maxTicksLimit: 6 } }, y: { beginAtZero: true, grid: { color: "rgba(104,128,170,0.1)" }, ticks: { color: "#7f8ca8", maxTicksLimit: 4 } } } }),
+        type: "bar",
+        data: {
+          labels: activityCategories.map(([label]) => label),
+          datasets: [{ data: activityCategories.map(([, value]) => value), backgroundColor: activityCategories.map(([, , color]) => color) }],
+        },
+        options: chartOptions({ plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { color: "#7f8ca8", maxRotation: 0, autoSkip: false, font: { size: 10 } } }, y: { beginAtZero: true, grid: { color: "rgba(104,128,170,0.1)" }, ticks: { color: "#7f8ca8", maxTicksLimit: 4 } } } }),
       });
       const { eventDistribution } = buildEventDistribution(health);
       registerPremiumChart("eventDonutChart", { type: "doughnut", data: { labels: eventDistribution.map((item) => item.label), datasets: [{ data: eventDistribution.map((item) => item.value), backgroundColor: eventDistribution.map((item) => item.color), borderWidth: 0, cutout: "62%" }] }, options: chartOptions({ scales: {}, plugins: { legend: { display: false } } }) });
+      // Radar : uniquement les domaines avec un score reellement mesure.
+      // Number(domain.score || 0) plotterait un domaine non mesure comme un
+      // vrai 0/10 (meme piege Number(null)===0 que le reste de cet audit) —
+      // on l'exclut explicitement plutot que de l'afficher comme une mesure.
+      const measuredDomains = domains.filter((domain) => domain.score !== null && domain.score !== undefined);
       registerPremiumChart("radarChart", {
         type: "radar",
-        data: { labels: domains.map((domain) => domain.domain), datasets: [{ label: "Score actuel", data: domains.map((domain) => Number(domain.score || 0)), borderColor: "#2f8cff", backgroundColor: "rgba(47,140,255,0.18)", pointBackgroundColor: "#4fd1ff", borderWidth: 2 }, { label: "Objectif", data: domains.map(() => 9), borderColor: "#30d158", backgroundColor: "rgba(48,209,88,0.08)", pointBackgroundColor: "#30d158", borderWidth: 1.5, borderDash: [5, 5] }] },
+        data: { labels: measuredDomains.map((domain) => domain.domain), datasets: [{ label: "Score actuel", data: measuredDomains.map((domain) => Number(domain.score)), borderColor: "#2f8cff", backgroundColor: "rgba(47,140,255,0.18)", pointBackgroundColor: "#4fd1ff", borderWidth: 2 }, { label: "Objectif", data: measuredDomains.map(() => 9), borderColor: "#30d158", backgroundColor: "rgba(48,209,88,0.08)", pointBackgroundColor: "#30d158", borderWidth: 1.5, borderDash: [5, 5] }] },
         options: chartOptions({ scales: { r: { min: 0, max: 10, ticks: { display: false }, grid: { color: "rgba(104,128,170,0.22)" }, angleLines: { color: "rgba(104,128,170,0.18)" }, pointLabels: { color: "#c8d3ec", font: { size: 12 } } } }, plugins: { legend: { display: true, labels: { color: "#c8d3ec", boxWidth: 12, usePointStyle: true } } } }),
       });
     }
@@ -12226,7 +12354,16 @@
       content.innerHTML = renderPremiumDashboard(health);
       requestAnimationFrame(() => initializePremiumDashboardCharts(health));
       const refreshButton = $("#premiumRefreshBtn");
-      if (refreshButton) refreshButton.addEventListener("click", () => loadHealth());
+      if (refreshButton) refreshButton.addEventListener("click", () => {
+        // Etat loading visuel immediat sur CE bouton (avant l'appel async) :
+        // renderHealth() remplace tout #healthContent (donc ce bouton aussi)
+        // une fois loadHealth() termine (succes ou erreur), ce qui restaure
+        // naturellement un bouton frais et non desactive sans code dedie.
+        // Le disabled empeche aussi tout double-clic pendant le fetch en cours.
+        refreshButton.disabled = true;
+        refreshButton.classList.add("is-loading");
+        loadHealth();
+      });
       const exportButton = $("#premiumExportBtn");
       if (exportButton) exportButton.addEventListener("click", () => {
         const blob = new Blob([JSON.stringify(health, null, 2)], { type: "application/json" });
