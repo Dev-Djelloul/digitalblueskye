@@ -12002,8 +12002,14 @@ button.ai-assistant-project-row {
 
 .ai-assistant-project-settings,
 .ai-assistant-settings-section {
-  background: linear-gradient(135deg, rgb(45 55 120 / 85%), rgb(35 45 100 / 85%));
-  border: 1px solid rgb(100 120 200 / 25%);
+  background:
+    radial-gradient(circle at 18% 0%, rgb(121 230 255 / 12%), transparent 36%),
+    radial-gradient(circle at 88% 14%, rgb(200 34 255 / 14%), transparent 38%),
+    linear-gradient(180deg, rgb(29 28 61 / 88%), rgb(14 13 34 / 92%)),
+    linear-gradient(145deg, rgb(121 230 255 / 24%), rgb(157 125 255 / 20%), rgb(200 34 255 / 18%));
+  background-clip: padding-box, padding-box, padding-box, border-box;
+  background-origin: border-box;
+  border: 1px solid transparent;
   border-radius: 12px;
   display: grid;
   gap: 12px;
@@ -15025,11 +15031,21 @@ body.ai-assistant-sidebar-is-resizing * {
 [data-theme="light"] .ai-assistant-project-row,
 [data-theme="light"] .ai-assistant-sidebar-empty-state,
 [data-theme="light"] .ai-assistant-project-empty-panel,
-[data-theme="light"] .ai-assistant-project-settings,
-[data-theme="light"] .ai-assistant-settings-section,
 [data-theme="light"] .ai-assistant-project-tabs {
   background: linear-gradient(135deg, rgb(200 215 255 / 48%), rgb(180 200 255 / 48%));
   border-color: rgb(93 93 255 / 28%);
+}
+
+[data-theme="light"] .ai-assistant-project-settings,
+[data-theme="light"] .ai-assistant-settings-section {
+  background:
+    radial-gradient(circle at 18% 0%, rgb(93 93 255 / 10%), transparent 36%),
+    radial-gradient(circle at 88% 14%, rgb(200 34 255 / 10%), transparent 38%),
+    linear-gradient(180deg, rgb(255 255 255 / 94%), rgb(244 242 255 / 96%)),
+    linear-gradient(145deg, rgb(93 93 255 / 32%), rgb(200 34 255 / 24%));
+  background-clip: padding-box, padding-box, padding-box, border-box;
+  background-origin: border-box;
+  border: 1px solid transparent;
 }
 
 /* Boutons bleus de l'onglet Sources/Documents — en mode clair, ces boutons heritaient
