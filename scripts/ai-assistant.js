@@ -382,9 +382,9 @@
         </div>
         <select id="ai-assistant-session-select" class="ai-assistant-session-select" aria-label="${i18n.historyLabel}" hidden></select>
         <div id="ai-assistant-session-list" class="ai-assistant-session-list" role="listbox" aria-label="${i18n.historyLabel}"></div>
-        <button id="ai-assistant-settings-open" class="ai-assistant-settings-open ai-assistant-sidebar-action" type="button" title="Parametres" aria-label="Parametres">
+        <button id="ai-assistant-settings-open" class="ai-assistant-settings-open ai-assistant-sidebar-action" type="button" title="Paramètres" aria-label="Paramètres">
           <span aria-hidden="true">*</span>
-          <span>Parametres</span>
+          <span>Paramètres</span>
         </button>
         <div class="ai-assistant-session-tools">
           <button id="ai-assistant-session-export" class="ai-assistant-session-export" type="button" title="${i18n.exportChat}" aria-label="${i18n.exportChat}">
@@ -502,7 +502,7 @@
             <button type="button" data-project-tab="memory">Memoire</button>
             <button type="button" data-project-tab="rag">RAG</button>
             <button type="button" data-project-tab="stats">Statistiques</button>
-            <button type="button" data-project-tab="settings">Parametres</button>
+            <button type="button" data-project-tab="settings">Paramètres</button>
           </div>
           <div id="ai-assistant-project-content" class="ai-assistant-project-content"></div>
         </div>
@@ -511,10 +511,10 @@
 
   function createSettingsViewMarkup() {
     return `
-      <section id="ai-assistant-settings-view" class="ai-assistant-settings-view" aria-label="Parametres Digital Blue Skye AI" hidden>
+      <section id="ai-assistant-settings-view" class="ai-assistant-settings-view" aria-label="Paramètres Digital Blue Skye AI" hidden>
         <div class="ai-assistant-settings-view-inner">
           <div class="ai-assistant-settings-head">
-            <h3>Parametres</h3>
+            <h3>Paramètres</h3>
             <p>Profil, IA, recherche web, documents, apparence et donnees.</p>
           </div>
           <div id="ai-assistant-settings-sections" class="ai-assistant-settings-sections"></div>
@@ -622,7 +622,7 @@
   }
 
   // Menu profil (facon ChatGPT) ancre au bouton avatar du rail : en-tete
-  // avatar + nom + email, puis Profil / Parametres / bascule de theme.
+  // avatar + nom + email, puis Profil / Paramètres / bascule de theme.
   function ensureProfileMenu() {
     if (document.getElementById('ai-assistant-profile-menu')) return;
     const host = document.getElementById('ai-assistant-panel') || document.body;
@@ -6232,7 +6232,7 @@
   }
   if (settingsOpenButton) {
     settingsOpenButton.addEventListener('click', () => {
-      // Ouvrir les Parametres ne doit plus deployer la sidebar gauche.
+      // Ouvrir les Paramètres ne doit plus deployer la sidebar gauche.
       setWorkspaceView('settings');
     });
   }
