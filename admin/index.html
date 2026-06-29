@@ -1689,6 +1689,43 @@
       overflow: hidden;
     }
 
+    .premium-sidebar-resize {
+      position: absolute;
+      right: -6px;
+      top: 0;
+      bottom: 0;
+      width: 12px;
+      cursor: col-resize;
+      z-index: 12;
+    }
+
+    .premium-sidebar-resize::before {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 3px;
+      height: 54px;
+      background: rgba(255, 255, 255, 0.18);
+      border-radius: 999px;
+      opacity: 0.55;
+      transition: background 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease, height 0.2s ease;
+    }
+
+    .premium-sidebar-resize:hover::before {
+      background: rgba(121, 230, 255, 0.74);
+      box-shadow: 0 0 16px rgba(121, 230, 255, 0.3);
+      height: 82px;
+      opacity: 1;
+    }
+
+    body.premium-sidebar-is-resizing,
+    body.premium-sidebar-is-resizing * {
+      cursor: col-resize !important;
+      user-select: none !important;
+    }
+
     .premium-brand {
       display: grid;
       grid-template-columns: 48px 1fr 30px;
@@ -6343,6 +6380,7 @@
             <span class="sidebar-footer-label">Déconnexion</span>
           </button>
         </div>
+        <div id="premiumSidebarResize" class="premium-sidebar-resize" role="separator" aria-orientation="vertical" tabindex="0" title="Redimensionner le panneau latéral" aria-label="Redimensionner le panneau latéral"></div>
       </aside>
       <button id="mobileSidebarOverlay" class="mobile-sidebar-overlay" type="button" aria-label="Fermer le menu"></button>
       <header class="topbar">
@@ -12487,6 +12525,64 @@
       if (refreshAnalyticsBtn) refreshAnalyticsBtn.addEventListener("click", () => loadAnalytics());
       const refreshObservabilityBtn = $("#premiumRefreshObservabilityBtn");
       if (refreshObservabilityBtn) refreshObservabilityBtn.addEventListener("click", () => loadObservability());
+
+      // Sidebar resize functionality
+      const sidebar = document.querySelector(".premium-sidebar");
+      const resizeHandle = document.getElementById("premiumSidebarResize");
+      let isSidebarResizing = false;
+      let sidebarResizeStartX = 0;
+      let sidebarResizeStartWidth = 0;
+
+      if (resizeHandle && sidebar) {
+        const MIN_WIDTH = 180;
+        const MAX_WIDTH = 500;
+
+        function setSidebarWidth(width, save = false) {
+          const clampedWidth = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, width));
+          sidebar.style.width = `${clampedWidth}px`;
+          document.querySelector(".shell")?.style.setProperty("padding-left", `${clampedWidth + 16}px`);
+          if (save) {
+            localStorage.setItem("premiumSidebarWidth", clampedWidth);
+          }
+        }
+
+        // Load saved width
+        const savedWidth = localStorage.getItem("premiumSidebarWidth");
+        if (savedWidth) {
+          setSidebarWidth(parseInt(savedWidth), false);
+        }
+
+        resizeHandle.addEventListener("pointerdown", (e) => {
+          if (e.button !== 0) return;
+          e.preventDefault();
+          isSidebarResizing = true;
+          sidebarResizeStartX = e.clientX;
+          sidebarResizeStartWidth = sidebar.getBoundingClientRect().width;
+          document.body.classList.add("premium-sidebar-is-resizing");
+          resizeHandle.setPointerCapture?.(e.pointerId);
+        });
+
+        window.addEventListener("pointermove", (e) => {
+          if (!isSidebarResizing) return;
+          const delta = e.clientX - sidebarResizeStartX;
+          setSidebarWidth(sidebarResizeStartWidth + delta, false);
+        });
+
+        window.addEventListener("pointerup", () => {
+          if (!isSidebarResizing) return;
+          isSidebarResizing = false;
+          document.body.classList.remove("premium-sidebar-is-resizing");
+          setSidebarWidth(sidebar.getBoundingClientRect().width, true);
+        });
+
+        resizeHandle.addEventListener("keydown", (e) => {
+          if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+          e.preventDefault();
+          const delta = e.key === "ArrowRight" ? 16 : -16;
+          setSidebarWidth(sidebar.getBoundingClientRect().width + delta, true);
+        });
+      }
+
       return;
     }
 
