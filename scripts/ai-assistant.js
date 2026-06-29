@@ -5659,6 +5659,7 @@
       if (title === 'Voix') {
         renderVoiceSettingsSection(section);
         settingsSections.appendChild(section);
+        populateVoiceSelect(currentLanguage === 'en' ? 'en' : 'fr');
         return;
       }
       fields.forEach(([label, path]) => {
@@ -5686,7 +5687,6 @@
       ? 'The selected voice is saved locally in this browser and used for text-to-speech playback.'
       : 'La voix sélectionnée est enregistrée localement dans ce navigateur et utilisée pour la lecture vocale des réponses.';
     section.appendChild(note);
-    populateVoiceSelect(currentLanguage === 'en' ? 'en' : 'fr');
   }
 
   function renderDataSettingsSection(section) {
