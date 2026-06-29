@@ -1446,6 +1446,18 @@
       color: var(--muted);
     }
 
+    h1 > .service-icon {
+      width: 22px;
+      height: 22px;
+      flex: 0 0 22px;
+      padding: 6px;
+      box-sizing: content-box;
+      border-radius: 10px;
+      border: 1px solid rgba(79, 209, 255, 0.32);
+      background: rgba(79, 209, 255, 0.09);
+      color: #4fd1ff;
+    }
+
     .health-ai-tile,
     .product-health-card {
       display: grid;
@@ -2437,6 +2449,13 @@
       line-height: 1.3;
     }
 
+    .dashboard-header-actions {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+    }
+
     .premium-actions {
       display: flex;
       justify-content: flex-end;
@@ -2447,7 +2466,8 @@
     }
 
     .premium-actions select,
-    .premium-actions button {
+    .premium-actions button,
+    .premium-actions input[type="search"] {
       width: auto;
       min-height: 36px;
       padding: 0 10px;
@@ -2460,9 +2480,15 @@
       white-space: nowrap;
     }
 
+    .premium-actions input[type="search"] {
+      cursor: text;
+      min-width: 200px;
+    }
+
     @media (max-width: 1200px) {
       .premium-actions select,
-      .premium-actions button {
+      .premium-actions button,
+      .premium-actions input[type="search"] {
         padding: 0 8px;
         font-size: 11px;
       }
@@ -3811,8 +3837,7 @@
       line-height: 1.08;
     }
 
-    .sources-title p,
-    .sources-sync {
+    .sources-title p {
       margin: 8px 0 0;
       color: #a7b4cf;
       font-size: 14px;
@@ -3824,8 +3849,6 @@
       flex-wrap: wrap;
       gap: 8px;
       align-items: center;
-      margin-bottom: 12px;
-      grid-column: 1/-1;
     }
 
     .sources-toolbar input,
@@ -3849,13 +3872,6 @@
     .sources-toolbar .primary {
       border-color: rgba(124, 92, 255, 0.8);
       background: linear-gradient(135deg, #7c5cff, #7b35ff);
-    }
-
-    .sources-sync {
-      grid-column: 1 / -1;
-      justify-self: end;
-      margin: 0;
-      font-size: 13px;
     }
 
     .sources-kpis,
@@ -4300,41 +4316,40 @@
       line-height: 1.08;
     }
 
-    .documents-title p,
-    .documents-sync {
+    .documents-title p {
       margin: 8px 0 0;
       color: #a7b4cf;
       font-size: 14px;
     }
 
     .documents-toolbar {
-      display: grid;
-      grid-template-columns: 108px minmax(230px, 1fr) auto auto;
+      display: flex;
+      flex-wrap: wrap;
       gap: 10px;
       align-items: center;
+      justify-content: flex-end;
     }
 
     .documents-toolbar input,
     .documents-toolbar select,
     .documents-toolbar button {
-      width: 100%;
       min-height: 40px;
+      min-width: 160px;
       border-radius: 10px;
-      border-color: rgba(104, 128, 170, 0.24);
+      border: 1px solid rgba(104, 128, 170, 0.24);
       background: rgba(18, 25, 43, 0.78);
       color: #eef4ff;
+      padding: 0 12px;
+    }
+
+    .documents-toolbar input[type="search"] {
+      flex: 1;
+      min-width: 220px;
     }
 
     .documents-toolbar .primary {
       border-color: rgba(124, 92, 255, 0.8);
       background: linear-gradient(135deg, #7c5cff, #7b35ff);
-    }
-
-    .documents-sync {
-      grid-column: 1 / -1;
-      justify-self: end;
-      margin: 0;
-      font-size: 13px;
     }
 
     .documents-kpis {
@@ -5738,15 +5753,13 @@
         text-align: left;
       }
 
-      .sources-toolbar,
-      .documents-toolbar,
       .exports-toolbar {
         grid-template-columns: 1fr;
       }
 
-      .sources-sync,
-      .documents-sync {
-        justify-self: start;
+      .dashboard-header-actions {
+        align-items: flex-start;
+        width: 100%;
       }
 
       .source-table {
@@ -6933,6 +6946,8 @@
         shield: '<path d="M12 3 5 6v5c0 5 3.5 8 7 10 3.5-2 7-5 7-10V6Z"/>',
         database: '<ellipse cx="12" cy="5" rx="7" ry="3"/><path d="M5 5v7c0 1.7 3.1 3 7 3s7-1.3 7-3V5"/><path d="M5 12v5c0 1.7 3.1 3 7 3s7-1.3 7-3v-5"/>',
         download: '<path d="M12 3v12m0 0 4-4m-4 4-4-4"/><path d="M5 21h14"/>',
+        chart: '<path d="M4 20V10m6 10V4m6 16v-7"/><path d="M3 20h18"/>',
+        pulse: '<path d="M3 12h4l2-7 4 14 2-7h6"/>',
       };
       return `<svg class="service-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${icons[name] || icons.file}</svg>`;
     }
@@ -7488,21 +7503,23 @@
       return `
         <div class="sources-header">
           <div class="sources-title">
-            <h1>Sources & RAG ${ragHealthBadge(health.status)}</h1>
+            <h1>${iconSvg("database")} Sources & RAG ${ragHealthBadge(health.status)}</h1>
             <p>Centre de contrôle documentaire et vectoriel — uniquement des données réelles issues de D1 et des événements RAG.</p>
           </div>
-          <div class="sources-toolbar">
-            <input type="search" id="ragSourceSearch" placeholder="Rechercher une source..." aria-label="Rechercher une source" value="${escapeHtml(sources.q)}">
-            <select id="ragProjectFilter" aria-label="Filtrer par projet">
-              <option value="">Tous les projets</option>
-              ${(rag.projects || []).map((p) => `<option value="${escapeHtml(p.project_id)}" ${sources.projectId === p.project_id ? "selected" : ""}>${escapeHtml(p.project_id)} (${escapeHtml(p.sources_count || p.documents_without_source_row || 0)})</option>`).join("")}
-            </select>
-            <select id="ragStatusFilter" aria-label="Filtrer par statut">
-              <option value="">Tous les statuts</option>
-              <option value="indexed" ${sources.status === "indexed" ? "selected" : ""}>Indexé</option>
-              <option value="partiel" ${sources.status === "partiel" ? "selected" : ""}>Partiel</option>
-            </select>
-            <span class="sources-sync">Dernière indexation : ${escapeHtml(formatDate(freshness.last_indexed_at) || "aucune donnée récente")}</span>
+          <div class="dashboard-header-actions">
+            <div class="sources-toolbar">
+              <input type="search" id="ragSourceSearch" placeholder="Rechercher une source..." aria-label="Rechercher une source" value="${escapeHtml(sources.q)}">
+              <select id="ragProjectFilter" aria-label="Filtrer par projet">
+                <option value="">Tous les projets</option>
+                ${(rag.projects || []).map((p) => `<option value="${escapeHtml(p.project_id)}" ${sources.projectId === p.project_id ? "selected" : ""}>${escapeHtml(p.project_id)} (${escapeHtml(p.sources_count || p.documents_without_source_row || 0)})</option>`).join("")}
+              </select>
+              <select id="ragStatusFilter" aria-label="Filtrer par statut">
+                <option value="">Tous les statuts</option>
+                <option value="indexed" ${sources.status === "indexed" ? "selected" : ""}>Indexé</option>
+                <option value="partiel" ${sources.status === "partiel" ? "selected" : ""}>Partiel</option>
+              </select>
+            </div>
+            <p class="sync-label">Dernière indexation : ${escapeHtml(formatDate(freshness.last_indexed_at) || "aucune donnée récente")}</p>
           </div>
         </div>
         <section class="sources-kpis">
@@ -7770,17 +7787,19 @@
       return `
         <div class="documents-header">
           <div class="documents-title">
-            <h1>Documents ${docHealthBadge(health.status)}</h1>
+            <h1>${iconSvg("file")} Documents ${docHealthBadge(health.status)}</h1>
             <p>Centralisez et mesurez l'utilisation réelle de vos documents — uniquement des données issues de D1 et des événements document_*.</p>
           </div>
-          <div class="documents-toolbar">
-            <input type="search" id="docSearchInput" placeholder="Rechercher un document..." aria-label="Rechercher un document" value="${escapeHtml(items.q)}">
-            <select id="docStatusFilter" aria-label="Filtrer par statut">
-              <option value="">Tous les statuts</option>
-              <option value="indexed" ${items.status === "indexed" ? "selected" : ""}>Indexé</option>
-              <option value="non_indexe" ${items.status === "non_indexe" ? "selected" : ""}>Non indexé</option>
-            </select>
-            <span class="documents-sync">Dernier document indexé : ${escapeHtml(formatDate(health.last_indexed_at) || "aucune donnée récente")}</span>
+          <div class="dashboard-header-actions">
+            <div class="documents-toolbar">
+              <input type="search" id="docSearchInput" placeholder="Rechercher un document..." aria-label="Rechercher un document" value="${escapeHtml(items.q)}">
+              <select id="docStatusFilter" aria-label="Filtrer par statut">
+                <option value="">Tous les statuts</option>
+                <option value="indexed" ${items.status === "indexed" ? "selected" : ""}>Indexé</option>
+                <option value="non_indexe" ${items.status === "non_indexe" ? "selected" : ""}>Non indexé</option>
+              </select>
+            </div>
+            <p class="sync-label">Dernier document indexé : ${escapeHtml(formatDate(health.last_indexed_at) || "aucune donnée récente")}</p>
           </div>
         </div>
         <section class="documents-kpis">
@@ -8121,13 +8140,13 @@
       return `
         <div class="premium-dashboard-header">
           <div class="premium-dashboard-title">
-            <h1>Gestion des exports <span class="realtime-badge">${statusDot()}Actif</span></h1>
+            <h1>${iconSvg("download")} Gestion des exports <span class="realtime-badge">${statusDot()}Actif</span></h1>
             <p>Historique complet de tous les exports générés depuis l'installation</p>
           </div>
-          <div>
+          <div class="dashboard-header-actions">
             <div class="premium-actions" aria-label="Contrôles des exports">
-              <input type="search" id="exportSearchInput" placeholder="Chercher un export..." aria-label="Rechercher un export" value="${escapeHtml(items.q)}" style="min-height:40px;border-radius:10px;border-color:rgba(104,128,170,0.24);background:rgba(18,25,43,0.72);color:#eef4ff;padding:0 12px;">
-              <select id="exportStatusFilter" aria-label="Filtrer par statut" style="min-height:40px;border-radius:10px;border-color:rgba(104,128,170,0.24);background:rgba(18,25,43,0.72);color:#eef4ff;">
+              <input type="search" id="exportSearchInput" placeholder="Chercher un export..." aria-label="Rechercher un export" value="${escapeHtml(items.q)}">
+              <select id="exportStatusFilter" aria-label="Filtrer par statut">
                 <option value="">Tous les statuts</option>
                 <option value="completed" ${items.status === "completed" ? "selected" : ""}>Réussi</option>
                 <option value="failed" ${items.status === "failed" ? "selected" : ""}>Échec</option>
@@ -8398,10 +8417,10 @@
       return `
         <div class="premium-dashboard-header">
           <div class="premium-dashboard-title">
-            <h1>Analytique & Activité <span class="realtime-badge">${statusDot()}Temps réel</span></h1>
+            <h1>${iconSvg("chart")} Analytique & Activité <span class="realtime-badge">${statusDot()}Temps réel</span></h1>
             <p>Analyse comportementale complète sur ${escapeHtml(premiumNumber(eventsUsed, "0"))} événement(s) observés</p>
           </div>
-          <div>
+          <div class="dashboard-header-actions">
             <div class="premium-actions" aria-label="Contrôles analytiques">
               ${renderIconRefreshButton("premiumRefreshAnalyticsBtn", "Actualiser Analytics")}
             </div>
@@ -8705,10 +8724,10 @@
       return `
         <div class="premium-dashboard-header">
           <div class="premium-dashboard-title">
-            <h1>Observabilité & Santé du système <span class="realtime-badge">${statusDot()}Temps réel</span></h1>
+            <h1>${iconSvg("pulse")} Observabilité & Santé du système <span class="realtime-badge">${statusDot()}Temps réel</span></h1>
             <p>Monitoring de ${escapeHtml(premiumNumber(servicesCount, "0"))} service(s) sur ${escapeHtml(premiumNumber(eventsAnalyzed, "0"))} événement(s) analysés</p>
           </div>
-          <div>
+          <div class="dashboard-header-actions">
             <div class="premium-actions" aria-label="Contrôles observabilité">
               ${renderIconRefreshButton("premiumRefreshObservabilityBtn", "Actualiser Observabilité")}
             </div>
