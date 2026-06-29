@@ -11989,10 +11989,10 @@ button.ai-assistant-project-row {
 .ai-assistant-project-settings textarea,
 .ai-assistant-project-settings select,
 .ai-assistant-settings-section input {
-  background: rgb(240 245 255 / 95%);
-  border: 1px solid rgb(200 210 230 / 40%);
+  background: rgb(80 78 140 / 38%);
+  border: 1px solid rgb(157 125 255 / 30%);
   border-radius: 9px;
-  color: rgb(20 22 42 / 92%);
+  color: rgb(246 247 255 / 92%);
   font-family: var(--font-body);
   font-size: 0.8rem;
   min-width: 0;
