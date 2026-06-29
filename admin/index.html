@@ -3156,7 +3156,7 @@
     }
 
     .activity-card canvas {
-      height: 194px !important;
+      height: 214px !important;
     }
 
     .event-donut-wrap {
@@ -11700,13 +11700,28 @@
         ["Recherches RAG", Number(health?.rag_usage?.searches_performed || 0), "#ffb547"],
         ["Recherches Tavily", Number(health?.tavily_usage?.searches_executed || 0), "#7c5cff"],
       ];
+      // Libelles repartis sur 2 lignes (tableau de mots) plutot qu'une seule
+      // ligne en rotation : avec 7 categories sur une carte etroite, une
+      // rotation a 0deg provoquait un chevauchement illisible des libelles
+      // (cf. retour utilisateur sur la capture du Studio). Chart.js rend
+      // nativement un tableau de chaines comme un libelle multi-lignes.
       registerPremiumChart("activityChart", {
         type: "bar",
         data: {
-          labels: activityCategories.map(([label]) => label),
+          labels: activityCategories.map(([label]) => label.split(" ")),
           datasets: [{ data: activityCategories.map(([, value]) => value), backgroundColor: activityCategories.map(([, , color]) => color) }],
         },
-        options: chartOptions({ plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { color: "#7f8ca8", maxRotation: 0, autoSkip: false, font: { size: 10 } } }, y: { beginAtZero: true, grid: { color: "rgba(104,128,170,0.1)" }, ticks: { color: "#7f8ca8", maxTicksLimit: 4 } } } }),
+        options: chartOptions({
+          layout: { padding: { bottom: 4 } },
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { title: (items) => activityCategories[items[0].dataIndex][0] } },
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: "#7f8ca8", maxRotation: 0, autoSkip: false, font: { size: 10 }, padding: 6 } },
+            y: { beginAtZero: true, grid: { color: "rgba(104,128,170,0.1)" }, ticks: { color: "#7f8ca8", maxTicksLimit: 4 } },
+          },
+        }),
       });
       const { eventDistribution } = buildEventDistribution(health);
       registerPremiumChart("eventDonutChart", { type: "doughnut", data: { labels: eventDistribution.map((item) => item.label), datasets: [{ data: eventDistribution.map((item) => item.value), backgroundColor: eventDistribution.map((item) => item.color), borderWidth: 0, cutout: "62%" }] }, options: chartOptions({ scales: {}, plugins: { legend: { display: false } } }) });
