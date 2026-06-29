@@ -2005,8 +2005,7 @@
       transition: all 200ms ease;
     }
 
-    .sidebar-footer-item,
-    .premium-sidebar-footer button {
+    .sidebar-footer-item {
       width: 100%;
       min-height: 36px;
       display: flex;
@@ -2021,6 +2020,37 @@
       text-align: left;
       font-weight: 500;
       font-size: 14px;
+      pointer-events: none;
+      cursor: default;
+      transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+      white-space: nowrap;
+    }
+
+    .sidebar-footer-item.premium-system-status,
+    .sidebar-footer-item:nth-child(1) {
+      font-size: 13px;
+    }
+
+    .sidebar-footer-item:nth-child(2),
+    .sidebar-footer-item:nth-child(3) {
+      font-size: 11px;
+    }
+
+    .premium-sidebar-footer button {
+      width: 100%;
+      min-height: 36px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      justify-content: flex-start;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      background: transparent;
+      color: #a9b5d2;
+      padding: 0 11px;
+      text-align: left;
+      font-weight: 500;
+      font-size: 13px;
       cursor: pointer;
       transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
       white-space: nowrap;
@@ -2074,6 +2104,7 @@
 
     #appView {
       min-height: 100vh;
+      margin-bottom: 120px;
     }
 
     #appView .topbar,
@@ -6417,10 +6448,10 @@
           <button class="tab" type="button" data-tab="settings" title="Paramètres"><span class="nav-icon" aria-hidden="true">PR</span><span class="nav-label">Paramètres</span></button>
         </nav>
         <div class="premium-sidebar-footer" aria-label="État système">
-          <div class="sidebar-footer-item premium-system-status status-operational"><span class="sidebar-footer-label">Système</span><span class="sidebar-status-value">Opérationnel</span></div>
+          <div class="sidebar-footer-item premium-system-status status-operational"><span class="sidebar-footer-label">Système</span></div>
           <div class="sidebar-footer-item"><span class="sidebar-footer-label">Version <strong id="sidebarVersionValue">1.5.0</strong></span></div>
           <div class="sidebar-footer-item"><span class="sidebar-footer-label">Build <strong id="sidebarBuildValue">2026-06-27</strong></span></div>
-          <button id="viewLogsBtn" type="button" title="Logs"><span class="sidebar-footer-label">Logs</span></button>
+          <button id="viewLogsBtn" type="button" title="Logs"><span class="nav-icon" aria-hidden="true">LG</span><span class="sidebar-footer-label">Logs</span></button>
           <button class="sidebar-logout-button" id="logoutBtn" type="button" title="Déconnexion" aria-label="Se déconnecter">
             <img src="../assets/images/ui/icons8-log-out-48.png" alt="" class="sidebar-logout-icon" aria-hidden="true">
             <span class="sidebar-footer-label">Déconnexion</span>
