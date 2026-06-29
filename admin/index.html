@@ -8895,7 +8895,7 @@
           <article class="premium-card">
             <h2>État global du système</h2>
             <div class="quick-kpis">
-              <div class="quick-kpi"><span>Score global</span><strong>${escapeHtml(globalScore != null ? `${Math.round(globalScore)}/10` : "non mesuré")}</strong><small>santé système</small></div>
+              <div class="quick-kpi"><span>Score global</span><strong>${escapeHtml(globalScore != null ? `${premiumDecimal(globalScore, 1)}/10` : "non mesuré")}</strong><small>santé système · seuil opérationnel 8.5/10</small></div>
               <div class="quick-kpi"><span>Disponibilité</span><strong>${escapeHtml(availability != null ? formatPercent(availability) : "non mesuré")}</strong><small>moyenne des services</small></div>
               <div class="quick-kpi"><span>Requêtes totales</span><strong>${escapeHtml(premiumNumber(totalRequests, "0"))}</strong><small>appels mesurés</small></div>
               <div class="quick-kpi"><span>Services monitorés</span><strong>${escapeHtml(premiumNumber(servicesCount, "0"))}</strong><small>endpoints suivis</small></div>
