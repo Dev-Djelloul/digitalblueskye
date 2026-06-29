@@ -10384,8 +10384,8 @@ body.body-menu-open .ai-assistant-collapse-handle {
     0 0 26px rgb(123 86 255 / 26%);
   display: flex;
   flex-direction: column;
-  height: min(78vh, 760px);
-  max-height: calc(100dvh - 128px);
+  height: min(88vh, 860px);
+  max-height: calc(100dvh - 64px);
   opacity: 0;
   pointer-events: none;
   position: fixed;
