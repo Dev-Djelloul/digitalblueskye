@@ -1758,14 +1758,24 @@
 
     .premium-brand strong {
       display: block;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 700;
-      line-height: 1.2;
-      color: #f7f9ff;
-      white-space: normal;
+      line-height: 1.15;
+      white-space: nowrap;
       overflow: hidden;
-      text-overflow: clip;
-      overflow-wrap: anywhere;
+      text-overflow: ellipsis;
+      background: linear-gradient(90deg,
+        #4fd1ff 0%,    /* IA - Cyan */
+        #7c5cff 16%,   /* RAG - Violet */
+        #30d158 32%,   /* Observabilité - Vert */
+        #ffb547 48%,   /* Agents - Orange */
+        #ff5f6d 64%,   /* Analytics - Rose */
+        #b16cff 100%   /* Gouvernance - Violet */
+      );
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: transparent;
     }
 
     .premium-brand span {
@@ -1955,6 +1965,32 @@
       font-size: 12px;
       margin-bottom: 8px;
       padding-bottom: 8px;
+    }
+
+    .premium-system-status span:last-child {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .premium-system-status span:last-child::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+    }
+
+    .premium-system-status .status-operational span:last-child::before {
+      background: var(--success);
+    }
+
+    .premium-system-status .status-warning span:last-child::before {
+      background: var(--warning);
+    }
+
+    .premium-system-status .status-error span:last-child::before {
+      background: var(--danger);
     }
 
     #appView {
@@ -6264,7 +6300,7 @@
           <button class="tab" type="button" data-tab="settings" title="Paramètres"><span class="nav-icon" aria-hidden="true">PR</span><span class="nav-label">Paramètres</span></button>
         </nav>
         <div class="premium-sidebar-footer" aria-label="État système">
-          <div class="premium-system-status"><span class="sidebar-footer-label">Système</span><span>Opérationnel</span></div>
+          <div class="premium-system-status status-operational"><span class="sidebar-footer-label">Système</span><span>Opérationnel</span></div>
           <div>Version <strong id="sidebarVersionValue">1.5.0</strong></div>
           <div>Build <strong id="sidebarBuildValue">2026-06-27</strong></div>
           <button id="viewLogsBtn" type="button" title="Voir les logs"><span class="sidebar-footer-label">Voir les logs</span><span class="nav-icon" aria-hidden="true">LG</span></button>
