@@ -3251,7 +3251,16 @@ export default {
             score: rqcAnalysis?.score ?? null,
             grade: rqcAnalysis?.grade || '',
             issues: rqcAnalysis?.issues || [],
-            action: rqcAction || QUALITY_ACTIONS.SEND
+            action: rqcAction || QUALITY_ACTIONS.SEND,
+            // citations.present : deja calcule par analyzeCitations() dans
+            // responseQualityController.js (regex CITATION_PATTERN sur la
+            // reponse finale envoyee), jusqu'ici utilise uniquement pour le
+            // scoring/issue "citation_requested_but_missing" puis jete sans
+            // etre journalise. Expose ici tel quel (booleen brut, jamais
+            // recalcule cote agregateur) pour alimenter un taux de citation
+            // reel cote back-office (cf. buildResponseQualityStatsFromEvents
+            // dans worker-api.js).
+            citations_present: rqcAnalysis?.citations?.present ?? null
           })
         });
       } catch (error) {

@@ -12257,7 +12257,7 @@
         ["Response Quality", quality.analyzed_count, "#a66cff"],
         ["Completion Guard", completionTotal || null, "#4fd1ff"],
         ["Hallucinations", quality.hallucination_count, "#ff5f6d"],
-        ["Citations", quality.citation_rate, "#30d158"],
+        ["Citations", quality.citation_rate != null ? formatPercent(quality.citation_rate) : "non mesuré", quality.citation_rate, "#30d158"],
         ["Réparations", quality.repaired_count, "#ffb547"],
         ["Confiance", confidencePercent != null ? formatPercent(confidencePercent) : "non mesuré", confidencePercent, "#7c5cff"],
       ];

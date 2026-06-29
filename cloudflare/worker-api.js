@@ -644,6 +644,19 @@ export function buildResponseQualityStatsFromEvents(rows) {
 
   const scores = sent.map((row) => Number(parseEventMeta(row).score)).filter((value) => Number.isFinite(value));
   const averageScore = scores.length ? Math.round((scores.reduce((sum, value) => sum + value, 0) / scores.length) * 10) / 10 : null;
+
+  // citations_present (booleen) journalise dans response_quality_final_sent
+  // depuis ce lot (cf. worker-openrouter.js) — deja calcule par
+  // analyzeCitations() au moment du scoring RQC, jamais recalcule ici.
+  // Evenements anterieurs a ce lot : champ absent (undefined), exclus du
+  // denominateur plutot que comptes comme "sans citation" — sinon le taux
+  // serait artificiellement tire vers le bas par l'historique pre-instrumentation.
+  const citationFlagged = sent
+    .map((row) => parseEventMeta(row).citations_present)
+    .filter((value) => typeof value === "boolean");
+  const citationRate = citationFlagged.length
+    ? Math.round((citationFlagged.filter(Boolean).length / citationFlagged.length) * 1000) / 10
+    : null;
   const recentScores = recentSent.map((row) => Number(parseEventMeta(row).score)).filter((value) => Number.isFinite(value));
   const recentAverageScore = recentScores.length
     ? Math.round((recentScores.reduce((sum, value) => sum + value, 0) / recentScores.length) * 10) / 10
@@ -687,6 +700,8 @@ export function buildResponseQualityStatsFromEvents(rows) {
     average_score: averageScore,
     recent_24h_count: recentSent.length,
     recent_24h_average_score: recentAverageScore,
+    citation_rate: citationRate,
+    citation_sample_size: citationFlagged.length,
     status: !sent.length
       ? "unknown"
       : ((recentAverageScore ?? averageScore ?? 0) >= 80 ? "operational" : ((recentAverageScore ?? averageScore ?? 0) >= 60 ? "partial" : "degraded")),
