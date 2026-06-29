@@ -3981,6 +3981,55 @@ export async function fetchPlannerEventsWindow(env, limit = 500, cutoffIso = nul
   return result.results || [];
 }
 
+// Meme symptome et meme remede que fetchTavilyEventsWindow()/
+// fetchPlannerEventsWindow() ci-dessus : les recherches RAG (rag_query/
+// rag_match/rag_no_match/rag_context_used) sont a faible volume face au
+// bruit de chat (openrouter_*, assistant_response...) ET face au bruit
+// d'indexation documentaire (document_indexed, des milliers d'evenements).
+// Sans fenetre dediee, buildRagUsageFromEvents(recentEvents) les voit
+// integralement evinces de la fenetre globale LIMIT 500 — d'ou la carte
+// "Recherches RAG" du tableau de bord a 0 alors que ces recherches
+// existent bien en base (cf. /admin/observability/overview, qui a deja le
+// meme correctif via un mecanisme equivalent pour le Pipeline RAG).
+function ragEventTypesSqlClause() {
+  return "event_type IN ('rag_query', 'rag_match', 'rag_no_match', 'rag_context_used')";
+}
+
+export async function fetchRagEventsWindow(env, limit = 500, cutoffIso = null) {
+  const dateClause = cutoffIso ? "AND datetime(created_at) >= datetime(?)" : "";
+  const bindings = cutoffIso ? [cutoffIso, limit] : [limit];
+  const result = await env.DB.prepare(
+    `SELECT id, session_id, event_type, event_value, meta, created_at
+     FROM ai_assistant_events
+     WHERE ${ragEventTypesSqlClause()} ${dateClause}
+     ORDER BY created_at DESC, id DESC
+     LIMIT ?`
+  ).bind(...bindings).all();
+  return result.results || [];
+}
+
+// Meme symptome et meme remede : les exports (export_started/
+// export_completed/export_failed) sont encore plus rares que les
+// recherches RAG, donc encore plus exposes a l'eviction par le bruit de
+// chat — d'ou la carte "Exports documents" du tableau de bord a 0 malgre
+// des exports reels en base (visibles via /admin/exports).
+function exportEventTypesSqlClause() {
+  return "event_type IN ('export_started', 'export_completed', 'export_failed')";
+}
+
+export async function fetchExportEventsWindow(env, limit = 500, cutoffIso = null) {
+  const dateClause = cutoffIso ? "AND datetime(created_at) >= datetime(?)" : "";
+  const bindings = cutoffIso ? [cutoffIso, limit] : [limit];
+  const result = await env.DB.prepare(
+    `SELECT id, session_id, event_type, event_value, meta, created_at
+     FROM ai_assistant_events
+     WHERE ${exportEventTypesSqlClause()} ${dateClause}
+     ORDER BY created_at DESC, id DESC
+     LIMIT ?`
+  ).bind(...bindings).all();
+  return result.results || [];
+}
+
 // Debug non sensible pour diagnostiquer en production si la fenetre dediee
 // fetchPlannerEventsWindow() ramene bien des lignes (cf. symptome "ai_state
 // planners a zero malgre evenements D1 existants"). Jamais de meta complet —
@@ -4194,6 +4243,8 @@ async function buildAdminHealthPayload(request, env) {
   // independamment du volume des autres types.
   const tavilyEventsPromise = fetchTavilyEventsWindow(env, range.limit, rangeCutoffIso);
   const plannerEventsPromise = fetchPlannerEventsWindow(env, range.limit, rangeCutoffIso);
+  const ragEventsPromise = fetchRagEventsWindow(env, range.limit, rangeCutoffIso);
+  const exportEventsPromise = fetchExportEventsWindow(env, range.limit, rangeCutoffIso);
 
   const aiHealthPromise = fetchAiWorkerHealth(env, aiWorkerHealthUrl, aiHealthToken, 10000);
 
@@ -4205,6 +4256,8 @@ async function buildAdminHealthPayload(request, env) {
     recentEventsResult,
     tavilyEvents,
     plannerEvents,
+    ragEvents,
+    exportEvents,
     aiHealthResult,
     frontendHealthResult,
     conversationCount,
@@ -4220,6 +4273,8 @@ async function buildAdminHealthPayload(request, env) {
     recentEventsPromise,
     tavilyEventsPromise,
     plannerEventsPromise,
+    ragEventsPromise,
+    exportEventsPromise,
     aiHealthPromise,
     frontendHealthPromise,
     // Mêmes compteurs qu'avant ce lot, desormais bornes a la fenetre range
@@ -4273,7 +4328,7 @@ async function buildAdminHealthPayload(request, env) {
     ? Boolean(aiHealthResult.payload?.configuration?.tavily_api_key_configured)
     : null;
   const tavilyUsage = buildTavilyUsageFromEvents(tavilyEvents, aiHealthResult.payload, env);
-  const ragUsage = buildRagUsageFromEvents(recentEvents);
+  const ragUsage = buildRagUsageFromEvents(ragEvents);
   const openRouterModelStats = buildOpenRouterModelStatsFromEvents(recentEvents);
   const modelTierStats = buildModelTierStatsFromEvents(recentEvents);
   // plannerEvents (fenetre dediee, cf. fetchPlannerEventsWindow) plutot que
@@ -4520,7 +4575,7 @@ async function buildAdminHealthPayload(request, env) {
   ];
 
   const uniqueEvents = Array.from(
-    new Map(recentEvents.concat(tavilyEvents).map((row) => [row.id ?? `${row.event_type}:${row.created_at}:${row.event_value}`, row])).values()
+    new Map(recentEvents.concat(tavilyEvents, ragEvents, exportEvents).map((row) => [row.id ?? `${row.event_type}:${row.created_at}:${row.event_value}`, row])).values()
   );
   const maturityDashboard = buildMaturityDashboardPayload({
     events: uniqueEvents,
