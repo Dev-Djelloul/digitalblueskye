@@ -42,6 +42,13 @@ import {
 } from './toolPlanner.js';
 import { evaluateResponse, repairResponse, buildRetrySystemInstruction, buildImproveSystemInstruction, isRqcEnabled, QUALITY_ACTIONS } from './responseQualityController.js';
 import { BUILD_INFO } from './build-info.js';
+import { isKnowledgeOrchestratorEnabled, isObsidianEnabled, hashString } from './knowledge/contracts.js';
+import { createKnowledgeSourceRegistry, collectSourceHealth } from './knowledge/sourceRegistry.js';
+import { runKnowledgeOrchestrator } from './knowledge/knowledgeOrchestrator.js';
+import { createRagKnowledgeSource } from './knowledge/sources/ragSource.js';
+import { createTavilyKnowledgeSource } from './knowledge/sources/tavilySource.js';
+import { createProjectMemoryKnowledgeSource } from './knowledge/sources/projectMemorySource.js';
+import { createObsidianKnowledgeSource } from './knowledge/sources/obsidianSource.js';
 
 const DEFAULT_MODEL = 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free';
 const FALLBACK_MODEL = 'openrouter/auto';
@@ -80,6 +87,16 @@ const tavilyRuntimeStats = {
   lastError: '',
   lastEndpoint: TAVILY_SEARCH_ENDPOINT
 };
+
+function buildKnowledgeRegistry(env, { enableTavily = true } = {}) {
+  const sources = [
+    createRagKnowledgeSource(),
+    createProjectMemoryKnowledgeSource()
+  ];
+  if (enableTavily) sources.push(createTavilyKnowledgeSource({ searchFn: performWebSearch }));
+  if (isObsidianEnabled(env)) sources.push(createObsidianKnowledgeSource());
+  return createKnowledgeSourceRegistry(sources);
+}
 
 function buildCorsHeaders(request, env) {
   const fallbackOrigin = env.ALLOWED_ORIGIN || 'https://digitalblueskye.netlify.app/';
@@ -1319,6 +1336,25 @@ function isHealthAuthorized(request, env) {
   return healthToken.length > 0 && healthHeader.trim() === healthToken;
 }
 
+const KNOWLEDGE_INDEX_MAX_PAYLOAD_BYTES = 2 * 1024 * 1024; // 2 MB
+const KNOWLEDGE_QUERY_MAX_LENGTH = 2000;
+
+// Auth des routes /knowledge/index, /knowledge/refresh et /knowledge/document/:id :
+// un Bearer token valide (KNOWLEDGE_ADMIN_TOKEN dedie ou ADMIN_TOKEN partage) est requis.
+// 401 = aucun header Authorization fourni ; 403 = token present mais invalide.
+export function getKnowledgeAuthStatus(request, env) {
+  const header = request.headers.get('Authorization') || '';
+  const match = /^Bearer\s+(.+)$/i.exec(header.trim());
+  const token = match ? match[1].trim() : '';
+  if (!token) return 401;
+  const knowledgeToken = String(env.KNOWLEDGE_ADMIN_TOKEN || '').trim();
+  const adminToken = String(env.ADMIN_TOKEN || '').trim();
+  const authorized =
+    (knowledgeToken.length > 0 && token === knowledgeToken) ||
+    (adminToken.length > 0 && token === adminToken);
+  return authorized ? 0 : 403;
+}
+
 function detectedHealthEnvNames(env) {
   return Object.keys(env || {})
     .filter((name) => /^(OPENROUTER|TAVILY|MISTRAL|ADMIN|HEALTH|ALLOWED|DEBUG|OPENAI|AI_|WORKER)/i.test(name))
@@ -1598,6 +1634,9 @@ async function buildAiHealthPayload(request, env, authMode) {
     checkVectorizeHealth(env)
   ]);
   const tavilyMetrics = buildTavilyRuntimeMetrics(env);
+  const knowledgeRegistry = buildKnowledgeRegistry(env, { enableTavily: false });
+  const knowledgeHealth = await collectSourceHealth(env, knowledgeRegistry);
+  const knowledgeEnabled = isKnowledgeOrchestratorEnabled(env);
 
   return {
     ok: true,
@@ -1621,6 +1660,16 @@ async function buildAiHealthPayload(request, env, authMode) {
     worker_build: WORKER_BUILD,
     versioning: buildAiWorkerVersioning(env, checkedAt),
     health_diagnostics: buildHealthDiagnostics(request, env, authMode),
+    knowledge_orchestrator: {
+      enabled: knowledgeEnabled,
+      obsidian_enabled: isObsidianEnabled(env),
+      sources: knowledgeHealth.sources,
+      documents_count: knowledgeHealth.sources.reduce((sum, source) => sum + (Number(source.documents_count) || 0), 0),
+      chunks_count: knowledgeHealth.sources.reduce((sum, source) => sum + (Number(source.chunks_count) || 0), 0),
+      last_sync_at: knowledgeHealth.sources.map((source) => source.last_sync_at).filter(Boolean).sort().pop() || null,
+      health_score: knowledgeEnabled ? knowledgeHealth.health_score : null,
+      errors: knowledgeHealth.sources.filter((source) => source.error || source.status === 'error')
+    },
     configuration: {
       openrouter_api_key_configured: openRouterConfigured,
       tavily_api_key_configured: tavilyConfigured,
@@ -1671,6 +1720,15 @@ async function buildAiHealthPayload(request, env, authMode) {
         detail: tavilyCheck.detail,
         last_checked_at: checkedAt,
         priority: tavilyConfigured ? 'Surveiller les quotas et la pertinence des résultats.' : 'Configurer le secret TAVILY_API_KEY.'
+      },
+      {
+        name: 'Knowledge Orchestrator',
+        status: knowledgeEnabled ? (knowledgeHealth.health_score >= 50 ? 'operational' : 'partial') : 'disabled',
+        verification: knowledgeEnabled ? 'partial' : 'partial',
+        latency_ms: null,
+        detail: knowledgeEnabled ? `${knowledgeHealth.healthy}/${knowledgeHealth.total} source(s) disponibles.` : 'Feature flag KNOWLEDGE_ORCHESTRATOR_ENABLED désactivé.',
+        last_checked_at: checkedAt,
+        priority: knowledgeEnabled ? 'Surveiller les connecteurs et la latence de recherche.' : 'Activer le flag pour utiliser la couche documentaire transverse.'
       },
       {
         name: 'Recherche web',
@@ -1789,6 +1847,137 @@ function buildPilotagePromptBlock(plan, language) {
     : `\n\nL'utilisateur pose une question de pilotage projet / priorisation. Utilise UNIQUEMENT les données réelles et déjà calculées ci-dessous pour répondre — n'invente jamais de métrique ou de statut. Si une donnée manque, écris littéralement "Donnée non disponible dans le monitoring actuel." Suis cette structure : Synthèse (état global, maturité, priorité principale), Top 3 actions recommandées (domaine, pourquoi, impact, effort, risque, action recommandée, critères d'acceptation), tableau Quick wins, tableau Risques, Feuille de route (Aujourd'hui / Cette semaine / V3).\n\nDONNÉES DE DÉCISION (JSON) :\n${json}`;
 }
 
+function effectiveKnowledgeTokenBudget(body, maxTokens) {
+  const requested = Number(body?.knowledgeTokenBudget || body?.tokenBudget);
+  if (Number.isFinite(requested) && requested > 0) return requested;
+  return Math.max(1800, Math.min(6000, Number(maxTokens || DEFAULT_MAX_TOKENS) * 2));
+}
+
+async function persistKnowledgeQuery(env, { sessionId, query, result }) {
+  if (!env?.DB || !query) return;
+  try {
+    await env.DB.prepare(
+      `INSERT INTO knowledge_queries (session_id, query, selected_sources_json, latency_ms, confidence)
+       VALUES (?, ?, ?, ?, ?)`
+    ).bind(
+      sessionId || null,
+      String(query).slice(0, 4000),
+      JSON.stringify(result?.selectedSources || []),
+      Number(result?.telemetry?.latency_ms || 0),
+      result?.confidence == null ? null : Number(result.confidence)
+    ).run();
+    for (const conflict of result?.conflicts || []) {
+      await env.DB.prepare(
+        `INSERT INTO knowledge_conflicts (query_hash, document_a, document_b, conflict_type, detail_json)
+         VALUES (?, ?, ?, ?, ?)`
+      ).bind(
+        hashString(query),
+        conflict.documentA || null,
+        conflict.documentB || null,
+        conflict.type || 'possible_conflict',
+        JSON.stringify(conflict)
+      ).run();
+    }
+  } catch (error) {
+    console.warn('knowledge_query_persist_failed', error instanceof Error ? error.message : String(error));
+  }
+}
+
+async function handleKnowledgeQuery(request, env, body = {}) {
+  if (!isKnowledgeOrchestratorEnabled(env)) {
+    return { ok: false, error: 'knowledge_orchestrator_disabled', status: 403 };
+  }
+  const registry = buildKnowledgeRegistry(env, { enableTavily: true });
+  const query = String(body.query || body.message || '').trim();
+  if (!query) return { ok: false, error: 'empty_query', status: 400 };
+  if (query.length > KNOWLEDGE_QUERY_MAX_LENGTH) {
+    return { ok: false, error: 'query_too_long', status: 400 };
+  }
+  const result = await runKnowledgeOrchestrator(env, registry, {
+    query,
+    sourcePlan: body.sourcePlan || null,
+    capabilityPlan: body.capabilityPlan || null,
+    executionPlan: body.executionPlan || null,
+    projectContext: {
+      projectId: body.projectId || body.project_id || '',
+      projectMemory: body.projectMemory || '',
+      memory: body.projectMemory || '',
+      obsidianVaultId: body.obsidianVaultId || body.vaultId || 'vault_1'
+    },
+    history: normalizeHistory(body.history),
+    tokenBudget: body.tokenBudget,
+    language: body.language === 'en' ? 'en' : 'fr',
+    sources: Array.isArray(body.sources) ? body.sources : null,
+    allSources: body.allSources === true,
+    tavilyIntent: body.tavilyIntent || null
+  });
+  await persistKnowledgeQuery(env, { sessionId: body.sessionId || body.session_id || '', query, result });
+  return result;
+}
+
+async function handleKnowledgeIndex(env, body = {}, rawBodyText = '') {
+  if (!isObsidianEnabled(env)) return { ok: false, error: 'obsidian_disabled', status: 403 };
+  const payloadSize = rawBodyText ? rawBodyText.length : JSON.stringify(body || {}).length;
+  if (payloadSize > KNOWLEDGE_INDEX_MAX_PAYLOAD_BYTES) {
+    return { ok: false, error: 'payload_too_large', status: 413 };
+  }
+  return await createObsidianKnowledgeSource().index(env, body);
+}
+
+async function handleKnowledgeRefresh(env, body = {}) {
+  const registry = buildKnowledgeRegistry(env, { enableTavily: false });
+  const sourceKey = String(body.source || body.sourceId || 'obsidian');
+  const source = registry.get(sourceKey);
+  if (!source) return { ok: false, error: 'source_not_found', status: 404 };
+  return await source.refresh(env, body.cursor || {});
+}
+
+async function handleKnowledgeDocument(env, documentId) {
+  const registry = buildKnowledgeRegistry(env, { enableTavily: false });
+  for (const source of registry.list()) {
+    const document = await source.getDocument(env, documentId);
+    if (document) return { ok: true, document, metadata: await source.getMetadata(env, documentId) };
+  }
+  return { ok: false, error: 'document_not_found', status: 404 };
+}
+
+async function handleKnowledgeHealth(env) {
+  const registry = buildKnowledgeRegistry(env, { enableTavily: true });
+  const health = await collectSourceHealth(env, registry);
+  return {
+    ok: true,
+    enabled: isKnowledgeOrchestratorEnabled(env),
+    obsidian_enabled: isObsidianEnabled(env),
+    ...health
+  };
+}
+
+const KNOWLEDGE_AUTH_REQUIRED_PATHS = new Set(['/knowledge/index', '/knowledge/refresh']);
+
+export async function handleKnowledgeRoute(request, env, url, body = null, rawBodyText = '') {
+  const pathname = url.pathname.replace(/\/+$/, '');
+  if (request.method === 'GET' && pathname === '/knowledge/health') {
+    return await handleKnowledgeHealth(env);
+  }
+  const requiresAuth =
+    (request.method === 'GET' && pathname.startsWith('/knowledge/document/')) ||
+    (request.method === 'POST' && KNOWLEDGE_AUTH_REQUIRED_PATHS.has(pathname));
+  if (requiresAuth) {
+    const authStatus = getKnowledgeAuthStatus(request, env);
+    if (authStatus === 401) return { ok: false, error: 'unauthorized', status: 401 };
+    if (authStatus === 403) return { ok: false, error: 'forbidden', status: 403 };
+  }
+  if (request.method === 'GET' && pathname.startsWith('/knowledge/document/')) {
+    return await handleKnowledgeDocument(env, decodeURIComponent(pathname.slice('/knowledge/document/'.length)));
+  }
+  if (request.method !== 'POST') return { ok: false, error: 'method_not_allowed', status: 405 };
+  const payload = body || {};
+  if (pathname === '/knowledge/query') return await handleKnowledgeQuery(request, env, payload);
+  if (pathname === '/knowledge/index') return await handleKnowledgeIndex(env, payload, rawBodyText);
+  if (pathname === '/knowledge/refresh') return await handleKnowledgeRefresh(env, payload);
+  return { ok: false, error: 'not_found', status: 404 };
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -1826,6 +2015,11 @@ export default {
       return jsonResponse(await buildAiHealthPayload(request, env, authMode), 200, corsHeaders);
     }
 
+    if (request.method === 'GET' && url.pathname.startsWith('/knowledge/')) {
+      const result = await handleKnowledgeRoute(request, env, url);
+      return jsonResponse(result, result?.status || 200, corsHeaders);
+    }
+
     if (request.method === 'GET') {
       return jsonResponse({
         ok: true,
@@ -1839,9 +2033,10 @@ export default {
     }
 
     let body;
+    let rawBodyText = '';
     try {
-      const text = await request.text();
-      body = text ? JSON.parse(text) : {};
+      rawBodyText = await request.text();
+      body = rawBodyText ? JSON.parse(rawBodyText) : {};
     } catch (error) {
       queueAiEvent(ctx, env, request, {
         event_type: 'api_error',
@@ -1849,6 +2044,11 @@ export default {
         meta: { error: 'invalid_json', route: url.pathname, mode: 'unknown' }
       });
       return jsonResponse({ ok: false, error: 'invalid_json' }, 400, corsHeaders);
+    }
+
+    if (url.pathname.startsWith('/knowledge/')) {
+      const result = await handleKnowledgeRoute(request, env, url, body, rawBodyText);
+      return jsonResponse(result, result?.status || (result?.error === 'not_found' ? 404 : 200), corsHeaders);
     }
 
     const mode = typeof body?.mode === 'string' ? body.mode : 'chat';
@@ -2381,6 +2581,55 @@ export default {
     // (flag desactive/erreur), bloc vide, comportement inchange.
     const toolPolicyBlock = toolPlan?.policy?.policyText ? ` ${toolPlan.policy.policyText}` : '';
     let finalSystemPrompt = promptBasePrompt + pilotageBlock + sourcePolicyBlock + toolPolicyBlock;
+    let knowledgeResult = null;
+    if (isKnowledgeOrchestratorEnabled(env)) {
+      try {
+        const registry = buildKnowledgeRegistry(env, { enableTavily: false });
+        knowledgeResult = await runKnowledgeOrchestrator(env, registry, {
+          query: message,
+          sourcePlan,
+          capabilityPlan,
+          executionPlan,
+          projectContext: {
+            projectId: body?.projectId || '',
+            projectMemory,
+            memory: projectMemory,
+            obsidianVaultId: body?.obsidianVaultId || body?.vaultId || 'vault_1'
+          },
+          history,
+          tokenBudget: Math.max(1200, Math.min(6000, effectiveKnowledgeTokenBudget(body, maxTokens))),
+          language,
+          includeProjectMemory: true
+        });
+        if (knowledgeResult?.contextBlock) {
+          finalSystemPrompt = `${finalSystemPrompt}\n\n${knowledgeResult.contextBlock}`;
+        }
+        await persistKnowledgeQuery(env, { sessionId, query: message, result: knowledgeResult });
+        queueAiEvent(ctx, env, request, {
+          event_type: 'knowledge_orchestrator_used',
+          event_value: `${knowledgeResult?.selectedSources?.length || 0} source(s)`,
+          language,
+          page_url: pageUrl,
+          session_id: sessionId,
+          meta: {
+            confidence: knowledgeResult?.confidence ?? null,
+            telemetry: knowledgeResult?.telemetry || {},
+            citations_count: knowledgeResult?.citations?.length || 0,
+            conflicts_count: knowledgeResult?.conflicts?.length || 0
+          }
+        });
+      } catch (error) {
+        console.warn('knowledge_orchestrator_failed', error instanceof Error ? error.message : String(error));
+        queueAiEvent(ctx, env, request, {
+          event_type: 'knowledge_orchestrator_error',
+          event_value: 'knowledge_orchestrator_failed',
+          language,
+          page_url: pageUrl,
+          session_id: sessionId,
+          meta: { error: compactText(error instanceof Error ? error.message : String(error), 300) }
+        });
+      }
+    }
     let webSearchResults = [];
     let webSearchRawResults = [];
     let webSearchAnswer = '';

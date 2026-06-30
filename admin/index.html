@@ -11990,8 +11990,13 @@
         || measuredPositive(rag.contexts_used)
       );
       const exportsAvailable = backendKnown && Boolean(exportsCount > 0 || health.exports_enabled === true || health.exports_available === true);
+      const knowledge = health.knowledge_orchestrator || {};
+      const knowledgeAvailable = backendKnown && knowledge.enabled === true;
+      const obsidianAvailable = backendKnown && knowledge.obsidian_enabled === true;
       return [
         makeSettingsTool("tool_planner", "Tool Planner", backendKnown ? toolPlannerAvailable : null, toolPlannerAvailable ? "ai_state.tool_planner mesuré" : "ai_state.tool_planner absent ou non mesuré", "Planification d’outils lue depuis /admin/health."),
+        makeSettingsTool("knowledge_orchestrator", "Knowledge Orchestrator", backendKnown ? knowledgeAvailable : null, knowledgeAvailable ? "KNOWLEDGE_ORCHESTRATOR_ENABLED actif" : "Knowledge Orchestrator non activé côté backend", "Préférence locale Studio pour le cerveau documentaire."),
+        makeSettingsTool("obsidian", "Obsidian", backendKnown ? obsidianAvailable : null, obsidianAvailable ? "KNOWLEDGE_OBSIDIAN_ENABLED actif" : "Connecteur Obsidian non activé côté backend", "Source documentaire native Obsidian."),
         makeSettingsTool("web_search", "Web Search / Tavily", backendKnown ? tavilyAvailable : null, tavilyAvailable ? "Tavily configuré ou activité mesurée" : "Tavily non exposé comme disponible", "Recherche web disponible seulement si Tavily est exposé ou mesuré."),
         makeSettingsTool("rag", "RAG", backendKnown ? ragAvailable : null, ragAvailable ? "Signaux RAG mesurés" : "Aucun signal RAG disponible", "Recherche documentaire basée sur les signaux RAG de /admin/health."),
         makeSettingsTool("pdf", "PDF", backendKnown ? Boolean(pdf) : null, pdf ? `Document support: ${pdf.status || "détecté"}` : "Support PDF non exposé", "Support document PDF exposé par /admin/health."),
@@ -12245,6 +12250,38 @@
       `;
     }
 
+    function renderKnowledgeOrchestratorSection(health) {
+      const knowledge = health?.knowledge_orchestrator || {};
+      const sources = Array.isArray(knowledge.sources) ? knowledge.sources : [];
+      const activeSources = sources.filter((source) => source.ok || ["available", "operational", "active", "ephemeral"].includes(String(source.status))).length;
+      const healthPercent = knowledge.health_score == null ? null : Number(knowledge.health_score);
+      return `
+        <article class="intelligence-card">
+          <header><h2>Knowledge Orchestrator</h2><span>${renderIntelBadge(knowledge.enabled ? "actif" : "inactif")}</span></header>
+          <div class="intelligence-visual-layout">
+            ${renderIntelRadial("Santé documentaire", knowledge.health_score == null ? "non mesuré" : `${knowledge.health_score}%`, healthPercent, "#4fd1ff", "Knowledge Orchestrator")}
+            <div class="intel-progress-list">
+              ${renderIntelProgressRow("Connecteurs actifs", sources.length ? `${activeSources} / ${sources.length}` : "aucune donnée", sources.length ? (activeSources / sources.length) * 100 : null, "#30d158")}
+              ${renderIntelProgressRow("Documents", measuredNumber(knowledge.documents_count), knowledge.documents_count ? 100 : null, "#7c5cff")}
+              ${renderIntelProgressRow("Chunks", measuredNumber(knowledge.chunks_count), knowledge.chunks_count ? 100 : null, "#4fd1ff")}
+              ${renderIntelProgressRow("Embeddings", measuredNumber(knowledge.chunks_count), knowledge.chunks_count ? 100 : null, "#ffb547")}
+              ${renderIntelProgressRow("Erreurs", measuredNumber((knowledge.errors || []).length), (knowledge.errors || []).length ? 100 : 0, (knowledge.errors || []).length ? "#ff5f6d" : "#30d158")}
+              ${renderIntelProgressRow("Dernière synchro", formatDate(knowledge.last_sync_at) || "aucune donnée", knowledge.last_sync_at ? 100 : null, "#a66cff")}
+            </div>
+          </div>
+          <div class="intel-tool-list">
+            ${sources.length ? sources.map((source) => `
+              <div class="intel-tool-row">
+                <span>${escapeHtml(source.source || source.type || "source")}</span>
+                <div class="intel-tool-bar ${source.ok ? "" : "is-empty"}"><span style="--tool-value:${source.ok ? 100 : 0}%; --tool-color:${source.ok ? "#30d158" : "#8b95a7"};"></span></div>
+                <strong>${escapeHtml(source.status || (source.ok ? "disponible" : "non mesuré"))}</strong>
+              </div>
+            `).join("") : `<div class="intel-tool-row"><span>Sources</span><div class="intel-tool-bar is-empty"><span></span></div><strong>aucune donnée</strong></div>`}
+          </div>
+        </article>
+      `;
+    }
+
     function renderQualitySection(health) {
       const quality = health?.ai_state?.response_quality || {};
       const guard = health?.ai_state?.completion_guard || {};
@@ -12373,6 +12410,7 @@
           ${renderModelsSection(health)}
           ${renderToolsSection(health)}
         </section>
+        ${renderKnowledgeOrchestratorSection(health)}
         <section class="intelligence-grid two">
           ${renderQualitySection(health)}
           ${renderMaturitySection(health)}

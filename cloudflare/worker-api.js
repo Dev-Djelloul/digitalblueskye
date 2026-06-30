@@ -4357,6 +4357,15 @@ async function buildAdminHealthPayload(request, env) {
   const toolPlannerStats = buildToolPlannerStatsFromEvents(plannerEvents);
   const responseQualityStats = buildResponseQualityStatsFromEvents(plannerEvents);
   const completionGuardStats = buildCompletionGuardStatsFromEvents(plannerEvents);
+  const knowledgeOrchestrator = aiHealthResult.payload?.knowledge_orchestrator || {
+    enabled: false,
+    sources: [],
+    documents_count: 0,
+    chunks_count: 0,
+    last_sync_at: null,
+    health_score: null,
+    errors: []
+  };
   const effectiveOpenRouterCheck = stabilizeOpenRouterCheck(openRouterCheck, openRouterConfigured, latestOpenRouterResponse);
   const tavilyOk = Boolean(tavilyCheck?.ok);
   const frontendOk = Boolean(frontendHealthResult.ok);
@@ -4541,6 +4550,8 @@ async function buildAdminHealthPayload(request, env) {
       { key: "openrouter_request_count", label: "Nombre de requêtes OpenRouter", value: openRouterCount || aiEventCount, unit: "" },
       { key: "average_response_ms", label: "Temps moyen de réponse", value: averageResponseMs ?? effectiveOpenRouterCheck?.latency_ms ?? null, unit: "ms" },
       { key: "average_web_search_ms", label: "Temps moyen de recherche web", value: averageWebSearchMs ?? tavilyCheck?.latency_ms ?? null, unit: "ms" },
+      { key: "knowledge_documents_count", label: "Documents Knowledge Orchestrator", value: knowledgeOrchestrator.documents_count ?? null, unit: "" },
+      { key: "knowledge_chunks_count", label: "Chunks Knowledge Orchestrator", value: knowledgeOrchestrator.chunks_count ?? null, unit: "" },
     ],
     note: "Métriques extensibles depuis ai_assistant_events et les futurs logs serveur.",
   };
@@ -4699,6 +4710,7 @@ async function buildAdminHealthPayload(request, env) {
     checks,
     tavily_usage: tavilyUsage,
     rag_usage: ragUsage,
+    knowledge_orchestrator: knowledgeOrchestrator,
     services: servicesWithRealStatus,
     statistics,
     recent_activity: {
@@ -5582,6 +5594,141 @@ async function handleAdminRag(request, env, url) {
   return jsonResponse(request, env, { ok: false, error: "Not found" }, 404);
 }
 
+async function fetchKnowledgeOverview(env) {
+  const safeCount = async (sql) => {
+    try {
+      const row = await env.DB.prepare(sql).first();
+      return Number(row?.count || 0);
+    } catch {
+      return 0;
+    }
+  };
+  const [sources, documents, chunks, conflicts, queries, lastSync, avgQuery] = await Promise.all([
+    safeCount("SELECT COUNT(*) AS count FROM knowledge_sources"),
+    safeCount("SELECT COUNT(*) AS count FROM knowledge_documents WHERE status = 'indexed'"),
+    safeCount("SELECT COUNT(*) AS count FROM knowledge_chunks"),
+    safeCount("SELECT COUNT(*) AS count FROM knowledge_conflicts"),
+    safeCount("SELECT COUNT(*) AS count FROM knowledge_queries"),
+    env.DB.prepare("SELECT MAX(last_incremental_sync_at) AS value FROM knowledge_sync_state").first().catch(() => null),
+    env.DB.prepare("SELECT AVG(latency_ms) AS value, AVG(confidence) AS confidence FROM knowledge_queries").first().catch(() => null),
+  ]);
+  const healthScore = sources > 0 ? Math.round(((documents > 0 ? 0.45 : 0) + (chunks > 0 ? 0.35 : 0) + (queries > 0 ? 0.2 : 0)) * 100) : 0;
+  return {
+    status: sources > 0 ? (chunks > 0 ? "operational" : "partial") : "not_configured",
+    sources_count: sources,
+    documents_count: documents,
+    chunks_count: chunks,
+    embeddings_count: chunks,
+    conflicts_count: conflicts,
+    queries_count: queries,
+    last_sync_at: lastSync?.value || null,
+    average_search_ms: avgQuery?.value == null ? null : Math.round(Number(avgQuery.value)),
+    confidence_avg: avgQuery?.confidence == null ? null : Math.round(Number(avgQuery.confidence) * 1000) / 1000,
+    cache: "non mesuré",
+    memory: "non mesuré",
+    health_score: healthScore
+  };
+}
+
+async function handleAdminKnowledgeOverview(request, env) {
+  if (request.method !== "GET") return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  const [overview, sources, conflicts, queries] = await Promise.all([
+    fetchKnowledgeOverview(env),
+    handleAdminKnowledgeSourcesData(env),
+    handleAdminKnowledgeConflictsData(env),
+    handleAdminKnowledgeQueriesData(env),
+  ]);
+  return jsonResponse(request, env, { ok: true, knowledge: { overview, sources, conflicts, queries } });
+}
+
+async function handleAdminKnowledgeSourcesData(env) {
+  try {
+    const rows = await env.DB.prepare(
+      `SELECT s.id, s.type, s.name, s.status, s.last_sync_at,
+        COUNT(DISTINCT d.id) AS documents_count,
+        COUNT(c.id) AS chunks_count
+       FROM knowledge_sources s
+       LEFT JOIN knowledge_documents d ON d.source_id = s.id AND d.status = 'indexed'
+       LEFT JOIN knowledge_chunks c ON c.source_id = s.id
+       GROUP BY s.id
+       ORDER BY s.updated_at DESC`
+    ).all();
+    return rows.results || [];
+  } catch {
+    return [];
+  }
+}
+
+async function handleAdminKnowledgeSources(request, env) {
+  if (request.method !== "GET") return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  return jsonResponse(request, env, { ok: true, sources: await handleAdminKnowledgeSourcesData(env) });
+}
+
+async function handleAdminKnowledgeHealth(request, env) {
+  if (request.method !== "GET") return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  return jsonResponse(request, env, { ok: true, health: await fetchKnowledgeOverview(env) });
+}
+
+async function handleAdminKnowledgeSync(request, env) {
+  if (request.method !== "GET") return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  const rows = await env.DB.prepare("SELECT * FROM knowledge_sync_state ORDER BY updated_at DESC LIMIT 100").all().catch(() => ({ results: [] }));
+  return jsonResponse(request, env, { ok: true, sync: rows.results || [] });
+}
+
+async function handleAdminKnowledgeConflictsData(env) {
+  const rows = await env.DB.prepare("SELECT * FROM knowledge_conflicts ORDER BY created_at DESC LIMIT 100").all().catch(() => ({ results: [] }));
+  return rows.results || [];
+}
+
+async function handleAdminKnowledgeConflicts(request, env) {
+  if (request.method !== "GET") return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  return jsonResponse(request, env, { ok: true, conflicts: await handleAdminKnowledgeConflictsData(env) });
+}
+
+async function handleAdminKnowledgeQueriesData(env) {
+  const rows = await env.DB.prepare("SELECT * FROM knowledge_queries ORDER BY created_at DESC LIMIT 100").all().catch(() => ({ results: [] }));
+  return rows.results || [];
+}
+
+async function handleAdminKnowledgeQueries(request, env) {
+  if (request.method !== "GET") return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  return jsonResponse(request, env, { ok: true, queries: await handleAdminKnowledgeQueriesData(env) });
+}
+
+function adminKnowledgeSourceRefreshId(pathname) {
+  const prefix = "/admin/knowledge/sources/";
+  if (!pathname.startsWith(prefix) || !pathname.endsWith("/refresh")) return "";
+  return decodeURIComponent(pathname.slice(prefix.length, -"/refresh".length));
+}
+
+async function handleAdminKnowledgeRefresh(request, env, sourceId) {
+  if (request.method !== "POST") return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  if (!env.AI_WORKER?.fetch) {
+    return jsonResponse(request, env, { ok: false, error: "ai_worker_binding_unavailable" }, 503);
+  }
+  const body = await request.text();
+  const response = await env.AI_WORKER.fetch(new Request("https://digitalblueskye-ai/knowledge/refresh", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: body || JSON.stringify({ source: sourceId })
+  }));
+  const payload = await response.json().catch(() => ({ ok: false, error: "invalid_ai_worker_response" }));
+  return jsonResponse(request, env, payload, response.status);
+}
+
+async function handleAdminKnowledge(request, env, url) {
+  const pathname = url.pathname;
+  if (pathname === "/admin/knowledge") return await handleAdminKnowledgeOverview(request, env);
+  if (pathname === "/admin/knowledge/sources") return await handleAdminKnowledgeSources(request, env);
+  if (pathname === "/admin/knowledge/health") return await handleAdminKnowledgeHealth(request, env);
+  if (pathname === "/admin/knowledge/sync") return await handleAdminKnowledgeSync(request, env);
+  if (pathname === "/admin/knowledge/conflicts") return await handleAdminKnowledgeConflicts(request, env);
+  if (pathname === "/admin/knowledge/queries") return await handleAdminKnowledgeQueries(request, env);
+  const sourceId = adminKnowledgeSourceRefreshId(pathname);
+  if (sourceId) return await handleAdminKnowledgeRefresh(request, env, sourceId);
+  return jsonResponse(request, env, { ok: false, error: "Not found" }, 404);
+}
+
 function parseDocumentListParams(url) {
   return {
     limit: Number(url.searchParams.get("limit")) || 20,
@@ -6263,6 +6410,9 @@ async function handleAdmin(request, env, url) {
   }
   if (pathname === "/admin/rag" || pathname.startsWith("/admin/rag/")) {
     return await handleAdminRag(request, env, url);
+  }
+  if (pathname === "/admin/knowledge" || pathname.startsWith("/admin/knowledge/")) {
+    return await handleAdminKnowledge(request, env, url);
   }
   if (pathname === "/admin/documents" || pathname.startsWith("/admin/documents/")) {
     return await handleAdminDocuments(request, env, url);

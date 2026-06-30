@@ -234,3 +234,119 @@ CREATE TABLE IF NOT EXISTS exports (
 CREATE INDEX IF NOT EXISTS idx_exports_type ON exports (export_type);
 CREATE INDEX IF NOT EXISTS idx_exports_status ON exports (status);
 CREATE INDEX IF NOT EXISTS idx_exports_generated_at ON exports (generated_at);
+
+-- Knowledge Orchestrator (Digital Blue Skye Studio V3.2+) : couche transverse
+-- pour sources documentaires natives (Obsidian, RAG, Tavily cache, memoire
+-- projet, futurs connecteurs). Additif uniquement : ne remplace pas rag_*.
+CREATE TABLE IF NOT EXISTS knowledge_sources (
+  id TEXT PRIMARY KEY,
+  type TEXT NOT NULL,
+  name TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'active',
+  config_json TEXT,
+  last_sync_at TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_knowledge_sources_type ON knowledge_sources (type);
+CREATE INDEX IF NOT EXISTS idx_knowledge_sources_status ON knowledge_sources (status);
+
+CREATE TABLE IF NOT EXISTS knowledge_documents (
+  id TEXT PRIMARY KEY,
+  source_id TEXT NOT NULL,
+  external_id TEXT NOT NULL,
+  title TEXT NOT NULL,
+  path TEXT,
+  type TEXT NOT NULL,
+  checksum TEXT,
+  version_hash TEXT,
+  status TEXT NOT NULL DEFAULT 'indexed',
+  metadata_json TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_knowledge_documents_source ON knowledge_documents (source_id);
+CREATE INDEX IF NOT EXISTS idx_knowledge_documents_external ON knowledge_documents (external_id);
+CREATE INDEX IF NOT EXISTS idx_knowledge_documents_checksum ON knowledge_documents (checksum);
+CREATE INDEX IF NOT EXISTS idx_knowledge_documents_status ON knowledge_documents (status);
+
+CREATE TABLE IF NOT EXISTS knowledge_chunks (
+  id TEXT PRIMARY KEY,
+  document_id TEXT NOT NULL,
+  source_id TEXT NOT NULL,
+  chunk_index INTEGER NOT NULL,
+  text TEXT NOT NULL,
+  hash TEXT,
+  token_count INTEGER,
+  locator TEXT,
+  metadata_json TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_knowledge_chunks_document ON knowledge_chunks (document_id);
+CREATE INDEX IF NOT EXISTS idx_knowledge_chunks_source ON knowledge_chunks (source_id);
+CREATE INDEX IF NOT EXISTS idx_knowledge_chunks_hash ON knowledge_chunks (hash);
+
+CREATE TABLE IF NOT EXISTS knowledge_links (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  source_id TEXT NOT NULL,
+  from_document_id TEXT NOT NULL,
+  to_document_id TEXT NOT NULL,
+  link_type TEXT NOT NULL DEFAULT 'wikilink',
+  anchor_text TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_knowledge_links_from ON knowledge_links (from_document_id);
+CREATE INDEX IF NOT EXISTS idx_knowledge_links_to ON knowledge_links (to_document_id);
+CREATE INDEX IF NOT EXISTS idx_knowledge_links_source ON knowledge_links (source_id);
+
+CREATE TABLE IF NOT EXISTS knowledge_tags (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  source_id TEXT NOT NULL,
+  document_id TEXT NOT NULL,
+  tag TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_knowledge_tags_tag ON knowledge_tags (tag);
+CREATE INDEX IF NOT EXISTS idx_knowledge_tags_document ON knowledge_tags (document_id);
+CREATE INDEX IF NOT EXISTS idx_knowledge_tags_source ON knowledge_tags (source_id);
+
+CREATE TABLE IF NOT EXISTS knowledge_sync_state (
+  source_id TEXT PRIMARY KEY,
+  cursor_json TEXT,
+  last_full_sync_at TEXT,
+  last_incremental_sync_at TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS knowledge_conflicts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  query_hash TEXT,
+  document_a TEXT,
+  document_b TEXT,
+  conflict_type TEXT NOT NULL,
+  detail_json TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_knowledge_conflicts_query ON knowledge_conflicts (query_hash);
+CREATE INDEX IF NOT EXISTS idx_knowledge_conflicts_created ON knowledge_conflicts (created_at);
+
+CREATE TABLE IF NOT EXISTS knowledge_queries (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  session_id TEXT,
+  query TEXT NOT NULL,
+  selected_sources_json TEXT,
+  latency_ms INTEGER,
+  confidence REAL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_knowledge_queries_session ON knowledge_queries (session_id);
+CREATE INDEX IF NOT EXISTS idx_knowledge_queries_created ON knowledge_queries (created_at);

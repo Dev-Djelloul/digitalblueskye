@@ -397,6 +397,16 @@ export function planEvidence({ evidence, hasRagSources = false, hasProjectDocume
   else if (requireCitations) fallbackBehavior = 'use_available_sources_only';
   else if (e.evidenceNeed === 'recommended') fallbackBehavior = 'answer_with_caveat';
 
+  const sourceFamilies = [];
+  if (useRag || forceRag || useGlobalLibrary) {
+    sourceFamilies.push('rag', 'obsidian');
+  }
+  if (useWeb || forceWeb) sourceFamilies.push('tavily');
+  if (useProjectMemory) sourceFamilies.push('project_memory');
+  if (!sourceFamilies.length && e.sourceRequirement === 'cite_if_available') {
+    sourceFamilies.push('rag', 'obsidian', 'project_memory');
+  }
+
   return {
     useInternalKnowledge,
     useRag,
@@ -414,6 +424,7 @@ export function planEvidence({ evidence, hasRagSources = false, hasProjectDocume
     askClarifyingQuestion,
     maxSources,
     preferredSourceTypes,
+    sourceFamilies: Array.from(new Set(sourceFamilies)),
     sourceFreshness,
     fallbackBehavior,
     reasons
