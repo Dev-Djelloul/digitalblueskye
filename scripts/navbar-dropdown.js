@@ -51,6 +51,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const adminLink = document.createElement('a');
     adminLink.className = 'header-admin-link header-social-link';
     adminLink.href = '/admin/index.html';
+    adminLink.target = '_blank';
+    adminLink.rel = 'noopener';
     adminLink.setAttribute('aria-label', 'Accès admin');
     adminLink.title = 'Digital Blue Skye Studio';
     adminLink.innerHTML = `
