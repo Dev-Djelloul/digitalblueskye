@@ -42,7 +42,7 @@ import {
 } from './toolPlanner.js';
 import { evaluateResponse, repairResponse, buildRetrySystemInstruction, buildImproveSystemInstruction, isRqcEnabled, QUALITY_ACTIONS } from './responseQualityController.js';
 import { BUILD_INFO } from './build-info.js';
-import { isKnowledgeOrchestratorEnabled, isObsidianEnabled, hashString } from './knowledge/contracts.js';
+import { isKnowledgeOrchestratorEnabled, isObsidianEnabled, isFlagEnabled, hashString } from './knowledge/contracts.js';
 import { createKnowledgeSourceRegistry, collectSourceHealth } from './knowledge/sourceRegistry.js';
 import { runKnowledgeOrchestrator } from './knowledge/knowledgeOrchestrator.js';
 import { createRagKnowledgeSource } from './knowledge/sources/ragSource.js';
@@ -1668,7 +1668,10 @@ async function buildAiHealthPayload(request, env, authMode) {
       chunks_count: knowledgeHealth.sources.reduce((sum, source) => sum + (Number(source.chunks_count) || 0), 0),
       last_sync_at: knowledgeHealth.sources.map((source) => source.last_sync_at).filter(Boolean).sort().pop() || null,
       health_score: knowledgeEnabled ? knowledgeHealth.health_score : null,
-      errors: knowledgeHealth.sources.filter((source) => source.error || source.status === 'error')
+      errors: knowledgeHealth.sources.filter((source) => source.error || source.status === 'error'),
+      // Best-effort : instantane de la derniere requete traitee par CET isolate
+      // Workers (non garanti entre deux requetes, jamais expose hors DEBUG=true).
+      debug_last_query: isKnowledgeDebugEnabled(env) ? lastKnowledgeDebugSnapshot : undefined
     },
     configuration: {
       openrouter_api_key_configured: openRouterConfigured,
@@ -1851,6 +1854,44 @@ function effectiveKnowledgeTokenBudget(body, maxTokens) {
   const requested = Number(body?.knowledgeTokenBudget || body?.tokenBudget);
   if (Number.isFinite(requested) && requested > 0) return requested;
   return Math.max(1800, Math.min(6000, Number(maxTokens || DEFAULT_MAX_TOKENS) * 2));
+}
+
+// Instrumentation temporaire (Phase 3 activation progressive) : visible
+// uniquement dans les logs Workers et dans /admin/health quand DEBUG=true.
+// Snapshot best-effort, conserve en memoire pour l'isolate courant
+// uniquement (pas de persistance D1, pas d'exposition cote utilisateur final).
+export function isKnowledgeDebugEnabled(env) {
+  return isFlagEnabled(env, 'DEBUG', false);
+}
+
+let lastKnowledgeDebugSnapshot = null;
+
+export function buildKnowledgeDebugSnapshot(result, { startedAt = null } = {}) {
+  const telemetry = result?.telemetry || {};
+  return {
+    captured_at: new Date().toISOString(),
+    sources_selected: telemetry.sources_requested || [],
+    sources_queried: (telemetry.sources_queried || []).map((item) => ({
+      source: item.source,
+      ok: item.ok,
+      results_count: item.results_count,
+      latency_ms: item.latency_ms,
+      error: item.error || ''
+    })),
+    confidence: result?.confidence ?? null,
+    chunks_selected: telemetry.chunks_selected ?? null,
+    token_budget: telemetry.token_budget ?? null,
+    token_budget_used: telemetry.token_budget_used ?? null,
+    duplicates_removed: telemetry.duplicates_removed ?? null,
+    conflicts_detected: Array.isArray(result?.conflicts) ? result.conflicts.length : 0,
+    total_latency_ms: telemetry.latency_ms ?? (startedAt != null ? Date.now() - startedAt : null)
+  };
+}
+
+function recordKnowledgeDebugSnapshot(env, snapshot) {
+  if (!isKnowledgeDebugEnabled(env)) return;
+  lastKnowledgeDebugSnapshot = snapshot;
+  console.log('knowledge_orchestrator_debug', JSON.stringify(snapshot));
 }
 
 async function persistKnowledgeQuery(env, { sessionId, query, result }) {
@@ -2604,6 +2645,7 @@ export default {
         if (knowledgeResult?.contextBlock) {
           finalSystemPrompt = `${finalSystemPrompt}\n\n${knowledgeResult.contextBlock}`;
         }
+        recordKnowledgeDebugSnapshot(env, buildKnowledgeDebugSnapshot(knowledgeResult));
         await persistKnowledgeQuery(env, { sessionId, query: message, result: knowledgeResult });
         queueAiEvent(ctx, env, request, {
           event_type: 'knowledge_orchestrator_used',
@@ -2620,6 +2662,10 @@ export default {
         });
       } catch (error) {
         console.warn('knowledge_orchestrator_failed', error instanceof Error ? error.message : String(error));
+        recordKnowledgeDebugSnapshot(env, {
+          captured_at: new Date().toISOString(),
+          error: compactText(error instanceof Error ? error.message : String(error), 300)
+        });
         queueAiEvent(ctx, env, request, {
           event_type: 'knowledge_orchestrator_error',
           event_value: 'knowledge_orchestrator_failed',

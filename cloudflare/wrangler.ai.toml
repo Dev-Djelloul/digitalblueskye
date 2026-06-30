@@ -66,3 +66,15 @@ binding = "AI"
 [[vectorize]]
 binding = "VECTOR_INDEX"
 index_name = "digitalblueskye-rag"
+
+# Knowledge Orchestrator (cf. cloudflare/knowledge/) — active la couche
+# documentaire transverse (RAG + Project Memory) sur le chat. Obsidian reste
+# desactive separement (KNOWLEDGE_OBSIDIAN_ENABLED) tant que le connecteur
+# n'a pas ete valide en isolation. Rollback instantane : repasser
+# KNOWLEDGE_ORCHESTRATOR_ENABLED a "false" et redeployer (aucun changement
+# de code requis, le flag est verifie a chaque requete).
+#   DEBUG = "true"   # optionnel : active la telemetrie knowledge_orchestrator_debug
+#                     # dans les logs Workers et dans /admin/health.knowledge_orchestrator.debug_last_query
+[vars]
+KNOWLEDGE_ORCHESTRATOR_ENABLED = "true"
+KNOWLEDGE_OBSIDIAN_ENABLED = "false"
