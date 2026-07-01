@@ -4559,418 +4559,6 @@
     return { selected, query, docs, sourceIds, telemetry };
   }
 
-  function retrieveKnowledgeContext(userText) {
-    const activeProject = getActiveProject();
-    return searchProjectRag(userText, activeProject?.id || null, {
-      includeGlobalLibrary: Boolean(activeProject?.ragUseGlobalLibrary),
-      maxPassages: activeProject?.ragMaxPassages || maxRetrievedKnowledgeChunks
-    });
-  }
-
-  // Retrieval structurel cote client : scanne directement doc.chunks (en
-  // memoire, ordonnes) pour les requetes que la similarite vectorielle rate.
-  // - 'tail' : les N derniers chunks du document cible (par position).
-  // - 'lexical' : chunks contenant les termes (bibliographie, chercheurs...),
-  //   scores par nombre de termes distincts trouves.
-  // Retourne des items au format de searchProjectRagLocal ({doc, chunk,
-  // chunkIndex, locator, score, matchedTerms}).
-  function retrieveStructuralFromDocs(docs, structural, maxPassages) {
-    const list = Array.isArray(docs) ? docs : [];
-    const limit = Math.max(1, Math.min(24, Number(maxPassages) || 16));
-    if (!structural || !list.length) return [];
-    if (structural.retrieval === 'tail') {
-      const doc = list[0];
-      const chunks = getKnowledgeDocChunks(doc);
-      const start = Math.max(0, chunks.length - limit);
-      return chunks.slice(start).map((chunk, offset) => {
-        const chunkIndex = start + offset;
-        return {
-          doc,
-          chunk,
-          chunkIndex,
-          locator: extractKnowledgeChunkLocator(chunk, doc.kind || doc.type, chunkIndex),
-          score: 1,
-          matchedTerms: []
-        };
-      });
-    }
-    const terms = (structural.lexicalTerms || []).map((t) => String(t || '').toLowerCase()).filter((t) => t.length >= 3);
-    if (!terms.length) return [];
-    const candidates = [];
-    const chunksByDoc = new Map();
-    list.forEach((doc) => {
-      const chunks = getKnowledgeDocChunks(doc);
-      chunksByDoc.set(doc.id, { doc, chunks });
-      chunks.forEach((chunk, chunkIndex) => {
-        const lower = String(chunk || '').toLowerCase();
-        const matched = terms.filter((term) => lower.includes(term));
-        if (!matched.length) return;
-        candidates.push({
-          doc,
-          chunk,
-          chunkIndex,
-          locator: extractKnowledgeChunkLocator(chunk, doc.kind || doc.type, chunkIndex),
-          score: matched.length,
-          matchedTerms: matched
-        });
-      });
-    });
-    const ranked = candidates
-      .sort((a, b) => b.score - a.score || a.chunkIndex - b.chunkIndex)
-      .slice(0, limit);
-    // document_section_retrieval : ajoute les chunks voisins (avant / apres)
-    // pour ne pas tronquer la section (bibliographie, table des matieres...).
-    if (structural.retrieval === 'section') {
-      const extras = [];
-      ranked.slice(0, 8).forEach((item) => {
-        const bucket = chunksByDoc.get(item.doc.id);
-        if (!bucket) return;
-        [item.chunkIndex - 1, item.chunkIndex + 1].forEach((ni) => {
-          if (ni < 0 || ni >= bucket.chunks.length) return;
-          extras.push({
-            doc: item.doc,
-            chunk: bucket.chunks[ni],
-            chunkIndex: ni,
-            locator: extractKnowledgeChunkLocator(bucket.chunks[ni], item.doc.kind || item.doc.type, ni),
-            score: 0.5,
-            matchedTerms: []
-          });
-        });
-      });
-      return mergeSelectedChunks(ranked, extras).slice(0, limit + 8);
-    }
-    return ranked;
-  }
-
-  // Fusionne des listes de chunks selectionnes en dedupliquant par
-  // doc.id::chunkIndex (un meme chunk peut remonter par plusieurs voies).
-  function mergeSelectedChunks(...lists) {
-    const byKey = new Map();
-    lists.forEach((list) => {
-      (Array.isArray(list) ? list : []).forEach((item) => {
-        if (!item?.doc?.id) return;
-        const key = `${item.doc.id}::${item.chunkIndex}`;
-        const existing = byKey.get(key);
-        if (!existing || Number(item.score || 0) > Number(existing.score || 0)) byKey.set(key, item);
-      });
-    });
-    return Array.from(byKey.values());
-  }
-
-  // Requete explicitement liee a un document ("ce document", "ce PDF", "du
-  // document"...) : RAG obligatoire, web/memoire projet desactives sans
-  // exception. Duplique volontairement la regex equivalente de
-  // cloudflare/sourcePlanner.js (isDocumentBoundQuery) — ce script tourne
-  // cote navigateur, hors du bundle Worker, donc pas d'import partage.
-  const DOCUMENT_BOUND_RX = /\b(ce\s+document|ce\s+pdf|cette\s+pdf|dans\s+ce\s+fichier|(?:dans|selon|d['e]apr[èe]s)\s+le\s+document|du\s+document|le\s+document|this\s+document|this\s+pdf|in\s+this\s+file)\b/i;
-  function isDocumentBoundQuery(message) {
-    return DOCUMENT_BOUND_RX.test(String(message || ''));
-  }
-
-  // Detection de requete structurelle — duplique cloudflare/sourcePlanner.js
-  // detectStructuralQuery() (ce script tourne hors du bundle Worker).
-  const STRUCTURAL_RX = {
-    tail: /\b(derniers?\s+(?:paragraphes?|chunks?|extraits?)|derni[èe]res?\s+(?:pages?|lignes?|parties?|sections?)|fin\s+du\s+(?:document|pdf|fichier|texte)|conclusion\s+du\s+(?:document|texte)|conclusion|derni[èe]re\s+partie|last\s+paragraphs?|end\s+of\s+the\s+document)\b/i,
-    bibliography: /\b(bibliographie|sources?\s+cit[ée]es?|r[ée]f[ée]rences?(?:\s+bibliographiques?)?|ouvrages?\s+cit[ée]s?|s[ée]lection\s+d['e]ouvrages?|travaux\s+cit[ée]s?|bibliography|cited\s+sources?|references?)\b/i,
-    researchers: /\b(chercheurs?|chercheuses?|auteurs?|autrices?|sp[ée]cialistes?|historiens?|universitaires?|contributeurs?|pr[ée]curseurs?|contemporains?|researchers?|authors?|scholars?)\b/i,
-    section: /\b(table\s+des\s+mati[èe]res|sommaire|plan\s+du\s+document|table\s+of\s+contents|r[ée]sum[ée]\s+du\s+(?:document|texte)|abstract)\b/i
-  };
-  const STRUCTURAL_LEXICAL_TERMS = {
-    bibliography: ['bibliographie', 'sources', 'références', 'references', 'ouvrages', 'travaux', 'bibliography'],
-    researchers: ['chercheur', 'chercheurs', 'chercheuse', 'auteur', 'auteurs', 'autrice', 'historien', 'historiens', 'spécialiste', 'spécialistes', 'précurseur', 'précurseurs', 'contemporains', 'travaux', 'ouvrages', 'références'],
-    section: ['table des matières', 'sommaire', 'plan', 'résumé', 'abstract']
-  };
-  function detectStructuralQuery(message) {
-    const msg = String(message || '');
-    const make = (kind, retrieval, lexicalTerms) => ({ isStructural: true, kind, type: kind, retrieval, lexicalTerms: lexicalTerms || [] });
-    if (STRUCTURAL_RX.tail.test(msg)) return make('tail', 'tail', []);
-    if (STRUCTURAL_RX.bibliography.test(msg)) return make('bibliography', 'section', STRUCTURAL_LEXICAL_TERMS.bibliography);
-    if (STRUCTURAL_RX.researchers.test(msg)) return make('researchers', 'lexical', STRUCTURAL_LEXICAL_TERMS.researchers);
-    if (STRUCTURAL_RX.section.test(msg)) return make('section', 'section', STRUCTURAL_LEXICAL_TERMS.section);
-    return { isStructural: false, kind: null, type: null, retrieval: null, lexicalTerms: [] };
-  }
-
-  // Fusion des prénoms composés cassés par l'extraction PDF — version
-  // compacte de cloudflare/documentStructure.js normalizeProperNames().
-  const FRENCH_GIVEN_NAMES_LIST = ['edouard', 'édouard', 'marie', 'jean', 'jacques', 'alfred', 'louis', 'pierre', 'paul', 'anne', 'claude', 'françois', 'francois', 'michel', 'andré', 'andre', 'rené', 'rene', 'charles', 'henri', 'georges', 'philippe', 'luc', 'marc', 'joseph', 'antoine', 'christophe', 'guillaume', 'robert', 'bernard', 'daniel', 'yves', 'baptiste', 'olivier', 'thomas', 'emmanuel'];
-  const FRENCH_GIVEN_NAMES_SET = new Set(FRENCH_GIVEN_NAMES_LIST);
-  const PROPER_NAME_PARTICLE = /^(?:de|du|des|le|la|d['’]|von|van|al|el|ben)\s*/i;
-  const PROPER_NAME_RX = new RegExp(`\\b(${FRENCH_GIVEN_NAMES_LIST.join('|')})[ \\t\\r\\n\\/]+(${FRENCH_GIVEN_NAMES_LIST.join('|')})[ \\t\\r\\n]+((?:de|du|des|le|la|d['’]|von|van|al|el|ben)[ \\t]+)?([A-ZÉÈÀÂÎÔÛ][\\wÀ-ÿ'’-]+)`, 'gi');
-  function normalizeProperNames(text) {
-    if (!text) return '';
-    PROPER_NAME_RX.lastIndex = 0;
-    return String(text).replace(PROPER_NAME_RX, (m, g1, g2, part, surnameCore) => {
-      if (!/^[A-ZÉÈÀÂÎÔÛ]/.test(g1) || !/^[A-ZÉÈÀÂÎÔÛ]/.test(g2)) return m;
-      const surnameBare = String(surnameCore).replace(PROPER_NAME_PARTICLE, '').toLowerCase();
-      if (FRENCH_GIVEN_NAMES_SET.has(surnameBare)) return m;
-      return `${g1}-${g2} ${part ? part.trim() + ' ' : ''}${surnameCore}`;
-    });
-  }
-
-  // Document targeting — duplique cloudflare/sourcePlanner.js
-  // resolveDocumentTarget(). docs: [{id, name, importedAt}].
-  function resolveDocumentTarget(docs, lastConsultedDocumentId) {
-    const list = (Array.isArray(docs) ? docs : []).filter((d) => d && d.id);
-    if (list.length === 0) return { documentId: null, status: 'none', candidates: [] };
-    if (list.length === 1) return { documentId: list[0].id, status: 'single', candidates: list };
-    if (lastConsultedDocumentId && list.some((d) => d.id === lastConsultedDocumentId)) {
-      return { documentId: lastConsultedDocumentId, status: 'resolved_last', candidates: list };
-    }
-    const withDates = list.filter((d) => Number.isFinite(Number(d.importedAt)));
-    if (withDates.length) {
-      const latest = withDates.reduce((a, b) => (Number(b.importedAt) > Number(a.importedAt) ? b : a));
-      return { documentId: latest.id, status: 'resolved_last', candidates: list };
-    }
-    return { documentId: null, status: 'ambiguous', candidates: list };
-  }
-
-  function shouldUseProjectRagForMessage(message, activeProject) {
-    const value = String(message || '').toLowerCase();
-    if (!activeProject || !value.trim()) return false;
-    // Une requete liee a un document precis force toujours la tentative
-    // RAG, meme si le message contient par ailleurs un mot meta-systeme
-    // (parametres, export...) qui aurait normalement court-circuite l'essai.
-    if (isDocumentBoundQuery(value)) return true;
-
-    const documentIntentTriggers = [
-      'à partir des sources', 'a partir des sources',
-      'dans les documents', 'dans le document',
-      'selon les sources', 'selon les documents', 'selon le document',
-      "d'après les sources", "d'apres les sources", "d'après les documents", "d'apres les documents",
-      'que disent les sources', 'que disent les documents',
-      'documents du projet', 'document du projet', 'sources du projet',
-      'résume les blocages', 'resume les blocages', 'blocages techniques',
-      'mémoire projet', 'mémoire projet',
-      'compare', 'comparer', 'comparaison',
-      'audit', 'mvp', 'backend', 'frontend', 'questionnaire', 'matching',
-      'from the sources', 'in the documents', 'according to the sources', 'according to the documents',
-      'project documents', 'project sources', 'technical blockers'
-    ];
-    const projectNameToken = String(activeProject.name || '').trim().toLowerCase();
-    if (projectNameToken && projectNameToken.length >= 2 && value.includes(projectNameToken)) return true;
-    if (documentIntentTriggers.some((trigger) => value.includes(trigger))) return true;
-
-    const metaSystemTriggers = [
-      'quelle heure', 'quelle date', 'quel jour', 'fuseau horaire',
-      'what time', 'what date', 'current time', 'current date', 'time zone', 'timezone',
-      'quel modèle', 'quel modele', 'quel est le modèle', 'quel est le modele', 'modèle ia', 'modele ia', 'modèle utilisé', 'modele utilise',
-      'which model', 'what model', 'ai model',
-      'paramètres', 'parametres', 'réglages', 'reglages', 'settings',
-      'exporter', 'export', 'sauvegarde', 'backup', 'restauration', 'restore',
-      'recherche web', 'cherche sur le web', 'rechercher sur le web', 'recherche internet', 'cherche sur internet',
-      'search the web', 'web search', 'browse the web',
-      'openrouter', 'tavily', 'cloudflare', 'navigateur', 'browser'
-    ];
-    if (metaSystemTriggers.some((trigger) => value.includes(trigger))) return false;
-
-    return true;
-  }
-
-  async function buildKnowledgeContextForPrompt(userText) {
-    const activeProject = getActiveProject();
-    const documentSettings = assistantSettingsState.documents || {};
-    if (!activeProject) return { context: '', events: [], status: 'global', selected: [] };
-    if (activeProject.ragEnabled === false || documentSettings.automaticRag === false) {
-      return { context: '', events: [], status: 'disabled', selected: [] };
-    }
-    const includeGlobalLibrary = Boolean(activeProject.ragUseGlobalLibrary || documentSettings.ragUseGlobalLibrary);
-    const documentBound = isDocumentBoundQuery(userText);
-    const structural = documentBound ? detectStructuralQuery(userText) : { isStructural: false, kind: null, retrieval: null, lexicalTerms: [] };
-
-    // Document targeting (requete documentaire) : cible un document precis.
-    // Mono-document -> ce document ; multi-document non resolu -> clarification.
-    const candidateDocs = getProjectRagDocuments(activeProject.id, { includeGlobalLibrary });
-    const target = documentBound
-      ? resolveDocumentTarget(candidateDocs, activeProject.lastConsultedDocumentId || null)
-      : { documentId: null, status: 'none', candidates: candidateDocs };
-    if (documentBound && target.status === 'ambiguous' && target.candidates.length > 1) {
-      const baseMetaAmbiguous = { projectName: activeProject.name, include_global_library: includeGlobalLibrary, document_targets: target.candidates.length };
-      return {
-        context: '',
-        events: [{ event_type: 'rag_query', event_value: activeProject.name, meta: baseMetaAmbiguous }, { event_type: 'rag_clarification', event_value: `${target.candidates.length} documents`, meta: baseMetaAmbiguous }],
-        status: 'clarification',
-        selected: [],
-        usedSources: [],
-        telemetry: baseMetaAmbiguous,
-        documentBound,
-        clarificationCandidates: target.candidates.map((d) => d.name).filter(Boolean)
-      };
-    }
-
-    // Recall elargi pour les requetes liees explicitement a un document
-    // (bibliographie, liste de chercheurs, fin de document...) : plus de
-    // passages candidats et seuil de similarite abaisse, uniquement dans ce
-    // cas precis. Comportement par defaut inchange sinon.
-    const effMaxPassages = documentBound ? 16 : (activeProject.ragMaxPassages || Number(documentSettings.ragMaxPassages) || 5);
-    // Quand un document est cible, on restreint la recherche a ce document.
-    const targetDoc = target.documentId ? candidateDocs.find((d) => d.id === target.documentId) : null;
-    const scopedDocs = targetDoc ? [targetDoc] : candidateDocs;
-
-    const result = await searchProjectRag(userText, activeProject.id, {
-      includeGlobalLibrary,
-      maxPassages: effMaxPassages,
-      similarityThreshold: documentBound ? 0.5 : undefined
-    });
-
-    // Retrieval structurel (lexical/tail) sur le document cible, fusionne
-    // EN PRIORITE avec le vectoriel (jamais a la place).
-    let mergedSelected = result.selected;
-    if (documentBound && structural.isStructural) {
-      const structuralSelected = retrieveStructuralFromDocs(scopedDocs, structural, effMaxPassages);
-      // Le vectoriel est filtre au document cible si un document est resolu.
-      const vectorScoped = targetDoc ? result.selected.filter((item) => item.doc?.id === targetDoc.id) : result.selected;
-      mergedSelected = mergeSelectedChunks(structuralSelected, vectorScoped).slice(0, effMaxPassages);
-    } else if (targetDoc) {
-      const vectorScoped = result.selected.filter((item) => item.doc?.id === targetDoc.id);
-      mergedSelected = vectorScoped.length ? vectorScoped : result.selected;
-    }
-
-    const baseMeta = {
-      ...result.telemetry,
-      projectName: activeProject.name,
-      include_global_library: includeGlobalLibrary,
-      structural_kind: structural.kind || null,
-      target_document_status: target.status
-    };
-    const events = [
-      { event_type: 'rag_query', event_value: activeProject.name, meta: baseMeta },
-      { event_type: mergedSelected.length ? 'rag_match' : 'rag_no_match', event_value: mergedSelected.length ? `${mergedSelected.length} passages` : 'no_match', meta: baseMeta }
-    ];
-    if (!mergedSelected.length) return { context: '', events, status: 'no_match', selected: [], usedSources: [], telemetry: baseMeta, documentBound, structuralKind: structural.kind || null };
-    const { query, sourceIds } = result;
-    const selected = mergedSelected;
-    const scopeLabel = includeGlobalLibrary ? 'project_sources_plus_global_library' : 'project_sources';
-
-    // Regroupe les chunks selectionnes par document : un seul identifiant
-    // stable [Sx] par source, meme si plusieurs chunks du meme document sont
-    // utilises. L'id vient de sourceIds (ordre de l'onglet Sources), pas de
-    // la position dans cette selection — il ne change donc pas d'une requete
-    // a l'autre pour un meme fichier.
-    const groupsById = new Map();
-    selected.forEach((item) => {
-      const id = sourceIds.get(item.doc.id);
-      if (!id) return;
-      if (!groupsById.has(id)) groupsById.set(id, { id, doc: item.doc, items: [] });
-      groupsById.get(id).items.push(item);
-    });
-    const projectOwnDocIds = new Set(getProjectDocuments(activeProject.id).map((doc) => doc.id));
-    const usedSources = Array.from(groupsById.values())
-      .sort((a, b) => a.id - b.id)
-      .map((group) => {
-        const bestItem = group.items.slice().sort((a, b) => b.score - a.score)[0];
-        return {
-          id: group.id,
-          documentId: group.doc.id,
-          documentName: group.doc.name,
-          documentType: group.doc.type || 'Document',
-          locators: group.items.map((item) => item.locator),
-          sourceScope: projectOwnDocIds.has(group.doc.id) ? 'project' : 'global',
-          excerpt: String(bestItem?.chunk || '').replace(/\s+/g, ' ').trim().slice(0, 220),
-          bestScore: bestItem?.score ?? null
-        };
-      });
-
-    // Un evenement document_used par document reellement cite dans cette
-    // reponse (et seulement ceux-la) — permet de mesurer l'utilisation reelle
-    // par document dans l'onglet admin Documents, sans agreger plusieurs
-    // documents dans un seul evenement (rag_context_used reste agrege).
-    usedSources.forEach((source) => {
-      trackDocumentEvent('document_used', { id: source.documentId, name: source.documentName, projectId: activeProject.id }, {
-        score: source.bestScore,
-        sourceScope: source.sourceScope,
-        locatorsCount: source.locators.length
-      });
-    });
-
-    const structuralInstruction = (() => {
-      if (!structural.isStructural) return '';
-      if (structural.kind === 'researchers') {
-        return currentLanguage === 'en'
-          ? 'Keep ONLY the people explicitly mentioned in the passages below. Deduplicate names, never repeat a person, never invent a name absent from the passages, and do not mix the project file names or used sources with the researchers of the document. Present a clean table: researcher/author | associated work or contribution | role in the document | page or chunk if available.'
-          : "Ne garde QUE les personnes explicitement mentionnées dans les passages ci-dessous. Déduplique les noms, ne répète jamais une même personne, n'invente jamais un nom absent des passages, et ne mélange pas les noms de fichiers du projet ou les sources utilisées avec les chercheurs du document. Présente un tableau propre : chercheur/auteur | ouvrage ou contribution associée | rôle dans le document | page ou chunk si disponible.";
-      }
-      if (structural.kind === 'bibliography') {
-        return currentLanguage === 'en'
-          ? "Do not list the project file names. List ONLY the bibliographic references present in the passages below. Deduplicate references and, when available, separate clearly: author/researcher | work | year | role in the document. Do not invent references."
-          : "Ne liste pas les fichiers du projet. Liste UNIQUEMENT les références bibliographiques présentes dans les passages ci-dessous. Déduplique les références et, si disponible, sépare clairement : auteur/chercheur | ouvrage | année | rôle dans le document. N'invente aucune référence.";
-      }
-      if (structural.kind === 'tail') {
-        return currentLanguage === 'en'
-          ? 'The passages below are the final passages of the document, in natural reading order. Answer from them only; never say "no information" when end passages are provided.'
-          : "Les passages ci-dessous sont les derniers passages du document, dans l'ordre naturel de lecture. Réponds à partir d'eux uniquement ; ne dis jamais « aucune information » lorsque des passages de fin sont fournis.";
-      }
-      if (structural.kind === 'section') {
-        return currentLanguage === 'en'
-          ? 'Restore the requested section from the passages below ONLY (with their neighbouring context). Do not invent content; do not list project file names.'
-          : "Restitue la section demandée à partir des passages ci-dessous UNIQUEMENT (avec leur contexte voisin). N'invente aucun contenu ; ne liste pas les noms de fichiers du projet.";
-      }
-      return '';
-    })();
-
-    const intro = currentLanguage === 'en'
-      ? [
-        'Active project document context.',
-        `RAG scope: ${scopeLabel}. Active project: ${activeProject?.name || 'No project'}.`,
-        documentBound
-          ? 'This question is explicitly about the indexed document: answer ONLY from the passages below. Never use the web, project memory, your general knowledge, or earlier conversation turns to answer — conversation history may only help identify which document is meant.'
-          : 'Use the passages below only if relevant. If the documents do not contain the answer, say so clearly.',
-        structuralInstruction,
-        `Query terms: ${query.uniqueTerms.slice(0, 18).join(', ')}`
-      ].filter(Boolean).join('\n')
-      : [
-        'Contexte documentaire du projet actif.',
-        `Scope RAG : ${scopeLabel}. Projet actif : ${activeProject?.name || 'Aucun projet'}.`,
-        documentBound
-          ? "Cette question porte explicitement sur le document indexé : réponds UNIQUEMENT à partir des passages ci-dessous. N'utilise jamais le web, la mémoire de projet, tes connaissances générales ou les tours de conversation précédents pour répondre — l'historique peut seulement aider à identifier de quel document il s'agit."
-          : 'Utilise les passages documentaires ci-dessous si pertinents. Si les documents ne contiennent pas la réponse, dis-le clairement.',
-        structuralInstruction,
-        `Termes de requête : ${query.uniqueTerms.slice(0, 18).join(', ')}`
-      ].filter(Boolean).join('\n');
-
-    // Nettoyage V2 : fusion des noms propres cassés par l'extraction PDF
-    // pour les requêtes bibliographie / chercheurs (inerte sinon).
-    const cleanChunkText = (text) => (structural.kind === 'bibliography' || structural.kind === 'researchers')
-      ? normalizeProperNames(String(text || ''))
-      : String(text || '');
-    const passages = usedSources.map((source) => {
-      const group = groupsById.get(source.id);
-      const locatorLabel = source.locators.join(', ');
-      return [
-        `\n[S${source.id}]`,
-        currentLanguage === 'en' ? `Document: ${source.documentName}` : `Document : ${source.documentName}`,
-        currentLanguage === 'en' ? `Type: ${source.documentType}` : `Type : ${source.documentType}`,
-        currentLanguage === 'en' ? `Location: ${locatorLabel}` : `Localisation : ${locatorLabel}`,
-        currentLanguage === 'en' ? 'Excerpt:' : 'Extrait :',
-        group.items.map((item) => cleanChunkText(item.chunk)).join('\n---\n')
-      ].join('\n');
-    });
-
-    const sourcesIndexHeading = currentLanguage === 'en'
-      ? 'AVAILABLE DOCUMENT SOURCES FOR THIS REPLY:'
-      : 'SOURCES DOCUMENTAIRES DISPONIBLES POUR CETTE RÉPONSE :';
-    const sourcesIndexLines = usedSources.map((source) => {
-      const locatorLabel = source.locators.join(', ');
-      return `[S${source.id}] ${source.documentName} — ${source.documentType} — ${locatorLabel}`;
-    });
-    const validIdsLabel = usedSources.map((source) => `[S${source.id}]`).join(', ');
-    let sourcesRule = currentLanguage === 'en'
-      ? `Rule: cite only the identifiers ${validIdsLabel} listed above for information coming from these documents. Never invent a reference. If information comes from the persistent project memory instead, write "project memory" and not an [Sx] reference.`
-      : `Règle : cite uniquement les identifiants ${validIdsLabel} listés ci-dessus pour les informations issues de ces documents. N'invente jamais de référence. Si une information vient plutôt de la mémoire persistante du projet, écris « mémoire projet » et non une référence [Sx].`;
-    // Bug #2 : cet index de sources (noms de fichiers) ne doit jamais etre
-    // confondu avec la bibliographie INTERNE du document demandee.
-    if (structural.kind === 'bibliography') {
-      sourcesRule += currentLanguage === 'en'
-        ? ' This list of document/file names is NOT the bibliography requested: the bibliography is the cited references found inside the passages above.'
-        : " Cette liste de noms de documents/fichiers N'EST PAS la bibliographie demandée : la bibliographie correspond aux références citées à l'intérieur des passages ci-dessus.";
-    }
-    const sourcesIndexBlock = [sourcesIndexHeading, ...sourcesIndexLines, sourcesRule].join('\n');
-
-    const context = [intro, ...passages, `\n${sourcesIndexBlock}`].join('\n\n');
-    const usedMeta = { ...baseMeta, context_length: context.length, sources_used: usedSources.length };
-    events.push({ event_type: 'rag_context_used', event_value: `${selected.length} passages / ${usedSources.length} sources`, meta: usedMeta });
-    return { context, events, status: 'match', selected, usedSources, telemetry: usedMeta, documentBound, structuralKind: structural.kind || null };
-  }
-
   function loadExternalScript(src) {
     return new Promise((resolve, reject) => {
       const existing = document.querySelector(`script[src="${src}"]`);
@@ -6024,7 +5612,9 @@
         ? ' · plusieurs documents, clarification requise'
         : status === 'off_topic'
           ? ' · question hors sujet, RAG non déclenché'
-          : ` · ${sourceCount} source${sourceCount > 1 ? 's' : ''}`;
+          : status === 'backend_orchestrated'
+            ? ` · orchestration backend · ${sourceCount} source${sourceCount > 1 ? 's' : ''}`
+            : ` · ${sourceCount} source${sourceCount > 1 ? 's' : ''}`;
     ragStatus.hidden = false;
     ragStatus.textContent = `Projet actif : ${activeProject.name} · ${ragActive}${suffix}`;
   }
@@ -10888,67 +10478,9 @@
     window.speechSynthesis.speak(utterance);
   }
 
-  function shouldUseWebSearchForPrompt(text) {
-    const value = String(text || '').toLowerCase();
-    if (!value.trim()) return false;
-    const explicitTriggers = [
-      'recherche web',
-      'cherche sur le web',
-      'rechercher sur le web',
-      'recherche internet',
-      'cherche sur internet',
-      'search the web',
-      'web search',
-      'browse the web'
-    ];
-    if (explicitTriggers.some((trigger) => value.includes(trigger))) return true;
-    const currentInfoTriggers = [
-      'dernières annonces',
-      'derniere annonce',
-      'dernières actualités',
-      'derniere actualite',
-      'actualité',
-      'actualités',
-      'aujourd’hui',
-      "aujourd'hui",
-      'en temps réel',
-      'temps reel',
-      'benchmark concurrentiel',
-      'benchmark concurrentielle',
-      'benchmark marché',
-      'benchmark marche',
-      'analyse concurrentielle',
-      'concurrentiel',
-      'concurrents',
-      'applications concurrentes',
-      'part de marché',
-      'parts de marché',
-      'part de marche',
-      'classement',
-      'classements',
-      'prix abonnement',
-      'tarifs',
-      'comparatif marché',
-      'comparatif marche',
-      'latest news',
-      'latest announcement',
-      'recent announcement',
-      'current news',
-      'competitive benchmark',
-      'competitive analysis',
-      'market benchmark',
-      'market share',
-      'market ranking',
-      'pricing comparison',
-      'real time'
-    ];
-    return currentInfoTriggers.some((trigger) => value.includes(trigger));
-  }
-
   async function askAI(userText, fileContext = '', attachments = [], uploadMetadata = []) {
     const loading = addTypingMessage();
     const requestController = new AbortController();
-    let effectiveWebSearch = false;
     activeAssistantRequestController = requestController;
     setAssistantRequestRunning(true);
     try {
@@ -10959,36 +10491,12 @@
       // null) n'utilise donc aucun document ni mémoire de projet.
       const conversationProject = getProjectById(getActiveSession()?.projectId) || null;
       const ragCandidateProject = conversationProject;
-      // Calcule independamment de shouldUseProjectRagForMessage/activeProject :
-      // une requete liee a un document precis interdit le web meme quand
-      // aucun projet/document n'est disponible pour la tentative RAG.
-      const documentBoundQuery = !fileContext && isDocumentBoundQuery(userText);
-      const willCheckRag = !fileContext && shouldUseProjectRagForMessage(userText, ragCandidateProject);
-      if (willCheckRag) loading._setReasoningPhase?.(i18n.reasoningRagChecking);
       const ragContext = fileContext
         ? { context: '', events: [], status: 'file_context', selected: [], usedSources: [] }
-        : (willCheckRag
-          ? await buildKnowledgeContextForPrompt(userText)
-          : { context: '', events: [], status: 'off_topic', selected: [], usedSources: [], documentBound: documentBoundQuery });
+        : { context: '', events: [], status: 'backend_orchestrated', selected: [], usedSources: [] };
       const knowledgeContext = ragContext.context || '';
       renderRagStatus(ragContext.status);
-      if (willCheckRag) {
-        loading._setReasoningPhase?.(ragContext.status === 'match' ? i18n.reasoningRagFound : i18n.reasoningRagNone);
-      }
-      // Une requete liee a un document precis interdit le web sans
-      // exception, meme si l'utilisateur a active la recherche web
-      // manuellement ou si le texte contient un mot-cle de fraicheur, et
-      // meme si aucun document/projet n'est disponible pour tenter le RAG.
-      effectiveWebSearch = !documentBoundQuery && webSettings.tavilyEnabled !== false
-        && (isWebSearchActive || (ragContext.status !== 'match' && shouldUseWebSearchForPrompt(userText)));
-
-      // Activer le statut "recherche en cours" si recherche web activée
-      if (effectiveWebSearch) {
-        setWebSearchInProgress(true);
-        loading._setReasoningPhase?.(i18n.reasoningWebSearching);
-      } else {
-        loading._setReasoningPhase?.(i18n.reasoningComposing);
-      }
+      loading._setReasoningPhase?.(i18n.reasoningComposing);
 
       const contextSections = [];
       if (fileContext) {
@@ -11002,41 +10510,10 @@
           ? 'Available document context:'
           : 'Contexte documentaire disponible :';
         contextSections.push(`${knowledgeContextLabel}\n${knowledgeContext}`);
-      } else if (documentBoundQuery && ragContext.status === 'clarification') {
-        // Plusieurs documents disponibles, aucun cible : demander lequel
-        // utiliser plutot que de repondre « aucune information ».
-        const names = (ragContext.clarificationCandidates || []).slice(0, 8).map((n) => `« ${n} »`).join(', ');
-        contextSections.push(currentLanguage === 'en'
-          ? `Several indexed documents are available (${names}) and the question does not say which one. Ask the user which document to use before answering. Do not invent an answer and do not use the web.`
-          : `Plusieurs documents indexés sont disponibles (${names}) et la question ne précise pas lequel. Demande à l'utilisateur quel document utiliser avant de répondre. N'invente aucune réponse et n'utilise pas le web.`);
-      } else if (documentBoundQuery && ragContext.status === 'no_match') {
-        // Requete liee a un document precis, RAG tente sur un perimetre connu
-        // mais aucun passage trouve : phrase exacte exigee, sans fallback
-        // web/memoire projet/connaissances generales (cf. effectiveWebSearch
-        // desactive ci-dessus).
-        contextSections.push(currentLanguage === 'en'
-          ? `No matching passage was found in the indexed document for this query. You MUST reply with EXACTLY and only this sentence, nothing else: "No matching information was found in the indexed document."`
-          : `Aucun passage correspondant n'a été trouvé dans le document indexé pour cette requête. Tu DOIS répondre EXACTEMENT et uniquement par cette phrase, rien d'autre : "Aucune information correspondante n'a été trouvée dans le document indexé."`);
-      } else if (documentBoundQuery && ragContext.status === 'off_topic') {
-        // Conversation globale : le RAG client n'a pas ete tente (pas de
-        // projet attache a la conversation). Ne PAS forcer « aucune
-        // information » — le Knowledge Orchestrator backend cible la
-        // bibliotheque globale et fait le retrieval (cf. listIndexedDocuments
-        // includeGlobalLibrary). On rappelle seulement la contrainte stricte.
-        contextSections.push(currentLanguage === 'en'
-          ? 'This question is explicitly about an indexed document. Answer ONLY from indexed document passages provided by the system. Never use the web or your general knowledge. If several documents exist and none is specified, ask which one to use.'
-          : "Cette question porte explicitement sur un document indexé. Réponds UNIQUEMENT à partir des passages de document indexé fournis par le système. N'utilise jamais le web ni tes connaissances générales. Si plusieurs documents existent et qu'aucun n'est précisé, demande lequel utiliser.");
-      } else if (ragContext.status === 'no_match') {
-        contextSections.push(currentLanguage === 'en'
-          ? 'No project document source matched this query: no [Sx] identifier is available for this reply. If you did not use any document, state clearly that no project document source was used for this reply.'
-          : 'Aucune source documentaire du projet ne correspond à cette requête : aucun identifiant [Sx] n\'est disponible pour cette réponse. Si tu n\'utilises aucun document, indique clairement qu\'aucune source documentaire projet n\'a été utilisée pour cette réponse.');
       }
-      const userRequest = currentLanguage === 'en'
-        ? `User request:\n${userText}`
-        : `Demande utilisateur :\n${userText}`;
       const composedMessage = [
         ...contextSections,
-        userRequest
+        userText
       ].filter(Boolean).join('\n\n');
       const hasFileContext = Boolean(fileContext);
       const payloadAttachments = [
@@ -11066,11 +10543,11 @@
           tavilyEnabled: webSettings.tavilyEnabled !== false,
           economyMode: webSettings.economyMode !== false,
           expertMode: Boolean(webSettings.expertMode),
-          maxResults: Math.max(1, Math.min(10, Number(webSettings.maxResults) || 3))
+          maxResults: Math.max(1, Math.min(10, Number(webSettings.maxResults) || 3)),
+          userPreference: isWebSearchActive ? 'preferred' : 'auto'
         },
         documentSettings: assistantSettingsState.documents || {},
         ragTelemetry: ragContext.events || [],
-        searchWeb: effectiveWebSearch,
         webSearchQuery: userText
       };
       assistantLog('debug', 'api_request', {
@@ -11082,7 +10559,7 @@
         hasKnowledgeContext: Boolean(knowledgeContext),
         knowledgeContextLength: knowledgeContext.length,
         attachments: payloadAttachments.length,
-        webSearchActive: effectiveWebSearch,
+        webSearchActive: false,
         webSearchManualToggle: isWebSearchActive,
         ragStatus: ragContext.status,
         ragEvents: ragContext.events?.length || 0,
@@ -11094,11 +10571,6 @@
         includeGlobalLibrary: Boolean(conversationProject?.ragUseGlobalLibrary || assistantSettingsState.documents?.ragUseGlobalLibrary)
       });
       const data = await sendAssistantRequest(payload, requestController.signal);
-
-      // Désactiver le statut "recherche en cours"
-      if (effectiveWebSearch) {
-        setWebSearchInProgress(false);
-      }
 
       loading.remove();
       if (data.ok) {
@@ -11205,10 +10677,7 @@
       });
       if (loading) loading.remove();
 
-      // S’assurer que le statut est désactivé en cas d’erreur ou d'annulation.
-      if (effectiveWebSearch) {
-        setWebSearchInProgress(false);
-      }
+      setWebSearchInProgress(false);
 
       const message = wasAborted ? i18n.requestStopped : i18n.assistantDown;
       addMessage('bot', message);
