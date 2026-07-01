@@ -13,7 +13,7 @@
  */
 
 import { computeProjectPlan, DEFAULT_V3_PLACEHOLDERS } from './aiProjectManager.js';
-import { indexDocumentChunks, deleteDocumentVectors, queryRag, diagnoseRagPipeline, checkVectorizeHealth } from './ragPipeline.js';
+import { indexDocumentChunks, deleteDocumentVectors, queryRag, diagnoseRagPipeline, checkVectorizeHealth, listIndexedDocuments } from './ragPipeline.js';
 import { routeChatCompletion, diagnoseCloudflareAi, diagnoseOpenAi, diagnoseOpenRouterKey } from './modelRouter.js';
 import { detectUserIntent, planCapabilities, composeSystemPrompt, isOrchestratorEnabled } from './promptOrchestrator.js';
 import {
@@ -26,7 +26,10 @@ import {
   detectEvidenceNeed,
   planEvidence,
   buildSourcePolicy,
-  isSourcePlannerEnabled
+  isSourcePlannerEnabled,
+  isDocumentBoundQuery,
+  detectStructuralQuery,
+  resolveDocumentTarget
 } from './sourcePlanner.js';
 import {
   buildExecutionIntent,
@@ -49,6 +52,7 @@ import { createRagKnowledgeSource } from './knowledge/sources/ragSource.js';
 import { createTavilyKnowledgeSource } from './knowledge/sources/tavilySource.js';
 import { createProjectMemoryKnowledgeSource } from './knowledge/sources/projectMemorySource.js';
 import { createObsidianKnowledgeSource } from './knowledge/sources/obsidianSource.js';
+import { planQuery, compareQueryPlannerWithLegacy } from './queryPlanner.js';
 
 const DEFAULT_MODEL = 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free';
 const FALLBACK_MODEL = 'openrouter/auto';
@@ -553,7 +557,7 @@ function containsAnyKeyword(value, keywords) {
   return keywords.some((keyword) => normalized.includes(normalizeForKeywordMatching(keyword)));
 }
 
-function detectWebSearchIntent(message, body = {}) {
+export function detectWebSearchIntent(message, body = {}) {
   const requestedExplicitly = body?.searchWeb === true || body?.searchWeb === 'true';
   const haystack = [
     message,
@@ -841,7 +845,17 @@ async function waitForTavilyDedupeResult(env, cacheKey) {
   return null;
 }
 
-async function decideWebSearch({ message, body, env, sessionId, hasFileContext, attachments }) {
+export async function decideWebSearch({ message, body, env, sessionId, hasFileContext, attachments }) {
+  // Garde-fou prioritaire, independant du flag SOURCE_PLANNER_ENABLED : une
+  // requete explicitement liee a un document ("ce document", "ce PDF", "du
+  // document"...) ne doit jamais declencher Tavily/web, meme si le message
+  // contient par ailleurs un mot-cle de fraicheur ("derniers", "recent"...)
+  // qui activerait normalement mandatoryKeywords ci-dessous. Verifie avant
+  // tout calcul de quota/credits pour court-circuiter au plus tot.
+  if (isDocumentBoundQuery(message)) {
+    const intent = detectWebSearchIntent(message, body);
+    return { shouldSearch: false, intent, ultraEconomy: false, reason: 'skipped_document_bound_query' };
+  }
   const intent = detectWebSearchIntent(message, body);
   const persistentCreditsUsed = await getPersistentTavilyCreditsUsed(env);
   const quota = getTavilyQuota(env);
@@ -2467,6 +2481,35 @@ export default {
       }
     }
 
+    // Requete explicitement liee a un document ("ce document", "ce PDF",
+    // "bibliographie du document"...) : RAG obligatoire, web/Tavily/memoire
+    // projet desactives sans exception (cf. isDocumentBoundQuery). Calcule
+    // une seule fois ici et reutilise pour shouldSearchWeb + l'appel au
+    // Knowledge Orchestrator plus bas.
+    const documentBound = isDocumentBoundQuery(message);
+    // Retrieval structurel (bibliographie / chercheurs / derniers
+    // paragraphes / table des matieres) : determine le mode de recuperation
+    // a privilegier (lexical/tail) en complement du vectoriel. Inerte hors
+    // requete documentaire.
+    const structuralQuery = documentBound ? detectStructuralQuery(message) : { isStructural: false, kind: null, retrieval: null, lexicalTerms: [] };
+    // Document targeting : sur une requete « ce document / le document », on
+    // cible un document precis. Mono-document -> ce document ; multi-document
+    // -> dernier indexe, sinon clarification (jamais une reponse hallucinee
+    // ni « aucune information » premature). includeGlobalLibrary quand aucun
+    // projet n'est attache a la conversation (mode global).
+    let documentTarget = { documentId: null, status: 'none', candidates: [], reason: 'not_document_bound' };
+    if (documentBound) {
+      const candidateDocs = await listIndexedDocuments(env, {
+        projectId: body?.projectId || '',
+        includeGlobalLibrary: !body?.projectId
+      });
+      documentTarget = resolveDocumentTarget({
+        documents: candidateDocs,
+        lastConsultedDocumentId: body?.lastConsultedDocumentId || null,
+        lastIndexedDocumentId: candidateDocs[0]?.id || null
+      });
+    }
+
     const webSearchDecision = await decideWebSearch({
       message,
       body,
@@ -2489,11 +2532,97 @@ export default {
     // web_search (ex. citations exigees sans RAG disponible) — jamais le
     // retirer si deja decide par un module en amont. Pur OR additif, sans
     // effet quand toolPlan est null (flag desactive/erreur).
-    const shouldSearchWeb = webSearchDecision.shouldSearch
+    // documentBound l'emporte sur tous les signaux additifs ci-dessus (Lot 9/
+    // 10/11 inclus) : une requete liee a un document precis ne doit jamais
+    // declencher le web, meme si un planificateur amont l'aurait force.
+    const shouldSearchWeb = !documentBound && (
+      webSearchDecision.shouldSearch
       || Boolean(executionPlan ? executionPlan.plan.forceWeb : sourcePlan?.plan?.forceWeb)
-      || Boolean(toolPlan?.plan?.toolsNeeded?.includes('web_search'));
+      || Boolean(toolPlan?.plan?.toolsNeeded?.includes('web_search'))
+    );
     if (!shouldSearchWeb) {
       tavilyRuntimeStats.skipped += 1;
+    }
+
+    // Phase 1 simplification documentaire : queryPlanner tourne en mode
+    // ombre uniquement. Sa sortie n'est jamais consommee par le pipeline de
+    // reponse ; elle sert a mesurer les divergences avec l'empilement actuel
+    // avant toute bascule comportementale.
+    try {
+      const legacyForceWeb = !documentBound && (
+        Boolean(webSearchDecision?.intent?.explicit || webSearchDecision?.intent?.mandatory)
+        || Boolean(executionPlan ? executionPlan.plan.forceWeb : sourcePlan?.plan?.forceWeb)
+        || Boolean(toolPlan?.plan?.toolsNeeded?.includes('web_search'))
+      );
+      const legacyForceRag = documentBound
+        || Boolean(executionPlan ? executionPlan.plan.forceRag : sourcePlan?.plan?.forceRag);
+      const legacyUseRag = documentBound
+        || Boolean(capabilityPlan?.capabilities?.needsRag)
+        || Boolean(sourcePlan?.plan?.useRag || sourcePlan?.plan?.forceRag)
+        || Boolean(executionPlan?.plan?.useRag || executionPlan?.plan?.forceRag)
+        || Boolean(toolPlan?.plan?.toolsNeeded?.includes('rag'));
+      const queryPlan = planQuery({
+        userMessage: message,
+        language,
+        attachments,
+        hasProjectDocuments: Boolean(body?.projectId) || ragTelemetry.length > 0 || attachments.length > 0,
+        hasRagSources: ragTelemetry.some((evt) => ['rag_match', 'rag_context_used'].includes(evt?.event_type)),
+        hasProjectMemory: Boolean(projectMemory && projectMemory.trim()),
+        documents: documentTarget?.candidates || [],
+        lastConsultedDocumentId: body?.lastConsultedDocumentId || null,
+        lastIndexedDocumentId: documentTarget?.documentId || null,
+        webAvailable: true,
+        ragAvailable: true
+      });
+      const comparison = compareQueryPlannerWithLegacy({
+        queryPlan,
+        legacyPlan: {
+          useRag: legacyUseRag,
+          useWeb: shouldSearchWeb,
+          forceRag: legacyForceRag,
+          forceWeb: legacyForceWeb,
+          sourceBudget: sourcePlan?.plan?.maxSources || (shouldSearchWeb || legacyUseRag ? 4 : 0),
+          documentTarget,
+          retrievalMode: documentBound
+            ? (structuralQuery?.retrieval === 'tail' ? 'tail' : (structuralQuery?.retrieval ? 'section' : 'normal'))
+            : 'none'
+        }
+      });
+      const queryPlannerMeta = {
+        hasDivergence: comparison.hasDivergence,
+        divergences: comparison.divergences,
+        legacy: comparison.legacy,
+        queryPlanner: comparison.queryPlanner,
+        reasons: queryPlan.reasons
+      };
+      queueAiEvent(ctx, env, request, {
+        event_type: 'query_planner_shadow_compared',
+        event_value: comparison.hasDivergence ? 'divergence' : 'aligned',
+        language,
+        page_url: pageUrl,
+        session_id: sessionId,
+        meta: queryPlannerMeta
+      });
+      if (comparison.hasDivergence) {
+        queueAiEvent(ctx, env, request, {
+          event_type: 'query_planner_shadow_divergence',
+          event_value: comparison.divergences.map((item) => item.field).join(',').slice(0, 255),
+          language,
+          page_url: pageUrl,
+          session_id: sessionId,
+          meta: queryPlannerMeta
+        });
+      }
+    } catch (error) {
+      console.warn('query_planner_shadow_failed', error instanceof Error ? error.message : String(error));
+      queueAiEvent(ctx, env, request, {
+        event_type: 'query_planner_shadow_error',
+        event_value: 'query_planner_failed',
+        language,
+        page_url: pageUrl,
+        session_id: sessionId,
+        meta: { error: compactText(error instanceof Error ? error.message : String(error), 300) }
+      });
     }
 
     if (!hasUsableOpenRouterKey(env)) {
@@ -2633,18 +2762,44 @@ export default {
           executionPlan,
           projectContext: {
             projectId: body?.projectId || '',
-            projectMemory,
-            memory: projectMemory,
+            // Requete liee a un document : la memoire de projet ne doit
+            // jamais servir a repondre au contenu de la question (regle
+            // explicite), seulement l'historique de conversation peut aider
+            // a identifier QUEL document est vise (gere cote frontend).
+            projectMemory: documentBound ? '' : projectMemory,
+            memory: documentBound ? '' : projectMemory,
             obsidianVaultId: body?.obsidianVaultId || body?.vaultId || 'vault_1'
           },
           history,
           tokenBudget: Math.max(1200, Math.min(6000, effectiveKnowledgeTokenBudget(body, maxTokens))),
           language,
-          includeProjectMemory: true
+          // documentBound force sourceFamilies = ['rag'] exactement et
+          // desactive project_memory/tavily/obsidian, sans toucher au
+          // comportement par defaut des autres requetes (sources: null ->
+          // inchangee, includeProjectMemory: true -> inchangee).
+          sources: documentBound ? ['rag'] : null,
+          includeProjectMemory: !documentBound,
+          // Recall RAG elargi pour les requetes documentaires strictes
+          // (bibliographie, liste de chercheurs, fin de document) : plus de
+          // passages candidats et seuil de similarite abaisse, uniquement
+          // dans ce cas precis — comportement par defaut (maxPassages=8,
+          // seuil 0.72 dans ragPipeline.js) inchange sinon.
+          maxPassages: documentBound ? 16 : 8,
+          similarityThreshold: documentBound ? 0.5 : undefined,
+          // Retrieval structurel + document cible (inertes hors documentBound).
+          structural: structuralQuery.isStructural ? structuralQuery : null,
+          targetDocumentId: documentBound ? documentTarget.documentId : null
         });
         if (knowledgeResult?.contextBlock) {
           finalSystemPrompt = `${finalSystemPrompt}\n\n${knowledgeResult.contextBlock}`;
         }
+        // Phase 1 simplification documentaire : les consignes strictes
+        // strictDocInstruction (repondre UNIQUEMENT depuis les passages,
+        // phrase exacte en cas d'absence, demande de clarification multi-doc)
+        // sont retirees. documentBound continue de forcer sources=['rag'], de
+        // couper la memoire projet et d'elargir le recall : le ciblage
+        // documentaire reste (garde-fou), la decision de la forme de la
+        // reponse retourne au LLM via le prompt systeme.
         recordKnowledgeDebugSnapshot(env, buildKnowledgeDebugSnapshot(knowledgeResult));
         await persistKnowledgeQuery(env, { sessionId, query: message, result: knowledgeResult });
         queueAiEvent(ctx, env, request, {
@@ -2674,6 +2829,9 @@ export default {
           session_id: sessionId,
           meta: { error: compactText(error instanceof Error ? error.message : String(error), 300) }
         });
+        // Phase 1 : le fallbackSentence force (phrase exacte en cas d'erreur
+        // d'orchestrateur sur requete documentaire) est retire. Le LLM
+        // retrouve la main ; le ciblage documentaire reste actif plus haut.
       }
     }
     let webSearchResults = [];
