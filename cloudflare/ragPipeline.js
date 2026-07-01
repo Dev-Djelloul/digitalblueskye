@@ -231,6 +231,198 @@ export async function queryRag(env, { query, projectId, includeGlobalLibrary, ma
 }
 
 /**
+ * Liste les documents indexes (un par document_id) pour le ciblage
+ * documentaire : projet courant, ou bibliotheque entiere si
+ * includeGlobalLibrary. Lit rag_chunks (source de verite de l'indexation).
+ * Le indexedAt est approxime par le created_at le plus recent des chunks.
+ */
+export async function listIndexedDocuments(env, { projectId, includeGlobalLibrary } = {}) {
+  if (!env?.DB) return [];
+  try {
+    let sql = `SELECT document_id, document_name, MAX(created_at) AS indexed_at
+               FROM rag_chunks`;
+    const binds = [];
+    if (!includeGlobalLibrary) {
+      sql += ' WHERE project_id = ?';
+      binds.push(projectId || '');
+    }
+    sql += ' GROUP BY document_id ORDER BY indexed_at DESC';
+    const rows = await env.DB.prepare(sql).bind(...binds).all();
+    return (rows?.results || []).map((row) => ({
+      id: row.document_id,
+      name: row.document_name || row.document_id,
+      indexedAt: Date.parse(row.indexed_at || '') || 0
+    }));
+  } catch (error) {
+    console.warn('rag_list_documents_failed', error instanceof Error ? error.message : String(error));
+    return [];
+  }
+}
+
+/**
+ * Recuperation positionnelle (« derniers paragraphes », « fin du
+ * document », « conclusion ») : les N derniers chunks d'un document par
+ * chunk_index, lus directement en D1 (rag_chunks est la source de verite,
+ * cf. indexDocumentChunks). Aucune dependance au vectoriel : la similarite
+ * semantique ne sait pas repondre a une requete purement positionnelle.
+ * Retourne les chunks re-tries par ordre croissant de chunk_index pour une
+ * lecture naturelle (le plus ancien d'abord parmi les derniers).
+ */
+export async function queryDocumentTail(env, { documentId, projectId, limit } = {}) {
+  if (!env?.DB) return { ok: false, error: 'db_unavailable', selected: [] };
+  if (!documentId) return { ok: false, error: 'missing_document_id', selected: [] };
+  const startedAt = Date.now();
+  const max = Math.max(1, Math.min(30, Number(limit) || 10));
+  try {
+    const rows = await env.DB.prepare(
+      `SELECT id, document_id, document_name, chunk_index, locator, text
+       FROM rag_chunks
+       WHERE document_id = ?
+       ORDER BY chunk_index DESC
+       LIMIT ?`
+    ).bind(documentId, max).all();
+    const selected = (rows?.results || [])
+      .map((row) => ({
+        documentId: row.document_id,
+        documentName: row.document_name,
+        chunkIndex: Number(row.chunk_index),
+        locator: row.locator || '',
+        score: 1,
+        text: String(row.text || '')
+      }))
+      .filter((item) => item.text)
+      .sort((a, b) => a.chunkIndex - b.chunkIndex);
+    return {
+      ok: true,
+      selected,
+      telemetry: {
+        retrieval: 'document_tail',
+        document_id: documentId,
+        chunks_selected: selected.length,
+        duration_ms: Date.now() - startedAt
+      }
+    };
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    console.warn('rag_tail_failed', detail);
+    return { ok: false, error: 'tail_failed', detail, selected: [] };
+  }
+}
+
+/**
+ * Recuperation de chunks precis par (document_id, chunk_index) — sert au
+ * « chunk voisinage » du document_section_retrieval : une fois un chunk
+ * trouve par recherche lexicale (ex. la ligne « Bibliographie »), on
+ * recupere les chunks immediatement avant/apres pour ne pas tronquer la
+ * section. Lecture seule sur rag_chunks (source de verite de l'indexation).
+ */
+export async function getChunksByIndices(env, { documentId, indices } = {}) {
+  if (!env?.DB || !documentId) return [];
+  const wanted = Array.from(new Set((Array.isArray(indices) ? indices : [])
+    .map((n) => Number(n))
+    .filter((n) => Number.isInteger(n) && n >= 0)))
+    .slice(0, 60);
+  if (!wanted.length) return [];
+  try {
+    const placeholders = wanted.map(() => '?').join(',');
+    const rows = await env.DB.prepare(
+      `SELECT id, document_id, document_name, chunk_index, locator, text
+       FROM rag_chunks
+       WHERE document_id = ? AND chunk_index IN (${placeholders})
+       ORDER BY chunk_index ASC`
+    ).bind(documentId, ...wanted).all();
+    return (rows?.results || [])
+      .map((row) => ({
+        documentId: row.document_id,
+        documentName: row.document_name,
+        chunkIndex: Number(row.chunk_index),
+        locator: row.locator || '',
+        score: 0.5,
+        text: String(row.text || '')
+      }))
+      .filter((item) => item.text);
+  } catch (error) {
+    console.warn('rag_neighbors_failed', error instanceof Error ? error.message : String(error));
+    return [];
+  }
+}
+
+/**
+ * Recherche lexicale (LIKE) sur le texte des chunks, pour les requetes
+ * structurelles (bibliographie, chercheurs, auteurs...) que la similarite
+ * vectorielle seule rate (une liste de references score mal contre « Que
+ * contient la bibliographie ? »). Score = nombre de termes distincts
+ * trouves dans le chunk. A combiner avec le vectoriel en aval, jamais a
+ * utiliser seule comme nouveau pipeline.
+ */
+export async function lexicalSearchChunks(env, { terms, projectId, includeGlobalLibrary, documentId, limit } = {}) {
+  if (!env?.DB) return { ok: false, error: 'db_unavailable', selected: [] };
+  const cleanTerms = (Array.isArray(terms) ? terms : [])
+    .map((t) => String(t || '').trim().toLowerCase())
+    .filter((t) => t.length >= 3)
+    .slice(0, 16);
+  if (!cleanTerms.length) return { ok: false, error: 'no_terms', selected: [] };
+  const startedAt = Date.now();
+  const max = Math.max(1, Math.min(40, Number(limit) || 16));
+  // Sur-echantillonne en SQL (les termes peuvent co-occurrer dans un meme
+  // chunk) puis score/limite cote Worker.
+  const sqlLimit = Math.min(200, max * 6);
+  try {
+    const conditions = [];
+    const binds = [];
+    cleanTerms.forEach((term) => {
+      conditions.push('LOWER(text) LIKE ?');
+      binds.push(`%${term}%`);
+    });
+    let scopeClause = '';
+    if (documentId) {
+      scopeClause = ' AND document_id = ?';
+      binds.push(documentId);
+    } else if (!includeGlobalLibrary) {
+      scopeClause = ' AND project_id = ?';
+      binds.push(projectId || '');
+    }
+    const rows = await env.DB.prepare(
+      `SELECT id, document_id, document_name, chunk_index, locator, text
+       FROM rag_chunks
+       WHERE (${conditions.join(' OR ')})${scopeClause}
+       LIMIT ?`
+    ).bind(...binds, sqlLimit).all();
+    const selected = (rows?.results || [])
+      .map((row) => {
+        const lower = String(row.text || '').toLowerCase();
+        const matched = cleanTerms.filter((term) => lower.includes(term));
+        return {
+          documentId: row.document_id,
+          documentName: row.document_name,
+          chunkIndex: Number(row.chunk_index),
+          locator: row.locator || '',
+          score: matched.length,
+          matchedTerms: matched,
+          text: String(row.text || '')
+        };
+      })
+      .filter((item) => item.text && item.score > 0)
+      .sort((a, b) => b.score - a.score || a.chunkIndex - b.chunkIndex)
+      .slice(0, max);
+    return {
+      ok: true,
+      selected,
+      telemetry: {
+        retrieval: 'lexical',
+        terms: cleanTerms,
+        chunks_selected: selected.length,
+        duration_ms: Date.now() - startedAt
+      }
+    };
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    console.warn('rag_lexical_failed', detail);
+    return { ok: false, error: 'lexical_failed', detail, selected: [] };
+  }
+}
+
+/**
  * Probe de sante active et en lecture seule pour Vectorize (aucun
  * upsert/delete, contrairement a diagnoseRagPipeline ci-dessous) : confirme
  * que l'index repond reellement a une requete, independamment de toute

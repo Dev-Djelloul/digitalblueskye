@@ -6,7 +6,10 @@ import {
   planEvidence,
   buildSourcePolicy,
   isSourcePlannerEnabled,
-  planSourceUsage
+  planSourceUsage,
+  isDocumentBoundQuery,
+  detectStructuralQuery,
+  resolveDocumentTarget
 } from './sourcePlanner.js';
 
 let failures = 0;
@@ -177,6 +180,145 @@ function check(label, condition) {
   const r = planSourceUsage({ userMessage: 'D\'après ce document, résume les points clés.', hasProjectDocuments: false, hasRagSources: false, attachments: [] });
   check('regle: reference document sans document -> clarification_required', r.evidence.sourceRequirement === 'clarification_required');
   check('regle: askClarifyingQuestion true', r.plan.askClarifyingQuestion === true);
+}
+
+// ── Non-regression : requetes liees a un document (bug report) ──────────
+// 3 scenarios reels qui produisaient des reponses incorrectes : hallucination
+// de noms hors document, declenchement web a tort, fausse absence de
+// bibliographie. La correction doit forcer sourceFamilies=['rag'],
+// useWeb=false, useProjectMemory=false, sans jamais retomber sur le web ou
+// la memoire de projet, quel que soit le contenu exact de la question.
+{
+  check('isDocumentBoundQuery: "ce document" detecte', isDocumentBoundQuery('Quels chercheurs sont mentionnés dans ce document ?'));
+  check('isDocumentBoundQuery: "du document" detecte', isDocumentBoundQuery('Que contient la bibliographie du document ?'));
+  check('isDocumentBoundQuery: "du document" (paragraphes) detecte', isDocumentBoundQuery('Donne-moi les 10 derniers paragraphes du document.'));
+  check('isDocumentBoundQuery: message hors-sujet non detecte', !isDocumentBoundQuery('Quelle heure est-il ?'));
+}
+
+{
+  // Cas 1 : "Quels chercheurs sont mentionnés dans ce document ?"
+  const r = planSourceUsage({
+    userMessage: 'Quels chercheurs sont mentionnés dans ce document ? Classe-les selon leur contribution.',
+    hasProjectDocuments: true,
+    hasRagSources: true,
+    hasProjectMemory: true
+  });
+  check('bug#1 chercheurs: sourceRequirement rag_only_required', r.evidence.sourceRequirement === 'rag_only_required');
+  check('bug#1 chercheurs: sourceFamilies === [rag]', JSON.stringify(r.plan.sourceFamilies) === JSON.stringify(['rag']));
+  check('bug#1 chercheurs: useWeb false', r.plan.useWeb === false);
+  check('bug#1 chercheurs: forceWeb false', r.plan.forceWeb === false);
+  check('bug#1 chercheurs: useProjectMemory false', r.plan.useProjectMemory === false);
+  check('bug#1 chercheurs: fallbackBehavior document_only_strict', r.plan.fallbackBehavior === 'document_only_strict');
+  check('bug#1 chercheurs: failureInstruction contient la phrase exacte', r.policy.failureInstruction.includes("Aucune information correspondante n'a été trouvée dans le document indexé."));
+}
+
+{
+  // Cas 2 : "Donne-moi les 10 derniers paragraphes du document." — contient
+  // le mot-cle "derniers" qui declenchait a tort le web (mandatoryKeywords
+  // de detectWebSearchIntent dans worker-openrouter.js).
+  const r = planSourceUsage({
+    userMessage: 'Donne-moi les 10 derniers paragraphes du document.',
+    hasProjectDocuments: true,
+    hasRagSources: true,
+    hasProjectMemory: true
+  });
+  check('bug#2 derniers paragraphes: sourceRequirement rag_only_required', r.evidence.sourceRequirement === 'rag_only_required');
+  check('bug#2 derniers paragraphes: sourceFamilies === [rag]', JSON.stringify(r.plan.sourceFamilies) === JSON.stringify(['rag']));
+  check('bug#2 derniers paragraphes: useWeb false malgre le mot "derniers"', r.plan.useWeb === false);
+  check('bug#2 derniers paragraphes: forceWeb false', r.plan.forceWeb === false);
+}
+
+{
+  // Cas 3 : "Que contient la bibliographie du document ?"
+  const r = planSourceUsage({
+    userMessage: 'Que contient la bibliographie du document ?',
+    hasProjectDocuments: true,
+    hasRagSources: true,
+    hasProjectMemory: true
+  });
+  check('bug#3 bibliographie: sourceRequirement rag_only_required', r.evidence.sourceRequirement === 'rag_only_required');
+  check('bug#3 bibliographie: sourceFamilies === [rag]', JSON.stringify(r.plan.sourceFamilies) === JSON.stringify(['rag']));
+  check('bug#3 bibliographie: useWeb false', r.plan.useWeb === false);
+  check('bug#3 bibliographie: useProjectMemory false', r.plan.useProjectMemory === false);
+}
+
+{
+  // L'override combine RAG+web ne doit PAS reactiver le web pour une
+  // requete document-bound : rag_only_required est strict, sans exception,
+  // meme quand un mot-cle web (ici "tarifs") apparait dans le meme message.
+  const r = planSourceUsage({
+    userMessage: 'Compare le contenu de ce document avec les derniers tarifs annoncés récemment par nos concurrents sur le marché.',
+    hasProjectDocuments: true,
+    hasRagSources: true,
+    hasProjectMemory: true
+  });
+  check('combine rag+web sur requete document-bound: sourceRequirement rag_only_required', r.evidence.sourceRequirement === 'rag_only_required');
+  check('combine rag+web sur requete document-bound: useWeb reste false', r.plan.useWeb === false);
+  check('combine rag+web sur requete document-bound: sourceFamilies === [rag]', JSON.stringify(r.plan.sourceFamilies) === JSON.stringify(['rag']));
+}
+
+// ── detectStructuralQuery V2 : bibliography / researchers / tail / section ─
+{
+  const biblio = detectStructuralQuery('Que contient la bibliographie du document ?');
+  check('structurel: bibliographie -> kind bibliography', biblio.kind === 'bibliography');
+  check('structurel: bibliographie -> type alias = kind', biblio.type === 'bibliography');
+  check('structurel: bibliographie -> retrieval section (lexical+voisinage)', biblio.retrieval === 'section');
+  check('structurel: bibliographie -> termes lexicaux non vides', biblio.lexicalTerms.length > 0);
+
+  const people = detectStructuralQuery('Quels chercheurs sont mentionnés dans ce document ?');
+  check('structurel: chercheurs -> kind researchers', people.kind === 'researchers');
+  check('structurel: chercheurs -> retrieval lexical', people.retrieval === 'lexical');
+
+  const tail = detectStructuralQuery('Donne-moi les 10 derniers paragraphes du document.');
+  check('structurel: derniers paragraphes -> kind tail', tail.kind === 'tail');
+  check('structurel: derniers paragraphes -> retrieval tail', tail.retrieval === 'tail');
+
+  const tailChunks = detectStructuralQuery('Montre-moi les derniers chunks du document.');
+  check('structurel: derniers chunks -> kind tail', tailChunks.kind === 'tail');
+  const lastPages = detectStructuralQuery('Donne-moi les dernières pages du document.');
+  check('structurel: dernières pages -> kind tail', lastPages.kind === 'tail');
+  const endConclusion = detectStructuralQuery('Donne la conclusion du document.');
+  check('structurel: conclusion du document -> kind tail', endConclusion.kind === 'tail');
+
+  const toc = detectStructuralQuery('Donne-moi la table des matières du document.');
+  check('structurel: table des matières -> kind section', toc.kind === 'section');
+  check('structurel: table des matières -> retrieval section', toc.retrieval === 'section');
+
+  const resume = detectStructuralQuery('Donne le résumé du document.');
+  check('structurel: résumé du document -> kind section', resume.kind === 'section');
+
+  const conclusion = detectStructuralQuery('Résume la conclusion du document.');
+  check('structurel: conclusion -> kind tail (positionnel)', conclusion.kind === 'tail');
+
+  const none = detectStructuralQuery('Quel est le sujet du document ?');
+  check('structurel: question generique -> non structurel', none.isStructural === false);
+}
+
+// ── resolveDocumentTarget : ciblage documentaire ─────────────────────────
+{
+  // Un seul document -> cible automatiquement ce document.
+  const single = resolveDocumentTarget({ documents: [{ id: 'doc-pdf', name: 'Secret de l’Islam.pdf' }] });
+  check('targeting: 1 document -> status single', single.status === 'single');
+  check('targeting: 1 document -> documentId cible', single.documentId === 'doc-pdf');
+
+  // Plusieurs documents, aucun dernier connu -> clarification.
+  const ambiguous = resolveDocumentTarget({ documents: [{ id: 'a', name: 'A' }, { id: 'b', name: 'B' }] });
+  check('targeting: plusieurs documents -> status ambiguous', ambiguous.status === 'ambiguous');
+  check('targeting: plusieurs documents -> aucun documentId force', ambiguous.documentId === null);
+  check('targeting: plusieurs documents -> candidats listes', ambiguous.candidates.length === 2);
+
+  // Plusieurs documents, dernier consulte connu -> ce document.
+  const lastConsulted = resolveDocumentTarget({ documents: [{ id: 'a', name: 'A' }, { id: 'b', name: 'B' }], lastConsultedDocumentId: 'b' });
+  check('targeting: dernier consulte -> status resolved_last', lastConsulted.status === 'resolved_last');
+  check('targeting: dernier consulte -> documentId = dernier consulte', lastConsulted.documentId === 'b');
+
+  // Plusieurs documents avec dates -> plus recemment indexe.
+  const byDate = resolveDocumentTarget({ documents: [{ id: 'a', name: 'A', indexedAt: 100 }, { id: 'b', name: 'B', indexedAt: 200 }] });
+  check('targeting: plus recent indexe -> documentId = plus recent', byDate.documentId === 'b');
+
+  // Aucun document.
+  const none = resolveDocumentTarget({ documents: [] });
+  check('targeting: aucun document -> status none', none.status === 'none');
 }
 
 // ── isSourcePlannerEnabled : flag-gating ─────────────────────────────────

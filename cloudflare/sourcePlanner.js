@@ -61,7 +61,15 @@ const RX = {
   architectureInternal: /\b(architecture|rag\b|pipeline|impl[ée]mentation\s+interne|fonctionnement\s+interne)\b/i,
 
   // 5. Clarification requise.
-  documentReferenceVague: /\b(d['e]apr[èe]s\s+ce\s+document|selon\s+ce\s+document|dans\s+ce\s+fichier|d['e]apr[èe]s\s+cette\s+source)\b/i
+  documentReferenceVague: /\b(d['e]apr[èe]s\s+ce\s+document|selon\s+ce\s+document|dans\s+ce\s+fichier|d['e]apr[èe]s\s+cette\s+source)\b/i,
+
+  // 6. Requete liee a un document precis (forcage RAG strict, web/memoire
+  // projet desactives) : "ce document", "ce PDF", "dans le document",
+  // "selon le document", "bibliographie du document", "derniers
+  // paragraphes du document", "chercheurs mentionnes dans ce document"...
+  // toute formulation contenant "ce document"/"ce pdf"/"le document"/"du
+  // document" declenche ce mode, qu'un document soit deja indexe ou non.
+  documentBound: /\b(ce\s+document|ce\s+pdf|cette\s+pdf|dans\s+ce\s+fichier|(?:dans|selon|d['e]apr[èe]s)\s+le\s+document|du\s+document|le\s+document|this\s+document|this\s+pdf|in\s+this\s+file)\b/i
 };
 
 function wordCount(text) {
@@ -127,7 +135,8 @@ export function detectEvidenceNeed({
     projectExplicit: RX.projectExplicit.test(msg),
     namedProjectEntity: RX.namedProjectEntity.test(msg),
     architectureInternal: RX.architectureInternal.test(msg),
-    documentReferenceVague: RX.documentReferenceVague.test(msg)
+    documentReferenceVague: RX.documentReferenceVague.test(msg),
+    documentBound: RX.documentBound.test(msg)
   };
 
   const internalAllowedSignal = Boolean(
@@ -170,10 +179,12 @@ export function detectEvidenceNeed({
   // alors que des documents projet existent reellement.
   const ragMandatorySignal = Boolean(
     flags.projectExplicit ||
+    flags.documentBound ||
     (flags.namedProjectEntity && flags.architectureInternal) ||
     (hasProjectDocuments && (flags.namedProjectEntity || flags.projectExplicit || flags.documentReferenceVague))
   );
   if (flags.projectExplicit) push('sourceRequirement', 'project_explicit_keyword');
+  if (flags.documentBound) push('sourceRequirement', 'document_bound_query_keyword');
   if (flags.namedProjectEntity && flags.architectureInternal) push('sourceRequirement', 'named_entity_architecture');
   if (hasProjectDocuments && (flags.namedProjectEntity || flags.projectExplicit || flags.documentReferenceVague)) {
     push('sourceRequirement', 'project_documents_available_and_referenced');
@@ -182,7 +193,7 @@ export function detectEvidenceNeed({
   // Clarification requise : reference documentaire vague SANS document
   // disponible, ou demande factuelle/chiffree sans aucun perimetre/critere.
   const noDocumentAvailable = !hasProjectDocuments && !hasRagSources && !(Array.isArray(attachments) && attachments.length > 0);
-  const vagueDocumentReference = Boolean(flags.documentReferenceVague && noDocumentAvailable);
+  const vagueDocumentReference = Boolean((flags.documentReferenceVague || flags.documentBound) && noDocumentAvailable);
   if (vagueDocumentReference) push('sourceRequirement', 'document_reference_without_document');
 
   const vagueFactualDemand = Boolean(
@@ -222,6 +233,7 @@ export function detectEvidenceNeed({
   // ── sourceRequirement ────────────────────────────────────────────────────
   let sourceRequirement = 'no_source_needed';
   if (clarificationSignal) sourceRequirement = 'clarification_required';
+  else if (flags.documentBound) sourceRequirement = 'rag_only_required';
   else if (ragMandatorySignal) sourceRequirement = 'rag_required';
   else if (flags.pricing || flags.recency || flags.officialDocs || flags.quotaLimits || hasWebIntent) sourceRequirement = 'web_required';
   else if (flags.travel) sourceRequirement = hasProjectDocuments ? 'rag_or_web_required' : 'web_preferred';
@@ -289,6 +301,7 @@ const PREFERRED_SOURCE_TYPES_BY_REQUIREMENT = {
   rag_or_web_required: ['project_docs', 'user_uploaded_docs', 'recent_web'],
   web_required: ['recent_web', 'pricing_pages', 'official_docs', 'api_docs'],
   rag_required: ['project_docs', 'user_uploaded_docs'],
+  rag_only_required: ['project_docs', 'user_uploaded_docs'],
   clarification_required: []
 };
 
@@ -321,6 +334,18 @@ export function planEvidence({ evidence, hasRagSources = false, hasProjectDocume
       forceRag = Boolean(ragAvailable && (hasRagSources || hasProjectDocuments));
       useRag = true;
       reasons.push('source_requirement_rag_required');
+      break;
+    case 'rag_only_required':
+      // Requete liee explicitement a un document ("ce document", "ce PDF",
+      // "bibliographie du document"...) : RAG obligatoire, web et memoire
+      // projet desactives sans exception, meme si un signal web/prix/recence
+      // est present par ailleurs dans le meme message (cf. override combine
+      // RAG+web plus bas, explicitement court-circuite pour ce cas).
+      forceRag = Boolean(ragAvailable);
+      useRag = true;
+      useWeb = false;
+      forceWeb = false;
+      reasons.push('source_requirement_rag_only_required');
       break;
     case 'rag_or_web_required':
       if (ragAvailable && (hasRagSources || hasProjectDocuments)) {
@@ -365,12 +390,16 @@ export function planEvidence({ evidence, hasRagSources = false, hasProjectDocume
   const webSignalPresent = Boolean(
     e.reasons?.evidenceNeed?.some((r) => ['recency_keyword', 'pricing_keyword', 'official_docs_keyword', 'quota_limits_keyword', 'web_intent_provided'].includes(r))
   );
-  if (ragSignalPresent && webSignalPresent && e.evidenceNeed !== 'none') {
+  if (ragSignalPresent && webSignalPresent && e.evidenceNeed !== 'none' && e.sourceRequirement !== 'rag_only_required') {
     if (!useRag && (hasRagSources || hasProjectDocuments) && ragAvailable) { useRag = true; reasons.push('combined_rag_signal'); }
     if (!useWeb && webAvailable) { useWeb = true; reasons.push('combined_web_signal'); }
   }
 
-  const useProjectMemory = Boolean(hasProjectMemory);
+  // rag_only_required interdit explicitement la memoire projet comme
+  // fallback (cf. regle "Project Memory desactivee" pour les requetes
+  // liees a un document precis) : l'historique/la memoire ne doivent
+  // jamais se substituer au contenu reel du document.
+  const useProjectMemory = Boolean(hasProjectMemory) && e.sourceRequirement !== 'rag_only_required';
 
   const requireCitations = e.evidenceNeed === 'required' || e.evidenceNeed === 'mandatory';
   const forbidFabricatedSources = requireCitations;
@@ -393,18 +422,26 @@ export function planEvidence({ evidence, hasRagSources = false, hasProjectDocume
 
   let fallbackBehavior = 'answer_normally';
   if (askClarifyingQuestion) fallbackBehavior = 'ask_clarification';
+  else if (e.sourceRequirement === 'rag_only_required') fallbackBehavior = 'document_only_strict';
   else if (requireCitations && !useRag && !useWeb) fallbackBehavior = 'refuse_to_invent';
   else if (requireCitations) fallbackBehavior = 'use_available_sources_only';
   else if (e.evidenceNeed === 'recommended') fallbackBehavior = 'answer_with_caveat';
 
+  // rag_only_required force sourceFamilies = ['rag'] strictement : ni
+  // obsidian, ni tavily, ni project_memory, quel que soit l'etat des autres
+  // signaux detectes dans le message.
   const sourceFamilies = [];
-  if (useRag || forceRag || useGlobalLibrary) {
-    sourceFamilies.push('rag', 'obsidian');
-  }
-  if (useWeb || forceWeb) sourceFamilies.push('tavily');
-  if (useProjectMemory) sourceFamilies.push('project_memory');
-  if (!sourceFamilies.length && e.sourceRequirement === 'cite_if_available') {
-    sourceFamilies.push('rag', 'obsidian', 'project_memory');
+  if (e.sourceRequirement === 'rag_only_required') {
+    sourceFamilies.push('rag');
+  } else {
+    if (useRag || forceRag || useGlobalLibrary) {
+      sourceFamilies.push('rag', 'obsidian');
+    }
+    if (useWeb || forceWeb) sourceFamilies.push('tavily');
+    if (useProjectMemory) sourceFamilies.push('project_memory');
+    if (!sourceFamilies.length && e.sourceRequirement === 'cite_if_available') {
+      sourceFamilies.push('rag', 'obsidian', 'project_memory');
+    }
   }
 
   return {
@@ -456,7 +493,20 @@ const POLICY_TEXT = {
   clarification: {
     fr: 'La demande est trop vague ou manque de périmètre pour garantir une réponse fiable. Demande une clarification (critères, période, produits concernés) avant de répondre en détail.',
     en: 'The request is too vague or lacks scope to guarantee a reliable answer. Ask for clarification (criteria, time frame, products involved) before answering in detail.'
+  },
+  documentOnly: {
+    fr: "Cette question porte explicitement sur un document indexé (RAG obligatoire). N'utilise jamais le web, la mémoire de projet ou tes connaissances générales pour y répondre. L'historique de conversation peut servir uniquement à identifier de quel document il s'agit, jamais à répondre au contenu de la question.",
+    en: "This question explicitly targets an indexed document (RAG mandatory). Never use the web, project memory or general knowledge to answer it. Conversation history may only be used to identify which document is meant, never to answer the question's content."
   }
+};
+
+// Phrase exacte exigee quand une requete liee a un document ne trouve aucun
+// passage RAG correspondant : source de verite unique, reutilisee telle
+// quelle par le worker (system prompt) pour eviter toute divergence de
+// formulation entre sourcePlanner.js et worker-openrouter.js.
+export const DOCUMENT_NOT_FOUND_MESSAGE = {
+  fr: "Aucune information correspondante n'a été trouvée dans le document indexé.",
+  en: 'No matching information was found in the indexed document.'
 };
 
 function pickLang(language) {
@@ -475,6 +525,8 @@ export function buildSourcePolicy({ evidence, plan, language } = {}) {
 
   if (p.askClarifyingQuestion) {
     parts.push(POLICY_TEXT.clarification[lang]);
+  } else if (e.sourceRequirement === 'rag_only_required') {
+    parts.push(POLICY_TEXT.documentOnly[lang]);
   } else if (e.evidenceNeed === 'required' || e.evidenceNeed === 'mandatory') {
     parts.push(POLICY_TEXT.mandatorySources[lang]);
     if (p.useRag || p.forceRag) parts.push(POLICY_TEXT.rag[lang]);
@@ -506,7 +558,10 @@ export function buildSourcePolicy({ evidence, plan, language } = {}) {
     answer_with_caveat: lang === 'en' ? 'Answer, but flag any uncertain point as an estimate.' : 'Réponds, mais signale tout point incertain comme une estimation.',
     use_available_sources_only: lang === 'en' ? 'Use only the sources actually available; never fill gaps with invented content.' : 'Utilise uniquement les sources réellement disponibles ; ne comble jamais les manques par du contenu inventé.',
     ask_clarification: lang === 'en' ? 'Ask a clarifying question before answering in full.' : 'Pose une question de clarification avant de répondre en détail.',
-    refuse_to_invent: lang === 'en' ? 'If no source is available, explicitly say the answer cannot be verified rather than inventing one.' : "Si aucune source n'est disponible, indique explicitement que la réponse ne peut pas être vérifiée plutôt que d'en inventer une."
+    refuse_to_invent: lang === 'en' ? 'If no source is available, explicitly say the answer cannot be verified rather than inventing one.' : "Si aucune source n'est disponible, indique explicitement que la réponse ne peut pas être vérifiée plutôt que d'en inventer une.",
+    document_only_strict: lang === 'en'
+      ? `Answer strictly from the indexed document passages. Never use the web, project memory or conversation history to answer. If no matching passage exists, reply with EXACTLY and only: "${DOCUMENT_NOT_FOUND_MESSAGE.en}"`
+      : `Réponds strictement à partir des passages du document indexé. N'utilise jamais le web, la mémoire de projet ou l'historique de conversation pour répondre. Si aucun passage correspondant n'existe, réponds EXACTEMENT et uniquement : "${DOCUMENT_NOT_FOUND_MESSAGE.fr}"`
   }[p.fallbackBehavior] || (lang === 'en' ? 'Answer normally.' : 'Réponds normalement.');
 
   return {
@@ -524,6 +579,113 @@ export function buildSourcePolicy({ evidence, plan, language } = {}) {
 
 export function isSourcePlannerEnabled(env) {
   return String(env?.SOURCE_PLANNER_ENABLED || 'false').toLowerCase() === 'true';
+}
+
+/**
+ * Detection pure et independante du flag SOURCE_PLANNER_ENABLED : utilisee
+ * directement par decideWebSearch() / le Knowledge Orchestrator dans
+ * worker-openrouter.js pour desactiver web/memoire-projet sur les requetes
+ * explicitement liees a un document, meme quand le pipeline Source Planner
+ * complet (Lot 9) reste desactive en production.
+ */
+export function isDocumentBoundQuery(message) {
+  return RX.documentBound.test(String(message || ''));
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Retrieval structurel : certaines questions ne se resument pas a une
+// similarite semantique (« bibliographie du document », « derniers
+// paragraphes », « chercheurs mentionnes »...). On detecte la nature
+// structurelle de la requete pour declencher une recuperation lexicale
+// et/ou positionnelle (tail) EN COMPLEMENT du vectoriel — jamais a la place
+// de l'architecture existante.
+// ─────────────────────────────────────────────────────────────────────────
+
+const STRUCTURAL_RX = {
+  // Fin du document / derniers paragraphes / derniers chunks / conclusion.
+  // (document_tail_retrieval — positionnel par chunk_index)
+  tail: /\b(derniers?\s+(?:paragraphes?|chunks?|extraits?)|derni[èe]res?\s+(?:pages?|lignes?|parties?|sections?)|fin\s+du\s+(?:document|pdf|fichier|texte)|conclusion\s+du\s+(?:document|texte)|conclusion|derni[èe]re\s+partie|last\s+paragraphs?|end\s+of\s+the\s+document)\b/i,
+  // Bibliographie / sources citees / references / ouvrages.
+  // (document_section_retrieval — lexical + voisinage)
+  bibliography: /\b(bibliographie|sources?\s+cit[ée]es?|r[ée]f[ée]rences?(?:\s+bibliographiques?)?|ouvrages?\s+cit[ée]s?|s[ée]lection\s+d['e]ouvrages?|travaux\s+cit[ée]s?|bibliography|cited\s+sources?|references?)\b/i,
+  // Chercheurs / auteurs / specialistes mentionnes.
+  // (recherche lexicale ciblee)
+  researchers: /\b(chercheurs?|chercheuses?|auteurs?|autrices?|sp[ée]cialistes?|historiens?|universitaires?|contributeurs?|pr[ée]curseurs?|contemporains?|researchers?|authors?|scholars?)\b/i,
+  // Autres sections nommees : table des matieres / sommaire / resume.
+  // (document_section_retrieval — lexical + voisinage)
+  section: /\b(table\s+des\s+mati[èe]res|sommaire|plan\s+du\s+document|table\s+of\s+contents|r[ée]sum[ée]\s+du\s+(?:document|texte)|abstract)\b/i
+};
+
+// Termes lexicaux a rechercher dans le texte des chunks (LIKE) pour les
+// requetes structurelles. Volontairement large : on privilegie le rappel,
+// le vectoriel et le nettoyage de contexte se chargeant de la precision.
+const STRUCTURAL_LEXICAL_TERMS = {
+  bibliography: ['bibliographie', 'sources', 'références', 'references', 'ouvrages', 'travaux', 'sélection d’ouvrages', 'sélection d\'ouvrages', 'bibliography'],
+  researchers: ['chercheur', 'chercheurs', 'chercheuse', 'auteur', 'auteurs', 'autrice', 'historien', 'historiens', 'spécialiste', 'spécialistes', 'précurseur', 'précurseurs', 'contemporains', 'travaux', 'ouvrages', 'références'],
+  section: ['table des matières', 'sommaire', 'plan', 'résumé', 'abstract']
+};
+
+/**
+ * Detecte si une requete est structurelle et renvoie le mode de
+ * recuperation a privilegier :
+ *  - retrieval 'tail'    : positionnel (derniers chunks par chunk_index).
+ *  - retrieval 'section' : lexical + voisinage (bibliographie, table des
+ *    matieres, resume...).
+ *  - retrieval 'lexical' : lexical cible (chercheurs / auteurs).
+ *
+ * Pure, sans reseau, independante du flag Source Planner. `type` est un
+ * alias de `kind` (vocabulaire V2). Utilisee cote Worker (Knowledge
+ * Orchestrator) et dupliquee cote client (ai-assistant.js).
+ *
+ * @returns {{ isStructural: boolean, kind: string|null, type: string|null, retrieval: 'lexical'|'tail'|'section'|null, lexicalTerms: string[] }}
+ */
+export function detectStructuralQuery(message) {
+  const msg = String(message || '');
+  const make = (kind, retrieval, lexicalTerms) => ({ isStructural: true, kind, type: kind, retrieval, lexicalTerms: lexicalTerms || [] });
+  // L'ordre compte : « conclusion » / « derniers paragraphes » sont
+  // positionnels (tail) meme si « sources »/« auteurs » coexistent.
+  if (STRUCTURAL_RX.tail.test(msg)) return make('tail', 'tail', []);
+  if (STRUCTURAL_RX.bibliography.test(msg)) return make('bibliography', 'section', STRUCTURAL_LEXICAL_TERMS.bibliography);
+  if (STRUCTURAL_RX.researchers.test(msg)) return make('researchers', 'lexical', STRUCTURAL_LEXICAL_TERMS.researchers);
+  if (STRUCTURAL_RX.section.test(msg)) return make('section', 'section', STRUCTURAL_LEXICAL_TERMS.section);
+  return { isStructural: false, kind: null, type: null, retrieval: null, lexicalTerms: [] };
+}
+
+/**
+ * Document targeting : choisit le document a interroger pour une requete
+ * « ce document / le document / ce PDF ». Pure, sans reseau.
+ *
+ * - 1 seul document disponible -> ce document (status 'single').
+ * - plusieurs documents -> dernier consulte, sinon dernier indexe
+ *   (status 'resolved_last'), sinon ambiguite -> clarification
+ *   (status 'ambiguous', candidats listes).
+ * - aucun document -> status 'none'.
+ *
+ * @param {{ documents?: Array<{id:string,name?:string,indexedAt?:number}>, lastConsultedDocumentId?: string|null, lastIndexedDocumentId?: string|null }} input
+ * @returns {{ documentId: string|null, status: 'single'|'resolved_last'|'ambiguous'|'none', candidates: Array, reason: string }}
+ */
+export function resolveDocumentTarget({ documents = [], lastConsultedDocumentId = null, lastIndexedDocumentId = null } = {}) {
+  const docs = Array.isArray(documents) ? documents.filter((d) => d && d.id) : [];
+  if (docs.length === 0) {
+    return { documentId: null, status: 'none', candidates: [], reason: 'no_document_available' };
+  }
+  if (docs.length === 1) {
+    return { documentId: docs[0].id, status: 'single', candidates: docs, reason: 'single_document_in_scope' };
+  }
+  const ids = new Set(docs.map((d) => d.id));
+  if (lastConsultedDocumentId && ids.has(lastConsultedDocumentId)) {
+    return { documentId: lastConsultedDocumentId, status: 'resolved_last', candidates: docs, reason: 'last_consulted_document' };
+  }
+  if (lastIndexedDocumentId && ids.has(lastIndexedDocumentId)) {
+    return { documentId: lastIndexedDocumentId, status: 'resolved_last', candidates: docs, reason: 'last_indexed_document' };
+  }
+  // Repli deterministe : document avec le indexedAt le plus recent si connu.
+  const withDates = docs.filter((d) => Number.isFinite(Number(d.indexedAt)));
+  if (withDates.length) {
+    const latest = withDates.reduce((a, b) => (Number(b.indexedAt) > Number(a.indexedAt) ? b : a));
+    return { documentId: latest.id, status: 'resolved_last', candidates: docs, reason: 'most_recently_indexed' };
+  }
+  return { documentId: null, status: 'ambiguous', candidates: docs, reason: 'multiple_documents_need_clarification' };
 }
 
 /**

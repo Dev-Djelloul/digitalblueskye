@@ -61,7 +61,11 @@ export async function runKnowledgeOrchestrator(env, registry, {
   sources = null,
   allSources = false,
   includeProjectMemory = true,
-  tavilyIntent = null
+  tavilyIntent = null,
+  maxPassages = 8,
+  similarityThreshold = undefined,
+  structural = null,
+  targetDocumentId = null
 } = {}) {
   const startedAt = Date.now();
   const selectedSourceKeys = sourceKeysFromPlans(sourcePlan, executionPlan, { sources, allSources, includeProjectMemory });
@@ -74,14 +78,17 @@ export async function runKnowledgeOrchestrator(env, registry, {
     history,
     language,
     tavilyIntent,
-    maxPassages: 8
+    maxPassages,
+    similarityThreshold,
+    structural,
+    targetDocumentId
   };
   const sourceResponses = await Promise.all(activeSources.map((source) => querySource(source, env, query, sourceOptions)));
   const rawResults = sourceResponses.flatMap((response) => response.results);
   const ranked = rankKnowledgeResults(rawResults, query, { projectId: projectContext?.projectId });
   const deduped = deduplicateKnowledgeResults(ranked);
   const conflicts = detectKnowledgeConflicts(deduped.results);
-  const context = buildKnowledgeContext({ query, results: deduped.results, conflicts, tokenBudget, language });
+  const context = buildKnowledgeContext({ query, results: deduped.results, conflicts, tokenBudget, language, structural });
   return {
     ok: true,
     contextBlock: context.contextBlock,

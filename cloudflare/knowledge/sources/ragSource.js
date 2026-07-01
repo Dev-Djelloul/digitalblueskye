@@ -1,4 +1,22 @@
-import { queryRag } from '../../ragPipeline.js';
+import { queryRag, queryDocumentTail, lexicalSearchChunks, getChunksByIndices } from '../../ragPipeline.js';
+
+function mapRagItem(item, projectId) {
+  return {
+    source: 'rag',
+    sourceId: 'rag',
+    documentId: item.documentId,
+    chunkId: `${item.documentId}::${item.chunkIndex}`,
+    title: item.documentName,
+    text: item.text,
+    score: item.score,
+    citation: `[RAG: ${item.documentName}]`,
+    metadata: {
+      locator: item.locator,
+      chunkIndex: item.chunkIndex,
+      projectId: projectId || ''
+    }
+  };
+}
 
 export function createRagKnowledgeSource() {
   return {
@@ -14,28 +32,72 @@ export function createRagKnowledgeSource() {
       return [];
     },
     async semanticSearch(env, query, options = {}) {
-      const result = await queryRag(env, {
-        query,
-        projectId: options.projectContext?.projectId,
-        includeGlobalLibrary: true,
-        maxPassages: options.maxPassages || 8
-      });
-      if (!result?.ok) return [];
-      return (result.selected || []).map((item) => ({
-        source: 'rag',
-        sourceId: 'rag',
-        documentId: item.documentId,
-        chunkId: `${item.documentId}::${item.chunkIndex}`,
-        title: item.documentName,
-        text: item.text,
-        score: item.score,
-        citation: `[RAG: ${item.documentName}]`,
-        metadata: {
-          locator: item.locator,
-          chunkIndex: item.chunkIndex,
-          projectId: options.projectContext?.projectId || ''
+      const projectId = options.projectContext?.projectId;
+      const structural = options.structural || null;
+      const targetDocumentId = options.targetDocumentId || null;
+      const maxPassages = options.maxPassages || 8;
+      const byChunk = new Map();
+      const addItems = (items) => {
+        (items || []).forEach((item) => {
+          if (!item || !item.documentId) return;
+          const key = `${item.documentId}::${item.chunkIndex}`;
+          const existing = byChunk.get(key);
+          // Conserve le meilleur score si un chunk remonte par plusieurs voies.
+          if (!existing || Number(item.score || 0) > Number(existing.score || 0)) {
+            byChunk.set(key, mapRagItem(item, projectId));
+          }
+        });
+      };
+
+      // 1. Recuperation structurelle PRIORITAIRE (positionnelle, lexicale,
+      //    ou section avec voisinage) — comble les angles morts du vectoriel.
+      if (structural?.retrieval === 'tail' && targetDocumentId) {
+        // document_tail_retrieval : derniers chunks par chunk_index.
+        const tail = await queryDocumentTail(env, { documentId: targetDocumentId, projectId, limit: Math.max(10, maxPassages) });
+        if (tail?.ok) addItems(tail.selected);
+      } else if ((structural?.retrieval === 'lexical' || structural?.retrieval === 'section') && Array.isArray(structural.lexicalTerms) && structural.lexicalTerms.length) {
+        const lexical = await lexicalSearchChunks(env, {
+          terms: structural.lexicalTerms,
+          projectId,
+          includeGlobalLibrary: true,
+          documentId: targetDocumentId || undefined,
+          limit: Math.max(12, maxPassages)
+        });
+        if (lexical?.ok) {
+          addItems(lexical.selected);
+          // document_section_retrieval : ajoute les chunks voisins (avant /
+          // apres) de chaque chunk trouve pour ne pas tronquer la section
+          // (bibliographie, table des matieres...). Borne au document du
+          // chunk trouve, jamais croise entre documents.
+          if (structural.retrieval === 'section') {
+            const neighborsByDoc = new Map();
+            (lexical.selected || []).slice(0, 8).forEach((item) => {
+              const list = neighborsByDoc.get(item.documentId) || [];
+              list.push(item.chunkIndex - 1, item.chunkIndex + 1);
+              neighborsByDoc.set(item.documentId, list);
+            });
+            for (const [docId, indices] of neighborsByDoc.entries()) {
+              const neighbors = await getChunksByIndices(env, { documentId: docId, indices });
+              addItems(neighbors);
+            }
+          }
         }
-      }));
+      }
+
+      // 2. Vectoriel TOUJOURS execute en complement (jamais remplace) — sauf
+      //    tail pur, ou la position prime sur la similarite.
+      if (structural?.retrieval !== 'tail') {
+        const result = await queryRag(env, {
+          query,
+          projectId,
+          includeGlobalLibrary: true,
+          maxPassages,
+          similarityThreshold: options.similarityThreshold
+        });
+        if (result?.ok) addItems(result.selected);
+      }
+
+      return Array.from(byChunk.values());
     },
     async getDocument(env, id) {
       if (!env?.DB || !id) return null;
