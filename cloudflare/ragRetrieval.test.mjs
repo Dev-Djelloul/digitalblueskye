@@ -40,6 +40,12 @@ function makeDB(rows) {
         return matchesTerm && matchesScope;
       });
     }
+    if (/rag_chunks WHERE id IN \(/i.test(sql)) {
+      // queryRag() : recupere le texte des chunks selectionnes par le
+      // vectoriel, binds = [...ids]
+      const ids = new Set(binds);
+      return rows.filter((r) => ids.has(r.id));
+    }
     if (/chunk_index IN \(/i.test(sql)) {
       // getChunksByIndices : binds = [documentId, ...indices]
       const [documentId, ...indices] = binds;
@@ -170,6 +176,52 @@ for (let i = 0; i < 12; i += 1) {
   const maxIndex = Math.max(...items.map((it) => it.metadata.chunkIndex));
   check('tail: contient le dernier chunk (11)', maxIndex === 11);
   check('tail: ne renvoie que la fin (>= 10 chunks parmi 12)', items.length >= 10);
+}
+
+// ── ragSource (réel) : le vectoriel ne doit JAMAIS sortir du document
+// cible, meme si un autre document du projet est semantiquement plus
+// pertinent (score plus eleve) et meme si le provider vectoriel ignore le
+// filtre de metadata (index Vectorize `documentId` pas encore cree). ───────
+{
+  // Document A (demande explicitement, chunk peu pertinent lexicalement/
+  // semantiquement) et document B (non demande, chunk que le moteur de
+  // similarite juge plus proche de la question -> score plus eleve).
+  const fakeAi = { async run() { return { data: [[0.1, 0.2, 0.3]] }; } };
+  const fakeVectorIndex = {
+    async query(_vector, { filter }) {
+      // Simule un provider qui IGNORE le filtre de metadata (cas reel :
+      // index Vectorize pour `documentId` pas encore cree) -> renvoie les
+      // deux documents quel que soit le filtre demande. C'est exactement le
+      // cas que le re-filtrage code-side doit couvrir.
+      void filter;
+      return {
+        matches: [
+          { id: 'A::0', score: 0.75, metadata: { documentId: 'doc-a', documentName: 'LA_SUCCESSION_DES_TEMPLIERS', chunkIndex: 0, locator: 'p1', projectId: 'proj-erudition' } },
+          { id: 'B::0', score: 0.97, metadata: { documentId: 'doc-b', documentName: 'Le Grand Secret de l’Islam', chunkIndex: 0, locator: 'p1', projectId: 'proj-erudition' } }
+        ]
+      };
+    }
+  };
+  const env = {
+    AI: fakeAi,
+    VECTOR_INDEX: fakeVectorIndex,
+    DB: makeDB([
+      { id: 'A::0', document_id: 'doc-a', project_id: 'proj-erudition', document_name: 'LA_SUCCESSION_DES_TEMPLIERS', chunk_index: 0, locator: 'p1', text: 'Les chercheurs Patricia Crone et Michael Cook sont cites dans ce document.', created_at: '2026-01-01T00:00:00Z' },
+      { id: 'B::0', document_id: 'doc-b', project_id: 'proj-erudition', document_name: 'Le Grand Secret de l’Islam', chunk_index: 0, locator: 'p1', text: 'Chapitre sur les origines historiques, tres pertinent semantiquement pour la question posee.', created_at: '2026-02-01T00:00:00Z' }
+    ])
+  };
+
+  const source = createRagKnowledgeSource();
+  const items = await source.semanticSearch(env, 'Quels sont les chercheurs mentionnés dans le document LA_SUCCESSION_DES_TEMPLIERS ?', {
+    projectContext: { projectId: 'proj-erudition' },
+    structural: { isStructural: false, kind: null, type: null, retrieval: null, lexicalTerms: [] },
+    targetDocumentId: 'doc-a',
+    maxPassages: 8
+  });
+
+  check('cible strict: au moins un chunk retrouve', items.length > 0);
+  check('cible strict: reste exclusivement sur le document demande (A)', items.every((it) => it.documentId === 'doc-a'));
+  check('cible strict: ne fait JAMAIS fuiter le document B, meme mieux score', items.every((it) => it.documentId !== 'doc-b'));
 }
 
 console.log(failures === 0 ? '\nTOUS LES TESTS PASSENT' : `\n${failures} test(s) ECHOUE(S)`);

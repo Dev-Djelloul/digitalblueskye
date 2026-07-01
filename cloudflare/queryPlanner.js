@@ -64,6 +64,7 @@ export function planQuery(input = {}) {
   const documentTarget = documentBound
     ? resolveDocumentTarget({
         documents,
+        message,
         lastConsultedDocumentId: input.lastConsultedDocumentId || null,
         lastIndexedDocumentId: input.lastIndexedDocumentId || null
       })

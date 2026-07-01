@@ -319,6 +319,40 @@ function check(label, condition) {
   // Aucun document.
   const none = resolveDocumentTarget({ documents: [] });
   check('targeting: aucun document -> status none', none.status === 'none');
+
+  // Document nomme explicitement dans le message -> priorite absolue,
+  // meme si un autre document est le dernier indexe/consulte (cas reel :
+  // projet a 9 sources, la question nomme un document precis, pas le
+  // dernier upload).
+  const docs9 = [
+    { id: 'k_mr1pqb75_la-succession-des-templi_tama', name: 'LA_SUCCESSION_DES_TEMPLIERS', indexedAt: 100 },
+    { id: 'doc-islam', name: 'Le Grand Secret de l’Islam', indexedAt: 500 },
+    { id: 'doc-c', name: 'Autre document', indexedAt: 300 },
+  ];
+  const named = resolveDocumentTarget({
+    documents: docs9,
+    message: 'Quels sont les chercheurs mentionnés dans le document LA_SUCCESSION_DES_TEMPLIERS ?',
+    lastConsultedDocumentId: 'doc-islam',
+    lastIndexedDocumentId: 'doc-islam'
+  });
+  check('targeting: titre nomme explicitement -> status named', named.status === 'named');
+  check('targeting: titre nomme -> cible le bon document (pas le dernier consulte/indexe)', named.documentId === 'k_mr1pqb75_la-succession-des-templi_tama');
+
+  // Titre partiel (l'utilisateur ne cite qu'une partie du nom) -> match tout de meme.
+  const partial = resolveDocumentTarget({
+    documents: docs9,
+    message: 'que dit le document sur la succession des templiers ?',
+    lastIndexedDocumentId: 'doc-islam'
+  });
+  check('targeting: titre partiel -> match', partial.documentId === 'k_mr1pqb75_la-succession-des-templi_tama');
+
+  // Aucun nom mentionne -> comportement inchange (repli sur dernier consulte/indexe).
+  const noName = resolveDocumentTarget({
+    documents: docs9,
+    message: 'que dit ce document ?',
+    lastConsultedDocumentId: 'doc-islam'
+  });
+  check('targeting: aucun titre mentionne -> repli sur dernier consulte inchange', noName.documentId === 'doc-islam' && noName.status === 'resolved_last');
 }
 
 // ── isSourcePlannerEnabled : flag-gating ─────────────────────────────────

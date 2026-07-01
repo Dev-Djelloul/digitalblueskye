@@ -92,7 +92,12 @@ export function createRagKnowledgeSource() {
           projectId,
           includeGlobalLibrary: true,
           maxPassages,
-          similarityThreshold: options.similarityThreshold
+          similarityThreshold: options.similarityThreshold,
+          // Ciblage documentaire strict : quand un document precis est vise
+          // (requete liee a un document), le vectoriel ne doit jamais faire
+          // remonter un chunk d'un autre document du projet/de la
+          // bibliotheque, meme s'il est semantiquement plus proche.
+          documentId: targetDocumentId || undefined
         });
         if (result?.ok) addItems(result.selected);
       }

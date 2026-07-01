@@ -652,23 +652,87 @@ export function detectStructuralQuery(message) {
 }
 
 /**
+ * Normalise un titre/nom de document ou un message pour la comparaison :
+ * minuscules, accents retires, extension de fichier retiree, ponctuation/
+ * underscores/tirets reduits a des espaces simples.
+ */
+function normalizeTitleText(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/\.(pdf|docx?|txt|md|xlsx?|pptx?|csv)$/i, '')
+    .replace(/[_\-.]+/g, ' ')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+const TITLE_STOPWORDS = new Set(['le', 'la', 'les', 'de', 'des', 'du', 'un', 'une', 'et', 'the', 'of', 'a', 'an']);
+
+/**
+ * Score de correspondance entre un titre de document normalise et un
+ * message normalise : 1 si le titre entier apparait tel quel dans le
+ * message (correspondance exacte/normalisee), sinon la proportion de mots
+ * significatifs du titre (hors stopwords) retrouves comme mots entiers dans
+ * le message (correspondance partielle : l'utilisateur ne cite qu'une
+ * partie du titre).
+ */
+function titleMatchScore(normalizedTitle, normalizedMessage) {
+  if (!normalizedTitle) return 0;
+  if (normalizedMessage.includes(normalizedTitle)) return 1;
+  const words = normalizedTitle.split(' ').filter((w) => w && !TITLE_STOPWORDS.has(w));
+  if (!words.length) return 0;
+  const messageWords = new Set(normalizedMessage.split(' '));
+  const found = words.filter((w) => messageWords.has(w)).length;
+  return found / words.length;
+}
+
+// En dessous de 2 mots significatifs retrouves (ou 100% d'un titre court),
+// une correspondance partielle est jugee trop fragile pour cibler un
+// document a l'exclusion des autres (evite qu'un seul mot generique du
+// titre matche par hasard).
+const MIN_PARTIAL_MATCH_RATIO = 0.6;
+
+/**
  * Document targeting : choisit le document a interroger pour une requete
  * « ce document / le document / ce PDF ». Pure, sans reseau.
  *
- * - 1 seul document disponible -> ce document (status 'single').
- * - plusieurs documents -> dernier consulte, sinon dernier indexe
+ * - Le nom d'un document est explicitement mentionne (meme partiellement,
+ *   meme avec underscores/casse differente) dans le message -> ce document,
+ *   en priorite absolue sur tout le reste (status 'named'). Si plusieurs
+ *   documents matchent a egalite, ambiguite restreinte a ces candidats-la.
+ * - Sinon, 1 seul document disponible -> ce document (status 'single').
+ * - Sinon, plusieurs documents -> dernier consulte, sinon dernier indexe
  *   (status 'resolved_last'), sinon ambiguite -> clarification
  *   (status 'ambiguous', candidats listes).
  * - aucun document -> status 'none'.
  *
- * @param {{ documents?: Array<{id:string,name?:string,indexedAt?:number}>, lastConsultedDocumentId?: string|null, lastIndexedDocumentId?: string|null }} input
- * @returns {{ documentId: string|null, status: 'single'|'resolved_last'|'ambiguous'|'none', candidates: Array, reason: string }}
+ * @param {{ documents?: Array<{id:string,name?:string,indexedAt?:number}>, message?: string, lastConsultedDocumentId?: string|null, lastIndexedDocumentId?: string|null }} input
+ * @returns {{ documentId: string|null, status: 'named'|'single'|'resolved_last'|'ambiguous'|'none', candidates: Array, reason: string }}
  */
-export function resolveDocumentTarget({ documents = [], lastConsultedDocumentId = null, lastIndexedDocumentId = null } = {}) {
+export function resolveDocumentTarget({ documents = [], message = '', lastConsultedDocumentId = null, lastIndexedDocumentId = null } = {}) {
   const docs = Array.isArray(documents) ? documents.filter((d) => d && d.id) : [];
   if (docs.length === 0) {
     return { documentId: null, status: 'none', candidates: [], reason: 'no_document_available' };
   }
+
+  const normalizedMessage = normalizeTitleText(message);
+  if (normalizedMessage) {
+    const scored = docs
+      .map((doc) => ({ doc, score: titleMatchScore(normalizeTitleText(doc.name || doc.id), normalizedMessage) }))
+      .filter((entry) => entry.score >= MIN_PARTIAL_MATCH_RATIO)
+      .sort((a, b) => b.score - a.score);
+    if (scored.length) {
+      const best = scored[0].score;
+      const tied = scored.filter((entry) => entry.score === best);
+      if (tied.length === 1) {
+        return { documentId: tied[0].doc.id, status: 'named', candidates: docs, reason: 'document_named_in_message' };
+      }
+      return { documentId: null, status: 'ambiguous', candidates: tied.map((entry) => entry.doc), reason: 'multiple_documents_match_named_title' };
+    }
+  }
+
   if (docs.length === 1) {
     return { documentId: docs[0].id, status: 'single', candidates: docs, reason: 'single_document_in_scope' };
   }

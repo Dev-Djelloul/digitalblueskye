@@ -159,7 +159,7 @@ export async function deleteDocumentVectors(env, { documentId }) {
  * retenus au-dessus du seuil de similarité) + `telemetry`, pour que
  * l'intégration côté client soit un branchement, pas une réécriture.
  */
-export async function queryRag(env, { query, projectId, includeGlobalLibrary, maxPassages, similarityThreshold }) {
+export async function queryRag(env, { query, projectId, includeGlobalLibrary, maxPassages, similarityThreshold, documentId }) {
   const startedAt = Date.now();
   const provider = getVectorStoreProvider(env);
   if (!provider) return { ok: false, error: 'vector_store_unavailable' };
@@ -177,16 +177,23 @@ export async function queryRag(env, { query, projectId, includeGlobalLibrary, ma
   const topK = Math.max(20, Math.min(30, Math.max(1, Number(maxPassages) || DEFAULT_MAX_PASSAGES) * 3));
 
   try {
-    const filter = includeGlobalLibrary
-      ? undefined
-      : { projectId: projectId || '' };
+    const filter = documentId
+      ? { documentId }
+      : (includeGlobalLibrary ? undefined : { projectId: projectId || '' });
     const { matches, filterApplied } = await provider.query({ namespace: NAMESPACE, vector, topK, filter });
-    // Si Vectorize a ignore le filtre (champ de metadata pas encore indexe
-    // via `wrangler vectorize create-metadata-index`), on re-filtre cote
-    // code pour ne pas mélanger les documents d'autres projets.
-    const scoped = (filter && !filterApplied)
-      ? matches.filter((match) => match.metadata?.projectId === (projectId || ''))
-      : matches;
+    // Ciblage documentaire strict : re-filtre TOUJOURS cote code par
+    // documentId, independamment de filterApplied — un chunk d'un autre
+    // document ne doit jamais fuiter dans une reponse liee a un document
+    // precis, meme si l'index de metadata Vectorize pour `documentId` n'a
+    // pas encore ete cree (wrangler vectorize create-metadata-index).
+    // Sinon (pas de documentId cible), re-filtre par projectId si Vectorize
+    // a ignore le filtre, pour ne pas melanger les documents d'autres
+    // projets.
+    const scoped = documentId
+      ? matches.filter((match) => match.metadata?.documentId === documentId)
+      : ((filter && !filterApplied)
+        ? matches.filter((match) => match.metadata?.projectId === (projectId || ''))
+        : matches);
     const aboveThreshold = scoped.filter((match) => match.score >= threshold);
 
     let textsById = new Map();
