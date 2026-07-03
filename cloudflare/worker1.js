@@ -11,7 +11,7 @@ const DEFAULT_MODEL = 'openrouter/free';
 
 function buildCorsHeaders(request, env) {
   const requestOrigin = request.headers.get('Origin');
-  // On autorise l'origine qui appelle (votre site InfinityFree)
+  // On autorise l'origine qui appelle le site Digital Blue Skye
   const corsOrigin = requestOrigin || "https://digitalblueskye.com/";
 
   return {
