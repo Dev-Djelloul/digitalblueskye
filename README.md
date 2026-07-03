@@ -254,7 +254,7 @@ DigitalBlueSkye
 
 Le front-end du site est hébergé sur Netlify :
 
-https://digitalblueskye.netlify.app
+https://digitalblueskye.com
 
 Le backend API est hébergé sur Cloudflare Workers :
 
