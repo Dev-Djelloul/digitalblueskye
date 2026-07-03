@@ -286,3 +286,50 @@ Limites de cette passe :
 - aucune stratégie `srcset` / `sizes` n'a été ajoutée ;
 - aucun score Core Web Vitals réel n'a été mesuré ;
 - aucun changement de maillage interne, de scripts globaux ou de stratégie multilingue n'a été effectué.
+
+## 9. Deuxième passe d'implémentation : images optimisées
+
+Passe réalisée avec `cwebp` disponible localement (`/Applications/XAMPP/xamppfiles/bin/cwebp`). Aucun outil externe en ligne, aucune nouvelle dépendance, aucune suppression ou conversion massive n'a été effectué. Les originaux sont conservés en place.
+
+| Image originale | Taille originale | Image optimisée | Taille optimisée | Gain | Références mises à jour |
+| --- | ---: | --- | ---: | ---: | --- |
+| `assets/images/portrait/Djelloul Galicia.jpg` | 7.51 Mo | `assets/images/portrait/Djelloul Galicia-optimized.webp` | 52 Ko | 99.3% | `pages/about.html` |
+| `assets/images/projects/imagesTetrisWindsurf/Tetris-cover-page.jpg` | 9.84 Mo | `assets/images/projects/imagesTetrisWindsurf/Tetris-cover-page-optimized.webp` | 415 Ko | 95.9% | `pages/projects.html`, `pages/visualTourProjects.html`, `projects/tetris-windsurf.html` |
+| `assets/images/blog/IA agentique/robot-performing-human-job.jpg` | 8.31 Mo | `assets/images/blog/IA agentique/robot-performing-human-job-optimized.webp` | 75 Ko | 99.1% | Aucune référence HTML directe détectée dans cette passe |
+| `assets/images/blog/IA et gestion de projets/Futuristic-concept-of-artificial-intelligence-in-business.jpg` | 8.08 Mo | `assets/images/blog/IA et gestion de projets/Futuristic-concept-of-artificial-intelligence-in-business-optimized.webp` | 57 Ko | 99.3% | `blog/digital/blogArticles.html` |
+| `share/assets/card-images/article-ia-gestion-projet.jpg` | 8.08 Mo | `share/assets/card-images/article-ia-gestion-projet-card.webp` | 39 Ko | 99.5% | `share/article-ia-gestion-projet.html` (`og:image`, `twitter:image`) |
+| `assets/images/projects/imagesRidingCities/header.png` | 2.10 Mo | `assets/images/projects/imagesRidingCities/header-optimized.webp` | 249 Ko | 88.4% | `pages/projects.html`, `pages/visualTourProjects.html`, `projects/riding-cities.html` |
+| `assets/images/projects/imagesSophieBluel/sophie-bluel.png` | 1.65 Mo | `assets/images/projects/imagesSophieBluel/sophie-bluel-optimized.webp` | 83 Ko | 95.1% | `pages/projects.html`, `pages/visualTourProjects.html`, `projects/sophie-bluel.html` |
+
+Images traitées :
+
+- profil `about` ;
+- visuel Tetris utilisé en liste projet, galerie et page projet ;
+- visuel IA agentique créé en dérivé WebP pour usage futur, sans remplacement car aucune référence HTML directe n'a été détectée ;
+- visuel IA gestion de projet utilisé dans la liste du blog digital ;
+- carte sociale share de l'article IA gestion de projet ;
+- visuels projets Riding Cities et Sophie Bluel, avec gain réel malgré les sources PNG.
+
+Images non traitées et pourquoi :
+
+- images Arcadia Zoo très lourdes : reportées à une passe dédiée avec miniatures, versions détail et stratégie de conservation des originaux ;
+- autres images blog, inspirations et projets : hors premier lot demandé ;
+- AVIF : non généré dans cette passe afin de garder la maintenance simple et progressive.
+
+Fichiers HTML modifiés :
+
+- `pages/about.html` ;
+- `pages/projects.html` ;
+- `pages/visualTourProjects.html` ;
+- `projects/riding-cities.html` ;
+- `projects/sophie-bluel.html` ;
+- `projects/tetris-windsurf.html` ;
+- `blog/digital/blogArticles.html` ;
+- `share/article-ia-gestion-projet.html`.
+
+Prochaines images à traiter :
+
+- lot Arcadia Zoo avec distinction miniatures / images détail ;
+- images inspirations voyage les plus lourdes ;
+- autres cartes de `blog/digital/blogArticles.html` ;
+- images de partage restantes dans `share/assets/card-images/`.
