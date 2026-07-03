@@ -1,4 +1,5 @@
 # https://www.robotstxt.org/robotstxt.html
 User-agent: *
 Allow: /
-Sitemap: https://digitalblueskye.netlify.app/sitemap.xml
+
+Sitemap: https://digitalblueskye.com/sitemap.xml

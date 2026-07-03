@@ -1,117 +1,327 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
-        http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
-  <!-- Accueil -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://digitalblueskye.netlify.app/</loc>
-    <lastmod>2025-09-28</lastmod>
+    <loc>https://digitalblueskye.com/</loc>
+    <lastmod>2026-07-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
-
-  <!-- Pages principales -->
   <url>
-    <loc>https://digitalblueskye.netlify.app/pages/about.html</loc>
-    <lastmod>2025-09-28</lastmod>
+    <loc>https://digitalblueskye.com/blog/digital/article-cone-apprentissage.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://digitalblueskye.netlify.app/pages/visualTourProjects.html</loc>
-    <lastmod>2025-09-28</lastmod>
+    <loc>https://digitalblueskye.com/blog/digital/article-connector-dots.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://digitalblueskye.netlify.app/pages/projects.html</loc>
-    <lastmod>2025-09-28</lastmod>
+    <loc>https://digitalblueskye.com/blog/digital/article-ia-agentique-gestion-projet.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://digitalblueskye.netlify.app/pages/skills.html</loc>
-    <lastmod>2025-09-28</lastmod>
+    <loc>https://digitalblueskye.com/blog/digital/article-ia-gestion-projet.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://digitalblueskye.com/blog/digital/article-menaces-ia-cybersecurite-2026.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://digitalblueskye.com/blog/digital/article-metavers-projets.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://digitalblueskye.com/blog/digital/article-outils-veille.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://digitalblueskye.com/blog/digital/article-pue-datacenters.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://digitalblueskye.com/blog/digital/article-rgpd-2025.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://digitalblueskye.com/blog/digital/article-rgpd-ia-securite.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://digitalblueskye.com/blog/digital/article-rse-digital.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://digitalblueskye.com/blog/digital/article-seo-chef-projet.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://digitalblueskye.com/blog/digital/article-signaux-faibles.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://digitalblueskye.com/blog/digital/article-tech-2026.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://digitalblueskye.com/blog/digital/blogArticles.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://digitalblueskye.com/blog/inspirations/carnets-inspirations.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://digitalblueskye.com/blog/inspirations/collage-des-cites-antiques-du-monde-entier.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://digitalblueskye.com/blog/inspirations/espana-castelo-de-san-felipe-galicia.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://digitalblueskye.com/blog/inspirations/espana-cathedrale-de-saint-jacques-de-la-compostelle.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://digitalblueskye.com/blog/inspirations/espana-promenons-nous-dans-les-bois.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://digitalblueskye.com/blog/inspirations/espana-vanupieds.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://digitalblueskye.com/blog/inspirations/india-devisinghpura-rajasthan-jaipur-2.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://digitalblueskye.com/blog/inspirations/india-devisinghpura-rajasthan-jaipur.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://digitalblueskye.com/blog/inspirations/india-orange-height-phase-i-nala-sopara-india.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://digitalblueskye.com/blog/inspirations/india-taj-mahal.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://digitalblueskye.com/blog/inspirations/ireland-elizabeth-fort-cork-2.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://digitalblueskye.com/blog/inspirations/ireland-elizabeth-fort-cork.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://digitalblueskye.com/blog/inspirations/sweden-abisko-collage.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://digitalblueskye.com/blog/inspirations/sweden-kungsleden-circuit-de-randonnee-2.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://digitalblueskye.com/blog/inspirations/sweden-kungsleden-circuit-de-randonnee.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://digitalblueskye.com/blog/inspirations/sweden-lake-vuolep-njakajaure.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://digitalblueskye.com/blog/inspirations/turkey-bibliotheque-de-celsus.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://digitalblueskye.com/blog/inspirations/turkey-musee-a-ciel-ouvert-de-goreme.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://digitalblueskye.com/blog/inspirations/turkey-theatre-de-hierapolis.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://digitalblueskye.com/pages/about.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://digitalblueskye.netlify.app/pages/agilite.html</loc>
-    <lastmod>2026-06-04</lastmod>
+    <loc>https://digitalblueskye.com/pages/agilite.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://digitalblueskye.netlify.app/pages/contact.html</loc>
-    <lastmod>2025-09-28</lastmod>
+    <loc>https://digitalblueskye.com/pages/contact.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
-
-  <!-- Blog - Coin Digital -->
   <url>
-    <loc>https://digitalblueskye.netlify.app/blog/digital/blogArticles.html</loc>
-    <lastmod>2026-05-01</lastmod>
-    <priority>0.8</priority>
+    <loc>https://digitalblueskye.com/pages/cookies-policy.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://digitalblueskye.netlify.app/blog/digital/article-ia-gestion-projet.html</loc>
-    <lastmod>2025-12-01</lastmod>
+    <loc>https://digitalblueskye.com/pages/gouvernance-ia.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://digitalblueskye.com/pages/privacy.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://digitalblueskye.com/pages/projects.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://digitalblueskye.com/pages/skills.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://digitalblueskye.com/pages/terms.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://digitalblueskye.com/pages/visualTourProjects.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://digitalblueskye.com/projects/arcadia-zoo.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://digitalblueskye.netlify.app/blog/digital/article-outils-veille.html</loc>
-    <lastmod>2025-12-01</lastmod>
+    <loc>https://digitalblueskye.com/projects/booki.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://digitalblueskye.netlify.app/blog/digital/article-rgpd-2025.html</loc>
-    <lastmod>2025-12-01</lastmod>
+    <loc>https://digitalblueskye.com/projects/budget-buddy.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://digitalblueskye.netlify.app/blog/digital/article-rse-digital.html</loc>
-    <lastmod>2025-12-01</lastmod>
+    <loc>https://digitalblueskye.com/projects/memory-game.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://digitalblueskye.netlify.app/blog/digital/article-tech-2026.html</loc>
-    <lastmod>2025-12-01</lastmod>
+    <loc>https://digitalblueskye.com/projects/ohmyfood.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://digitalblueskye.netlify.app/blog/digital/article-metavers-projets.html</loc>
-    <lastmod>2025-12-01</lastmod>
+    <loc>https://digitalblueskye.com/projects/print-it.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://digitalblueskye.netlify.app/blog/digital/article-cone-apprentissage.html</loc>
-    <lastmod>2025-12-01</lastmod>
+    <loc>https://digitalblueskye.com/projects/riding-cities.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://digitalblueskye.netlify.app/blog/digital/article-seo-chef-projet.html</loc>
-    <lastmod>2025-12-01</lastmod>
-    <priority>0.65</priority>
+    <loc>https://digitalblueskye.com/projects/sophie-bluel.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://digitalblueskye.netlify.app/blog/digital/article-rgpd-ia-securite.html</loc>
-    <lastmod>2026-01-18</lastmod>
-    <priority>0.65</priority>
-  </url>
-  <url>
-    <loc>https://digitalblueskye.netlify.app/blog/digital/article-pue-datacenters.html</loc>
-    <lastmod>2025-12-28</lastmod>
-    <priority>0.65</priority>
-  </url>
-  <url>
-    <loc>https://digitalblueskye.netlify.app/blog/digital/article-connector-dots.html</loc>
-    <lastmod>2025-12-28</lastmod>
-    <priority>0.65</priority>
-  </url>
-  <url>
-    <loc>https://digitalblueskye.netlify.app/blog/digital/article-signaux-faibles.html</loc>
-    <lastmod>2026-05-01</lastmod>
-    <priority>0.65</priority>
-  </url>
-  <url>
-    <loc>https://digitalblueskye.netlify.app/blog/digital/article-menaces-ia-cybersecurite-2026.html</loc>
-    <lastmod>2026-05-01</lastmod>
-    <priority>0.65</priority>
+    <loc>https://digitalblueskye.com/projects/tetris-windsurf.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
   </url>
 </urlset>
