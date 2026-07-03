@@ -205,3 +205,55 @@ Priorite 4 : conserver les scripts SEO/UX essentiels tant que leur remplacement 
 ## 11. Etat des modifications
 
 Ce rapport cree uniquement `docs/SEO_JS_CSS_AUDIT.md` pour cette tache. Aucun fichier HTML, CSS, JS, sitemap, robots.txt ou Worker Cloudflare n'a ete modifie dans cette passe.
+
+## 12. Premiere passe d'implementation : chargement conditionnel de l'assistant IA
+
+Passe realisee sans suppression de `scripts/ai-assistant.js`, sans modification des Workers Cloudflare, sans modification de `sitemap.xml`, `robots.txt`, `docs/SEO.md`, des images, des pages `share/`, de `translator.js`, de `theme-switcher.js` ou de `navbar-dropdown.js`.
+
+Fichiers modifies :
+
+- `scripts/ai-assistant-loader.js` cree ;
+- `index.html` ;
+- pages HTML sous `pages/` qui chargeaient directement l'assistant ;
+- pages HTML sous `projects/` qui chargeaient directement l'assistant ;
+- pages HTML sous `blog/digital/` qui chargeaient directement l'assistant ;
+- pages HTML sous `blog/inspirations/` qui chargeaient directement l'assistant ;
+- `docs/SEO_JS_CSS_AUDIT.md`.
+
+Strategie retenue :
+
+- remplacer le chargement direct de `ai-assistant.js` par un loader leger ;
+- charger dynamiquement `ai-assistant.js` uniquement si une interface assistant est presente dans le DOM (`#ai-assistant-launcher`, `#ai-assistant-panel`, `#ai-assistant-form`) ou si un declencheur explicite existe (`[data-ai-assistant]`, `[data-ai-assistant-trigger]`) ;
+- eviter les doubles chargements via une promesse partagee et une detection des scripts deja presents ;
+- journaliser proprement une erreur console si le chargement dynamique echoue ;
+- ne pas charger les dependances PDF/OCR/XLSX dans le loader, car elles restent gerees a la demande par `ai-assistant.js`.
+
+Pages ou `ai-assistant.js` reste charge immediatement :
+
+- `index.html`, via `scripts/ai-assistant-loader.js` avec `data-ai-assistant-src="/scripts/ai-assistant.js?v=20260629-chatbot-gradient"`. La home conserve le balisage complet de l'assistant ; le loader charge donc le script principal des que le DOM est pret.
+
+Pages ou seul le loader est charge :
+
+- `pages/*.html` concernees par l'ancien chargement direct ;
+- `projects/*.html` ;
+- `blog/digital/*.html` ;
+- `blog/inspirations/*.html`.
+
+Sur ces pages, le scan local ne detecte pas le balisage complet de l'assistant. Le loader ne charge donc pas `ai-assistant.js` tant qu'aucun ancrage ou declencheur assistant explicite n'est present.
+
+Risques residuels :
+
+- si l'assistant devait etre injecte partout uniquement par l'execution de `ai-assistant.js`, les pages hors home ne l'afficheront plus tant qu'un ancrage ou declencheur explicite n'est pas ajoute ;
+- le CSS assistant reste dans `styles/style.css`, donc cette passe reduit le cout JS initial mais pas encore le poids CSS global ;
+- la home charge toujours le script complet au demarrage afin de preserver le comportement actuel ;
+- aucun test navigateur automatise n'a mesure le gain LCP/INP reel.
+
+Tests manuels a faire :
+
+1. ouvrir `https://digitalblueskye.com/` ;
+2. verifier que le bouton et le panneau de l'assistant fonctionnent sur la home ;
+3. ouvrir une page article, par exemple `https://digitalblueskye.com/blog/digital/article-ia-gestion-projet.html` ;
+4. verifier qu'il n'y a pas d'erreur console ;
+5. confirmer si l'assistant est attendu ou non sur cette page ;
+6. relancer PageSpeed sur `https://digitalblueskye.com/blog/digital/article-ia-gestion-projet.html` ;
+7. relancer PageSpeed sur `https://digitalblueskye.com/pages/projects.html`.
