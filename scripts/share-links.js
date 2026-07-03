@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   const pageUrl = window.location.href;
   const articleMatch = window.location.pathname.match(/\/blog\/digital\/(article-[^/]+\.html)/);
-  const shareBase = "https://digitalblueskye-share.netlify.app";
+  const shareBase = "https://digitalblueskye.com/share";
   const shareUrl = articleMatch ? `${shareBase}/${articleMatch[1]}` : pageUrl;
   const encodedUrl = encodeURIComponent(shareUrl);
   const encodedTitle = encodeURIComponent(document.title);
