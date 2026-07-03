@@ -124,7 +124,7 @@ const COMMENT_STATUSES = Object.freeze(["approved", "pending", "hidden"]);
 
 // Static fallback whitelist: kept in addition to ALLOWED_ORIGIN so Netlify
 // and local dev keep working even if the env var is unset or misconfigured.
-const STATIC_ALLOWED_ORIGINS = ["https://digitalblueskye.netlify.app"];
+const STATIC_ALLOWED_ORIGINS = ["https://digitalblueskye.com"];
 const LOCALHOST_ORIGIN_PATTERN = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i;
 
 function normalizeOrigin(origin) {

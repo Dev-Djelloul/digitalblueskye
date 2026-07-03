@@ -12,7 +12,7 @@ const DEFAULT_MODEL = 'openrouter/free';
 function buildCorsHeaders(request, env) {
   const requestOrigin = request.headers.get('Origin');
   // On autorise l'origine qui appelle (votre site InfinityFree)
-  const corsOrigin = requestOrigin || "https://digitalblueskye.netlify.app/";
+  const corsOrigin = requestOrigin || "https://digitalblueskye.com/";
 
   return {
     'Content-Type': 'application/json; charset=utf-8',
@@ -83,7 +83,7 @@ export default {
         headers: {
           'Authorization': `Bearer ${env.OPENROUTER_API_KEY}`,
           'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://digitalblueskye.netlify.app/',
+          'HTTP-Referer': 'https://digitalblueskye.com/',
           'X-Title': 'Digital Blue Skye AI'
         },
         body: JSON.stringify({

@@ -22,7 +22,7 @@ Ajouter ces variables dans `Settings > Variables`:
   - `OPENROUTER_FALLBACK_MODELS` = `mistralai/mistral-7b-instruct:free,google/gemma-2-9b-it:free` (optionnel, liste separee par des virgules)
   - `OPENROUTER_MAX_TOKENS` = `1400` (optionnel, minimum applique par le Worker)
   - `TAVILY_MONTHLY_QUOTA` = quota mensuel estime Tavily, `1000` par defaut
-  - `ALLOWED_ORIGIN` = `https://digitalblueskye.netlify.app/`
+  - `ALLOWED_ORIGIN` = `https://digitalblueskye.com/`
 
 ## 3) Frontend
 Le frontend pointe deja vers le Worker via:
@@ -50,7 +50,7 @@ Pre-requis Google Cloud:
 - Activer les API: `Google Picker API` et `Google Drive API`
 - Creer un OAuth client ID de type `Web application`
 - Ajouter les origines autorisees:
-  - `https://digitalblueskye.netlify.app`
+  - `https://digitalblueskye.com`
   - ton futur domaine de prod
 - Ajouter une API key restreinte (HTTP referrer) sur tes domaines web
 

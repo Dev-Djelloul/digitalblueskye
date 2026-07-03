@@ -8,7 +8,7 @@
  *
  * Optional vars:
  * - ALLOWED_ORIGIN (text)
- *   Example: https://digitalblueskye.netlify.app
+ *   Example: https://digitalblueskye.com
  * - TAVILY_API_KEY (secret) - for real-time web search capability
  */
 
@@ -103,7 +103,7 @@ function buildKnowledgeRegistry(env, { enableTavily = true } = {}) {
 }
 
 function buildCorsHeaders(request, env) {
-  const fallbackOrigin = env.ALLOWED_ORIGIN || 'https://digitalblueskye.netlify.app/';
+  const fallbackOrigin = env.ALLOWED_ORIGIN || 'https://digitalblueskye.com/';
   const requestOrigin = request.headers.get('Origin');
   const corsOrigin = requestOrigin || fallbackOrigin;
 
@@ -1481,7 +1481,7 @@ async function pingOpenRouterHealth(env, { configured, configuredModel, healthMo
   try {
     const response = await fetchWithTimeout('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
-      headers: buildOpenRouterHeaders(env, env.ALLOWED_ORIGIN || 'https://digitalblueskye.netlify.app/'),
+      headers: buildOpenRouterHeaders(env, env.ALLOWED_ORIGIN || 'https://digitalblueskye.com/'),
       body: JSON.stringify({
         model: healthModel,
         messages: [
@@ -2037,7 +2037,7 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const corsHeaders = buildCorsHeaders(request, env);
-    const allowedOrigin = env.ALLOWED_ORIGIN || 'https://digitalblueskye.netlify.app/';
+    const allowedOrigin = env.ALLOWED_ORIGIN || 'https://digitalblueskye.com/';
 
     if (request.method === 'OPTIONS') {
       return new Response(null, {
