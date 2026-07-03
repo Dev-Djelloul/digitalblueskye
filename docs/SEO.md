@@ -249,14 +249,24 @@ Outils optionnels :
 
 ## 13. Prochaines améliorations
 
-Améliorations recommandées :
+Les améliorations suivantes ne sont pas bloquantes pour l’indexation actuelle, mais elles permettront de renforcer progressivement la qualité SEO, la performance et la lisibilité technique du site.
 
-- ajouter un balisage `hreflang` FR/EN si une stratégie multilingue indexable est confirmée ;
-- optimiser les images en WebP/AVIF avec dimensions maîtrisées ;
-- renforcer le maillage interne entre pages projet, compétences et articles ;
-- ajouter éventuellement un JSON-LD `BreadcrumbList` sur les pages profondes ;
-- activer ou compléter GA4 si le suivi des conversions devient nécessaire ;
-- réaliser un audit Core Web Vitals après chaque évolution visuelle importante ;
-- construire une stratégie backlinks progressive et qualitative ;
-- auditer régulièrement les pages inspirations pour conserver des titres, descriptions et images sociales cohérents ;
-- documenter toute nouvelle décision SEO structurante directement dans ce fichier.
+### Priorité haute
+
+- Ajouter un balisage `hreflang` FR/EN si une stratégie multilingue réellement indexable est confirmée.
+- Renforcer le maillage interne entre les pages projet, les compétences, les articles du blog digital et les pages de présentation.
+- Réaliser un audit Core Web Vitals après chaque évolution visuelle importante.
+- Optimiser les images principales en WebP/AVIF avec des dimensions maîtrisées, des poids réduits et des attributs `width` / `height` lorsque c’est pertinent.
+
+### Priorité moyenne
+
+- Ajouter éventuellement un JSON-LD `BreadcrumbList` sur les pages profondes : articles, projets, pages inspirations.
+- Auditer régulièrement les pages inspirations pour conserver des titres, descriptions, balises canonical et images sociales cohérents.
+- Vérifier les balises Open Graph et Twitter Cards des pages `share/` après chaque ajout d’article.
+- Compléter ou activer GA4 si le suivi des conversions devient nécessaire : formulaire de contact, clics CTA, consultation d’articles, inscription éventuelle à une newsletter.
+
+### Priorité basse
+
+- Construire une stratégie backlinks progressive, qualitative et cohérente avec le positionnement chef de projet digital / IA / transformation numérique.
+- Étudier l’ajout de schémas complémentaires : `Person`, `Organization`, `WebSite`, `BreadcrumbList`, voire `Article` enrichi si le contenu s’y prête.
+- Documenter toute nouvelle décision SEO structurante directement dans ce fichier afin de conserver une source unique de vérité.
