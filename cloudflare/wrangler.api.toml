@@ -13,7 +13,7 @@ binding = "AI_WORKER"
 service = "digitalblueskye-ai"
 
 [vars]
-ALLOWED_ORIGIN = "https://digitalblueskye.netlify.app/"
+ALLOWED_ORIGIN = "https://digitalblueskye.com,https://www.digitalblueskye.com,https://digitalblueskye.netlify.app"
 COMMENTS_REQUIRE_APPROVAL = "false"
 # Configure ADMIN_TOKEN as a Wrangler secret:
 # wrangler secret put ADMIN_TOKEN -c cloudflare/wrangler.api.toml
