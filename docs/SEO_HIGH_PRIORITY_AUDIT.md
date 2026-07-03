@@ -333,3 +333,43 @@ Prochaines images à traiter :
 - images inspirations voyage les plus lourdes ;
 - autres cartes de `blog/digital/blogArticles.html` ;
 - images de partage restantes dans `share/assets/card-images/`.
+
+## 10. Troisième passe d'implémentation : maillage interne
+
+Passe réalisée sans modification de `sitemap.xml`, `robots.txt`, `docs/SEO.md`, des Workers Cloudflare, des images ou de la stratégie `hreflang`.
+
+Fichiers modifiés :
+
+- `translations/fr.json` ;
+- `translations/en.json` ;
+- `pages/skills.html` ;
+- `pages/projects.html`.
+
+Liens ajoutés dans les contenus d'articles via i18n :
+
+- `article-rse-digital.html` vers `article-pue-datacenters.html`, `article-rgpd-2025.html` et `pages/gouvernance-ia.html` ;
+- `article-ia-gestion-projet.html` vers `article-ia-agentique-gestion-projet.html`, `article-menaces-ia-cybersecurite-2026.html` et `pages/gouvernance-ia.html` ;
+- `article-seo-chef-projet.html` vers `pages/projects.html`, `pages/skills.html`, `article-outils-veille.html` et `article-signaux-faibles.html` ;
+- `article-signaux-faibles.html` vers `article-outils-veille.html` et `article-connector-dots.html` ;
+- `article-pue-datacenters.html` vers `article-rse-digital.html` et `article-tech-2026.html`.
+
+Ancres utilisées :
+
+- `gouvernance IA et risques cybersécurité` ;
+- `retours d'expérience projets web` ;
+- `compétences front-end, SEO et pilotage digital` ;
+- `outils de veille digitale` ;
+- `signaux faibles du numérique` ;
+- `PUE et de l'empreinte énergétique des datacenters` ;
+- `RSE appliquée aux projets web`.
+
+Renforcement projets / compétences :
+
+- `pages/skills.html` ajoute des liens profonds vers `Booki`, `Sophie Bluel`, `Arcadia Zoo` et `Tetris Windsurf` avec des ancres orientées compétences ;
+- `pages/projects.html` remplace les ancres génériques `En savoir plus sur ce projet` par des ancres descriptives par projet, pilotées par `translations/fr.json` et `translations/en.json`.
+
+Limites et pages laissées à traiter :
+
+- les pages projet individuelles n'ont pas reçu de nouveaux paragraphes contextuels pour éviter d'alourdir la passe ;
+- le maillage des articles inspirations reste inchangé ;
+- un prochain passage pourra relier plus finement chaque page projet à une compétence précise et ajouter des liens contextuels depuis les pages projet vers les articles SEO, IA ou RSE pertinents.
