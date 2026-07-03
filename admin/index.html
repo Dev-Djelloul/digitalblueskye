@@ -6868,6 +6868,7 @@
         freshness: null,
         coverage: null,
         errors: null,
+        diagnostics: null,
         activity: [],
         debug: null,
         sources: { items: [], total: 0, page: 0, limit: 20, q: "", projectId: "", status: "" },
@@ -7637,6 +7638,37 @@
       `;
     }
 
+    function renderRagDiagnosticsCard(diagnostics) {
+      if (!diagnostics) {
+        return `
+          <article class="source-side-card">
+            <h2>Diagnostic RAG</h2>
+            <p class="roadmap-empty">Diagnostic indisponible pour le moment.</p>
+          </article>
+        `;
+      }
+      const documentsWithoutChunks = Number(diagnostics.documents_without_chunks?.count || 0);
+      const orphanCount = Array.isArray(diagnostics.orphan_document_ids) ? diagnostics.orphan_document_ids.length : 0;
+      const duplicateSources = Array.isArray(diagnostics.duplicate_sources_by_title) ? diagnostics.duplicate_sources_by_title.length : 0;
+      const duplicateChunks = Array.isArray(diagnostics.duplicate_chunks_by_document) ? diagnostics.duplicate_chunks_by_document.length : 0;
+      const status = diagnostics.health_status || "unknown";
+      return `
+        <article class="source-side-card">
+          <h2>Diagnostic RAG ${ragHealthBadge(status)}</h2>
+          <div class="rag-performance-list">
+            <div class="rag-performance-row"><span>Documents indexés</span><strong>${escapeHtml(premiumNumber(diagnostics.total_rag_sources, "0"))}</strong></div>
+            <div class="rag-performance-row"><span>Chunks</span><strong>${escapeHtml(premiumNumber(diagnostics.total_rag_chunks, "0"))}</strong></div>
+            <div class="rag-performance-row"><span>Orphelins</span><strong>${escapeHtml(premiumNumber(orphanCount, "0"))}</strong></div>
+            <div class="rag-performance-row"><span>Documents sans chunks</span><strong>${escapeHtml(premiumNumber(documentsWithoutChunks, "0"))}</strong></div>
+            <div class="rag-performance-row"><span>Doublons</span><strong>${escapeHtml(premiumNumber(duplicateSources + duplicateChunks, "0"))}</strong></div>
+          </div>
+          ${(diagnostics.warnings || []).length
+            ? `<div class="source-type-list">${diagnostics.warnings.slice(0, 4).map((warning) => `<div><span>${escapeHtml(warning)}</span><strong>alerte</strong></div>`).join("")}</div>`
+            : `<p class="roadmap-empty">Aucune incohérence détectée.</p>`}
+        </article>
+      `;
+    }
+
     function renderSourcesRagDashboard() {
       const rag = state.rag;
       const overview = rag.overview || {};
@@ -7713,6 +7745,7 @@
               <h2>Activité RAG (par jour)</h2>
               ${renderRagActivityList(rag.activity)}
             </article>
+            ${renderRagDiagnosticsCard(rag.diagnostics)}
           </div>
         </section>
         <section class="rag-bottom-grid">
@@ -9042,7 +9075,10 @@
     async function loadPilotage() {
       setNotice("#appNotice", "", "");
       try {
-        const payload = await apiFetch("/admin/rag");
+        const [payload, diagnosticsPayload] = await Promise.all([
+          apiFetch("/admin/rag"),
+          apiFetch("/admin/rag/diagnostics").catch(() => null),
+        ]);
         const rag = payload.rag || {};
         state.rag.overview = rag.overview || null;
         state.rag.projects = rag.projects || [];
@@ -9052,6 +9088,7 @@
         state.rag.freshness = rag.freshness || null;
         state.rag.coverage = rag.coverage || null;
         state.rag.errors = rag.errors || null;
+        state.rag.diagnostics = diagnosticsPayload?.diagnostics || null;
         state.rag.activity = rag.activity || [];
         state.rag.debug = rag.debug || null;
         await loadRagSourceList();
@@ -9059,6 +9096,7 @@
         renderPilotage();
       } catch (error) {
         state.rag.overview = null;
+        state.rag.diagnostics = null;
         state.rag.sources.items = [];
         state.rag.sources.total = 0;
         renderPilotage();

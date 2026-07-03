@@ -2505,6 +2505,7 @@ export default {
       });
       documentTarget = resolveDocumentTarget({
         documents: candidateDocs,
+        message,
         lastConsultedDocumentId: body?.lastConsultedDocumentId || null,
         lastIndexedDocumentId: candidateDocs[0]?.id || null
       });

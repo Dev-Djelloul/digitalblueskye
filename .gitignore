@@ -412,3 +412,4 @@ FodyWeavers.xsd
 
 # macOS
 .DS_Store
+rag-backup-before-purge.sql

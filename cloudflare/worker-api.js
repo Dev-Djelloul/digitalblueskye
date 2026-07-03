@@ -2039,6 +2039,190 @@ async function buildRagChunkStats(env) {
   };
 }
 
+export async function buildRagDiagnostics(env) {
+  const warnings = [];
+  const safeFirst = async (sql, bindings = [], fallback = {}) => {
+    try {
+      return await env.DB.prepare(sql).bind(...bindings).first();
+    } catch (error) {
+      warnings.push(`diagnostic_sql_failed: ${String(error?.message || error || "unknown_error").slice(0, 180)}`);
+      return fallback;
+    }
+  };
+  const safeAll = async (sql, bindings = []) => {
+    try {
+      const result = await env.DB.prepare(sql).bind(...bindings).all();
+      return result.results || [];
+    } catch (error) {
+      warnings.push(`diagnostic_sql_failed: ${String(error?.message || error || "unknown_error").slice(0, 180)}`);
+      return [];
+    }
+  };
+  const countOf = (row) => Number(row?.count || 0);
+  const splitIds = (value) => String(value || "").split(",").map((id) => id.trim()).filter(Boolean);
+
+  const [
+    documentsRow,
+    sourcesRow,
+    chunksRow,
+    documentsWithoutChunksRow,
+    documentsWithoutChunksItems,
+    chunksWithoutSourceRow,
+    chunksWithoutSourceItems,
+    duplicateSourcesRows,
+    duplicateChunksRows,
+    topDocumentsRows,
+    orphanRows,
+  ] = await Promise.all([
+    safeFirst("SELECT COUNT(*) AS count FROM documents", [], { count: 0 }),
+    safeFirst("SELECT COUNT(*) AS count FROM rag_sources", [], { count: 0 }),
+    safeFirst("SELECT COUNT(*) AS count FROM rag_chunks", [], { count: 0 }),
+    safeFirst(
+      `SELECT COUNT(*) AS count
+       FROM documents d
+       LEFT JOIN rag_chunks c ON c.document_id = COALESCE(NULLIF(d.rag_source_id, ''), d.id)
+       WHERE c.id IS NULL`,
+      [],
+      { count: 0 }
+    ),
+    safeAll(
+      `SELECT d.id, d.rag_source_id, d.project_id, d.title, d.filename, d.status, d.updated_at
+       FROM documents d
+       LEFT JOIN rag_chunks c ON c.document_id = COALESCE(NULLIF(d.rag_source_id, ''), d.id)
+       WHERE c.id IS NULL
+       ORDER BY d.updated_at DESC
+       LIMIT 100`
+    ),
+    safeFirst(
+      `SELECT COUNT(*) AS count
+       FROM rag_chunks c
+       LEFT JOIN rag_sources s ON s.id = c.document_id
+       WHERE s.id IS NULL`,
+      [],
+      { count: 0 }
+    ),
+    safeAll(
+      `SELECT c.document_id, c.document_name, c.project_id, COUNT(*) AS chunks_count
+       FROM rag_chunks c
+       LEFT JOIN rag_sources s ON s.id = c.document_id
+       WHERE s.id IS NULL
+       GROUP BY c.document_id, c.document_name, c.project_id
+       ORDER BY chunks_count DESC
+       LIMIT 100`
+    ),
+    safeAll(
+      `SELECT LOWER(TRIM(COALESCE(NULLIF(filename, ''), NULLIF(title, ''), id))) AS normalized_title,
+              COUNT(*) AS count,
+              GROUP_CONCAT(id) AS ids,
+              GROUP_CONCAT(title) AS titles
+       FROM rag_sources
+       GROUP BY normalized_title
+       HAVING COUNT(*) > 1
+       ORDER BY count DESC, normalized_title ASC
+       LIMIT 100`
+    ),
+    safeAll(
+      `SELECT document_id, document_name, chunk_index, COUNT(*) AS count, GROUP_CONCAT(id) AS chunk_ids
+       FROM rag_chunks
+       GROUP BY document_id, document_name, chunk_index
+       HAVING COUNT(*) > 1
+       ORDER BY count DESC, document_id ASC, chunk_index ASC
+       LIMIT 100`
+    ),
+    safeAll(
+      `SELECT document_id, document_name, project_id, COUNT(*) AS chunks_count
+       FROM rag_chunks
+       GROUP BY document_id, document_name, project_id
+       ORDER BY chunks_count DESC
+       LIMIT 20`
+    ),
+    safeAll(
+      `SELECT c.document_id, c.document_name, c.project_id, COUNT(*) AS chunks_count,
+              CASE WHEN s.id IS NULL THEN 1 ELSE 0 END AS missing_rag_source,
+              CASE WHEN d.id IS NULL THEN 1 ELSE 0 END AS missing_document_row
+       FROM rag_chunks c
+       LEFT JOIN rag_sources s ON s.id = c.document_id
+       LEFT JOIN documents d ON d.id = c.document_id OR d.rag_source_id = c.document_id
+       WHERE s.id IS NULL OR d.id IS NULL
+       GROUP BY c.document_id, c.document_name, c.project_id, missing_rag_source, missing_document_row
+       ORDER BY chunks_count DESC
+       LIMIT 100`
+    ),
+  ]);
+
+  const totalDocuments = countOf(documentsRow);
+  const totalSources = countOf(sourcesRow);
+  const totalChunks = countOf(chunksRow);
+  const documentsWithoutChunksCount = countOf(documentsWithoutChunksRow);
+  const chunksWithoutSourceCount = countOf(chunksWithoutSourceRow);
+
+  if (totalDocuments === 0 && totalChunks > 0) warnings.push("documents_table_empty_but_rag_chunks_present");
+  if (totalSources === 0 && totalChunks > 0) warnings.push("rag_sources_empty_but_rag_chunks_present");
+  if (documentsWithoutChunksCount > 0) warnings.push("documents_without_chunks_detected");
+  if (chunksWithoutSourceCount > 0) warnings.push("chunks_without_source_detected");
+  if (duplicateSourcesRows.length > 0) warnings.push("duplicate_sources_by_title_detected");
+  if (duplicateChunksRows.length > 0) warnings.push("duplicate_chunks_by_document_detected");
+  if (orphanRows.length > 0) warnings.push("orphan_document_ids_detected");
+
+  const healthStatus = warnings.length ? "degraded" : "operational";
+
+  return {
+    total_documents_table: totalDocuments,
+    total_rag_sources: totalSources,
+    total_rag_chunks: totalChunks,
+    documents_without_chunks: {
+      count: documentsWithoutChunksCount,
+      items: documentsWithoutChunksItems.map((row) => ({
+        id: row.id,
+        rag_source_id: row.rag_source_id || null,
+        project_id: row.project_id || null,
+        title: row.title || row.filename || row.id,
+        filename: row.filename || null,
+        status: row.status || null,
+        updated_at: row.updated_at || null,
+      })),
+    },
+    chunks_without_source: {
+      count: chunksWithoutSourceCount,
+      groups: chunksWithoutSourceItems.map((row) => ({
+        document_id: row.document_id,
+        document_name: row.document_name || row.document_id,
+        project_id: row.project_id || null,
+        chunks_count: Number(row.chunks_count || 0),
+      })),
+    },
+    duplicate_sources_by_title: duplicateSourcesRows.map((row) => ({
+      title: row.normalized_title || "sans titre",
+      count: Number(row.count || 0),
+      ids: splitIds(row.ids),
+      titles: splitIds(row.titles),
+    })),
+    duplicate_chunks_by_document: duplicateChunksRows.map((row) => ({
+      document_id: row.document_id,
+      document_name: row.document_name || row.document_id,
+      chunk_index: Number(row.chunk_index || 0),
+      count: Number(row.count || 0),
+      chunk_ids: splitIds(row.chunk_ids),
+    })),
+    top_documents_by_chunks: topDocumentsRows.map((row) => ({
+      document_id: row.document_id,
+      document_name: row.document_name || row.document_id,
+      project_id: row.project_id || null,
+      chunks_count: Number(row.chunks_count || 0),
+    })),
+    orphan_document_ids: orphanRows.map((row) => ({
+      document_id: row.document_id,
+      document_name: row.document_name || row.document_id,
+      project_id: row.project_id || null,
+      chunks_count: Number(row.chunks_count || 0),
+      missing_rag_source: Boolean(row.missing_rag_source),
+      missing_document_row: Boolean(row.missing_document_row),
+    })),
+    health_status: healthStatus,
+    warnings: Array.from(new Set(warnings)),
+  };
+}
+
 // Recherches RAG : aucune table dediee (decision actee — pas de duplication
 // des evenements). Tout est derive de rag_query/rag_match/rag_no_match/
 // rag_context_used deja journalises par le runtime RAG existant.
@@ -5566,6 +5750,14 @@ async function handleAdminRagErrors(request, env) {
   return jsonResponse(request, env, { ok: true, errors });
 }
 
+async function handleAdminRagDiagnostics(request, env) {
+  if (request.method !== "GET") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const diagnostics = await buildRagDiagnostics(env);
+  return jsonResponse(request, env, { ok: true, diagnostics });
+}
+
 function ragSourceIdFromPath(pathname) {
   const prefix = "/admin/rag/sources/";
   if (!pathname.startsWith(prefix)) return "";
@@ -5587,6 +5779,7 @@ async function handleAdminRag(request, env, url) {
   if (pathname === "/admin/rag/health") return await handleAdminRagHealth(request, env);
   if (pathname === "/admin/rag/activity") return await handleAdminRagActivity(request, env, url);
   if (pathname === "/admin/rag/errors") return await handleAdminRagErrors(request, env);
+  if (pathname === "/admin/rag/diagnostics") return await handleAdminRagDiagnostics(request, env);
 
   const sourceId = ragSourceIdFromPath(pathname);
   if (sourceId) return await handleAdminRagSourceDetails(request, env, sourceId);
