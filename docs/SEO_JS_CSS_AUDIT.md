@@ -257,3 +257,54 @@ Tests manuels a faire :
 5. confirmer si l'assistant est attendu ou non sur cette page ;
 6. relancer PageSpeed sur `https://digitalblueskye.com/blog/digital/article-ia-gestion-projet.html` ;
 7. relancer PageSpeed sur `https://digitalblueskye.com/pages/projects.html`.
+
+## 13. Deuxieme passe d'implementation : rationalisation AOS et Font Awesome
+
+Passe realisee sans modifier `scripts/ai-assistant.js`, sans modifier les references a `/scripts/ai-assistant.js`, sans recreer de loader assistant, sans toucher aux Workers Cloudflare, a `sitemap.xml`, `robots.txt`, aux pages `share/`, aux images ou a `translations/`. Le chatbot reste charge directement comme avant sur les 54 pages concernees.
+
+Font Awesome (`cdnjs` `font-awesome@5.15.4`) :
+
+- retire sur 35 pages qui chargeaient le CDN sans classe `fa-*`/`fas`/`far`/`fab` detectee dans le HTML : `index.html`, `pages/about.html`, `pages/agilite.html`, `pages/contact.html`, `pages/cookies-policy.html`, `pages/gouvernance-ia.html`, `pages/privacy.html`, `pages/projects.html`, `pages/skills.html`, `pages/terms.html`, `projects/arcadia-zoo.html`, `projects/booki.html`, `projects/budget-buddy.html`, `projects/memory-game.html`, `projects/ohmyfood.html`, `projects/print-it.html`, `projects/riding-cities.html`, `projects/sophie-bluel.html`, `projects/tetris-windsurf.html`, `blog/digital/article-cone-apprentissage.html`, `blog/digital/article-connector-dots.html`, `blog/digital/article-ia-agentique-gestion-projet.html`, `blog/digital/article-ia-gestion-projet.html`, `blog/digital/article-menaces-ia-cybersecurite-2026.html`, `blog/digital/article-metavers-projets.html`, `blog/digital/article-outils-veille.html`, `blog/digital/article-pue-datacenters.html`, `blog/digital/article-rgpd-2025.html`, `blog/digital/article-rgpd-ia-securite.html`, `blog/digital/article-rse-digital.html`, `blog/digital/article-seo-chef-projet.html`, `blog/digital/article-signaux-faibles.html`, `blog/digital/article-tech-2026.html`, `blog/digital/blogArticles.html`, `blog/inspirations/carnets-inspirations.html` ;
+- conserve sur `pages/visualTourProjects.html`, seule page du perimetre a exposer reellement des classes Font Awesome (`fa-*`) dans son HTML.
+
+AOS (`unpkg` `aos@2.3.1`) :
+
+- retire (CSS, script, et l'appel `AOS.init(...)` associe) sur 19 pages sans aucun attribut `data-aos` : `index.html`, `pages/cookies-policy.html`, `pages/privacy.html`, `pages/terms.html`, `pages/visualTourProjects.html`, `blog/digital/article-cone-apprentissage.html`, `blog/digital/article-connector-dots.html`, `blog/digital/article-ia-agentique-gestion-projet.html`, `blog/digital/article-ia-gestion-projet.html`, `blog/digital/article-menaces-ia-cybersecurite-2026.html`, `blog/digital/article-metavers-projets.html`, `blog/digital/article-outils-veille.html`, `blog/digital/article-pue-datacenters.html`, `blog/digital/article-rgpd-2025.html`, `blog/digital/article-rgpd-ia-securite.html`, `blog/digital/article-rse-digital.html`, `blog/digital/article-seo-chef-projet.html`, `blog/digital/article-signaux-faibles.html`, `blog/digital/article-tech-2026.html` ;
+- conserve sur 17 pages ou `data-aos` est bien present dans le HTML : `pages/about.html`, `pages/agilite.html`, `pages/contact.html`, `pages/gouvernance-ia.html`, `pages/projects.html`, `pages/skills.html`, `projects/arcadia-zoo.html`, `projects/booki.html`, `projects/budget-buddy.html`, `projects/memory-game.html`, `projects/ohmyfood.html`, `projects/print-it.html`, `projects/riding-cities.html`, `projects/sophie-bluel.html`, `projects/tetris-windsurf.html`, `blog/digital/blogArticles.html`, `blog/inspirations/carnets-inspirations.html` ;
+- point d'attention traite : sur les 19 pages ou AOS a ete retire, le HTML appelait systematiquement `AOS.init({...})` juste apres le script AOS, dans le meme bloc `<script>` que la logique du bouton « retour en haut ». Laisser cet appel sans la librairie aurait leve une `ReferenceError` et casse ce bouton sur chaque page. L'appel `AOS.init(...)` a donc ete retire avec le CDN, en laissant intact le reste du bloc (bouton retour en haut). Aucun fichier sous `scripts/` n'a ete modifie ;
+- verification faite que ces 19 pages ne chargent pas `loader.js` avec un `#loader-wrapper` (le seul autre point d'appel `AOS.init` du depot, dans `scripts/loader.js`), donc aucun autre risque de `ReferenceError` residuel.
+
+Fichiers modifies dans cette passe (AOS uniquement, cote script inline HTML) :
+
+- les 19 fichiers HTML listes ci-dessus pour AOS ;
+- `docs/SEO_JS_CSS_AUDIT.md`.
+
+Le retrait de Font Awesome sur les 35 pages listees ci-dessus preexistait dans l'arbre de travail au demarrage de cette passe (modifications non commitees) ; il a ete verifie et documente ici sans etre refait.
+
+Pages ou les ressources ont ete conservees par prudence :
+
+- `pages/visualTourProjects.html` pour Font Awesome (icones `fa-*` reellement presentes) ;
+- les 17 pages listees ci-dessus pour AOS (`data-aos` reellement present) ;
+- toutes les autres pages hors perimetre (`share/`, `admin/`, etc.) n'ont pas ete scannees ni modifiees.
+
+Google Fonts :
+
+- aucune modification effectuee dans cette passe, conformement au perimetre ;
+- doublon deja documente en section 5 : `Gelasio` est charge a la fois via `@import` dans `styles/style.css` (ligne ~42) et potentiellement via un lien HTML sur certaines pages ; aucun nouveau doublon evident n'a ete confirme lors de ce scan cible AOS/Font Awesome.
+
+Limites de cette passe :
+
+- verification faite uniquement par recherche statique de motifs (`fa-`, `fas`, `far`, `fab`, `data-aos`, `AOS.init`) dans le HTML source, sans rendu navigateur ni verification visuelle reelle ;
+- les classes Font Awesome ou attributs `data-aos` injectes dynamiquement par JavaScript (hors HTML source) n'auraient pas ete detectes par ce scan ;
+- aucune mesure Lighthouse/PageSpeed avant/apres n'a ete effectuee ;
+- le CSS global `styles/style.css` continue de contenir les styles lies aux animations et n'a pas ete modifie.
+
+Tests manuels a faire :
+
+1. ouvrir une page ou Font Awesome a ete retire (ex. `pages/about.html`) et verifier l'absence d'icone manquante ou de carre vide ;
+2. ouvrir `pages/visualTourProjects.html` et verifier que les icones Font Awesome s'affichent toujours correctement ;
+3. ouvrir une page ou AOS a ete retire (ex. `blog/digital/article-rse-digital.html`) et verifier l'absence d'erreur console, ainsi que le bon fonctionnement du bouton « retour en haut » ;
+4. ouvrir une page ou AOS est conserve (ex. `pages/about.html`) et verifier que les animations au scroll fonctionnent toujours ;
+5. ouvrir `index.html` et confirmer que le chatbot (bouton et panneau assistant) est toujours visible et fonctionnel, et que le bouton « retour en haut » fonctionne sans AOS ;
+6. verifier sur 2-3 pages `blog/digital/` et `blog/inspirations/` que le chatbot reste present comme avant cette passe ;
+7. relancer PageSpeed sur une page ayant perdu AOS et Font Awesome (ex. `pages/privacy.html`) pour comparer au releve initial.
