@@ -308,3 +308,51 @@ Tests manuels a faire :
 5. ouvrir `index.html` et confirmer que le chatbot (bouton et panneau assistant) est toujours visible et fonctionnel, et que le bouton « retour en haut » fonctionne sans AOS ;
 6. verifier sur 2-3 pages `blog/digital/` et `blog/inspirations/` que le chatbot reste present comme avant cette passe ;
 7. relancer PageSpeed sur une page ayant perdu AOS et Font Awesome (ex. `pages/privacy.html`) pour comparer au releve initial.
+
+## 14. Troisieme passe d'implementation : reduction du CLS home
+
+Contexte : PageSpeed signale un CLS tres eleve sur `https://digitalblueskye.com/`. Le chatbot IA est charge directement via `/scripts/ai-assistant.js` sur toutes les pages (aucun loader assistant recree, `scripts/ai-assistant.js` non modifie dans cette passe).
+
+Causes probables analysees :
+
+- **injection tardive de contenu (cause retenue, corrigee)** : `scripts/welcome-animations.js` mettait `.intro-text` (bloc hero complet : titre `h1`, sous-titre, bouton « Commencer à explorer ») en `display: none` des `DOMContentLoaded`, puis le remettait en `display: block` apres un `setTimeout` de 500 ms (branche sans `#loader-wrapper`, qui est le cas de `index.html`). Pendant ces ~500 ms, le hero est retire du flux et sa hauteur s'effondre a 0, ce qui fait remonter toute la suite de la page (section confiance, grille d'articles, footer) puis la fait redescendre brutalement quand le hero reapparait. C'est la cause la plus probable et la plus importante du CLS eleve mesure ;
+- **polices (cause retenue, corrigee en partie)** : les polices reellement utilisees par les variables CSS `--font-title` (`Indie Flower`) et `--font-body` (`Mozilla Text`), ainsi que `Space Mono`, ne sont chargees que via un `@import` place dans `styles/style.css` (ligne ~42), alors que les `<link>` de police dans `<head>` de `index.html` chargent `Gelasio`, `Roboto Condensed` et `Iceland`. `Roboto Condensed` et `Iceland` ne sont utilisees nulle part dans `styles/style.css`. Ce decalage retarde la decouverte des polices reellement affichees (titre, paragraphes) par rapport a un chargement natif en `<head>`, ce qui peut provoquer un swap de police tardif et un CLS additionnel sur le texte visible ;
+- **images sans dimensions (cause mineure, corrigee)** : le logo du header (`.header-logo img`) n'avait pas d'attributs `width`/`height` HTML ; seule la hauteur etait fixee en CSS (`height: 70px`, `width: auto`), donc la largeur ne pouvait etre calculee par le navigateur qu'apres reception de l'image ;
+- **hero/cards deja stables (aucune correction necessaire)** : `.hero-media` reserve deja sa hauteur via `aspect-ratio: 1920 / 1082` et ne contient pas de balise `<img>` ; `.news-card-image-container` reserve deja une hauteur fixe (`200px`/`250px` selon contexte) avec des images en `object-fit: cover`, donc aucun CLS attendu de ce cote ;
+- **animations au defilement (aucune correction necessaire)** : `.slide-hidden` / `.slide-from-bottom` / `.animated-title` reposent uniquement sur `opacity` et `transform`, deux proprietes qui n'affectent pas le flux et ne declenchent pas de reflow ;
+- **changement de theme (aucune correction necessaire)** : `scripts/theme-switcher.js` applique un attribut `data-theme` qui ne modifie que des couleurs/filtres dans `styles/style.css`, sans changement de dimension ;
+- **loader (aucune correction necessaire)** : `index.html` ne contient pas d'element `#loader-wrapper` ; le bloc `#loader-wrapper` de `styles/style.css` est en `position: fixed`, donc sans impact sur le flux des autres elements meme s'il etait present ;
+- **assistant IA (aucune correction necessaire)** : le lanceur et le panneau assistant (`#ai-assistant-launcher`, `#ai-assistant-panel`) sont positionnes hors du flux normal (`position: fixed`/`absolute` dans `styles/style.css`) et n'ont pas ete modifies ; `scripts/ai-assistant.js` reste charge directement, sans modification ;
+- **navbar (aucune correction necessaire)** : le header et le menu deroulant ne changent pas de hauteur au chargement initial dans le HTML scanne.
+
+Fichiers modifies :
+
+- `scripts/welcome-animations.js` : suppression du bascule `display: none` / `display: block` sur `.intro-text`, qui provoquait l'effondrement puis la reapparition du hero. Le hero reste desormais visible et dans le flux en permanence ; l'animation d'entree du titre (`opacity`/`transform` via `animateElement`) est conservee a l'identique (meme delai de 2000 ms). Ajout d'une garde `if (!introText) return;` pour eviter une erreur JS silencieuse sur les autres pages qui chargent ce script sans avoir de `.intro-text` (`blog/digital/article-connector-dots.html`, `blog/digital/article-signaux-faibles.html`, `blog/digital/blogArticles.html`, `blog/digital/article-ia-gestion-projet.html`, `blog/digital/article-seo-chef-projet.html`, `blog/inspirations/carnets-inspirations.html`, `blog/digital/article-cone-apprentissage.html`) ;
+- `index.html` : ajout de `width="124" height="70"` sur le logo du header (dimensions calculees a partir du ratio reel de `assets/images/logo/DigitalBlueSkye-Logo.png`, 1920x1080, pour une hauteur CSS de 70px) ; ajout d'un `<link rel="stylesheet">` supplementaire vers les polices Google Fonts reellement utilisees par `styles/style.css` (`Gelasio`, `Mozilla Text`, `Indie Flower`, `Space Mono`, meme requete que l'`@import` du CSS) pour que le navigateur les decouvre en parallele du CSS global plutot qu'apres analyse de l'`@import` ;
+- `docs/SEO_JS_CSS_AUDIT.md` : cette section.
+
+`styles/style.css` n'a pas ete modifie : l'`@import` de polices reste en place pour ne pas casser le chargement des polices sur les 70 autres pages qui dependent du meme fichier CSS global ; le nouveau `<link>` ajoute dans `index.html` cible la meme URL Google Fonts, donc le navigateur reutilise la reponse en cache au lieu de la retelecharger.
+
+Corrections appliquees :
+
+1. retrait du bascule `display: none/block` du hero sur la home (cause principale du CLS) ;
+2. ajout de `width`/`height` HTML sur le logo du header pour reserver son espace avant chargement de l'image ;
+3. decouverte anticipee, en `<head>` de `index.html`, des polices reellement utilisees par le CSS (`Indie Flower`, `Mozilla Text`, `Space Mono`), en plus de l'`@import` existant dans `styles/style.css` qui reste inchange.
+
+Aucune fonctionnalite n'a ete supprimee : le chatbot, le bouton « retour en haut », le menu, le changement de theme et l'animation d'entree du titre fonctionnent comme avant. Verifie manuellement en local (serveur statique) : ouverture de la home, acceptation des cookies, ouverture/fermeture du panneau assistant, absence d'erreur console, et mesure de `PerformanceObserver({type: 'layout-shift'})` a 0 apres rechargement (contre un effondrement visible du hero avant correction).
+
+Risques residuels :
+
+- le `<link>` de polices ajoute dans `index.html` duplique l'URL de l'`@import` de `styles/style.css` ; c'est volontaire (mise en cache navigateur), mais cela reste une duplication de declaration a nettoyer un jour en retirant l'`@import` du CSS global, hors perimetre de cette passe ;
+- `Roboto Condensed` et `Iceland`, charges dans `<head>` mais non utilises dans `styles/style.css`, n'ont pas ete retires : leur suppression n'est pas une correction de CLS et sort du perimetre prudent de cette tache ;
+- aucune mesure PageSpeed/Lighthouse reelle n'a ete faite ; seule une mesure locale de `layout-shift` via `PerformanceObserver` dans un navigateur de previsualisation a confirme l'absence de decalage sur la home apres correction ;
+- le CLS peut aussi dependre de facteurs non reproductibles en local (latence reseau reelle des polices/CDN, connexion lente, extensions navigateur) ; un nouveau releve PageSpeed en production reste necessaire pour confirmer le gain ;
+- les 7 autres pages qui chargent `scripts/welcome-animations.js` sans `.intro-text` n'ont pas ete modifiees ; elles beneficient seulement de la garde ajoutee contre l'erreur JS potentielle, sans changement de comportement visible.
+
+Tests PageSpeed a refaire :
+
+1. relancer PageSpeed Insights (mobile et desktop) sur `https://digitalblueskye.com/` et comparer le score CLS au releve initial qui a motive cette passe ;
+2. verifier dans le rapport PageSpeed que l'element source du CLS (« Largest layout shift culprit ») ne pointe plus vers `.intro-text` ou le hero ;
+3. confirmer visuellement, en ouvrant la home en throttling reseau lent (Chrome DevTools), que le titre et le bouton « Commencer à explorer » restent en place des le premier rendu, sans saut de la page ;
+4. verifier que le chatbot (bouton et panneau) reste visible et fonctionnel sur la home apres ce test ;
+5. relancer PageSpeed sur une page secondaire chargeant `scripts/welcome-animations.js` sans hero (ex. `blog/digital/blogArticles.html`) pour confirmer l'absence de regression.
