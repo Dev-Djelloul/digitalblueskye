@@ -1089,7 +1089,15 @@
   ensureSourcesPanel();
   ensureSidebarRail();
 
-  const API_ENDPOINT = 'https://digitalblueskye-ai.djelloulabid75.workers.dev';
+  // Endpoint IA. Par defaut : appel direct au Worker IA (comportement
+  // historique, non regressif). Pour activer l'ENFORCEMENT SERVEUR (session
+  // verifiee + rate limit + logs), definir dans la page :
+  //   window.DBS_AI_ENDPOINT = 'https://digitalblueskye-api.<compte>.workers.dev/ai/chat'
+  // Le proxy /ai/chat exige un cookie de session (credentials: 'include') et
+  // renvoie 401 AUTH_REQUIRED si non connecte. Voir docs/CHATBOT_AUTH_SECURITY.md.
+  const API_ENDPOINT = String(window.DBS_AI_ENDPOINT || '').trim() ||
+    'https://digitalblueskye-ai.djelloulabid75.workers.dev';
+  const API_USES_PROXY = /\/ai\/chat$/.test(API_ENDPOINT);
   const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.readonly';
   const DRIVE_PICKER_SCRIPT_URL = 'https://apis.google.com/js/api.js';
   const GOOGLE_IDENTITY_SCRIPT_URL = 'https://accounts.google.com/gsi/client';
@@ -10205,14 +10213,40 @@
     return i18n.friendlyApiError;
   }
 
+  // Ajoute, si l'utilisateur est "connecté" localement (scripts/dbs-auth.js),
+  // un bloc informatif payload.user = { userId, email, authClientState } au
+  // payload envoye au Worker.
+  //
+  // ATTENTION (securite) : cette information est purement INDICATIVE et forgee
+  // cote client — elle ne prouve rien. On n'envoie volontairement PAS
+  // "isAuthenticated" comme s'il s'agissait d'une preuve. La verification
+  // reelle de l'identite DOIT etre faite cote serveur (Worker/API) : voir
+  // docs/CHATBOT_AUTH_SECURITY.md. Tant que ce n'est pas en place, ne jamais
+  // s'appuyer sur payload.user pour une decision de securite, seulement pour
+  // du contexte/analytics best-effort.
+  function withAuthInfo(payload) {
+    const user = window.DBSAuth?.getCachedUser?.();
+    payload.user = user
+      ? { userId: user.id, email: user.email, authClientState: user.provider || 'local-dev' }
+      : null;
+    return payload;
+  }
+
   async function sendAssistantRequest(payload, signal) {
     const startedAt = performance.now();
     const response = await fetch(API_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      // credentials inclus quand on passe par le proxy API (cookie de session).
+      credentials: API_USES_PROXY ? 'include' : 'same-origin',
       signal,
-      body: JSON.stringify(payload)
+      body: JSON.stringify(withAuthInfo(payload))
     });
+    // Le proxy protege renvoie 401 AUTH_REQUIRED si la session serveur manque :
+    // on rouvre la modale de connexion plutot que d'afficher une erreur brute.
+    if (response.status === 401) {
+      try { window.DBSAuth?.refreshSession?.(); window.DBSAuth?.openAuthModal?.(); } catch (_) { /* no-op */ }
+    }
     const raw = await response.text();
     let data = null;
     try {

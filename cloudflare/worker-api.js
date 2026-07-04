@@ -1,4 +1,13 @@
 /**
+ * TODO(securite) — Durcissement de l'acces au chatbot IA.
+ * Le front (scripts/dbs-auth.js) n'applique qu'un gate UX : il peut envoyer un
+ * bloc `user: { userId, email, authClientState: 'local-dev' }` dans le payload,
+ * mais cette information est INDICATIVE et forgeable. Ce Worker ne doit PAS la
+ * traiter comme une preuve d'identite. Prochaine etape : verifier une vraie
+ * preuve cote serveur (Cloudflare Access / JWT signe verifie ici), ajouter du
+ * rate limiting IP+utilisateur et des quotas. Plan detaille dans
+ * docs/CHATBOT_AUTH_SECURITY.md.
+ *
  * Cloudflare Worker API for Digital Blue Skye
  * Compatible routes:
  * - POST /backend/consent.php
@@ -20,6 +29,7 @@ import { computeProjectPlan } from './aiProjectManager.js';
 import { buildMaturityDashboardPayload } from './maturityEngine.js';
 import { computeServiceHealthScore } from './serviceHealth.js';
 import { BUILD_INFO } from './build-info.js';
+import { handleAuthRoutes, handleAiChat, authOptionsResponse, isAuthOrAiPath } from './auth.js';
 
 const REACTION_MAP = Object.freeze({
   thumbsup: "reactions_thumbsup",
@@ -6628,6 +6638,8 @@ export default {
     const pathname = url.pathname;
 
     if (request.method === "OPTIONS") {
+      // Les routes auth/ai exigent un CORS avec credentials (cookie de session).
+      if (isAuthOrAiPath(pathname)) return authOptionsResponse(request, env);
       return new Response(null, { status: 204, headers: corsHeaders(request, env) });
     }
 
@@ -6636,6 +6648,9 @@ export default {
     }
 
     try {
+      // Authentification serveur OAuth + proxy IA protege (cf. cloudflare/auth.js).
+      if (pathname === "/ai/chat") return await handleAiChat(request, env);
+      if (pathname.startsWith("/auth/")) return await handleAuthRoutes(request, env, url);
       if (pathname.startsWith("/admin/")) return await handleAdmin(request, env, url);
       if (pathname === "/backend/consent.php") return await handleConsent(request, env);
       if (pathname === "/backend/comments.php") return await handleComments(request, env, url);

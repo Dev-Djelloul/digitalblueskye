@@ -10803,6 +10803,477 @@ body.body-menu-open .ai-assistant-collapse-handle {
   width: 20px;
 }
 
+/* Avatar utilisateur dans le rail permanent gauche de l'assistant, visible
+   uniquement une fois "connecté" (scripts/dbs-auth.js). Ouvre profile.html. */
+.dbs-profile-rail-avatar {
+  align-items: center;
+  background: transparent;
+  border: 1px solid rgb(121 230 255 / 30%);
+  border-radius: 50%;
+  cursor: pointer;
+  display: inline-flex;
+  height: 38px;
+  justify-content: center;
+  overflow: hidden;
+  padding: 0;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+  width: 38px;
+}
+
+.dbs-profile-rail-avatar:hover,
+.dbs-profile-rail-avatar:focus-visible {
+  border-color: rgb(121 230 255 / 70%);
+  box-shadow: 0 0 0 2px rgb(121 230 255 / 20%);
+  outline: none;
+}
+
+.dbs-profile-rail-avatar img {
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+/* Modale de connexion legere (UX only, voir scripts/dbs-auth.js). */
+.dbs-auth-modal {
+  align-items: center;
+  display: flex;
+  height: 100%;
+  inset: 0;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  position: fixed;
+  transition: opacity 0.2s ease;
+  visibility: hidden;
+  z-index: 10050;
+}
+
+.dbs-auth-modal.is-open {
+  opacity: 1;
+  pointer-events: auto;
+  visibility: visible;
+}
+
+.dbs-auth-modal-backdrop {
+  background: rgb(8 9 20 / 70%);
+  inset: 0;
+  position: absolute;
+}
+
+.dbs-auth-panel {
+  background:
+    linear-gradient(180deg, rgb(29 28 61 / 96%), rgb(14 13 34 / 98%)),
+    var(--card-bg);
+  border: 1px solid rgb(93 93 255 / 30%);
+  border-radius: 18px;
+  box-shadow: 0 24px 60px rgb(0 0 0 / 40%);
+  max-width: 380px;
+  padding: 28px 26px 24px;
+  position: relative;
+  width: calc(100% - 32px);
+}
+
+.dbs-auth-panel-close {
+  background: transparent;
+  border: none;
+  color: var(--text-color);
+  cursor: pointer;
+  font-size: 1.4rem;
+  line-height: 1;
+  padding: 4px;
+  position: absolute;
+  right: 14px;
+  top: 12px;
+}
+
+.dbs-auth-panel-title {
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 1.15rem;
+  margin: 0 28px 10px 0;
+}
+
+.dbs-auth-panel-desc {
+  color: rgb(235 240 255 / 78%);
+  font-size: 0.86rem;
+  line-height: 1.45;
+  margin: 0 0 14px;
+}
+
+.dbs-user-status {
+  color: rgb(121 230 255 / 92%);
+  font-size: 0.8rem;
+  margin: 0 0 16px;
+}
+
+.dbs-auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dbs-auth-label {
+  color: rgb(246 247 255 / 88%);
+  font-size: 0.82rem;
+}
+
+.dbs-auth-input {
+  background: rgb(14 17 40 / 95%);
+  border: 1px solid rgb(93 93 255 / 30%);
+  border-radius: 10px;
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  padding: 10px 12px;
+}
+
+.dbs-auth-input:focus-visible {
+  border-color: rgb(121 230 255 / 70%);
+  outline: none;
+}
+
+.dbs-auth-input.is-invalid {
+  border-color: rgb(255 138 138 / 75%);
+}
+
+.dbs-auth-error {
+  color: #ff8a8a;
+  font-size: 0.78rem;
+  margin: 0;
+}
+
+.dbs-auth-submit {
+  background: var(--accent-color);
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-weight: 600;
+  margin-top: 6px;
+  padding: 11px 16px;
+  transition: opacity 0.18s ease;
+}
+
+.dbs-auth-submit:hover {
+  opacity: 0.9;
+}
+
+/* Boutons OAuth (Google / GitHub / Facebook). */
+.dbs-oauth-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 4px 0 2px;
+}
+
+.dbs-oauth-btn {
+  align-items: center;
+  background: rgb(20 24 48 / 92%);
+  border: 1px solid rgb(93 93 255 / 32%);
+  border-radius: 10px;
+  color: #f6f7ff;
+  cursor: pointer;
+  display: flex;
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  font-weight: 600;
+  gap: 10px;
+  justify-content: center;
+  padding: 11px 16px;
+  transition: border-color 0.18s ease, background 0.18s ease, transform 0.1s ease;
+}
+
+.dbs-oauth-btn:hover:not([disabled]) {
+  background: rgb(30 34 66 / 96%);
+  border-color: rgb(121 230 255 / 55%);
+}
+
+.dbs-oauth-btn:focus-visible {
+  outline: 2px solid rgb(121 230 255 / 65%);
+  outline-offset: 2px;
+}
+
+.dbs-oauth-btn[disabled] {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.dbs-oauth-btn.is-google { border-color: rgb(234 67 53 / 45%); }
+.dbs-oauth-btn.is-github { border-color: rgb(200 200 200 / 40%); }
+.dbs-oauth-btn.is-facebook { border-color: rgb(24 119 242 / 55%); }
+
+.dbs-oauth-icon {
+  align-items: center;
+  display: inline-flex;
+  font-weight: 700;
+  height: 20px;
+  justify-content: center;
+  width: 20px;
+}
+
+.dbs-oauth-btn.is-google .dbs-oauth-icon { color: #ea4335; }
+.dbs-oauth-btn.is-facebook .dbs-oauth-icon { color: #1877f2; }
+
+.dbs-auth-sep {
+  align-items: center;
+  color: rgb(235 240 255 / 55%);
+  display: flex;
+  font-size: 0.8rem;
+  gap: 10px;
+  margin: 16px 0 12px;
+}
+
+.dbs-auth-sep::before,
+.dbs-auth-sep::after {
+  background: rgb(93 93 255 / 24%);
+  content: "";
+  flex: 1;
+  height: 1px;
+}
+
+.dbs-auth-note {
+  color: rgb(235 200 138 / 92%);
+  font-size: 0.78rem;
+  margin: 10px 0 0;
+}
+
+/* Bloc identite (avatar + provider) sur profile.html. */
+.dbs-profile-identity {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  margin: 0 0 18px;
+}
+
+/* L'attribut hidden doit toujours l'emporter sur les display:flex/grid des
+   blocs profil (identite, actions, formulaire, boutons OAuth). */
+body.profile-page [hidden] {
+  display: none !important;
+}
+
+/* Icone de fournisseur dans les boutons OAuth (modale + profile.html). */
+.dbs-oauth-btn img,
+.dbs-oauth-icon img {
+  height: 20px;
+  object-fit: contain;
+  width: 20px;
+}
+
+.dbs-profile-identity-avatar {
+  border: 1px solid rgb(121 230 255 / 40%);
+  border-radius: 50%;
+  height: 48px;
+  object-fit: cover;
+  width: 48px;
+}
+
+.dbs-profile-identity-provider {
+  color: rgb(235 240 255 / 78%);
+  font-size: 0.84rem;
+}
+
+/* ---------------------------------------------------------------------
+   Page profile.html — layout applicatif compact (auth locale UX only,
+   voir scripts/dbs-auth.js). Scope sur body.profile-page pour ne jamais
+   impacter la home / les autres pages qui partagent style.css.
+   --------------------------------------------------------------------- */
+html,
+body {
+  min-height: 100%;
+}
+
+body.profile-page {
+  background:
+    radial-gradient(circle at top, rgb(115 64 255 / 24%), transparent 34%),
+    linear-gradient(180deg, #0b0d22 0%, #12051f 52%, #05070f 100%);
+  background-attachment: fixed;
+  color: #f7f7ff;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  min-height: 100vh;
+}
+
+/* Header compact facon barre d'app, pas de hero geant. */
+body.profile-page .profile-header {
+  align-items: center;
+  background: rgb(14 17 40 / 55%);
+  backdrop-filter: blur(14px) saturate(140%);
+  border-bottom: 1px solid rgb(93 93 255 / 22%);
+  box-sizing: border-box;
+  display: flex;
+  gap: 14px;
+  height: auto;
+  min-height: auto;
+  padding: 0.9rem clamp(1rem, 4vw, 2.4rem);
+  width: 100%;
+}
+
+body.profile-page .profile-header-logo {
+  display: inline-flex;
+  flex: 0 0 auto;
+  line-height: 0;
+}
+
+body.profile-page .profile-header-logo img {
+  height: 42px;
+  width: 42px;
+}
+
+body.profile-page .profile-header-title {
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 1.02rem;
+  font-weight: 600;
+}
+
+body.profile-page .profile-header-back {
+  color: rgb(121 230 255 / 92%);
+  font-family: var(--font-body);
+  font-size: 0.86rem;
+  margin-left: auto;
+  text-decoration: none;
+}
+
+body.profile-page .profile-header-back:hover {
+  text-decoration: underline;
+}
+
+/* Zone centrale : remplit tout l'espace restant, fond transparent (le fond
+   sombre vient de body.profile-page) => aucune bande blanche possible. */
+body.profile-page .profile-main {
+  background: transparent;
+  box-sizing: border-box;
+  display: grid;
+  flex: 1 1 auto;
+  padding: clamp(1.5rem, 4vw, 2.75rem) 1rem;
+  place-items: start center;
+}
+
+/* La carte profil reprend le glassmorphism de l'assistant, sans marge haute
+   demesuree : elle apparait au-dessus de la ligne de flottaison. */
+.dbs-profile-page {
+  background:
+    linear-gradient(180deg, rgb(29 28 61 / 92%), rgb(14 13 34 / 96%)),
+    var(--card-bg);
+  border: 1px solid rgb(93 93 255 / 26%);
+  border-radius: 18px;
+  box-shadow: 0 18px 44px rgb(0 0 0 / 30%);
+  box-sizing: border-box;
+  margin: 0 auto;
+  max-width: 460px;
+  padding: clamp(22px, 4vw, 30px) clamp(20px, 4vw, 28px);
+  width: 100%;
+}
+
+.dbs-profile-page h1 {
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 1.3rem;
+  margin: 0 0 18px;
+}
+
+.dbs-profile-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.dbs-profile-field label {
+  color: rgb(246 247 255 / 88%);
+  font-size: 0.82rem;
+}
+
+.dbs-profile-field input,
+.dbs-profile-field select {
+  background: rgb(14 17 40 / 95%);
+  border: 1px solid rgb(93 93 255 / 30%);
+  border-radius: 10px;
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  padding: 10px 12px;
+}
+
+.dbs-profile-field input[disabled] {
+  color: rgb(235 240 255 / 60%);
+  cursor: not-allowed;
+}
+
+.dbs-profile-save {
+  background: var(--accent-color);
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-weight: 600;
+  margin-top: 6px;
+  padding: 11px 16px;
+}
+
+.dbs-profile-saved {
+  color: rgb(121 230 255 / 92%);
+  font-size: 0.8rem;
+  margin: 10px 0 0;
+}
+
+.dbs-profile-signed-out-text {
+  color: rgb(235 240 255 / 82%);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 0 0 16px;
+}
+
+.dbs-profile-actions {
+  border-top: 1px solid rgb(93 93 255 / 18%);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 22px;
+  padding-top: 18px;
+}
+
+/* L'attribut hidden doit l'emporter sur display:flex ci-dessus. */
+.dbs-profile-actions[hidden] {
+  display: none;
+}
+
+.dbs-logout-button {
+  background: transparent;
+  border: 1px solid rgb(255 138 138 / 50%);
+  border-radius: 10px;
+  color: #ff8a8a;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-weight: 600;
+  padding: 10px 16px;
+  width: 100%;
+}
+
+.dbs-logout-button:hover {
+  background: rgb(255 138 138 / 10%);
+}
+
+.dbs-profile-back-link {
+  display: inline-block;
+  text-align: center;
+  text-decoration: none;
+}
+
+.dbs-profile-back-link--ghost {
+  background: transparent;
+  border: 1px solid rgb(93 93 255 / 30%);
+  color: rgb(235 240 255 / 88%);
+  padding: 10px 16px;
+}
+
+.dbs-profile-back-link--ghost:hover {
+  border-color: rgb(121 230 255 / 55%);
+}
+
 /* Avatar de profil ancre tout en bas du panneau lateral deplie (facon ChatGPT),
    en dehors de la zone de defilement pour rester toujours visible. */
 .ai-assistant-sidebar-profile {

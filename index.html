@@ -765,6 +765,9 @@
       window.DBS_GOOGLE_CLIENT_ID = "281736423201-mpf8m22jn2e3hbo9midf7binrf3a55m2.apps.googleusercontent.com";
       window.DBS_GOOGLE_APP_ID = "281736423201";
     </script>
+    <!-- Gate UX/securite locale (voir scripts/dbs-auth.js) : doit se charger
+         avant ai-assistant.js pour intercepter le clic sur le launcher. -->
+    <script src="scripts/dbs-auth.js"></script>
     <script src="scripts/ai-assistant.js"></script>
   </body>
 </html>

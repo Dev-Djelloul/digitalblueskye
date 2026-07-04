@@ -1,4 +1,11 @@
   /**
+ * TODO(securite) — Cet endpoint IA est appelable directement sans preuve
+ * d'identite. Le champ `user` eventuellement present dans le payload provient
+ * du gate UX front (scripts/dbs-auth.js) et est INDICATIF/forgeable : ne pas
+ * l'utiliser comme controle d'acces. A durcir cote serveur (Cloudflare Access
+ * / JWT signe verifie ici + rate limiting + quotas). Voir
+ * docs/CHATBOT_AUTH_SECURITY.md.
+ *
  * Cloudflare Worker - Digital Blue Skye AI via OpenRouter Free
  *
  * Required secrets/vars:

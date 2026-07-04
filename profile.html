@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Mon profil | Digitalblueskye</title>
+    <script>
+      (function() {
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+      })();
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Gelasio:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles/style.css?v=20260628-gelasio" />
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <meta name="theme-color" content="#1f1d2b">
+  </head>
+  <body class="profile-page">
+    <header class="profile-header">
+      <a href="/index.html" class="profile-header-logo" title="Retour à l'accueil" aria-label="Retour à l'accueil">
+        <img src="/assets/images/logo/DigitalBlueSkye-Logo.png" alt="Digitalblueskye" width="42" height="42" />
+      </a>
+      <span class="profile-header-title">Mon profil</span>
+      <a href="/index.html" class="profile-header-back" data-i18n-title="ui.backToHome">Retour à l'accueil</a>
+    </header>
+
+    <main class="profile-main">
+      <section class="dbs-profile-page profile-card" aria-labelledby="dbs-profile-title">
+        <h1 id="dbs-profile-title">Mon profil</h1>
+
+        <p class="dbs-user-status" data-dbs-user-status>Statut : non connecté</p>
+
+        <div class="dbs-profile-identity" data-dbs-profile-identity hidden>
+          <img class="dbs-profile-identity-avatar" data-dbs-profile-avatar src="/assets/images/portrait/my-notion-face-transparent.png" alt="" aria-hidden="true" />
+          <span class="dbs-profile-identity-provider" data-dbs-profile-provider></span>
+        </div>
+
+        <div data-dbs-profile-signed-out hidden>
+          <p class="dbs-profile-signed-out-text">Vous n'êtes pas connecté.</p>
+          <div class="dbs-oauth-list" data-dbs-signedout-providers></div>
+          <a href="/index.html" class="dbs-profile-back-link dbs-profile-back-link--ghost">Retour à l'accueil</a>
+        </div>
+
+        <form data-dbs-profile-form hidden>
+          <div class="dbs-profile-field">
+            <label for="dbs-profile-email">Adresse email</label>
+            <input id="dbs-profile-email" type="email" disabled />
+          </div>
+
+          <div class="dbs-profile-field">
+            <label for="dbs-profile-name">Nom d'affichage</label>
+            <input id="dbs-profile-name" type="text" autocomplete="nickname" placeholder="Votre nom d'affichage" />
+          </div>
+
+          <div class="dbs-profile-field">
+            <label for="dbs-profile-tone">Ton de l'assistant</label>
+            <select id="dbs-profile-tone">
+              <option value="standard">Standard</option>
+              <option value="concise">Concis</option>
+              <option value="friendly">Chaleureux</option>
+              <option value="formal">Formel</option>
+            </select>
+          </div>
+
+          <button type="submit" class="dbs-profile-save">Enregistrer</button>
+          <p class="dbs-profile-saved" data-dbs-profile-saved role="status" hidden>Modifications enregistrées.</p>
+        </form>
+
+        <div class="dbs-profile-actions" data-dbs-profile-actions hidden>
+          <button type="button" class="dbs-logout-button" data-dbs-logout>Se déconnecter</button>
+          <a href="/index.html" class="dbs-profile-back-link dbs-profile-back-link--ghost">Retour à l'accueil</a>
+        </div>
+      </section>
+    </main>
+
+    <!--
+      Note technique : la source de verite est le serveur (GET /auth/me via le
+      Worker API). localStorage ne sert que de cache UX. La deconnexion appelle
+      POST /auth/logout. Voir docs/CHATBOT_AUTH_SECURITY.md.
+    -->
+    <script src="/scripts/dbs-auth.js"></script>
+    <script>
+      (function () {
+        const PROVIDERS = { google: 'Google', github: 'GitHub', facebook: 'Facebook' };
+        const PROVIDER_ICONS = {
+          google: '/assets/images/ui/icons8-google-50.png',
+          github: '/assets/images/ui/icons8-github-96.png',
+          facebook: '/assets/images/ui/icons8-facebook-64.png'
+        };
+
+        async function renderSignedOutProviders() {
+          const host = document.querySelector('[data-dbs-signedout-providers]');
+          if (!host || host.dataset.filled) return;
+          const providers = await window.DBSAuth.fetchProviders();
+          host.innerHTML = Object.keys(PROVIDERS).map((key) => {
+            const enabled = Boolean(providers[key]);
+            return `<button type="button" class="dbs-oauth-btn is-${key}" data-provider="${key}" ${enabled ? '' : 'disabled'}
+              aria-label="Se connecter avec ${PROVIDERS[key]}"><span class="dbs-oauth-icon" aria-hidden="true"><img src="${PROVIDER_ICONS[key]}" alt=""></span><span>Se connecter avec ${PROVIDERS[key]}</span></button>`;
+          }).join('');
+          host.dataset.filled = '1';
+          host.addEventListener('click', (event) => {
+            const btn = event.target.closest('[data-provider]');
+            if (btn && !btn.disabled) window.DBSAuth.loginWithProvider(btn.dataset.provider);
+          });
+        }
+
+        function render() {
+          const user = window.DBSAuth.isAuthenticated() ? window.DBSAuth.getCachedUser() : null;
+          const signedOut = document.querySelector('[data-dbs-profile-signed-out]');
+          const form = document.querySelector('[data-dbs-profile-form]');
+          const actions = document.querySelector('[data-dbs-profile-actions]');
+          const identity = document.querySelector('[data-dbs-profile-identity]');
+          const statusEl = document.querySelector('[data-dbs-user-status]');
+          const savedEl = document.querySelector('[data-dbs-profile-saved]');
+          if (savedEl) savedEl.hidden = true;
+
+          if (!user) {
+            statusEl.textContent = 'Statut : non connecté';
+            signedOut.hidden = false;
+            form.hidden = true;
+            actions.hidden = true;
+            identity.hidden = true;
+            renderSignedOutProviders();
+            return;
+          }
+
+          statusEl.textContent = 'Statut : connecté en tant que ' + user.email;
+          signedOut.hidden = true;
+          form.hidden = false;
+          actions.hidden = false;
+          identity.hidden = false;
+          const avatar = document.querySelector('[data-dbs-profile-avatar]');
+          if (user.avatarUrl) avatar.src = user.avatarUrl;
+          const providerEl = document.querySelector('[data-dbs-profile-provider]');
+          providerEl.textContent = user.provider ? ('Connecté via ' + (PROVIDERS[user.provider] || user.provider)) : '';
+          document.getElementById('dbs-profile-email').value = user.email || '';
+          document.getElementById('dbs-profile-name').value = user.displayName || '';
+          document.getElementById('dbs-profile-tone').value = user.preference?.tone || 'standard';
+        }
+
+        document.querySelector('[data-dbs-profile-form]').addEventListener('submit', async (event) => {
+          event.preventDefault();
+          const displayName = document.getElementById('dbs-profile-name').value.trim();
+          const tone = document.getElementById('dbs-profile-tone').value;
+          const result = await window.DBSAuth.updateProfile({ displayName, preference: { tone } });
+          const savedEl = document.querySelector('[data-dbs-profile-saved]');
+          if (savedEl) {
+            savedEl.hidden = false;
+            savedEl.textContent = result && result.ok !== false ? 'Modifications enregistrées.' : 'Échec de l’enregistrement.';
+          }
+        });
+
+        document.querySelector('[data-dbs-logout]').addEventListener('click', async () => {
+          // Reste sur profile.html en etat non connecte apres deconnexion.
+          await window.DBSAuth.logout();
+          render();
+        });
+
+        document.addEventListener('dbs-auth-changed', render);
+        render();
+        // Hydrate depuis le serveur au chargement (met a jour l'UI via l'evenement).
+        window.DBSAuth.refreshSession();
+      })();
+    </script>
+  </body>
+</html>

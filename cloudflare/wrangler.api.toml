@@ -15,8 +15,29 @@ service = "digitalblueskye-ai"
 [vars]
 ALLOWED_ORIGIN = "https://digitalblueskye.com,https://www.digitalblueskye.com,https://digitalblueskye.netlify.app"
 COMMENTS_REQUIRE_APPROVAL = "false"
+# --- Authentification serveur OAuth (cf. cloudflare/auth.js) ---
+# Origine du front autorisee pour CORS avec credentials (cookie de session).
+FRONTEND_ORIGIN = "https://digitalblueskye.netlify.app"
+# URL publique de CE Worker API (base des redirect_uri OAuth).
+AUTH_BASE_URL = "https://digitalblueskye-api.djelloulabid75.workers.dev"
+# Rate limiting IA (par heure). Ajustables sans redeploy de code.
+AI_RATE_LIMIT_USER = "50"
+AI_RATE_LIMIT_IP = "10"
+# SameSite du cookie de session : "None" (defaut prod, cross-site Netlify<->Worker)
+# ou "Lax" si un jour un domaine API same-site (api.digitalblueskye.fr) est utilise.
+# AUTH_COOKIE_SAMESITE = "None"
+#
 # Configure ADMIN_TOKEN as a Wrangler secret:
 # wrangler secret put ADMIN_TOKEN -c cloudflare/wrangler.api.toml
 # Optional but recommended for the Santé dashboard to query digitalblueskye-ai:
 # wrangler secret put AI_HEALTH_TOKEN -c cloudflare/wrangler.api.toml
 # Set the same value as HEALTH_CHECK_TOKEN on cloudflare/wrangler.ai.toml.
+#
+# --- Secrets OAuth a configurer (JAMAIS en clair dans ce fichier) ---
+# wrangler secret put GOOGLE_CLIENT_ID -c cloudflare/wrangler.api.toml
+# wrangler secret put GOOGLE_CLIENT_SECRET -c cloudflare/wrangler.api.toml
+# wrangler secret put GITHUB_CLIENT_ID -c cloudflare/wrangler.api.toml
+# wrangler secret put GITHUB_CLIENT_SECRET -c cloudflare/wrangler.api.toml
+# wrangler secret put FACEBOOK_CLIENT_ID -c cloudflare/wrangler.api.toml
+# wrangler secret put FACEBOOK_CLIENT_SECRET -c cloudflare/wrangler.api.toml
+# wrangler secret put AUTH_SESSION_SECRET -c cloudflare/wrangler.api.toml
