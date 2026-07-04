@@ -4387,6 +4387,50 @@ h1.main-title-animated .title-icon {
   text-align: left;
 }
 
+.article-body .article-figure {
+  margin: 42px auto;
+  max-width: min(100%, 820px);
+}
+
+.article-body .article-figure img {
+  border-radius: 8px;
+  box-shadow: 0 12px 35px rgb(0 0 0 / 24%);
+  display: block;
+  height: auto;
+  max-height: 540px;
+  object-fit: contain;
+  width: 100%;
+}
+
+.article-body .article-figure figcaption {
+  color: var(--text-color);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-top: 12px;
+  opacity: 0.78;
+  text-align: center;
+}
+
+@media (width <= 768px) {
+  .article-body .article-figure {
+    margin: 32px auto;
+  }
+
+  .article-body .article-figure img {
+    max-height: 420px;
+  }
+}
+
+@media (width <= 480px) {
+  .article-body .article-figure img {
+    max-height: 320px;
+  }
+
+  .article-body .article-figure figcaption {
+    font-size: 0.86rem;
+  }
+}
+
 .article-body h2 {
   color: #c822ff;
   font-size: 2rem;
@@ -5771,14 +5815,16 @@ h1.main-title-animated .title-icon {
   box-shadow: 0 4px 10px rgb(0 0 0 / 30%);
   color: white; /* Positionnement, dimensions, couleurs */
   cursor: pointer;
-  display: flex;
+  display: none;
   height: 40px;
   justify-content: center;
   opacity: 0;
   padding: 0; /* Curseur, caché par défaut, transition, empilement, ombre */
+  pointer-events: none;
   position: fixed;
   right: 40px;
   transition: all 0.3s ease;
+  visibility: hidden;
   width: 40px;
   z-index: 1000;
 }
