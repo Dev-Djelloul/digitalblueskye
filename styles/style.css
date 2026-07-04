@@ -11042,8 +11042,8 @@ body.body-menu-open .ai-assistant-collapse-handle {
 .dbs-profile-identity {
   align-items: center;
   display: flex;
-  gap: 12px;
-  margin: 0 0 18px;
+  gap: 10px;
+  margin: 0 0 14px;
 }
 
 /* L'attribut hidden doit toujours l'emporter sur les display:flex/grid des
@@ -11063,9 +11063,9 @@ body.profile-page [hidden] {
 .dbs-profile-identity-avatar {
   border: 1px solid rgb(121 230 255 / 40%);
   border-radius: 50%;
-  height: 48px;
+  height: 40px;
   object-fit: cover;
-  width: 48px;
+  width: 40px;
 }
 
 .dbs-profile-identity-provider {
@@ -11093,6 +11093,7 @@ body.profile-page {
   flex-direction: column;
   margin: 0;
   min-height: 100vh;
+  padding-top: 0;
 }
 
 /* Header compact facon barre d'app, pas de hero geant. */
@@ -11111,21 +11112,22 @@ body.profile-page .profile-header {
 }
 
 body.profile-page .profile-header-logo {
+  align-items: center;
   display: inline-flex;
   flex: 0 0 auto;
+  height: 70px;
+  justify-content: center;
   line-height: 0;
 }
 
 body.profile-page .profile-header-logo img {
-  height: 42px;
-  width: 42px;
-}
-
-body.profile-page .profile-header-title {
-  color: #fff;
-  font-family: var(--font-body);
-  font-size: 1.02rem;
-  font-weight: 600;
+  border-radius: 50%;
+  display: block;
+  flex: 0 0 auto;
+  height: 70px;
+  max-width: none;
+  object-fit: contain;
+  width: auto;
 }
 
 body.profile-page .profile-header-back {
@@ -11134,10 +11136,27 @@ body.profile-page .profile-header-back {
   font-size: 0.86rem;
   margin-left: auto;
   text-decoration: none;
+  white-space: nowrap;
 }
 
 body.profile-page .profile-header-back:hover {
   text-decoration: underline;
+}
+
+@media (width <= 576px) {
+  body.profile-page .profile-header {
+    height: auto;
+    min-height: 0;
+    padding: 0.9rem 1rem;
+  }
+
+  body.profile-page .profile-header-logo {
+    height: 58px;
+  }
+
+  body.profile-page .profile-header-logo img {
+    height: 58px;
+  }
 }
 
 /* Zone centrale : remplit tout l'espace restant, fond transparent (le fond
@@ -11147,7 +11166,7 @@ body.profile-page .profile-main {
   box-sizing: border-box;
   display: grid;
   flex: 1 1 auto;
-  padding: clamp(1.5rem, 4vw, 2.75rem) 1rem;
+  padding: clamp(10rem, 14vw, 12rem) 1rem clamp(1.5rem, 4vw, 2.75rem);
   place-items: start center;
 }
 
@@ -11163,27 +11182,27 @@ body.profile-page .profile-main {
   box-sizing: border-box;
   margin: 0 auto;
   max-width: 460px;
-  padding: clamp(22px, 4vw, 30px) clamp(20px, 4vw, 28px);
+  padding: clamp(16px, 2.8vw, 22px) clamp(16px, 3vw, 20px);
   width: 100%;
 }
 
 .dbs-profile-page h1 {
   color: #fff;
   font-family: var(--font-body);
-  font-size: 1.3rem;
-  margin: 0 0 18px;
+  font-size: 1.05rem;
+  margin: 0 0 12px;
 }
 
 .dbs-profile-field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-bottom: 16px;
+  gap: 5px;
+  margin-bottom: 12px;
 }
 
 .dbs-profile-field label {
   color: rgb(246 247 255 / 88%);
-  font-size: 0.82rem;
+  font-size: 0.78rem;
 }
 
 .dbs-profile-field input,
@@ -11193,8 +11212,8 @@ body.profile-page .profile-main {
   border-radius: 10px;
   color: #fff;
   font-family: var(--font-body);
-  font-size: 0.92rem;
-  padding: 10px 12px;
+  font-size: 0.86rem;
+  padding: 8px 10px;
 }
 
 .dbs-profile-field input[disabled] {
@@ -11210,8 +11229,8 @@ body.profile-page .profile-main {
   cursor: pointer;
   font-family: var(--font-body);
   font-weight: 600;
-  margin-top: 6px;
-  padding: 11px 16px;
+  margin-top: 4px;
+  padding: 9px 14px;
 }
 
 .dbs-profile-saved {
@@ -11231,9 +11250,9 @@ body.profile-page .profile-main {
   border-top: 1px solid rgb(93 93 255 / 18%);
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-top: 22px;
-  padding-top: 18px;
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 14px;
 }
 
 /* L'attribut hidden doit l'emporter sur display:flex ci-dessus. */
@@ -11249,7 +11268,7 @@ body.profile-page .profile-main {
   cursor: pointer;
   font-family: var(--font-body);
   font-weight: 600;
-  padding: 10px 16px;
+  padding: 8px 14px;
   width: 100%;
 }
 
@@ -16284,7 +16303,8 @@ body.ai-assistant-sidebar-is-resizing * {
   }
 
   body.home-page,
-  body.inspirations-page {
+  body.inspirations-page,
+  body.profile-page {
     padding-top: 0;
   }
 
@@ -16296,6 +16316,12 @@ body.ai-assistant-sidebar-is-resizing * {
   header.site-header,
   header:not(.page-intro-card):not(.ai-assistant-header) {
     height: 124px;
+  }
+
+  body.profile-page .profile-header {
+    height: auto;
+    min-height: 0;
+    padding: 0.9rem 1rem;
   }
 
   .header-social-strip {
