@@ -11298,9 +11298,9 @@ body.profile-page {
   border-radius: 50%;
   box-shadow: 0 6px 18px rgb(0 0 0 / 35%);
   display: block;
-  height: 68px;
+  height: 85px;
   object-fit: contain;
-  width: 68px;
+  width: 85px;
 }
 
 @media (width <= 576px) {
@@ -11312,15 +11312,23 @@ body.profile-page {
 
 /* Zone centrale : remplit tout l'espace restant, fond transparent (le fond
    sombre vient de body.profile-page) => aucune bande blanche possible.
-   Le padding-top degage le logo flottant (fixed) pour eviter tout chevauchement
-   avec le coin de l'encadre, quel que soit le scroll. */
+   Le padding en haut ET a gauche reserve une bande/marge dediee au logo
+   flottant (fixed, coin haut-gauche) pour qu'il ne soit jamais superpose
+   par l'encadre, quelle que soit la taille d'ecran. */
 body.profile-page .profile-main {
   background: transparent;
   box-sizing: border-box;
   display: grid;
   flex: 1 1 auto;
-  padding: 200px 25px 10px 25px;
+  padding: clamp(7rem, 10vw, 8rem) clamp(1.5rem, 3vw, 2.5rem) clamp(1.5rem, 4vw, 2.75rem) clamp(7rem, 10vw, 8rem);
   place-items: start center;
+}
+
+@media (width <= 720px) {
+  body.profile-page .profile-main {
+    padding-left: clamp(1.25rem, 4vw, 2rem);
+    padding-top: clamp(6rem, 20vw, 7rem);
+  }
 }
 
 /* La carte profil reprend le glassmorphism de l'assistant, sans marge haute
@@ -11429,25 +11437,6 @@ body.profile-page .profile-main {
   background: rgb(255 138 138 / 10%);
 }
 
-.dbs-profile-back-link {
-  display: inline-block;
-  text-align: center;
-  text-decoration: none;
-}
-
-.dbs-profile-back-link--ghost {
-  background: transparent;
-  border: 1px solid rgb(93 93 255 / 30%);
-  border-radius: 10px;
-  color: rgb(235 240 255 / 88%);
-  font-size: 0.86rem;
-  padding: 8px 14px;
-}
-
-.dbs-profile-back-link--ghost:hover {
-  border-color: rgb(121 230 255 / 55%);
-}
-
 /* ---------------------------------------------------------------------
    profile.html — coquille "Mon profil" a onglets (identite, preferences,
    compagnon, securite, usage, historique, donnees locales). Scope sur
@@ -11476,23 +11465,6 @@ body.profile-page .profile-main {
   text-align: left;
 }
 
-/* Actions flottantes (Retour + deconnexion), en dehors de l'encadre, au meme
-   niveau vertical que le logo et a l'oppose (haut droite). */
-.profile-floating-actions {
-  align-items: center;
-  display: flex;
-  gap: 10px;
-  position: fixed;
-  right: clamp(1.1rem, 3vw, 2.2rem);
-  top: clamp(1rem, 2.6vw, 1.6rem);
-  z-index: 30;
-}
-
-.profile-floating-actions .dbs-profile-back-link--ghost {
-  background: rgb(14 17 40 / 55%);
-  backdrop-filter: blur(10px);
-}
-
 .dbs-profile-logout-icon {
   align-items: center;
   background: rgb(14 17 40 / 55%);
@@ -11517,12 +11489,6 @@ body.profile-page .profile-main {
 .dbs-profile-logout-icon img {
   height: 24px;
   width: 24px;
-}
-
-@media (width <= 576px) {
-  .profile-floating-actions {
-    right: clamp(0.75rem, 3vw, 1.2rem);
-  }
 }
 
 .dbs-profile-avatar-upload {
@@ -11560,12 +11526,12 @@ body.profile-page .profile-main {
 .dbs-profile-shell-header {
   align-items: center;
   border-bottom: 1px solid rgb(93 93 255 / 18%);
-  column-gap: 145px;
+  column-gap: 90px;
   display: grid;
   grid-template-columns: 1fr auto 1fr;
-  margin-bottom: 18px;
+  margin-bottom: 40px;
   padding-bottom: 16px;
-  row-gap: 16px;
+  row-gap: 32px;
 }
 
 .dbs-profile-shell-logo-block {
@@ -11746,7 +11712,7 @@ body.profile-page .profile-main {
   -webkit-text-fill-color: transparent;
   color: transparent;
   font-family: var(--font-title);
-  font-size: clamp(1.9rem, 3.2vw, 2.5rem);
+  font-size: clamp(1.9rem, 3.2vw, 2rem);
   font-weight: 700;
   margin: 0 0 6px;
 }
@@ -11766,6 +11732,11 @@ body.profile-page .profile-main {
   gap: 12px;
   margin-bottom: 16px;
   padding: 12px;
+}
+
+.dbs-identity-card-badge {
+  flex: 0 0 auto;
+  margin-left: auto;
 }
 
 .dbs-identity-card strong {

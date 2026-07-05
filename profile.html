@@ -21,15 +21,6 @@
       <img src="/assets/images/logo/DigitalBlueSkye-Logo.png" alt="Digitalblueskye" width="42" height="42" />
     </a>
 
-    <!-- Actions flottantes, au meme niveau que le logo, a l'oppose (haut droite).
-         Visibles uniquement une fois connecte (voir data-dbs-profile-shell-actions). -->
-    <div class="profile-floating-actions" data-dbs-profile-shell-actions hidden>
-      <a href="/index.html" class="dbs-profile-back-link dbs-profile-back-link--ghost" data-dbs-back-link><span aria-hidden="true">←</span> Retour</a>
-      <button type="button" class="dbs-profile-logout-icon" data-dbs-logout aria-label="Se déconnecter" title="Se déconnecter">
-        <img src="/assets/images/ui/icons8-logout-100.png" alt="" aria-hidden="true" width="24" height="24" />
-      </button>
-    </div>
-
     <main class="profile-main">
       <!-- Etat non connecte : toujours affiche par defaut tant que l'auth n'a pas repondu. -->
       <section class="dbs-profile-page profile-card dbs-profile-signed-out-card" data-dbs-profile-signed-out aria-labelledby="dbs-profile-signed-out-title">
@@ -90,6 +81,9 @@
                     <span data-dbs-profile-provider>Connecté via OAuth</span>
                     <p class="dbs-profile-saved" data-dbs-avatar-saved role="status" hidden>Photo de profil mise à jour.</p>
                   </div>
+                  <button type="button" class="dbs-profile-logout-icon dbs-identity-card-badge" data-dbs-logout aria-label="Se déconnecter" title="Se déconnecter">
+                    <img src="/assets/images/ui/icons8-logout-100.png" alt="" aria-hidden="true" width="24" height="24" />
+                  </button>
                 </div>
                 <div class="dbs-setting-field">
                   <label for="dbs-profile-email">Adresse email</label>
@@ -250,16 +244,6 @@
         // acceptable pour localStorage (~150-250 Ko en base64) et net a l'agrandissement.
         const AVATAR_MAX_DIMENSION = 768;
 
-        // Si on arrive ici depuis le menu compte du rail (?from=assistant),
-        // "Retour à l'accueil" doit rouvrir le chatbot IA au lieu de revenir
-        // sur une home a plat. dbs-auth.js lit ensuite ?openAssistant=1 pour
-        // cliquer automatiquement sur le launcher.
-        function wireBackLinks() {
-          let cameFromAssistant = false;
-          try { cameFromAssistant = new URLSearchParams(window.location.search).get('from') === 'assistant'; } catch (_) { cameFromAssistant = false; }
-          const href = cameFromAssistant ? '/index.html?openAssistant=1' : '/index.html';
-          document.querySelectorAll('[data-dbs-back-link]').forEach((link) => { link.href = href; });
-        }
         const PREF_OPTIONS = {
           projectStyle: [
             ['general', 'Général'],
@@ -395,7 +379,6 @@
         function render() {
           const signedOutCard = document.querySelector('[data-dbs-profile-signed-out]');
           const shell = document.querySelector('[data-dbs-profile-shell]');
-          const shellActions = document.querySelector('[data-dbs-profile-shell-actions]');
           let user = null;
           try {
             user = window.DBSAuth && window.DBSAuth.isAuthenticated() ? window.DBSAuth.getCachedUser() : null;
@@ -406,14 +389,12 @@
           if (!user) {
             if (signedOutCard) signedOutCard.hidden = false;
             if (shell) shell.hidden = true;
-            if (shellActions) shellActions.hidden = true;
             renderSignedOutProviders();
             return;
           }
 
           if (signedOutCard) signedOutCard.hidden = true;
           if (shell) shell.hidden = false;
-          if (shellActions) shellActions.hidden = false;
 
           let avatarOverride = '';
           try { avatarOverride = localStorage.getItem(AVATAR_OVERRIDE_KEY) || ''; } catch (_) { avatarOverride = ''; }
@@ -592,7 +573,6 @@
           fillPreferenceOptions();
           wireTabs();
           activateTab(initialTabFromHash(), false);
-          wireBackLinks();
           wireForms();
           wireAvatarLightbox();
           document.addEventListener('dbs-auth-changed', render);
