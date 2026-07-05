@@ -25,7 +25,7 @@ COMMENTS_REQUIRE_APPROVAL = "false"
 # Origine du front autorisee pour CORS avec credentials (cookie de session).
 FRONTEND_ORIGIN = "https://digitalblueskye.com"
 # URL publique de CE Worker API (base des redirect_uri OAuth et du lien magique).
-AUTH_BASE_URL = "https://digitalblueskye-api.djelloulabid75.workers.dev"
+AUTH_BASE_URL = "https://api.digitalblueskye.com"
 # Adresse d'envoi du lien de connexion par email (domaine onboarde sur Email Sending).
 EMAIL_FROM_ADDRESS = "connexion@digitalblueskye.com"
 # Rate limiting IA (par heure) et connexion par email (par heure et par adresse).
@@ -48,3 +48,7 @@ EMAIL_LOGIN_RATE_LIMIT = "5"
 # wrangler secret put GITHUB_CLIENT_ID -c cloudflare/wrangler.api.toml
 # wrangler secret put GITHUB_CLIENT_SECRET -c cloudflare/wrangler.api.toml
 # wrangler secret put AUTH_SESSION_SECRET -c cloudflare/wrangler.api.toml
+
+[[routes]]
+pattern = "api.digitalblueskye.com"
+custom_domain = true

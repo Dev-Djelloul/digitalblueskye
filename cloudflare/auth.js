@@ -1011,7 +1011,8 @@ export async function handleAuthRoutes(request, env, url) {
       ok: true,
       providers: {
         google: providerConfigured(env, 'google'),
-        github: providerConfigured(env, 'github')
+        github: providerConfigured(env, 'github'),
+        email: Boolean(env.EMAIL) && isSet(env.EMAIL_FROM_ADDRESS)
       }
     });
   }
