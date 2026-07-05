@@ -25,48 +25,181 @@
     </header>
 
     <main class="profile-main">
-      <section class="dbs-profile-page profile-card" aria-labelledby="dbs-profile-title">
-        <h1 id="dbs-profile-title">Mon profil</h1>
+      <section class="dbs-profile-signed-out-card" data-dbs-profile-signed-out hidden aria-labelledby="dbs-profile-signed-out-title">
+        <h1 id="dbs-profile-signed-out-title">Mon profil</h1>
+        <p>Connectez-vous pour accéder à votre espace profil Digital Blue Skye AI.</p>
+        <div class="dbs-oauth-list" data-dbs-signedout-providers></div>
+        <a href="/index.html" class="dbs-profile-home-link">Retour à l'accueil</a>
+      </section>
 
-        <p class="dbs-user-status" data-dbs-user-status>Statut : non connecté</p>
-
-        <div class="dbs-profile-identity" data-dbs-profile-identity hidden>
-          <img class="dbs-profile-identity-avatar" data-dbs-profile-avatar src="/assets/images/portrait/my-notion-face-transparent.png" alt="" aria-hidden="true" />
-          <span class="dbs-profile-identity-provider" data-dbs-profile-provider></span>
+      <section class="dbs-profile-shell" data-dbs-profile-shell hidden aria-labelledby="dbs-profile-title">
+        <div class="dbs-profile-shell-header">
+          <div>
+            <p class="dbs-profile-kicker">Digital Blue Skye AI</p>
+            <h1 id="dbs-profile-title">Mon profil</h1>
+            <p class="dbs-profile-shell-subtitle">Gérez votre identité, vos préférences IA, votre sécurité et votre expérience assistant.</p>
+          </div>
+          <div class="dbs-profile-status-row">
+            <span class="dbs-status-badge is-secure">Compte connecté</span>
+            <span class="dbs-status-badge">Session active</span>
+          </div>
         </div>
 
-        <div data-dbs-profile-signed-out hidden>
-          <p class="dbs-profile-signed-out-text">Vous n'êtes pas connecté.</p>
-          <div class="dbs-oauth-list" data-dbs-signedout-providers></div>
-        </div>
+        <div class="dbs-profile-layout">
+          <nav class="dbs-profile-nav" role="tablist" aria-label="Sections du profil">
+            <button type="button" class="dbs-profile-tab is-active" id="dbs-tab-identity" role="tab" aria-selected="true" aria-controls="dbs-panel-identity" data-dbs-profile-tab="identity">Identité</button>
+            <button type="button" class="dbs-profile-tab" id="dbs-tab-preferences" role="tab" aria-selected="false" aria-controls="dbs-panel-preferences" data-dbs-profile-tab="preferences">Préférences IA</button>
+            <button type="button" class="dbs-profile-tab" id="dbs-tab-companion" role="tab" aria-selected="false" aria-controls="dbs-panel-companion" data-dbs-profile-tab="companion">Compagnon IA</button>
+            <button type="button" class="dbs-profile-tab" id="dbs-tab-security" role="tab" aria-selected="false" aria-controls="dbs-panel-security" data-dbs-profile-tab="security">Sécurité</button>
+            <button type="button" class="dbs-profile-tab" id="dbs-tab-usage" role="tab" aria-selected="false" aria-controls="dbs-panel-usage" data-dbs-profile-tab="usage">Utilisation IA</button>
+            <button type="button" class="dbs-profile-tab" id="dbs-tab-history" role="tab" aria-selected="false" aria-controls="dbs-panel-history" data-dbs-profile-tab="history">Historique</button>
+            <button type="button" class="dbs-profile-tab" id="dbs-tab-local-data" role="tab" aria-selected="false" aria-controls="dbs-panel-local-data" data-dbs-profile-tab="local-data">Données locales</button>
+          </nav>
 
-        <form data-dbs-profile-form hidden>
-          <div class="dbs-profile-field">
-            <label for="dbs-profile-email">Adresse email</label>
-            <input id="dbs-profile-email" type="email" disabled />
+          <div class="dbs-profile-content">
+            <section class="dbs-profile-panel is-active" id="dbs-panel-identity" role="tabpanel" aria-labelledby="dbs-tab-identity" data-dbs-profile-panel="identity">
+              <div class="dbs-profile-panel-heading">
+                <h2>Identité</h2>
+                <p>Informations du compte connecté et nom affiché dans l'expérience IA.</p>
+              </div>
+              <form class="dbs-profile-form-grid" data-dbs-identity-form>
+                <div class="dbs-identity-card">
+                  <img class="dbs-profile-identity-avatar" data-dbs-profile-avatar src="/assets/images/portrait/my-notion-face-transparent.png" alt="" aria-hidden="true" />
+                  <div>
+                    <strong data-dbs-profile-display-label>Digitalblueskye</strong>
+                    <span data-dbs-profile-provider>Connecté via OAuth</span>
+                  </div>
+                </div>
+                <div class="dbs-profile-grid">
+                  <div class="dbs-setting-field">
+                    <label for="dbs-profile-email">Adresse email</label>
+                    <input id="dbs-profile-email" type="email" disabled />
+                    <small>Adresse email vérifiée par le fournisseur OAuth.</small>
+                  </div>
+                  <div class="dbs-setting-field">
+                    <label for="dbs-profile-name">Nom d'affichage</label>
+                    <input id="dbs-profile-name" type="text" autocomplete="nickname" placeholder="Votre nom d'affichage" />
+                  </div>
+                </div>
+                <div class="dbs-profile-actions-row">
+                  <button type="submit" class="dbs-profile-save">Enregistrer</button>
+                  <button type="button" class="dbs-logout-button" data-dbs-logout>Se déconnecter</button>
+                  <a href="/index.html" class="dbs-profile-home-link">Retour à l'accueil</a>
+                </div>
+                <p class="dbs-profile-saved" data-dbs-identity-saved role="status" hidden>Modifications enregistrées.</p>
+              </form>
+            </section>
+
+            <section class="dbs-profile-panel" id="dbs-panel-preferences" role="tabpanel" aria-labelledby="dbs-tab-preferences" data-dbs-profile-panel="preferences" hidden>
+              <div class="dbs-profile-panel-heading">
+                <h2>Préférences IA</h2>
+                <p>Ces réglages personnalisent les réponses. V1 front stockée localement, avec synchronisation du ton quand le backend le supporte.</p>
+              </div>
+              <form class="dbs-profile-grid" data-dbs-preferences-form>
+                <div class="dbs-setting-field">
+                  <label for="dbs-pref-project-style">Style de projet</label>
+                  <select id="dbs-pref-project-style" data-dbs-pref="projectStyle"></select>
+                </div>
+                <div class="dbs-setting-field">
+                  <label for="dbs-pref-favorite-format">Format favori</label>
+                  <select id="dbs-pref-favorite-format" data-dbs-pref="favoriteFormat"></select>
+                </div>
+                <div class="dbs-setting-field">
+                  <label for="dbs-pref-detail-level">Niveau de détail</label>
+                  <select id="dbs-pref-detail-level" data-dbs-pref="detailLevel"></select>
+                </div>
+                <div class="dbs-setting-field">
+                  <label for="dbs-pref-language">Langue préférée</label>
+                  <select id="dbs-pref-language" data-dbs-pref="preferredLanguage"></select>
+                </div>
+                <div class="dbs-setting-field">
+                  <label for="dbs-pref-tone">Ton de l'assistant</label>
+                  <select id="dbs-pref-tone" data-dbs-pref="tone"></select>
+                </div>
+                <div class="dbs-profile-form-footer">
+                  <button type="submit" class="dbs-profile-save">Enregistrer les préférences</button>
+                  <p class="dbs-profile-saved" data-dbs-preferences-saved role="status" hidden>Préférences enregistrées.</p>
+                </div>
+              </form>
+            </section>
+
+            <section class="dbs-profile-panel" id="dbs-panel-companion" role="tabpanel" aria-labelledby="dbs-tab-companion" data-dbs-profile-panel="companion" hidden>
+              <div class="dbs-profile-panel-heading">
+                <h2>Compagnon IA</h2>
+                <p>Choisissez le mode de travail qui guidera Digital Blue Skye AI.</p>
+              </div>
+              <p class="dbs-companion-active-summary" data-dbs-companion-summary>Compagnon actif : Skye</p>
+              <div class="dbs-companion-grid" data-dbs-companion-grid></div>
+              <p class="dbs-profile-saved" data-dbs-companion-saved role="status" hidden>Compagnon IA mis à jour.</p>
+            </section>
+
+            <section class="dbs-profile-panel" id="dbs-panel-security" role="tabpanel" aria-labelledby="dbs-tab-security" data-dbs-profile-panel="security" hidden>
+              <div class="dbs-profile-panel-heading">
+                <h2>Sécurité du compte</h2>
+                <p>Votre session est gérée côté serveur. Aucune clé API n'est exposée dans le navigateur.</p>
+              </div>
+              <div class="dbs-info-grid">
+                <article class="dbs-security-card"><span>Fournisseur connecté</span><strong data-dbs-security-provider>OAuth</strong></article>
+                <article class="dbs-security-card"><span>Session active</span><strong>Oui</strong></article>
+                <article class="dbs-security-card"><span>Type de session</span><strong>Cookie sécurisé HttpOnly</strong></article>
+                <article class="dbs-security-card"><span>État du compte</span><strong>Compte sécurisé</strong></article>
+                <article class="dbs-security-card"><span>Facebook</span><strong data-dbs-facebook-status>Facebook : bientôt disponible</strong></article>
+              </div>
+              <div class="dbs-profile-actions-row">
+                <button type="button" class="dbs-logout-button" data-dbs-logout>Se déconnecter</button>
+                <button type="button" class="dbs-profile-secondary-action" data-dbs-clear-local>Supprimer les données locales de ce navigateur</button>
+              </div>
+            </section>
+
+            <section class="dbs-profile-panel" id="dbs-panel-usage" role="tabpanel" aria-labelledby="dbs-tab-usage" data-dbs-profile-panel="usage" hidden>
+              <div class="dbs-profile-panel-heading">
+                <h2>Utilisation IA</h2>
+                <p>Suivi préparé pour les quotas et la journalisation serveur.</p>
+              </div>
+              <div class="dbs-info-grid">
+                <article class="dbs-usage-card"><span>Limite actuelle</span><strong>50 messages / heure par utilisateur connecté</strong></article>
+                <article class="dbs-usage-card"><span>Endpoint protégé</span><strong>/ai/chat</strong></article>
+                <article class="dbs-usage-card"><span>Statut</span><strong>Accès IA sécurisé via le Worker API</strong><small>Les appels directs au Worker IA seront progressivement désactivés.</small></article>
+                <article class="dbs-usage-card"><span>Messages cette heure</span><strong>Bientôt disponible</strong></article>
+                <article class="dbs-usage-card"><span>Dernière activité</span><strong>Bientôt disponible</strong></article>
+                <article class="dbs-usage-card"><span>Modèle IA</span><strong>Géré côté Worker</strong></article>
+                <article class="dbs-usage-card"><span>Journalisation</span><strong>Prévue dans ai_usage_events</strong></article>
+              </div>
+            </section>
+
+            <section class="dbs-profile-panel" id="dbs-panel-history" role="tabpanel" aria-labelledby="dbs-tab-history" data-dbs-profile-panel="history" hidden>
+              <div class="dbs-profile-panel-heading">
+                <h2>Historique de connexion</h2>
+                <p>L'historique détaillé sera relié à la table user_sessions lors d'une prochaine étape backend.</p>
+              </div>
+              <div class="dbs-info-grid">
+                <article class="dbs-usage-card"><span>Dernière connexion</span><strong data-dbs-last-login>Disponible prochainement</strong></article>
+                <article class="dbs-usage-card"><span>Fournisseur utilisé</span><strong data-dbs-history-provider>OAuth</strong></article>
+                <article class="dbs-usage-card"><span>Sessions actives</span><strong>Gestion détaillée bientôt disponible</strong></article>
+                <article class="dbs-usage-card"><span>Historique complet</span><strong>Prévu via user_sessions</strong></article>
+                <article class="dbs-usage-card"><span>Appareil / IP</span><strong>Masqué pour le moment</strong></article>
+              </div>
+            </section>
+
+            <section class="dbs-profile-panel" id="dbs-panel-local-data" role="tabpanel" aria-labelledby="dbs-tab-local-data" data-dbs-profile-panel="local-data" hidden>
+              <div class="dbs-profile-panel-heading">
+                <h2>Données locales</h2>
+                <p>Ces actions suppriment uniquement les données stockées dans ce navigateur. Elles ne suppriment pas votre compte serveur.</p>
+              </div>
+              <div class="dbs-local-data-card">
+                <dl>
+                  <div><dt>Cache préférences local</dt><dd>dbs_profile_preferences_cache</dd></div>
+                  <div><dt>Caches ancienne version</dt><dd>dbs_user_session, dbs_user_profile</dd></div>
+                  <div><dt>Session serveur</dt><dd>Conservée sauf déconnexion explicite</dd></div>
+                </dl>
+                <div class="dbs-profile-actions-row">
+                  <button type="button" class="dbs-profile-secondary-action" data-dbs-clear-preferences>Supprimer les préférences locales</button>
+                  <button type="button" class="dbs-profile-secondary-action" data-dbs-clear-local>Réinitialiser l'expérience profil</button>
+                </div>
+                <p class="dbs-profile-saved" data-dbs-local-saved role="status" hidden>Données locales supprimées.</p>
+              </div>
+            </section>
           </div>
-
-          <div class="dbs-profile-field">
-            <label for="dbs-profile-name">Nom d'affichage</label>
-            <input id="dbs-profile-name" type="text" autocomplete="nickname" placeholder="Votre nom d'affichage" />
-          </div>
-
-          <div class="dbs-profile-field">
-            <label for="dbs-profile-tone">Ton de l'assistant</label>
-            <select id="dbs-profile-tone">
-              <option value="standard">Standard</option>
-              <option value="concise">Concis</option>
-              <option value="friendly">Chaleureux</option>
-              <option value="formal">Formel</option>
-            </select>
-          </div>
-
-          <button type="submit" class="dbs-profile-save">Enregistrer</button>
-          <p class="dbs-profile-saved" data-dbs-profile-saved role="status" hidden>Modifications enregistrées.</p>
-        </form>
-
-        <div class="dbs-profile-actions" data-dbs-profile-actions hidden>
-          <button type="button" class="dbs-logout-button" data-dbs-logout>Se déconnecter</button>
         </div>
       </section>
     </main>
@@ -80,81 +213,234 @@
     <script>
       (function () {
         const PROVIDERS = { google: 'Google', github: 'GitHub', facebook: 'Facebook' };
+        const FACEBOOK_META_VALIDATED = false;
         const PROVIDER_ICONS = {
           google: '/assets/images/ui/icons8-google-50.png',
           github: '/assets/images/ui/icons8-github-96.png',
           facebook: '/assets/images/ui/icons8-facebook-64.png'
         };
+        const AVATAR_FALLBACK = '/assets/images/portrait/my-notion-face-transparent.png';
+        const PREF_OPTIONS = {
+          projectStyle: [
+            ['general', 'Général'],
+            ['digital_project_manager', 'Chef de projet digital'],
+            ['technical', 'Technique / architecture'],
+            ['product_strategy', 'Produit / stratégie'],
+            ['marketing_content', 'Marketing / contenu'],
+            ['watch_benchmark', 'Veille / benchmark'],
+            ['portfolio_career', 'Portfolio / carrière']
+          ],
+          favoriteFormat: [
+            ['text', 'Texte structuré'],
+            ['table', 'Tableau'],
+            ['checklist', 'Checklist'],
+            ['action_plan', "Plan d'action"],
+            ['roadmap', 'Roadmap'],
+            ['synthesis', 'Synthèse'],
+            ['html_deliverable', 'Livrable HTML autonome']
+          ],
+          detailLevel: [
+            ['concise', 'Court'],
+            ['balanced', 'Équilibré'],
+            ['detailed', 'Approfondi'],
+            ['expert', 'Expert']
+          ],
+          preferredLanguage: [
+            ['fr', 'Français'],
+            ['en', 'Anglais'],
+            ['bilingual', 'Bilingue FR/EN']
+          ],
+          tone: [
+            ['standard', 'Standard'],
+            ['pedagogical', 'Pédagogique'],
+            ['direct', 'Direct'],
+            ['expert', 'Expert'],
+            ['creative', 'Créatif'],
+            ['strategic', 'Stratégique']
+          ]
+        };
+        const COMPANIONS = [
+          ['skye', 'Skye', 'Assistant général équilibré pour accompagner les échanges du quotidien.', 'general', 'SK'],
+          ['pilot', 'Pilot', 'Mode chef de projet : priorités, risques, décisions, livrables, roadmap.', 'project', 'PI'],
+          ['builder', 'Builder', 'Mode technique : code, architecture, debug, intégration, robustesse.', 'technical', 'BU'],
+          ['scout', 'Scout', 'Mode veille : benchmark, tendances, recherche, analyse concurrentielle.', 'watch', 'SC'],
+          ['muse', 'Muse', 'Mode rédaction : storytelling, portfolio, articles, supports professionnels.', 'writing', 'MU'],
+          ['guardian', 'Guardian', 'Mode sécurité : authentification, conformité, résilience, bonnes pratiques.', 'security', 'GU']
+        ];
+
+        function fillPreferenceOptions() {
+          document.querySelectorAll('[data-dbs-pref]').forEach((select) => {
+            const key = select.dataset.dbsPref;
+            select.innerHTML = (PREF_OPTIONS[key] || []).map(([value, label]) => `<option value="${value}">${label}</option>`).join('');
+          });
+        }
+
+        function setStatus(selector, text, visible = true) {
+          const el = document.querySelector(selector);
+          if (!el) return;
+          el.textContent = text;
+          el.hidden = !visible;
+        }
 
         async function renderSignedOutProviders() {
           const host = document.querySelector('[data-dbs-signedout-providers]');
-          if (!host || host.dataset.filled) return;
+          if (!host) return;
           const providers = await window.DBSAuth.fetchProviders();
           host.innerHTML = Object.keys(PROVIDERS).map((key) => {
-            const enabled = Boolean(providers[key]);
+            const enabled = Boolean(providers[key]) && (key !== 'facebook' || FACEBOOK_META_VALIDATED);
             return `<button type="button" class="dbs-oauth-btn is-${key}" data-provider="${key}" ${enabled ? '' : 'disabled'}
-              aria-label="Se connecter avec ${PROVIDERS[key]}"><span class="dbs-oauth-icon" aria-hidden="true"><img src="${PROVIDER_ICONS[key]}" alt=""></span><span>Se connecter avec ${PROVIDERS[key]}</span></button>`;
+              aria-label="${enabled ? `Se connecter avec ${PROVIDERS[key]}` : `${PROVIDERS[key]} bientôt disponible`}"><span class="dbs-oauth-icon" aria-hidden="true"><img src="${PROVIDER_ICONS[key]}" alt=""></span><span>${enabled ? `Se connecter avec ${PROVIDERS[key]}` : `${PROVIDERS[key]} bientôt disponible`}</span></button>`;
           }).join('');
-          host.dataset.filled = '1';
+          host.querySelectorAll('[data-provider]').forEach((btn) => {
+            if (btn.disabled && btn.dataset.provider === 'facebook') btn.querySelector('span:last-child').textContent = 'Facebook en attente de validation Meta';
+          });
+          if (host.dataset.wired) return;
+          host.dataset.wired = '1';
           host.addEventListener('click', (event) => {
             const btn = event.target.closest('[data-provider]');
             if (btn && !btn.disabled) window.DBSAuth.loginWithProvider(btn.dataset.provider);
           });
         }
 
-        function render() {
+        function activateTab(tabName, updateHash = true) {
+          const tabs = Array.from(document.querySelectorAll('[data-dbs-profile-tab]'));
+          const panels = Array.from(document.querySelectorAll('[data-dbs-profile-panel]'));
+          const validNames = tabs.map((tab) => tab.dataset.dbsProfileTab);
+          const target = validNames.includes(tabName) ? tabName : 'identity';
+          tabs.forEach((tab) => {
+            const active = tab.dataset.dbsProfileTab === target;
+            tab.classList.toggle('is-active', active);
+            tab.setAttribute('aria-selected', active ? 'true' : 'false');
+            tab.setAttribute('tabindex', active ? '0' : '-1');
+          });
+          panels.forEach((panel) => {
+            const active = panel.dataset.dbsProfilePanel === target;
+            panel.classList.toggle('is-active', active);
+            panel.hidden = !active;
+            if (active) panel.removeAttribute('aria-hidden');
+            else panel.setAttribute('aria-hidden', 'true');
+          });
+          if (updateHash && window.location.hash !== `#${target}`) {
+            history.replaceState(null, '', `#${target}`);
+          }
+        }
+
+        function getInitialTab() {
+          const requested = window.location.hash.replace(/^#/, '');
+          return requested || 'identity';
+        }
+
+        function renderCompanions(preferences) {
+          const host = document.querySelector('[data-dbs-companion-grid]');
+          if (!host) return;
+          const activeCompanion = COMPANIONS.find(([id]) => id === preferences.companion) || COMPANIONS[0];
+          setStatus('[data-dbs-companion-summary]', `Compagnon actif : ${activeCompanion[1]}`);
+          host.innerHTML = COMPANIONS.map(([id, name, description, mode, initials]) => {
+            const active = preferences.companion === id;
+            return `<article class="dbs-companion-card ${active ? 'is-active' : ''}">
+              <div class="dbs-companion-icon" aria-hidden="true">${initials}</div>
+              <div class="dbs-companion-copy">
+                <h3>${name}</h3>
+                <p>${description}</p>
+                <span class="dbs-companion-mode">${mode}</span>
+              </div>
+              ${active ? '<span class="dbs-companion-badge">Actif</span>' : `<button type="button" class="dbs-profile-secondary-action" data-dbs-companion="${id}">Sélectionner</button>`}
+            </article>`;
+          }).join('');
+        }
+
+        function renderPreferences() {
+          const preferences = window.DBSAuth.getAssistantPreferences();
+          document.querySelectorAll('[data-dbs-pref]').forEach((select) => {
+            const key = select.dataset.dbsPref;
+            select.value = preferences[key] || select.options[0]?.value || '';
+          });
+          renderCompanions(preferences);
+        }
+
+        async function render() {
           const user = window.DBSAuth.isAuthenticated() ? window.DBSAuth.getCachedUser() : null;
           const signedOut = document.querySelector('[data-dbs-profile-signed-out]');
-          const form = document.querySelector('[data-dbs-profile-form]');
-          const actions = document.querySelector('[data-dbs-profile-actions]');
-          const identity = document.querySelector('[data-dbs-profile-identity]');
-          const statusEl = document.querySelector('[data-dbs-user-status]');
-          const savedEl = document.querySelector('[data-dbs-profile-saved]');
-          if (savedEl) savedEl.hidden = true;
+          const shell = document.querySelector('[data-dbs-profile-shell]');
 
           if (!user) {
-            statusEl.textContent = 'Statut : non connecté';
             signedOut.hidden = false;
-            form.hidden = true;
-            actions.hidden = true;
-            identity.hidden = true;
-            renderSignedOutProviders();
+            shell.hidden = true;
+            await renderSignedOutProviders();
             return;
           }
 
-          statusEl.textContent = 'Statut : connecté en tant que ' + user.email;
           signedOut.hidden = true;
-          form.hidden = false;
-          actions.hidden = false;
-          identity.hidden = false;
-          const avatar = document.querySelector('[data-dbs-profile-avatar]');
-          if (user.avatarUrl) avatar.src = user.avatarUrl;
-          const providerEl = document.querySelector('[data-dbs-profile-provider]');
-          providerEl.textContent = user.provider ? ('Connecté via ' + (PROVIDERS[user.provider] || user.provider)) : '';
+          shell.hidden = false;
+          const providerName = PROVIDERS[user.provider] || user.provider || 'Local-dev';
+          document.querySelector('[data-dbs-profile-avatar]').src = user.avatarUrl || AVATAR_FALLBACK;
+          setStatus('[data-dbs-profile-display-label]', user.displayName || user.email || 'Digitalblueskye');
+          setStatus('[data-dbs-profile-provider]', `Connecté via ${providerName}`);
+          setStatus('[data-dbs-security-provider]', providerName);
+          setStatus('[data-dbs-history-provider]', providerName);
+          setStatus('[data-dbs-last-login]', user.lastLoginAt || 'Disponible prochainement');
           document.getElementById('dbs-profile-email').value = user.email || '';
           document.getElementById('dbs-profile-name').value = user.displayName || '';
-          document.getElementById('dbs-profile-tone').value = user.preference?.tone || 'standard';
+          const providers = await window.DBSAuth.fetchProviders();
+          const facebookEnabled = Boolean(providers.facebook) && FACEBOOK_META_VALIDATED;
+          setStatus('[data-dbs-facebook-status]', facebookEnabled ? 'Facebook : disponible' : 'Facebook : en attente de validation Meta');
+          renderPreferences();
         }
 
-        document.querySelector('[data-dbs-profile-form]').addEventListener('submit', async (event) => {
+        fillPreferenceOptions();
+        activateTab(getInitialTab(), Boolean(window.location.hash));
+        document.querySelectorAll('[data-dbs-profile-tab]').forEach((tab, index, tabs) => {
+          tab.addEventListener('click', () => activateTab(tab.dataset.dbsProfileTab, true));
+          tab.addEventListener('keydown', (event) => {
+            if (!['ArrowRight', 'ArrowLeft', 'Home', 'End'].includes(event.key)) return;
+            event.preventDefault();
+            const delta = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
+            const nextIndex = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : (index + delta + tabs.length) % tabs.length;
+            tabs[nextIndex].focus();
+            activateTab(tabs[nextIndex].dataset.dbsProfileTab, true);
+          });
+        });
+
+        document.querySelector('[data-dbs-identity-form]').addEventListener('submit', async (event) => {
           event.preventDefault();
           const displayName = document.getElementById('dbs-profile-name').value.trim();
-          const tone = document.getElementById('dbs-profile-tone').value;
-          const result = await window.DBSAuth.updateProfile({ displayName, preference: { tone } });
-          const savedEl = document.querySelector('[data-dbs-profile-saved]');
-          if (savedEl) {
-            savedEl.hidden = false;
-            savedEl.textContent = result && result.ok !== false ? 'Modifications enregistrées.' : 'Échec de l’enregistrement.';
+          const result = await window.DBSAuth.updateProfile({ displayName });
+          setStatus('[data-dbs-identity-saved]', result && result.ok !== false ? 'Modifications enregistrées.' : "Échec de l'enregistrement.");
+        });
+
+        document.querySelector('[data-dbs-preferences-form]').addEventListener('submit', async (event) => {
+          event.preventDefault();
+          const patch = {};
+          document.querySelectorAll('[data-dbs-pref]').forEach((select) => { patch[select.dataset.dbsPref] = select.value; });
+          const result = await window.DBSAuth.saveAssistantPreferences(patch);
+          renderPreferences();
+          setStatus('[data-dbs-preferences-saved]', result.ok ? 'Préférences enregistrées.' : 'Préférences locales enregistrées, synchronisation serveur indisponible.');
+        });
+
+        document.querySelector('[data-dbs-companion-grid]').addEventListener('click', async (event) => {
+          const btn = event.target.closest('[data-dbs-companion]');
+          if (!btn) return;
+          await window.DBSAuth.saveAssistantPreferences({ companion: btn.dataset.dbsCompanion });
+          renderPreferences();
+          setStatus('[data-dbs-companion-saved]', 'Compagnon IA mis à jour.');
+        });
+
+        document.addEventListener('click', async (event) => {
+          const logoutBtn = event.target.closest('[data-dbs-logout]');
+          if (logoutBtn) {
+            await window.DBSAuth.logout();
+            render();
+            return;
+          }
+          if (event.target.closest('[data-dbs-clear-local], [data-dbs-clear-preferences]')) {
+            window.DBSAuth.clearLocalProfileData();
+            renderPreferences();
+            setStatus('[data-dbs-local-saved]', 'Données locales supprimées. La session serveur est conservée.');
           }
         });
 
-        document.querySelector('[data-dbs-logout]').addEventListener('click', async () => {
-          // Reste sur profile.html en etat non connecte apres deconnexion.
-          await window.DBSAuth.logout();
-          render();
-        });
-
         document.addEventListener('dbs-auth-changed', render);
+        window.addEventListener('hashchange', () => activateTab(getInitialTab(), false));
         render();
         // Hydrate depuis le serveur au chargement (met a jour l'UI via l'evenement).
         window.DBSAuth.refreshSession();
