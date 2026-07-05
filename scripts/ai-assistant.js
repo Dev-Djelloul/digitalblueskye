@@ -798,10 +798,9 @@
   }
 
   function createVoiceControlsMarkup(micIconUrl, voiceIconUrl) {
-    // TODO(profile-ai-settings): ce select reste transitoire dans le composer.
-    // La source durable des réglages voix/audio est profile.html#ai-settings.
+    // Voice selection is managed from profile.html#ai-settings. The composer only keeps immediate voice actions.
     return `
-      <select id="ai-assistant-voice-select" class="ai-assistant-voice-select" aria-label="${i18n.voiceSelectLabel}" title="${i18n.voiceSelectLabel}"></select>
+      <select id="ai-assistant-voice-select" class="ai-assistant-voice-select ai-assistant-voice-select--composer" aria-hidden="true" tabindex="-1"></select>
       <div class="ai-assistant-voice-controls">
         <button id="ai-assistant-mic" type="button" class="ai-assistant-voice-btn" title="${i18n.micOn}" aria-label="${i18n.micOn}">
           <img src="${micIconUrl}" alt="" aria-hidden="true">
@@ -992,7 +991,9 @@
       const submitButton = form.querySelector('.ai-assistant-send-btn') || form.querySelector('button[type="submit"]');
       const select = document.createElement('select');
       select.id = 'ai-assistant-voice-select';
-      select.className = 'ai-assistant-voice-select';
+      select.className = 'ai-assistant-voice-select ai-assistant-voice-select--composer';
+      select.setAttribute('aria-hidden', 'true');
+      select.tabIndex = -1;
       if (submitButton) {
         form.insertBefore(select, submitButton);
       } else {
@@ -5800,9 +5801,16 @@
     const current = getStoredVoicePreferences();
     current[lang] = typeof voiceURI === 'string' ? voiceURI : '';
     try { localStorage.setItem(voicePreferenceStorageKey, JSON.stringify(current)); } catch (error) {}
+    try { window.DBSAuth?.saveAssistantPreferences?.({ aiVoice: voiceURI || 'auto' }); } catch (error) {}
   }
 
-  function getStoredVoicePreference(lang) { return getStoredVoicePreferences()[lang] || ''; }
+  function getStoredVoicePreference(lang) {
+    try {
+      const profileVoice = window.DBSAuth?.getAssistantPreferences?.()?.aiVoice;
+      if (profileVoice && profileVoice !== 'auto') return profileVoice;
+    } catch (error) {}
+    return getStoredVoicePreferences()[lang] || '';
+  }
 
   function chooseBestTtsVoice(lang) {
     const candidates = availableTtsVoices.filter((voice) => {
@@ -5847,7 +5855,8 @@
     const preferredVoiceURI = getStoredVoicePreference(lang);
     const bestVoice = chooseBestTtsVoice(lang);
     const selectedVoice = selectedTtsVoices[lang] || bestVoice;
-    const selects = [voiceSelect, document.getElementById('ai-assistant-settings-voice-select')].filter(Boolean);
+    const selects = [voiceSelect, document.getElementById('ai-assistant-settings-voice-select')]
+      .filter((select) => select && !select.classList.contains('ai-assistant-voice-select--composer'));
     selects.forEach((select) => {
       select.innerHTML = '';
       const autoOption = document.createElement('option');
