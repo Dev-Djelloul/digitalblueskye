@@ -360,7 +360,7 @@ async function getSessionUser(env, request) {
   if (!token) return null;
   const sessionHash = await sha256Hex(token);
   const row = await env.DB
-    .prepare(`SELECT s.id AS session_id, s.expires_at, s.revoked_at, u.id, u.email, u.display_name, u.avatar_url, u.last_login_at,
+    .prepare(`SELECT s.id AS session_id, s.expires_at, s.revoked_at, u.id, u.email, u.display_name, u.avatar_url,
                      p.tone, p.theme,
                      (SELECT provider FROM user_identities WHERE user_id = u.id ORDER BY updated_at DESC LIMIT 1) AS provider
               FROM user_sessions s JOIN users u ON u.id = s.user_id
@@ -377,7 +377,6 @@ async function getSessionUser(env, request) {
     email: row.email,
     displayName: row.display_name || '',
     avatarUrl: row.avatar_url || '',
-    lastLoginAt: row.last_login_at || '',
     provider: row.provider || '',
     preference: { tone: row.tone || 'standard', theme: row.theme || 'system' }
   };
@@ -555,7 +554,6 @@ async function handleMe(request, env) {
       email: user.email,
       displayName: user.displayName,
       avatarUrl: user.avatarUrl,
-      lastLoginAt: user.lastLoginAt,
       provider: user.provider,
       preference: user.preference
     }
@@ -586,7 +584,7 @@ async function handleProfilePatch(request, env) {
     .bind(user.id, tone, theme, now).run();
 
   const fresh = await getSessionUser(env, request);
-  return authJson(request, env, { ok: true, user: fresh && { id: fresh.id, email: fresh.email, displayName: fresh.displayName, avatarUrl: fresh.avatarUrl, lastLoginAt: fresh.lastLoginAt, provider: fresh.provider, preference: fresh.preference } });
+  return authJson(request, env, { ok: true, user: fresh && { id: fresh.id, email: fresh.email, displayName: fresh.displayName, avatarUrl: fresh.avatarUrl, provider: fresh.provider, preference: fresh.preference } });
 }
 
 // ---------------------------------------------------------------------------

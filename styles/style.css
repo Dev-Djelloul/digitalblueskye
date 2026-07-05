@@ -10766,16 +10766,6 @@ body.body-menu-open .ai-assistant-collapse-handle {
   gap: 8px;
 }
 
-.dbs-rail-account-slot {
-  align-items: center;
-  display: flex;
-  justify-content: center;
-  margin-top: auto;
-  padding: 4px 0 0;
-  position: relative;
-  width: 100%;
-}
-
 .ai-assistant-rail-btn {
   align-items: center;
   background: transparent;
@@ -10814,7 +10804,7 @@ body.body-menu-open .ai-assistant-collapse-handle {
 }
 
 /* Avatar utilisateur dans le rail permanent gauche de l'assistant, visible
-   uniquement une fois connecte (scripts/dbs-auth.js). Ouvre le menu compte. */
+   uniquement une fois "connecté" (scripts/dbs-auth.js). Ouvre profile.html. */
 .dbs-profile-rail-avatar {
   align-items: center;
   background: transparent;
@@ -10841,150 +10831,6 @@ body.body-menu-open .ai-assistant-collapse-handle {
   height: 100%;
   object-fit: cover;
   width: 100%;
-}
-
-.dbs-account-popover {
-  background: linear-gradient(180deg, rgb(26 26 52 / 98%), rgb(15 14 34 / 98%));
-  border: 1px solid rgb(121 230 255 / 24%);
-  border-radius: 14px;
-  bottom: 0;
-  box-shadow: 0 18px 42px rgb(0 0 0 / 38%);
-  color: #f7f7ff;
-  left: calc(100% + 12px);
-  min-width: 240px;
-  opacity: 0;
-  padding: 10px;
-  pointer-events: none;
-  position: absolute;
-  transform: translateY(6px);
-  transition: opacity 0.14s ease, transform 0.14s ease;
-  width: min(280px, calc(100vw - 86px));
-  z-index: 30;
-}
-
-.dbs-account-popover[hidden] {
-  display: none;
-}
-
-.dbs-account-popover.is-open {
-  opacity: 1;
-  pointer-events: auto;
-  transform: translateY(0);
-}
-
-.dbs-account-popover-header {
-  align-items: center;
-  border-bottom: 1px solid rgb(93 93 255 / 18%);
-  display: flex;
-  gap: 10px;
-  padding: 8px 8px 10px;
-}
-
-.dbs-account-popover-avatar {
-  border: 1px solid rgb(121 230 255 / 35%);
-  border-radius: 50%;
-  flex: 0 0 auto;
-  height: 36px;
-  object-fit: cover;
-  width: 36px;
-}
-
-.dbs-account-popover-id {
-  min-width: 0;
-}
-
-.dbs-account-popover-name,
-.dbs-account-popover-email,
-.dbs-account-popover-provider {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.dbs-account-popover-name {
-  color: #fff;
-  font-family: var(--font-body);
-  font-size: 0.88rem;
-}
-
-.dbs-account-popover-email,
-.dbs-account-popover-provider {
-  color: rgb(235 240 255 / 68%);
-  font-size: 0.74rem;
-}
-
-.dbs-account-popover-actions {
-  display: grid;
-  gap: 4px;
-  padding-top: 8px;
-}
-
-.dbs-account-popover-action {
-  align-items: center;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 9px;
-  color: rgb(235 240 255 / 88%);
-  cursor: pointer;
-  display: flex;
-  font-family: var(--font-body);
-  font-size: 0.84rem;
-  min-height: 34px;
-  padding: 8px 10px;
-  text-align: left;
-  text-decoration: none;
-  width: 100%;
-}
-
-.dbs-account-popover-action:hover,
-.dbs-account-popover-action:focus-visible {
-  background: rgb(255 255 255 / 8%);
-  border-color: rgb(121 230 255 / 22%);
-  color: #fff;
-  outline: none;
-}
-
-.dbs-account-popover-danger {
-  color: #ff9a9a;
-}
-
-.dbs-account-popover-danger:hover,
-.dbs-account-popover-danger:focus-visible {
-  background: rgb(255 138 138 / 10%);
-  border-color: rgb(255 138 138 / 28%);
-  color: #ffb0b0;
-}
-
-[data-theme="light"] .dbs-account-popover {
-  background: linear-gradient(180deg, rgb(255 255 255 / 99%), rgb(245 244 255 / 99%));
-  border-color: rgb(93 93 255 / 18%);
-  box-shadow: 0 18px 44px rgb(88 74 136 / 22%);
-  color: #2f2b5f;
-}
-
-[data-theme="light"] .dbs-account-popover-header {
-  border-bottom-color: rgb(93 93 255 / 12%);
-}
-
-[data-theme="light"] .dbs-account-popover-name,
-[data-theme="light"] .dbs-account-popover-action {
-  color: #2f2b5f;
-}
-
-[data-theme="light"] .dbs-account-popover-email,
-[data-theme="light"] .dbs-account-popover-provider {
-  color: rgb(47 43 95 / 60%);
-}
-
-[data-theme="light"] .dbs-account-popover-action:hover,
-[data-theme="light"] .dbs-account-popover-action:focus-visible {
-  background: rgb(93 93 255 / 10%);
-  border-color: rgb(93 93 255 / 18%);
-}
-
-[data-theme="light"] .dbs-account-popover-danger {
-  color: #b43146;
 }
 
 /* Modale de connexion legere (UX only, voir scripts/dbs-auth.js). */
@@ -11320,479 +11166,8 @@ body.profile-page .profile-main {
   box-sizing: border-box;
   display: grid;
   flex: 1 1 auto;
-  padding: clamp(8.5rem, 11vw, 10rem) 1rem clamp(1.5rem, 4vw, 2.75rem);
+  padding: clamp(10rem, 14vw, 12rem) 1rem clamp(1.5rem, 4vw, 2.75rem);
   place-items: start center;
-}
-
-.dbs-profile-shell,
-.dbs-profile-signed-out-card {
-  background:
-    linear-gradient(180deg, rgb(29 28 61 / 92%), rgb(14 13 34 / 96%)),
-    var(--card-bg);
-  border: 1px solid rgb(93 93 255 / 26%);
-  border-radius: 18px;
-  box-shadow: 0 18px 44px rgb(0 0 0 / 30%);
-  box-sizing: border-box;
-  color: #f7f7ff;
-  margin: 0 auto;
-  width: min(100%, 1120px);
-}
-
-.dbs-profile-shell {
-  overflow: hidden;
-}
-
-.dbs-profile-signed-out-card {
-  max-width: 520px;
-  padding: clamp(22px, 4vw, 34px);
-}
-
-.dbs-profile-signed-out-card h1,
-.dbs-profile-shell h1,
-.dbs-profile-panel h2,
-.dbs-companion-card h3 {
-  font-family: var(--font-body);
-}
-
-.dbs-profile-signed-out-card h1 {
-  font-size: 1.35rem;
-  margin: 0 0 10px;
-}
-
-.dbs-profile-signed-out-card p {
-  color: rgb(235 240 255 / 78%);
-  font-size: 0.92rem;
-  margin: 0 0 18px;
-}
-
-.dbs-profile-shell-header {
-  align-items: center;
-  border-bottom: 1px solid rgb(93 93 255 / 18%);
-  display: flex;
-  gap: 18px;
-  justify-content: space-between;
-  padding: 22px clamp(18px, 3vw, 28px);
-  text-align: left;
-}
-
-.dbs-profile-kicker {
-  color: rgb(121 230 255 / 88%);
-  font-family: "Space Mono", monospace;
-  font-size: 0.72rem;
-  letter-spacing: 0.14em;
-  margin: 0 0 5px;
-  text-transform: uppercase;
-}
-
-.dbs-profile-shell h1 {
-  color: #fff;
-  font-size: clamp(1.3rem, 2.4vw, 1.75rem);
-  line-height: 1.15;
-  margin: 0;
-}
-
-.dbs-profile-shell-subtitle {
-  color: rgb(235 240 255 / 72%);
-  font-size: 0.88rem;
-  line-height: 1.5;
-  margin: 8px 0 0;
-  max-width: 620px;
-}
-
-.dbs-profile-status-row,
-.dbs-profile-actions-row {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.dbs-status-badge,
-.dbs-companion-badge,
-.dbs-companion-mode {
-  align-items: center;
-  border: 1px solid rgb(121 230 255 / 24%);
-  border-radius: 999px;
-  color: rgb(235 240 255 / 82%);
-  display: inline-flex;
-  font-size: 0.74rem;
-  line-height: 1;
-  padding: 7px 10px;
-  white-space: nowrap;
-}
-
-.dbs-status-badge.is-secure,
-.dbs-companion-badge {
-  background: rgb(121 230 255 / 16%);
-  border-color: rgb(121 230 255 / 64%);
-  color: rgb(121 230 255 / 96%);
-  font-weight: 700;
-}
-
-.dbs-companion-active-summary {
-  align-items: center;
-  background: rgb(121 230 255 / 10%);
-  border: 1px solid rgb(121 230 255 / 24%);
-  border-radius: 10px;
-  color: rgb(235 240 255 / 88%);
-  display: inline-flex;
-  font-size: 0.88rem;
-  margin: 0 0 16px;
-  padding: 10px 12px;
-}
-
-.dbs-profile-layout {
-  display: grid;
-  grid-template-columns: minmax(190px, 230px) minmax(0, 1fr);
-  min-height: 560px;
-}
-
-.dbs-profile-nav {
-  background: rgb(8 10 30 / 34%);
-  border-right: 1px solid rgb(93 93 255 / 18%);
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 16px;
-}
-
-.dbs-profile-tab {
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 10px;
-  color: rgb(235 240 255 / 78%);
-  cursor: pointer;
-  font-family: var(--font-body);
-  font-size: 0.86rem;
-  padding: 10px 12px;
-  text-align: left;
-}
-
-.dbs-profile-tab:hover {
-  background: rgb(255 255 255 / 6%);
-  border-color: rgb(121 230 255 / 18%);
-  color: #fff;
-}
-
-.dbs-profile-tab:focus-visible {
-  border-color: rgb(121 230 255 / 70%);
-  box-shadow: 0 0 0 3px rgb(121 230 255 / 16%);
-  color: #fff;
-  outline: none;
-}
-
-.dbs-profile-tab.is-active {
-  background: rgb(255 255 255 / 8%);
-  border-color: rgb(121 230 255 / 24%);
-  color: #fff;
-}
-
-.dbs-profile-content {
-  min-width: 0;
-}
-
-.dbs-profile-panel {
-  padding: clamp(20px, 3vw, 30px);
-  text-align: left;
-}
-
-.dbs-profile-panel-heading {
-  margin: 0 0 20px;
-  max-width: 720px;
-}
-
-.dbs-profile-panel-heading h2 {
-  color: #fff;
-  font-size: 1.12rem;
-  margin: 0 0 6px;
-}
-
-.dbs-profile-panel-heading p {
-  color: rgb(235 240 255 / 70%);
-  font-size: 0.88rem;
-  line-height: 1.55;
-  margin: 0;
-}
-
-.dbs-profile-form-grid {
-  display: grid;
-  gap: 18px;
-}
-
-.dbs-identity-card,
-.dbs-setting-field,
-.dbs-security-card,
-.dbs-usage-card,
-.dbs-local-data-card,
-.dbs-companion-card {
-  background: rgb(8 10 30 / 42%);
-  border: 1px solid rgb(93 93 255 / 22%);
-  border-radius: 12px;
-}
-
-.dbs-identity-card {
-  align-items: center;
-  display: flex;
-  gap: 14px;
-  padding: 14px;
-}
-
-.dbs-identity-card strong {
-  color: #fff;
-  display: block;
-  font-size: 1rem;
-  margin-bottom: 3px;
-}
-
-.dbs-identity-card span {
-  color: rgb(235 240 255 / 72%);
-  font-size: 0.84rem;
-}
-
-.dbs-profile-grid,
-.dbs-info-grid {
-  display: grid;
-  gap: 14px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.dbs-setting-field {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-  padding: 14px;
-}
-
-.dbs-setting-field label,
-.dbs-security-card span,
-.dbs-usage-card span,
-.dbs-local-data-card dt {
-  color: rgb(246 247 255 / 76%);
-  font-size: 0.78rem;
-}
-
-.dbs-setting-field small {
-  color: rgb(235 240 255 / 55%);
-  font-size: 0.74rem;
-}
-
-.dbs-setting-field input,
-.dbs-setting-field select {
-  background: rgb(14 17 40 / 95%);
-  border: 1px solid rgb(93 93 255 / 32%);
-  border-radius: 10px;
-  color: #fff;
-  font-family: var(--font-body);
-  font-size: 0.9rem;
-  min-height: 40px;
-  padding: 9px 11px;
-  width: 100%;
-}
-
-.dbs-setting-field input:focus,
-.dbs-setting-field select:focus,
-.dbs-profile-save:focus-visible,
-.dbs-logout-button:focus-visible,
-.dbs-profile-secondary-action:focus-visible,
-.dbs-profile-home-link:focus-visible {
-  border-color: rgb(121 230 255 / 70%);
-  box-shadow: 0 0 0 3px rgb(121 230 255 / 16%);
-  outline: none;
-}
-
-.dbs-profile-save,
-.dbs-profile-secondary-action,
-.dbs-profile-home-link {
-  border-radius: 10px;
-  cursor: pointer;
-  font-family: var(--font-body);
-  font-size: 0.86rem;
-  padding: 10px 14px;
-  text-decoration: none;
-}
-
-.dbs-profile-save {
-  background: var(--accent-color);
-  border: 1px solid transparent;
-  color: #fff;
-}
-
-.dbs-profile-secondary-action,
-.dbs-profile-home-link {
-  background: transparent;
-  border: 1px solid rgb(93 93 255 / 34%);
-  color: rgb(235 240 255 / 88%);
-}
-
-.dbs-profile-secondary-action:hover,
-.dbs-profile-home-link:hover {
-  border-color: rgb(121 230 255 / 55%);
-}
-
-.dbs-profile-form-footer {
-  align-items: center;
-  display: flex;
-  gap: 12px;
-  grid-column: 1 / -1;
-}
-
-.dbs-companion-grid {
-  display: grid;
-  gap: 14px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.dbs-companion-card {
-  display: grid;
-  gap: 12px;
-  grid-template-columns: auto minmax(0, 1fr);
-  padding: 14px;
-  position: relative;
-}
-
-.dbs-companion-card.is-active {
-  border-color: rgb(121 230 255 / 58%);
-  box-shadow: inset 0 0 0 1px rgb(121 230 255 / 16%);
-}
-
-.dbs-companion-icon {
-  align-items: center;
-  background: rgb(121 230 255 / 12%);
-  border: 1px solid rgb(121 230 255 / 28%);
-  border-radius: 10px;
-  color: rgb(121 230 255 / 96%);
-  display: inline-flex;
-  font-family: "Space Mono", monospace;
-  font-size: 0.76rem;
-  height: 38px;
-  justify-content: center;
-  width: 38px;
-}
-
-.dbs-companion-copy {
-  min-width: 0;
-}
-
-.dbs-companion-copy h3 {
-  color: #fff;
-  font-size: 0.98rem;
-  margin: 0 0 5px;
-}
-
-.dbs-companion-copy p {
-  color: rgb(235 240 255 / 70%);
-  font-size: 0.82rem;
-  line-height: 1.45;
-  margin: 0 0 10px;
-}
-
-.dbs-companion-card .dbs-profile-secondary-action,
-.dbs-companion-badge {
-  grid-column: 1 / -1;
-  justify-self: start;
-}
-
-.dbs-security-card,
-.dbs-usage-card {
-  display: grid;
-  gap: 6px;
-  padding: 14px;
-}
-
-.dbs-security-card strong,
-.dbs-usage-card strong {
-  color: #fff;
-  font-size: 0.9rem;
-  line-height: 1.35;
-}
-
-.dbs-usage-card small {
-  color: rgb(235 240 255 / 58%);
-  font-size: 0.75rem;
-  line-height: 1.45;
-}
-
-.dbs-local-data-card {
-  padding: 16px;
-}
-
-.dbs-local-data-card dl {
-  display: grid;
-  gap: 12px;
-  margin: 0 0 16px;
-}
-
-.dbs-local-data-card div {
-  display: grid;
-  gap: 4px;
-}
-
-.dbs-local-data-card dd {
-  color: #fff;
-  font-family: "Space Mono", monospace;
-  font-size: 0.78rem;
-  margin: 0;
-  overflow-wrap: anywhere;
-}
-
-body.profile-page .dbs-logout-button {
-  flex: 0 0 auto;
-  width: auto;
-}
-
-@media (width <= 820px) {
-  body.profile-page .profile-main {
-    padding-top: clamp(7.5rem, 24vw, 9rem);
-  }
-
-  .dbs-profile-shell-header {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .dbs-profile-layout {
-    display: block;
-    min-height: 0;
-  }
-
-  .dbs-profile-nav {
-    border-bottom: 1px solid rgb(93 93 255 / 18%);
-    border-right: 0;
-    flex-direction: row;
-    overflow-x: auto;
-    padding: 12px;
-    scrollbar-width: thin;
-  }
-
-  .dbs-profile-tab {
-    flex: 0 0 auto;
-    white-space: nowrap;
-  }
-
-  .dbs-profile-grid,
-  .dbs-info-grid,
-  .dbs-companion-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .dbs-profile-form-footer {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-}
-
-@media (width <= 576px) {
-  .dbs-account-popover {
-    bottom: calc(100% + 10px);
-    left: 50%;
-    min-width: 230px;
-    transform: translate(-50%, 6px);
-    width: min(280px, calc(100vw - 28px));
-  }
-
-  .dbs-account-popover.is-open {
-    transform: translate(-50%, 0);
-  }
 }
 
 /* La carte profil reprend le glassmorphism de l'assistant, sans marge haute
@@ -11918,8 +11293,193 @@ body.profile-page .dbs-logout-button {
   border-color: rgb(121 230 255 / 55%);
 }
 
+/* Avatar de profil ancre tout en bas du panneau lateral deplie (facon ChatGPT),
+   en dehors de la zone de defilement pour rester toujours visible. */
+.ai-assistant-sidebar-profile {
+  align-items: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: rgb(246 247 255 / 92%);
+  cursor: pointer;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 10px;
+  margin: 4px 14px 14px;
+  padding: 8px 10px;
+  text-align: left;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.ai-assistant-sidebar-profile:hover,
+.ai-assistant-sidebar-profile.is-active {
+  background: rgb(255 255 255 / 8%);
+  border-color: rgb(121 230 255 / 28%);
+}
+
+.ai-assistant-sidebar-profile-avatar {
+  border-radius: 50%;
+  flex: 0 0 auto;
+  height: 30px;
+  object-fit: cover;
+  width: 30px;
+}
+
+.ai-assistant-sidebar-profile-name {
+  font-family: var(--font-body);
+  font-size: 0.84rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Menu profil ancre a l'avatar en bas du panneau lateral (pop-up vers le haut). */
+.ai-assistant-profile-menu {
+  background: linear-gradient(180deg, rgb(26 26 52 / 97%), rgb(15 14 34 / 98%));
+  border: 1px solid rgb(255 255 255 / 14%);
+  border-radius: 14px;
+  bottom: 14px;
+  box-shadow: 0 18px 44px rgb(0 0 0 / 50%);
+  left: var(--ai-merged-rail-space, 62px);
+  opacity: 0;
+  padding: 8px;
+  pointer-events: none;
+  position: absolute;
+  transform: translateY(6px);
+  transition: opacity 0.16s ease, transform 0.16s ease;
+  width: 250px;
+  z-index: 30;
+}
+
+.ai-assistant-profile-menu[hidden] {
+  display: none;
+}
+
+.ai-assistant-profile-menu.is-open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.ai-assistant-profile-menu-head {
+  align-items: center;
+  border-bottom: 1px solid rgb(255 255 255 / 10%);
+  display: flex;
+  gap: 10px;
+  margin-bottom: 6px;
+  padding: 8px 8px 10px;
+}
+
+.ai-assistant-profile-menu-avatar {
+  border-radius: 50%;
+  flex: 0 0 auto;
+  height: 38px;
+  object-fit: cover;
+  width: 38px;
+}
+
+.ai-assistant-profile-menu-id {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.ai-assistant-profile-menu-name {
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 0.86rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ai-assistant-profile-menu-email {
+  color: rgb(235 240 255 / 55%);
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ai-assistant-profile-menu-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ai-assistant-profile-menu-item {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 9px;
+  color: rgb(246 247 255 / 92%);
+  cursor: pointer;
+  display: flex;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  gap: 10px;
+  padding: 9px 10px;
+  text-align: left;
+  width: 100%;
+}
+
+.ai-assistant-profile-menu-item:hover {
+  background: rgb(255 255 255 / 8%);
+}
+
+.ai-assistant-profile-menu-item svg {
+  color: rgb(235 240 255 / 75%);
+  flex: 0 0 auto;
+}
+
+[data-theme="light"] .ai-assistant-profile-menu {
+  background: linear-gradient(180deg, rgb(255 255 255 / 99%), rgb(245 244 255 / 99%));
+  border-color: rgb(93 93 255 / 18%);
+  box-shadow: 0 18px 44px rgb(88 74 136 / 22%);
+}
+
+[data-theme="light"] .ai-assistant-profile-menu-name {
+  color: #2f2b5f;
+}
+
+[data-theme="light"] .ai-assistant-profile-menu-email {
+  color: rgb(47 43 95 / 60%);
+}
+
+[data-theme="light"] .ai-assistant-profile-menu-item {
+  color: #2f2b5f;
+}
+
+[data-theme="light"] .ai-assistant-profile-menu-item:hover {
+  background: rgb(93 93 255 / 10%);
+}
+
+[data-theme="light"] .ai-assistant-profile-menu-item svg {
+  color: rgb(47 43 95 / 70%);
+}
+
+[data-theme="light"] .ai-assistant-sidebar-profile {
+  color: #2f2b5f;
+}
+
+[data-theme="light"] .ai-assistant-sidebar-profile:hover,
+[data-theme="light"] .ai-assistant-sidebar-profile.is-active {
+  background: rgb(93 93 255 / 10%);
+  border-color: rgb(93 93 255 / 24%);
+}
+
 /* Le rail remplace le toggle d'historique du header (evite le doublon). */
 .ai-assistant-panel.has-rail .ai-assistant-history-toggle {
+  display: none;
+}
+
+/* Le rail porte l'acces aux Parametres : on masque le bouton redondant de la
+   sidebar (il reste dans le DOM pour conserver son handler, declenche par le
+   rail via un clic programmatique). */
+.ai-assistant-panel.has-rail .ai-assistant-settings-open {
   display: none;
 }
 
