@@ -23,7 +23,7 @@ ALLOWED_ORIGIN = "https://digitalblueskye.com,https://www.digitalblueskye.com,ht
 COMMENTS_REQUIRE_APPROVAL = "false"
 # --- Authentification serveur OAuth (cf. cloudflare/auth.js) ---
 # Origine du front autorisee pour CORS avec credentials (cookie de session).
-FRONTEND_ORIGIN = "https://digitalblueskye.netlify.app"
+FRONTEND_ORIGIN = "https://digitalblueskye.com"
 # URL publique de CE Worker API (base des redirect_uri OAuth et du lien magique).
 AUTH_BASE_URL = "https://digitalblueskye-api.djelloulabid75.workers.dev"
 # Adresse d'envoi du lien de connexion par email (domaine onboarde sur Email Sending).
