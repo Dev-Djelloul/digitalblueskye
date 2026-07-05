@@ -10803,8 +10803,17 @@ body.body-menu-open .ai-assistant-collapse-handle {
   width: 20px;
 }
 
-/* Avatar utilisateur dans le rail permanent gauche de l'assistant, visible
-   uniquement une fois "connecté" (scripts/dbs-auth.js). Ouvre profile.html. */
+/* Slot compte en bas du rail permanent gauche de l'assistant, visible
+   uniquement une fois "connecte" (scripts/dbs-auth.js). Contient l'avatar
+   et sa pop-up compte. margin-top:auto est une securite en plus du
+   justify-content:space-between deja present sur .ai-assistant-rail. */
+.dbs-rail-account-slot {
+  display: flex;
+  flex-direction: column;
+  margin-top: auto;
+  position: relative;
+}
+
 .dbs-profile-rail-avatar {
   align-items: center;
   background: transparent;
@@ -10831,6 +10840,115 @@ body.body-menu-open .ai-assistant-collapse-handle {
   height: 100%;
   object-fit: cover;
   width: 100%;
+}
+
+/* Pop-up compte compacte ancree au-dessus de l'avatar du rail. */
+.dbs-account-popover {
+  background:
+    linear-gradient(180deg, rgb(24 28 58 / 98%), rgb(14 17 40 / 98%)),
+    rgb(14 17 40 / 98%);
+  border: 1px solid rgb(121 230 255 / 28%);
+  border-radius: 14px;
+  bottom: 48px;
+  box-shadow: 0 12px 32px rgb(4 6 20 / 45%);
+  left: 0;
+  min-width: 240px;
+  opacity: 0;
+  padding: 12px;
+  pointer-events: none;
+  position: absolute;
+  transform: translateY(6px);
+  transition: opacity 0.16s ease, transform 0.16s ease;
+  z-index: 20;
+}
+
+.dbs-account-popover.is-open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.dbs-account-popover-header {
+  align-items: center;
+  border-bottom: 1px solid rgb(121 230 255 / 16%);
+  display: flex;
+  gap: 10px;
+  margin-bottom: 8px;
+  padding-bottom: 10px;
+}
+
+.dbs-account-popover-avatar {
+  border-radius: 50%;
+  height: 34px;
+  object-fit: cover;
+  width: 34px;
+}
+
+.dbs-account-popover-id {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.dbs-account-popover-name {
+  color: #fff;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dbs-account-popover-email,
+.dbs-account-popover-provider {
+  color: rgb(235 240 255 / 62%);
+  font-size: 11.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dbs-account-popover-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dbs-account-popover-action {
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: rgb(235 240 255 / 88%);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 8px 10px;
+  text-align: left;
+  text-decoration: none;
+  transition: background 0.14s ease, color 0.14s ease;
+}
+
+.dbs-account-popover-action:hover,
+.dbs-account-popover-action:focus-visible {
+  background: rgb(255 255 255 / 8%);
+  color: #fff;
+  outline: none;
+}
+
+.dbs-account-popover-danger {
+  color: rgb(255 138 138 / 92%);
+}
+
+.dbs-account-popover-danger:hover,
+.dbs-account-popover-danger:focus-visible {
+  background: rgb(255 90 90 / 12%);
+  color: rgb(255 170 170 / 100%);
+}
+
+@media (width <= 640px) {
+  .dbs-account-popover {
+    left: auto;
+    min-width: 220px;
+    right: 0;
+  }
 }
 
 /* Modale de connexion legere (UX only, voir scripts/dbs-auth.js). */
@@ -11291,6 +11409,367 @@ body.profile-page .profile-main {
 
 .dbs-profile-back-link--ghost:hover {
   border-color: rgb(121 230 255 / 55%);
+}
+
+/* ---------------------------------------------------------------------
+   profile.html — coquille "Mon profil" a onglets (identite, preferences,
+   compagnon, securite, usage, historique, donnees locales). Scope sur
+   body.profile-page uniquement ; aucune regle ne touche body/main globaux. */
+.dbs-profile-shell {
+  background:
+    linear-gradient(180deg, rgb(29 28 61 / 92%), rgb(14 13 34 / 96%)),
+    var(--card-bg);
+  border: 1px solid rgb(93 93 255 / 26%);
+  border-radius: 20px;
+  box-shadow: 0 18px 44px rgb(0 0 0 / 30%);
+  box-sizing: border-box;
+  margin: 0 auto;
+  max-width: 920px;
+  padding: clamp(18px, 2.8vw, 28px);
+  width: 100%;
+}
+
+.dbs-profile-shell-header {
+  align-items: flex-start;
+  border-bottom: 1px solid rgb(93 93 255 / 18%);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  padding-bottom: 16px;
+}
+
+.dbs-profile-kicker {
+  color: rgb(121 230 255 / 82%);
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
+  margin: 0 0 4px;
+  text-transform: uppercase;
+}
+
+.dbs-profile-shell-header h1 {
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 1.5rem;
+  margin: 0 0 6px;
+}
+
+.dbs-profile-shell-subtitle {
+  color: rgb(235 240 255 / 74%);
+  font-size: 0.88rem;
+  line-height: 1.5;
+  margin: 0;
+  max-width: 46ch;
+}
+
+.dbs-profile-status-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.dbs-status-badge {
+  background: rgb(255 255 255 / 6%);
+  border: 1px solid rgb(121 230 255 / 30%);
+  border-radius: 999px;
+  color: rgb(235 240 255 / 85%);
+  font-size: 0.72rem;
+  padding: 5px 12px;
+  white-space: nowrap;
+}
+
+.dbs-status-badge.is-secure {
+  border-color: rgb(121 230 255 / 55%);
+  color: rgb(121 230 255 / 95%);
+}
+
+.dbs-profile-layout {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: 200px 1fr;
+}
+
+.dbs-profile-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dbs-profile-tab {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: rgb(235 240 255 / 74%);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.86rem;
+  padding: 9px 12px;
+  text-align: left;
+  transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+}
+
+.dbs-profile-tab:hover {
+  background: rgb(255 255 255 / 6%);
+  color: #fff;
+}
+
+.dbs-profile-tab.is-active {
+  background: rgb(121 230 255 / 14%);
+  border-color: rgb(121 230 255 / 38%);
+  color: #fff;
+}
+
+.dbs-profile-tab:focus-visible {
+  outline: 2px solid rgb(121 230 255 / 60%);
+  outline-offset: 2px;
+}
+
+.dbs-profile-content {
+  min-width: 0;
+}
+
+.dbs-profile-panel {
+  display: none;
+}
+
+.dbs-profile-panel.is-active {
+  display: block;
+}
+
+.dbs-profile-panel-heading h2 {
+  color: #fff;
+  font-size: 1.05rem;
+  margin: 0 0 4px;
+}
+
+.dbs-profile-panel-heading p {
+  color: rgb(235 240 255 / 68%);
+  font-size: 0.84rem;
+  line-height: 1.5;
+  margin: 0 0 16px;
+}
+
+.dbs-identity-card {
+  align-items: center;
+  border: 1px solid rgb(93 93 255 / 22%);
+  border-radius: 12px;
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 12px;
+}
+
+.dbs-identity-card strong {
+  color: #fff;
+  display: block;
+  font-size: 0.94rem;
+}
+
+.dbs-identity-card span {
+  color: rgb(235 240 255 / 68%);
+  font-size: 0.78rem;
+}
+
+.dbs-profile-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.dbs-setting-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.dbs-setting-field label {
+  color: rgb(246 247 255 / 88%);
+  font-size: 0.78rem;
+}
+
+.dbs-setting-field input,
+.dbs-setting-field select {
+  background: rgb(14 17 40 / 95%);
+  border: 1px solid rgb(93 93 255 / 30%);
+  border-radius: 10px;
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 0.86rem;
+  padding: 8px 10px;
+}
+
+.dbs-setting-field input[disabled] {
+  color: rgb(235 240 255 / 60%);
+  cursor: not-allowed;
+}
+
+.dbs-setting-field small {
+  color: rgb(235 240 255 / 55%);
+  font-size: 0.72rem;
+}
+
+.dbs-profile-actions-row {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.dbs-profile-form-footer {
+  grid-column: 1 / -1;
+}
+
+.dbs-profile-secondary-action {
+  background: transparent;
+  border: 1px solid rgb(93 93 255 / 30%);
+  border-radius: 10px;
+  color: rgb(235 240 255 / 85%);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  padding: 8px 14px;
+}
+
+.dbs-profile-secondary-action:hover {
+  border-color: rgb(121 230 255 / 55%);
+  color: #fff;
+}
+
+.dbs-profile-home-link {
+  color: rgb(121 230 255 / 88%);
+  font-size: 0.84rem;
+  text-decoration: none;
+}
+
+.dbs-profile-home-link:hover {
+  text-decoration: underline;
+}
+
+.dbs-companion-active-summary {
+  color: rgb(121 230 255 / 90%);
+  font-size: 0.84rem;
+  margin: 0 0 12px;
+}
+
+.dbs-companion-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+
+.dbs-companion-option {
+  background: transparent;
+  border: 1px solid rgb(93 93 255 / 22%);
+  border-radius: 12px;
+  color: rgb(235 240 255 / 80%);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-body);
+  gap: 4px;
+  padding: 12px;
+  text-align: left;
+}
+
+.dbs-companion-option:hover {
+  border-color: rgb(121 230 255 / 45%);
+}
+
+.dbs-companion-option.is-active {
+  background: rgb(121 230 255 / 10%);
+  border-color: rgb(121 230 255 / 55%);
+  color: #fff;
+}
+
+.dbs-companion-option strong {
+  color: #fff;
+  font-size: 0.9rem;
+}
+
+.dbs-companion-option span {
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.dbs-info-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+
+.dbs-security-card,
+.dbs-usage-card {
+  border: 1px solid rgb(93 93 255 / 20%);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+}
+
+.dbs-security-card span,
+.dbs-usage-card span {
+  color: rgb(235 240 255 / 62%);
+  font-size: 0.74rem;
+}
+
+.dbs-security-card strong,
+.dbs-usage-card strong {
+  color: #fff;
+  font-size: 0.9rem;
+}
+
+.dbs-usage-card small {
+  color: rgb(235 240 255 / 55%);
+  font-size: 0.72rem;
+}
+
+.dbs-local-data-card {
+  border: 1px solid rgb(93 93 255 / 20%);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.dbs-local-data-card dl {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 4px;
+}
+
+.dbs-local-data-card dl > div {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.dbs-local-data-card dt {
+  color: rgb(235 240 255 / 70%);
+  font-size: 0.8rem;
+}
+
+.dbs-local-data-card dd {
+  color: rgb(235 240 255 / 88%);
+  font-size: 0.8rem;
+  margin: 0;
+  text-align: right;
+}
+
+@media (width <= 760px) {
+  .dbs-profile-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .dbs-profile-nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+    overflow-x: auto;
+  }
+
+  .dbs-profile-tab {
+    white-space: nowrap;
+  }
 }
 
 /* Avatar de profil ancre tout en bas du panneau lateral deplie (facon ChatGPT),
@@ -16041,6 +16520,28 @@ body.ai-assistant-sidebar-is-resizing * {
   background: transparent;
   border-color: transparent;
   box-shadow: none;
+}
+
+[data-theme="light"] .dbs-account-popover {
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 98%), rgb(244 246 255 / 98%)),
+    rgb(255 255 255 / 98%);
+  border-color: rgb(93 93 255 / 22%);
+  box-shadow: 0 12px 32px rgb(88 74 136 / 16%);
+}
+
+[data-theme="light"] .dbs-account-popover-name {
+  color: rgb(20 22 40 / 92%);
+}
+
+[data-theme="light"] .dbs-account-popover-action {
+  color: rgb(30 32 55 / 82%);
+}
+
+[data-theme="light"] .dbs-account-popover-action:hover,
+[data-theme="light"] .dbs-account-popover-action:focus-visible {
+  background: rgb(93 93 255 / 8%);
+  color: rgb(10 12 30 / 96%);
 }
 
 [data-theme="light"] .ai-assistant-panel.has-rail.has-history-open .ai-assistant-sidebar-shell {

@@ -10229,6 +10229,20 @@
     payload.user = user
       ? { userId: user.id, email: user.email, authClientState: user.provider || 'local-dev' }
       : null;
+    // Personnalisation uniquement (jamais de securite) : ne doit jamais faire
+    // echouer l'envoi du message si DBSAuth est absent ou en erreur.
+    let preferences = null;
+    try { preferences = window.DBSAuth?.getAssistantPreferences?.(); } catch (_) { preferences = null; }
+    if (preferences) {
+      payload.preferences = {
+        projectStyle: preferences.projectStyle,
+        favoriteFormat: preferences.favoriteFormat,
+        detailLevel: preferences.detailLevel,
+        preferredLanguage: preferences.preferredLanguage,
+        tone: preferences.tone,
+        companion: preferences.companion
+      };
+    }
     return payload;
   }
 

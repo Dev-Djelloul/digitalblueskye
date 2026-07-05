@@ -25,6 +25,32 @@
   // Cache UX (jamais une preuve).
   const CACHE_KEY = 'dbs_user_cache';
   const DEV_SESSION_KEY = 'dbs_dev_session';
+  const PROFILE_PREFS_KEY = 'dbs_profile_preferences_cache';
+  const LEGACY_SESSION_KEYS = ['dbs_user_session', 'dbs_user_profile'];
+
+  // Facebook/Meta : app en attente de validation cote Meta. Ne jamais afficher
+  // Facebook comme pleinement disponible tant que ce flag n'est pas passe a true.
+  const FACEBOOK_META_VALIDATED = false;
+
+  const DEFAULT_ASSISTANT_PREFERENCES = Object.freeze({
+    schemaVersion: 1,
+    projectStyle: 'digital_project_manager',
+    favoriteFormat: 'action_plan',
+    detailLevel: 'balanced',
+    preferredLanguage: 'fr',
+    tone: 'standard',
+    companion: 'skye',
+    updatedAt: ''
+  });
+
+  const PREFERENCE_OPTIONS = Object.freeze({
+    projectStyle: ['general', 'digital_project_manager', 'technical', 'product_strategy', 'marketing_content', 'watch_benchmark', 'portfolio_career'],
+    favoriteFormat: ['text', 'table', 'checklist', 'action_plan', 'roadmap', 'synthesis', 'html_deliverable'],
+    detailLevel: ['concise', 'balanced', 'detailed', 'expert'],
+    preferredLanguage: ['fr', 'en', 'bilingual'],
+    tone: ['standard', 'pedagogical', 'direct', 'expert', 'creative', 'strategic'],
+    companion: ['skye', 'pilot', 'builder', 'scout', 'muse', 'guardian']
+  });
 
   const AVATAR_FALLBACK = '/assets/images/portrait/my-notion-face-transparent.png';
 
@@ -47,6 +73,60 @@
         preference: user.preference || { tone: 'standard', theme: 'system' }
       }));
     } catch (_) { /* no-op */ }
+  }
+
+  function sanitizeAssistantPreferences(input = {}) {
+    const fromSource = input && typeof input === 'object' ? input : {};
+    const clean = { ...DEFAULT_ASSISTANT_PREFERENCES };
+    Object.keys(PREFERENCE_OPTIONS).forEach((key) => {
+      const value = String(fromSource[key] || '').trim();
+      if (PREFERENCE_OPTIONS[key].includes(value)) clean[key] = value;
+    });
+    clean.schemaVersion = 1;
+    clean.updatedAt = typeof fromSource.updatedAt === 'string' ? fromSource.updatedAt : '';
+    return clean;
+  }
+
+  function readAssistantPreferenceCache() {
+    try { return JSON.parse(localStorage.getItem(PROFILE_PREFS_KEY) || 'null'); } catch (_) { return null; }
+  }
+
+  // Preferences de personnalisation uniquement (jamais de securite). Ne
+  // doivent jamais bloquer l'envoi d'un message si absentes ou corrompues.
+  function getAssistantPreferences() {
+    try {
+      const userPreference = getCachedUser()?.preference || {};
+      const cached = readAssistantPreferenceCache() || {};
+      return sanitizeAssistantPreferences({ ...DEFAULT_ASSISTANT_PREFERENCES, ...userPreference, ...cached });
+    } catch (_) {
+      return { ...DEFAULT_ASSISTANT_PREFERENCES };
+    }
+  }
+
+  async function saveAssistantPreferences(preferences = {}) {
+    const next = sanitizeAssistantPreferences({
+      ...getAssistantPreferences(),
+      ...preferences,
+      updatedAt: new Date().toISOString()
+    });
+    try { localStorage.setItem(PROFILE_PREFS_KEY, JSON.stringify(next)); } catch (_) { /* no-op */ }
+
+    // TODO(profile V2) : migrer ces preferences vers user_preferences en D1.
+    // Le backend actuel ne persiste que tone/theme ; le reste reste en cache
+    // navigateur pour cette V1 front, sans jamais faire echouer la sauvegarde.
+    let backend = null;
+    try { backend = await updateProfile({ preference: { tone: next.tone } }); } catch (_) { /* no-op */ }
+    dispatchChanged();
+    return { ok: backend?.ok !== false, preferences: next, backend };
+  }
+
+  function clearLocalProfileData() {
+    try {
+      localStorage.removeItem(PROFILE_PREFS_KEY);
+      LEGACY_SESSION_KEYS.forEach((key) => localStorage.removeItem(key));
+    } catch (_) { /* no-op */ }
+    dispatchChanged();
+    return { ok: true, preferences: getAssistantPreferences() };
   }
 
   // --- Fallback dev (localhost uniquement) ---------------------------------
@@ -200,12 +280,15 @@
 
     const providerButtons = Object.keys(PROVIDER_META).map((key) => {
       const meta = PROVIDER_META[key];
-      const enabled = Boolean(providers[key]);
+      const enabled = Boolean(providers[key]) && (key !== 'facebook' || FACEBOOK_META_VALIDATED);
       const cont = en ? 'Continue with' : 'Continuer avec';
+      const unavailable = key === 'facebook'
+        ? (en ? 'Facebook pending Meta validation' : 'Facebook en attente de validation Meta')
+        : (en ? `${meta.label} unavailable` : `${meta.label} bientôt disponible`);
       return `<button type="button" class="dbs-oauth-btn ${meta.cls}" data-dbs-provider="${key}" ${enabled ? '' : 'disabled'}
-        aria-label="${cont} ${meta.label}">
+        aria-label="${enabled ? `${cont} ${meta.label}` : unavailable}">
         <span class="dbs-oauth-icon" aria-hidden="true"><img src="${meta.icon}" alt=""></span>
-        <span>${cont} ${meta.label}</span>
+        <span>${enabled ? `${cont} ${meta.label}` : unavailable}</span>
       </button>`;
     }).join('');
 
@@ -295,13 +378,14 @@
   }
 
   // ---------------------------------------------------------------------
-  // Avatar unique du profil dans le rail gauche.
+  // Menu compte compact ancre a l'avatar, en bas du rail gauche de
+  // l'assistant. IMPORTANT anti-regression : renderProfileAvatar() ne doit
+  // JAMAIS muter le DOM quand l'etat affiche est deja correct (sinon le
+  // MutationObserver de wireRailObserver se re-declenche a l'infini - c'est
+  // la cause du crash "page blanche" du commit b064bfe revert).
   // ---------------------------------------------------------------------
-  function avatarLabel(user) {
-    const en = isEnglish();
-    const who = (user?.displayName || user?.email || '').trim();
-    if (!who) return en ? 'Open my profile' : 'Ouvrir mon profil';
-    return en ? `Open my profile (${who})` : `Ouvrir mon profil (${who})`;
+  function accountMenuLabel() {
+    return isEnglish() ? 'Open account menu' : 'Ouvrir le menu du compte';
   }
 
   function avatarSrc(user) {
@@ -309,9 +393,11 @@
   }
 
   function updateAvatarContent(button, user) {
-    const label = avatarLabel(user);
-    button.setAttribute('aria-label', label);
-    button.title = label;
+    button.setAttribute('aria-label', accountMenuLabel());
+    button.setAttribute('aria-haspopup', 'menu');
+    button.setAttribute('aria-controls', 'dbs-account-popover');
+    if (!button.hasAttribute('aria-expanded')) button.setAttribute('aria-expanded', 'false');
+    button.title = isEnglish() ? 'User account' : 'Compte utilisateur';
     const src = avatarSrc(user);
     let img = button.querySelector('img');
     if (!img) {
@@ -321,23 +407,177 @@
     }
   }
 
+  function providerLabel(provider) {
+    const labels = { google: 'Google', github: 'GitHub', facebook: 'Facebook', 'local-dev': 'Local-dev' };
+    return labels[provider] || provider || 'OAuth';
+  }
+
+  function currentTheme() {
+    return document.documentElement.getAttribute('data-theme') || (() => {
+      try { return localStorage.getItem('theme'); } catch (_) { return null; }
+    })() || 'dark';
+  }
+
+  function themeActionLabel() {
+    return currentTheme() === 'light'
+      ? (isEnglish() ? 'Switch to dark theme' : 'Passer en thème sombre')
+      : (isEnglish() ? 'Switch to light theme' : 'Passer en thème clair');
+  }
+
+  function toggleThemeFromAccount() {
+    const themeSwitch = document.getElementById('theme-switch');
+    if (themeSwitch) { themeSwitch.click(); return; }
+    // Fallback si aucun bouton theme n'existe encore sur cette page (TODO :
+    // brancher sur le futur composant theme partage si different).
+    const next = currentTheme() === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', next);
+    try { localStorage.setItem('theme', next); } catch (_) { /* no-op */ }
+  }
+
+  function accountUrl(hash = '') {
+    return `/profile.html${hash ? `#${hash}` : ''}`;
+  }
+
+  function ensureAccountPopover(slot) {
+    let popover = slot.querySelector('#dbs-account-popover');
+    if (popover) return popover;
+    const en = isEnglish();
+    popover = document.createElement('div');
+    popover.id = 'dbs-account-popover';
+    popover.className = 'dbs-account-popover';
+    popover.hidden = true;
+    popover.setAttribute('aria-hidden', 'true');
+    popover.setAttribute('role', 'menu');
+    popover.innerHTML = `
+      <div class="dbs-account-popover-header">
+        <img class="dbs-account-popover-avatar" src="${AVATAR_FALLBACK}" alt="" aria-hidden="true">
+        <div class="dbs-account-popover-id">
+          <strong class="dbs-account-popover-name"></strong>
+          <span class="dbs-account-popover-email"></span>
+          <span class="dbs-account-popover-provider"></span>
+        </div>
+      </div>
+      <div class="dbs-account-popover-actions">
+        <a class="dbs-account-popover-action" role="menuitem" href="${accountUrl()}">${en ? 'My profile' : 'Mon profil'}</a>
+        <a class="dbs-account-popover-action" role="menuitem" href="${accountUrl('preferences')}">${en ? 'AI preferences' : 'Préférences IA'}</a>
+        <a class="dbs-account-popover-action" role="menuitem" href="${accountUrl('security')}">${en ? 'Account security' : 'Sécurité du compte'}</a>
+        <button class="dbs-account-popover-action" type="button" role="menuitem" data-dbs-account-action="theme">${themeActionLabel()}</button>
+        <button class="dbs-account-popover-action dbs-account-popover-danger" type="button" role="menuitem" data-dbs-account-action="logout">${en ? 'Sign out' : 'Se déconnecter'}</button>
+      </div>`;
+    slot.appendChild(popover);
+    popover.addEventListener('click', async (event) => {
+      const action = event.target.closest('[data-dbs-account-action]');
+      if (!action) return;
+      if (action.dataset.dbsAccountAction === 'theme') {
+        toggleThemeFromAccount();
+        updateAccountPopover(getCachedUser());
+        return;
+      }
+      if (action.dataset.dbsAccountAction === 'logout') {
+        closeAccountPopover();
+        await logout();
+      }
+    });
+    return popover;
+  }
+
+  // Ecrit uniquement si la valeur change : un textContent/setAttribute
+  // reecrit avec la meme valeur declenche quand meme un childList mutation
+  // record, ce qui reboucle sur wireRailObserver a l'infini (voir plus haut).
+  function setTextIfChanged(el, value) {
+    if (el && el.textContent !== value) el.textContent = value;
+  }
+  function setAttrIfChanged(el, name, value) {
+    if (el && el.getAttribute(name) !== value) el.setAttribute(name, value);
+  }
+
+  function updateAccountPopover(user) {
+    const popover = document.getElementById('dbs-account-popover');
+    if (!popover || !user) return;
+    const displayName = user.displayName || user.email || 'Digitalblueskye';
+    setAttrIfChanged(popover.querySelector('.dbs-account-popover-avatar'), 'src', avatarSrc(user));
+    const nameEl = popover.querySelector('.dbs-account-popover-name');
+    const emailEl = popover.querySelector('.dbs-account-popover-email');
+    const providerEl = popover.querySelector('.dbs-account-popover-provider');
+    const themeEl = popover.querySelector('[data-dbs-account-action="theme"]');
+    setTextIfChanged(nameEl, displayName);
+    setTextIfChanged(emailEl, user.email || '');
+    setTextIfChanged(providerEl, (isEnglish() ? 'Signed in via ' : 'Connecté via ') + providerLabel(user.provider));
+    setTextIfChanged(themeEl, themeActionLabel());
+  }
+
+  function openAccountPopover(button) {
+    const user = getCachedUser();
+    if (!user) return;
+    const slot = button.closest('.dbs-rail-account-slot');
+    const popover = slot ? ensureAccountPopover(slot) : null;
+    if (!popover) return;
+    updateAccountPopover(user);
+    popover.hidden = false;
+    popover.setAttribute('aria-hidden', 'false');
+    button.setAttribute('aria-expanded', 'true');
+    void popover.offsetWidth;
+    popover.classList.add('is-open');
+    setTimeout(() => popover.querySelector('.dbs-account-popover-action')?.focus(), 30);
+  }
+
+  function closeAccountPopover() {
+    const popover = document.getElementById('dbs-account-popover');
+    const button = document.querySelector('.dbs-profile-rail-avatar');
+    if (!popover || popover.hidden) return;
+    popover.classList.remove('is-open');
+    popover.setAttribute('aria-hidden', 'true');
+    button?.setAttribute('aria-expanded', 'false');
+    setTimeout(() => { popover.hidden = true; }, 120);
+  }
+
+  function toggleAccountPopover(button) {
+    const popover = document.getElementById('dbs-account-popover');
+    if (popover && !popover.hidden) closeAccountPopover();
+    else openAccountPopover(button);
+  }
+
+  // Idempotent par construction : si le slot/avatar existe deja et que l'etat
+  // (connecte/deconnecte) n'a pas change, aucune mutation DOM n'est faite.
   function renderProfileAvatar() {
     const rail = document.getElementById('ai-assistant-rail');
     if (!rail) return;
-    const existing = rail.querySelector('.dbs-profile-rail-avatar');
-    if (!isAuthenticated()) { existing?.remove(); return; }
+    const slot = rail.querySelector('.dbs-rail-account-slot');
+
+    if (!isAuthenticated()) {
+      // Rien a faire si aucun slot n'existe deja : ne jamais creer puis
+      // supprimer un slot pour un visiteur non connecte (boucle infinie).
+      if (!slot) return;
+      closeAccountPopover();
+      slot.remove();
+      return;
+    }
+
     const user = getCachedUser();
-    if (existing) { updateAvatarContent(existing, user); return; }
+    const finalSlot = slot || rail.appendChild(Object.assign(document.createElement('div'), { className: 'dbs-rail-account-slot' }));
+    const existingAvatar = finalSlot.querySelector('.dbs-profile-rail-avatar');
+    if (existingAvatar) {
+      updateAvatarContent(existingAvatar, user);
+      ensureAccountPopover(finalSlot);
+      updateAccountPopover(user);
+      return;
+    }
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'dbs-profile-rail-avatar';
-    button.addEventListener('click', () => { window.location.href = '/profile.html'; });
+    button.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      toggleAccountPopover(button);
+    });
     updateAvatarContent(button, user);
-    (rail.querySelector('.ai-assistant-rail-group') || rail).appendChild(button);
+    finalSlot.appendChild(button);
+    ensureAccountPopover(finalSlot);
+    updateAccountPopover(user);
   }
 
   function syncAuthUI() {
-    renderProfileAvatar();
+    try { renderProfileAvatar(); } catch (error) { console.warn('[dbs-auth] renderProfileAvatar failed', error); }
   }
 
   // ---------------------------------------------------------------------
@@ -357,25 +597,49 @@
 
   function wireRailObserver() {
     const target = document.getElementById('ai-assistant-panel') || document.body;
+    // Observe uniquement l'ajout/suppression d'elements (childList/subtree) :
+    // pas 'attributes', pour que les mises a jour d'attributs faites par
+    // renderProfileAvatar() ne re-declenchent jamais ce callback.
     const observer = new MutationObserver(() => {
       if (document.getElementById('ai-assistant-rail')) syncAuthUI();
     });
     observer.observe(target, { childList: true, subtree: true });
   }
 
+  function wireAccountPopoverDismiss() {
+    if (document.documentElement.dataset.dbsAccountDismissWired) return;
+    document.documentElement.dataset.dbsAccountDismissWired = 'true';
+    document.addEventListener('click', (event) => {
+      const popover = document.getElementById('dbs-account-popover');
+      if (!popover || popover.hidden) return;
+      if (event.target.closest('#dbs-account-popover') || event.target.closest('.dbs-profile-rail-avatar')) return;
+      closeAccountPopover();
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') closeAccountPopover();
+    });
+  }
+
   document.addEventListener('dbs-auth-changed', syncAuthUI);
 
   function init() {
-    wireLauncherGate();
-    wireRailObserver();
+    try { wireLauncherGate(); } catch (error) { console.warn('[dbs-auth] wireLauncherGate failed', error); }
+    try { wireRailObserver(); } catch (error) { console.warn('[dbs-auth] wireRailObserver failed', error); }
+    try { wireAccountPopoverDismiss(); } catch (error) { console.warn('[dbs-auth] wireAccountPopoverDismiss failed', error); }
     // Hydrate depuis le serveur ; syncAuthUI() est appele via dbs-auth-changed.
+    // Ne doit jamais bloquer l'affichage : refreshSession() est asynchrone et
+    // catch deja toutes ses erreurs reseau en interne.
     refreshSession();
   }
 
+  function safeInit() {
+    try { init(); } catch (error) { console.warn('[dbs-auth] init failed, home stays visible', error); }
+  }
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', safeInit);
   } else {
-    init();
+    safeInit();
   }
 
   // API publique.
@@ -391,6 +655,9 @@
     requireAuthBeforeChat,
     openAuthModal,
     closeAuthModal,
+    getAssistantPreferences,
+    saveAssistantPreferences,
+    clearLocalProfileData,
     syncDbsAuthUI: syncAuthUI,
     renderDbsProfileAvatar: renderProfileAvatar
   };

@@ -3,7 +3,7 @@
 ## 1. Architecture cible
 
 ```
-Front Netlify (digitalblueskye.netlify.app)
+Front (https://digitalblueskye.com, hébergé sur Netlify)
   │  fetch(credentials: include)  +  redirections OAuth
   ▼
 digitalblueskye-api  (Worker API, cloudflare/worker-api.js + cloudflare/auth.js)
