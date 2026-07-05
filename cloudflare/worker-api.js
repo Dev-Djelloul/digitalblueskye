@@ -4844,6 +4844,14 @@ async function buildAdminHealthPayload(request, env) {
     // expose au niveau racine pour permettre une verification simple
     // (curl ... | jq '.events_total') que le volume varie bien selon range.
     events_total: aiEventCount,
+    // Plafonds de rate limiting configures sur CE Worker (cf. wrangler.api.toml).
+    // Valeurs de configuration NON sensibles (jamais de secret ici) : le Studio
+    // les affiche dans "Quotas & couts". null si la variable n'est pas definie.
+    quotas: {
+      ai_rate_limit_user_per_hour: Number(env.AI_RATE_LIMIT_USER) || null,
+      ai_rate_limit_ip_per_hour: Number(env.AI_RATE_LIMIT_IP) || null,
+      email_login_rate_limit_per_hour: Number(env.EMAIL_LOGIN_RATE_LIMIT) || null,
+    },
     system: {
       version: appVersion,
       build: buildNumber,

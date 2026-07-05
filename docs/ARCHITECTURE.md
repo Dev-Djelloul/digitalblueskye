@@ -82,3 +82,16 @@ Deux exceptions volontaires, sans SRI :
 `1000` (constante `TAVILY_DEFAULT_QUOTA` dans `cloudflare/worker-openrouter.js` et `cloudflare/worker-api.js`) est un **fallback de code**, pas un quota vérifié auprès de Tavily. Il n'est utilisé que si ni `TAVILY_MONTHLY_QUOTA` ni `TAVILY_CREDIT_QUOTA` ne sont configurés en variable/secret Wrangler — ce qui est le cas par défaut tant que vous n'avez pas exécuté `wrangler secret put TAVILY_MONTHLY_QUOTA` (ou l'équivalent `[vars]`) sur `digitalblueskye-ai`/`digitalblueskye-api`.
 
 Les payloads de santé exposent désormais un champ `quota_source` (`"env_configured"` ou `"fallback_default"`), affiché dans `admin/index.html` ("Quota estimé utilisé : X / 1000 (valeur par défaut non configurée)" quand le fallback est actif) — pour un suivi fiable du quota réel, configurez `TAVILY_MONTHLY_QUOTA` ou `TAVILY_CREDIT_QUOTA`.
+
+## Studio et observabilité
+
+Digital Blue Skye Studio lit les métriques IA et système depuis
+`https://api.digitalblueskye.com/admin/health`, en lecture seule et avec un
+token admin fourni côté navigateur. Le token n'est jamais codé en dur dans le
+dépôt et les secrets Worker (`ADMIN_TOKEN`, `OPENROUTER_API_KEY`,
+`TAVILY_API_KEY`) ne sont jamais affichés : l'interface ne montre que des états
+configuré/non configuré, des compteurs, des latences et des diagnostics.
+
+Si une donnée n'est pas présente dans `/admin/health`, le Studio affiche un état
+explicite comme `Non mesuré`, `Indisponible` ou `À brancher` plutôt qu'une
+métrique simulée.

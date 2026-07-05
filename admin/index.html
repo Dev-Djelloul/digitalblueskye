@@ -6807,8 +6807,14 @@
       },
     };
 
+    // Base API canonique (Worker digitalblueskye-api derrière le custom
+    // domain). location.origin n'est plus un fallback valable : l'admin est
+    // servi depuis le site (digitalblueskye.com/admin/) qui n'expose aucune
+    // route /admin/* — seul le domaine API répond.
+    const DEFAULT_API_BASE = "https://api.digitalblueskye.com";
+
     const state = {
-      apiBase: localStorage.getItem("dbs_admin_api_base") || window.DBS_API_BASE || location.origin,
+      apiBase: localStorage.getItem("dbs_admin_api_base") || window.DBS_API_BASE || DEFAULT_API_BASE,
       token: sessionStorage.getItem("dbs_admin_token") || "",
       tab: "health",
       limit: 50,
@@ -12423,35 +12429,346 @@
       `;
     }
 
-    function renderAiAutomationArchitectureSection(health) {
-      const config = health?.configuration || {};
-      const cards = [
-        ["Modèles IA", `OpenRouter: ${config.openrouter_api_key_configured === true ? "configuré" : "non mesuré"}. Routage et fallback exposés en lecture seule.`, "lecture seule"],
-        ["Recherche Web", `Tavily: ${config.tavily_api_key_configured === true ? "configuré" : "non mesuré"}. Activation et quotas restent côté Studio.`, "lecture seule"],
-        ["RAG documentaire global", "Documents globaux, chunking, indexing et bibliothèque partagée sont pilotés ici, distincts du RAG projet.", "architecture"],
-        ["Documents", "Administration documentaire, exports, sauvegardes et diagnostics avancés appartiennent au Studio.", "architecture"],
-        ["Agents spécialisés", "Pilot, Builder, Scout, Muse, Guardian et orchestration future sont suivis dans ce cockpit.", "architecture"],
-        ["Quotas & coûts", "Suivi coût/volume à consolider côté observabilité, sans réglage utilisateur dans profile.html.", "à brancher"],
-        ["Diagnostics", "Santé Worker, erreurs récentes, pipeline et qualité restent lisibles depuis /admin/health.", "données réelles"],
-        ["Sécurité", "Secrets masqués, aucun secret affiché ni éditable côté front.", "lecture seule"],
-      ];
+    // ─── IA & Automatisation : métriques réelles /admin/health ─────────────
+    // Remplace les anciennes cartes statiques ("architecture", "à brancher")
+    // par les données mesurées du payload /admin/health. Toutes les lectures
+    // sont défensives : une clé absente affiche "non mesuré" / "à brancher",
+    // jamais une valeur inventée. Aucun secret ne transite ici — uniquement
+    // des booléens configuré/non configuré, des compteurs et des latences.
+    function getNested(obj, path, fallback = null) {
+      try {
+        const value = String(path).split(".").reduce((acc, key) => (acc == null ? undefined : acc[key]), obj);
+        return value === undefined || value === null || value === "" ? fallback : value;
+      } catch {
+        return fallback;
+      }
+    }
+
+    // formatNumber / formatLatency / renderStatusBadge demandés par le cahier
+    // des charges observabilité : alias fins vers les helpers déjà présents
+    // (measuredNumber, formatMs, statusBadge) plutôt que des doublons.
+    function formatNumber(value) {
+      return measuredNumber(value);
+    }
+
+    function formatLatency(ms) {
+      return formatMs(ms);
+    }
+
+    function renderStatusBadge(status) {
+      return statusBadge(status);
+    }
+
+    function healthStatValue(health, key) {
+      const items = Array.isArray(getNested(health, "statistics.items")) ? health.statistics.items : [];
+      const found = items.find((item) => item && item.key === key);
+      return found ? found.value : null;
+    }
+
+    function aiHealthStatusLabel(status) {
+      if (!status) return "Non mesuré";
+      const labels = {
+        operational: "Opérationnel",
+        partial: "Partiel",
+        unavailable: "Indisponible",
+        non_mesure: "Non mesuré",
+      };
+      return labels[normalizedHealthStatus(status)] || "Non mesuré";
+    }
+
+    function healthCheckStatusKeyword(check) {
+      if (!check || typeof check !== "object") return "aucune donnée";
+      const status = normalizedHealthStatus(check.status);
+      if (status === "operational") return "sain";
+      if (status === "unavailable") return "erreur";
+      if (status === "non_mesure") return "aucune donnée";
+      return "degrade";
+    }
+
+    function aiActivityErrorCount(health, extraFilter) {
+      const items = Array.isArray(getNested(health, "recent_activity.items")) ? health.recent_activity.items : [];
+      return items.filter((item) => {
+        const haystack = `${item?.type || ""} ${item?.detail || ""}`;
+        if (!/error|failed/i.test(haystack)) return false;
+        return extraFilter ? extraFilter.test(haystack) : true;
+      }).length;
+    }
+
+    function renderMetricCard(label, value, hint, status) {
+      const displayValue = value === null || value === undefined || value === "" ? "non mesuré" : String(value);
+      return `
+        <div class="settings-audit-card">
+          <strong>${escapeHtml(label)}</strong>
+          <span>${escapeHtml(displayValue)}${hint ? ` · ${escapeHtml(hint)}` : ""}</span>
+          ${renderIntelBadge(status || "aucune donnée")}
+        </div>
+      `;
+    }
+
+    // A. Vue d'ensemble — dix indicateurs clés lus depuis checks/statistics.
+    function renderAiOverviewSection(health) {
+      const measuredData = Boolean(health?.checked_at && !health?.fallback);
+      const workerCheck = getNested(health, "checks.worker");
+      const openRouterCheck = getNested(health, "checks.openrouter");
+      const tavilyCheck = getNested(health, "checks.tavily");
+      const aiWorkerReachable = getNested(health, "configuration.source_available");
+      const ragActive = getNested(health, "rag_usage.project_rag_active") === true;
+      const docTotal = [healthStatValue(health, "pdf_count"), healthStatValue(health, "docx_count"), healthStatValue(health, "xlsx_count")]
+        .map((value) => Number(value)).filter(Number.isFinite).reduce((sum, value) => sum + value, 0);
+      const errorCount = aiActivityErrorCount(health) + (Number(getNested(health, "ai_state.openrouter_error_count")) || 0);
+      const sourceNote = measuredData
+        ? `Métriques chargées depuis /admin/health · Période : ${escapeHtml(getNested(health, "range.label", "non précisée"))} · Dernière vérification : ${escapeHtml(formatDate(health.checked_at) || "non disponible")}`
+        : "Impossible de charger les métriques pour le moment — affichage en mode non mesuré.";
       return `
         <article class="intelligence-card">
-          <header><h2>IA & Automatisation</h2><span>${renderIntelBadge("architecture")}</span></header>
+          <header><h2>IA &amp; Automatisation</h2><span>${renderIntelBadge(measuredData ? "sain" : "aucune donnée")}</span></header>
           <div class="settings-note">
-            Zone Studio pour les réglages techniques avancés. Les préférences personnelles restent dans profile.html ; les réglages RAG propres à un projet restent dans Projet &gt; Paramètres/RAG.
+            ${sourceNote}<br>
+            Lecture seule — aucun secret affiché. Les préférences personnelles restent dans profile.html ; les réglages RAG propres à un projet restent dans Projet &gt; Paramètres/RAG.
           </div>
           <div class="settings-audit-grid">
-            ${cards.map(([title, detail, status]) => `
-              <div class="settings-audit-card">
-                <strong>${escapeHtml(title)}</strong>
-                <span>${escapeHtml(detail)}</span>
-                ${renderIntelBadge(status)}
-              </div>
-            `).join("")}
+            ${renderMetricCard("État global API", aiHealthStatusLabel(getNested(workerCheck, "status")), getNested(workerCheck, "detail") ? "" : "checks.worker absent", healthCheckStatusKeyword(workerCheck))}
+            ${renderMetricCard("Worker IA", aiWorkerReachable === true ? "Joignable" : (aiWorkerReachable === false ? "Injoignable" : null), getNested(health, "system.ai_worker", "digitalblueskye-ai"), aiWorkerReachable === true ? "sain" : (aiWorkerReachable === false ? "erreur" : "aucune donnée"))}
+            ${renderMetricCard("OpenRouter", aiHealthStatusLabel(getNested(openRouterCheck, "status")), getNested(openRouterCheck, "latency_ms") != null ? `dernier test ${formatLatency(getNested(openRouterCheck, "latency_ms"))}` : "", healthCheckStatusKeyword(openRouterCheck))}
+            ${renderMetricCard("Tavily", aiHealthStatusLabel(getNested(tavilyCheck, "status")), formatConfigured(getNested(health, "configuration.tavily_api_key_configured")), healthCheckStatusKeyword(tavilyCheck))}
+            ${renderMetricCard("RAG", ragActive ? "Actif" : (measuredData ? "Aucun signal récent" : null), `${formatNumber(getNested(health, "rag_usage.searches_performed"))} recherche(s)`, ragActive ? "sain" : "aucune donnée")}
+            ${renderMetricCard("Documents analysés", measuredData ? formatNumber(docTotal) : null, "PDF + DOCX + XLSX sur la période", docTotal > 0 ? "sain" : "aucune donnée")}
+            ${renderMetricCard("Conversations IA", formatNumber(healthStatValue(health, "conversation_count")), "sessions distinctes", measuredPositive(healthStatValue(health, "conversation_count")) ? "sain" : "aucune donnée")}
+            ${renderMetricCard("Recherches web", formatNumber(healthStatValue(health, "web_search_count")), "", measuredPositive(healthStatValue(health, "web_search_count")) ? "sain" : "aucune donnée")}
+            ${renderMetricCard("Latence moyenne", formatLatency(healthStatValue(health, "average_response_ms")), "réponses IA", hasMeasuredValue(healthStatValue(health, "average_response_ms")) ? "sain" : "aucune donnée")}
+            ${renderMetricCard("Erreurs récentes", measuredData ? formatNumber(errorCount) : null, "activité + OpenRouter", errorCount > 0 ? "erreur" : (measuredData ? "sain" : "aucune donnée"))}
           </div>
         </article>
       `;
+    }
+
+    // B. OpenRouter / Modèles IA.
+    function renderAiOpenRouterSection(health) {
+      const check = getNested(health, "checks.openrouter") || {};
+      const ai = getNested(health, "ai_state") || {};
+      const quality = getNested(ai, "response_quality") || {};
+      const qualityScore = firstMeasured(quality.average_score, quality.last_score_after);
+      return `
+        <article class="intelligence-card">
+          <header><h2>OpenRouter / Modèles IA</h2><span>${renderIntelBadge(healthCheckStatusKeyword(check))}</span></header>
+          <div class="intel-kv-list">
+            ${renderIntelKv("Provider", measured(ai.provider))}
+            ${renderIntelKv("Clé API", formatConfigured(getNested(health, "configuration.openrouter_api_key_configured")))}
+            ${renderIntelKv("Modèle actif", measured(ai.model_active))}
+            ${renderIntelKv("Modèle configuré", measured(ai.model_configured))}
+            ${renderIntelKv("Modèle résolu", measured(ai.model_resolved))}
+            ${renderIntelKv("Statut opérationnel", aiHealthStatusLabel(check.status))}
+            ${renderIntelKv("Code HTTP dernier test", measuredNumber(check.http_status))}
+            ${renderIntelKv("Latence dernier test", formatLatency(check.latency_ms))}
+            ${renderIntelKv("Fallback actif", ai.fallback_active === true ? "Oui" : (ai.fallback_active === false ? "Non" : "non mesuré"))}
+            ${renderIntelKv("Fallback utilisé", measuredNumber(ai.fallback_used_count))}
+            ${renderIntelKv("Requêtes (période)", formatNumber(healthStatValue(health, "openrouter_request_count")))}
+            ${renderIntelKv("Qualité moyenne", qualityScore != null ? String(qualityScore) : "non mesuré")}
+            ${renderIntelKv("Dernier appel réussi", formatDate(ai.last_successful_call_at) || "non mesuré")}
+          </div>
+        </article>
+      `;
+    }
+
+    // C. Recherche Web / Tavily.
+    function renderAiTavilySection(health) {
+      const check = getNested(health, "checks.tavily") || {};
+      const usage = getNested(health, "tavily_usage") || {};
+      const credits = Number(usage.credits_estimated_consumed);
+      const quota = Number(usage.quota_estimated_total);
+      const creditsLabel = Number.isFinite(credits)
+        ? `${credits}${Number.isFinite(quota) && quota > 0 ? ` / ${quota} (${formatPercent(usage.quota_estimated_used_percent)})` : ""}`
+        : "non mesuré";
+      const errorState = usage.error_status === "active" ? "Erreur active" : (usage.error_status === "resolved" ? "Résolue" : (usage.error_status === "none" ? "Aucune" : "non mesuré"));
+      return `
+        <article class="intelligence-card">
+          <header><h2>Recherche Web / Tavily</h2><span>${renderIntelBadge(healthCheckStatusKeyword(check))}</span></header>
+          <div class="intel-kv-list">
+            ${renderIntelKv("Clé API", formatConfigured(getNested(health, "configuration.tavily_api_key_configured")))}
+            ${renderIntelKv("État", aiHealthStatusLabel(check.status))}
+            ${renderIntelKv("Recherches exécutées", measuredNumber(usage.searches_executed))}
+            ${renderIntelKv("Cache hits", `${measuredNumber(usage.cache_hit_count)}${usage.cache_hit_rate != null ? ` (${formatPercent(usage.cache_hit_rate)})` : ""}`)}
+            ${renderIntelKv("Cache misses", measuredNumber(usage.cache_miss_count))}
+            ${renderIntelKv("Déduplications", measuredNumber(usage.searches_avoided_deduplication))}
+            ${renderIntelKv("Crédits estimés", creditsLabel)}
+            ${renderIntelKv("Latence moyenne", formatLatency(usage.average_latency_ms))}
+            ${renderIntelKv("Dernière réussite", formatDate(usage.last_success_at) || "non mesuré")}
+            ${renderIntelKv("Dernière erreur", usage.last_error_at ? `${formatDate(usage.last_error_at)} · ${errorState}` : "Aucune sur la période")}
+          </div>
+        </article>
+      `;
+    }
+
+    // D. RAG documentaire.
+    function renderAiRagSection(health) {
+      const rag = getNested(health, "rag_usage") || {};
+      const active = rag.project_rag_active === true;
+      const indexFailures = aiActivityErrorCount(health, /rag|document_index/i);
+      const topDocuments = Array.isArray(rag.top_documents) && rag.top_documents.length
+        ? rag.top_documents.map((doc) => `${doc.name} (${doc.count})`).join(", ")
+        : "non mesuré";
+      return `
+        <article class="intelligence-card">
+          <header><h2>RAG documentaire</h2><span>${renderIntelBadge(active ? "actif" : "aucune donnée")}</span></header>
+          <div class="intel-kv-list">
+            ${renderIntelKv("État global", active ? "Actif" : "Aucun signal récent")}
+            ${renderIntelKv("Moteur", measured(rag.engine))}
+            ${renderIntelKv("Recherches RAG", measuredNumber(rag.searches_performed))}
+            ${renderIntelKv("Matches / sans résultat", `${measuredNumber(rag.matches)} / ${measuredNumber(rag.no_matches)}`)}
+            ${renderIntelKv("Taux de match", rag.match_rate != null ? formatPercent(rag.match_rate) : "non mesuré")}
+            ${renderIntelKv("Latence moyenne", formatLatency(rag.average_search_ms))}
+            ${renderIntelKv("Documents utilisés (max)", measuredNumber(rag.documents_indexed))}
+            ${renderIntelKv("Chunks parcourus (max)", measuredNumber(rag.chunks_available))}
+            ${renderIntelKv("Échecs d'indexation", indexFailures > 0 ? String(indexFailures) : "Aucun signalé sur la période")}
+            ${renderIntelKv("Dernier document indexé", "non mesuré")}
+            ${renderIntelKv("Documents les plus utilisés", topDocuments)}
+          </div>
+        </article>
+      `;
+    }
+
+    // E. Documents.
+    function renderAiDocumentsSection(health) {
+      const docSupport = (format) => documentSupport(health, format);
+      const supportLabel = (format) => {
+        const entry = docSupport(format);
+        return entry ? aiHealthStatusLabel(entry.status) : "non mesuré";
+      };
+      const pdfCount = healthStatValue(health, "pdf_count");
+      const docxCount = healthStatValue(health, "docx_count");
+      const xlsxCount = healthStatValue(health, "xlsx_count");
+      const total = [pdfCount, docxCount, xlsxCount].map((value) => Number(value)).filter(Number.isFinite).reduce((sum, value) => sum + value, 0);
+      const documentFailures = aiActivityErrorCount(health, /document_index|rag_index/i);
+      return `
+        <article class="intelligence-card">
+          <header><h2>Documents</h2><span>${renderIntelBadge(total > 0 ? "sain" : "aucune donnée")}</span></header>
+          <div class="intel-kv-list">
+            ${renderIntelKv("Total analysés (période)", formatNumber(total))}
+            ${renderIntelKv("PDF", `${formatNumber(pdfCount)} · ${supportLabel("PDF")}`)}
+            ${renderIntelKv("DOCX", `${formatNumber(docxCount)} · ${supportLabel("DOCX")}`)}
+            ${renderIntelKv("XLSX", `${formatNumber(xlsxCount)} · ${supportLabel("XLSX")}`)}
+            ${renderIntelKv("Documents Knowledge", formatNumber(healthStatValue(health, "knowledge_documents_count")))}
+            ${renderIntelKv("Chunks Knowledge", formatNumber(healthStatValue(health, "knowledge_chunks_count")))}
+            ${renderIntelKv("Erreurs d'indexation", documentFailures > 0 ? String(documentFailures) : "Aucune sur la période")}
+          </div>
+        </article>
+      `;
+    }
+
+    // F. Quotas & coûts. Les plafonds (AI_RATE_LIMIT_*, EMAIL_LOGIN_RATE_LIMIT)
+    // viennent du bloc health.quotas exposé par le Worker API : valeurs de
+    // configuration non sensibles, jamais des secrets. Absents tant que le
+    // Worker n'est pas redéployé avec ce bloc → "à brancher".
+    function renderAiQuotasSection(health) {
+      const quotas = getNested(health, "quotas") || {};
+      const quotaValue = (value, unit) => (value == null ? "Non exposé — à brancher" : `${value}${unit || ""}`);
+      const tavily = getNested(health, "tavily_usage") || {};
+      return `
+        <article class="intelligence-card">
+          <header><h2>Quotas &amp; coûts</h2><span>${renderIntelBadge(Object.keys(quotas).length ? "sain" : "aucune donnée")}</span></header>
+          <div class="intel-kv-list">
+            ${renderIntelKv("Limite IA / utilisateur", quotaValue(quotas.ai_rate_limit_user_per_hour, " req/h"))}
+            ${renderIntelKv("Limite IA / IP", quotaValue(quotas.ai_rate_limit_ip_per_hour, " req/h"))}
+            ${renderIntelKv("Limite connexion email", quotaValue(quotas.email_login_rate_limit_per_hour, " demandes/h"))}
+            ${renderIntelKv("Requêtes OpenRouter (période)", formatNumber(healthStatValue(health, "openrouter_request_count")))}
+            ${renderIntelKv("Crédits Tavily consommés (estimés)", measuredNumber(tavily.credits_estimated_consumed))}
+            ${renderIntelKv("Crédits Tavily restants (estimés)", measuredNumber(tavily.credits_estimated_remaining))}
+            ${renderIntelKv("Quota Tavily estimé", measuredNumber(tavily.quota_estimated_total))}
+            ${renderIntelKv("Période appliquée", measured(getNested(health, "range.label")))}
+            ${renderIntelKv("Événements totaux (période)", formatNumber(getNested(health, "events_total")))}
+          </div>
+        </article>
+      `;
+    }
+
+    // G. Diagnostics.
+    function renderAiDiagnosticsSection(health) {
+      const workerCheck = getNested(health, "checks.worker") || {};
+      const workerDetail = String(workerCheck.detail || "");
+      const d1Match = workerDetail.match(/DB D1:\s*(oui|non)/i);
+      const d1Label = d1Match ? (d1Match[1].toLowerCase() === "oui" ? "Connectée" : "Non connectée") : "non mesuré";
+      const aiWorkerReachable = getNested(health, "configuration.source_available");
+      const aiWorkerHttp = getNested(health, "health_diagnostics.api_worker.ai_worker_http_status");
+      const system = getNested(health, "system") || {};
+      return `
+        <article class="intelligence-card">
+          <header><h2>Diagnostics</h2><span>${renderIntelBadge(healthCheckStatusKeyword(workerCheck))}</span></header>
+          <div class="intel-kv-list">
+            ${renderIntelKv("Worker API", aiHealthStatusLabel(workerCheck.status))}
+            ${renderIntelKv("Worker IA", aiWorkerReachable === true ? `Joignable${aiWorkerHttp ? ` (HTTP ${aiWorkerHttp})` : ""}` : (aiWorkerReachable === false ? `Injoignable${aiWorkerHttp ? ` (HTTP ${aiWorkerHttp})` : ""}` : "non mesuré"))}
+            ${renderIntelKv("Base D1", d1Label)}
+            ${renderIntelKv("OpenRouter", aiHealthStatusLabel(getNested(health, "checks.openrouter.status")))}
+            ${renderIntelKv("Tavily", aiHealthStatusLabel(getNested(health, "checks.tavily.status")))}
+            ${renderIntelKv("RAG", getNested(health, "rag_usage.project_rag_active") === true ? "Actif" : "Aucun signal récent")}
+            ${renderIntelKv("Version", `${measured(system.version)} · build ${measured(system.build)}`)}
+            ${renderIntelKvLink("Commit", system.commit, system.githubCommitUrl)}
+            ${renderIntelKvLink("Branche", system.branch, system.githubBranchUrl)}
+            ${renderIntelKv("Build", `${measured(system.buildDateLabel)} ${system.buildTimeLabel && system.buildTimeLabel !== "n/a" ? `· ${system.buildTimeLabel}` : ""}`.trim())}
+            ${renderIntelKv("Déployé le", formatDate(system.last_deployed_at) || "non mesuré")}
+          </div>
+        </article>
+      `;
+    }
+
+    // H. Activité récente — derniers événements bruts remontés par /admin/health.
+    function renderAiRecentActivitySection(health) {
+      const items = Array.isArray(getNested(health, "recent_activity.items")) ? health.recent_activity.items : [];
+      const serviceOf = (type) => {
+        const value = String(type || "").toLowerCase();
+        if (value.includes("web_search") || value.includes("tavily")) return "Tavily";
+        if (value.includes("rag")) return "RAG";
+        if (value.includes("openrouter") || value.includes("model_")) return "OpenRouter";
+        if (value.includes("pdf") || value.includes("docx") || value.includes("xlsx") || value.includes("document")) return "Documents";
+        if (value.includes("export")) return "Exports";
+        return "IA";
+      };
+      return `
+        <article class="intelligence-card">
+          <header><h2>Activité récente</h2><span>${escapeHtml(items.length ? `${items.length} événement(s)` : "aucune donnée")}</span></header>
+          <div class="intel-events">
+            ${items.length ? items.map((item) => `
+              <div class="intel-event-row">
+                <span>${escapeHtml(formatTime(item.at) || "n/a")}</span>
+                <span>${escapeHtml(serviceOf(item.type))}</span>
+                <code>${escapeHtml(item.type || "event")}</code>
+                <span>${escapeHtml([item.label, item.detail].filter(Boolean).join(" — ") || "aucun détail")}</span>
+                ${renderIntelBadge(/error|failed/i.test(`${item.type || ""} ${item.detail || ""}`) ? "erreur" : "sain")}
+              </div>
+            `).join("") : `<div class="intel-event-row"><span>non mesuré</span><span>IA</span><code>activité</code><span>Aucun événement récent exposé par /admin/health sur cette période.</span>${renderIntelBadge("aucune donnée")}</div>`}
+          </div>
+        </article>
+      `;
+    }
+
+    function renderAiAutomationArchitectureSection(health) {
+      if (!health || typeof health !== "object") return "";
+      try {
+        return `
+          ${renderAiOverviewSection(health)}
+          <section class="intelligence-grid two">
+            ${renderAiOpenRouterSection(health)}
+            ${renderAiTavilySection(health)}
+          </section>
+          <section class="intelligence-grid two">
+            ${renderAiRagSection(health)}
+            ${renderAiDocumentsSection(health)}
+          </section>
+          <section class="intelligence-grid two">
+            ${renderAiQuotasSection(health)}
+            ${renderAiDiagnosticsSection(health)}
+          </section>
+          ${renderAiRecentActivitySection(health)}
+        `;
+      } catch (error) {
+        // Jamais de dashboard cassé pour une clé inattendue : bloc d'erreur
+        // doux, le reste de l'onglet Intelligence continue de se rendre.
+        return `
+          <article class="intelligence-card">
+            <header><h2>IA &amp; Automatisation</h2><span>${renderIntelBadge("erreur")}</span></header>
+            <div class="settings-note">Impossible d'afficher les métriques pour le moment (${escapeHtml(error?.message || "erreur inconnue")}).</div>
+          </article>
+        `;
+      }
     }
 
     function renderIntelligenceDashboard(health) {
@@ -13146,7 +13463,7 @@
 
     $("#loginForm").addEventListener("submit", async (event) => {
       event.preventDefault();
-      state.apiBase = $("#apiBaseInput").value.trim().replace(/\/$/, "") || location.origin;
+      state.apiBase = $("#apiBaseInput").value.trim().replace(/\/$/, "") || DEFAULT_API_BASE;
       state.token = $("#tokenInput").value.trim();
       localStorage.setItem("dbs_admin_api_base", state.apiBase);
       sessionStorage.setItem("dbs_admin_token", state.token);
