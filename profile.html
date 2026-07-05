@@ -476,6 +476,36 @@
           });
         }
 
+        let profilePreferencesHydrated = false;
+        let profilePreferencesDirty = false;
+        let profilePreferencesUserId = '';
+
+        function applyPreferencesToForm(preferences) {
+          const prefs = { ...DEFAULT_AI_SETTINGS, ...(preferences || {}) };
+          Object.keys(PREF_OPTIONS).forEach((key) => {
+            const select = document.querySelector(`[data-dbs-pref="${key}"]`);
+            if (select && prefs[key]) select.value = prefs[key];
+          });
+          renderCompanionGrid(prefs.companion || 'skye');
+          renderAiSettings(prefs);
+          const summary = document.querySelector('[data-dbs-companion-summary]');
+          if (summary) {
+            const active = COMPANIONS.find(([key]) => key === (prefs.companion || 'skye'));
+            summary.textContent = `Compagnon actif : ${active ? active[1] : 'Skye'}`;
+          }
+        }
+
+        function collectProfilePreferencesFromForm(scope = document) {
+          const patch = {};
+          scope.querySelectorAll('[data-dbs-pref]').forEach((select) => {
+            patch[select.dataset.dbsPref] = select.value;
+          });
+          scope.querySelectorAll('[data-dbs-ai-pref]').forEach((field) => {
+            patch[field.dataset.dbsAiPref] = field.type === 'checkbox' ? Boolean(field.checked) : field.value;
+          });
+          return patch;
+        }
+
         function renderCompanionGrid(activeCompanion) {
           const grid = document.querySelector('[data-dbs-companion-grid]');
           if (!grid) return;
@@ -497,7 +527,7 @@
         // /auth/me sont indisponibles : l'etat par defaut (deconnecte) reste
         // visible et aucune section n'est jamais laissee dans un etat casse.
         // ---------------------------------------------------------------
-        function render() {
+        async function render() {
           const signedOutCard = document.querySelector('[data-dbs-profile-signed-out]');
           const shell = document.querySelector('[data-dbs-profile-shell]');
           let user = null;
@@ -508,10 +538,19 @@
           }
 
           if (!user) {
+            profilePreferencesHydrated = false;
+            profilePreferencesDirty = false;
+            profilePreferencesUserId = '';
             if (signedOutCard) signedOutCard.hidden = false;
             if (shell) shell.hidden = true;
             renderSignedOutProviders();
             return;
+          }
+
+          if (profilePreferencesUserId !== user.id) {
+            profilePreferencesHydrated = false;
+            profilePreferencesDirty = false;
+            profilePreferencesUserId = user.id || '';
           }
 
           if (signedOutCard) signedOutCard.hidden = true;
@@ -535,18 +574,15 @@
           if (nameInput) nameInput.value = user.displayName || '';
 
           try {
-            const prefs = window.DBSAuth?.getAssistantPreferences?.() || {};
-            Object.keys(PREF_OPTIONS).forEach((key) => {
-              const select = document.querySelector(`[data-dbs-pref="${key}"]`);
-              if (select && prefs[key]) select.value = prefs[key];
-            });
-            renderCompanionGrid(prefs.companion || 'skye');
-            renderAiSettings(prefs);
-            const summary = document.querySelector('[data-dbs-companion-summary]');
-            if (summary) {
-              const active = COMPANIONS.find(([key]) => key === (prefs.companion || 'skye'));
-              summary.textContent = `Compagnon actif : ${active ? active[1] : 'Skye'}`;
+            let prefs = window.DBSAuth?.getAssistantPreferences?.() || {};
+            if (!profilePreferencesHydrated && !profilePreferencesDirty) {
+              try {
+                const remote = await window.DBSAuth?.fetchAssistantPreferences?.();
+                if (remote?.preferences) prefs = remote.preferences;
+              } catch (_) { /* fallback cache local */ }
+              profilePreferencesHydrated = true;
             }
+            if (!profilePreferencesDirty) applyPreferencesToForm(prefs);
           } catch (error) {
             console.warn('[profile] preferences render failed', error);
           }
@@ -568,12 +604,12 @@
 
           document.querySelector('[data-dbs-ai-settings-form]')?.addEventListener('submit', async (event) => {
             event.preventDefault();
-            const patch = {};
-            document.querySelectorAll('[data-dbs-ai-pref]').forEach((field) => {
-              patch[field.dataset.dbsAiPref] = field.type === 'checkbox' ? field.checked : field.value;
-            });
+            const patch = collectProfilePreferencesFromForm(event.currentTarget);
             try {
-              await window.DBSAuth.saveAssistantPreferences(patch);
+              const result = await window.DBSAuth.saveAssistantPreferences(patch);
+              profilePreferencesDirty = false;
+              profilePreferencesHydrated = true;
+              applyPreferencesToForm(result?.preferences || window.DBSAuth?.getAssistantPreferences?.() || patch);
               setStatus('[data-dbs-ai-settings-saved]', true);
             } catch (error) {
               console.warn('[profile] ai settings save failed', error);
@@ -582,10 +618,12 @@
 
           document.querySelector('[data-dbs-preferences-form]')?.addEventListener('submit', async (event) => {
             event.preventDefault();
-            const patch = {};
-            document.querySelectorAll('[data-dbs-pref]').forEach((select) => { patch[select.dataset.dbsPref] = select.value; });
+            const patch = collectProfilePreferencesFromForm(event.currentTarget);
             try {
-              await window.DBSAuth.saveAssistantPreferences(patch);
+              const result = await window.DBSAuth.saveAssistantPreferences(patch);
+              profilePreferencesDirty = false;
+              profilePreferencesHydrated = true;
+              applyPreferencesToForm(result?.preferences || window.DBSAuth?.getAssistantPreferences?.() || patch);
               setStatus('[data-dbs-preferences-saved]', true);
             } catch (error) {
               console.warn('[profile] preferences save failed', error);
@@ -632,15 +670,19 @@
             const btn = event.target.closest('[data-companion]');
             if (!btn) return;
             try {
-              await window.DBSAuth.saveAssistantPreferences({ companion: btn.dataset.companion });
-              renderCompanionGrid(btn.dataset.companion);
-              const active = COMPANIONS.find(([key]) => key === btn.dataset.companion);
-              const summary = document.querySelector('[data-dbs-companion-summary]');
-              if (summary && active) summary.textContent = `Compagnon actif : ${active[1]}`;
+              const result = await window.DBSAuth.saveAssistantPreferences({ companion: btn.dataset.companion });
+              profilePreferencesDirty = false;
+              profilePreferencesHydrated = true;
+              applyPreferencesToForm(result?.preferences || window.DBSAuth?.getAssistantPreferences?.() || { companion: btn.dataset.companion });
               setStatus('[data-dbs-companion-saved]', true);
             } catch (error) {
               console.warn('[profile] companion save failed', error);
             }
+          });
+
+          document.querySelectorAll('[data-dbs-preferences-form], [data-dbs-ai-settings-form]').forEach((form) => {
+            form.addEventListener('input', () => { profilePreferencesDirty = true; });
+            form.addEventListener('change', () => { profilePreferencesDirty = true; });
           });
 
           document.querySelectorAll('[data-dbs-logout]').forEach((btn) => {

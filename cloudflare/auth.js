@@ -6,8 +6,10 @@
  *   - GET  /auth/login/:provider  -> redirection OAuth (state + PKCE)
  *   - GET  /auth/callback/:provider -> echange code, cree session, pose cookie
  *   - GET  /auth/me               -> etat de session (source de verite)
+ *   - GET  /auth/preferences      -> preferences utilisateur depuis D1
+ *   - PATCH /auth/preferences     -> sauvegarde preferences utilisateur en D1
  *   - POST /auth/logout           -> revoque la session + supprime le cookie
- *   - PATCH /auth/profile         -> maj displayName / preferences
+ *   - PATCH /auth/profile         -> maj displayName (compat preference legacy)
  *   - POST /ai/chat               -> proxy IA protege (session + rate limit + log)
  *
  * SECURITE :
@@ -54,6 +56,97 @@ const PROVIDERS = {
 // pas seulement OAuth. Un token a usage unique est envoye par email (aucun
 // mot de passe stocke ni transmis).
 const EMAIL_TOKEN_TTL_MS = 20 * 60 * 1000; // 20 minutes
+
+const USER_PREFERENCE_DEFAULTS = Object.freeze({
+  projectStyle: 'digital_project_manager',
+  favoriteFormat: 'action_plan',
+  detailLevel: 'balanced',
+  preferredLanguage: 'fr',
+  tone: 'standard',
+  theme: 'system',
+  companion: 'skye',
+  aiVoice: 'auto',
+  voiceAuto: true,
+  readResponsesAloud: false,
+  voiceLanguage: 'auto',
+  showMicrophone: true,
+  chatDensity: 'comfortable',
+  showSuggestions: true,
+  showSourcesWhenAvailable: true
+});
+
+const USER_PREFERENCE_OPTIONS = Object.freeze({
+  projectStyle: ['general', 'digital_project_manager', 'technical', 'product_strategy', 'marketing_content', 'watch_benchmark', 'portfolio_career'],
+  favoriteFormat: ['text', 'table', 'checklist', 'action_plan', 'roadmap', 'synthesis', 'html_deliverable'],
+  detailLevel: ['concise', 'balanced', 'detailed', 'expert'],
+  preferredLanguage: ['fr', 'en', 'bilingual'],
+  tone: ['standard', 'pedagogical', 'direct', 'expert', 'creative', 'strategic'],
+  theme: ['system', 'light', 'dark'],
+  companion: ['skye', 'pilot', 'builder', 'scout', 'muse', 'guardian'],
+  voiceLanguage: ['auto', 'fr', 'en'],
+  chatDensity: ['comfortable', 'compact']
+});
+
+const USER_PREFERENCE_BOOLEAN_KEYS = ['voiceAuto', 'readResponsesAloud', 'showMicrophone', 'showSuggestions', 'showSourcesWhenAvailable'];
+
+const USER_PREFERENCE_COLUMNS = Object.freeze({
+  projectStyle: 'project_style',
+  favoriteFormat: 'favorite_format',
+  detailLevel: 'detail_level',
+  preferredLanguage: 'preferred_language',
+  tone: 'tone',
+  theme: 'theme',
+  companion: 'companion',
+  aiVoice: 'ai_voice',
+  voiceAuto: 'voice_auto',
+  readResponsesAloud: 'read_responses_aloud',
+  voiceLanguage: 'voice_language',
+  showMicrophone: 'show_microphone',
+  chatDensity: 'chat_density',
+  showSuggestions: 'show_suggestions',
+  showSourcesWhenAvailable: 'show_sources_when_available'
+});
+
+function sanitizeUserPreferences(input = {}, base = USER_PREFERENCE_DEFAULTS) {
+  const source = input && typeof input === 'object' ? input : {};
+  const clean = { ...USER_PREFERENCE_DEFAULTS, ...(base && typeof base === 'object' ? base : {}) };
+  Object.keys(USER_PREFERENCE_OPTIONS).forEach((key) => {
+    const value = String(source[key] || '').trim();
+    if (USER_PREFERENCE_OPTIONS[key].includes(value)) clean[key] = value;
+  });
+  const aiVoice = String(source.aiVoice || '').trim();
+  if (aiVoice && aiVoice.length <= 160) clean.aiVoice = aiVoice;
+  USER_PREFERENCE_BOOLEAN_KEYS.forEach((key) => {
+    if (typeof source[key] === 'boolean') clean[key] = source[key];
+    else if (source[key] === 1 || source[key] === '1') clean[key] = true;
+    else if (source[key] === 0 || source[key] === '0') clean[key] = false;
+  });
+  return clean;
+}
+
+function d1Boolean(value) {
+  return value === true || value === 1 || value === '1';
+}
+
+function preferencesFromRow(row = {}) {
+  return sanitizeUserPreferences({
+    projectStyle: row.project_style,
+    favoriteFormat: row.favorite_format,
+    detailLevel: row.detail_level,
+    preferredLanguage: row.preferred_language,
+    tone: row.tone,
+    theme: row.theme,
+    companion: row.companion,
+    aiVoice: row.ai_voice,
+    voiceAuto: row.voice_auto === null || row.voice_auto === undefined ? undefined : d1Boolean(row.voice_auto),
+    readResponsesAloud: row.read_responses_aloud === null || row.read_responses_aloud === undefined ? undefined : d1Boolean(row.read_responses_aloud),
+    voiceLanguage: row.voice_language,
+    showMicrophone: row.show_microphone === null || row.show_microphone === undefined ? undefined : d1Boolean(row.show_microphone),
+    chatDensity: row.chat_density,
+    showSuggestions: row.show_suggestions === null || row.show_suggestions === undefined ? undefined : d1Boolean(row.show_suggestions),
+    showSourcesWhenAvailable: row.show_sources_when_available === null || row.show_sources_when_available === undefined ? undefined : d1Boolean(row.show_sources_when_available)
+  });
+}
 
 function providerConfigured(env, provider) {
   const meta = PROVIDERS[provider];
@@ -264,8 +357,23 @@ async function ensureSchema(env) {
       created_at TEXT NOT NULL, expires_at TEXT NOT NULL, revoked_at TEXT,
       user_agent TEXT, ip_hash TEXT)`,
     `CREATE TABLE IF NOT EXISTS user_preferences (
-      user_id TEXT PRIMARY KEY, tone TEXT DEFAULT 'standard',
-      theme TEXT DEFAULT 'system', updated_at TEXT NOT NULL)`,
+      user_id TEXT PRIMARY KEY,
+      project_style TEXT DEFAULT 'digital_project_manager',
+      favorite_format TEXT DEFAULT 'action_plan',
+      detail_level TEXT DEFAULT 'balanced',
+      preferred_language TEXT DEFAULT 'fr',
+      tone TEXT DEFAULT 'standard',
+      theme TEXT DEFAULT 'system',
+      companion TEXT DEFAULT 'skye',
+      ai_voice TEXT DEFAULT 'auto',
+      voice_auto INTEGER DEFAULT 1,
+      read_responses_aloud INTEGER DEFAULT 0,
+      voice_language TEXT DEFAULT 'auto',
+      show_microphone INTEGER DEFAULT 1,
+      chat_density TEXT DEFAULT 'comfortable',
+      show_suggestions INTEGER DEFAULT 1,
+      show_sources_when_available INTEGER DEFAULT 1,
+      updated_at TEXT NOT NULL)`,
     `CREATE TABLE IF NOT EXISTS email_login_tokens (
       id TEXT PRIMARY KEY, email TEXT NOT NULL, token_hash TEXT NOT NULL,
       created_at TEXT NOT NULL, expires_at TEXT NOT NULL, used_at TEXT)`,
@@ -282,6 +390,24 @@ async function ensureSchema(env) {
   ];
   for (const sql of stmts) {
     try { await env.DB.prepare(sql).run(); } catch (error) { /* best-effort */ }
+  }
+  const preferenceColumns = [
+    ['project_style', "TEXT DEFAULT 'digital_project_manager'"],
+    ['favorite_format', "TEXT DEFAULT 'action_plan'"],
+    ['detail_level', "TEXT DEFAULT 'balanced'"],
+    ['preferred_language', "TEXT DEFAULT 'fr'"],
+    ['companion', "TEXT DEFAULT 'skye'"],
+    ['ai_voice', "TEXT DEFAULT 'auto'"],
+    ['voice_auto', 'INTEGER DEFAULT 1'],
+    ['read_responses_aloud', 'INTEGER DEFAULT 0'],
+    ['voice_language', "TEXT DEFAULT 'auto'"],
+    ['show_microphone', 'INTEGER DEFAULT 1'],
+    ['chat_density', "TEXT DEFAULT 'comfortable'"],
+    ['show_suggestions', 'INTEGER DEFAULT 1'],
+    ['show_sources_when_available', 'INTEGER DEFAULT 1']
+  ];
+  for (const [column, definition] of preferenceColumns) {
+    try { await env.DB.prepare(`ALTER TABLE user_preferences ADD COLUMN ${column} ${definition}`).run(); } catch (error) { /* column already exists */ }
   }
   schemaReady = true;
 }
@@ -316,8 +442,30 @@ async function upsertUserAndIdentity(env, profile) {
       .bind(userId, email, profile.displayName || '', profile.avatarUrl || '', now, now, now)
       .run();
     await env.DB
-      .prepare('INSERT OR IGNORE INTO user_preferences (user_id, tone, theme, updated_at) VALUES (?, ?, ?, ?)')
-      .bind(userId, 'standard', 'system', now)
+      .prepare(`INSERT OR IGNORE INTO user_preferences (
+        user_id, project_style, favorite_format, detail_level, preferred_language, tone, theme,
+        companion, ai_voice, voice_auto, read_responses_aloud, voice_language,
+        show_microphone, chat_density, show_suggestions, show_sources_when_available, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+      .bind(
+        userId,
+        USER_PREFERENCE_DEFAULTS.projectStyle,
+        USER_PREFERENCE_DEFAULTS.favoriteFormat,
+        USER_PREFERENCE_DEFAULTS.detailLevel,
+        USER_PREFERENCE_DEFAULTS.preferredLanguage,
+        USER_PREFERENCE_DEFAULTS.tone,
+        USER_PREFERENCE_DEFAULTS.theme,
+        USER_PREFERENCE_DEFAULTS.companion,
+        USER_PREFERENCE_DEFAULTS.aiVoice,
+        USER_PREFERENCE_DEFAULTS.voiceAuto ? 1 : 0,
+        USER_PREFERENCE_DEFAULTS.readResponsesAloud ? 1 : 0,
+        USER_PREFERENCE_DEFAULTS.voiceLanguage,
+        USER_PREFERENCE_DEFAULTS.showMicrophone ? 1 : 0,
+        USER_PREFERENCE_DEFAULTS.chatDensity,
+        USER_PREFERENCE_DEFAULTS.showSuggestions ? 1 : 0,
+        USER_PREFERENCE_DEFAULTS.showSourcesWhenAvailable ? 1 : 0,
+        now
+      )
       .run();
   } else {
     await env.DB
@@ -361,7 +509,10 @@ async function getSessionUser(env, request) {
   const sessionHash = await sha256Hex(token);
   const row = await env.DB
     .prepare(`SELECT s.id AS session_id, s.expires_at, s.revoked_at, u.id, u.email, u.display_name, u.avatar_url,
-                     p.tone, p.theme,
+                     p.project_style, p.favorite_format, p.detail_level, p.preferred_language,
+                     p.tone, p.theme, p.companion, p.ai_voice, p.voice_auto, p.read_responses_aloud,
+                     p.voice_language, p.show_microphone, p.chat_density, p.show_suggestions,
+                     p.show_sources_when_available,
                      (SELECT provider FROM user_identities WHERE user_id = u.id ORDER BY updated_at DESC LIMIT 1) AS provider
               FROM user_sessions s JOIN users u ON u.id = s.user_id
               LEFT JOIN user_preferences p ON p.user_id = u.id
@@ -378,7 +529,7 @@ async function getSessionUser(env, request) {
     displayName: row.display_name || '',
     avatarUrl: row.avatar_url || '',
     provider: row.provider || '',
-    preference: { tone: row.tone || 'standard', theme: row.theme || 'system' }
+    preference: preferencesFromRow(row)
   };
 }
 
@@ -390,6 +541,59 @@ async function revokeSession(env, request) {
     .prepare('UPDATE user_sessions SET revoked_at = ? WHERE session_hash = ? AND revoked_at IS NULL')
     .bind(nowIso(), sessionHash)
     .run();
+}
+
+async function readUserPreferences(env, userId) {
+  const row = await env.DB.prepare('SELECT * FROM user_preferences WHERE user_id = ?').bind(userId).first();
+  return row ? preferencesFromRow(row) : { ...USER_PREFERENCE_DEFAULTS };
+}
+
+async function writeUserPreferences(env, userId, preferences) {
+  const now = nowIso();
+  const clean = sanitizeUserPreferences(preferences);
+  await env.DB.prepare(`INSERT INTO user_preferences (
+    user_id, project_style, favorite_format, detail_level, preferred_language, tone, theme,
+    companion, ai_voice, voice_auto, read_responses_aloud, voice_language,
+    show_microphone, chat_density, show_suggestions, show_sources_when_available, updated_at
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  ON CONFLICT(user_id) DO UPDATE SET
+    project_style = excluded.project_style,
+    favorite_format = excluded.favorite_format,
+    detail_level = excluded.detail_level,
+    preferred_language = excluded.preferred_language,
+    tone = excluded.tone,
+    theme = excluded.theme,
+    companion = excluded.companion,
+    ai_voice = excluded.ai_voice,
+    voice_auto = excluded.voice_auto,
+    read_responses_aloud = excluded.read_responses_aloud,
+    voice_language = excluded.voice_language,
+    show_microphone = excluded.show_microphone,
+    chat_density = excluded.chat_density,
+    show_suggestions = excluded.show_suggestions,
+    show_sources_when_available = excluded.show_sources_when_available,
+    updated_at = excluded.updated_at`)
+    .bind(
+      userId,
+      clean.projectStyle,
+      clean.favoriteFormat,
+      clean.detailLevel,
+      clean.preferredLanguage,
+      clean.tone,
+      clean.theme,
+      clean.companion,
+      clean.aiVoice,
+      clean.voiceAuto ? 1 : 0,
+      clean.readResponsesAloud ? 1 : 0,
+      clean.voiceLanguage,
+      clean.showMicrophone ? 1 : 0,
+      clean.chatDensity,
+      clean.showSuggestions ? 1 : 0,
+      clean.showSourcesWhenAvailable ? 1 : 0,
+      now
+    )
+    .run();
+  return { ...clean, updatedAt: now };
 }
 
 // ---------------------------------------------------------------------------
@@ -571,13 +775,33 @@ async function handleProfilePatch(request, env) {
     await env.DB.prepare('UPDATE users SET display_name = ?, updated_at = ? WHERE id = ?')
       .bind(body.displayName.trim().slice(0, 120), now, user.id).run();
   }
-  const tone = typeof body?.preference?.tone === 'string' ? body.preference.tone.slice(0, 40) : user.preference.tone;
-  const theme = typeof body?.preference?.theme === 'string' ? body.preference.theme.slice(0, 40) : user.preference.theme;
-  await env.DB.prepare('INSERT INTO user_preferences (user_id, tone, theme, updated_at) VALUES (?, ?, ?, ?) ON CONFLICT(user_id) DO UPDATE SET tone = excluded.tone, theme = excluded.theme, updated_at = excluded.updated_at')
-    .bind(user.id, tone, theme, now).run();
+  if (body?.preference && typeof body.preference === 'object') {
+    await writeUserPreferences(env, user.id, sanitizeUserPreferences(body.preference, user.preference));
+  }
 
   const fresh = await getSessionUser(env, request);
   return authJson(request, env, { ok: true, user: fresh && { id: fresh.id, email: fresh.email, displayName: fresh.displayName, avatarUrl: fresh.avatarUrl, provider: fresh.provider, preference: fresh.preference } });
+}
+
+async function handlePreferencesGet(request, env) {
+  await ensureSchema(env);
+  const user = await getSessionUser(env, request);
+  if (!user) return authJson(request, env, { ok: false, error: 'AUTH_REQUIRED' }, 401);
+  const preferences = await readUserPreferences(env, user.id);
+  return authJson(request, env, { ok: true, preferences });
+}
+
+async function handlePreferencesPatch(request, env) {
+  await ensureSchema(env);
+  const user = await getSessionUser(env, request);
+  if (!user) return authJson(request, env, { ok: false, error: 'AUTH_REQUIRED' }, 401);
+
+  let body = {};
+  try { body = await request.json(); } catch (_) { body = {}; }
+  const patch = body?.preferences && typeof body.preferences === 'object' ? body.preferences : body;
+  const next = sanitizeUserPreferences(patch, user.preference);
+  const preferences = await writeUserPreferences(env, user.id, next);
+  return authJson(request, env, { ok: true, preferences });
 }
 
 // ---------------------------------------------------------------------------
@@ -803,6 +1027,8 @@ export async function handleAuthRoutes(request, env, url) {
 
   if (pathname === '/auth/me' && request.method === 'GET') return handleMe(request, env);
   if (pathname === '/auth/logout' && request.method === 'POST') return handleLogout(request, env);
+  if (pathname === '/auth/preferences' && request.method === 'GET') return handlePreferencesGet(request, env);
+  if (pathname === '/auth/preferences' && request.method === 'PATCH') return handlePreferencesPatch(request, env);
   if (pathname === '/auth/profile' && request.method === 'PATCH') return handleProfilePatch(request, env);
 
   return authJson(request, env, { ok: false, error: 'not_found' }, 404);

@@ -40,8 +40,21 @@ CREATE TABLE IF NOT EXISTS user_sessions (
 
 CREATE TABLE IF NOT EXISTS user_preferences (
   user_id TEXT PRIMARY KEY,
+  project_style TEXT DEFAULT 'digital_project_manager',
+  favorite_format TEXT DEFAULT 'action_plan',
+  detail_level TEXT DEFAULT 'balanced',
+  preferred_language TEXT DEFAULT 'fr',
   tone TEXT DEFAULT 'standard',
   theme TEXT DEFAULT 'system',
+  companion TEXT DEFAULT 'skye',
+  ai_voice TEXT DEFAULT 'auto',
+  voice_auto INTEGER DEFAULT 1,
+  read_responses_aloud INTEGER DEFAULT 0,
+  voice_language TEXT DEFAULT 'auto',
+  show_microphone INTEGER DEFAULT 1,
+  chat_density TEXT DEFAULT 'comfortable',
+  show_suggestions INTEGER DEFAULT 1,
+  show_sources_when_available INTEGER DEFAULT 1,
   updated_at TEXT NOT NULL
 );
 

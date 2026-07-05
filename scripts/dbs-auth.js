@@ -101,6 +101,8 @@
     if (aiVoice && aiVoice.length <= 160) clean.aiVoice = aiVoice;
     BOOLEAN_PREFERENCE_KEYS.forEach((key) => {
       if (typeof fromSource[key] === 'boolean') clean[key] = fromSource[key];
+      else if (fromSource[key] === 1 || fromSource[key] === '1') clean[key] = true;
+      else if (fromSource[key] === 0 || fromSource[key] === '0') clean[key] = false;
     });
     clean.schemaVersion = 1;
     clean.updatedAt = typeof fromSource.updatedAt === 'string' ? fromSource.updatedAt : '';
@@ -111,15 +113,41 @@
     try { return JSON.parse(localStorage.getItem(PROFILE_PREFS_KEY) || 'null'); } catch (_) { return null; }
   }
 
+  function writeAssistantPreferenceCache(preferences) {
+    try { localStorage.setItem(PROFILE_PREFS_KEY, JSON.stringify(sanitizeAssistantPreferences(preferences))); } catch (_) { /* no-op */ }
+  }
+
   // Preferences de personnalisation uniquement (jamais de securite). Ne
   // doivent jamais bloquer l'envoi d'un message si absentes ou corrompues.
   function getAssistantPreferences() {
     try {
       const userPreference = getCachedUser()?.preference || {};
       const cached = readAssistantPreferenceCache() || {};
-      return sanitizeAssistantPreferences({ ...DEFAULT_ASSISTANT_PREFERENCES, ...userPreference, ...cached });
+      const source = isAuthenticated()
+        ? { ...DEFAULT_ASSISTANT_PREFERENCES, ...userPreference, ...cached }
+        : { ...DEFAULT_ASSISTANT_PREFERENCES, ...cached };
+      return sanitizeAssistantPreferences(source);
     } catch (_) {
       return { ...DEFAULT_ASSISTANT_PREFERENCES };
+    }
+  }
+
+  async function fetchAssistantPreferences() {
+    if (getDevSession()) return { ok: true, preferences: getAssistantPreferences(), source: 'local-dev' };
+    if (!isAuthenticated()) return { ok: true, preferences: getAssistantPreferences(), source: 'local' };
+    try {
+      const res = await fetchWithTimeout(`${API_BASE}/auth/preferences`, { credentials: 'include' });
+      const data = await res.json().catch(() => ({}));
+      if (data?.ok && data.preferences) {
+        const preferences = sanitizeAssistantPreferences(data.preferences);
+        state = { ...state, user: { ...(state.user || {}), preference: preferences } };
+        writeCache(state.user);
+        writeAssistantPreferenceCache(preferences);
+        return { ok: true, preferences, source: 'd1' };
+      }
+      return { ok: false, preferences: getAssistantPreferences(), source: 'local', error: data?.error || 'preferences_unavailable' };
+    } catch (_) {
+      return { ok: false, preferences: getAssistantPreferences(), source: 'local', error: 'network_error' };
     }
   }
 
@@ -129,15 +157,39 @@
       ...preferences,
       updatedAt: new Date().toISOString()
     });
-    try { localStorage.setItem(PROFILE_PREFS_KEY, JSON.stringify(next)); } catch (_) { /* no-op */ }
+    writeAssistantPreferenceCache(next);
 
-    // TODO(profile V2) : migrer ces preferences vers user_preferences en D1.
-    // Le backend actuel ne persiste que tone/theme ; le reste reste en cache
-    // navigateur pour cette V1 front, sans jamais faire echouer la sauvegarde.
+    if (getDevSession()) {
+      const user = { ...getDevSession(), preference: next };
+      try { localStorage.setItem(DEV_SESSION_KEY, JSON.stringify(user)); } catch (_) { /* no-op */ }
+      state = { ...state, authenticated: true, user };
+      writeCache(user);
+      dispatchChanged();
+      return { ok: true, preferences: next, source: 'local-dev' };
+    }
+
     let backend = null;
-    try { backend = await updateProfile({ preference: { tone: next.tone } }); } catch (_) { /* no-op */ }
+    if (isAuthenticated()) {
+      try {
+        const res = await fetchWithTimeout(`${API_BASE}/auth/preferences`, {
+          method: 'PATCH',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ preferences: next })
+        });
+        backend = await res.json().catch(() => ({}));
+        if (backend?.ok && backend.preferences) {
+          const persisted = sanitizeAssistantPreferences(backend.preferences);
+          writeAssistantPreferenceCache(persisted);
+          state = { ...state, user: { ...(state.user || {}), preference: persisted } };
+          writeCache(state.user);
+        }
+      } catch (_) {
+        backend = { ok: false, error: 'network_error' };
+      }
+    }
     dispatchChanged();
-    return { ok: backend?.ok !== false, preferences: next, backend };
+    return { ok: backend?.ok !== false, preferences: getAssistantPreferences(), backend, source: backend?.ok ? 'd1' : 'local' };
   }
 
   function clearLocalProfileData() {
@@ -201,6 +253,7 @@
       if (data?.ok && data.authenticated && data.user) {
         state = { ...state, authenticated: true, user: data.user, loaded: true };
         writeCache(data.user);
+        if (data.user.preference) writeAssistantPreferenceCache(data.user.preference);
       } else {
         state = { ...state, authenticated: false, user: null, loaded: true };
         writeCache(null);
@@ -806,6 +859,7 @@
     openAuthModal,
     closeAuthModal,
     getAssistantPreferences,
+    fetchAssistantPreferences,
     saveAssistantPreferences,
     clearLocalProfileData,
     syncDbsAuthUI: syncAuthUI,
