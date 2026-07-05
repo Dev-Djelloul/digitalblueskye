@@ -6813,10 +6813,17 @@
     // route /admin/* — seul le domaine API répond.
     const DEFAULT_API_BASE = "https://api.digitalblueskye.com";
 
+    function adminTabFromHash(hash = window.location.hash) {
+      const value = String(hash || "").replace(/^#/, "");
+      if (["studio-tavily", "studio-rag", "studio-quotas", "intelligence"].includes(value)) return "intelligence";
+      if (["documents", "exports", "analytics", "observability", "system", "settings", "health", "pilotage"].includes(value)) return value;
+      return "health";
+    }
+
     const state = {
       apiBase: localStorage.getItem("dbs_admin_api_base") || window.DBS_API_BASE || DEFAULT_API_BASE,
       token: sessionStorage.getItem("dbs_admin_token") || "",
-      tab: "health",
+      tab: adminTabFromHash(),
       limit: 50,
       offset: 0,
       showSensitive: false,
@@ -12771,6 +12778,21 @@
       }
     }
 
+    function scrollStudioHashTarget() {
+      const targets = {
+        "#studio-tavily": "Recherche Web / Tavily",
+        "#studio-rag": "RAG documentaire",
+        "#studio-quotas": "Quotas & coûts",
+      };
+      const label = targets[window.location.hash];
+      if (!label) return;
+      requestAnimationFrame(() => {
+        const cards = Array.from(document.querySelectorAll("#intelligenceContent .intelligence-card"));
+        const card = cards.find((item) => item.querySelector("h2")?.textContent?.trim() === label);
+        card?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
+
     function renderIntelligenceDashboard(health) {
       const hasMeasuredData = Boolean(health?.checked_at && !health?.fallback);
       const headerStatus = hasMeasuredData ? renderIntelBadge("sain") : renderIntelBadge("aucune donnée");
@@ -12823,6 +12845,7 @@
       if (rangeSelect) rangeSelect.addEventListener("change", () => {
         loadIntelligence(rangeSelect.value);
       });
+      scrollStudioHashTarget();
     }
 
     async function loadIntelligence(range) {

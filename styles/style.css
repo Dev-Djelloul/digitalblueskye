@@ -13335,6 +13335,20 @@ button.ai-assistant-project-row {
   font-size: 0.82rem;
 }
 
+.ai-assistant-project-rag-settings {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(92, 225, 255, 0.22);
+  border-radius: 12px;
+  background: rgba(92, 225, 255, 0.05);
+}
+
+.ai-assistant-project-rag-settings:focus {
+  outline: 2px solid rgba(92, 225, 255, 0.55);
+  outline-offset: 3px;
+}
+
 .ai-assistant-project-check {
   align-items: center;
   display: flex !important;

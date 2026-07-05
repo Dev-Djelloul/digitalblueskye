@@ -95,3 +95,11 @@ configuré/non configuré, des compteurs, des latences et des diagnostics.
 Si une donnée n'est pas présente dans `/admin/health`, le Studio affiche un état
 explicite comme `Non mesuré`, `Indisponible` ou `À brancher` plutôt qu'une
 métrique simulée.
+
+## Accès aux réglages
+
+L'assistant ne porte plus de panneau de réglages éditables fourre-tout. Son
+entrée `Accès réglages` sert uniquement de navigation vers les bonnes sources de
+vérité : `profile.html` pour les préférences personnelles, l'espace Projet pour
+le RAG et les sources du projet actif, et Digital Blue Skye Studio pour Tavily,
+les modèles, le RAG global, les documents, les quotas et les diagnostics.

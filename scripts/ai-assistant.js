@@ -66,7 +66,7 @@
         projects: 'Projects',
         createProject: 'Create a project',
         recentDiscussions: 'Recent discussions',
-        settings: 'Settings',
+        settings: 'Settings access',
         library: 'Library',
         libraryLocal: 'Local library',
         libraryImporting: 'Indexing document library...',
@@ -193,7 +193,7 @@
       projects: 'Projets',
       createProject: 'Créer un projet',
       recentDiscussions: 'Discussions récentes',
-      settings: 'Paramètres',
+      settings: 'Accès réglages',
       library: 'Bibliothèque',
       libraryLocal: 'Bibliothèque locale',
       libraryImporting: 'Indexation de la bibliothèque documentaire...',
@@ -1602,6 +1602,40 @@
     saveProjectsState();
     setHistoryPanelOpen(true);
     setWorkspaceView('project');
+  }
+
+  function focusProjectRagSettings() {
+    const target = projectContent?.querySelector?.('#project-rag-settings')
+      || projectContent?.querySelector?.('[data-project-rag-settings]');
+    if (!target) return;
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const firstControl = target.querySelector('input, select, textarea, button');
+    window.setTimeout(() => {
+      try { (firstControl || target).focus({ preventScroll: true }); } catch (_) { /* no-op */ }
+    }, 180);
+  }
+
+  function navigateToProjectTab(tabName = 'settings', options = {}) {
+    const project = getActiveProject();
+    if (!project) {
+      if (settingsSections) {
+        showAssistantFeedback(
+          currentLanguage === 'en'
+            ? 'No active project. Create or select a project to configure RAG.'
+            : 'Aucun projet actif. Créez ou sélectionnez un projet pour régler le RAG.',
+          'error'
+        );
+      }
+      setWorkspaceView('project');
+      return false;
+    }
+    projectsState.activeProjectId = project.id;
+    activeProjectTab = tabName === 'documents' ? 'sources' : tabName;
+    saveProjectsState();
+    setHistoryPanelOpen(true);
+    setWorkspaceView('project');
+    if (options.focusRag) window.setTimeout(focusProjectRagSettings, 80);
+    return true;
   }
 
   function renameProject(projectId) {
@@ -5238,14 +5272,17 @@
       <label>Description<textarea data-field="description" rows="3">${escapeHtml(project.description || '')}</textarea></label>
       <label>Icone<input data-field="icon" value="${escapeHtml(project.icon || '')}" maxlength="2"></label>
       <label>Couleur<input data-field="color" value="${escapeHtml(project.color)}" type="color"></label>
-      <label class="ai-assistant-project-check"><input data-field="ragEnabled" type="checkbox"><span>Activer le RAG pour ce projet</span></label>
-      <label>Nombre de passages documentaires utilisés<select data-field="ragMaxPassages">
-        <option value="3">3</option>
-        <option value="5">5</option>
-        <option value="8">8</option>
-      </select></label>
-      <label class="ai-assistant-project-check"><input data-field="ragUseGlobalLibrary" type="checkbox"><span>Utiliser la bibliothèque globale</span></label>
-      <label class="ai-assistant-project-check"><input data-field="ragCitations" type="checkbox"><span>Citer les sources dans les réponses</span></label>`;
+      <div id="project-rag-settings" class="ai-assistant-project-rag-settings" data-project-rag-settings tabindex="-1" aria-label="Réglages RAG du projet">
+        <strong>RAG du projet</strong>
+        <label class="ai-assistant-project-check"><input data-field="ragEnabled" type="checkbox"><span>Activer le RAG pour ce projet</span></label>
+        <label>Nombre de passages documentaires utilisés<select data-field="ragMaxPassages">
+          <option value="3">3</option>
+          <option value="5">5</option>
+          <option value="8">8</option>
+        </select></label>
+        <label class="ai-assistant-project-check"><input data-field="ragUseGlobalLibrary" type="checkbox"><span>Utiliser la bibliothèque globale</span></label>
+        <label class="ai-assistant-project-check"><input data-field="ragCitations" type="checkbox"><span>Citer les sources dans les réponses</span></label>
+      </div>`;
     const maxPassages = form.querySelector('[data-field="ragMaxPassages"]');
     if (maxPassages) maxPassages.value = String(project.ragMaxPassages || 5);
     const ragEnabled = form.querySelector('[data-field="ragEnabled"]');
@@ -5434,35 +5471,46 @@
 
   function renderSettingsView() {
     if (!settingsSections) return;
+    const en = currentLanguage === 'en';
     const sections = [
       {
-        title: 'Profil',
-        note: 'Identité, email, avatar, langue et fuseau horaire relèvent du profil personnel.',
-        links: [{ label: 'Ouvrir Identité', detail: 'profile.html#identity', href: '/profile.html#identity' }]
+        title: en ? 'Profile' : 'Profil',
+        note: en
+          ? 'Personal preferences stay in your profile: voice, audio, language, microphone, density, suggestions, visible sources, companion and writing preferences.'
+          : 'Les préférences personnelles restent dans Mon profil : voix, audio, langue, micro, densité, suggestions, sources visibles, compagnon et préférences rédactionnelles.',
+        links: [
+          { label: en ? 'Open AI settings' : 'Ouvrir Paramètres IA', detail: 'profile.html#ai-settings', href: '/profile.html#ai-settings' },
+          { label: en ? 'Open AI preferences' : 'Ouvrir Préférences IA', detail: 'profile.html#preferences', href: '/profile.html#preferences' }
+        ]
       },
       {
-        title: 'Voix',
-        note: 'Voix, audio, micro et interaction vocale sont des préférences personnelles persistantes.',
-        links: [{ label: 'Ouvrir Paramètres IA', detail: 'profile.html#ai-settings', href: '/profile.html#ai-settings' }]
+        title: en ? 'Active project' : 'Projet actif',
+        note: en
+          ? 'Project RAG, passages, global library usage, citations, sources and project memory stay in the active project workspace.'
+          : 'Le RAG projet, les passages, la bibliothèque globale, les citations, les sources et la mémoire restent dans l’espace du projet actif.',
+        links: [
+          { label: en ? 'Open project settings' : 'Ouvrir les paramètres du projet', detail: en ? 'Project > Settings' : 'Projet > Paramètres', href: '#project-rag-settings' },
+          { label: en ? 'Manage project RAG' : 'Gérer le RAG du projet', detail: en ? 'Project > Settings > RAG' : 'Projet > Paramètres > RAG', href: '#project-rag-settings' },
+          { label: en ? 'Manage project sources' : 'Gérer les sources du projet', detail: en ? 'Project > Sources' : 'Projet > Sources', href: '#project-sources' }
+        ]
       },
       {
-        title: 'Apparence',
-        note: 'Les préférences d’affichage de l’assistant sont gérées avec les paramètres IA personnels.',
-        links: [{ label: 'Ouvrir Paramètres IA', detail: 'profile.html#ai-settings', href: '/profile.html#ai-settings' }]
+        title: 'Studio',
+        note: en
+          ? 'Technical settings stay in Digital Blue Skye Studio: Tavily, web search, models, fallback, global RAG, documents, quotas, costs and diagnostics.'
+          : 'Les réglages techniques restent dans Digital Blue Skye Studio : Tavily, recherche web, modèles, fallback, RAG global, documents, quotas, coûts et diagnostics.',
+        links: [
+          { label: en ? 'Open Web Search / Tavily' : 'Ouvrir Recherche Web / Tavily', detail: en ? 'Studio > AI & Automation' : 'Studio > IA & Automatisation', href: '/admin/index.html#studio-tavily' },
+          { label: en ? 'Open global document RAG' : 'Ouvrir RAG documentaire global', detail: en ? 'Studio > AI & Automation' : 'Studio > IA & Automatisation', href: '/admin/index.html#studio-rag' },
+          { label: en ? 'Open Documents' : 'Ouvrir Documents', detail: 'Studio > Documents', href: '/admin/index.html#documents' },
+          { label: en ? 'Open quotas & costs' : 'Ouvrir Quotas & coûts', detail: en ? 'Studio > AI & Automation' : 'Studio > IA & Automatisation', href: '/admin/index.html#studio-quotas' }
+        ]
       },
       {
-        title: 'IA & Automatisation',
-        note: 'Modèles, providers IA, fallback, recherche Web/Tavily, documents globaux, agents, quotas, coûts et diagnostics appartiennent au Studio.',
-        links: [{ label: 'Ouvrir Digital Blue Skye Studio', detail: 'admin/index.html onglet Intelligence IA', href: '/admin/index.html#intelligence' }]
-      },
-      {
-        title: 'RAG projet',
-        note: 'Le RAG projet, les passages, citations et sources du projet restent dans Projet > Paramètres/RAG.',
-        links: [{ label: 'Ouvrir le projet actif', detail: 'Projet > Paramètres/RAG', href: '#project-settings' }]
-      },
-      {
-        title: 'Donnees',
-        note: 'Les données locales personnelles sont dans Mon profil. Les exports et sauvegardes restent ici temporairement, avant leur déplacement vers le Studio.'
+        title: en ? 'Local data' : 'Donnees',
+        note: en
+          ? 'Personal local data is in your profile. Exports and backups stay here temporarily before moving to Studio.'
+          : 'Les données locales personnelles sont dans Mon profil. Les exports et sauvegardes restent ici temporairement, avant leur déplacement vers le Studio.'
       }
     ];
     settingsSections.innerHTML = '';
@@ -5472,8 +5520,8 @@
       const heading = document.createElement('h4');
       heading.textContent = config.title;
       section.appendChild(heading);
-      if (config.title === 'Donnees') {
-        renderSettingsRedirectSection(section, [{ label: 'Ouvrir Données locales', detail: 'profile.html#local-data', href: '/profile.html#local-data' }], config.note);
+      if (config.title === 'Donnees' || config.title === 'Local data') {
+        renderSettingsRedirectSection(section, [{ label: en ? 'Open local data' : 'Ouvrir Données locales', detail: 'profile.html#local-data', href: '/profile.html#local-data' }], config.note);
         renderDataSettingsSection(section);
         settingsSections.appendChild(section);
         return;
@@ -5496,13 +5544,12 @@
   }
 
   function handleSettingsRedirectHash(hash) {
-    if (hash === '#project-settings') {
-      const settingsTab = document.querySelector('[data-project-tab="settings"]');
-      if (settingsTab) {
-        settingsTab.click();
-        setWorkspaceView('project');
-        return;
-      }
+    if (hash === '#project-settings' || hash === '#project-rag-settings') {
+      navigateToProjectTab('settings', { focusRag: true });
+      return;
+    }
+    if (hash === '#project-sources') {
+      navigateToProjectTab('sources');
     }
   }
 
