@@ -10480,6 +10480,66 @@ body.body-menu-open .ai-assistant-collapse-handle {
   width: calc(100vw - 16px) !important;
 }
 
+/* Page dediee /chat.html : le panneau maximise occupe litteralement toute la
+   page (pas de marge de 8px, pas d'arrondi), pour ressembler a une vraie page
+   plutot qu'a une fenetre flottante maximisee. */
+body.chat-page .ai-assistant-panel.is-expanded {
+  border-radius: 0;
+  height: 100dvh !important;
+  inset: 0 !important;
+  left: 0 !important;
+  top: 0 !important;
+  width: 100vw !important;
+}
+
+body.chat-page {
+  background:
+    radial-gradient(circle at top, rgb(115 64 255 / 24%), transparent 34%),
+    linear-gradient(180deg, #0b0d22 0%, #12051f 52%, #05070f 100%);
+  background-attachment: fixed;
+  margin: 0;
+  min-height: 100dvh;
+  padding-top: 0;
+}
+
+.chat-page-gate {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  height: 100dvh;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+}
+
+.chat-page-gate[hidden] {
+  display: none;
+}
+
+.chat-page-gate-logo {
+  border-radius: 50%;
+  margin-bottom: 6px;
+}
+
+.chat-page-gate h1 {
+  background: linear-gradient(90deg, #4fd1ff 0%, #7c5cff 45%, #ff5f6d 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  font-family: var(--font-title);
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  margin: 0;
+}
+
+.chat-page-gate p {
+  color: rgb(235 240 255 / 78%);
+  font-size: 0.95rem;
+  margin: 0;
+  max-width: 46ch;
+}
+
 .ai-assistant-header {
   align-items: center;
   border-bottom: 1px solid rgb(255 255 255 / 9%);
@@ -10843,23 +10903,28 @@ body.body-menu-open .ai-assistant-collapse-handle {
 }
 
 /* Pop-up compte compacte ancree au-dessus de l'avatar du rail. */
+/* position: fixed + left/top calcules dynamiquement en JS (voir
+   positionAccountPopover dans dbs-auth.js). Le rail de l'assistant est une
+   colonne etroite (~50px) positionnee en absolute : ancrer la pop-up sur ce
+   conteneur via left/right/bottom CSS fixes la faisait sortir de l'ecran des
+   qu'elle etait plus large que le rail (notamment en mobile/responsive). Le
+   calcul JS garantit qu'elle reste toujours entierement visible. */
 .dbs-account-popover {
   background:
     linear-gradient(180deg, rgb(24 28 58 / 98%), rgb(14 17 40 / 98%)),
     rgb(14 17 40 / 98%);
   border: 1px solid rgb(121 230 255 / 28%);
   border-radius: 14px;
-  bottom: 48px;
   box-shadow: 0 12px 32px rgb(4 6 20 / 45%);
-  left: 0;
+  max-width: calc(100vw - 24px);
   min-width: 240px;
   opacity: 0;
   padding: 12px;
   pointer-events: none;
-  position: absolute;
+  position: fixed;
   transform: translateY(6px);
   transition: opacity 0.16s ease, transform 0.16s ease;
-  z-index: 20;
+  z-index: 10060;
 }
 
 .dbs-account-popover.is-open {
@@ -10945,9 +11010,7 @@ body.body-menu-open .ai-assistant-collapse-handle {
 
 @media (width <= 640px) {
   .dbs-account-popover {
-    left: auto;
     min-width: 220px;
-    right: 0;
   }
 }
 
@@ -11077,7 +11140,7 @@ body.body-menu-open .ai-assistant-collapse-handle {
   opacity: 0.9;
 }
 
-/* Boutons OAuth (Google / GitHub / Facebook). */
+/* Boutons OAuth (Google / GitHub) + connexion par email. */
 .dbs-oauth-list {
   display: flex;
   flex-direction: column;
@@ -11119,7 +11182,6 @@ body.body-menu-open .ai-assistant-collapse-handle {
 
 .dbs-oauth-btn.is-google { border-color: rgb(234 67 53 / 45%); }
 .dbs-oauth-btn.is-github { border-color: rgb(200 200 200 / 40%); }
-.dbs-oauth-btn.is-facebook { border-color: rgb(24 119 242 / 55%); }
 
 .dbs-oauth-icon {
   align-items: center;
@@ -11131,7 +11193,6 @@ body.body-menu-open .ai-assistant-collapse-handle {
 }
 
 .dbs-oauth-btn.is-google .dbs-oauth-icon { color: #ea4335; }
-.dbs-oauth-btn.is-facebook .dbs-oauth-icon { color: #1877f2; }
 
 .dbs-auth-sep {
   align-items: center;
@@ -11179,11 +11240,19 @@ body.profile-page [hidden] {
 }
 
 .dbs-profile-identity-avatar {
-  border: 1px solid rgb(121 230 255 / 40%);
+  border: 2px solid rgb(121 230 255 / 40%);
   border-radius: 50%;
-  height: 40px;
+  cursor: zoom-in;
+  height: 72px;
   object-fit: cover;
-  width: 40px;
+  transition: border-color 0.16s ease;
+  width: 72px;
+}
+
+.dbs-profile-identity-avatar:hover,
+.dbs-profile-identity-avatar:focus-visible {
+  border-color: rgb(121 230 255 / 80%);
+  outline: none;
 }
 
 .dbs-profile-identity-provider {
@@ -11214,77 +11283,43 @@ body.profile-page {
   padding-top: 0;
 }
 
-/* Header compact facon barre d'app, pas de hero geant. */
-body.profile-page .profile-header {
-  align-items: center;
-  background: rgb(14 17 40 / 55%);
-  backdrop-filter: blur(14px) saturate(140%);
-  border-bottom: 1px solid rgb(93 93 255 / 22%);
-  box-sizing: border-box;
-  display: flex;
-  gap: 14px;
-  height: auto;
-  min-height: auto;
-  padding: 0.9rem clamp(1rem, 4vw, 2.4rem);
-  width: 100%;
-}
-
-body.profile-page .profile-header-logo {
-  align-items: center;
+/* Plus de barre d'entete : seul le logo flotte en haut a gauche, pour garder
+   un point de repere maison sans le chrome visuel du header. */
+.profile-floating-logo {
   display: inline-flex;
-  flex: 0 0 auto;
-  height: 70px;
-  justify-content: center;
+  left: clamp(1.1rem, 3vw, 2.2rem);
   line-height: 0;
+  position: fixed;
+  top: clamp(1rem, 2.6vw, 1.6rem);
+  z-index: 30;
 }
 
-body.profile-page .profile-header-logo img {
+.profile-floating-logo img {
   border-radius: 50%;
+  box-shadow: 0 6px 18px rgb(0 0 0 / 35%);
   display: block;
-  flex: 0 0 auto;
-  height: 70px;
-  max-width: none;
+  height: 68px;
   object-fit: contain;
-  width: auto;
-}
-
-body.profile-page .profile-header-back {
-  color: rgb(121 230 255 / 92%);
-  font-family: var(--font-body);
-  font-size: 0.86rem;
-  margin-left: auto;
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-body.profile-page .profile-header-back:hover {
-  text-decoration: underline;
+  width: 68px;
 }
 
 @media (width <= 576px) {
-  body.profile-page .profile-header {
-    height: auto;
-    min-height: 0;
-    padding: 0.9rem 1rem;
-  }
-
-  body.profile-page .profile-header-logo {
-    height: 58px;
-  }
-
-  body.profile-page .profile-header-logo img {
-    height: 58px;
+  .profile-floating-logo img {
+    height: 50px;
+    width: 50px;
   }
 }
 
 /* Zone centrale : remplit tout l'espace restant, fond transparent (le fond
-   sombre vient de body.profile-page) => aucune bande blanche possible. */
+   sombre vient de body.profile-page) => aucune bande blanche possible.
+   Le padding-top degage le logo flottant (fixed) pour eviter tout chevauchement
+   avec le coin de l'encadre, quel que soit le scroll. */
 body.profile-page .profile-main {
   background: transparent;
   box-sizing: border-box;
   display: grid;
   flex: 1 1 auto;
-  padding: clamp(10rem, 14vw, 12rem) 1rem clamp(1.5rem, 4vw, 2.75rem);
+  padding: 200px 25px 10px 25px;
   place-items: start center;
 }
 
@@ -11299,7 +11334,7 @@ body.profile-page .profile-main {
   box-shadow: 0 18px 44px rgb(0 0 0 / 30%);
   box-sizing: border-box;
   margin: 0 auto;
-  max-width: 460px;
+  max-width: 640px;
   padding: clamp(16px, 2.8vw, 22px) clamp(16px, 3vw, 20px);
   width: 100%;
 }
@@ -11403,8 +11438,10 @@ body.profile-page .profile-main {
 .dbs-profile-back-link--ghost {
   background: transparent;
   border: 1px solid rgb(93 93 255 / 30%);
+  border-radius: 10px;
   color: rgb(235 240 255 / 88%);
-  padding: 10px 16px;
+  font-size: 0.86rem;
+  padding: 8px 14px;
 }
 
 .dbs-profile-back-link--ghost:hover {
@@ -11424,20 +11461,181 @@ body.profile-page .profile-main {
   box-shadow: 0 18px 44px rgb(0 0 0 / 30%);
   box-sizing: border-box;
   margin: 0 auto;
-  max-width: 920px;
-  padding: clamp(18px, 2.8vw, 28px);
-  width: 100%;
+  max-width: 1520px;
+  padding: clamp(18px, 2.8vw, 32px);
+  width: 90%;
 }
 
-.dbs-profile-shell-header {
+.dbs-profile-identity-block {
   align-items: flex-start;
-  border-bottom: 1px solid rgb(93 93 255 / 18%);
   display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
-  justify-content: space-between;
+  gap: 18px;
+  grid-column: 1;
+  justify-self: start;
+  min-width: 0;
+  text-align: left;
+}
+
+/* Actions flottantes (Retour + deconnexion), en dehors de l'encadre, au meme
+   niveau vertical que le logo et a l'oppose (haut droite). */
+.profile-floating-actions {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  position: fixed;
+  right: clamp(1.1rem, 3vw, 2.2rem);
+  top: clamp(1rem, 2.6vw, 1.6rem);
+  z-index: 30;
+}
+
+.profile-floating-actions .dbs-profile-back-link--ghost {
+  background: rgb(14 17 40 / 55%);
+  backdrop-filter: blur(10px);
+}
+
+.dbs-profile-logout-icon {
+  align-items: center;
+  background: rgb(14 17 40 / 55%);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgb(93 93 255 / 30%);
+  border-radius: 10px;
+  cursor: pointer;
+  display: inline-flex;
+  height: 40px;
+  justify-content: center;
+  padding: 0;
+  transition: border-color 0.16s ease;
+  width: 40px;
+}
+
+.dbs-profile-logout-icon:hover,
+.dbs-profile-logout-icon:focus-visible {
+  border-color: rgb(121 230 255 / 55%);
+  outline: none;
+}
+
+.dbs-profile-logout-icon img {
+  height: 24px;
+  width: 24px;
+}
+
+@media (width <= 576px) {
+  .profile-floating-actions {
+    right: clamp(0.75rem, 3vw, 1.2rem);
+  }
+}
+
+.dbs-profile-avatar-upload {
+  flex: 0 0 auto;
+  position: relative;
+}
+
+.dbs-avatar-upload-btn {
+  align-items: center;
+  background: var(--accent-color);
+  border: 2px solid rgb(14 13 34 / 90%);
+  border-radius: 50%;
+  bottom: -2px;
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  height: 26px;
+  justify-content: center;
+  position: absolute;
+  right: -2px;
+  transition: filter 0.16s ease;
+  width: 26px;
+}
+
+.dbs-avatar-upload-btn:hover,
+.dbs-avatar-upload-btn:focus-visible {
+  filter: brightness(1.15);
+  outline: none;
+}
+
+/* Grille 3 colonnes a fr egaux de part et d'autre (1fr / auto / 1fr) : le
+   logo robot (colonne du milieu) est ainsi TOUJOURS exactement centre dans
+   l'encadre, quelle que soit la largeur de l'identite (gauche) ou des badges
+   (droite). */
+.dbs-profile-shell-header {
+  align-items: center;
+  border-bottom: 1px solid rgb(93 93 255 / 18%);
+  column-gap: 145px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   margin-bottom: 18px;
   padding-bottom: 16px;
+  row-gap: 16px;
+}
+
+.dbs-profile-shell-logo-block {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  grid-column: 2;
+  justify-self: center;
+}
+
+.dbs-profile-shell-logo {
+  height: clamp(96px, 9vw, 148px);
+  object-fit: contain;
+  width: auto;
+}
+
+.dbs-profile-status-block {
+  align-items: flex-end;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  grid-column: 3;
+  justify-self: end;
+}
+
+.dbs-profile-status-row {
+  align-items: flex-end;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+@media (width <= 720px) {
+  .dbs-profile-shell-header {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+
+  /* Reinitialise le placement explicite (grid-column: 1/2/3) du layout
+     desktop : sans ca, la grille cree des colonnes implicites pour honorer
+     ces placements et le fond a une seule colonne (mobile) ne s'applique
+     jamais vraiment. */
+  .dbs-profile-shell-logo-block,
+  .dbs-profile-identity-block,
+  .dbs-profile-status-block {
+    grid-column: 1;
+  }
+
+  .dbs-profile-shell-logo {
+    height: clamp(84px, 22vw, 110px);
+  }
+
+  .dbs-profile-identity-block {
+    align-items: center;
+    flex-direction: column;
+    justify-content: center;
+    justify-self: center;
+    text-align: center;
+  }
+
+  .dbs-profile-status-block {
+    align-items: center;
+    justify-self: center;
+  }
+
+  .dbs-profile-status-row {
+    align-items: center;
+  }
 }
 
 .dbs-profile-kicker {
@@ -11448,10 +11646,20 @@ body.profile-page .profile-main {
   text-transform: uppercase;
 }
 
+.dbs-profile-kicker--center {
+  margin: 0;
+  text-align: center;
+}
+
 .dbs-profile-shell-header h1 {
-  color: #fff;
+  background: linear-gradient(90deg, #4fd1ff 0%, #7c5cff 45%, #ff5f6d 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
   font-family: var(--font-body);
-  font-size: 1.5rem;
+  font-size: clamp(1.6rem, 2.4vw, 2.1rem);
+  font-weight: 700;
   margin: 0 0 6px;
 }
 
@@ -11460,13 +11668,7 @@ body.profile-page .profile-main {
   font-size: 0.88rem;
   line-height: 1.5;
   margin: 0;
-  max-width: 46ch;
-}
-
-.dbs-profile-status-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  max-width: 52ch;
 }
 
 .dbs-status-badge {
@@ -11493,7 +11695,7 @@ body.profile-page .profile-main {
 .dbs-profile-nav {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 10px;
 }
 
 .dbs-profile-tab {
@@ -11538,9 +11740,15 @@ body.profile-page .profile-main {
 }
 
 .dbs-profile-panel-heading h2 {
-  color: #fff;
-  font-size: 1.05rem;
-  margin: 0 0 4px;
+  background: linear-gradient(90deg, #7ce6ff 0%, #b48bff 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  font-family: var(--font-title);
+  font-size: clamp(1.9rem, 3.2vw, 2.5rem);
+  font-weight: 700;
+  margin: 0 0 6px;
 }
 
 .dbs-profile-panel-heading p {
@@ -11569,6 +11777,57 @@ body.profile-page .profile-main {
 .dbs-identity-card span {
   color: rgb(235 240 255 / 68%);
   font-size: 0.78rem;
+}
+
+/* Agrandissement de la photo de profil au clic : image non recadree (pas de
+   border-radius circulaire) pour la voir a sa taille/qualite reelle. */
+.dbs-avatar-lightbox {
+  align-items: center;
+  background: rgb(10 10 22 / 88%);
+  backdrop-filter: blur(6px);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  position: fixed;
+  z-index: 200;
+}
+
+.dbs-avatar-lightbox[hidden] {
+  display: none;
+}
+
+.dbs-avatar-lightbox-img {
+  border-radius: 16px;
+  box-shadow: 0 24px 60px rgb(0 0 0 / 45%);
+  max-height: 94vh;
+  max-width: 96vw;
+  min-height: min(70vh, 600px);
+  min-width: min(70vh, 600px);
+  object-fit: contain;
+}
+
+.dbs-avatar-lightbox-close {
+  align-items: center;
+  background: rgb(20 24 48 / 92%);
+  border: 1px solid rgb(93 93 255 / 32%);
+  border-radius: 50%;
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 1.6rem;
+  height: 44px;
+  justify-content: center;
+  line-height: 1;
+  position: fixed;
+  right: clamp(1rem, 3vw, 2rem);
+  top: clamp(1rem, 3vw, 2rem);
+  width: 44px;
+}
+
+.dbs-avatar-lightbox-close:hover,
+.dbs-avatar-lightbox-close:focus-visible {
+  border-color: rgb(121 230 255 / 55%);
+  outline: none;
 }
 
 .dbs-profile-grid {

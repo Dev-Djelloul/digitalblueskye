@@ -6,9 +6,13 @@
  * provider) : il n'est jamais une preuve de session. Toute decision sensible
  * (ouvrir le chat, afficher le profil) depend de /auth/me.
  *
- * Fournisseurs OAuth : Google, GitHub, Facebook (redirection vers le Worker
- * API qui detient les client_secret). Aucune donnee OAuth sensible n'est
- * stockee cote navigateur.
+ * Fournisseurs OAuth : Google, GitHub (redirection vers le Worker API qui
+ * detient les client_secret). Aucune donnee OAuth sensible n'est stockee
+ * cote navigateur.
+ *
+ * Connexion par email (magic link) : disponible pour tous les utilisateurs,
+ * pas seulement OAuth. Le Worker envoie un lien de connexion a usage unique ;
+ * aucun mot de passe n'est jamais stocke ou transite cote front.
  *
  * Fallback developpement : une "connexion locale de test" reste disponible
  * UNIQUEMENT sur localhost/127.0.0.1, pour continuer a travailler sans OAuth
@@ -27,10 +31,6 @@
   const DEV_SESSION_KEY = 'dbs_dev_session';
   const PROFILE_PREFS_KEY = 'dbs_profile_preferences_cache';
   const LEGACY_SESSION_KEYS = ['dbs_user_session', 'dbs_user_profile'];
-
-  // Facebook/Meta : app en attente de validation cote Meta. Ne jamais afficher
-  // Facebook comme pleinement disponible tant que ce flag n'est pas passe a true.
-  const FACEBOOK_META_VALIDATED = false;
 
   const DEFAULT_ASSISTANT_PREFERENCES = Object.freeze({
     schemaVersion: 1,
@@ -53,6 +53,9 @@
   });
 
   const AVATAR_FALLBACK = '/assets/images/portrait/my-notion-face-transparent.png';
+  // Override avatar local (photo uploadee depuis profile.html) : jamais envoye
+  // au serveur, juste un rendu front tant qu'aucun endpoint d'upload n'existe.
+  const AVATAR_OVERRIDE_KEY = 'dbs_profile_avatar_override';
 
   const isEnglish = () => (document.documentElement.lang || '').toLowerCase().startsWith('en');
   const isLocalhost = () => /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname);
@@ -190,9 +193,9 @@
     try {
       const res = await fetch(`${API_BASE}/auth/providers`, { credentials: 'include' });
       const data = await res.json().catch(() => ({}));
-      state.providers = data?.providers || { google: false, github: false, facebook: false };
+      state.providers = data?.providers || { google: false, github: false };
     } catch (_) {
-      state.providers = { google: false, github: false, facebook: false };
+      state.providers = { google: false, github: false };
     }
     return state.providers;
   }
@@ -263,9 +266,23 @@
 
   const PROVIDER_META = {
     google: { label: 'Google', icon: '/assets/images/ui/icons8-google-50.png', cls: 'is-google' },
-    github: { label: 'GitHub', icon: '/assets/images/ui/icons8-github-96.png', cls: 'is-github' },
-    facebook: { label: 'Facebook', icon: '/assets/images/ui/icons8-facebook-64.png', cls: 'is-facebook' }
+    github: { label: 'GitHub', icon: '/assets/images/ui/icons8-github-96.png', cls: 'is-github' }
   };
+
+  async function requestEmailLogin(email) {
+    try {
+      const res = await fetch(`${API_BASE}/auth/email/request`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json().catch(() => ({}));
+      return { ok: data?.ok !== false };
+    } catch (_) {
+      return { ok: false, error: 'network_error' };
+    }
+  }
 
   async function ensureAuthModal() {
     if (document.getElementById('dbs-auth-modal')) return;
@@ -280,11 +297,9 @@
 
     const providerButtons = Object.keys(PROVIDER_META).map((key) => {
       const meta = PROVIDER_META[key];
-      const enabled = Boolean(providers[key]) && (key !== 'facebook' || FACEBOOK_META_VALIDATED);
+      const enabled = Boolean(providers[key]);
       const cont = en ? 'Continue with' : 'Continuer avec';
-      const unavailable = key === 'facebook'
-        ? (en ? 'Facebook pending Meta validation' : 'Facebook en attente de validation Meta')
-        : (en ? `${meta.label} unavailable` : `${meta.label} bientôt disponible`);
+      const unavailable = en ? `${meta.label} unavailable` : `${meta.label} bientôt disponible`;
       return `<button type="button" class="dbs-oauth-btn ${meta.cls}" data-dbs-provider="${key}" ${enabled ? '' : 'disabled'}
         aria-label="${enabled ? `${cont} ${meta.label}` : unavailable}">
         <span class="dbs-oauth-icon" aria-hidden="true"><img src="${meta.icon}" alt=""></span>
@@ -296,7 +311,19 @@
     const notConfiguredNote = anyEnabled ? '' :
       `<p class="dbs-auth-note">${en ? 'OAuth providers are not configured on the server yet.' : "Les fournisseurs OAuth ne sont pas encore configurés côté serveur."}</p>`;
 
-    // Fallback dev : uniquement en localhost.
+    // Connexion par email (magic link), ouverte a tous les utilisateurs.
+    const emailLoginBlock = `
+      <div class="dbs-auth-sep"><span>${en ? 'or' : 'ou'}</span></div>
+      <form class="dbs-auth-form" data-dbs-email-form novalidate>
+        <label class="dbs-auth-label" for="dbs-auth-magic-email">${en ? 'Sign in with email' : 'Se connecter par email'}</label>
+        <input id="dbs-auth-magic-email" class="dbs-auth-input" type="email" autocomplete="email"
+          placeholder="${en ? 'you@example.com' : 'vous@exemple.com'}" aria-label="${en ? 'Email address' : 'Adresse email'}" />
+        <p class="dbs-auth-error" data-dbs-email-error role="alert" hidden></p>
+        <p class="dbs-auth-note" data-dbs-email-sent role="status" hidden>${en ? 'Check your inbox: we sent you a sign-in link.' : 'Vérifiez votre boîte mail : un lien de connexion vient de vous être envoyé.'}</p>
+        <button type="submit" class="dbs-auth-submit" data-dbs-email-submit>${en ? 'Send sign-in link' : 'Recevoir le lien de connexion'}</button>
+      </form>`;
+
+    // Fallback dev : uniquement en localhost, en plus de l'email magic link.
     const devFallback = isLocalhost() ? `
       <div class="dbs-auth-sep"><span>${en ? 'or' : 'ou'}</span></div>
       <form class="dbs-auth-form" data-dbs-dev-form novalidate>
@@ -317,6 +344,7 @@
           : "Connectez-vous pour utiliser l'assistant IA, retrouver votre profil et sécuriser vos échanges."}</p>
         <div class="dbs-oauth-list">${providerButtons}</div>
         ${notConfiguredNote}
+        ${emailLoginBlock}
         ${devFallback}
       </div>`;
     document.body.appendChild(wrap);
@@ -329,6 +357,40 @@
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape' && !wrap.hidden) closeAuthModal();
     });
+
+    const emailForm = wrap.querySelector('[data-dbs-email-form]');
+    if (emailForm) {
+      const input = emailForm.querySelector('#dbs-auth-magic-email');
+      const errorEl = emailForm.querySelector('[data-dbs-email-error]');
+      const sentEl = emailForm.querySelector('[data-dbs-email-sent]');
+      const submitBtn = emailForm.querySelector('[data-dbs-email-submit]');
+      input.addEventListener('input', () => {
+        if (!errorEl.hidden) { errorEl.hidden = true; input.classList.remove('is-invalid'); }
+      });
+      emailForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const email = String(input.value || '').trim();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          errorEl.hidden = false;
+          errorEl.textContent = en ? 'Please enter a valid email address.' : 'Merci de saisir une adresse email valide.';
+          input.classList.add('is-invalid');
+          input.focus();
+          return;
+        }
+        submitBtn.disabled = true;
+        const result = await requestEmailLogin(email);
+        submitBtn.disabled = false;
+        if (!result.ok) {
+          errorEl.hidden = false;
+          errorEl.textContent = en ? 'Something went wrong. Please try again.' : 'Une erreur est survenue. Réessayez.';
+          return;
+        }
+        errorEl.hidden = true;
+        sentEl.hidden = false;
+        input.disabled = true;
+        submitBtn.hidden = true;
+      });
+    }
 
     const devForm = wrap.querySelector('[data-dbs-dev-form]');
     if (devForm) {
@@ -349,13 +411,21 @@
         }
         closeAuthModal();
         syncAuthUI();
-        document.getElementById('ai-assistant-launcher')?.click();
+        // Meme logique que les connexions OAuth/email : apres connexion, l'IA
+        // se retrouve dans sa page dediee. Si on y est deja (chat.html),
+        // l'evenement dbs-auth-changed declenche son ouverture automatique.
+        if (!document.body.classList.contains('chat-page')) window.location.href = '/chat.html';
       });
     }
   }
 
   async function openAuthModal() {
     await ensureAuthModal();
+    // ensureAuthModal() est asynchrone (fetchProviders) : si une session s'est
+    // confirmee entre-temps (ex. appelant qui ouvrait la modale de facon
+    // optimiste avant que /auth/me ne reponde), ne jamais rouvrir une modale
+    // de connexion par-dessus un utilisateur desormais authentifie.
+    if (isAuthenticated()) { closeAuthModal(); return; }
     const modal = document.getElementById('dbs-auth-modal');
     if (!modal) return;
     lastFocusedBeforeModal = document.activeElement;
@@ -389,6 +459,9 @@
   }
 
   function avatarSrc(user) {
+    let override = '';
+    try { override = localStorage.getItem(AVATAR_OVERRIDE_KEY) || ''; } catch (_) { override = ''; }
+    if (override) return override;
     return (user && user.avatarUrl) ? user.avatarUrl : AVATAR_FALLBACK;
   }
 
@@ -405,11 +478,6 @@
     } else if (img.getAttribute('src') !== src) {
       img.setAttribute('src', src);
     }
-  }
-
-  function providerLabel(provider) {
-    const labels = { google: 'Google', github: 'GitHub', facebook: 'Facebook', 'local-dev': 'Local-dev' };
-    return labels[provider] || provider || 'OAuth';
   }
 
   function currentTheme() {
@@ -438,10 +506,14 @@
     return `/profile.html${hash ? `#${hash}` : ''}`;
   }
 
+  function openAssistantSettingsFromAccount() {
+    document.getElementById('ai-assistant-settings-open')?.click();
+  }
+
   function ensureAccountPopover(slot) {
     let popover = slot.querySelector('#dbs-account-popover');
     if (popover) return popover;
-    const en = isEnglish();
+    const labels = accountPopoverI18nLabels(isEnglish());
     popover = document.createElement('div');
     popover.id = 'dbs-account-popover';
     popover.className = 'dbs-account-popover';
@@ -453,21 +525,25 @@
         <img class="dbs-account-popover-avatar" src="${AVATAR_FALLBACK}" alt="" aria-hidden="true">
         <div class="dbs-account-popover-id">
           <strong class="dbs-account-popover-name"></strong>
-          <span class="dbs-account-popover-email"></span>
-          <span class="dbs-account-popover-provider"></span>
         </div>
       </div>
       <div class="dbs-account-popover-actions">
-        <a class="dbs-account-popover-action" role="menuitem" href="${accountUrl()}">${en ? 'My profile' : 'Mon profil'}</a>
-        <a class="dbs-account-popover-action" role="menuitem" href="${accountUrl('preferences')}">${en ? 'AI preferences' : 'Préférences IA'}</a>
-        <a class="dbs-account-popover-action" role="menuitem" href="${accountUrl('security')}">${en ? 'Account security' : 'Sécurité du compte'}</a>
+        <a class="dbs-account-popover-action" role="menuitem" href="${accountUrl()}" data-dbs-account-i18n="profile">${labels.profile}</a>
+        <a class="dbs-account-popover-action" role="menuitem" href="${accountUrl('preferences')}" data-dbs-account-i18n="preferences">${labels.preferences}</a>
+        <a class="dbs-account-popover-action" role="menuitem" href="${accountUrl('security')}" data-dbs-account-i18n="security">${labels.security}</a>
+        <button class="dbs-account-popover-action" type="button" role="menuitem" data-dbs-account-action="settings" data-dbs-account-i18n="settings">${labels.settings}</button>
         <button class="dbs-account-popover-action" type="button" role="menuitem" data-dbs-account-action="theme">${themeActionLabel()}</button>
-        <button class="dbs-account-popover-action dbs-account-popover-danger" type="button" role="menuitem" data-dbs-account-action="logout">${en ? 'Sign out' : 'Se déconnecter'}</button>
+        <button class="dbs-account-popover-action dbs-account-popover-danger" type="button" role="menuitem" data-dbs-account-action="logout" data-dbs-account-i18n="logout">${labels.logout}</button>
       </div>`;
     slot.appendChild(popover);
     popover.addEventListener('click', async (event) => {
       const action = event.target.closest('[data-dbs-account-action]');
       if (!action) return;
+      if (action.dataset.dbsAccountAction === 'settings') {
+        closeAccountPopover();
+        openAssistantSettingsFromAccount();
+        return;
+      }
       if (action.dataset.dbsAccountAction === 'theme') {
         toggleThemeFromAccount();
         updateAccountPopover(getCachedUser());
@@ -491,20 +567,70 @@
     if (el && el.getAttribute(name) !== value) el.setAttribute(name, value);
   }
 
+  // Libelles statiques de la pop-up (hors theme, deja gere par
+  // themeActionLabel()). La pop-up n'est creee qu'une seule fois (voir
+  // ensureAccountPopover) : sans cette re-traduction a chaque ouverture, un
+  // changement de langue apres la premiere ouverture laissait ces libelles
+  // figes dans l'ancienne langue.
+  function accountPopoverI18nLabels(en) {
+    return {
+      profile: en ? 'My profile' : 'Mon profil',
+      preferences: en ? 'AI preferences' : 'Préférences IA',
+      security: en ? 'Account security' : 'Sécurité du compte',
+      settings: en ? 'Settings' : 'Paramètres',
+      logout: en ? 'Sign out' : 'Se déconnecter'
+    };
+  }
+
   function updateAccountPopover(user) {
     const popover = document.getElementById('dbs-account-popover');
     if (!popover || !user) return;
     const displayName = user.displayName || user.email || 'Digitalblueskye';
     setAttrIfChanged(popover.querySelector('.dbs-account-popover-avatar'), 'src', avatarSrc(user));
     const nameEl = popover.querySelector('.dbs-account-popover-name');
-    const emailEl = popover.querySelector('.dbs-account-popover-email');
-    const providerEl = popover.querySelector('.dbs-account-popover-provider');
     const themeEl = popover.querySelector('[data-dbs-account-action="theme"]');
     setTextIfChanged(nameEl, displayName);
-    setTextIfChanged(emailEl, user.email || '');
-    setTextIfChanged(providerEl, (isEnglish() ? 'Signed in via ' : 'Connecté via ') + providerLabel(user.provider));
     setTextIfChanged(themeEl, themeActionLabel());
+    const labels = accountPopoverI18nLabels(isEnglish());
+    popover.querySelectorAll('[data-dbs-account-i18n]').forEach((el) => {
+      const key = el.dataset.dbsAccountI18n;
+      if (labels[key]) setTextIfChanged(el, labels[key]);
+    });
   }
+
+  // La pop-up est en position:fixed (voir style.css) : son ancre (le rail de
+  // l'assistant) est une colonne etroite positionnee en absolute, donc tout
+  // positionnement CSS relatif a ce conteneur (left/right fixes) peut la
+  // pousser hors du viewport des que la fenetre est etroite (mobile). On
+  // calcule ici sa position en coordonnees viewport, avec des marges de
+  // securite, et on la reajuste au resize tant qu'elle est ouverte.
+  function positionAccountPopover(button, popover) {
+    const margin = 12;
+    const rect = button.getBoundingClientRect();
+    const popRect = popover.getBoundingClientRect();
+    const width = popRect.width || 240;
+    const height = popRect.height || 260;
+
+    let left = rect.right - width;
+    left = Math.min(left, window.innerWidth - width - margin);
+    left = Math.max(left, margin);
+
+    let top = rect.top - height - 8;
+    if (top < margin) top = rect.bottom + 8;
+    top = Math.min(top, window.innerHeight - height - margin);
+    top = Math.max(top, margin);
+
+    popover.style.left = `${left}px`;
+    popover.style.top = `${top}px`;
+  }
+
+  function repositionOpenAccountPopover() {
+    const popover = document.getElementById('dbs-account-popover');
+    const button = document.querySelector('.dbs-profile-rail-avatar[aria-expanded="true"]');
+    if (!popover || popover.hidden || !button) return;
+    positionAccountPopover(button, popover);
+  }
+  window.addEventListener('resize', repositionOpenAccountPopover);
 
   function openAccountPopover(button) {
     const user = getCachedUser();
@@ -517,6 +643,7 @@
     popover.setAttribute('aria-hidden', 'false');
     button.setAttribute('aria-expanded', 'true');
     void popover.offsetWidth;
+    positionAccountPopover(button, popover);
     popover.classList.add('is-open');
     setTimeout(() => popover.querySelector('.dbs-account-popover-action')?.focus(), 30);
   }
@@ -650,6 +777,7 @@
     isAuthenticated,
     fetchProviders,
     loginWithProvider,
+    requestEmailLogin,
     logout,
     updateProfile,
     requireAuthBeforeChat,

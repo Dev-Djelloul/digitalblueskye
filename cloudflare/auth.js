@@ -47,17 +47,13 @@ const PROVIDERS = {
     emailsUrl: 'https://api.github.com/user/emails',
     idEnv: 'GITHUB_CLIENT_ID',
     secretEnv: 'GITHUB_CLIENT_SECRET'
-  },
-  facebook: {
-    scopes: 'email public_profile',
-    usesPkce: false,
-    authorizeUrl: 'https://www.facebook.com/v19.0/dialog/oauth',
-    tokenUrl: 'https://graph.facebook.com/v19.0/oauth/access_token',
-    userInfoUrl: 'https://graph.facebook.com/me?fields=id,name,email,picture.type(large)',
-    idEnv: 'FACEBOOK_CLIENT_ID',
-    secretEnv: 'FACEBOOK_CLIENT_SECRET'
   }
 };
+
+// Connexion par email (magic link) : disponible pour tous les utilisateurs,
+// pas seulement OAuth. Un token a usage unique est envoye par email (aucun
+// mot de passe stocke ni transmis).
+const EMAIL_TOKEN_TTL_MS = 20 * 60 * 1000; // 20 minutes
 
 function providerConfigured(env, provider) {
   const meta = PROVIDERS[provider];
@@ -270,6 +266,10 @@ async function ensureSchema(env) {
     `CREATE TABLE IF NOT EXISTS user_preferences (
       user_id TEXT PRIMARY KEY, tone TEXT DEFAULT 'standard',
       theme TEXT DEFAULT 'system', updated_at TEXT NOT NULL)`,
+    `CREATE TABLE IF NOT EXISTS email_login_tokens (
+      id TEXT PRIMARY KEY, email TEXT NOT NULL, token_hash TEXT NOT NULL,
+      created_at TEXT NOT NULL, expires_at TEXT NOT NULL, used_at TEXT)`,
+    `CREATE INDEX IF NOT EXISTS idx_email_login_tokens_hash ON email_login_tokens(token_hash)`,
     `CREATE TABLE IF NOT EXISTS ai_usage_events (
       id TEXT PRIMARY KEY, user_id TEXT, session_id TEXT, ip_hash TEXT, model TEXT,
       prompt_chars INTEGER, response_chars INTEGER, created_at TEXT NOT NULL,
@@ -429,7 +429,7 @@ async function handleLogin(request, env, provider) {
 }
 
 async function handleCallback(request, env, provider, url) {
-  const fail = (reason) => authRedirect(`${frontendBase(env)}/profile.html?auth=error&reason=${encodeURIComponent(reason)}`, {
+  const fail = (reason) => authRedirect(`${frontendBase(env)}/chat.html?auth=error&reason=${encodeURIComponent(reason)}`, {
     'Set-Cookie': clearCookie(OAUTH_COOKIE, request, env)
   });
 
@@ -472,7 +472,7 @@ async function handleCallback(request, env, provider, url) {
   const headers = new Headers();
   headers.append('Set-Cookie', buildCookie(SESSION_COOKIE, token, request, env, Math.floor(SESSION_TTL_MS / 1000)));
   headers.append('Set-Cookie', clearCookie(OAUTH_COOKIE, request, env));
-  headers.set('Location', `${frontendBase(env)}/profile.html?auth=success`);
+  headers.set('Location', `${frontendBase(env)}/chat.html?auth=success`);
   return new Response(null, { status: 302, headers });
 }
 
@@ -529,14 +529,7 @@ async function fetchProfile(meta, provider, accessToken) {
       avatarUrl: info.avatar_url || ''
     };
   }
-  // facebook
-  return {
-    provider,
-    providerUserId: info.id,
-    email: String(info.email || '').toLowerCase(),
-    displayName: info.name || '',
-    avatarUrl: info.picture?.data?.url || ''
-  };
+  return null;
 }
 
 // ---------------------------------------------------------------------------
@@ -585,6 +578,100 @@ async function handleProfilePatch(request, env) {
 
   const fresh = await getSessionUser(env, request);
   return authJson(request, env, { ok: true, user: fresh && { id: fresh.id, email: fresh.email, displayName: fresh.displayName, avatarUrl: fresh.avatarUrl, provider: fresh.provider, preference: fresh.preference } });
+}
+
+// ---------------------------------------------------------------------------
+// Connexion par email (magic link) : POST /auth/email/request cree un token
+// a usage unique et envoie le lien par email (Cloudflare Email Sending) ;
+// GET /auth/email/verify le consomme et cree une session, comme un callback
+// OAuth classique.
+// ---------------------------------------------------------------------------
+async function sendMagicLinkEmail(env, email, verifyUrl) {
+  // Le binding EMAIL (send_email) doit etre configure sur le Worker et le
+  // domaine d'envoi onboarde via `wrangler email sending enable`. Tant que ce
+  // n'est pas fait, on echoue silencieusement (fail-open) : la demande ne
+  // doit jamais planter, seulement l'email ne partira pas.
+  if (!env.EMAIL) return false;
+  const fromAddress = String(env.EMAIL_FROM_ADDRESS || '').trim() || 'connexion@digitalblueskye.com';
+  try {
+    await env.EMAIL.send({
+      to: email,
+      from: { email: fromAddress, name: 'Digital Blue Skye AI' },
+      subject: 'Votre lien de connexion Digital Blue Skye AI',
+      html: `<p>Cliquez sur ce lien pour vous connecter à Digital Blue Skye AI (valable 20 minutes) :</p><p><a href="${verifyUrl}">${verifyUrl}</a></p><p>Si vous n'êtes pas à l'origine de cette demande, ignorez simplement cet email.</p>`,
+      text: `Cliquez sur ce lien pour vous connecter à Digital Blue Skye AI (valable 20 minutes) : ${verifyUrl}\n\nSi vous n'êtes pas à l'origine de cette demande, ignorez simplement cet email.`
+    });
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+async function handleEmailLoginRequest(request, env) {
+  await ensureSchema(env);
+  if (!isSet(env.AUTH_SESSION_SECRET) || !env.DB) {
+    return authJson(request, env, { ok: false, error: 'auth_not_configured' }, 503);
+  }
+
+  let body = {};
+  try { body = await request.json(); } catch (_) { body = {}; }
+  const email = String(body.email || '').trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
+    return authJson(request, env, { ok: false, error: 'invalid_email' }, 400);
+  }
+
+  // Reponse volontairement identique (ok:true) dans tous les cas plausibles
+  // ci-dessous, pour ne jamais reveler si une adresse est deja inscrite ou
+  // si elle est rate-limitee.
+  const rate = await checkRateLimit(env, `email-login:${email}`, Number(env.EMAIL_LOGIN_RATE_LIMIT || 5));
+  if (!rate.allowed) return authJson(request, env, { ok: true });
+
+  const token = randomToken(32);
+  const tokenHash = await sha256Hex(token);
+  const now = Date.now();
+  await env.DB
+    .prepare('INSERT INTO email_login_tokens (id, email, token_hash, created_at, expires_at, used_at) VALUES (?, ?, ?, ?, ?, NULL)')
+    .bind(`elt_${randomToken(10)}`, email, tokenHash, new Date(now).toISOString(), new Date(now + EMAIL_TOKEN_TTL_MS).toISOString())
+    .run();
+
+  const verifyUrl = `${authBase(env, request)}/auth/email/verify?token=${token}`;
+  await sendMagicLinkEmail(env, email, verifyUrl);
+
+  return authJson(request, env, { ok: true });
+}
+
+async function handleEmailLoginVerify(request, env, url) {
+  const fail = (reason) => authRedirect(`${frontendBase(env)}/chat.html?auth=error&reason=${encodeURIComponent(reason)}`);
+  await ensureSchema(env);
+  if (!env.DB) return fail('not_configured');
+
+  const token = url.searchParams.get('token');
+  if (!token) return fail('missing_token');
+
+  const tokenHash = await sha256Hex(token);
+  const row = await env.DB
+    .prepare('SELECT id, email, expires_at, used_at FROM email_login_tokens WHERE token_hash = ?')
+    .bind(tokenHash)
+    .first();
+  if (!row) return fail('invalid_token');
+  if (row.used_at) return fail('token_used');
+  if (Date.parse(row.expires_at) <= Date.now()) return fail('token_expired');
+
+  await env.DB.prepare('UPDATE email_login_tokens SET used_at = ? WHERE id = ?').bind(nowIso(), row.id).run();
+
+  const userId = await upsertUserAndIdentity(env, {
+    provider: 'email',
+    providerUserId: row.email,
+    email: row.email,
+    displayName: '',
+    avatarUrl: ''
+  });
+  const { token: sessionToken } = await createSession(env, request, userId);
+
+  const headers = new Headers();
+  headers.append('Set-Cookie', buildCookie(SESSION_COOKIE, sessionToken, request, env, Math.floor(SESSION_TTL_MS / 1000)));
+  headers.set('Location', `${frontendBase(env)}/chat.html?auth=success`);
+  return new Response(null, { status: 302, headers });
 }
 
 // ---------------------------------------------------------------------------
@@ -700,8 +787,7 @@ export async function handleAuthRoutes(request, env, url) {
       ok: true,
       providers: {
         google: providerConfigured(env, 'google'),
-        github: providerConfigured(env, 'github'),
-        facebook: providerConfigured(env, 'facebook')
+        github: providerConfigured(env, 'github')
       }
     });
   }
@@ -711,6 +797,9 @@ export async function handleAuthRoutes(request, env, url) {
 
   const cbMatch = pathname.match(/^\/auth\/callback\/([a-z]+)$/);
   if (cbMatch && request.method === 'GET') return handleCallback(request, env, cbMatch[1], url);
+
+  if (pathname === '/auth/email/request' && request.method === 'POST') return handleEmailLoginRequest(request, env);
+  if (pathname === '/auth/email/verify' && request.method === 'GET') return handleEmailLoginVerify(request, env, url);
 
   if (pathname === '/auth/me' && request.method === 'GET') return handleMe(request, env);
   if (pathname === '/auth/logout' && request.method === 'POST') return handleLogout(request, env);

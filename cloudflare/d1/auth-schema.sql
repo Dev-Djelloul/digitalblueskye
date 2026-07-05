@@ -65,7 +65,19 @@ CREATE TABLE IF NOT EXISTS ai_rate_limits (
   updated_at TEXT NOT NULL
 );
 
+-- Connexion par email (magic link) : token a usage unique, jamais de mot de
+-- passe stocke. Voir handleEmailLoginRequest / handleEmailLoginVerify.
+CREATE TABLE IF NOT EXISTS email_login_tokens (
+  id TEXT PRIMARY KEY,
+  email TEXT NOT NULL,
+  token_hash TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  expires_at TEXT NOT NULL,
+  used_at TEXT
+);
+
 CREATE INDEX IF NOT EXISTS idx_user_sessions_hash ON user_sessions(session_hash);
 CREATE INDEX IF NOT EXISTS idx_user_sessions_user ON user_sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_identities_user ON user_identities(user_id);
 CREATE INDEX IF NOT EXISTS idx_ai_usage_user ON ai_usage_events(user_id);
+CREATE INDEX IF NOT EXISTS idx_email_login_tokens_hash ON email_login_tokens(token_hash);

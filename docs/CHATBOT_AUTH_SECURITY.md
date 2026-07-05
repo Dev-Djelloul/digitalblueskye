@@ -23,7 +23,7 @@ Le front ne considère plus `localStorage` comme une preuve de sécurité.
 
 ## 2. État actuel de l'implémentation
 
-- ✅ Backend OAuth complet (Google / GitHub / Facebook) : `cloudflare/auth.js`.
+- ✅ Backend OAuth complet (Google / GitHub) + connexion par email (magic link) : `cloudflare/auth.js`.
 - ✅ Sessions serveur : cookie HttpOnly, seul le SHA-256 du token est stocké en D1.
 - ✅ Proxy IA protégé `POST /ai/chat` : session + rate limit + journalisation + service binding.
 - ✅ Migration D1 : `cloudflare/d1/auth-schema.sql` (+ création idempotente au runtime).
@@ -43,6 +43,8 @@ défaut (voir §7).
 | `/auth/providers` | GET | Fournisseurs activés (booléens) |
 | `/auth/login/:provider` | GET | Génère state (+PKCE Google), redirige vers l'OAuth |
 | `/auth/callback/:provider` | GET | Vérifie state, échange le code, crée la session, pose le cookie, redirige vers `/profile.html?auth=success` |
+| `/auth/email/request` | POST | `{ email }` → crée un token à usage unique et envoie le lien de connexion par email |
+| `/auth/email/verify` | GET | `?token=...` → consomme le token, crée la session, redirige vers `/profile.html?auth=success` |
 | `/auth/me` | GET | État de session (source de vérité) |
 | `/auth/logout` | POST | Révoque la session en D1 + supprime le cookie |
 | `/auth/profile` | PATCH | Modifie `displayName` / `preference.tone` / `preference.theme` |
@@ -51,8 +53,8 @@ défaut (voir §7).
 ## 4. Variables & secrets Cloudflare (Worker API)
 
 Variables (dans `cloudflare/wrangler.api.toml`, valeurs non sensibles) :
-`FRONTEND_ORIGIN`, `AUTH_BASE_URL`, `AI_RATE_LIMIT_USER`, `AI_RATE_LIMIT_IP`,
-`AUTH_COOKIE_SAMESITE` (optionnel).
+`FRONTEND_ORIGIN`, `AUTH_BASE_URL`, `EMAIL_FROM_ADDRESS`, `AI_RATE_LIMIT_USER`,
+`AI_RATE_LIMIT_IP`, `EMAIL_LOGIN_RATE_LIMIT`, `AUTH_COOKIE_SAMESITE` (optionnel).
 
 Secrets (jamais en clair) :
 
@@ -61,15 +63,13 @@ wrangler secret put GOOGLE_CLIENT_ID     -c cloudflare/wrangler.api.toml
 wrangler secret put GOOGLE_CLIENT_SECRET  -c cloudflare/wrangler.api.toml
 wrangler secret put GITHUB_CLIENT_ID      -c cloudflare/wrangler.api.toml
 wrangler secret put GITHUB_CLIENT_SECRET  -c cloudflare/wrangler.api.toml
-wrangler secret put FACEBOOK_CLIENT_ID    -c cloudflare/wrangler.api.toml
-wrangler secret put FACEBOOK_CLIENT_SECRET -c cloudflare/wrangler.api.toml
 wrangler secret put AUTH_SESSION_SECRET   -c cloudflare/wrangler.api.toml
 ```
 
 `AUTH_SESSION_SECRET` : chaîne aléatoire longue (ex. `openssl rand -hex 32`),
-utilisée pour signer le state OAuth (anti-CSRF).
+utilisée pour signer le state OAuth (anti-CSRF) et les tokens.
 
-## 5. Fournisseurs OAuth — configuration
+## 5. Fournisseurs — configuration
 
 `AUTH_BASE_URL = https://digitalblueskye-api.djelloulabid75.workers.dev`
 
@@ -77,9 +77,9 @@ utilisée pour signer le state OAuth (anti-CSRF).
 |---|---|---|---|
 | Google | `AUTH_BASE_URL/auth/callback/google` | `openid email profile` | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` |
 | GitHub | `AUTH_BASE_URL/auth/callback/github` | `read:user user:email` | `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` |
-| Facebook | `AUTH_BASE_URL/auth/callback/facebook` | `email public_profile` | `FACEBOOK_CLIENT_ID`, `FACEBOOK_CLIENT_SECRET` |
+| Email (magic link) | `AUTH_BASE_URL/auth/email/verify?token=...` | — | `EMAIL_FROM_ADDRESS` + binding `send_email` |
 
-### Checklist création des apps
+### Checklist création des apps OAuth
 
 **Google** — console.cloud.google.com → APIs & Services → Credentials → OAuth
 client ID (type *Web application*) → *Authorized redirect URIs* =
@@ -89,10 +89,18 @@ client ID (type *Web application*) → *Authorized redirect URIs* =
 **GitHub** — github.com/settings/developers → New OAuth App → *Authorization
 callback URL* = `AUTH_BASE_URL/auth/callback/github`.
 
-**Facebook** — developers.facebook.com → créer une app *Consumer* → produit
-*Facebook Login* → *Valid OAuth Redirect URIs* =
-`AUTH_BASE_URL/auth/callback/facebook` → passer l'app en *Live* pour ouvrir
-le scope `email` au public.
+### Checklist connexion par email
+
+Digital Blue Skye n'utilise ni mot de passe ni fournisseur tiers pour
+l'email : un lien de connexion à usage unique (valable 20 minutes) est envoyé
+via Cloudflare Email Sending.
+
+1. Onboarder le domaine d'envoi : `wrangler email sending enable digitalblueskye.com`.
+2. Vérifier le binding `send_email` (nom `EMAIL`) dans `cloudflare/wrangler.api.toml`.
+3. Ajuster `EMAIL_FROM_ADDRESS` si besoin (doit utiliser le domaine onboardé).
+4. Tant que le binding ou le domaine ne sont pas prêts, `/auth/email/request`
+   répond quand même `{ ok: true }` (fail-open) mais aucun email ne part —
+   voir `sendMagicLinkEmail()` dans `cloudflare/auth.js`.
 
 ## 6. D1 — tables & migration
 
@@ -103,8 +111,9 @@ wrangler d1 execute digitalblueskye --file=cloudflare/d1/auth-schema.sql -c clou
 ```
 
 Tables : `users`, `user_identities`, `user_sessions`, `user_preferences`,
-`ai_usage_events`, `ai_rate_limits`. **Aucun access_token OAuth brut n'est
-stocké** (si un stockage devient nécessaire, prévoir un chiffrement).
+`ai_usage_events`, `ai_rate_limits`, `email_login_tokens`. **Aucun access_token
+OAuth brut ni mot de passe n'est stocké** (si un stockage devient nécessaire,
+prévoir un chiffrement).
 
 ## 7. Sécuriser les appels IA (bascule progressive)
 

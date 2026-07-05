@@ -12,17 +12,26 @@ database_id = "eeb9d1b0-26ed-48a1-beb3-b0a944765174"
 binding = "AI_WORKER"
 service = "digitalblueskye-ai"
 
+# Envoi de l'email de connexion (magic link, cf. cloudflare/auth.js). Le
+# domaine utilise dans EMAIL_FROM_ADDRESS doit d'abord etre onboarde :
+#   wrangler email sending enable digitalblueskye.com
+[[send_email]]
+name = "EMAIL"
+
 [vars]
 ALLOWED_ORIGIN = "https://digitalblueskye.com,https://www.digitalblueskye.com,https://digitalblueskye.netlify.app"
 COMMENTS_REQUIRE_APPROVAL = "false"
 # --- Authentification serveur OAuth (cf. cloudflare/auth.js) ---
 # Origine du front autorisee pour CORS avec credentials (cookie de session).
 FRONTEND_ORIGIN = "https://digitalblueskye.netlify.app"
-# URL publique de CE Worker API (base des redirect_uri OAuth).
+# URL publique de CE Worker API (base des redirect_uri OAuth et du lien magique).
 AUTH_BASE_URL = "https://digitalblueskye-api.djelloulabid75.workers.dev"
-# Rate limiting IA (par heure). Ajustables sans redeploy de code.
+# Adresse d'envoi du lien de connexion par email (domaine onboarde sur Email Sending).
+EMAIL_FROM_ADDRESS = "connexion@digitalblueskye.com"
+# Rate limiting IA (par heure) et connexion par email (par heure et par adresse).
 AI_RATE_LIMIT_USER = "50"
 AI_RATE_LIMIT_IP = "10"
+EMAIL_LOGIN_RATE_LIMIT = "5"
 # SameSite du cookie de session : "None" (defaut prod, cross-site Netlify<->Worker)
 # ou "Lax" si un jour un domaine API same-site (api.digitalblueskye.fr) est utilise.
 # AUTH_COOKIE_SAMESITE = "None"
@@ -38,6 +47,4 @@ AI_RATE_LIMIT_IP = "10"
 # wrangler secret put GOOGLE_CLIENT_SECRET -c cloudflare/wrangler.api.toml
 # wrangler secret put GITHUB_CLIENT_ID -c cloudflare/wrangler.api.toml
 # wrangler secret put GITHUB_CLIENT_SECRET -c cloudflare/wrangler.api.toml
-# wrangler secret put FACEBOOK_CLIENT_ID -c cloudflare/wrangler.api.toml
-# wrangler secret put FACEBOOK_CLIENT_SECRET -c cloudflare/wrangler.api.toml
 # wrangler secret put AUTH_SESSION_SECRET -c cloudflare/wrangler.api.toml

@@ -63,6 +63,10 @@
         historyToggle: 'Conversation history',
         searchConversations: 'Search',
         newChat: 'New conversation',
+        projects: 'Projects',
+        createProject: 'Create a project',
+        recentDiscussions: 'Recent discussions',
+        settings: 'Settings',
         library: 'Library',
         libraryLocal: 'Local library',
         libraryImporting: 'Indexing document library...',
@@ -186,6 +190,10 @@
       historyToggle: 'Historique des conversations',
       searchConversations: 'Rechercher',
       newChat: 'Nouvelle discussion',
+      projects: 'Projets',
+      createProject: 'Créer un projet',
+      recentDiscussions: 'Discussions récentes',
+      settings: 'Paramètres',
       library: 'Bibliothèque',
       libraryLocal: 'Bibliothèque locale',
       libraryImporting: 'Indexation de la bibliothèque documentaire...',
@@ -363,10 +371,10 @@
             <button id="ai-assistant-projects-toggle" class="ai-assistant-section-toggle" type="button" aria-expanded="true" aria-controls="ai-assistant-project-list">
               <span class="ai-assistant-section-chevron" aria-hidden="true">›</span>
               <img class="ai-assistant-section-icon" src="${projectSectionIconUrl}" alt="" aria-hidden="true">
-              <span class="ai-assistant-section-title">Projets</span>
+              <span class="ai-assistant-section-title">${i18n.projects}</span>
               <span id="ai-assistant-project-count" class="ai-assistant-section-count">(0)</span>
             </button>
-            <button id="ai-assistant-project-create" type="button" title="Créer un projet" aria-label="Créer un projet">+</button>
+            <button id="ai-assistant-project-create" type="button" title="${i18n.createProject}" aria-label="${i18n.createProject}">+</button>
           </div>
           <div id="ai-assistant-project-list" class="ai-assistant-project-list" role="list"></div>
         </div>
@@ -375,16 +383,16 @@
             <button id="ai-assistant-recent-toggle" class="ai-assistant-section-toggle" type="button" aria-expanded="true" aria-controls="ai-assistant-session-list">
               <span class="ai-assistant-section-chevron" aria-hidden="true">›</span>
               <img class="ai-assistant-section-icon" src="${conversationSectionIconUrl}" alt="" aria-hidden="true">
-              <span class="ai-assistant-session-label ai-assistant-section-title">Discussions récentes</span>
+              <span class="ai-assistant-session-label ai-assistant-section-title">${i18n.recentDiscussions}</span>
               <span id="ai-assistant-recent-count" class="ai-assistant-section-count">(0)</span>
             </button>
           </div>
         </div>
         <select id="ai-assistant-session-select" class="ai-assistant-session-select" aria-label="${i18n.historyLabel}" hidden></select>
         <div id="ai-assistant-session-list" class="ai-assistant-session-list" role="listbox" aria-label="${i18n.historyLabel}"></div>
-        <button id="ai-assistant-settings-open" class="ai-assistant-settings-open ai-assistant-sidebar-action" type="button" title="Paramètres" aria-label="Paramètres">
+        <button id="ai-assistant-settings-open" class="ai-assistant-settings-open ai-assistant-sidebar-action" type="button" title="${i18n.settings}" aria-label="${i18n.settings}">
           <span aria-hidden="true">*</span>
-          <span>Paramètres</span>
+          <span>${i18n.settings}</span>
         </button>
         <div class="ai-assistant-session-tools">
           <button id="ai-assistant-session-export" class="ai-assistant-session-export" type="button" title="${i18n.exportChat}" aria-label="${i18n.exportChat}">
@@ -395,10 +403,6 @@
           </button>
         </div>
         </div>
-        <button id="ai-assistant-sidebar-profile" class="ai-assistant-sidebar-profile" type="button" aria-haspopup="menu" aria-label="${currentLanguage === 'en' ? 'Profile' : 'Profil'}">
-          <img class="ai-assistant-sidebar-profile-avatar" src="/assets/images/portrait/my-notion-face-transparent.png" alt="" aria-hidden="true">
-          <span id="ai-assistant-sidebar-profile-name" class="ai-assistant-sidebar-profile-name">${currentLanguage === 'en' ? 'My profile' : 'Mon profil'}</span>
-        </button>
         <span id="ai-assistant-sidebar-resize" class="ai-assistant-sidebar-resize" role="separator" aria-orientation="vertical" tabindex="0" title="${i18n.resizeSidebar}" aria-label="${i18n.resizeSidebar}"></span>
         <div id="ai-assistant-session-menu" class="ai-assistant-session-context-menu" role="menu" aria-hidden="true">
           <button id="ai-assistant-session-menu-rename" type="button" role="menuitem">
@@ -592,93 +596,14 @@
       if (btn.dataset.rail === 'toggle') trigger('ai-assistant-history-toggle');
       rail.querySelectorAll('.ai-assistant-rail-btn').forEach((b) => b.classList.toggle('is-active', b.dataset.rail === 'toggle' && isHistoryOpen()));
     });
-    const sidebarProfileBtn = document.getElementById('ai-assistant-sidebar-profile');
-    if (sidebarProfileBtn) sidebarProfileBtn.addEventListener('click', () => toggleProfileMenu(sidebarProfileBtn));
   }
 
-  // Menu profil (facon ChatGPT) ancre au bouton avatar du rail : en-tete
-  // avatar + nom + email, puis Profil / Paramètres / bascule de theme.
-  function ensureProfileMenu() {
-    if (document.getElementById('ai-assistant-profile-menu')) return;
-    const host = document.getElementById('ai-assistant-panel') || document.body;
-    const en = currentLanguage === 'en';
-    const userSvg = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>';
-    const gearSvg = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 8 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H2a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 8a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H6a1.65 1.65 0 0 0 1-1.51V2a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V8a1.65 1.65 0 0 0 1.51 1H22a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>';
-    const themeSvg = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
-    host.insertAdjacentHTML('beforeend', `
-      <div id="ai-assistant-profile-menu" class="ai-assistant-profile-menu" role="menu" aria-hidden="true" hidden>
-        <div class="ai-assistant-profile-menu-head">
-          <img class="ai-assistant-profile-menu-avatar" src="/assets/images/portrait/my-notion-face-transparent.png" alt="" aria-hidden="true">
-          <div class="ai-assistant-profile-menu-id">
-            <strong id="ai-assistant-profile-menu-name" class="ai-assistant-profile-menu-name"></strong>
-            <span id="ai-assistant-profile-menu-email" class="ai-assistant-profile-menu-email"></span>
-          </div>
-        </div>
-        <div class="ai-assistant-profile-menu-list">
-          <button class="ai-assistant-profile-menu-item" type="button" role="menuitem" data-profile-action="profile">${userSvg}<span>${en ? 'Profile' : 'Profil'}</span></button>
-          <button class="ai-assistant-profile-menu-item" type="button" role="menuitem" data-profile-action="settings">${gearSvg}<span>${en ? 'Settings' : 'Paramètres'}</span></button>
-          <button class="ai-assistant-profile-menu-item" type="button" role="menuitem" data-profile-action="theme">${themeSvg}<span>${en ? 'Light / dark theme' : 'Thème clair / sombre'}</span></button>
-        </div>
-      </div>`);
-
-    const menu = document.getElementById('ai-assistant-profile-menu');
-    menu.addEventListener('click', (event) => {
-      const item = event.target.closest('[data-profile-action]');
-      if (!item) return;
-      const action = item.dataset.profileAction;
-      if (action === 'profile' || action === 'settings') {
-        document.getElementById('ai-assistant-settings-open')?.click();
-        if (action === 'profile') {
-          setTimeout(() => document.querySelector('.ai-assistant-settings-view-inner')?.scrollIntoView({ block: 'start', behavior: 'smooth' }), 80);
-        }
-      } else if (action === 'theme') {
-        document.getElementById('theme-switch')?.click();
-      }
-      closeProfileMenu();
-    });
-    document.addEventListener('click', (event) => {
-      if (menu.hidden) return;
-      if (event.target.closest('#ai-assistant-profile-menu') || event.target.closest('#ai-assistant-sidebar-profile')) return;
-      closeProfileMenu();
-    });
-    document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape' && !menu.hidden) closeProfileMenu();
-    });
-  }
-
-  function openProfileMenu() {
-    ensureProfileMenu();
-    const menu = document.getElementById('ai-assistant-profile-menu');
-    if (!menu) return;
-    const profile = assistantSettingsState.profile || {};
-    const fallbackName = currentLanguage === 'en' ? 'My profile' : 'Mon profil';
-    const nameEl = document.getElementById('ai-assistant-profile-menu-name');
-    const emailEl = document.getElementById('ai-assistant-profile-menu-email');
-    if (nameEl) nameEl.textContent = String(profile.name || '').trim() || fallbackName;
-    if (emailEl) emailEl.textContent = String(profile.email || '').trim();
-    const sidebarNameEl = document.getElementById('ai-assistant-sidebar-profile-name');
-    if (sidebarNameEl) sidebarNameEl.textContent = String(profile.name || '').trim() || fallbackName;
-    menu.hidden = false;
-    menu.setAttribute('aria-hidden', 'false');
-    void menu.offsetWidth;
-    menu.classList.add('is-open');
-    document.getElementById('ai-assistant-sidebar-profile')?.classList.add('is-active');
-  }
-
-  function closeProfileMenu() {
-    const menu = document.getElementById('ai-assistant-profile-menu');
-    if (!menu) return;
-    menu.classList.remove('is-open');
-    menu.setAttribute('aria-hidden', 'true');
-    document.getElementById('ai-assistant-sidebar-profile')?.classList.remove('is-active');
-    setTimeout(() => { menu.hidden = true; }, 160);
-  }
-
-  function toggleProfileMenu() {
-    const menu = document.getElementById('ai-assistant-profile-menu');
-    if (menu && !menu.hidden) closeProfileMenu();
-    else openProfileMenu();
-  }
+  // Note : l'ancien menu profil (facon ChatGPT) ancre au rail de la sidebar a
+  // ete retire. Le point d'entree compte unique est desormais l'avatar en bas
+  // du rail gauche (voir scripts/dbs-auth.js, .dbs-account-popover), qui
+  // regroupe Profil / Preferences IA / Parametres / Theme / Deconnexion.
+  // #ai-assistant-settings-open reste en DOM : c'est le mecanisme interne que
+  // la pop-up compte declenche pour ouvrir la vue Parametres de l'assistant.
 
   // Modale de recherche de discussions (facon ChatGPT) declenchee depuis le rail.
   // Elle reutilise les donnees existantes (sessionsState) et switchSession().
@@ -1533,14 +1458,6 @@
       assistantLog('warn', 'settings_load_failed', { reason: error?.message || 'invalid_settings_storage' });
       assistantSettingsState = defaults;
     }
-    syncSidebarProfileName();
-  }
-
-  function syncSidebarProfileName() {
-    const sidebarNameEl = document.getElementById('ai-assistant-sidebar-profile-name');
-    if (!sidebarNameEl) return;
-    const name = String(assistantSettingsState.profile?.name || '').trim();
-    sidebarNameEl.textContent = name || (currentLanguage === 'en' ? 'My profile' : 'Mon profil');
   }
 
   function saveAssistantSettingsState() {
@@ -1549,7 +1466,6 @@
     } catch (error) {
       assistantLog('warn', 'settings_save_failed', { reason: error?.message || 'local_storage_unavailable' });
     }
-    syncSidebarProfileName();
   }
 
   function getProjectById(projectId) {
@@ -2689,10 +2605,11 @@
         if (Number.isFinite(left) && Number.isFinite(top)) applyPanelPosition(left, top, true);
         return;
       }
-      if (panel && isDesktopPanelDragEnabled()) {
-        const rect = panel.getBoundingClientRect();
-        if (Number.isFinite(rect.width) && Number.isFinite(rect.height)) applyPanelSize(rect.width, rect.height, true);
-      }
+      // IMPORTANT : ne jamais re-figer panel.style.width/height ici pour un
+      // simple clic (mouseup se declenche sur TOUT clic dans la fenetre, pas
+      // seulement apres un redimensionnement). Le faire recalculait la taille
+      // via getBoundingClientRect() a chaque clic et la reappliquait en inline
+      // style, ce qui faisait retrecir le panneau petit a petit a chaque clic.
       if (!dragState || !panel) return;
       dragState = null;
       panel.classList.remove('is-dragging');
@@ -4720,7 +4637,7 @@
     if (attachFileLabel) attachFileLabel.textContent = i18n.attachFiles;
     const attachDriveLabel = attachDriveButton?.querySelector('span');
     if (attachDriveLabel) attachDriveLabel.textContent = i18n.attachDrive;
-    if (sessionLabel) sessionLabel.textContent = currentLanguage === 'en' ? 'Recent discussions' : 'Discussions récentes';
+    if (sessionLabel) sessionLabel.textContent = i18n.recentDiscussions;
     if (sessionSearchInput) {
       sessionSearchInput.placeholder = i18n.searchConversations;
       sessionSearchInput.setAttribute('aria-label', i18n.searchConversations);
@@ -4743,6 +4660,18 @@
       sessionLibraryButton.setAttribute('aria-label', i18n.library);
       const label = sessionLibraryButton.querySelector('span');
       if (label) label.textContent = i18n.library;
+    }
+    const projectsTitleLabel = projectsToggleButton?.querySelector('.ai-assistant-section-title');
+    if (projectsTitleLabel) projectsTitleLabel.textContent = i18n.projects;
+    if (projectCreateButton) {
+      projectCreateButton.title = i18n.createProject;
+      projectCreateButton.setAttribute('aria-label', i18n.createProject);
+    }
+    if (settingsOpenButton) {
+      settingsOpenButton.title = i18n.settings;
+      settingsOpenButton.setAttribute('aria-label', i18n.settings);
+      const label = settingsOpenButton.querySelector('span:last-child');
+      if (label) label.textContent = i18n.settings;
     }
     if (libraryView) libraryView.setAttribute('aria-label', i18n.library);
     if (libraryViewTitle) libraryViewTitle.textContent = i18n.libraryMediaTitle;
@@ -10834,8 +10763,21 @@
     }
   }
 
+  // Page dediee /chat.html : le chatbot n'est plus une bulle flottante mais
+  // occupe toute la page, ouverte et maximisee automatiquement une fois la
+  // session confirmee (voir chat.html). Sur les AUTRES pages, la bulle
+  // devient un simple lien : elle redirige vers /chat.html si connecte, ou
+  // ouvre la modale de connexion sinon (qui redirige elle-meme vers /chat.html
+  // apres connexion, cf. cloudflare/auth.js + dbs-auth.js).
+  const isChatPage = document.body.classList.contains('chat-page');
+
   if (launcherButton && panel) {
     launcherButton.addEventListener('click', () => {
+      if (!isChatPage) {
+        if (window.DBSAuth?.isAuthenticated?.()) window.location.href = '/chat.html';
+        else window.DBSAuth?.openAuthModal?.();
+        return;
+      }
       const isOpening = !panel.classList.contains('is-open');
       if (isOpening) placePanelInCurrentViewport();
       setAssistantPanelOpen(isOpening);
@@ -10878,7 +10820,28 @@
   }
 
   if (closeButton && panel) {
-    closeButton.addEventListener('click', () => { setAssistantExpanded(false); setAssistantPanelOpen(false); updateScrollBottomButton(); });
+    closeButton.addEventListener('click', () => {
+      // Sur la page dediee, fermer ne doit pas laisser une page vide derriere
+      // le panneau : on revient a l'accueil plutot que de juste masquer le panneau.
+      if (isChatPage) { window.location.href = '/index.html'; return; }
+      setAssistantExpanded(false);
+      setAssistantPanelOpen(false);
+      updateScrollBottomButton();
+    });
+  }
+
+  if (isChatPage) {
+    const chatGate = document.querySelector('[data-chat-gate]');
+    const openChatPageAssistant = () => {
+      if (!window.DBSAuth?.isAuthenticated?.()) return;
+      if (chatGate) chatGate.hidden = true;
+      placePanelInCurrentViewport();
+      setAssistantPanelOpen(true);
+      setAssistantExpanded(true);
+      updateScrollBottomButton();
+    };
+    document.addEventListener('dbs-auth-changed', openChatPageAssistant);
+    openChatPageAssistant();
   }
 
   if (expandButton && panel) {

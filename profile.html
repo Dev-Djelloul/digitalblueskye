@@ -12,17 +12,23 @@
       })();
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Gelasio:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/styles/style.css?v=20260628-gelasio" />
+    <link rel="stylesheet" href="/styles/style.css?v=20260705-profile-header" />
     <link rel="icon" href="/favicon.ico" sizes="any">
     <meta name="theme-color" content="#1f1d2b">
   </head>
   <body class="profile-page">
-    <header class="profile-header">
-      <a href="/index.html" class="profile-header-logo" title="Retour à l'accueil" aria-label="Retour à l'accueil">
-        <img src="/assets/images/logo/DigitalBlueSkye-Logo.png" alt="Digitalblueskye" width="42" height="42" />
-      </a>
-      <a href="/index.html" class="profile-header-back" data-i18n-title="ui.backToHome">Retour à l'accueil</a>
-    </header>
+    <a href="/index.html" class="profile-floating-logo" title="Retour à l'accueil" aria-label="Retour à l'accueil">
+      <img src="/assets/images/logo/DigitalBlueSkye-Logo.png" alt="Digitalblueskye" width="42" height="42" />
+    </a>
+
+    <!-- Actions flottantes, au meme niveau que le logo, a l'oppose (haut droite).
+         Visibles uniquement une fois connecte (voir data-dbs-profile-shell-actions). -->
+    <div class="profile-floating-actions" data-dbs-profile-shell-actions hidden>
+      <a href="/index.html" class="dbs-profile-back-link dbs-profile-back-link--ghost" data-dbs-back-link><span aria-hidden="true">←</span> Retour</a>
+      <button type="button" class="dbs-profile-logout-icon" data-dbs-logout aria-label="Se déconnecter" title="Se déconnecter">
+        <img src="/assets/images/ui/icons8-logout-100.png" alt="" aria-hidden="true" width="24" height="24" />
+      </button>
+    </div>
 
     <main class="profile-main">
       <!-- Etat non connecte : toujours affiche par defaut tant que l'auth n'a pas repondu. -->
@@ -30,20 +36,26 @@
         <h1 id="dbs-profile-signed-out-title">Mon profil</h1>
         <p class="dbs-profile-signed-out-text">Connectez-vous pour accéder à votre espace profil Digital Blue Skye AI.</p>
         <div class="dbs-oauth-list" data-dbs-signedout-providers></div>
-        <a href="/index.html" class="dbs-profile-back-link dbs-profile-back-link--ghost">Retour à l'accueil</a>
       </section>
 
       <!-- Etat connecte : coquille a onglets. Masquee tant que l'auth n'a pas confirme une session. -->
       <section class="dbs-profile-shell" data-dbs-profile-shell hidden aria-labelledby="dbs-profile-title">
         <div class="dbs-profile-shell-header">
-          <div>
-            <p class="dbs-profile-kicker">Digital Blue Skye AI</p>
-            <h1 id="dbs-profile-title">Mon profil</h1>
-            <p class="dbs-profile-shell-subtitle">Gérez votre identité, vos préférences IA, votre sécurité et votre expérience assistant.</p>
+          <div class="dbs-profile-shell-logo-block">
+            <img class="dbs-profile-shell-logo" src="/assets/images/logo/Robot.png" alt="" aria-hidden="true" />
+            <p class="dbs-profile-kicker dbs-profile-kicker--center">Digital Blue Skye AI</p>
           </div>
-          <div class="dbs-profile-status-row">
-            <span class="dbs-status-badge is-secure">Compte connecté</span>
-            <span class="dbs-status-badge">Session active</span>
+          <div class="dbs-profile-identity-block">
+            <div>
+              <h1 id="dbs-profile-title">Mon profil</h1>
+              <p class="dbs-profile-shell-subtitle">Gérez votre identité, vos préférences IA, votre sécurité et votre expérience assistant.</p>
+            </div>
+          </div>
+          <div class="dbs-profile-status-block">
+            <div class="dbs-profile-status-row">
+              <span class="dbs-status-badge is-secure">Compte connecté</span>
+              <span class="dbs-status-badge">Session active</span>
+            </div>
           </div>
         </div>
 
@@ -66,10 +78,17 @@
               </div>
               <form class="dbs-profile-grid" data-dbs-identity-form>
                 <div class="dbs-identity-card" style="grid-column: 1 / -1;">
-                  <img class="dbs-profile-identity-avatar" data-dbs-profile-avatar src="/assets/images/portrait/my-notion-face-transparent.png" alt="" aria-hidden="true" />
+                  <div class="dbs-profile-avatar-upload">
+                    <img class="dbs-profile-identity-avatar" data-dbs-profile-avatar data-dbs-avatar-enlarge src="/assets/images/portrait/my-notion-face-transparent.png" alt="Photo de profil" title="Agrandir la photo" />
+                    <label class="dbs-avatar-upload-btn" for="dbs-profile-avatar-input" aria-label="Changer la photo de profil" title="Changer la photo de profil">
+                      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2Z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                    </label>
+                    <input type="file" id="dbs-profile-avatar-input" data-dbs-avatar-input accept="image/png,image/jpeg,image/webp" hidden />
+                  </div>
                   <div>
                     <strong data-dbs-profile-display-label>Digitalblueskye</strong>
                     <span data-dbs-profile-provider>Connecté via OAuth</span>
+                    <p class="dbs-profile-saved" data-dbs-avatar-saved role="status" hidden>Photo de profil mise à jour.</p>
                   </div>
                 </div>
                 <div class="dbs-setting-field">
@@ -83,8 +102,6 @@
                 </div>
                 <div class="dbs-profile-actions-row dbs-profile-form-footer">
                   <button type="submit" class="dbs-profile-save">Enregistrer</button>
-                  <button type="button" class="dbs-logout-button" data-dbs-logout style="width:auto;">Se déconnecter</button>
-                  <a href="/index.html" class="dbs-profile-home-link">Retour à l'accueil</a>
                 </div>
                 <p class="dbs-profile-saved dbs-profile-form-footer" data-dbs-identity-saved role="status" hidden>Modifications enregistrées.</p>
               </form>
@@ -143,10 +160,8 @@
                 <article class="dbs-security-card"><span>Session active</span><strong>Oui</strong></article>
                 <article class="dbs-security-card"><span>Type de session</span><strong>Cookie sécurisé HttpOnly</strong></article>
                 <article class="dbs-security-card"><span>État du compte</span><strong>Compte sécurisé</strong></article>
-                <article class="dbs-security-card"><span>Facebook</span><strong data-dbs-facebook-status>Facebook : bientôt disponible</strong></article>
               </div>
               <div class="dbs-profile-actions-row">
-                <button type="button" class="dbs-logout-button" data-dbs-logout style="width:auto;">Se déconnecter</button>
                 <button type="button" class="dbs-profile-secondary-action" data-dbs-clear-local>Supprimer les données locales de ce navigateur</button>
               </div>
             </section>
@@ -204,6 +219,12 @@
       </section>
     </main>
 
+    <!-- Agrandissement de la photo de profil au clic (voir data-dbs-avatar-enlarge). -->
+    <div class="dbs-avatar-lightbox" data-dbs-avatar-lightbox hidden aria-hidden="true">
+      <button type="button" class="dbs-avatar-lightbox-close" data-dbs-avatar-lightbox-close aria-label="Fermer">&times;</button>
+      <img class="dbs-avatar-lightbox-img" data-dbs-avatar-lightbox-img src="" alt="Photo de profil agrandie" />
+    </div>
+
     <!--
       Note technique : la source de verite est le serveur (GET /auth/me via le
       Worker API). localStorage ne sert que de cache UX. La deconnexion appelle
@@ -217,14 +238,28 @@
     <script src="/scripts/dbs-auth.js"></script>
     <script>
       (function () {
-        const PROVIDERS = { google: 'Google', github: 'GitHub', facebook: 'Facebook' };
-        const FACEBOOK_META_VALIDATED = false;
+        const PROVIDERS = { google: 'Google', github: 'GitHub' };
         const PROVIDER_ICONS = {
           google: '/assets/images/ui/icons8-google-50.png',
-          github: '/assets/images/ui/icons8-github-96.png',
-          facebook: '/assets/images/ui/icons8-facebook-64.png'
+          github: '/assets/images/ui/icons8-github-96.png'
         };
         const VALID_TABS = ['identity', 'preferences', 'companion', 'security', 'usage', 'history', 'local-data'];
+        const AVATAR_OVERRIDE_KEY = 'dbs_profile_avatar_override';
+        // 256px suffisait pour le petit avatar circulaire, mais le rendait flou
+        // une fois agrandi dans le lightbox (600px+). 768px reste largement
+        // acceptable pour localStorage (~150-250 Ko en base64) et net a l'agrandissement.
+        const AVATAR_MAX_DIMENSION = 768;
+
+        // Si on arrive ici depuis le menu compte du rail (?from=assistant),
+        // "Retour à l'accueil" doit rouvrir le chatbot IA au lieu de revenir
+        // sur une home a plat. dbs-auth.js lit ensuite ?openAssistant=1 pour
+        // cliquer automatiquement sur le launcher.
+        function wireBackLinks() {
+          let cameFromAssistant = false;
+          try { cameFromAssistant = new URLSearchParams(window.location.search).get('from') === 'assistant'; } catch (_) { cameFromAssistant = false; }
+          const href = cameFromAssistant ? '/index.html?openAssistant=1' : '/index.html';
+          document.querySelectorAll('[data-dbs-back-link]').forEach((link) => { link.href = href; });
+        }
         const PREF_OPTIONS = {
           projectStyle: [
             ['general', 'Général'],
@@ -314,10 +349,8 @@
           try {
             const providers = await window.DBSAuth.fetchProviders();
             host.innerHTML = Object.keys(PROVIDERS).map((key) => {
-              const enabled = Boolean(providers[key]) && (key !== 'facebook' || FACEBOOK_META_VALIDATED);
-              const label = enabled
-                ? `Se connecter avec ${PROVIDERS[key]}`
-                : (key === 'facebook' ? 'Facebook en attente de validation Meta' : `${PROVIDERS[key]} bientôt disponible`);
+              const enabled = Boolean(providers[key]);
+              const label = enabled ? `Se connecter avec ${PROVIDERS[key]}` : `${PROVIDERS[key]} bientôt disponible`;
               return `<button type="button" class="dbs-oauth-btn is-${key}" data-provider="${key}" ${enabled ? '' : 'disabled'}
                 aria-label="${label}"><span class="dbs-oauth-icon" aria-hidden="true"><img src="${PROVIDER_ICONS[key]}" alt=""></span><span>${label}</span></button>`;
             }).join('');
@@ -362,6 +395,7 @@
         function render() {
           const signedOutCard = document.querySelector('[data-dbs-profile-signed-out]');
           const shell = document.querySelector('[data-dbs-profile-shell]');
+          const shellActions = document.querySelector('[data-dbs-profile-shell-actions]');
           let user = null;
           try {
             user = window.DBSAuth && window.DBSAuth.isAuthenticated() ? window.DBSAuth.getCachedUser() : null;
@@ -372,15 +406,21 @@
           if (!user) {
             if (signedOutCard) signedOutCard.hidden = false;
             if (shell) shell.hidden = true;
+            if (shellActions) shellActions.hidden = true;
             renderSignedOutProviders();
             return;
           }
 
           if (signedOutCard) signedOutCard.hidden = true;
           if (shell) shell.hidden = false;
+          if (shellActions) shellActions.hidden = false;
 
-          const avatar = document.querySelector('[data-dbs-profile-avatar]');
-          if (avatar && user.avatarUrl) avatar.src = user.avatarUrl;
+          let avatarOverride = '';
+          try { avatarOverride = localStorage.getItem(AVATAR_OVERRIDE_KEY) || ''; } catch (_) { avatarOverride = ''; }
+          const avatarSrc = avatarOverride || user.avatarUrl || '';
+          if (avatarSrc) {
+            document.querySelectorAll('[data-dbs-profile-avatar]').forEach((img) => { img.src = avatarSrc; });
+          }
           const displayLabel = document.querySelector('[data-dbs-profile-display-label]');
           if (displayLabel) displayLabel.textContent = user.displayName || user.email || 'Digitalblueskye';
           const providerName = PROVIDERS[user.provider] || user.provider || 'OAuth';
@@ -407,15 +447,6 @@
           } catch (error) {
             console.warn('[profile] preferences render failed', error);
           }
-
-          try {
-            window.DBSAuth?.fetchProviders?.().then((providers) => {
-              const facebookEl = document.querySelector('[data-dbs-facebook-status]');
-              if (!facebookEl) return;
-              const enabled = Boolean(providers.facebook) && FACEBOOK_META_VALIDATED;
-              facebookEl.textContent = enabled ? 'Facebook : disponible' : 'Facebook : en attente de validation Meta';
-            }).catch(() => {});
-          } catch (_) { /* no-op */ }
         }
 
         function wireForms() {
@@ -487,13 +518,83 @@
               console.warn('[profile] clear preferences failed', error);
             }
           });
+
+          // Photo de profil : front-only pour l'instant, aucun endpoint d'upload
+          // backend n'existe. Redimensionnee cote client pour rester legere en
+          // localStorage, puis relue par dbs-auth.js (rail/pop-up) et cette page.
+          document.querySelector('[data-dbs-avatar-input]')?.addEventListener('change', (event) => {
+            const file = event.target.files?.[0];
+            if (!file) return;
+            if (!file.type.startsWith('image/')) {
+              console.warn('[profile] avatar upload rejected: not an image');
+              event.target.value = '';
+              return;
+            }
+            const reader = new FileReader();
+            reader.onerror = () => console.warn('[profile] avatar read failed');
+            reader.onload = () => {
+              const img = new Image();
+              img.onerror = () => console.warn('[profile] avatar decode failed');
+              img.onload = () => {
+                try {
+                  const scale = Math.min(1, AVATAR_MAX_DIMENSION / Math.max(img.width, img.height));
+                  const canvas = document.createElement('canvas');
+                  canvas.width = Math.max(1, Math.round(img.width * scale));
+                  canvas.height = Math.max(1, Math.round(img.height * scale));
+                  const ctx = canvas.getContext('2d');
+                  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                  const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+                  localStorage.setItem(AVATAR_OVERRIDE_KEY, dataUrl);
+                  document.querySelectorAll('[data-dbs-profile-avatar]').forEach((el) => { el.src = dataUrl; });
+                  setStatus('[data-dbs-avatar-saved]', true);
+                } catch (error) {
+                  console.warn('[profile] avatar resize failed', error);
+                }
+              };
+              img.src = String(reader.result || '');
+            };
+            reader.readAsDataURL(file);
+            event.target.value = '';
+          });
+        }
+
+        // Agrandissement de la photo au clic : affiche l'image telle quelle
+        // (non recadree en cercle) pour la voir a sa taille/qualite reelle.
+        function wireAvatarLightbox() {
+          const lightbox = document.querySelector('[data-dbs-avatar-lightbox]');
+          const lightboxImg = document.querySelector('[data-dbs-avatar-lightbox-img]');
+          if (!lightbox || !lightboxImg) return;
+
+          function openLightbox(src) {
+            if (!src) return;
+            lightboxImg.src = src;
+            lightbox.hidden = false;
+            lightbox.setAttribute('aria-hidden', 'false');
+          }
+          function closeLightbox() {
+            lightbox.hidden = true;
+            lightbox.setAttribute('aria-hidden', 'true');
+            lightboxImg.src = '';
+          }
+
+          document.querySelectorAll('[data-dbs-avatar-enlarge]').forEach((img) => {
+            img.addEventListener('click', () => openLightbox(img.src));
+          });
+          lightbox.addEventListener('click', (event) => {
+            if (event.target === lightbox || event.target.closest('[data-dbs-avatar-lightbox-close]')) closeLightbox();
+          });
+          document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && !lightbox.hidden) closeLightbox();
+          });
         }
 
         try {
           fillPreferenceOptions();
           wireTabs();
           activateTab(initialTabFromHash(), false);
+          wireBackLinks();
           wireForms();
+          wireAvatarLightbox();
           document.addEventListener('dbs-auth-changed', render);
           render();
           // Hydrate depuis le serveur au chargement (met a jour l'UI via l'evenement

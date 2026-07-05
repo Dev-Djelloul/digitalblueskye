@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Assistant IA | Digitalblueskye</title>
+    <script>
+      (function() {
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+      })();
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Gelasio:ital,wght@0,400..700;1,400..700&family=Indie+Flower&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles/style.css?v=20260705-chat-page" />
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <meta name="theme-color" content="#1f1d2b">
+  </head>
+  <body class="chat-page">
+    <!-- Etat non connecte : la source de verite reste /auth/me (voir dbs-auth.js).
+         Ce bloc reste visible tant que l'authentification n'a pas ete confirmee ;
+         la modale de connexion s'ouvre par-dessus automatiquement (voir script ci-dessous). -->
+    <div class="chat-page-gate" data-chat-gate>
+      <img class="chat-page-gate-logo" src="/assets/images/logo/DigitalBlueSkye-Logo.png" alt="Digitalblueskye" width="64" height="64" />
+      <h1>Assistant IA Digital Blue Skye</h1>
+      <p data-chat-gate-text>Connectez-vous pour accéder à votre assistant IA.</p>
+      <button type="button" class="dbs-profile-save" data-chat-gate-signin>Se connecter</button>
+      <a href="/index.html" class="dbs-profile-back-link dbs-profile-back-link--ghost"><span aria-hidden="true">←</span> Retour à l'accueil</a>
+    </div>
+
+    <!--
+      Note technique : dbs-auth.js et ai-assistant.js injectent tout le reste
+      du DOM (rail, panneau, etc.) dynamiquement, exactement comme sur les
+      autres pages. La classe body.chat-page indique a ai-assistant.js qu'il
+      doit ouvrir + maximiser le panneau automatiquement (au lieu du mode
+      bulle flottante) une fois la session confirmee. Voir docs/CHATBOT_AUTH_SECURITY.md.
+    -->
+    <script src="/scripts/dbs-auth.js"></script>
+    <script src="/scripts/ai-assistant.js"></script>
+    <script>
+      (function () {
+        const gate = document.querySelector('[data-chat-gate]');
+        const gateText = document.querySelector('[data-chat-gate-text]');
+        const signInBtn = document.querySelector('[data-chat-gate-signin]');
+
+        function render() {
+          let user = null;
+          try {
+            user = window.DBSAuth && window.DBSAuth.isAuthenticated() ? window.DBSAuth.getCachedUser() : null;
+          } catch (error) {
+            console.warn('[chat] auth read failed, showing sign-in gate', error);
+          }
+          if (gate) gate.hidden = Boolean(user);
+          if (user) {
+            try { window.DBSAuth?.closeAuthModal?.(); } catch (_) { /* no-op */ }
+          } else {
+            try { window.DBSAuth?.openAuthModal?.(); } catch (_) { /* no-op */ }
+          }
+        }
+
+        try {
+          const params = new URLSearchParams(window.location.search);
+          if (params.get('auth') === 'error' && gateText) {
+            gateText.textContent = "La connexion a échoué. Merci de réessayer.";
+          }
+          if (params.has('auth')) {
+            params.delete('auth');
+            params.delete('reason');
+            const query = params.toString();
+            history.replaceState(null, '', `${window.location.pathname}${query ? `?${query}` : ''}`);
+          }
+        } catch (_) { /* no-op */ }
+
+        signInBtn?.addEventListener('click', () => { try { window.DBSAuth?.openAuthModal?.(); } catch (_) { /* no-op */ } });
+        document.addEventListener('dbs-auth-changed', render);
+        render();
+        window.DBSAuth?.refreshSession?.();
+      })();
+    </script>
+  </body>
+</html>
