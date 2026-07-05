@@ -55,7 +55,7 @@ Certains chemins `.php` restent utilisés par le front-end (`pages/contact.html`
 - `/backend/consent.php`
 - `/export-csv.php`
 
-Ces noms de route sont conservés par compatibilité, mais les requêtes sont en réalité envoyées à `https://digitalblueskye-api.djelloulabid75.workers.dev` (ou à `window.DBS_API_BASE`), où **`cloudflare/worker-api.js` implémente lui-même ces routes** (voir son routeur, ex. `if (pathname === "/contact-submit.php") return await handleContactSubmit(...)`). Les fichiers PHP réels ne sont donc jamais appelés par le site en production.
+Ces noms de route sont conservés par compatibilité, mais les requêtes sont en réalité envoyées à `https://api.digitalblueskye.com` (domaine API canonique ; ou à `window.DBS_API_BASE`), où **`cloudflare/worker-api.js` implémente lui-même ces routes** (voir son routeur, ex. `if (pathname === "/contact-submit.php") return await handleContactSubmit(...)`). Les fichiers PHP réels ne sont donc jamais appelés par le site en production. L'ancienne URL `https://digitalblueskye-api.djelloulabid75.workers.dev` reste active comme fallback technique (`workers_dev = true`) le temps de la transition.
 
 **Exception à surveiller** : `export-csv.html` construit son URL d'export en chemin relatif (`/export-csv.php?...`) sans passer par la base URL du Worker, contrairement aux autres fichiers front cités ci-dessus. Sur le domaine Netlify réel, ce chemin n'existe pas (pas de runtime PHP, pas de redirection `_redirects`/ `netlify.toml` trouvée) — l'export semble donc potentiellement cassé en production. Ce point n'est pas corrigé ici ; à traiter dans une étape fonctionnelle séparée.
 

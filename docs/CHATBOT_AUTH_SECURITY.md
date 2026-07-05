@@ -76,7 +76,13 @@ utilisée pour signer le state OAuth (anti-CSRF) et les tokens.
 
 ## 5. Fournisseurs définitifs — configuration
 
-`AUTH_BASE_URL = https://digitalblueskye-api.djelloulabid75.workers.dev`
+`AUTH_BASE_URL = https://api.digitalblueskye.com` (domaine API canonique,
+`cloudflare/wrangler.api.toml` → `[[routes]] pattern = "api.digitalblueskye.com"`).
+
+L'ancienne URL `https://digitalblueskye-api.djelloulabid75.workers.dev` reste
+active (`workers_dev = true`) comme **fallback technique temporaire** le temps
+de la transition ; elle ne doit plus être utilisée comme référence dans le
+code front ni dans les nouvelles configurations OAuth.
 
 | Provider | Callback URL | Scopes | Variables |
 |---|---|---|---|
@@ -88,11 +94,17 @@ utilisée pour signer le state OAuth (anti-CSRF) et les tokens.
 
 **Google** — console.cloud.google.com → APIs & Services → Credentials → OAuth
 client ID (type *Web application*) → *Authorized redirect URIs* =
-`AUTH_BASE_URL/auth/callback/google` → configurer l'écran de consentement OAuth
-(scopes email/profile).
+`https://api.digitalblueskye.com/auth/callback/google` → configurer l'écran de
+consentement OAuth (scopes email/profile). Google autorise plusieurs redirect
+URIs : conserver l'ancienne `https://digitalblueskye-api.djelloulabid75.workers.dev/auth/callback/google`
+en plus de la nouvelle tant que la transition n'est pas terminée, pas besoin de
+la supprimer immédiatement.
 
 **GitHub** — github.com/settings/developers → New OAuth App → *Authorization
-callback URL* = `AUTH_BASE_URL/auth/callback/github`.
+callback URL* = `https://api.digitalblueskye.com/auth/callback/github`. GitHub
+n'autorise qu'une seule callback URL par app OAuth : utiliser directement la
+nouvelle URL canonique (basculer l'app existante, ou en créer une nouvelle si
+l'ancienne doit continuer à servir ailleurs).
 
 ### Checklist connexion par email
 
@@ -128,7 +140,7 @@ définir dans les pages (avant `ai-assistant.js`) :
 
 ```html
 <script>
-  window.DBS_AI_ENDPOINT = "https://digitalblueskye-api.djelloulabid75.workers.dev/ai/chat";
+  window.DBS_AI_ENDPOINT = "https://api.digitalblueskye.com/ai/chat";
 </script>
 ```
 

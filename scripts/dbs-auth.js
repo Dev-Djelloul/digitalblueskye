@@ -24,7 +24,7 @@
   'use strict';
 
   const API_BASE = (String(window.DBS_API_BASE || '').trim().replace(/\/+$/, '')) ||
-    'https://digitalblueskye-api.djelloulabid75.workers.dev';
+    'https://api.digitalblueskye.com';
 
   // Cache UX (jamais une preuve).
   const CACHE_KEY = 'dbs_user_cache';

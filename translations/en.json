@@ -802,7 +802,7 @@
       "capabilities": "Studio Capabilities",
       "accessCaption": "Secure access via admin token",
       "urlApiLabel": "API URL",
-      "urlApiPlaceholder": "https://digitalblueskye-api...workers.dev",
+      "urlApiPlaceholder": "https://api.digitalblueskye.com",
       "tokenAdminLabel": "Admin token",
       "connectButton": "Login",
       "backToSite": "Back to site"

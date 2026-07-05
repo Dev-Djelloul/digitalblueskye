@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (!commentsSection) return;
 
   const resolveApiUrl = (path) => {
-    const defaultBase = "https://digitalblueskye-api.djelloulabid75.workers.dev";
+    const defaultBase = "https://api.digitalblueskye.com";
     const explicitBase = String(window.DBS_API_BASE || "").trim();
     const inferredBase =
       window.location.hostname.startsWith("www.")

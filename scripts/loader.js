@@ -5,7 +5,7 @@ const CONSENT_SENT_KEY = 'dbs_consent_sent_v1';
 const CONSENT_DELAY_MS = 0;
 
 function resolveApiUrl(path) {
-  const defaultBase = 'https://digitalblueskye-api.djelloulabid75.workers.dev';
+  const defaultBase = 'https://api.digitalblueskye.com';
   const explicitBase = String(window.DBS_API_BASE || '').trim();
   const inferredBase =
     window.location.hostname.startsWith('www.')

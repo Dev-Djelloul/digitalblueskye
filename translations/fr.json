@@ -799,7 +799,7 @@
       "capabilities": "Capacités du Studio",
       "accessCaption": "Accès sécurisé par token administrateur",
       "urlApiLabel": "URL API",
-      "urlApiPlaceholder": "https://digitalblueskye-api...workers.dev",
+      "urlApiPlaceholder": "https://api.digitalblueskye.com",
       "tokenAdminLabel": "Token admin",
       "connectButton": "Connexion",
       "backToSite": "Retour au site"
