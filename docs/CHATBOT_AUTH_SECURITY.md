@@ -21,14 +21,19 @@ digitalblueskye-ai  (Worker IA, cloudflare/worker-openrouter.js)
 Le front ne considère plus `localStorage` comme une preuve de sécurité.
 **Source de vérité = `GET /auth/me`** sur le Worker API.
 
+Décision produit : les fournisseurs de connexion définitifs sont Google,
+GitHub et email générique par magic link. Facebook / Meta n'est pas intégré
+comme fournisseur de connexion et ne doit pas être recommandé comme extension
+future.
+
 ## 2. État actuel de l'implémentation
 
-- ✅ Backend OAuth complet (Google / GitHub) + connexion par email (magic link) : `cloudflare/auth.js`.
+- ✅ Connexion Google, GitHub et email générique (magic link) : `cloudflare/auth.js`.
 - ✅ Sessions serveur : cookie HttpOnly, seul le SHA-256 du token est stocké en D1.
 - ✅ Proxy IA protégé `POST /ai/chat` : session + rate limit + journalisation + service binding.
 - ✅ Migration D1 : `cloudflare/d1/auth-schema.sql` (+ création idempotente au runtime).
 - ✅ Front : `scripts/dbs-auth.js` interroge `/auth/me`, modale OAuth, fallback dev localhost.
-- ✅ `profile.html` : session serveur (avatar, provider, préférences, logout).
+- ✅ `profile.html` : session serveur (avatar, provider, préférences, paramètres IA, logout).
 - ⏳ **À faire par l'exploitant** : créer les apps OAuth, poser les secrets, appliquer la migration, (optionnel) basculer le front sur le proxy `/ai/chat`.
 
 Tant que les secrets OAuth ne sont pas posés, `/auth/providers` renvoie tous les
@@ -40,7 +45,7 @@ défaut (voir §7).
 
 | Route | Méthode | Rôle |
 |---|---|---|
-| `/auth/providers` | GET | Fournisseurs activés (booléens) |
+| `/auth/providers` | GET | Fournisseurs OAuth activés côté UX : Google / GitHub |
 | `/auth/login/:provider` | GET | Génère state (+PKCE Google), redirige vers l'OAuth |
 | `/auth/callback/:provider` | GET | Vérifie state, échange le code, crée la session, pose le cookie, redirige vers `/profile.html?auth=success` |
 | `/auth/email/request` | POST | `{ email }` → crée un token à usage unique et envoie le lien de connexion par email |
@@ -69,7 +74,7 @@ wrangler secret put AUTH_SESSION_SECRET   -c cloudflare/wrangler.api.toml
 `AUTH_SESSION_SECRET` : chaîne aléatoire longue (ex. `openssl rand -hex 32`),
 utilisée pour signer le state OAuth (anti-CSRF) et les tokens.
 
-## 5. Fournisseurs — configuration
+## 5. Fournisseurs définitifs — configuration
 
 `AUTH_BASE_URL = https://digitalblueskye-api.djelloulabid75.workers.dev`
 
@@ -135,6 +140,50 @@ session, applique le rate limit, journalise, puis relaie via `AI_WORKER`. Un
 > restreindre le Worker IA `digitalblueskye-ai` pour qu'il n'accepte QUE les
 > appels du service binding (ex. en-tête partagé secret vérifié), afin de fermer
 > l'accès direct résiduel.
+
+## 7bis. Paramètres IA centralisés
+
+`profile.html` est la source UX des préférences persistantes : préférences de
+réponse, compagnon IA, voix, audio, langue vocale, micro, densité d'affichage,
+suggestions et sources.
+
+La fenêtre de conversation doit rester centrée sur les actions immédiates :
+écrire, envoyer, micro, upload et actions ponctuelles. Les réglages durables ne
+doivent plus être ajoutés dans cette barre ; si un ancien contrôle reste visible
+pour compatibilité, il doit être considéré comme transitoire.
+
+En V1, les paramètres voix/audio/chat sont stockés localement dans
+`dbs_profile_preferences_cache` via `window.DBSAuth.getAssistantPreferences()`
+et `window.DBSAuth.saveAssistantPreferences()`. Ils pourront être migrés plus
+tard vers D1 `user_preferences`.
+
+Les badges de profil sont indicatifs côté UX : “Compte connecté” et “Session
+active” ne s'affichent que dans l'état authentifié. Les métriques d'usage,
+l'historique détaillé et certains statuts restent à brancher à la télémétrie
+serveur.
+
+## 7ter. Architecture des paramètres Digital Blue Skye AI
+
+Les paramètres sont répartis par niveau de responsabilité :
+
+- **Mon profil (`profile.html`)** : identité, préférences IA personnelles,
+  paramètres IA personnels, compagnon IA, sécurité du compte, utilisation IA,
+  historique et données locales du navigateur.
+- **Projet > Paramètres/RAG** : réglages propres au projet actif, activation du
+  RAG projet, nombre de passages documentaires, citations et usage éventuel de
+  la bibliothèque globale.
+- **Digital Blue Skye Studio / Admin** : réglages techniques avancés et
+  supervision : modèles IA, providers IA, fallback, recherche Web/Tavily, RAG
+  documentaire global, documents, agents spécialisés, quotas/coûts,
+  diagnostics, observabilité et sécurité.
+
+L'ancien panneau de réglages de l'assistant ne doit plus devenir une quatrième
+source de vérité. Il sert uniquement de redirection vers le bon espace et garde
+temporairement certaines actions locales d'export/sauvegarde tant qu'elles ne
+sont pas déplacées dans le Studio.
+
+Facebook / Meta est explicitement exclu de l'UX de connexion. Les seules
+options produit sont Google, GitHub et email générique par magic link.
 
 ## 8. CORS & cookies
 

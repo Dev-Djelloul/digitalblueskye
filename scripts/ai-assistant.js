@@ -798,6 +798,8 @@
   }
 
   function createVoiceControlsMarkup(micIconUrl, voiceIconUrl) {
+    // TODO(profile-ai-settings): ce select reste transitoire dans le composer.
+    // La source durable des réglages voix/audio est profile.html#ai-settings.
     return `
       <select id="ai-assistant-voice-select" class="ai-assistant-voice-select" aria-label="${i18n.voiceSelectLabel}" title="${i18n.voiceSelectLabel}"></select>
       <div class="ai-assistant-voice-controls">
@@ -5230,18 +5232,19 @@
     const form = document.createElement('div');
     form.className = 'ai-assistant-project-settings';
     form.innerHTML = `
+      <p class="ai-assistant-project-empty">Ces réglages s'appliquent uniquement au projet actif. Les préférences personnelles sont dans Mon profil ; les réglages techniques globaux sont dans Digital Blue Skye Studio.</p>
       <label>Nom<input data-field="name" value="${escapeHtml(project.name)}"></label>
       <label>Description<textarea data-field="description" rows="3">${escapeHtml(project.description || '')}</textarea></label>
       <label>Icone<input data-field="icon" value="${escapeHtml(project.icon || '')}" maxlength="2"></label>
       <label>Couleur<input data-field="color" value="${escapeHtml(project.color)}" type="color"></label>
-      <label class="ai-assistant-project-check"><input data-field="ragEnabled" type="checkbox"><span>Activer RAG projet</span></label>
-      <label>Nombre max de passages<select data-field="ragMaxPassages">
+      <label class="ai-assistant-project-check"><input data-field="ragEnabled" type="checkbox"><span>Activer le RAG pour ce projet</span></label>
+      <label>Nombre de passages documentaires utilisés<select data-field="ragMaxPassages">
         <option value="3">3</option>
         <option value="5">5</option>
         <option value="8">8</option>
       </select></label>
-      <label class="ai-assistant-project-check"><input data-field="ragUseGlobalLibrary" type="checkbox"><span>Utiliser bibliothèque globale</span></label>
-      <label class="ai-assistant-project-check"><input data-field="ragCitations" type="checkbox"><span>Citer les sources</span></label>`;
+      <label class="ai-assistant-project-check"><input data-field="ragUseGlobalLibrary" type="checkbox"><span>Utiliser la bibliothèque globale</span></label>
+      <label class="ai-assistant-project-check"><input data-field="ragCitations" type="checkbox"><span>Citer les sources dans les réponses</span></label>`;
     const maxPassages = form.querySelector('[data-field="ragMaxPassages"]');
     if (maxPassages) maxPassages.value = String(project.ragMaxPassages || 5);
     const ragEnabled = form.querySelector('[data-field="ragEnabled"]');
@@ -5412,46 +5415,69 @@
     input.click();
   }
 
+  function renderSettingsRedirectSection(section, items = [], note = '') {
+    if (note) {
+      const intro = document.createElement('p');
+      intro.className = 'ai-assistant-project-empty';
+      intro.textContent = note;
+      section.appendChild(intro);
+    }
+    items.forEach((item) => {
+      const link = document.createElement('a');
+      link.className = 'ai-assistant-settings-link';
+      link.href = item.href;
+      link.innerHTML = `<strong>${escapeHtml(item.label)}</strong><span>${escapeHtml(item.detail)}</span>`;
+      section.appendChild(link);
+    });
+  }
+
   function renderSettingsView() {
     if (!settingsSections) return;
     const sections = [
-      ['Profil', [['Nom', 'profile.name'], ['Email', 'profile.email'], ['Avatar', 'profile.avatar'], ['Langue', 'profile.language'], ['Fuseau horaire', 'profile.timezone']]],
-      ['IA', [['Modele par defaut', 'ai.defaultModel'], ['Fournisseur prefere', 'ai.preferredProvider'], ['Fallback automatique', 'ai.automaticFallback']]],
-      ['Recherche Web', [['Tavily active', 'web.tavilyEnabled'], ['Mode economique', 'web.economyMode'], ['Mode expert', 'web.expertMode'], ['Limite de resultats', 'web.maxResults']]],
-      ['Documents', [['Taille maximale (Mo)', 'documents.maxSizeMb'], ['Chunking', 'documents.chunking'], ['Indexation automatique', 'documents.automaticIndexing'], ['RAG automatique', 'documents.automaticRag'], ['Passages RAG max', 'documents.ragMaxPassages'], ['Bibliothèque globale RAG', 'documents.ragUseGlobalLibrary'], ['Citer les sources', 'documents.ragCitations']]],
-      ['Voix', null],
-      ['Apparence', [['Theme', 'appearance.theme']]],
-      ['Donnees', null]
+      {
+        title: 'Profil',
+        note: 'Identité, email, avatar, langue et fuseau horaire relèvent du profil personnel.',
+        links: [{ label: 'Ouvrir Identité', detail: 'profile.html#identity', href: '/profile.html#identity' }]
+      },
+      {
+        title: 'Voix',
+        note: 'Voix, audio, micro et interaction vocale sont des préférences personnelles persistantes.',
+        links: [{ label: 'Ouvrir Paramètres IA', detail: 'profile.html#ai-settings', href: '/profile.html#ai-settings' }]
+      },
+      {
+        title: 'Apparence',
+        note: 'Les préférences d’affichage de l’assistant sont gérées avec les paramètres IA personnels.',
+        links: [{ label: 'Ouvrir Paramètres IA', detail: 'profile.html#ai-settings', href: '/profile.html#ai-settings' }]
+      },
+      {
+        title: 'IA & Automatisation',
+        note: 'Modèles, providers IA, fallback, recherche Web/Tavily, documents globaux, agents, quotas, coûts et diagnostics appartiennent au Studio.',
+        links: [{ label: 'Ouvrir Digital Blue Skye Studio', detail: 'admin/index.html onglet Intelligence IA', href: '/admin/index.html#intelligence' }]
+      },
+      {
+        title: 'RAG projet',
+        note: 'Le RAG projet, les passages, citations et sources du projet restent dans Projet > Paramètres/RAG.',
+        links: [{ label: 'Ouvrir le projet actif', detail: 'Projet > Paramètres/RAG', href: '#project-settings' }]
+      },
+      {
+        title: 'Donnees',
+        note: 'Les données locales personnelles sont dans Mon profil. Les exports et sauvegardes restent ici temporairement, avant leur déplacement vers le Studio.'
+      }
     ];
     settingsSections.innerHTML = '';
-    sections.forEach(([title, fields]) => {
+    sections.forEach((config) => {
       const section = document.createElement('section');
       section.className = 'ai-assistant-settings-section';
       const heading = document.createElement('h4');
-      heading.textContent = title;
+      heading.textContent = config.title;
       section.appendChild(heading);
-      if (title === 'Donnees') {
+      if (config.title === 'Donnees') {
+        renderSettingsRedirectSection(section, [{ label: 'Ouvrir Données locales', detail: 'profile.html#local-data', href: '/profile.html#local-data' }], config.note);
         renderDataSettingsSection(section);
         settingsSections.appendChild(section);
         return;
       }
-      if (title === 'Voix') {
-        renderVoiceSettingsSection(section);
-        settingsSections.appendChild(section);
-        populateVoiceSelect(currentLanguage === 'en' ? 'en' : 'fr');
-        return;
-      }
-      fields.forEach(([label, path]) => {
-        const [group, key] = path.split('.');
-        const value = assistantSettingsState[group]?.[key];
-        const field = document.createElement('label');
-        const isBoolean = typeof value === 'boolean';
-        field.innerHTML = `<span>${escapeHtml(label)}</span><input data-settings-path="${escapeHtml(path)}" ${isBoolean ? 'type="checkbox"' : 'type="text"'}>`;
-        const inputNode = field.querySelector('input');
-        if (isBoolean) inputNode.checked = Boolean(value);
-        else inputNode.value = value || '';
-        section.appendChild(field);
-      });
+      renderSettingsRedirectSection(section, config.links || [], config.note);
       settingsSections.appendChild(section);
     });
   }
@@ -5466,6 +5492,17 @@
       ? 'The selected voice is saved locally in this browser and used for text-to-speech playback.'
       : 'La voix sélectionnée est enregistrée localement dans ce navigateur et utilisée pour la lecture vocale des réponses.';
     section.appendChild(note);
+  }
+
+  function handleSettingsRedirectHash(hash) {
+    if (hash === '#project-settings') {
+      const settingsTab = document.querySelector('[data-project-tab="settings"]');
+      if (settingsTab) {
+        settingsTab.click();
+        setWorkspaceView('project');
+        return;
+      }
+    }
   }
 
   function renderDataSettingsSection(section) {
@@ -6023,6 +6060,12 @@
       saveAssistantSettingsState();
     });
     settingsSections.addEventListener('click', (event) => {
+      const redirect = event.target?.closest?.('.ai-assistant-settings-link[href^="#"]');
+      if (redirect) {
+        event.preventDefault();
+        handleSettingsRedirectHash(redirect.getAttribute('href') || '');
+        return;
+      }
       const action = event.target?.closest?.('[data-settings-action]')?.dataset?.settingsAction;
       if (!action) return;
       if (action === 'export-conversation') exportActiveConversationFromSettings();
@@ -10169,7 +10212,15 @@
         detailLevel: preferences.detailLevel,
         preferredLanguage: preferences.preferredLanguage,
         tone: preferences.tone,
-        companion: preferences.companion
+        companion: preferences.companion,
+        aiVoice: preferences.aiVoice,
+        voiceAuto: preferences.voiceAuto,
+        readResponsesAloud: preferences.readResponsesAloud,
+        voiceLanguage: preferences.voiceLanguage,
+        showMicrophone: preferences.showMicrophone,
+        chatDensity: preferences.chatDensity,
+        showSuggestions: preferences.showSuggestions,
+        showSourcesWhenAvailable: preferences.showSourcesWhenAvailable
       };
     }
     return payload;

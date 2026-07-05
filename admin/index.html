@@ -12423,6 +12423,37 @@
       `;
     }
 
+    function renderAiAutomationArchitectureSection(health) {
+      const config = health?.configuration || {};
+      const cards = [
+        ["Modèles IA", `OpenRouter: ${config.openrouter_api_key_configured === true ? "configuré" : "non mesuré"}. Routage et fallback exposés en lecture seule.`, "lecture seule"],
+        ["Recherche Web", `Tavily: ${config.tavily_api_key_configured === true ? "configuré" : "non mesuré"}. Activation et quotas restent côté Studio.`, "lecture seule"],
+        ["RAG documentaire global", "Documents globaux, chunking, indexing et bibliothèque partagée sont pilotés ici, distincts du RAG projet.", "architecture"],
+        ["Documents", "Administration documentaire, exports, sauvegardes et diagnostics avancés appartiennent au Studio.", "architecture"],
+        ["Agents spécialisés", "Pilot, Builder, Scout, Muse, Guardian et orchestration future sont suivis dans ce cockpit.", "architecture"],
+        ["Quotas & coûts", "Suivi coût/volume à consolider côté observabilité, sans réglage utilisateur dans profile.html.", "à brancher"],
+        ["Diagnostics", "Santé Worker, erreurs récentes, pipeline et qualité restent lisibles depuis /admin/health.", "données réelles"],
+        ["Sécurité", "Secrets masqués, aucun secret affiché ni éditable côté front.", "lecture seule"],
+      ];
+      return `
+        <article class="intelligence-card">
+          <header><h2>IA & Automatisation</h2><span>${renderIntelBadge("architecture")}</span></header>
+          <div class="settings-note">
+            Zone Studio pour les réglages techniques avancés. Les préférences personnelles restent dans profile.html ; les réglages RAG propres à un projet restent dans Projet &gt; Paramètres/RAG.
+          </div>
+          <div class="settings-audit-grid">
+            ${cards.map(([title, detail, status]) => `
+              <div class="settings-audit-card">
+                <strong>${escapeHtml(title)}</strong>
+                <span>${escapeHtml(detail)}</span>
+                ${renderIntelBadge(status)}
+              </div>
+            `).join("")}
+          </div>
+        </article>
+      `;
+    }
+
     function renderIntelligenceDashboard(health) {
       const hasMeasuredData = Boolean(health?.checked_at && !health?.fallback);
       const headerStatus = hasMeasuredData ? renderIntelBadge("sain") : renderIntelBadge("aucune donnée");
@@ -12441,6 +12472,7 @@
             <p class="sync-label">Dernière synchronisation : ${escapeHtml(formatDate(health?.checked_at) || "non disponible")}</p>
           </div>
         </div>
+        ${renderAiAutomationArchitectureSection(health)}
         ${renderLatestDecisionCard(health)}
         ${renderIntelligencePipeline(health)}
         <section class="intelligence-grid">

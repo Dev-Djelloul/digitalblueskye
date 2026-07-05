@@ -27,6 +27,14 @@
         <h1 id="dbs-profile-signed-out-title">Mon profil</h1>
         <p class="dbs-profile-signed-out-text">Connectez-vous pour accéder à votre espace profil Digital Blue Skye AI.</p>
         <div class="dbs-oauth-list" data-dbs-signedout-providers></div>
+        <div class="dbs-auth-sep"><span>ou</span></div>
+        <form class="dbs-auth-form" data-dbs-profile-email-form novalidate>
+          <label class="dbs-auth-label" for="dbs-profile-magic-email">Connexion email générique</label>
+          <input id="dbs-profile-magic-email" class="dbs-auth-input" type="email" autocomplete="email" placeholder="vous@exemple.com" aria-label="Adresse email" />
+          <p class="dbs-auth-error" data-dbs-profile-email-error role="alert" hidden></p>
+          <p class="dbs-auth-note" data-dbs-profile-email-sent role="status" hidden>Vérifiez votre boîte mail : un lien de connexion vient de vous être envoyé.</p>
+          <button type="submit" class="dbs-auth-submit" data-dbs-profile-email-submit>Recevoir le lien de connexion</button>
+        </form>
       </section>
 
       <!-- Etat connecte : coquille a onglets. Masquee tant que l'auth n'a pas confirme une session. -->
@@ -44,8 +52,8 @@
           </div>
           <div class="dbs-profile-status-block">
             <div class="dbs-profile-status-row">
-              <span class="dbs-status-badge is-secure">Compte connecté</span>
-              <span class="dbs-status-badge">Session active</span>
+              <span class="dbs-status-badge is-secure" title="Affiché uniquement lorsqu'une session authentifiée est confirmée." aria-label="Compte connecté confirmé">Compte connecté</span>
+              <span class="dbs-status-badge" title="Session serveur active pour ce navigateur." aria-label="Session active">Session active</span>
             </div>
           </div>
         </div>
@@ -54,6 +62,7 @@
           <nav class="dbs-profile-nav" role="tablist" aria-label="Sections du profil">
             <button type="button" class="dbs-profile-tab is-active" id="dbs-tab-identity" role="tab" aria-selected="true" aria-controls="dbs-panel-identity" data-dbs-profile-tab="identity">Identité</button>
             <button type="button" class="dbs-profile-tab" id="dbs-tab-preferences" role="tab" aria-selected="false" aria-controls="dbs-panel-preferences" data-dbs-profile-tab="preferences">Préférences IA</button>
+            <button type="button" class="dbs-profile-tab" id="dbs-tab-ai-settings" role="tab" aria-selected="false" aria-controls="dbs-panel-ai-settings" data-dbs-profile-tab="ai-settings">Paramètres IA</button>
             <button type="button" class="dbs-profile-tab" id="dbs-tab-companion" role="tab" aria-selected="false" aria-controls="dbs-panel-companion" data-dbs-profile-tab="companion">Compagnon IA</button>
             <button type="button" class="dbs-profile-tab" id="dbs-tab-security" role="tab" aria-selected="false" aria-controls="dbs-panel-security" data-dbs-profile-tab="security">Sécurité</button>
             <button type="button" class="dbs-profile-tab" id="dbs-tab-usage" role="tab" aria-selected="false" aria-controls="dbs-panel-usage" data-dbs-profile-tab="usage">Utilisation IA</button>
@@ -134,6 +143,67 @@
               </form>
             </section>
 
+            <section class="dbs-profile-panel" id="dbs-panel-ai-settings" role="tabpanel" aria-labelledby="dbs-tab-ai-settings" data-dbs-profile-panel="ai-settings" hidden>
+              <div class="dbs-profile-panel-heading">
+                <h2>Paramètres IA</h2>
+                <p>Gérez les réglages persistants de l'assistant, notamment la voix, l'audio et les préférences d'interaction.</p>
+              </div>
+              <p class="dbs-profile-note">Ces paramètres s'appliquent à votre expérience globale. Les réglages RAG propres à chaque projet restent dans les paramètres du projet. Les réglages techniques avancés sont disponibles dans Digital Blue Skye Studio.</p>
+              <form class="dbs-profile-grid" data-dbs-ai-settings-form>
+                <div class="dbs-setting-field">
+                  <label for="dbs-ai-voice">Voix de l'assistant</label>
+                  <select id="dbs-ai-voice" data-dbs-ai-pref="aiVoice">
+                    <option value="auto">Voix auto</option>
+                  </select>
+                  <small>Les voix disponibles dépendent du navigateur et du système.</small>
+                </div>
+                <div class="dbs-setting-field">
+                  <label for="dbs-ai-voice-language">Langue vocale</label>
+                  <select id="dbs-ai-voice-language" data-dbs-ai-pref="voiceLanguage">
+                    <option value="auto">Automatique</option>
+                    <option value="fr">Français</option>
+                    <option value="en">Anglais</option>
+                  </select>
+                </div>
+                <label class="dbs-setting-field dbs-toggle-field">
+                  <span>Mode voix automatique</span>
+                  <input type="checkbox" data-dbs-ai-pref="voiceAuto" />
+                  <small>Voix auto activée lorsque disponible.</small>
+                </label>
+                <label class="dbs-setting-field dbs-toggle-field">
+                  <span>Lecture vocale des réponses</span>
+                  <input type="checkbox" data-dbs-ai-pref="readResponsesAloud" />
+                  <small>Activer la lecture audio automatique des réponses.</small>
+                </label>
+                <label class="dbs-setting-field dbs-toggle-field">
+                  <span>Micro / interaction vocale</span>
+                  <input type="checkbox" data-dbs-ai-pref="showMicrophone" />
+                  <small>Afficher le micro dans le chat.</small>
+                </label>
+                <div class="dbs-setting-field">
+                  <label for="dbs-ai-chat-density">Densité du chat</label>
+                  <select id="dbs-ai-chat-density" data-dbs-ai-pref="chatDensity">
+                    <option value="comfortable">Confortable</option>
+                    <option value="compact">Compacte</option>
+                  </select>
+                </div>
+                <label class="dbs-setting-field dbs-toggle-field">
+                  <span>Suggestions</span>
+                  <input type="checkbox" data-dbs-ai-pref="showSuggestions" />
+                  <small>Afficher les suggestions lorsque l'assistant en propose.</small>
+                </label>
+                <label class="dbs-setting-field dbs-toggle-field">
+                  <span>Sources disponibles</span>
+                  <input type="checkbox" data-dbs-ai-pref="showSourcesWhenAvailable" />
+                  <small>Afficher les sources quand elles sont disponibles.</small>
+                </label>
+                <div class="dbs-profile-form-footer">
+                  <button type="submit" class="dbs-profile-save">Enregistrer les paramètres IA</button>
+                  <p class="dbs-profile-saved" data-dbs-ai-settings-saved role="status" hidden>Paramètres IA enregistrés.</p>
+                </div>
+              </form>
+            </section>
+
             <section class="dbs-profile-panel" id="dbs-panel-companion" role="tabpanel" aria-labelledby="dbs-tab-companion" data-dbs-profile-panel="companion" hidden>
               <div class="dbs-profile-panel-heading">
                 <h2>Compagnon IA</h2>
@@ -151,9 +221,9 @@
               </div>
               <div class="dbs-info-grid">
                 <article class="dbs-security-card"><span>Fournisseur connecté</span><strong data-dbs-security-provider>OAuth</strong></article>
-                <article class="dbs-security-card"><span>Session active</span><strong>Oui</strong></article>
+                <article class="dbs-security-card"><span>Session</span><strong>Active</strong></article>
                 <article class="dbs-security-card"><span>Type de session</span><strong>Cookie sécurisé HttpOnly</strong></article>
-                <article class="dbs-security-card"><span>État du compte</span><strong>Compte sécurisé</strong></article>
+                <article class="dbs-security-card"><span>Compte</span><strong>Sécurisé</strong></article>
               </div>
               <div class="dbs-profile-actions-row">
                 <button type="button" class="dbs-profile-secondary-action" data-dbs-clear-local>Supprimer les données locales de ce navigateur</button>
@@ -237,7 +307,7 @@
           google: '/assets/images/ui/icons8-google-50.png',
           github: '/assets/images/ui/icons8-github-96.png'
         };
-        const VALID_TABS = ['identity', 'preferences', 'companion', 'security', 'usage', 'history', 'local-data'];
+        const VALID_TABS = ['identity', 'preferences', 'ai-settings', 'companion', 'security', 'usage', 'history', 'local-data'];
         const AVATAR_OVERRIDE_KEY = 'dbs_profile_avatar_override';
         // 256px suffisait pour le petit avatar circulaire, mais le rendait flou
         // une fois agrandi dans le lightbox (600px+). 768px reste largement
@@ -282,6 +352,16 @@
             ['creative', 'Créatif'],
             ['strategic', 'Stratégique']
           ]
+        };
+        const DEFAULT_AI_SETTINGS = {
+          aiVoice: 'auto',
+          voiceAuto: true,
+          readResponsesAloud: false,
+          voiceLanguage: 'auto',
+          showMicrophone: true,
+          chatDensity: 'comfortable',
+          showSuggestions: true,
+          showSourcesWhenAvailable: true
         };
         const COMPANIONS = [
           ['skye', 'Skye', 'Assistant général équilibré pour accompagner les échanges du quotidien.'],
@@ -334,7 +414,7 @@
             const providers = await window.DBSAuth.fetchProviders();
             host.innerHTML = Object.keys(PROVIDERS).map((key) => {
               const enabled = Boolean(providers[key]);
-              const label = enabled ? `Se connecter avec ${PROVIDERS[key]}` : `${PROVIDERS[key]} bientôt disponible`;
+              const label = enabled ? `Se connecter avec ${PROVIDERS[key]}` : `Connexion ${PROVIDERS[key]} non configurée`;
               return `<button type="button" class="dbs-oauth-btn is-${key}" data-provider="${key}" ${enabled ? '' : 'disabled'}
                 aria-label="${label}"><span class="dbs-oauth-icon" aria-hidden="true"><img src="${PROVIDER_ICONS[key]}" alt=""></span><span>${label}</span></button>`;
             }).join('');
@@ -352,6 +432,47 @@
           document.querySelectorAll('[data-dbs-pref]').forEach((select) => {
             const key = select.dataset.dbsPref;
             select.innerHTML = (PREF_OPTIONS[key] || []).map(([value, label]) => `<option value="${value}">${label}</option>`).join('');
+          });
+        }
+
+        function escapeHtml(value) {
+          return String(value).replace(/[&<>"']/g, (char) => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+          }[char]));
+        }
+
+        function fillAiVoiceOptions(selectedValue) {
+          const select = document.querySelector('[data-dbs-ai-pref="aiVoice"]');
+          if (!select) return;
+          const selected = selectedValue || select.value || 'auto';
+          const voiceOptions = [['auto', 'Voix auto']];
+          try {
+            const voices = window.speechSynthesis?.getVoices?.() || [];
+            voices
+              .filter((voice) => voice && voice.voiceURI)
+              .forEach((voice) => voiceOptions.push([voice.voiceURI, voice.name || voice.voiceURI]));
+          } catch (_) { /* no-op */ }
+          if (selected && !voiceOptions.some(([value]) => value === selected)) {
+            voiceOptions.push([selected, selected]);
+          }
+          select.innerHTML = voiceOptions.map(([value, label]) => `<option value="${escapeHtml(value)}">${escapeHtml(label)}</option>`).join('');
+          select.value = selected;
+        }
+
+        function renderAiSettings(preferences) {
+          const prefs = { ...DEFAULT_AI_SETTINGS, ...(preferences || {}) };
+          fillAiVoiceOptions(prefs.aiVoice);
+          document.querySelectorAll('[data-dbs-ai-pref]').forEach((field) => {
+            const key = field.dataset.dbsAiPref;
+            if (field.type === 'checkbox') {
+              field.checked = Boolean(prefs[key]);
+            } else if (key !== 'aiVoice') {
+              field.value = prefs[key] || DEFAULT_AI_SETTINGS[key] || '';
+            }
           });
         }
 
@@ -420,6 +541,7 @@
               if (select && prefs[key]) select.value = prefs[key];
             });
             renderCompanionGrid(prefs.companion || 'skye');
+            renderAiSettings(prefs);
             const summary = document.querySelector('[data-dbs-companion-summary]');
             if (summary) {
               const active = COMPANIONS.find(([key]) => key === (prefs.companion || 'skye'));
@@ -444,6 +566,20 @@
             }
           });
 
+          document.querySelector('[data-dbs-ai-settings-form]')?.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const patch = {};
+            document.querySelectorAll('[data-dbs-ai-pref]').forEach((field) => {
+              patch[field.dataset.dbsAiPref] = field.type === 'checkbox' ? field.checked : field.value;
+            });
+            try {
+              await window.DBSAuth.saveAssistantPreferences(patch);
+              setStatus('[data-dbs-ai-settings-saved]', true);
+            } catch (error) {
+              console.warn('[profile] ai settings save failed', error);
+            }
+          });
+
           document.querySelector('[data-dbs-preferences-form]')?.addEventListener('submit', async (event) => {
             event.preventDefault();
             const patch = {};
@@ -453,6 +589,42 @@
               setStatus('[data-dbs-preferences-saved]', true);
             } catch (error) {
               console.warn('[profile] preferences save failed', error);
+            }
+          });
+
+          document.querySelector('[data-dbs-profile-email-form]')?.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const form = event.currentTarget;
+            const input = form.querySelector('#dbs-profile-magic-email');
+            const errorEl = form.querySelector('[data-dbs-profile-email-error]');
+            const sentEl = form.querySelector('[data-dbs-profile-email-sent]');
+            const submitBtn = form.querySelector('[data-dbs-profile-email-submit]');
+            const email = String(input?.value || '').trim();
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+              if (errorEl) {
+                errorEl.hidden = false;
+                errorEl.textContent = 'Merci de saisir une adresse email valide.';
+              }
+              input?.classList.add('is-invalid');
+              input?.focus();
+              return;
+            }
+            if (errorEl) errorEl.hidden = true;
+            input?.classList.remove('is-invalid');
+            if (submitBtn) submitBtn.disabled = true;
+            try {
+              const result = await window.DBSAuth?.requestEmailLogin?.(email);
+              if (!result?.ok) throw new Error(result?.error || 'email_login_failed');
+              if (sentEl) sentEl.hidden = false;
+              if (input) input.disabled = true;
+              if (submitBtn) submitBtn.hidden = true;
+            } catch (error) {
+              console.warn('[profile] email login request failed', error);
+              if (errorEl) {
+                errorEl.hidden = false;
+                errorEl.textContent = 'Une erreur est survenue. Réessayez.';
+              }
+              if (submitBtn) submitBtn.disabled = false;
             }
           });
 
@@ -571,6 +743,8 @@
 
         try {
           fillPreferenceOptions();
+          fillAiVoiceOptions('auto');
+          try { window.speechSynthesis?.addEventListener?.('voiceschanged', () => renderAiSettings(window.DBSAuth?.getAssistantPreferences?.())); } catch (_) { /* no-op */ }
           wireTabs();
           activateTab(initialTabFromHash(), false);
           wireForms();

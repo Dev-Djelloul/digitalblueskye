@@ -31,6 +31,7 @@
   const DEV_SESSION_KEY = 'dbs_dev_session';
   const PROFILE_PREFS_KEY = 'dbs_profile_preferences_cache';
   const LEGACY_SESSION_KEYS = ['dbs_user_session', 'dbs_user_profile'];
+  const AUTH_FETCH_TIMEOUT_MS = 3500;
 
   const DEFAULT_ASSISTANT_PREFERENCES = Object.freeze({
     schemaVersion: 1,
@@ -40,6 +41,14 @@
     preferredLanguage: 'fr',
     tone: 'standard',
     companion: 'skye',
+    aiVoice: 'auto',
+    voiceAuto: true,
+    readResponsesAloud: false,
+    voiceLanguage: 'auto',
+    showMicrophone: true,
+    chatDensity: 'comfortable',
+    showSuggestions: true,
+    showSourcesWhenAvailable: true,
     updatedAt: ''
   });
 
@@ -49,8 +58,11 @@
     detailLevel: ['concise', 'balanced', 'detailed', 'expert'],
     preferredLanguage: ['fr', 'en', 'bilingual'],
     tone: ['standard', 'pedagogical', 'direct', 'expert', 'creative', 'strategic'],
-    companion: ['skye', 'pilot', 'builder', 'scout', 'muse', 'guardian']
+    companion: ['skye', 'pilot', 'builder', 'scout', 'muse', 'guardian'],
+    voiceLanguage: ['auto', 'fr', 'en'],
+    chatDensity: ['comfortable', 'compact']
   });
+  const BOOLEAN_PREFERENCE_KEYS = ['voiceAuto', 'readResponsesAloud', 'showMicrophone', 'showSuggestions', 'showSourcesWhenAvailable'];
 
   const AVATAR_FALLBACK = '/assets/images/portrait/my-notion-face-transparent.png';
   // Override avatar local (photo uploadee depuis profile.html) : jamais envoye
@@ -84,6 +96,11 @@
     Object.keys(PREFERENCE_OPTIONS).forEach((key) => {
       const value = String(fromSource[key] || '').trim();
       if (PREFERENCE_OPTIONS[key].includes(value)) clean[key] = value;
+    });
+    const aiVoice = String(fromSource.aiVoice || '').trim();
+    if (aiVoice && aiVoice.length <= 160) clean.aiVoice = aiVoice;
+    BOOLEAN_PREFERENCE_KEYS.forEach((key) => {
+      if (typeof fromSource[key] === 'boolean') clean[key] = fromSource[key];
     });
     clean.schemaVersion = 1;
     clean.updatedAt = typeof fromSource.updatedAt === 'string' ? fromSource.updatedAt : '';
@@ -160,6 +177,14 @@
     }));
   }
 
+  function fetchWithTimeout(url, options = {}, timeoutMs = AUTH_FETCH_TIMEOUT_MS) {
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => controller.abort(), timeoutMs);
+    return fetch(url, { ...options, signal: controller.signal }).finally(() => {
+      window.clearTimeout(timer);
+    });
+  }
+
   // --- Source de verite serveur --------------------------------------------
   async function refreshSession() {
     // Fallback dev prioritaire uniquement en localhost si une dev-session existe.
@@ -171,7 +196,7 @@
       return true;
     }
     try {
-      const res = await fetch(`${API_BASE}/auth/me`, { credentials: 'include' });
+      const res = await fetchWithTimeout(`${API_BASE}/auth/me`, { credentials: 'include' });
       const data = await res.json().catch(() => ({}));
       if (data?.ok && data.authenticated && data.user) {
         state = { ...state, authenticated: true, user: data.user, loaded: true };
@@ -191,7 +216,7 @@
   async function fetchProviders() {
     if (state.providers) return state.providers;
     try {
-      const res = await fetch(`${API_BASE}/auth/providers`, { credentials: 'include' });
+      const res = await fetchWithTimeout(`${API_BASE}/auth/providers`, { credentials: 'include' });
       const data = await res.json().catch(() => ({}));
       state.providers = data?.providers || { google: false, github: false };
     } catch (_) {
@@ -271,7 +296,7 @@
 
   async function requestEmailLogin(email) {
     try {
-      const res = await fetch(`${API_BASE}/auth/email/request`, {
+      const res = await fetchWithTimeout(`${API_BASE}/auth/email/request`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -299,7 +324,7 @@
       const meta = PROVIDER_META[key];
       const enabled = Boolean(providers[key]);
       const cont = en ? 'Continue with' : 'Continuer avec';
-      const unavailable = en ? `${meta.label} unavailable` : `${meta.label} bientôt disponible`;
+      const unavailable = en ? `${meta.label} not configured` : `${meta.label} non configuré`;
       return `<button type="button" class="dbs-oauth-btn ${meta.cls}" data-dbs-provider="${key}" ${enabled ? '' : 'disabled'}
         aria-label="${enabled ? `${cont} ${meta.label}` : unavailable}">
         <span class="dbs-oauth-icon" aria-hidden="true"><img src="${meta.icon}" alt=""></span>
@@ -434,7 +459,7 @@
     void modal.offsetWidth;
     modal.classList.add('is-open');
     setTimeout(() => {
-      (modal.querySelector('.dbs-oauth-btn:not([disabled])') || modal.querySelector('#dbs-auth-email') || modal.querySelector('[data-dbs-auth-close]'))?.focus();
+      (modal.querySelector('.dbs-oauth-btn:not([disabled])') || modal.querySelector('#dbs-auth-magic-email') || modal.querySelector('#dbs-auth-email') || modal.querySelector('[data-dbs-auth-close]'))?.focus();
     }, 60);
   }
 
@@ -506,10 +531,6 @@
     return `/profile.html${hash ? `#${hash}` : ''}`;
   }
 
-  function openAssistantSettingsFromAccount() {
-    document.getElementById('ai-assistant-settings-open')?.click();
-  }
-
   function ensureAccountPopover(slot) {
     let popover = slot.querySelector('#dbs-account-popover');
     if (popover) return popover;
@@ -525,13 +546,15 @@
         <img class="dbs-account-popover-avatar" src="${AVATAR_FALLBACK}" alt="" aria-hidden="true">
         <div class="dbs-account-popover-id">
           <strong class="dbs-account-popover-name"></strong>
+          <span class="dbs-account-popover-email"></span>
+          <span class="dbs-account-popover-provider"></span>
         </div>
       </div>
       <div class="dbs-account-popover-actions">
-        <a class="dbs-account-popover-action" role="menuitem" href="${accountUrl()}" data-dbs-account-i18n="profile">${labels.profile}</a>
+        <a class="dbs-account-popover-action" role="menuitem" href="${accountUrl('identity')}" data-dbs-account-i18n="profile">${labels.profile}</a>
         <a class="dbs-account-popover-action" role="menuitem" href="${accountUrl('preferences')}" data-dbs-account-i18n="preferences">${labels.preferences}</a>
+        <a class="dbs-account-popover-action" role="menuitem" href="${accountUrl('ai-settings')}" data-dbs-account-i18n="aiSettings">${labels.aiSettings}</a>
         <a class="dbs-account-popover-action" role="menuitem" href="${accountUrl('security')}" data-dbs-account-i18n="security">${labels.security}</a>
-        <button class="dbs-account-popover-action" type="button" role="menuitem" data-dbs-account-action="settings" data-dbs-account-i18n="settings">${labels.settings}</button>
         <button class="dbs-account-popover-action" type="button" role="menuitem" data-dbs-account-action="theme">${themeActionLabel()}</button>
         <button class="dbs-account-popover-action dbs-account-popover-danger" type="button" role="menuitem" data-dbs-account-action="logout" data-dbs-account-i18n="logout">${labels.logout}</button>
       </div>`;
@@ -539,11 +562,6 @@
     popover.addEventListener('click', async (event) => {
       const action = event.target.closest('[data-dbs-account-action]');
       if (!action) return;
-      if (action.dataset.dbsAccountAction === 'settings') {
-        closeAccountPopover();
-        openAssistantSettingsFromAccount();
-        return;
-      }
       if (action.dataset.dbsAccountAction === 'theme') {
         toggleThemeFromAccount();
         updateAccountPopover(getCachedUser());
@@ -576,8 +594,8 @@
     return {
       profile: en ? 'My profile' : 'Mon profil',
       preferences: en ? 'AI preferences' : 'Préférences IA',
+      aiSettings: en ? 'AI settings' : 'Paramètres IA',
       security: en ? 'Account security' : 'Sécurité du compte',
-      settings: en ? 'Settings' : 'Paramètres',
       logout: en ? 'Sign out' : 'Se déconnecter'
     };
   }
@@ -588,8 +606,12 @@
     const displayName = user.displayName || user.email || 'Digitalblueskye';
     setAttrIfChanged(popover.querySelector('.dbs-account-popover-avatar'), 'src', avatarSrc(user));
     const nameEl = popover.querySelector('.dbs-account-popover-name');
+    const emailEl = popover.querySelector('.dbs-account-popover-email');
+    const providerEl = popover.querySelector('.dbs-account-popover-provider');
     const themeEl = popover.querySelector('[data-dbs-account-action="theme"]');
     setTextIfChanged(nameEl, displayName);
+    setTextIfChanged(emailEl, user.email || '');
+    setTextIfChanged(providerEl, user.provider ? `Provider : ${user.provider}` : '');
     setTextIfChanged(themeEl, themeActionLabel());
     const labels = accountPopoverI18nLabels(isEnglish());
     popover.querySelectorAll('[data-dbs-account-i18n]').forEach((el) => {

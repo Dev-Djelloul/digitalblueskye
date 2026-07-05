@@ -11818,6 +11818,11 @@ body.profile-page .profile-main {
   font-size: 0.78rem;
 }
 
+.dbs-toggle-field > span {
+  color: rgb(246 247 255 / 88%);
+  font-size: 0.78rem;
+}
+
 .dbs-setting-field input,
 .dbs-setting-field select {
   background: rgb(14 17 40 / 95%);
@@ -11832,6 +11837,23 @@ body.profile-page .profile-main {
 .dbs-setting-field input[disabled] {
   color: rgb(235 240 255 / 60%);
   cursor: not-allowed;
+}
+
+.dbs-toggle-field input[type="checkbox"] {
+  accent-color: var(--accent-color);
+  min-height: 18px;
+  width: 18px;
+}
+
+.dbs-profile-note {
+  background: rgb(79 209 255 / 8%);
+  border: 1px solid rgb(79 209 255 / 18%);
+  border-radius: 10px;
+  color: rgb(235 240 255 / 72%);
+  font-size: 0.78rem;
+  line-height: 1.45;
+  margin: 0 0 16px;
+  padding: 10px 12px;
 }
 
 .dbs-setting-field small {
@@ -13275,6 +13297,36 @@ button.ai-assistant-project-row {
   font-family: var(--font-body);
   font-size: 0.92rem;
   margin: 0;
+}
+
+.ai-assistant-settings-link {
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid rgb(121 230 255 / 14%);
+  border-radius: 10px;
+  color: inherit;
+  display: grid;
+  gap: 4px;
+  padding: 10px 11px;
+  text-decoration: none;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.ai-assistant-settings-link:hover,
+.ai-assistant-settings-link:focus-visible {
+  background: rgb(121 230 255 / 12%);
+  border-color: rgb(121 230 255 / 35%);
+  outline: none;
+}
+
+.ai-assistant-settings-link strong {
+  color: rgb(246 247 255 / 94%);
+  font-size: 0.78rem;
+}
+
+.ai-assistant-settings-link span {
+  color: rgb(235 240 255 / 62%);
+  font-size: 0.68rem;
+  line-height: 1.35;
 }
 
 .ai-assistant-project-settings > strong {
@@ -16261,6 +16313,7 @@ body.ai-assistant-sidebar-is-resizing * {
 [data-theme="light"] .ai-assistant-project-stat span,
 [data-theme="light"] .ai-assistant-project-rag span,
 [data-theme="light"] .ai-assistant-project-row span,
+[data-theme="light"] .ai-assistant-settings-link span,
 [data-theme="light"] .ai-assistant-project-empty,
 [data-theme="light"] .ai-assistant-sidebar-empty-state p,
 [data-theme="light"] .ai-assistant-project-empty-panel p,
@@ -16274,6 +16327,7 @@ body.ai-assistant-sidebar-is-resizing * {
 [data-theme="light"] .ai-assistant-project-stat,
 [data-theme="light"] .ai-assistant-project-rag div,
 [data-theme="light"] .ai-assistant-project-row,
+[data-theme="light"] .ai-assistant-settings-link,
 [data-theme="light"] .ai-assistant-sidebar-empty-state,
 [data-theme="light"] .ai-assistant-project-empty-panel,
 [data-theme="light"] .ai-assistant-project-tabs {
@@ -16291,6 +16345,12 @@ body.ai-assistant-sidebar-is-resizing * {
   background-clip: padding-box, padding-box, padding-box, border-box;
   background-origin: border-box;
   border: 1px solid transparent;
+}
+
+[data-theme="light"] .ai-assistant-settings-link:hover,
+[data-theme="light"] .ai-assistant-settings-link:focus-visible {
+  background: rgb(93 93 255 / 14%);
+  border-color: rgb(93 93 255 / 32%);
 }
 
 /* Boutons bleus de l'onglet Sources/Documents — en mode clair, ces boutons heritaient
