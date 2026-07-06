@@ -493,24 +493,24 @@
   }
 
   function createProjectViewMarkup() {
+    const en = currentLanguage === 'en';
     return `
-      <section id="ai-assistant-project-view" class="ai-assistant-project-view" aria-label="Projet" hidden>
+      <section id="ai-assistant-project-view" class="ai-assistant-project-view" aria-label="${en ? 'Project' : 'Projet'}" hidden>
         <div class="ai-assistant-project-view-inner">
           <div class="ai-assistant-project-hero">
             <span id="ai-assistant-project-icon" class="ai-assistant-project-icon" aria-hidden="true">*</span>
             <div>
-              <h3 id="ai-assistant-project-title">Projet</h3>
+              <h3 id="ai-assistant-project-title">${en ? 'Project' : 'Projet'}</h3>
               <p id="ai-assistant-project-description"></p>
             </div>
           </div>
-          <div id="ai-assistant-project-stats" class="ai-assistant-project-stats"></div>
-          <div id="ai-assistant-project-tabs" class="ai-assistant-project-tabs" role="tablist" aria-label="Sections projet">
-            <button type="button" data-project-tab="conversations">Conversations</button>
-            <button type="button" data-project-tab="sources">Sources</button>
-            <button type="button" data-project-tab="memory">Mémoire</button>
+          <div id="ai-assistant-project-tabs" class="ai-assistant-project-tabs" role="tablist" aria-label="${en ? 'Project sections' : 'Sections projet'}">
+            <button type="button" data-project-tab="conversations">${en ? 'Conversations' : 'Conversations'}</button>
+            <button type="button" data-project-tab="sources">${en ? 'Sources' : 'Sources'}</button>
+            <button type="button" data-project-tab="memory">${en ? 'Memory' : 'Mémoire'}</button>
             <button type="button" data-project-tab="rag">RAG</button>
-            <button type="button" data-project-tab="stats">Statistiques</button>
-            <button type="button" data-project-tab="settings">Paramètres</button>
+            <button type="button" data-project-tab="stats">${en ? 'Statistics' : 'Statistiques'}</button>
+            <button type="button" data-project-tab="settings">${en ? 'Settings' : 'Paramètres'}</button>
           </div>
           <div id="ai-assistant-project-content" class="ai-assistant-project-content"></div>
         </div>
@@ -531,15 +531,16 @@
   }
 
   function createProjectDeleteDialogMarkup() {
+    const en = currentLanguage === 'en';
     return `
       <div id="ai-assistant-project-delete-dialog" class="ai-assistant-project-delete-dialog" aria-hidden="true" hidden>
         <div class="ai-assistant-project-delete-panel" role="dialog" aria-modal="true" aria-labelledby="ai-assistant-project-delete-title">
-          <h3 id="ai-assistant-project-delete-title">Supprimer definitivement ce projet ?</h3>
+          <h3 id="ai-assistant-project-delete-title">${en ? 'Permanently delete this project?' : 'Supprimer definitivement ce projet ?'}</h3>
           <p id="ai-assistant-project-delete-summary"></p>
-          <p class="ai-assistant-project-delete-note">Les documents physiques restent dans la bibliotheque globale.</p>
+          <p class="ai-assistant-project-delete-note">${en ? 'The physical documents remain in the global library.' : 'Les documents physiques restent dans la bibliotheque globale.'}</p>
           <div class="ai-assistant-project-delete-actions">
-            <button id="ai-assistant-project-delete-cancel" type="button">Annuler</button>
-            <button id="ai-assistant-project-delete-confirm" type="button">Supprimer</button>
+            <button id="ai-assistant-project-delete-cancel" type="button">${en ? 'Cancel' : 'Annuler'}</button>
+            <button id="ai-assistant-project-delete-confirm" type="button">${en ? 'Delete' : 'Supprimer'}</button>
           </div>
         </div>
       </div>`;
@@ -1103,7 +1104,6 @@
   const projectIcon = document.getElementById('ai-assistant-project-icon');
   const projectTitle = document.getElementById('ai-assistant-project-title');
   const projectDescription = document.getElementById('ai-assistant-project-description');
-  const projectStats = document.getElementById('ai-assistant-project-stats');
   const projectTabs = document.getElementById('ai-assistant-project-tabs');
   const projectContent = document.getElementById('ai-assistant-project-content');
   const settingsView = document.getElementById('ai-assistant-settings-view');
@@ -1214,7 +1214,7 @@
   const knowledgeChunkOverlap = 180;
   const maxRetrievedKnowledgeChunks = 8;
   const maxStoredMediaDataUrlLength = 1500000;
-  const maxProjectIconDataUrlLength = 512000;
+  const maxProjectIconDataUrlLength = 2000000;
   const libraryImagePreviewSize = 720;
   const libraryDocumentPreviewSize = 760;
   const simplifiedPreviewVersion = 2;
@@ -2127,26 +2127,121 @@
     openAssistantFilePicker(true, projectId);
   }
 
-  function linkLibraryDocumentToProject(projectId) {
-    const project = getProjectById(projectId);
-    if (!project) return;
-    const candidates = (knowledgeLibrary.documents || []).filter((doc) => !isDocumentLinkedToProject(doc, projectId));
+  // Modale de liaison bibliotheque (remplace l'ancien window.prompt numerote).
+  function ensureLibraryLinkModal() {
+    if (document.getElementById('ai-assistant-library-link-modal')) return;
+    const host = document.getElementById('ai-assistant-panel') || document.body;
+    const en = currentLanguage === 'en';
+    host.insertAdjacentHTML('beforeend', `
+      <div id="ai-assistant-library-link-modal" class="ai-assistant-search-modal ai-assistant-input-modal" aria-hidden="true" hidden>
+        <div class="ai-assistant-search-modal-backdrop" data-library-link-close></div>
+        <div class="ai-assistant-input-dialog ai-assistant-library-link-dialog" role="dialog" aria-modal="true" aria-label="${en ? 'Link from library' : 'Lier depuis la bibliothèque'}">
+          <div class="ai-assistant-input-modal-head">
+            <h3 class="ai-assistant-input-modal-title" id="ai-assistant-library-link-title"></h3>
+            <button class="ai-assistant-search-modal-close" type="button" data-library-link-close aria-label="${en ? 'Close' : 'Fermer'}">&times;</button>
+          </div>
+          <input id="ai-assistant-library-link-search" class="ai-assistant-input-modal-field" type="search" autocomplete="off" placeholder="${en ? 'Search a document…' : 'Rechercher un document…'}">
+          <div id="ai-assistant-library-link-list" class="ai-assistant-library-link-list"></div>
+        </div>
+      </div>`);
+
+    const modal = document.getElementById('ai-assistant-library-link-modal');
+    modal.addEventListener('click', (event) => {
+      if (event.target.closest('[data-library-link-close]')) { closeLibraryLinkModal(); return; }
+      const row = event.target.closest('[data-library-doc-id]');
+      if (row) confirmLibraryLinkChoice(row.dataset.libraryDocId);
+    });
+    document.getElementById('ai-assistant-library-link-search').addEventListener('input', (event) => {
+      renderLibraryLinkList(event.target.value);
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && !modal.hidden) closeLibraryLinkModal();
+    });
+  }
+
+  let libraryLinkContext = null;
+
+  function renderLibraryLinkList(query) {
+    if (!libraryLinkContext) return;
+    const list = document.getElementById('ai-assistant-library-link-list');
+    if (!list) return;
+    const en = currentLanguage === 'en';
+    const q = String(query || '').trim().toLowerCase();
+    const candidates = libraryLinkContext.candidates.filter((doc) => !q || doc.name.toLowerCase().includes(q));
+    list.innerHTML = '';
     if (!candidates.length) {
-      addMessage('bot', 'Aucun document disponible à lier depuis la Bibliothèque globale.');
+      const empty = document.createElement('p');
+      empty.className = 'ai-assistant-search-empty';
+      empty.textContent = en ? 'No matching document.' : 'Aucun document correspondant.';
+      list.appendChild(empty);
       return;
     }
-    const choice = window.prompt([
-      `Document à lier au projet "${project.name}" :`,
-      ...candidates.map((doc, index) => `${index + 1}. ${doc.name} (${doc.type || 'Document'})`)
-    ].join('\n'));
-    if (choice === null) return;
-    const doc = candidates[Number.parseInt(choice, 10) - 1];
+    candidates.forEach((doc) => {
+      const row = document.createElement('button');
+      row.type = 'button';
+      row.className = 'ai-assistant-library-link-row';
+      row.dataset.libraryDocId = doc.id;
+      row.innerHTML = `
+        <span class="ai-assistant-library-link-row-icon" aria-hidden="true">📄</span>
+        <span class="ai-assistant-library-link-row-body">
+          <span class="ai-assistant-library-link-row-name"></span>
+          <span class="ai-assistant-library-link-row-type"></span>
+        </span>`;
+      row.querySelector('.ai-assistant-library-link-row-name').textContent = doc.name;
+      row.querySelector('.ai-assistant-library-link-row-type').textContent = doc.type || (en ? 'Document' : 'Document');
+      list.appendChild(row);
+    });
+  }
+
+  function confirmLibraryLinkChoice(docId) {
+    if (!libraryLinkContext) return;
+    const { projectId, candidates } = libraryLinkContext;
+    const doc = candidates.find((item) => item.id === docId);
     if (!doc) return;
     attachDocumentToProject(doc, projectId);
     saveKnowledgeLibrary();
     renderProjectWorkspace();
     renderProjectList();
-    addMessage('bot', `Source liée au projet : ${doc.name}`);
+    closeLibraryLinkModal();
+    addMessage('bot', currentLanguage === 'en' ? `Source linked to the project: ${doc.name}` : `Source liée au projet : ${doc.name}`);
+  }
+
+  function openLibraryLinkModal(projectId, project, candidates) {
+    ensureLibraryLinkModal();
+    libraryLinkContext = { projectId, candidates };
+    const modal = document.getElementById('ai-assistant-library-link-modal');
+    const title = document.getElementById('ai-assistant-library-link-title');
+    const search = document.getElementById('ai-assistant-library-link-search');
+    if (!modal) return;
+    const en = currentLanguage === 'en';
+    if (title) title.textContent = en ? `Link a document to "${project.name}"` : `Lier un document au projet « ${project.name} »`;
+    if (search) search.value = '';
+    renderLibraryLinkList('');
+    modal.hidden = false;
+    modal.setAttribute('aria-hidden', 'false');
+    void modal.offsetWidth;
+    modal.classList.add('is-open');
+    setTimeout(() => search?.focus(), 60);
+  }
+
+  function closeLibraryLinkModal() {
+    const modal = document.getElementById('ai-assistant-library-link-modal');
+    if (!modal) return;
+    modal.classList.remove('is-open');
+    modal.setAttribute('aria-hidden', 'true');
+    setTimeout(() => { modal.hidden = true; }, 180);
+    libraryLinkContext = null;
+  }
+
+  function linkLibraryDocumentToProject(projectId) {
+    const project = getProjectById(projectId);
+    if (!project) return;
+    const candidates = (knowledgeLibrary.documents || []).filter((doc) => !isDocumentLinkedToProject(doc, projectId));
+    if (!candidates.length) {
+      addMessage('bot', currentLanguage === 'en' ? 'No document available to link from the global Library.' : 'Aucun document disponible à lier depuis la Bibliothèque globale.');
+      return;
+    }
+    openLibraryLinkModal(projectId, project, candidates);
   }
 
   function removeDocumentFromProject(docId, projectId) {
@@ -2173,10 +2268,40 @@
     else if (action === 'view') viewProjectSources(projectId);
   }
 
+  function resizeProjectIconDataUrl(dataUrl, maxSide = 320) {
+    return new Promise((resolve) => {
+      const image = new Image();
+      image.onload = () => {
+        const naturalWidth = image.naturalWidth || image.width || 1;
+        const naturalHeight = image.naturalHeight || image.height || 1;
+        const scale = Math.min(1, maxSide / Math.max(naturalWidth, naturalHeight));
+        const width = Math.max(1, Math.round(naturalWidth * scale));
+        const height = Math.max(1, Math.round(naturalHeight * scale));
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) { resolve(''); return; }
+        ctx.fillStyle = '#12121f';
+        ctx.fillRect(0, 0, width, height);
+        ctx.drawImage(image, 0, 0, width, height);
+        try {
+          resolve(canvas.toDataURL('image/jpeg', 0.86));
+        } catch (error) {
+          resolve('');
+        }
+      };
+      image.onerror = () => resolve('');
+      image.src = dataUrl;
+    });
+  }
+
+  // Toute image est acceptee : les photos sont automatiquement redimensionnees/compressees
+  // cote client (canvas) avant stockage, donc ni le format d'origine ni son poids ne bloquent l'import.
   async function importProjectIconImage(project) {
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = 'image/png,image/jpeg,image/jpg,image/webp,image/svg+xml';
+    input.accept = 'image/*';
     input.className = 'ai-assistant-file-input';
     input.setAttribute('aria-hidden', 'true');
     const file = await new Promise((resolve) => {
@@ -2187,17 +2312,15 @@
     });
     input.remove();
     if (!file) return;
-    if (!/^image\/(png|jpe?g|webp|svg\+xml)$/i.test(file.type || '')) {
-      addMessage('bot', 'Format d’icône non supporté. Utilisez png, jpg, jpeg, webp ou svg.');
+    if (!/^image\//i.test(file.type || '') && !/\.(png|jpe?g|webp|gif|bmp|heic|heif|avif|svg)$/i.test(file.name || '')) {
+      addMessage('bot', 'Ce fichier ne semble pas être une image.');
       return;
     }
-    if (file.size > maxProjectIconDataUrlLength) {
-      addMessage('bot', 'Icône trop lourde. Taille maximale recommandée : 512 Ko.');
-      return;
-    }
-    const dataUrl = await readFileAsDataUrl(file);
-    if (dataUrl.length > maxProjectIconDataUrlLength) {
-      addMessage('bot', 'Icône trop lourde après encodage. Utilisez une image plus légère.');
+    const rawDataUrl = await readFileAsDataUrl(file);
+    const isVector = /svg/i.test(file.type || '') || /\.svg$/i.test(file.name || '');
+    const dataUrl = isVector ? rawDataUrl : await resizeProjectIconDataUrl(rawDataUrl);
+    if (!dataUrl) {
+      addMessage('bot', 'Impossible de traiter cette image. Essayez un autre fichier.');
       return;
     }
     project.iconImage = dataUrl;
@@ -2238,11 +2361,19 @@
     const stats = getProjectStats(projectId);
     pendingDeleteProjectId = projectId;
     if (projectDeleteSummary) {
-      projectDeleteSummary.textContent = [
-        `${stats.conversations} conversation${stats.conversations > 1 ? 's' : ''}`,
-        `${stats.documents} source${stats.documents > 1 ? 's' : ''}`,
-        `${countProjectMemories(project)} mémoire${countProjectMemories(project) > 1 ? 's' : ''} associee${countProjectMemories(project) > 1 ? 's' : ''}`
-      ].join(' • ');
+      const en = currentLanguage === 'en';
+      const memories = countProjectMemories(project);
+      projectDeleteSummary.textContent = en
+        ? [
+            `${stats.conversations} conversation${stats.conversations > 1 ? 's' : ''}`,
+            `${stats.documents} source${stats.documents > 1 ? 's' : ''}`,
+            `${memories} associated memor${memories > 1 ? 'ies' : 'y'}`
+          ].join(' • ')
+        : [
+            `${stats.conversations} conversation${stats.conversations > 1 ? 's' : ''}`,
+            `${stats.documents} source${stats.documents > 1 ? 's' : ''}`,
+            `${memories} mémoire${memories > 1 ? 's' : ''} associee${memories > 1 ? 's' : ''}`
+          ].join(' • ');
     }
     projectDeleteDialog.hidden = false;
     projectDeleteDialog.setAttribute('aria-hidden', 'false');
@@ -2288,11 +2419,13 @@
   }
 
   function fileSizeFromChars(chars) {
+    const en = currentLanguage === 'en';
+    const units = en ? ['B', 'KB', 'MB'] : ['o', 'Ko', 'Mo'];
     const bytes = Math.max(0, Number(chars) || 0);
-    if (!bytes) return '0 o';
-    if (bytes < 1024) return `${bytes} o`;
-    if (bytes < 1024 * 1024) return `${Math.round(bytes / 102.4) / 10} Ko`;
-    return `${Math.round(bytes / (1024 * 102.4)) / 10} Mo`;
+    if (!bytes) return `0 ${units[0]}`;
+    if (bytes < 1024) return `${bytes} ${units[0]}`;
+    if (bytes < 1024 * 1024) return `${Math.round(bytes / 102.4) / 10} ${units[1]}`;
+    return `${Math.round(bytes / (1024 * 102.4)) / 10} ${units[2]}`;
   }
 
   function setWorkspaceView(view) {
@@ -2883,11 +3016,13 @@
   }
 
   function fileSizeLabel(bytes) {
+    const en = currentLanguage === 'en';
+    const units = en ? ['B', 'KB', 'MB'] : ['o', 'Ko', 'Mo'];
     const size = Number(bytes) || 0;
     if (!size) return '';
-    if (size < 1024) return `${size} o`;
-    if (size < 1024 * 1024) return `${Math.round(size / 102.4) / 10} Ko`;
-    return `${Math.round(size / (1024 * 102.4)) / 10} Mo`;
+    if (size < 1024) return `${size} ${units[0]}`;
+    if (size < 1024 * 1024) return `${Math.round(size / 102.4) / 10} ${units[1]}`;
+    return `${Math.round(size / (1024 * 102.4)) / 10} ${units[2]}`;
   }
 
   function createImageThumbnailDataUrl(dataUrl, maxSide = libraryImagePreviewSize) {
@@ -4775,6 +4910,37 @@
     if (speechRecognition) speechRecognition.lang = currentLanguage === 'en' ? 'en-US' : 'fr-FR';
     populateVoiceSelect(currentLanguage);
     renderCurrentConversation();
+
+    // Rafraichit les libelles de la barre d'onglets projet + tout le contenu
+    // de l'onglet actif (sinon la vue Projet restait figee en francais apres
+    // un changement de langue depuis la pop-up compte).
+    const projectTabLabels = {
+      conversations: 'Conversations',
+      sources: 'Sources',
+      memory: currentLanguage === 'en' ? 'Memory' : 'Mémoire',
+      rag: 'RAG',
+      stats: currentLanguage === 'en' ? 'Statistics' : 'Statistiques',
+      settings: currentLanguage === 'en' ? 'Settings' : 'Paramètres'
+    };
+    if (projectTabs) {
+      projectTabs.setAttribute('aria-label', currentLanguage === 'en' ? 'Project sections' : 'Sections projet');
+      projectTabs.querySelectorAll('button[data-project-tab]').forEach((button) => {
+        const label = projectTabLabels[button.dataset.projectTab];
+        if (label) button.textContent = label;
+      });
+    }
+    const projectView = document.getElementById('ai-assistant-project-view');
+    if (projectView) projectView.setAttribute('aria-label', currentLanguage === 'en' ? 'Project' : 'Projet');
+    if (getActiveProject()) renderProjectWorkspace();
+
+    // Rafraichit aussi la boite de suppression de projet (creee une seule fois
+    // au demarrage avec le texte fige dans la langue d'alors).
+    const deleteTitle = document.getElementById('ai-assistant-project-delete-title');
+    const deleteNote = document.querySelector('.ai-assistant-project-delete-note');
+    if (deleteTitle) deleteTitle.textContent = currentLanguage === 'en' ? 'Permanently delete this project?' : 'Supprimer definitivement ce projet ?';
+    if (deleteNote) deleteNote.textContent = currentLanguage === 'en' ? 'The physical documents remain in the global library.' : 'Les documents physiques restent dans la bibliotheque globale.';
+    if (projectDeleteCancelButton) projectDeleteCancelButton.textContent = currentLanguage === 'en' ? 'Cancel' : 'Annuler';
+    if (projectDeleteConfirmButton) projectDeleteConfirmButton.textContent = currentLanguage === 'en' ? 'Delete' : 'Supprimer';
   }
 
   function buildSessionId() { return `s_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`; }
@@ -5073,22 +5239,22 @@
   function renderProjectWorkspace() {
     const project = getActiveProject();
     if (!projectContent) return;
+    const en = currentLanguage === 'en';
     if (!project) {
     if (projectIcon) {
       projectIcon.style.setProperty('--project-color', '#79e6ff');
       projectIcon.textContent = '+';
       }
-      if (projectTitle) projectTitle.textContent = 'Aucun projet';
-      if (projectDescription) projectDescription.textContent = 'Créez un projet pour organiser conversations, documents et mémoire.';
-      if (projectStats) projectStats.innerHTML = '';
+      if (projectTitle) projectTitle.textContent = en ? 'No project' : 'Aucun projet';
+      if (projectDescription) projectDescription.textContent = en ? 'Create a project to organize conversations, documents and memory.' : 'Créez un projet pour organiser conversations, documents et mémoire.';
       projectContent.innerHTML = '';
       const empty = document.createElement('div');
       empty.className = 'ai-assistant-project-empty-panel';
       const text = document.createElement('p');
-      text.textContent = 'Aucun projet pour le moment.';
+      text.textContent = en ? 'No project yet.' : 'Aucun projet pour le moment.';
       const button = document.createElement('button');
       button.type = 'button';
-      button.textContent = 'Créer un projet';
+      button.textContent = en ? 'Create a project' : 'Créer un projet';
       button.addEventListener('click', createProjectFromPrompt);
       empty.append(text, button);
       projectContent.appendChild(empty);
@@ -5100,22 +5266,7 @@
       renderProjectIcon(project, projectIcon);
     }
     if (projectTitle) projectTitle.textContent = project.name;
-    if (projectDescription) projectDescription.textContent = project.description || 'Projet Digital Blue Skye AI.';
-    if (projectStats) {
-      projectStats.innerHTML = '';
-      [
-        ['Conversations', stats.conversations],
-        ['Sources', stats.documents],
-        ['Chunks', stats.chunks],
-        ['Taille indexée', fileSizeFromChars(stats.indexedSize)],
-        ['Dernière activité', stats.lastActivity ? formatProjectDate(stats.lastActivity) : '-']
-      ].forEach(([label, value]) => {
-        const item = document.createElement('div');
-        item.className = 'ai-assistant-project-stat';
-        item.innerHTML = `<span>${escapeHtml(label)}</span><strong>${escapeHtml(String(value))}</strong>`;
-        projectStats.appendChild(item);
-      });
-    }
+    if (projectDescription) projectDescription.textContent = project.description || (en ? 'Digital Blue Skye AI project.' : 'Projet Digital Blue Skye AI.');
     if (projectTabs) {
       projectTabs.querySelectorAll('button').forEach((button) => {
         button.classList.toggle('is-active', button.dataset.projectTab === activeProjectTab);
@@ -5150,7 +5301,7 @@
     const sessions = (sessionsState.sessions || [])
       .filter((session) => getSessionProjectId(session) === project.id)
       .sort((a, b) => b.updatedAt - a.updatedAt);
-    if (!sessions.length) { appendEmptyProjectState(container, 'Aucune conversation rattachee a ce projet.'); return; }
+    if (!sessions.length) { appendEmptyProjectState(container, currentLanguage === 'en' ? 'No conversation linked to this project yet.' : 'Aucune conversation rattachee a ce projet.'); return; }
     const list = document.createElement('div');
     list.className = 'ai-assistant-project-list';
     sessions.forEach((session) => {
@@ -5186,12 +5337,12 @@
   }
 
   function renderProjectSources(project, container) {
+    const en = currentLanguage === 'en';
     const actions = document.createElement('div');
     actions.className = 'ai-assistant-project-source-actions';
     [
-      ['Ajouter une source', () => importDocumentToProject(project.id)],
-      ['Importer un document', () => importDocumentToProject(project.id)],
-      ['Lier depuis la bibliothèque', () => linkLibraryDocumentToProject(project.id)]
+      [en ? 'Add a source' : 'Ajouter une source', () => importDocumentToProject(project.id)],
+      [en ? 'Link from library' : 'Lier depuis la bibliothèque', () => linkLibraryDocumentToProject(project.id)]
     ].forEach(([label, handler]) => {
       const button = document.createElement('button');
       button.type = 'button';
@@ -5202,7 +5353,12 @@
     container.appendChild(actions);
 
     const docs = getProjectDocuments(project.id).sort((a, b) => b.importedAt - a.importedAt);
-    if (!docs.length) { appendEmptyProjectState(container, 'Aucune source attachée à ce projet. Les documents restent disponibles dans la Bibliothèque globale.'); return; }
+    if (!docs.length) {
+      appendEmptyProjectState(container, en
+        ? 'No source attached to this project yet. Documents remain available in the global Library.'
+        : 'Aucune source attachée à ce projet. Les documents restent disponibles dans la Bibliothèque globale.');
+      return;
+    }
 
     // Classement par anciennete (Aujourd'hui / Cette semaine / Plus ancien),
     // chaque groupe conservant le tri du plus recent au plus ancien.
@@ -5231,7 +5387,7 @@
         const remove = document.createElement('button');
         remove.type = 'button';
         remove.className = 'ai-assistant-project-row-action';
-        remove.textContent = 'Retirer du projet';
+        remove.textContent = en ? 'Remove from project' : 'Retirer du projet';
         remove.addEventListener('click', () => removeDocumentFromProject(doc.id, project.id));
         row.appendChild(remove);
         list.appendChild(row);
@@ -5244,7 +5400,9 @@
     const textarea = document.createElement('textarea');
     textarea.className = 'ai-assistant-project-memory';
     textarea.value = project.memory || '';
-    textarea.placeholder = 'Mémoire persistante du projet : objectifs, preferences, contexte durable.';
+    textarea.placeholder = currentLanguage === 'en'
+      ? 'Persistent project memory: goals, preferences, durable context.'
+      : 'Mémoire persistante du projet : objectifs, preferences, contexte durable.';
     textarea.rows = 7;
     textarea.addEventListener('change', () => {
       project.memory = textarea.value.slice(0, 2500);
@@ -5256,50 +5414,305 @@
   }
 
   function renderProjectRag(project, container) {
+    const en = currentLanguage === 'en';
     const stats = getProjectStats(project.id);
     const sources = getProjectDocuments(project.id);
+    const ragActive = project.ragEnabled !== false;
+
+    const description = document.createElement('p');
+    description.className = 'ai-assistant-rag-description';
+    description.textContent = en
+      ? 'RAG (Retrieval-Augmented Generation) lets the assistant automatically search the relevant passages in this project\'s sources before answering, for more precise, sourced answers rather than relying solely on its general knowledge.'
+      : 'Le RAG (Retrieval-Augmented Generation) permet à l\'assistant de rechercher automatiquement les passages pertinents dans les sources de ce projet avant de répondre, pour des réponses plus précises et sourcées plutôt que fondées uniquement sur ses connaissances générales.';
+    container.appendChild(description);
+
+    const chunkDescription = document.createElement('p');
+    chunkDescription.className = 'ai-assistant-rag-description';
+    chunkDescription.textContent = en
+      ? 'A chunk is a text fragment automatically split out of each source document. This smaller, targeted unit is what the RAG searches and retrieves to build a relevant answer, instead of scanning the whole document.'
+      : 'Un chunk est un fragment de texte découpé automatiquement dans chaque document source. C\'est cette unité, plus petite et ciblée, que le RAG recherche et retrouve pour construire une réponse pertinente, plutôt que de parcourir le document entier.';
+    container.appendChild(chunkDescription);
+
+    const toggleRow = document.createElement('div');
+    toggleRow.className = 'ai-assistant-project-rag-toggle';
+    toggleRow.innerHTML = `
+      <label class="ai-assistant-project-check ai-assistant-rag-switch">
+        <input type="checkbox" data-rag-field="ragEnabled" ${ragActive ? 'checked' : ''}>
+        <span>${en ? 'Enable RAG for this project' : 'Activer le RAG pour ce projet'}</span>
+      </label>
+      <span class="ai-assistant-rag-badge ${ragActive ? 'is-on' : 'is-off'}">${ragActive ? (en ? 'Active' : 'Actif') : (en ? 'Inactive' : 'Inactif')}</span>`;
+    toggleRow.querySelector('[data-rag-field="ragEnabled"]').addEventListener('change', (event) => {
+      project.ragEnabled = Boolean(event.target.checked);
+      project.updatedAt = Date.now();
+      saveProjectsState();
+      renderProjectWorkspace();
+    });
+    container.appendChild(toggleRow);
+
     const block = document.createElement('div');
     block.className = 'ai-assistant-project-rag';
     block.innerHTML = `
-      <div><span>RAG projet actif</span><strong>${project.ragEnabled === false ? 'Non' : 'Oui'}</strong></div>
-      <div><span>Sources utilisées</span><strong>${sources.length} document${sources.length > 1 ? 's' : ''}</strong></div>
-      <div><span>Chunks disponibles</span><strong>${stats.chunks}</strong></div>
-      <div><span>Bibliothèque globale incluse</span><strong>${project.ragUseGlobalLibrary ? 'Oui' : 'Non'}</strong></div>
-      <p>Le RAG utilise uniquement les sources attachées à ce projet. Les autres fichiers restent dans la Bibliothèque globale.</p>`;
+      <div><span>${en ? 'Sources used' : 'Sources utilisées'}</span><strong>${sources.length} document${sources.length > 1 ? 's' : ''}</strong></div>
+      <div><span>${en ? 'Chunks available' : 'Chunks disponibles'}</span><strong>${stats.chunks}</strong></div>
+      <div><span>${en ? 'Global library included' : 'Bibliothèque globale incluse'}</span><strong>${project.ragUseGlobalLibrary ? (en ? 'Yes' : 'Oui') : (en ? 'No' : 'Non')}</strong></div>`;
     container.appendChild(block);
+
+    const list = document.createElement('div');
+    list.className = 'ai-assistant-rag-doc-list';
+    if (!sources.length) {
+      const empty = document.createElement('p');
+      empty.className = 'ai-assistant-project-empty';
+      empty.textContent = en ? 'No source indexed for this project.' : 'Aucune source indexée pour ce projet.';
+      list.appendChild(empty);
+    } else {
+      sources.forEach((doc) => {
+        const chunkCount = getKnowledgeDocChunks(doc).length;
+        const row = document.createElement('div');
+        row.className = 'ai-assistant-rag-doc-row';
+        row.innerHTML = `
+          <span class="ai-assistant-rag-doc-name"></span>
+          <span class="ai-assistant-rag-doc-chunks">${chunkCount} chunk${chunkCount > 1 ? 's' : ''}</span>
+          <button type="button" class="ai-assistant-rag-doc-reindex">${en ? 'Re-index' : 'Ré-indexer'}</button>`;
+        row.querySelector('.ai-assistant-rag-doc-name').textContent = doc.name;
+        row.querySelector('.ai-assistant-rag-doc-reindex').addEventListener('click', async (event) => {
+          const button = event.currentTarget;
+          button.disabled = true;
+          button.textContent = en ? 'Re-indexing…' : 'Ré-indexation…';
+          await indexDocumentRemotely(doc);
+          button.textContent = en ? 'Re-indexed ✓' : 'Ré-indexé ✓';
+          setTimeout(() => { button.disabled = false; button.textContent = en ? 'Re-index' : 'Ré-indexer'; }, 2000);
+        });
+        list.appendChild(row);
+      });
+    }
+    container.appendChild(list);
+
+    const footer = document.createElement('div');
+    footer.className = 'ai-assistant-rag-footer';
+    footer.innerHTML = `
+      <button type="button" class="ai-assistant-rag-configure-btn">${en ? 'Configure RAG →' : 'Configurer le RAG →'}</button>`;
+    footer.querySelector('.ai-assistant-rag-configure-btn').addEventListener('click', () => {
+      activeProjectTab = 'settings';
+      saveProjectsState();
+      renderProjectWorkspace();
+    });
+    container.appendChild(footer);
   }
 
   function renderProjectStatsDetail(project, stats, container) {
+    const en = currentLanguage === 'en';
+    const hero = document.createElement('div');
+    hero.className = 'ai-assistant-stats-hero';
+    hero.innerHTML = `
+      <span class="ai-assistant-stats-hero-icon" aria-hidden="true">💬</span>
+      <div>
+        <span class="ai-assistant-stats-hero-value">${stats.conversations}</span>
+        <span class="ai-assistant-stats-hero-label">conversation${stats.conversations > 1 ? 's' : ''}</span>
+      </div>`;
+    container.appendChild(hero);
+
     const block = document.createElement('div');
     block.className = 'ai-assistant-project-rag';
     block.innerHTML = `
-      <div><span>Conversations</span><strong>${stats.conversations}</strong></div>
-      <div><span>Sources</span><strong>${stats.documents}</strong></div>
-      <div><span>Chunks indexes</span><strong>${stats.chunks}</strong></div>
-      <div><span>Taille indexée</span><strong>${fileSizeFromChars(stats.indexedSize)}</strong></div>`;
+      <div><span>📄 ${en ? 'Sources' : 'Sources'}</span><strong>${stats.documents}</strong></div>
+      <div><span>🧩 ${en ? 'Indexed chunks' : 'Chunks indexes'}</span><strong>${stats.chunks}</strong></div>
+      <div><span>💾 ${en ? 'Indexed size' : 'Taille indexée'}</span><strong>${fileSizeFromChars(stats.indexedSize)}</strong></div>
+      <div><span>🕓 ${en ? 'Last activity' : 'Dernière activité'}</span><strong>${stats.lastActivity ? formatProjectDate(stats.lastActivity) : '-'}</strong></div>`;
     container.appendChild(block);
+
+    const docs = getProjectDocuments(project.id);
+    if (docs.length) {
+      const byType = new Map();
+      docs.forEach((doc) => {
+        const label = String(doc.type || doc.kind || (en ? 'Other' : 'Autre')).toUpperCase();
+        byType.set(label, (byType.get(label) || 0) + 1);
+      });
+      const breakdown = document.createElement('div');
+      breakdown.className = 'ai-assistant-stats-breakdown';
+      const title = document.createElement('span');
+      title.className = 'ai-assistant-stats-breakdown-title';
+      title.textContent = en ? 'Sources breakdown' : 'Répartition des sources';
+      breakdown.appendChild(title);
+      const pills = document.createElement('div');
+      pills.className = 'ai-assistant-stats-breakdown-pills';
+      Array.from(byType.entries()).forEach(([label, count]) => {
+        const pill = document.createElement('span');
+        pill.className = 'ai-assistant-stats-pill';
+        pill.textContent = `${label} · ${count}`;
+        pills.appendChild(pill);
+      });
+      breakdown.appendChild(pills);
+      container.appendChild(breakdown);
+    }
+
+    const exportBtn = document.createElement('button');
+    exportBtn.type = 'button';
+    exportBtn.className = 'ai-assistant-stats-export-btn';
+    exportBtn.textContent = en ? 'Export statistics' : 'Exporter les statistiques';
+    exportBtn.addEventListener('click', () => downloadProjectStatsJson(project.id));
+    container.appendChild(exportBtn);
+  }
+
+  function downloadProjectStatsJson(projectId) {
+    const project = getProjectById(projectId);
+    if (!project) return;
+    const stats = getProjectStats(projectId);
+    const docs = getProjectDocuments(projectId);
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      project: { id: project.id, name: project.name },
+      stats: { ...stats, indexedSizeLabel: fileSizeFromChars(stats.indexedSize) },
+      documentsByType: docs.reduce((acc, doc) => {
+        const label = String(doc.type || doc.kind || 'Autre').toUpperCase();
+        acc[label] = (acc[label] || 0) + 1;
+        return acc;
+      }, {})
+    };
+    downloadTextFile(
+      `digital-blue-skye-project-stats-${getProjectExportDateStamp()}.json`,
+      JSON.stringify(payload, null, 2),
+      'application/json;charset=utf-8'
+    );
+  }
+
+  const PROJECT_ICON_CHOICES = ['📁', '🚀', '🎯', '💡', '📚', '🧠', '🛠️', '🌍', '📈', '🎨', '🔬', '✈️'];
+  const PROJECT_COLOR_CHOICES = ['#79e6ff', '#9d7dff', '#c822ff', '#ff6bcb', '#ff8a65', '#ffd166', '#9df5c3', '#34dbc0', '#6f9bff', '#ff6b6b'];
+
+  // Modale de confirmation stylisee, remplace window.confirm() pour les actions
+  // de la Zone de danger (coherence visuelle avec le reste de l'assistant).
+  let confirmDialogResolve = null;
+
+  function ensureConfirmDialog() {
+    if (document.getElementById('ai-assistant-confirm-dialog')) return;
+    const host = document.getElementById('ai-assistant-panel') || document.body;
+    host.insertAdjacentHTML('beforeend', `
+      <div id="ai-assistant-confirm-dialog" class="ai-assistant-project-delete-dialog" aria-hidden="true" hidden>
+        <div class="ai-assistant-project-delete-panel" role="dialog" aria-modal="true" aria-labelledby="ai-assistant-confirm-dialog-title">
+          <h3 id="ai-assistant-confirm-dialog-title"></h3>
+          <p id="ai-assistant-confirm-dialog-message"></p>
+          <div class="ai-assistant-project-delete-actions">
+            <button id="ai-assistant-confirm-dialog-cancel" type="button">Annuler</button>
+            <button id="ai-assistant-confirm-dialog-confirm" type="button">Confirmer</button>
+          </div>
+        </div>
+      </div>`);
+    document.getElementById('ai-assistant-confirm-dialog').addEventListener('click', (event) => {
+      if (event.target.id === 'ai-assistant-confirm-dialog') resolveConfirmDialog(false);
+    });
+  }
+
+  function resolveConfirmDialog(result) {
+    const dialog = document.getElementById('ai-assistant-confirm-dialog');
+    if (dialog) {
+      dialog.hidden = true;
+      dialog.setAttribute('aria-hidden', 'true');
+    }
+    if (confirmDialogResolve) {
+      const resolve = confirmDialogResolve;
+      confirmDialogResolve = null;
+      resolve(result);
+    }
+  }
+
+  function showConfirmDialog({ title, message, confirmLabel, danger = true }) {
+    ensureConfirmDialog();
+    if (confirmDialogResolve) resolveConfirmDialog(false);
+    const en = currentLanguage === 'en';
+    const dialog = document.getElementById('ai-assistant-confirm-dialog');
+    document.getElementById('ai-assistant-confirm-dialog-title').textContent = title;
+    document.getElementById('ai-assistant-confirm-dialog-message').textContent = message;
+    const cancelBtn = document.getElementById('ai-assistant-confirm-dialog-cancel');
+    const confirmBtn = document.getElementById('ai-assistant-confirm-dialog-confirm');
+    cancelBtn.textContent = en ? 'Cancel' : 'Annuler';
+    confirmBtn.textContent = confirmLabel || (en ? 'Confirm' : 'Confirmer');
+    confirmBtn.id = 'ai-assistant-confirm-dialog-confirm';
+    confirmBtn.classList.toggle('ai-assistant-confirm-dialog-confirm--danger', danger !== false);
+    confirmBtn.classList.toggle('ai-assistant-confirm-dialog-confirm--neutral', danger === false);
+    cancelBtn.onclick = () => resolveConfirmDialog(false);
+    confirmBtn.onclick = () => resolveConfirmDialog(true);
+    dialog.hidden = false;
+    dialog.setAttribute('aria-hidden', 'false');
+    window.setTimeout(() => cancelBtn.focus(), 30);
+    return new Promise((resolve) => { confirmDialogResolve = resolve; });
+  }
+
+  function showProjectSettingsFeedback(container, message) {
+    let banner = container.querySelector('.ai-assistant-settings-feedback');
+    if (!banner) {
+      banner = document.createElement('p');
+      banner.className = 'ai-assistant-settings-feedback is-success';
+      banner.setAttribute('role', 'status');
+      banner.setAttribute('aria-live', 'polite');
+      container.prepend(banner);
+    }
+    banner.textContent = message;
+    banner.hidden = false;
+    window.clearTimeout(banner._hideTimer);
+    banner._hideTimer = window.setTimeout(() => { banner.hidden = true; }, 3000);
   }
 
   function renderProjectSettings(project, container) {
+    const en = currentLanguage === 'en';
     const form = document.createElement('div');
     form.className = 'ai-assistant-project-settings';
     form.innerHTML = `
-      <p class="ai-assistant-project-empty">Ces réglages s'appliquent uniquement au projet actif. Les préférences personnelles sont dans Mon profil ; les réglages techniques globaux sont dans Digital Blue Skye Studio.</p>
-      <label>Nom<input data-field="name" value="${escapeHtml(project.name)}"></label>
-      <label>Description<textarea data-field="description" rows="3">${escapeHtml(project.description || '')}</textarea></label>
-      <label>Icone<input data-field="icon" value="${escapeHtml(project.icon || '')}" maxlength="2"></label>
-      <label>Couleur<input data-field="color" value="${escapeHtml(project.color)}" type="color"></label>
-      <div id="project-rag-settings" class="ai-assistant-project-rag-settings" data-project-rag-settings tabindex="-1" aria-label="Réglages RAG du projet">
-        <strong>RAG du projet</strong>
-        <label class="ai-assistant-project-check"><input data-field="ragEnabled" type="checkbox"><span>Activer le RAG pour ce projet</span></label>
-        <label>Nombre de passages documentaires utilisés<select data-field="ragMaxPassages">
-          <option value="3">3</option>
-          <option value="5">5</option>
-          <option value="8">8</option>
-        </select></label>
-        <label class="ai-assistant-project-check"><input data-field="ragUseGlobalLibrary" type="checkbox"><span>Utiliser la bibliothèque globale</span></label>
-        <label class="ai-assistant-project-check"><input data-field="ragCitations" type="checkbox"><span>Citer les sources dans les réponses</span></label>
-      </div>`;
+      <section class="ai-assistant-settings-section ai-assistant-identity-card">
+        <div class="ai-assistant-identity-header">
+          <div class="ai-assistant-identity-photo" data-photo-trigger tabindex="0" role="button" aria-label="${en ? 'Change project photo' : 'Changer la photo du projet'}">
+            <span class="ai-assistant-identity-photo-content" data-photo-content></span>
+            <span class="ai-assistant-identity-photo-overlay" aria-hidden="true">📷</span>
+          </div>
+          <div class="ai-assistant-identity-title">
+            <input data-field="name" class="ai-assistant-identity-name-input" value="${escapeHtml(project.name)}" placeholder="${en ? 'Project name' : 'Nom du projet'}" maxlength="120">
+            <textarea data-field="description" class="ai-assistant-identity-desc-input" rows="2" placeholder="${en ? 'Add a description…' : 'Ajouter une description…'}">${escapeHtml(project.description || '')}</textarea>
+            <div class="ai-assistant-identity-photo-actions">
+              <button type="button" data-photo-action="upload">${en ? 'Change photo' : 'Changer la photo'}</button>
+              <button type="button" data-photo-action="remove" ${project.iconImage ? '' : 'hidden'}>${en ? 'Remove photo' : 'Retirer la photo'}</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="ai-assistant-identity-style-row">
+          <div class="ai-assistant-identity-style-group">
+            <span class="ai-assistant-identity-style-label">${en ? 'Icon' : 'Icône'}</span>
+            <div class="ai-assistant-icon-picker" role="group" aria-label="${en ? 'Choose an icon' : 'Choisir une icône'}">
+              ${PROJECT_ICON_CHOICES.map((emoji) => `<button type="button" class="ai-assistant-icon-choice" data-icon-choice="${emoji}">${emoji}</button>`).join('')}
+            </div>
+          </div>
+          <div class="ai-assistant-identity-style-group">
+            <span class="ai-assistant-identity-style-label">${en ? 'Color' : 'Couleur'}</span>
+            <div class="ai-assistant-color-picker" role="group" aria-label="${en ? 'Choose a color' : 'Choisir une couleur'}">
+              ${PROJECT_COLOR_CHOICES.map((color) => `<button type="button" class="ai-assistant-color-choice" data-color-choice="${color}" style="--swatch-color:${color}" aria-label="${color}"></button>`).join('')}
+              <button type="button" class="ai-assistant-color-choice ai-assistant-color-choice--custom" data-color-custom aria-label="${en ? 'Custom color' : 'Couleur personnalisée'}">
+                <input type="color" data-field="color" value="${escapeHtml(project.color)}" tabindex="-1" aria-hidden="true">
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="ai-assistant-settings-section">
+        <h4>${en ? 'RAG behavior' : 'Comportement RAG'}</h4>
+        <div id="project-rag-settings" class="ai-assistant-project-rag-settings" data-project-rag-settings tabindex="-1" aria-label="${en ? 'Project RAG settings' : 'Réglages RAG du projet'}">
+          <label class="ai-assistant-project-check"><input data-field="ragEnabled" type="checkbox"><span>${en ? 'Enable RAG for this project' : 'Activer le RAG pour ce projet'}</span></label>
+          <label>${en ? 'Number of document passages used' : 'Nombre de passages documentaires utilisés'}<select data-field="ragMaxPassages">
+            <option value="3">3</option>
+            <option value="5">5</option>
+            <option value="8">8</option>
+          </select></label>
+          <label class="ai-assistant-project-check"><input data-field="ragUseGlobalLibrary" type="checkbox"><span>${en ? 'Use the global library' : 'Utiliser la bibliothèque globale'}</span></label>
+          <label class="ai-assistant-project-check"><input data-field="ragCitations" type="checkbox"><span>${en ? 'Cite sources in answers' : 'Citer les sources dans les réponses'}</span></label>
+        </div>
+      </section>
+
+      <section class="ai-assistant-settings-section ai-assistant-settings-danger">
+        <div class="ai-assistant-settings-danger-actions">
+          <button type="button" data-danger-action="clear-memory" class="ai-assistant-settings-danger-btn ai-assistant-settings-danger-btn--amber">${en ? 'Clear project memory' : 'Vider la mémoire du projet'}</button>
+          <button type="button" data-danger-action="unlink-sources" class="ai-assistant-settings-danger-btn ai-assistant-settings-danger-btn--purple">${en ? 'Unlink all sources' : 'Délier toutes les sources'}</button>
+          <button type="button" data-danger-action="delete-project" class="ai-assistant-settings-danger-btn ai-assistant-settings-danger-btn--red">${en ? 'Delete project' : 'Supprimer le projet'}</button>
+        </div>
+      </section>`;
+
     const maxPassages = form.querySelector('[data-field="ragMaxPassages"]');
     if (maxPassages) maxPassages.value = String(project.ragMaxPassages || 5);
     const ragEnabled = form.querySelector('[data-field="ragEnabled"]');
@@ -5308,23 +5721,142 @@
     if (ragUseGlobalLibrary) ragUseGlobalLibrary.checked = Boolean(project.ragUseGlobalLibrary);
     const ragCitations = form.querySelector('[data-field="ragCitations"]');
     if (ragCitations) ragCitations.checked = project.ragCitations !== false;
+
+    const updateIdentity = () => {
+      const photoContent = form.querySelector('[data-photo-content]');
+      const photoEl = form.querySelector('[data-photo-trigger]');
+      const removeBtn = form.querySelector('[data-photo-action="remove"]');
+      if (photoEl) photoEl.style.setProperty('--project-color', project.color || '#79e6ff');
+      if (photoContent) {
+        photoContent.innerHTML = '';
+        if (project.iconImage) {
+          const img = document.createElement('img');
+          img.src = project.iconImage;
+          img.alt = '';
+          photoContent.appendChild(img);
+        } else {
+          photoContent.textContent = project.icon || project.name.slice(0, 1).toUpperCase();
+        }
+      }
+      if (removeBtn) removeBtn.hidden = !project.iconImage;
+      form.querySelectorAll('[data-icon-choice]').forEach((button) => {
+        button.classList.toggle('is-selected', !project.iconImage && button.dataset.iconChoice === project.icon);
+      });
+      form.querySelectorAll('[data-color-choice]').forEach((button) => {
+        button.classList.toggle('is-selected', button.dataset.colorChoice === project.color);
+      });
+    };
+    updateIdentity();
+
+    form.querySelectorAll('[data-icon-choice]').forEach((button) => {
+      button.addEventListener('click', () => {
+        project.icon = button.dataset.iconChoice;
+        project.iconImage = '';
+        project.updatedAt = Date.now();
+        saveProjectsState();
+        updateIdentity();
+        renderProjectList();
+      });
+    });
+
+    form.querySelectorAll('[data-color-choice]').forEach((button) => {
+      button.addEventListener('click', () => {
+        project.color = button.dataset.colorChoice;
+        project.updatedAt = Date.now();
+        const colorField = form.querySelector('[data-field="color"]');
+        if (colorField) colorField.value = project.color;
+        saveProjectsState();
+        updateIdentity();
+        renderProjectList();
+      });
+    });
+
+    form.querySelector('[data-color-custom]')?.addEventListener('click', (event) => {
+      if (event.target.closest('input')) return;
+      form.querySelector('[data-field="color"]')?.click();
+    });
+
+    form.querySelector('[data-field="color"]')?.addEventListener('input', (event) => {
+      project.color = event.target.value;
+      project.updatedAt = Date.now();
+      saveProjectsState();
+      updateIdentity();
+      renderProjectList();
+    });
+
+    const triggerPhotoUpload = async () => {
+      await importProjectIconImage(project);
+      updateIdentity();
+    };
+    form.querySelector('[data-photo-trigger]')?.addEventListener('click', triggerPhotoUpload);
+    form.querySelector('[data-photo-trigger]')?.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); triggerPhotoUpload(); }
+    });
+    form.querySelector('[data-photo-action="upload"]')?.addEventListener('click', triggerPhotoUpload);
+    form.querySelector('[data-photo-action="remove"]')?.addEventListener('click', () => {
+      project.iconImage = '';
+      project.updatedAt = Date.now();
+      saveProjectsState();
+      updateIdentity();
+      renderProjectList();
+    });
+
+    form.addEventListener('input', (event) => {
+      const field = event.target?.dataset?.field;
+      if (field === 'name' || field === 'description') updateIdentity();
+    });
+
     form.addEventListener('change', (event) => {
       const field = event.target?.dataset?.field;
-      if (!field) return;
+      if (!field || field === 'color') return;
       if (['ragEnabled', 'ragUseGlobalLibrary', 'ragCitations'].includes(field)) {
         project[field] = Boolean(event.target.checked);
       } else if (field === 'ragMaxPassages') {
         project[field] = [3, 5, 8].includes(Number(event.target.value)) ? Number(event.target.value) : 5;
       } else {
-        project[field] = field === 'icon'
-          ? String(event.target.value || '').slice(0, 2).toUpperCase()
-          : String(event.target.value || '').slice(0, field === 'description' ? 220 : 120);
-        if (field === 'icon' && project[field]) project.iconImage = '';
+        project[field] = String(event.target.value || '').slice(0, field === 'description' ? 220 : 120);
       }
       project.updatedAt = Date.now();
       saveProjectsState();
-      renderProjectWorkspace();
+      updateIdentity();
+      renderProjectList();
+      showProjectSettingsFeedback(form, en ? 'Changes saved.' : 'Modifications enregistrées.');
     });
+
+    form.addEventListener('click', async (event) => {
+      const action = event.target?.closest?.('[data-danger-action]')?.dataset?.dangerAction;
+      if (!action) return;
+      if (action === 'clear-memory') {
+        const confirmed = await showConfirmDialog({
+          title: en ? 'Clear project memory?' : 'Vider la mémoire du projet ?',
+          message: en
+            ? 'The persistent context (goals, preferences, durable information) saved for this project will be permanently deleted.'
+            : 'Le contexte persistant (objectifs, préférences, informations durables) enregistré pour ce projet sera définitivement supprimé.',
+          confirmLabel: en ? 'Clear memory' : 'Vider la mémoire'
+        });
+        if (!confirmed) return;
+        project.memory = '';
+        project.updatedAt = Date.now();
+        saveProjectsState();
+        showProjectSettingsFeedback(form, en ? 'Project memory cleared.' : 'Mémoire du projet vidée.');
+      } else if (action === 'unlink-sources') {
+        const confirmed = await showConfirmDialog({
+          title: en ? 'Unlink all sources?' : 'Délier toutes les sources ?',
+          message: en
+            ? 'Documents will remain available in the global Library, but will no longer be linked to this project.'
+            : 'Les documents resteront disponibles dans la Bibliothèque globale, mais ne seront plus rattachés à ce projet.',
+          confirmLabel: en ? 'Unlink sources' : 'Délier les sources'
+        });
+        if (!confirmed) return;
+        getProjectDocuments(project.id).forEach((doc) => detachDocumentFromProject(doc, project.id));
+        saveKnowledgeLibrary();
+        renderProjectList();
+        showProjectSettingsFeedback(form, en ? 'Sources unlinked from project.' : 'Sources déliées du projet.');
+      } else if (action === 'delete-project') {
+        requestProjectDeletion(project.id);
+      }
+    });
+
     container.appendChild(form);
   }
 
