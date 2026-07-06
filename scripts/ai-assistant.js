@@ -5006,10 +5006,20 @@
     applySidebarSectionState();
   }
 
+  // Le contexte RAG/memoire suit la CONVERSATION active (session.projectId),
+  // pas forcement projectsState.activeProjectId (qui ne sert qu'a la
+  // navigation "quel projet est ouvert dans le rail"). Voir le meme
+  // raisonnement documente plus loin, au moment de la resolution RAG d'un
+  // message envoye.
+  function getConversationProject() {
+    return getProjectById(getActiveSession()?.projectId) || null;
+  }
+
   function renderProjectList() {
     if (!projectList) return;
     projectList.innerHTML = '';
     const projects = projectsState.projects || [];
+    const conversationProject = getConversationProject();
     if (projectCount) projectCount.textContent = `(${projects.length})`;
     if (!projects.length) {
       const empty = document.createElement('div');
@@ -5033,8 +5043,15 @@
       button.className = 'ai-assistant-project-item';
       button.dataset.projectId = project.id;
       button.classList.toggle('is-active', project.id === projectsState.activeProjectId && panel?.classList.contains('is-project-view'));
+      // Mise en evidence lumineuse (bordure verte) : ce projet fournit le
+      // contexte RAG/memoire de la conversation actuellement affichee, quel
+      // que soit l'onglet ouvert (chat ou page projet). Remplace l'ancienne
+      // bande de statut "Projet actif : X - RAG ... - N sources".
+      button.classList.toggle('is-context-active', Boolean(conversationProject) && conversationProject.id === project.id);
       button.style.setProperty('--project-color', project.color);
-      button.title = project.name;
+      button.title = conversationProject && conversationProject.id === project.id
+        ? `${project.name} (${currentLanguage === 'en' ? 'active context for this conversation' : 'contexte actif de cette conversation'})`
+        : project.name;
 
       const icon = document.createElement('span');
       icon.className = 'ai-assistant-project-item-icon';
@@ -5618,27 +5635,14 @@
     }
   }
 
-  function renderRagStatus(status = '') {
-    if (!ragStatus) return;
-    const activeProject = getActiveProject();
-    if (!activeProject) {
-      ragStatus.hidden = false;
-      ragStatus.textContent = 'Mode global.';
-      return;
-    }
-    const sourceCount = getProjectDocuments(activeProject.id).length;
-    const ragActive = activeProject.ragEnabled === false ? 'RAG projet inactif' : 'RAG projet actif';
-    const suffix = status === 'no_match'
-      ? ' · aucun document pertinent trouvé'
-      : status === 'clarification'
-        ? ' · plusieurs documents, clarification requise'
-        : status === 'off_topic'
-          ? ' · question hors sujet, RAG non déclenché'
-          : status === 'backend_orchestrated'
-            ? ` · orchestration backend · ${sourceCount} source${sourceCount > 1 ? 's' : ''}`
-            : ` · ${sourceCount} source${sourceCount > 1 ? 's' : ''}`;
-    ragStatus.hidden = false;
-    ragStatus.textContent = `Projet actif : ${activeProject.name} · ${ragActive}${suffix}`;
+  // Remplace l'ancienne bande textuelle "Projet actif : X - RAG ... - N
+  // sources" par une mise en evidence lumineuse (bordure verte) directement
+  // sur le projet concerne dans le rail (voir .is-context-active dans
+  // renderProjectList() / style.css). Le parametre status n'a plus d'usage
+  // visuel ici mais reste accepte pour ne pas casser les appels existants.
+  function renderRagStatus() {
+    if (ragStatus) ragStatus.hidden = true;
+    renderProjectList();
   }
 
   function closeLibraryCardMenu() {

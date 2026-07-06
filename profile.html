@@ -4,11 +4,17 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex, nofollow" />
-    <title>Mon profil | Digitalblueskye</title>
+    <title data-i18n="pageTitle">Mon profil | Digitalblueskye</title>
     <script>
       (function() {
         const savedTheme = localStorage.getItem('theme') || 'dark';
         document.documentElement.setAttribute('data-theme', savedTheme);
+        // Cette page ne charge pas scripts/translator.js : sans ceci,
+        // document.documentElement.lang restait fige sur "fr" apres un
+        // changement de langue depuis la pop-up compte (isEnglish() dans
+        // dbs-auth.js ne lit que cet attribut, pas localStorage directement).
+        const savedLanguage = (localStorage.getItem('language') || '').toLowerCase().startsWith('en') ? 'en' : 'fr';
+        document.documentElement.lang = savedLanguage;
       })();
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Gelasio:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
@@ -17,23 +23,23 @@
     <meta name="theme-color" content="#1f1d2b">
   </head>
   <body class="profile-page">
-    <a href="/index.html" class="profile-floating-logo" title="Retour à l'accueil" aria-label="Retour à l'accueil">
+    <a href="/index.html" class="profile-floating-logo" data-i18n-title="backToHome" data-i18n-aria-label="backToHome" title="Retour à l'accueil" aria-label="Retour à l'accueil">
       <img src="/assets/images/logo/DigitalBlueSkye-Logo.png" alt="Digitalblueskye" width="42" height="42" />
     </a>
 
     <main class="profile-main">
       <!-- Etat non connecte : toujours affiche par defaut tant que l'auth n'a pas repondu. -->
       <section class="dbs-profile-page profile-card dbs-profile-signed-out-card" data-dbs-profile-signed-out aria-labelledby="dbs-profile-signed-out-title">
-        <h1 id="dbs-profile-signed-out-title">Mon profil</h1>
-        <p class="dbs-profile-signed-out-text">Connectez-vous pour accéder à votre espace profil Digital Blue Skye AI.</p>
+        <h1 id="dbs-profile-signed-out-title" data-i18n="signedOutTitle">Mon profil</h1>
+        <p class="dbs-profile-signed-out-text" data-i18n="signedOutText">Connectez-vous pour accéder à votre espace profil Digital Blue Skye AI.</p>
         <div class="dbs-oauth-list" data-dbs-signedout-providers></div>
-        <div class="dbs-auth-sep"><span>ou</span></div>
+        <div class="dbs-auth-sep"><span data-i18n="or">ou</span></div>
         <form class="dbs-auth-form" data-dbs-profile-email-form novalidate>
-          <label class="dbs-auth-label" for="dbs-profile-magic-email">Connexion email générique</label>
-          <input id="dbs-profile-magic-email" class="dbs-auth-input" type="email" autocomplete="email" placeholder="vous@exemple.com" aria-label="Adresse email" />
+          <label class="dbs-auth-label" for="dbs-profile-magic-email" data-i18n="genericEmailLogin">Connexion email générique</label>
+          <input id="dbs-profile-magic-email" class="dbs-auth-input" type="email" autocomplete="email" placeholder="vous@exemple.com" data-i18n-aria-label="emailAddress" aria-label="Adresse email" />
           <p class="dbs-auth-error" data-dbs-profile-email-error role="alert" hidden></p>
-          <p class="dbs-auth-note" data-dbs-profile-email-sent role="status" hidden>Vérifiez votre boîte mail : un lien de connexion vient de vous être envoyé.</p>
-          <button type="submit" class="dbs-auth-submit" data-dbs-profile-email-submit>Recevoir le lien de connexion</button>
+          <p class="dbs-auth-note" data-dbs-profile-email-sent role="status" hidden data-i18n="emailLinkSent">Vérifiez votre boîte mail : un lien de connexion vient de vous être envoyé.</p>
+          <button type="submit" class="dbs-auth-submit" data-dbs-profile-email-submit data-i18n="receiveLoginLink">Recevoir le lien de connexion</button>
         </form>
       </section>
 
@@ -46,41 +52,41 @@
           </div>
           <div class="dbs-profile-identity-block">
             <div>
-              <h1 id="dbs-profile-title">Mon profil</h1>
-              <p class="dbs-profile-shell-subtitle">Gérez votre identité, vos préférences IA, votre sécurité et votre expérience assistant.</p>
+              <h1 id="dbs-profile-title" data-i18n="myProfile">Mon profil</h1>
+              <p class="dbs-profile-shell-subtitle" data-i18n="shellSubtitle">Gérez votre identité, vos préférences IA, votre sécurité et votre expérience assistant.</p>
             </div>
           </div>
           <div class="dbs-profile-status-block">
             <div class="dbs-profile-status-row">
-              <span class="dbs-status-badge is-secure" title="Affiché uniquement lorsqu'une session authentifiée est confirmée." aria-label="Compte connecté confirmé">Compte connecté</span>
-              <span class="dbs-status-badge" title="Session serveur active pour ce navigateur." aria-label="Session active">Session active</span>
+              <span class="dbs-status-badge is-secure" data-i18n="accountConnected" data-i18n-title="accountConnectedHint" data-i18n-aria-label="accountConnectedAria" title="Affiché uniquement lorsqu'une session authentifiée est confirmée." aria-label="Compte connecté confirmé">Compte connecté</span>
+              <span class="dbs-status-badge" data-i18n="sessionActive" data-i18n-title="sessionActiveHint" data-i18n-aria-label="sessionActive" title="Session serveur active pour ce navigateur." aria-label="Session active">Session active</span>
             </div>
           </div>
         </div>
 
         <div class="dbs-profile-layout">
-          <nav class="dbs-profile-nav" role="tablist" aria-label="Sections du profil">
-            <button type="button" class="dbs-profile-tab is-active" id="dbs-tab-identity" role="tab" aria-selected="true" aria-controls="dbs-panel-identity" data-dbs-profile-tab="identity">Identité</button>
-            <button type="button" class="dbs-profile-tab" id="dbs-tab-preferences" role="tab" aria-selected="false" aria-controls="dbs-panel-preferences" data-dbs-profile-tab="preferences">Préférences IA</button>
-            <button type="button" class="dbs-profile-tab" id="dbs-tab-ai-settings" role="tab" aria-selected="false" aria-controls="dbs-panel-ai-settings" data-dbs-profile-tab="ai-settings">Paramètres IA</button>
-            <button type="button" class="dbs-profile-tab" id="dbs-tab-companion" role="tab" aria-selected="false" aria-controls="dbs-panel-companion" data-dbs-profile-tab="companion">Compagnon IA</button>
-            <button type="button" class="dbs-profile-tab" id="dbs-tab-security" role="tab" aria-selected="false" aria-controls="dbs-panel-security" data-dbs-profile-tab="security">Sécurité</button>
-            <button type="button" class="dbs-profile-tab" id="dbs-tab-usage" role="tab" aria-selected="false" aria-controls="dbs-panel-usage" data-dbs-profile-tab="usage">Utilisation IA</button>
-            <button type="button" class="dbs-profile-tab" id="dbs-tab-history" role="tab" aria-selected="false" aria-controls="dbs-panel-history" data-dbs-profile-tab="history">Historique</button>
-            <button type="button" class="dbs-profile-tab" id="dbs-tab-local-data" role="tab" aria-selected="false" aria-controls="dbs-panel-local-data" data-dbs-profile-tab="local-data">Données locales</button>
+          <nav class="dbs-profile-nav" role="tablist" data-i18n-aria-label="profileSectionsAria" aria-label="Sections du profil">
+            <button type="button" class="dbs-profile-tab is-active" id="dbs-tab-identity" role="tab" aria-selected="true" aria-controls="dbs-panel-identity" data-dbs-profile-tab="identity" data-i18n="tabIdentity">Identité</button>
+            <button type="button" class="dbs-profile-tab" id="dbs-tab-preferences" role="tab" aria-selected="false" aria-controls="dbs-panel-preferences" data-dbs-profile-tab="preferences" data-i18n="tabPreferences">Préférences IA</button>
+            <button type="button" class="dbs-profile-tab" id="dbs-tab-ai-settings" role="tab" aria-selected="false" aria-controls="dbs-panel-ai-settings" data-dbs-profile-tab="ai-settings" data-i18n="tabAiSettings">Paramètres IA</button>
+            <button type="button" class="dbs-profile-tab" id="dbs-tab-companion" role="tab" aria-selected="false" aria-controls="dbs-panel-companion" data-dbs-profile-tab="companion" data-i18n="tabCompanion">Compagnon IA</button>
+            <button type="button" class="dbs-profile-tab" id="dbs-tab-security" role="tab" aria-selected="false" aria-controls="dbs-panel-security" data-dbs-profile-tab="security" data-i18n="tabSecurity">Sécurité</button>
+            <button type="button" class="dbs-profile-tab" id="dbs-tab-usage" role="tab" aria-selected="false" aria-controls="dbs-panel-usage" data-dbs-profile-tab="usage" data-i18n="tabUsage">Utilisation IA</button>
+            <button type="button" class="dbs-profile-tab" id="dbs-tab-history" role="tab" aria-selected="false" aria-controls="dbs-panel-history" data-dbs-profile-tab="history" data-i18n="tabHistory">Historique</button>
+            <button type="button" class="dbs-profile-tab" id="dbs-tab-local-data" role="tab" aria-selected="false" aria-controls="dbs-panel-local-data" data-dbs-profile-tab="local-data" data-i18n="tabLocalData">Données locales</button>
           </nav>
 
           <div class="dbs-profile-content">
             <section class="dbs-profile-panel is-active" id="dbs-panel-identity" role="tabpanel" aria-labelledby="dbs-tab-identity" data-dbs-profile-panel="identity">
               <div class="dbs-profile-panel-heading">
-                <h2>Identité</h2>
-                <p>Informations du compte connecté et nom affiché dans l'expérience IA.</p>
+                <h2 data-i18n="tabIdentity">Identité</h2>
+                <p data-i18n="identityDesc">Informations du compte connecté et nom affiché dans l'expérience IA.</p>
               </div>
               <form class="dbs-profile-grid" data-dbs-identity-form>
                 <div class="dbs-identity-card" style="grid-column: 1 / -1;">
                   <div class="dbs-profile-avatar-upload">
-                    <img class="dbs-profile-identity-avatar" data-dbs-profile-avatar data-dbs-avatar-enlarge src="/assets/images/portrait/my-notion-face-transparent.png" alt="Photo de profil" title="Agrandir la photo" />
-                    <label class="dbs-avatar-upload-btn" for="dbs-profile-avatar-input" aria-label="Changer la photo de profil" title="Changer la photo de profil">
+                    <img class="dbs-profile-identity-avatar" data-dbs-profile-avatar data-dbs-avatar-enlarge src="/assets/images/portrait/my-notion-face-transparent.png" data-i18n-alt="profilePhoto" data-i18n-title="enlargePhoto" alt="Photo de profil" title="Agrandir la photo" />
+                    <label class="dbs-avatar-upload-btn" for="dbs-profile-avatar-input" data-i18n-aria-label="changePhoto" data-i18n-title="changePhoto" aria-label="Changer la photo de profil" title="Changer la photo de profil">
                       <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2Z"></path><circle cx="12" cy="13" r="4"></circle></svg>
                     </label>
                     <input type="file" id="dbs-profile-avatar-input" data-dbs-avatar-input accept="image/png,image/jpeg,image/webp" hidden />
@@ -88,194 +94,194 @@
                   <div>
                     <strong data-dbs-profile-display-label>Digitalblueskye</strong>
                     <span data-dbs-profile-provider>Connecté via OAuth</span>
-                    <p class="dbs-profile-saved" data-dbs-avatar-saved role="status" hidden>Photo de profil mise à jour.</p>
+                    <p class="dbs-profile-saved" data-dbs-avatar-saved role="status" hidden data-i18n="photoUpdated">Photo de profil mise à jour.</p>
                   </div>
-                  <button type="button" class="dbs-profile-logout-icon dbs-identity-card-badge" data-dbs-logout aria-label="Se déconnecter" title="Se déconnecter">
+                  <button type="button" class="dbs-profile-logout-icon dbs-identity-card-badge" data-dbs-logout data-i18n-aria-label="signOut" data-i18n-title="signOut" aria-label="Se déconnecter" title="Se déconnecter">
                     <img src="/assets/images/ui/icons8-logout-100.png" alt="" aria-hidden="true" width="24" height="24" />
                   </button>
                 </div>
                 <div class="dbs-setting-field">
-                  <label for="dbs-profile-email">Adresse email</label>
+                  <label for="dbs-profile-email" data-i18n="emailAddress">Adresse email</label>
                   <input id="dbs-profile-email" type="email" disabled />
-                  <small>Adresse email vérifiée par le fournisseur OAuth.</small>
+                  <small data-i18n="emailVerifiedHint">Adresse email vérifiée par le fournisseur OAuth.</small>
                 </div>
                 <div class="dbs-setting-field">
-                  <label for="dbs-profile-name">Nom d'affichage</label>
-                  <input id="dbs-profile-name" type="text" autocomplete="nickname" placeholder="Votre nom d'affichage" />
+                  <label for="dbs-profile-name" data-i18n="displayName">Nom d'affichage</label>
+                  <input id="dbs-profile-name" type="text" autocomplete="nickname" data-i18n-placeholder="displayNamePlaceholder" placeholder="Votre nom d'affichage" />
                 </div>
                 <div class="dbs-profile-actions-row dbs-profile-form-footer">
-                  <button type="submit" class="dbs-profile-save">Enregistrer</button>
+                  <button type="submit" class="dbs-profile-save" data-i18n="save">Enregistrer</button>
                 </div>
-                <p class="dbs-profile-saved dbs-profile-form-footer" data-dbs-identity-saved role="status" hidden>Modifications enregistrées.</p>
+                <p class="dbs-profile-saved dbs-profile-form-footer" data-dbs-identity-saved role="status" hidden data-i18n="changesSaved">Modifications enregistrées.</p>
               </form>
             </section>
 
             <section class="dbs-profile-panel" id="dbs-panel-preferences" role="tabpanel" aria-labelledby="dbs-tab-preferences" data-dbs-profile-panel="preferences" hidden>
               <div class="dbs-profile-panel-heading">
-                <h2>Préférences IA</h2>
-                <p>Ces réglages personnalisent les réponses. V1 front stockée localement, avec synchronisation du ton quand le backend le supporte.</p>
+                <h2 data-i18n="tabPreferences">Préférences IA</h2>
+                <p data-i18n="preferencesDesc">Ces réglages personnalisent les réponses. V1 front stockée localement, avec synchronisation du ton quand le backend le supporte.</p>
               </div>
               <form class="dbs-profile-grid" data-dbs-preferences-form>
                 <div class="dbs-setting-field">
-                  <label for="dbs-pref-project-style">Style de projet</label>
+                  <label for="dbs-pref-project-style" data-i18n="projectStyle">Style de projet</label>
                   <select id="dbs-pref-project-style" data-dbs-pref="projectStyle"></select>
                 </div>
                 <div class="dbs-setting-field">
-                  <label for="dbs-pref-favorite-format">Format favori</label>
+                  <label for="dbs-pref-favorite-format" data-i18n="favoriteFormat">Format favori</label>
                   <select id="dbs-pref-favorite-format" data-dbs-pref="favoriteFormat"></select>
                 </div>
                 <div class="dbs-setting-field">
-                  <label for="dbs-pref-detail-level">Niveau de détail</label>
+                  <label for="dbs-pref-detail-level" data-i18n="detailLevel">Niveau de détail</label>
                   <select id="dbs-pref-detail-level" data-dbs-pref="detailLevel"></select>
                 </div>
                 <div class="dbs-setting-field">
-                  <label for="dbs-pref-language">Langue préférée</label>
+                  <label for="dbs-pref-language" data-i18n="preferredLanguage">Langue préférée</label>
                   <select id="dbs-pref-language" data-dbs-pref="preferredLanguage"></select>
                 </div>
                 <div class="dbs-setting-field">
-                  <label for="dbs-pref-tone">Ton de l'assistant</label>
+                  <label for="dbs-pref-tone" data-i18n="assistantTone">Ton de l'assistant</label>
                   <select id="dbs-pref-tone" data-dbs-pref="tone"></select>
                 </div>
                 <div class="dbs-profile-form-footer">
-                  <button type="submit" class="dbs-profile-save">Enregistrer les préférences</button>
-                  <p class="dbs-profile-saved" data-dbs-preferences-saved role="status" hidden>Préférences enregistrées.</p>
+                  <button type="submit" class="dbs-profile-save" data-i18n="savePreferences">Enregistrer les préférences</button>
+                  <p class="dbs-profile-saved" data-dbs-preferences-saved role="status" hidden data-i18n="preferencesSaved">Préférences enregistrées.</p>
                 </div>
               </form>
             </section>
 
             <section class="dbs-profile-panel" id="dbs-panel-ai-settings" role="tabpanel" aria-labelledby="dbs-tab-ai-settings" data-dbs-profile-panel="ai-settings" hidden>
               <div class="dbs-profile-panel-heading">
-                <h2>Paramètres IA</h2>
-                <p>Gérez les réglages persistants de l'assistant, notamment la voix, l'audio et les préférences d'interaction.</p>
+                <h2 data-i18n="tabAiSettings">Paramètres IA</h2>
+                <p data-i18n="aiSettingsDesc">Gérez les réglages persistants de l'assistant, notamment la voix, l'audio et les préférences d'interaction.</p>
               </div>
-              <p class="dbs-profile-note">Ces paramètres s'appliquent à votre expérience globale. Les réglages RAG propres à chaque projet restent dans les paramètres du projet. Les réglages techniques avancés sont disponibles dans Digital Blue Skye Studio.</p>
+              <p class="dbs-profile-note" data-i18n="aiSettingsNote">Ces paramètres s'appliquent à votre expérience globale. Les réglages RAG propres à chaque projet restent dans les paramètres du projet. Les réglages techniques avancés sont disponibles dans Digital Blue Skye Studio.</p>
               <form class="dbs-profile-grid" data-dbs-ai-settings-form>
                 <div class="dbs-setting-field">
-                  <label for="dbs-ai-voice">Voix de l'assistant</label>
+                  <label for="dbs-ai-voice" data-i18n="assistantVoice">Voix de l'assistant</label>
                   <select id="dbs-ai-voice" data-dbs-ai-pref="aiVoice">
-                    <option value="auto">Voix auto</option>
+                    <option value="auto" data-i18n="autoVoice">Voix auto</option>
                   </select>
-                  <small>Les voix disponibles dépendent du navigateur et du système.</small>
+                  <small data-i18n="voicesHint">Les voix disponibles dépendent du navigateur et du système.</small>
                 </div>
                 <div class="dbs-setting-field">
-                  <label for="dbs-ai-voice-language">Langue vocale</label>
+                  <label for="dbs-ai-voice-language" data-i18n="voiceLanguage">Langue vocale</label>
                   <select id="dbs-ai-voice-language" data-dbs-ai-pref="voiceLanguage">
-                    <option value="auto">Automatique</option>
-                    <option value="fr">Français</option>
-                    <option value="en">Anglais</option>
+                    <option value="auto" data-i18n="automatic">Automatique</option>
+                    <option value="fr" data-i18n="french">Français</option>
+                    <option value="en" data-i18n="english">Anglais</option>
                   </select>
                 </div>
                 <label class="dbs-setting-field dbs-toggle-field">
-                  <span>Mode voix automatique</span>
+                  <span data-i18n="autoVoiceMode">Mode voix automatique</span>
                   <input type="checkbox" data-dbs-ai-pref="voiceAuto" />
-                  <small>Voix auto activée lorsque disponible.</small>
+                  <small data-i18n="autoVoiceModeHint">Voix auto activée lorsque disponible.</small>
                 </label>
                 <label class="dbs-setting-field dbs-toggle-field">
-                  <span>Lecture vocale des réponses</span>
+                  <span data-i18n="readResponsesAloud">Lecture vocale des réponses</span>
                   <input type="checkbox" data-dbs-ai-pref="readResponsesAloud" />
-                  <small>Activer la lecture audio automatique des réponses.</small>
+                  <small data-i18n="readResponsesAloudHint">Activer la lecture audio automatique des réponses.</small>
                 </label>
                 <label class="dbs-setting-field dbs-toggle-field">
-                  <span>Micro / interaction vocale</span>
+                  <span data-i18n="micInteraction">Micro / interaction vocale</span>
                   <input type="checkbox" data-dbs-ai-pref="showMicrophone" />
-                  <small>Afficher le micro dans le chat.</small>
+                  <small data-i18n="micInteractionHint">Afficher le micro dans le chat.</small>
                 </label>
                 <div class="dbs-setting-field">
-                  <label for="dbs-ai-chat-density">Densité du chat</label>
+                  <label for="dbs-ai-chat-density" data-i18n="chatDensity">Densité du chat</label>
                   <select id="dbs-ai-chat-density" data-dbs-ai-pref="chatDensity">
-                    <option value="comfortable">Confortable</option>
-                    <option value="compact">Compacte</option>
+                    <option value="comfortable" data-i18n="comfortable">Confortable</option>
+                    <option value="compact" data-i18n="compact">Compacte</option>
                   </select>
                 </div>
                 <label class="dbs-setting-field dbs-toggle-field">
-                  <span>Suggestions</span>
+                  <span data-i18n="suggestions">Suggestions</span>
                   <input type="checkbox" data-dbs-ai-pref="showSuggestions" />
-                  <small>Afficher les suggestions lorsque l'assistant en propose.</small>
+                  <small data-i18n="suggestionsHint">Afficher les suggestions lorsque l'assistant en propose.</small>
                 </label>
                 <label class="dbs-setting-field dbs-toggle-field">
-                  <span>Sources disponibles</span>
+                  <span data-i18n="availableSources">Sources disponibles</span>
                   <input type="checkbox" data-dbs-ai-pref="showSourcesWhenAvailable" />
-                  <small>Afficher les sources quand elles sont disponibles.</small>
+                  <small data-i18n="availableSourcesHint">Afficher les sources quand elles sont disponibles.</small>
                 </label>
                 <div class="dbs-profile-form-footer">
-                  <button type="submit" class="dbs-profile-save">Enregistrer les paramètres IA</button>
-                  <p class="dbs-profile-saved" data-dbs-ai-settings-saved role="status" hidden>Paramètres IA enregistrés.</p>
+                  <button type="submit" class="dbs-profile-save" data-i18n="saveAiSettings">Enregistrer les paramètres IA</button>
+                  <p class="dbs-profile-saved" data-dbs-ai-settings-saved role="status" hidden data-i18n="aiSettingsSaved">Paramètres IA enregistrés.</p>
                 </div>
               </form>
             </section>
 
             <section class="dbs-profile-panel" id="dbs-panel-companion" role="tabpanel" aria-labelledby="dbs-tab-companion" data-dbs-profile-panel="companion" hidden>
               <div class="dbs-profile-panel-heading">
-                <h2>Compagnon IA</h2>
-                <p>Choisissez le mode de travail qui guidera Digital Blue Skye AI.</p>
+                <h2 data-i18n="tabCompanion">Compagnon IA</h2>
+                <p data-i18n="companionDesc">Choisissez le mode de travail qui guidera Digital Blue Skye AI.</p>
               </div>
               <p class="dbs-companion-active-summary" data-dbs-companion-summary>Compagnon actif : Skye</p>
               <div class="dbs-companion-grid" data-dbs-companion-grid></div>
-              <p class="dbs-profile-saved" data-dbs-companion-saved role="status" hidden>Compagnon IA mis à jour.</p>
+              <p class="dbs-profile-saved" data-dbs-companion-saved role="status" hidden data-i18n="companionUpdated">Compagnon IA mis à jour.</p>
             </section>
 
             <section class="dbs-profile-panel" id="dbs-panel-security" role="tabpanel" aria-labelledby="dbs-tab-security" data-dbs-profile-panel="security" hidden>
               <div class="dbs-profile-panel-heading">
-                <h2>Sécurité du compte</h2>
-                <p>Votre session est gérée côté serveur. Aucune clé API n'est exposée dans le navigateur.</p>
+                <h2 data-i18n="tabSecurity">Sécurité du compte</h2>
+                <p data-i18n="securityDesc">Votre session est gérée côté serveur. Aucune clé API n'est exposée dans le navigateur.</p>
               </div>
               <div class="dbs-info-grid">
-                <article class="dbs-security-card"><span>Fournisseur connecté</span><strong data-dbs-security-provider>OAuth</strong></article>
-                <article class="dbs-security-card"><span>Session</span><strong>Active</strong></article>
-                <article class="dbs-security-card"><span>Type de session</span><strong>Cookie sécurisé HttpOnly</strong></article>
-                <article class="dbs-security-card"><span>Compte</span><strong>Sécurisé</strong></article>
+                <article class="dbs-security-card"><span data-i18n="connectedProvider">Fournisseur connecté</span><strong data-dbs-security-provider>OAuth</strong></article>
+                <article class="dbs-security-card"><span data-i18n="session">Session</span><strong data-i18n="active">Active</strong></article>
+                <article class="dbs-security-card"><span data-i18n="sessionType">Type de session</span><strong data-i18n="secureCookie">Cookie sécurisé HttpOnly</strong></article>
+                <article class="dbs-security-card"><span data-i18n="account">Compte</span><strong data-i18n="secured">Sécurisé</strong></article>
               </div>
               <div class="dbs-profile-actions-row">
-                <button type="button" class="dbs-profile-secondary-action" data-dbs-clear-local>Supprimer les données locales de ce navigateur</button>
+                <button type="button" class="dbs-profile-secondary-action" data-dbs-clear-local data-i18n="clearLocalData">Supprimer les données locales de ce navigateur</button>
               </div>
             </section>
 
             <section class="dbs-profile-panel" id="dbs-panel-usage" role="tabpanel" aria-labelledby="dbs-tab-usage" data-dbs-profile-panel="usage" hidden>
               <div class="dbs-profile-panel-heading">
-                <h2>Utilisation IA</h2>
-                <p>Suivi préparé pour les quotas et la journalisation serveur.</p>
+                <h2 data-i18n="tabUsage">Utilisation IA</h2>
+                <p data-i18n="usageDesc">Suivi préparé pour les quotas et la journalisation serveur.</p>
               </div>
               <div class="dbs-info-grid">
-                <article class="dbs-usage-card"><span>Limite actuelle</span><strong>50 messages / heure par utilisateur connecté</strong></article>
-                <article class="dbs-usage-card"><span>Endpoint protégé</span><strong>/ai/chat</strong></article>
-                <article class="dbs-usage-card"><span>Statut</span><strong>Accès IA sécurisé via le Worker API</strong><small>Les appels directs au Worker IA seront progressivement désactivés.</small></article>
-                <article class="dbs-usage-card"><span>Messages cette heure</span><strong>Bientôt disponible</strong></article>
-                <article class="dbs-usage-card"><span>Dernière activité</span><strong>Bientôt disponible</strong></article>
-                <article class="dbs-usage-card"><span>Modèle IA</span><strong>Géré côté Worker</strong></article>
-                <article class="dbs-usage-card"><span>Journalisation</span><strong>Prévue dans ai_usage_events</strong></article>
+                <article class="dbs-usage-card"><span data-i18n="currentLimit">Limite actuelle</span><strong data-i18n="currentLimitValue">50 messages / heure par utilisateur connecté</strong></article>
+                <article class="dbs-usage-card"><span data-i18n="protectedEndpoint">Endpoint protégé</span><strong>/ai/chat</strong></article>
+                <article class="dbs-usage-card"><span data-i18n="status">Statut</span><strong data-i18n="secureAiAccess">Accès IA sécurisé via le Worker API</strong><small data-i18n="directCallsNote">Les appels directs au Worker IA seront progressivement désactivés.</small></article>
+                <article class="dbs-usage-card"><span data-i18n="messagesThisHour">Messages cette heure</span><strong data-i18n="comingSoon">Bientôt disponible</strong></article>
+                <article class="dbs-usage-card"><span data-i18n="lastActivity">Dernière activité</span><strong data-i18n="comingSoon">Bientôt disponible</strong></article>
+                <article class="dbs-usage-card"><span data-i18n="aiModel">Modèle IA</span><strong data-i18n="managedByWorker">Géré côté Worker</strong></article>
+                <article class="dbs-usage-card"><span data-i18n="logging">Journalisation</span><strong data-i18n="plannedInEvents">Prévue dans ai_usage_events</strong></article>
               </div>
             </section>
 
             <section class="dbs-profile-panel" id="dbs-panel-history" role="tabpanel" aria-labelledby="dbs-tab-history" data-dbs-profile-panel="history" hidden>
               <div class="dbs-profile-panel-heading">
-                <h2>Historique de connexion</h2>
-                <p>L'historique détaillé sera relié à la table user_sessions lors d'une prochaine étape backend.</p>
+                <h2 data-i18n="tabHistory">Historique de connexion</h2>
+                <p data-i18n="historyDesc">L'historique détaillé sera relié à la table user_sessions lors d'une prochaine étape backend.</p>
               </div>
               <div class="dbs-info-grid">
-                <article class="dbs-usage-card"><span>Dernière connexion</span><strong data-dbs-last-login>Disponible prochainement</strong></article>
-                <article class="dbs-usage-card"><span>Fournisseur utilisé</span><strong data-dbs-history-provider>OAuth</strong></article>
-                <article class="dbs-usage-card"><span>Sessions actives</span><strong>Gestion détaillée bientôt disponible</strong></article>
-                <article class="dbs-usage-card"><span>Historique complet</span><strong>Prévu via user_sessions</strong></article>
-                <article class="dbs-usage-card"><span>Appareil / IP</span><strong>Masqué pour le moment</strong></article>
+                <article class="dbs-usage-card"><span data-i18n="lastLogin">Dernière connexion</span><strong data-dbs-last-login data-i18n="availableSoon">Disponible prochainement</strong></article>
+                <article class="dbs-usage-card"><span data-i18n="providerUsed">Fournisseur utilisé</span><strong data-dbs-history-provider>OAuth</strong></article>
+                <article class="dbs-usage-card"><span data-i18n="activeSessions">Sessions actives</span><strong data-i18n="detailedManagementSoon">Gestion détaillée bientôt disponible</strong></article>
+                <article class="dbs-usage-card"><span data-i18n="fullHistory">Historique complet</span><strong data-i18n="plannedViaSessions">Prévu via user_sessions</strong></article>
+                <article class="dbs-usage-card"><span data-i18n="deviceIp">Appareil / IP</span><strong data-i18n="hiddenForNow">Masqué pour le moment</strong></article>
               </div>
             </section>
 
             <section class="dbs-profile-panel" id="dbs-panel-local-data" role="tabpanel" aria-labelledby="dbs-tab-local-data" data-dbs-profile-panel="local-data" hidden>
               <div class="dbs-profile-panel-heading">
-                <h2>Données locales</h2>
-                <p>Ces actions suppriment uniquement les données stockées dans ce navigateur. Elles ne suppriment pas votre compte serveur.</p>
+                <h2 data-i18n="tabLocalData">Données locales</h2>
+                <p data-i18n="localDataDesc">Ces actions suppriment uniquement les données stockées dans ce navigateur. Elles ne suppriment pas votre compte serveur.</p>
               </div>
               <div class="dbs-local-data-card">
                 <dl>
-                  <div><dt>Cache préférences local</dt><dd>dbs_profile_preferences_cache</dd></div>
-                  <div><dt>Caches ancienne version</dt><dd>dbs_user_session, dbs_user_profile</dd></div>
-                  <div><dt>Session serveur</dt><dd>Conservée sauf déconnexion explicite</dd></div>
+                  <div><dt data-i18n="localPreferencesCache">Cache préférences local</dt><dd>dbs_profile_preferences_cache</dd></div>
+                  <div><dt data-i18n="legacyCaches">Caches ancienne version</dt><dd>dbs_user_session, dbs_user_profile</dd></div>
+                  <div><dt data-i18n="serverSession">Session serveur</dt><dd data-i18n="keptUnlessLogout">Conservée sauf déconnexion explicite</dd></div>
                 </dl>
                 <div class="dbs-profile-actions-row">
-                  <button type="button" class="dbs-profile-secondary-action" data-dbs-clear-preferences>Supprimer les préférences locales</button>
-                  <button type="button" class="dbs-profile-secondary-action" data-dbs-clear-local>Réinitialiser l'expérience profil</button>
+                  <button type="button" class="dbs-profile-secondary-action" data-dbs-clear-preferences data-i18n="clearLocalPreferences">Supprimer les préférences locales</button>
+                  <button type="button" class="dbs-profile-secondary-action" data-dbs-clear-local data-i18n="resetProfileExperience">Réinitialiser l'expérience profil</button>
                 </div>
-                <p class="dbs-profile-saved" data-dbs-local-saved role="status" hidden>Données locales supprimées.</p>
+                <p class="dbs-profile-saved" data-dbs-local-saved role="status" hidden data-i18n="localDataCleared">Données locales supprimées.</p>
               </div>
             </section>
           </div>
@@ -285,8 +291,8 @@
 
     <!-- Agrandissement de la photo de profil au clic (voir data-dbs-avatar-enlarge). -->
     <div class="dbs-avatar-lightbox" data-dbs-avatar-lightbox hidden aria-hidden="true">
-      <button type="button" class="dbs-avatar-lightbox-close" data-dbs-avatar-lightbox-close aria-label="Fermer">&times;</button>
-      <img class="dbs-avatar-lightbox-img" data-dbs-avatar-lightbox-img src="" alt="Photo de profil agrandie" />
+      <button type="button" class="dbs-avatar-lightbox-close" data-dbs-avatar-lightbox-close data-i18n-aria-label="close" aria-label="Fermer">&times;</button>
+      <img class="dbs-avatar-lightbox-img" data-dbs-avatar-lightbox-img src="" data-i18n-alt="enlargedProfilePhoto" alt="Photo de profil agrandie" />
     </div>
 
     <!--
@@ -302,6 +308,169 @@
     <script src="/scripts/dbs-auth.js"></script>
     <script>
       (function () {
+        // ---------------------------------------------------------------
+        // Traduction FR/EN de toute la page. Source de verite : le meme
+        // localStorage('language') que la pop-up compte du rail (voir
+        // scripts/dbs-auth.js) — deja synchronise dans document.documentElement.lang
+        // par le bootstrap en tete de fichier. Cette page ne re-rend jamais
+        // en direct suite a un changement de langue (le toggle recharge la
+        // page), donc une seule application au chargement suffit.
+        // ---------------------------------------------------------------
+        const EN = (document.documentElement.lang || '').toLowerCase().startsWith('en');
+
+        const PROFILE_I18N = {
+          pageTitle: ['Mon profil | Digitalblueskye', 'My profile | Digitalblueskye'],
+          backToHome: ["Retour à l'accueil", 'Back to home'],
+          signedOutTitle: ['Mon profil', 'My profile'],
+          signedOutText: ['Connectez-vous pour accéder à votre espace profil Digital Blue Skye AI.', 'Sign in to access your Digital Blue Skye AI profile space.'],
+          or: ['ou', 'or'],
+          genericEmailLogin: ['Connexion email générique', 'Generic email sign-in'],
+          emailAddress: ['Adresse email', 'Email address'],
+          emailLinkSent: ['Vérifiez votre boîte mail : un lien de connexion vient de vous être envoyé.', 'Check your inbox: a sign-in link has just been sent to you.'],
+          receiveLoginLink: ['Recevoir le lien de connexion', 'Receive sign-in link'],
+          myProfile: ['Mon profil', 'My profile'],
+          shellSubtitle: ["Gérez votre identité, vos préférences IA, votre sécurité et votre expérience assistant.", 'Manage your identity, AI preferences, security and assistant experience.'],
+          accountConnected: ['Compte connecté', 'Account connected'],
+          accountConnectedHint: ["Affiché uniquement lorsqu'une session authentifiée est confirmée.", 'Shown only once an authenticated session is confirmed.'],
+          accountConnectedAria: ['Compte connecté confirmé', 'Account connection confirmed'],
+          sessionActive: ['Session active', 'Session active'],
+          sessionActiveHint: ['Session serveur active pour ce navigateur.', 'Active server session for this browser.'],
+          profileSectionsAria: ['Sections du profil', 'Profile sections'],
+          tabIdentity: ['Identité', 'Identity'],
+          tabPreferences: ['Préférences IA', 'AI preferences'],
+          tabAiSettings: ['Paramètres IA', 'AI settings'],
+          tabCompanion: ['Compagnon IA', 'AI companion'],
+          tabSecurity: ['Sécurité', 'Security'],
+          tabUsage: ['Utilisation IA', 'AI usage'],
+          tabHistory: ['Historique', 'History'],
+          tabLocalData: ['Données locales', 'Local data'],
+          identityDesc: ["Informations du compte connecté et nom affiché dans l'expérience IA.", 'Connected account information and display name used in the AI experience.'],
+          profilePhoto: ['Photo de profil', 'Profile photo'],
+          enlargePhoto: ['Agrandir la photo', 'Enlarge photo'],
+          changePhoto: ['Changer la photo de profil', 'Change profile photo'],
+          photoUpdated: ['Photo de profil mise à jour.', 'Profile photo updated.'],
+          signOut: ['Se déconnecter', 'Sign out'],
+          displayName: ["Nom d'affichage", 'Display name'],
+          displayNamePlaceholder: ["Votre nom d'affichage", 'Your display name'],
+          emailVerifiedHint: ['Adresse email vérifiée par le fournisseur OAuth.', 'Email address verified by the OAuth provider.'],
+          save: ['Enregistrer', 'Save'],
+          changesSaved: ['Modifications enregistrées.', 'Changes saved.'],
+          saveFailed: ["Échec de l'enregistrement.", 'Save failed.'],
+          preferencesDesc: ['Ces réglages personnalisent les réponses. V1 front stockée localement, avec synchronisation du ton quand le backend le supporte.', 'These settings personalize responses. Front-end v1 stored locally, with tone sync once the backend supports it.'],
+          projectStyle: ['Style de projet', 'Project style'],
+          favoriteFormat: ['Format favori', 'Favorite format'],
+          detailLevel: ['Niveau de détail', 'Detail level'],
+          preferredLanguage: ['Langue préférée', 'Preferred language'],
+          assistantTone: ["Ton de l'assistant", 'Assistant tone'],
+          savePreferences: ['Enregistrer les préférences', 'Save preferences'],
+          preferencesSaved: ['Préférences enregistrées.', 'Preferences saved.'],
+          aiSettingsDesc: ["Gérez les réglages persistants de l'assistant, notamment la voix, l'audio et les préférences d'interaction.", "Manage the assistant's persistent settings, including voice, audio and interaction preferences."],
+          aiSettingsNote: ["Ces paramètres s'appliquent à votre expérience globale. Les réglages RAG propres à chaque projet restent dans les paramètres du projet. Les réglages techniques avancés sont disponibles dans Digital Blue Skye Studio.", 'These settings apply to your global experience. Project-specific RAG settings stay in the project settings. Advanced technical settings are available in Digital Blue Skye Studio.'],
+          assistantVoice: ["Voix de l'assistant", 'Assistant voice'],
+          autoVoice: ['Voix auto', 'Auto voice'],
+          voicesHint: ['Les voix disponibles dépendent du navigateur et du système.', 'Available voices depend on the browser and system.'],
+          voiceLanguage: ['Langue vocale', 'Voice language'],
+          automatic: ['Automatique', 'Automatic'],
+          french: ['Français', 'French'],
+          english: ['Anglais', 'English'],
+          autoVoiceMode: ['Mode voix automatique', 'Automatic voice mode'],
+          autoVoiceModeHint: ['Voix auto activée lorsque disponible.', 'Auto voice enabled when available.'],
+          readResponsesAloud: ['Lecture vocale des réponses', 'Read responses aloud'],
+          readResponsesAloudHint: ['Activer la lecture audio automatique des réponses.', 'Enable automatic audio playback of responses.'],
+          micInteraction: ['Micro / interaction vocale', 'Mic / voice interaction'],
+          micInteractionHint: ['Afficher le micro dans le chat.', 'Show the microphone in chat.'],
+          chatDensity: ['Densité du chat', 'Chat density'],
+          comfortable: ['Confortable', 'Comfortable'],
+          compact: ['Compacte', 'Compact'],
+          suggestions: ['Suggestions', 'Suggestions'],
+          suggestionsHint: ["Afficher les suggestions lorsque l'assistant en propose.", 'Show suggestions when the assistant offers them.'],
+          availableSources: ['Sources disponibles', 'Available sources'],
+          availableSourcesHint: ['Afficher les sources quand elles sont disponibles.', 'Show sources when available.'],
+          saveAiSettings: ['Enregistrer les paramètres IA', 'Save AI settings'],
+          aiSettingsSaved: ['Paramètres IA enregistrés.', 'AI settings saved.'],
+          companionDesc: ['Choisissez le mode de travail qui guidera Digital Blue Skye AI.', 'Choose the working mode that will guide Digital Blue Skye AI.'],
+          companionUpdated: ['Compagnon IA mis à jour.', 'AI companion updated.'],
+          activeCompanionPrefix: ['Compagnon actif : ', 'Active companion: '],
+          securityDesc: ["Votre session est gérée côté serveur. Aucune clé API n'est exposée dans le navigateur.", 'Your session is managed server-side. No API key is ever exposed in the browser.'],
+          connectedProvider: ['Fournisseur connecté', 'Connected provider'],
+          session: ['Session', 'Session'],
+          active: ['Active', 'Active'],
+          sessionType: ['Type de session', 'Session type'],
+          secureCookie: ['Cookie sécurisé HttpOnly', 'Secure HttpOnly cookie'],
+          account: ['Compte', 'Account'],
+          secured: ['Sécurisé', 'Secured'],
+          clearLocalData: ['Supprimer les données locales de ce navigateur', 'Clear local data for this browser'],
+          usageDesc: ['Suivi préparé pour les quotas et la journalisation serveur.', 'Tracking prepared for server-side quotas and logging.'],
+          currentLimit: ['Limite actuelle', 'Current limit'],
+          currentLimitValue: ['50 messages / heure par utilisateur connecté', '50 messages / hour per signed-in user'],
+          protectedEndpoint: ['Endpoint protégé', 'Protected endpoint'],
+          status: ['Statut', 'Status'],
+          secureAiAccess: ['Accès IA sécurisé via le Worker API', 'Secure AI access via the Worker API'],
+          directCallsNote: ['Les appels directs au Worker IA seront progressivement désactivés.', 'Direct calls to the AI Worker will be progressively disabled.'],
+          messagesThisHour: ['Messages cette heure', 'Messages this hour'],
+          comingSoon: ['Bientôt disponible', 'Coming soon'],
+          lastActivity: ['Dernière activité', 'Last activity'],
+          aiModel: ['Modèle IA', 'AI model'],
+          managedByWorker: ['Géré côté Worker', 'Managed by the Worker'],
+          logging: ['Journalisation', 'Logging'],
+          plannedInEvents: ['Prévue dans ai_usage_events', 'Planned in ai_usage_events'],
+          historyDesc: ["L'historique détaillé sera relié à la table user_sessions lors d'une prochaine étape backend.", 'Detailed history will be linked to the user_sessions table in a future backend step.'],
+          lastLogin: ['Dernière connexion', 'Last login'],
+          availableSoon: ['Disponible prochainement', 'Available soon'],
+          providerUsed: ['Fournisseur utilisé', 'Provider used'],
+          activeSessions: ['Sessions actives', 'Active sessions'],
+          detailedManagementSoon: ['Gestion détaillée bientôt disponible', 'Detailed management coming soon'],
+          fullHistory: ['Historique complet', 'Full history'],
+          plannedViaSessions: ['Prévu via user_sessions', 'Planned via user_sessions'],
+          deviceIp: ['Appareil / IP', 'Device / IP'],
+          hiddenForNow: ['Masqué pour le moment', 'Hidden for now'],
+          localDataDesc: ['Ces actions suppriment uniquement les données stockées dans ce navigateur. Elles ne suppriment pas votre compte serveur.', 'These actions only remove data stored in this browser. They do not delete your server account.'],
+          localPreferencesCache: ['Cache préférences local', 'Local preferences cache'],
+          legacyCaches: ['Caches ancienne version', 'Legacy caches'],
+          serverSession: ['Session serveur', 'Server session'],
+          keptUnlessLogout: ['Conservée sauf déconnexion explicite', 'Kept unless explicitly signed out'],
+          clearLocalPreferences: ['Supprimer les préférences locales', 'Clear local preferences'],
+          resetProfileExperience: ["Réinitialiser l'expérience profil", 'Reset profile experience'],
+          localDataCleared: ['Données locales supprimées.', 'Local data cleared.'],
+          close: ['Fermer', 'Close'],
+          enlargedProfilePhoto: ['Photo de profil agrandie', 'Enlarged profile photo'],
+          invalidEmail: ['Merci de saisir une adresse email valide.', 'Please enter a valid email address.'],
+          emailLoginError: ['Une erreur est survenue. Réessayez.', 'Something went wrong. Please try again.'],
+          connectedViaPrefix: ['Connecté via ', 'Signed in via ']
+        };
+
+        function t(key) {
+          const entry = PROFILE_I18N[key];
+          if (!entry) return '';
+          return EN ? entry[1] : entry[0];
+        }
+
+        function applyStaticTranslations() {
+          document.title = t('pageTitle');
+          document.querySelectorAll('[data-i18n]').forEach((el) => {
+            const value = t(el.getAttribute('data-i18n'));
+            if (value) el.textContent = value;
+          });
+          document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => {
+            const value = t(el.getAttribute('data-i18n-placeholder'));
+            if (value) el.setAttribute('placeholder', value);
+          });
+          document.querySelectorAll('[data-i18n-title]').forEach((el) => {
+            const value = t(el.getAttribute('data-i18n-title'));
+            if (value) el.setAttribute('title', value);
+          });
+          document.querySelectorAll('[data-i18n-aria-label]').forEach((el) => {
+            const value = t(el.getAttribute('data-i18n-aria-label'));
+            if (value) el.setAttribute('aria-label', value);
+          });
+          document.querySelectorAll('[data-i18n-alt]').forEach((el) => {
+            const value = t(el.getAttribute('data-i18n-alt'));
+            if (value) el.setAttribute('alt', value);
+          });
+          const companionSummary = document.querySelector('[data-dbs-companion-summary]');
+          if (companionSummary) companionSummary.textContent = `${t('activeCompanionPrefix')}Skye`;
+        }
+
         const PROVIDERS = { google: 'Google', github: 'GitHub' };
         const PROVIDER_ICONS = {
           google: '/assets/images/ui/icons8-google-50.png',
@@ -314,7 +483,45 @@
         // acceptable pour localStorage (~150-250 Ko en base64) et net a l'agrandissement.
         const AVATAR_MAX_DIMENSION = 768;
 
-        const PREF_OPTIONS = {
+        const PREF_OPTIONS = EN ? {
+          projectStyle: [
+            ['general', 'General'],
+            ['digital_project_manager', 'Digital project manager'],
+            ['technical', 'Technical / architecture'],
+            ['product_strategy', 'Product / strategy'],
+            ['marketing_content', 'Marketing / content'],
+            ['watch_benchmark', 'Watch / benchmark'],
+            ['portfolio_career', 'Portfolio / career']
+          ],
+          favoriteFormat: [
+            ['text', 'Structured text'],
+            ['table', 'Table'],
+            ['checklist', 'Checklist'],
+            ['action_plan', 'Action plan'],
+            ['roadmap', 'Roadmap'],
+            ['synthesis', 'Summary'],
+            ['html_deliverable', 'Standalone HTML deliverable']
+          ],
+          detailLevel: [
+            ['concise', 'Concise'],
+            ['balanced', 'Balanced'],
+            ['detailed', 'Detailed'],
+            ['expert', 'Expert']
+          ],
+          preferredLanguage: [
+            ['fr', 'French'],
+            ['en', 'English'],
+            ['bilingual', 'Bilingual FR/EN']
+          ],
+          tone: [
+            ['standard', 'Standard'],
+            ['pedagogical', 'Educational'],
+            ['direct', 'Direct'],
+            ['expert', 'Expert'],
+            ['creative', 'Creative'],
+            ['strategic', 'Strategic']
+          ]
+        } : {
           projectStyle: [
             ['general', 'Général'],
             ['digital_project_manager', 'Chef de projet digital'],
@@ -363,7 +570,14 @@
           showSuggestions: true,
           showSourcesWhenAvailable: true
         };
-        const COMPANIONS = [
+        const COMPANIONS = EN ? [
+          ['skye', 'Skye', 'Balanced general assistant for everyday conversations.'],
+          ['pilot', 'Pilot', 'Project manager mode: priorities, risks, decisions, deliverables, roadmap.'],
+          ['builder', 'Builder', 'Technical mode: code, architecture, debugging, integration, robustness.'],
+          ['scout', 'Scout', 'Watch mode: benchmarking, trends, research, competitive analysis.'],
+          ['muse', 'Muse', 'Writing mode: storytelling, portfolio, articles, professional materials.'],
+          ['guardian', 'Guardian', 'Security mode: authentication, compliance, resilience, best practices.']
+        ] : [
           ['skye', 'Skye', 'Assistant général équilibré pour accompagner les échanges du quotidien.'],
           ['pilot', 'Pilot', 'Mode chef de projet : priorités, risques, décisions, livrables, roadmap.'],
           ['builder', 'Builder', 'Mode technique : code, architecture, debug, intégration, robustesse.'],
@@ -414,7 +628,9 @@
             const providers = await window.DBSAuth.fetchProviders();
             host.innerHTML = Object.keys(PROVIDERS).map((key) => {
               const enabled = Boolean(providers[key]);
-              const label = enabled ? `Se connecter avec ${PROVIDERS[key]}` : `Connexion ${PROVIDERS[key]} non configurée`;
+              const label = enabled
+                ? (EN ? `Sign in with ${PROVIDERS[key]}` : `Se connecter avec ${PROVIDERS[key]}`)
+                : (EN ? `${PROVIDERS[key]} sign-in not configured` : `Connexion ${PROVIDERS[key]} non configurée`);
               return `<button type="button" class="dbs-oauth-btn is-${key}" data-provider="${key}" ${enabled ? '' : 'disabled'}
                 aria-label="${label}"><span class="dbs-oauth-icon" aria-hidden="true"><img src="${PROVIDER_ICONS[key]}" alt=""></span><span>${label}</span></button>`;
             }).join('');
@@ -449,7 +665,7 @@
           const select = document.querySelector('[data-dbs-ai-pref="aiVoice"]');
           if (!select) return;
           const selected = selectedValue || select.value || 'auto';
-          const voiceOptions = [['auto', 'Voix auto']];
+          const voiceOptions = [['auto', t('autoVoice')]];
           try {
             const voices = window.speechSynthesis?.getVoices?.() || [];
             voices
@@ -491,7 +707,7 @@
           const summary = document.querySelector('[data-dbs-companion-summary]');
           if (summary) {
             const active = COMPANIONS.find(([key]) => key === (prefs.companion || 'skye'));
-            summary.textContent = `Compagnon actif : ${active ? active[1] : 'Skye'}`;
+            summary.textContent = `${t('activeCompanionPrefix')}${active ? active[1] : 'Skye'}`;
           }
         }
 
@@ -565,7 +781,7 @@
           const displayLabel = document.querySelector('[data-dbs-profile-display-label]');
           if (displayLabel) displayLabel.textContent = user.displayName || user.email || 'Digitalblueskye';
           const providerName = PROVIDERS[user.provider] || user.provider || 'OAuth';
-          document.querySelectorAll('[data-dbs-profile-provider]').forEach((el) => { el.textContent = `Connecté via ${providerName}`; });
+          document.querySelectorAll('[data-dbs-profile-provider]').forEach((el) => { el.textContent = `${t('connectedViaPrefix')}${providerName}`; });
           document.querySelectorAll('[data-dbs-security-provider], [data-dbs-history-provider]').forEach((el) => { el.textContent = providerName; });
 
           const emailInput = document.getElementById('dbs-profile-email');
@@ -596,7 +812,7 @@
               const result = await window.DBSAuth.updateProfile({ displayName });
               setStatus('[data-dbs-identity-saved]', true);
               const el = document.querySelector('[data-dbs-identity-saved]');
-              if (el) el.textContent = result && result.ok !== false ? 'Modifications enregistrées.' : 'Échec de l’enregistrement.';
+              if (el) el.textContent = result && result.ok !== false ? t('changesSaved') : t('saveFailed');
             } catch (error) {
               console.warn('[profile] identity save failed', error);
             }
@@ -641,7 +857,7 @@
             if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
               if (errorEl) {
                 errorEl.hidden = false;
-                errorEl.textContent = 'Merci de saisir une adresse email valide.';
+                errorEl.textContent = t('invalidEmail');
               }
               input?.classList.add('is-invalid');
               input?.focus();
@@ -660,7 +876,7 @@
               console.warn('[profile] email login request failed', error);
               if (errorEl) {
                 errorEl.hidden = false;
-                errorEl.textContent = 'Une erreur est survenue. Réessayez.';
+                errorEl.textContent = t('emailLoginError');
               }
               if (submitBtn) submitBtn.disabled = false;
             }
@@ -784,6 +1000,7 @@
         }
 
         try {
+          applyStaticTranslations();
           fillPreferenceOptions();
           fillAiVoiceOptions('auto');
           try { window.speechSynthesis?.addEventListener?.('voiceschanged', () => renderAiSettings(window.DBSAuth?.getAssistantPreferences?.())); } catch (_) { /* no-op */ }

@@ -9,6 +9,12 @@
       (function() {
         const savedTheme = localStorage.getItem('theme') || 'dark';
         document.documentElement.setAttribute('data-theme', savedTheme);
+        // Cette page ne charge pas scripts/translator.js : sans ceci,
+        // document.documentElement.lang restait fige sur "fr" apres un
+        // changement de langue depuis la pop-up compte (isEnglish() dans
+        // dbs-auth.js ne lit que cet attribut, pas localStorage directement).
+        const savedLanguage = (localStorage.getItem('language') || '').toLowerCase().startsWith('en') ? 'en' : 'fr';
+        document.documentElement.lang = savedLanguage;
       })();
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Gelasio:ital,wght@0,400..700;1,400..700&family=Indie+Flower&display=swap" rel="stylesheet">

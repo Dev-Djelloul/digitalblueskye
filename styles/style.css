@@ -39,7 +39,7 @@
   - RESPONSIVE BLOG + ARTICLES (line 7373)
   - SECTION CONFIANCE (TRUST) - TESTIMONIES & PARTNERS (line 7486)
 */
-@import url("https://fonts.googleapis.com/css2?family=Gelasio:wght@400;500;600;700&family=Mozilla+Text:wght@200..700&family=Indie+Flower&family=Space+Mono:wght@400;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Gelasio:wght@400;500;600;700&family=Mozilla+Text:wght@200..700&family=Indie+Flower&family=Space+Mono:wght@400;700&family=Orbitron:wght@400..900&display=swap");
 
 /* =========================
    VARIABLES & THÈMES
@@ -79,7 +79,7 @@
   --accent-rgb: 93, 93, 255; /* Valeur RGB de #5d5dff pour les ombres */
   --font-title: "Indie Flower", cursive;
   --font-body: "Mozilla Text", sans-serif;
-  --font-ai-assistant: "Gelasio", Georgia, serif;
+  --font-ai-assistant: "Orbitron", sans-serif;
 }
 
 [data-theme="light"] {
@@ -10963,15 +10963,6 @@ body.chat-page {
   white-space: nowrap;
 }
 
-.dbs-account-popover-email,
-.dbs-account-popover-provider {
-  color: rgb(235 240 255 / 62%);
-  font-size: 11.5px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .dbs-account-popover-actions {
   display: flex;
   flex-direction: column;
@@ -10979,16 +10970,26 @@ body.chat-page {
 }
 
 .dbs-account-popover-action {
+  align-items: center;
   background: transparent;
   border: none;
   border-radius: 8px;
   color: rgb(235 240 255 / 88%);
   cursor: pointer;
+  display: flex;
   font-size: 13px;
+  gap: 10px;
   padding: 8px 10px;
   text-align: left;
   text-decoration: none;
   transition: background 0.14s ease, color 0.14s ease;
+}
+
+.dbs-account-popover-action-icon {
+  flex: 0 0 auto;
+  height: 18px;
+  object-fit: contain;
+  width: 18px;
 }
 
 .dbs-account-popover-action:hover,
@@ -11281,6 +11282,15 @@ body.profile-page {
   margin: 0;
   min-height: 100vh;
   padding-top: 0;
+}
+
+/* Meme police que le chatbot IA (voir --font-ai-assistant), appliquee a toute
+   la page profile.html, y compris les titres qui utilisaient auparavant
+   var(--font-title). Selecteur large + !important, sur le meme principe que
+   la regle equivalente de .ai-assistant-panel plus bas dans ce fichier. */
+body.profile-page,
+body.profile-page :where(button, input, textarea, select, h1, h2, h3, h4, p, span, label, small, div, a, li, strong, dt, dd) {
+  font-family: var(--font-ai-assistant) !important;
 }
 
 /* Plus de barre d'entete : seul le logo flotte en haut a gauche, pour garder
@@ -12851,6 +12861,28 @@ body.profile-page .profile-main {
   background: rgb(255 255 255 / 7%);
   border-color: rgb(121 230 255 / 16%);
   color: #fff;
+}
+
+/* Remplace l'ancienne bande textuelle "Projet actif : X - RAG ... - N sources"
+   (voir renderRagStatus() dans ai-assistant.js) : le projet qui fournit le
+   contexte RAG/memoire de la conversation affichee est mis en evidence
+   directement dans le rail, par une bordure/lueur verte coherente avec les
+   accents "operationnel" deja utilises ailleurs sur le site (#30d158). */
+.ai-assistant-project-item.is-context-active {
+  background: rgb(48 209 88 / 9%);
+  border-color: rgb(48 209 88 / 55%);
+  box-shadow: 0 0 0 1px rgb(48 209 88 / 22%), 0 0 14px rgb(48 209 88 / 28%);
+  color: #fff;
+}
+
+.ai-assistant-project-item.is-context-active:hover {
+  background: rgb(48 209 88 / 14%);
+  border-color: rgb(48 209 88 / 72%);
+}
+
+.ai-assistant-project-item.is-context-active .ai-assistant-project-item-icon {
+  border-color: rgb(48 209 88 / 60%);
+  box-shadow: 0 0 8px rgb(48 209 88 / 35%);
 }
 
 .ai-assistant-project-item-icon {
@@ -16239,6 +16271,18 @@ body.ai-assistant-sidebar-is-resizing * {
   background: rgb(93 93 255 / 10%);
   border-color: rgb(93 93 255 / 20%);
   color: #24235c;
+}
+
+[data-theme="light"] .ai-assistant-project-item.is-context-active {
+  background: rgb(48 209 88 / 12%);
+  border-color: rgb(30 160 70 / 55%);
+  box-shadow: 0 0 0 1px rgb(30 160 70 / 20%), 0 0 12px rgb(48 209 88 / 24%);
+  color: #1c3d28;
+}
+
+[data-theme="light"] .ai-assistant-project-item.is-context-active:hover {
+  background: rgb(48 209 88 / 18%);
+  border-color: rgb(30 160 70 / 70%);
 }
 
 [data-theme="light"] .ai-assistant-library-panel {

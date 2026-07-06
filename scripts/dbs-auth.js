@@ -564,10 +564,10 @@
     })() || 'dark';
   }
 
+  // Libelle statique (ne depend plus du theme courant) : l'action ouvre les
+  // reglages d'apparence/theme, quel que soit l'etat actuel clair/sombre.
   function themeActionLabel() {
-    return currentTheme() === 'light'
-      ? (isEnglish() ? 'Switch to dark theme' : 'Passer en thème sombre')
-      : (isEnglish() ? 'Switch to light theme' : 'Passer en thème clair');
+    return isEnglish() ? 'Appearance' : 'Apparence';
   }
 
   function toggleThemeFromAccount() {
@@ -578,6 +578,25 @@
     const next = currentTheme() === 'light' ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', next);
     try { localStorage.setItem('theme', next); } catch (_) { /* no-op */ }
+  }
+
+  function languageActionLabel() {
+    return isEnglish() ? 'Language' : 'Langue';
+  }
+
+  // Meme logique que toggleThemeFromAccount() : reutilise le bouton existant
+  // de translator.js quand il est present (index.html), sinon bascule
+  // directement la langue et recharge (chat.html/profile.html ne chargent
+  // pas translator.js, mais lisent tous deux localStorage 'language').
+  function toggleLanguageFromAccount() {
+    const isFr = !isEnglish();
+    const switchButton = document.getElementById(isFr ? 'switch-to-en' : 'switch-to-fr');
+    if (switchButton) { switchButton.click(); return; }
+    const next = isFr ? 'en' : 'fr';
+    try { localStorage.setItem('language', next); } catch (_) { /* no-op */ }
+    try { document.cookie = `language=${next}; max-age=${180 * 24 * 60 * 60}; path=/; samesite=lax`; } catch (_) { /* no-op */ }
+    document.documentElement.lang = next;
+    window.location.reload();
   }
 
   function accountUrl(hash = '') {
@@ -599,17 +618,36 @@
         <img class="dbs-account-popover-avatar" src="${AVATAR_FALLBACK}" alt="" aria-hidden="true">
         <div class="dbs-account-popover-id">
           <strong class="dbs-account-popover-name"></strong>
-          <span class="dbs-account-popover-email"></span>
-          <span class="dbs-account-popover-provider"></span>
         </div>
       </div>
       <div class="dbs-account-popover-actions">
-        <a class="dbs-account-popover-action" role="menuitem" href="${accountUrl('identity')}" data-dbs-account-i18n="profile">${labels.profile}</a>
-        <a class="dbs-account-popover-action" role="menuitem" href="${accountUrl('preferences')}" data-dbs-account-i18n="preferences">${labels.preferences}</a>
-        <a class="dbs-account-popover-action" role="menuitem" href="${accountUrl('ai-settings')}" data-dbs-account-i18n="aiSettings">${labels.aiSettings}</a>
-        <a class="dbs-account-popover-action" role="menuitem" href="${accountUrl('security')}" data-dbs-account-i18n="security">${labels.security}</a>
-        <button class="dbs-account-popover-action" type="button" role="menuitem" data-dbs-account-action="theme">${themeActionLabel()}</button>
-        <button class="dbs-account-popover-action dbs-account-popover-danger" type="button" role="menuitem" data-dbs-account-action="logout" data-dbs-account-i18n="logout">${labels.logout}</button>
+        <a class="dbs-account-popover-action" role="menuitem" href="${accountUrl('identity')}">
+          <img class="dbs-account-popover-action-icon" src="/assets/images/ui/icons8-dark-67.png" alt="" aria-hidden="true">
+          <span data-dbs-account-i18n="profile">${labels.profile}</span>
+        </a>
+        <a class="dbs-account-popover-action" role="menuitem" href="${accountUrl('preferences')}">
+          <img class="dbs-account-popover-action-icon" src="/assets/images/ui/icons8-preferences-ai-48.png" alt="" aria-hidden="true">
+          <span data-dbs-account-i18n="preferences">${labels.preferences}</span>
+        </a>
+        <a class="dbs-account-popover-action" role="menuitem" href="${accountUrl('ai-settings')}">
+          <img class="dbs-account-popover-action-icon" src="/assets/images/ui/icons8-parameters-ai-48.png" alt="" aria-hidden="true">
+          <span data-dbs-account-i18n="aiSettings">${labels.aiSettings}</span>
+        </a>
+        <a class="dbs-account-popover-action" role="menuitem" href="${accountUrl('security')}">
+          <img class="dbs-account-popover-action-icon" src="/assets/images/ui/icons8-security-configuration-94.png" alt="" aria-hidden="true">
+          <span data-dbs-account-i18n="security">${labels.security}</span>
+        </a>
+        <button class="dbs-account-popover-action" type="button" role="menuitem" data-dbs-account-action="theme">
+          <img class="dbs-account-popover-action-icon" src="/assets/images/ui/icons8-cat-eyes-48.png" alt="" aria-hidden="true">
+          <span data-dbs-account-theme-label>${themeActionLabel()}</span>
+        </button>
+        <button class="dbs-account-popover-action" type="button" role="menuitem" data-dbs-account-action="language">
+          <img class="dbs-account-popover-action-icon" src="/assets/images/ui/icons8-language-94.png" alt="" aria-hidden="true">
+          <span data-dbs-account-language-label>${languageActionLabel()}</span>
+        </button>
+        <button class="dbs-account-popover-action dbs-account-popover-danger" type="button" role="menuitem" data-dbs-account-action="logout">
+          <span data-dbs-account-i18n="logout">${labels.logout}</span>
+        </button>
       </div>`;
     slot.appendChild(popover);
     popover.addEventListener('click', async (event) => {
@@ -617,6 +655,11 @@
       if (!action) return;
       if (action.dataset.dbsAccountAction === 'theme') {
         toggleThemeFromAccount();
+        updateAccountPopover(getCachedUser());
+        return;
+      }
+      if (action.dataset.dbsAccountAction === 'language') {
+        toggleLanguageFromAccount();
         updateAccountPopover(getCachedUser());
         return;
       }
@@ -659,13 +702,11 @@
     const displayName = user.displayName || user.email || 'Digitalblueskye';
     setAttrIfChanged(popover.querySelector('.dbs-account-popover-avatar'), 'src', avatarSrc(user));
     const nameEl = popover.querySelector('.dbs-account-popover-name');
-    const emailEl = popover.querySelector('.dbs-account-popover-email');
-    const providerEl = popover.querySelector('.dbs-account-popover-provider');
-    const themeEl = popover.querySelector('[data-dbs-account-action="theme"]');
+    const themeEl = popover.querySelector('[data-dbs-account-theme-label]');
+    const languageEl = popover.querySelector('[data-dbs-account-language-label]');
     setTextIfChanged(nameEl, displayName);
-    setTextIfChanged(emailEl, user.email || '');
-    setTextIfChanged(providerEl, user.provider ? `Provider : ${user.provider}` : '');
     setTextIfChanged(themeEl, themeActionLabel());
+    setTextIfChanged(languageEl, languageActionLabel());
     const labels = accountPopoverI18nLabels(isEnglish());
     popover.querySelectorAll('[data-dbs-account-i18n]').forEach((el) => {
       const key = el.dataset.dbsAccountI18n;
