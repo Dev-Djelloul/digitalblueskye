@@ -1776,10 +1776,16 @@ async function buildAiHealthPayload(request, env, authMode) {
   };
 }
 
+// Note : "aujourd'hui", "cette semaine" et "v3" ont ete retires de cette liste
+// le 2026-07-06 — trop generiques, ils declenchaient le mode pilotage sur de
+// simples questions de synthese de projet client (ex. "fiche synthetique de
+// ce projet ... jusqu'a aujourd'hui"), faisant repondre le modele avec la
+// sante interne de la plateforme (OpenRouter/Tavily/RAG) au lieu du contenu
+// reel du projet actif. Voir aussi le garde-fou sur body?.projectId ci-dessous.
 const PILOTAGE_KEYWORDS = [
   'que dois-je faire', 'priorités', 'priorite', 'plan d\'action', 'roadmap',
   'améliorer', 'ameliorer', 'risques', 'prochaine étape', 'prochaine etape',
-  'aujourd\'hui', 'cette semaine', 'avant publication', 'v3', 'maturité', 'maturite',
+  'avant publication', 'maturité', 'maturite',
   'chantier', 'décision', 'decision', 'arbitrage'
 ];
 
@@ -2661,8 +2667,12 @@ export default {
     // calculee a l'interieur de routeChatCompletion() a partir de ce
     // maxTokens effectif (cf. cloudflare/modelRouter.js).
 
+    // Garde-fou (2026-07-06) : le mode pilotage renvoie la sante interne de la
+    // plateforme (OpenRouter/Tavily/RAG/etc.), pas le contenu d'un projet
+    // client. Il n'a de sens que hors contexte projet ; sinon il ecrasait les
+    // documents reels du projet actif par des donnees de monitoring hors sujet.
     let pilotageBlock = '';
-    if (detectPilotageIntent(message)) {
+    if (!body?.projectId && detectPilotageIntent(message)) {
       try {
         const pilotageSnapshot = await buildPilotageSnapshot(request, env);
         const pilotagePlan = computeProjectPlan(pilotageSnapshot);
