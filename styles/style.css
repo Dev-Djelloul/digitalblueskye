@@ -10502,6 +10502,20 @@ body.chat-page {
   padding-top: 0;
 }
 
+.chat-page-logo-link {
+  display: inline-flex;
+  position: fixed;
+  top: 24px;
+  left: 24px;
+  z-index: 1000;
+  border-radius: 50%;
+  transition: opacity 0.2s ease;
+}
+
+.chat-page-logo-link:hover {
+  opacity: 0.8;
+}
+
 .chat-page-gate {
   align-items: center;
   display: flex;
@@ -10519,7 +10533,9 @@ body.chat-page {
 
 .chat-page-gate-logo {
   border-radius: 50%;
-  margin-bottom: 6px;
+  display: block;
+  height: 64px;
+  width: 64px;
 }
 
 .chat-page-gate h1 {
