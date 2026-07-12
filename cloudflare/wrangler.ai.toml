@@ -98,3 +98,9 @@ index_name = "digitalblueskye-rag"
 [vars]
 KNOWLEDGE_ORCHESTRATOR_ENABLED = "true"
 KNOWLEDGE_OBSIDIAN_ENABLED = "false"
+# Modele principal (decision 2026-07-12) : Claude Haiku 4.5 via OpenRouter —
+# modele PAYANT (necessite des credits OpenRouter), multilingue, tres au-dessus
+# des modeles gratuits pour le suivi d'instructions et le Markdown structure.
+# Replis : modeles payants economiques, puis la cascade Cloudflare AI habituelle.
+OPENROUTER_MODEL = "anthropic/claude-haiku-4.5"
+OPENROUTER_FALLBACK_MODELS = "google/gemini-2.5-flash-lite,mistralai/mistral-small-3.2-24b-instruct"

@@ -981,6 +981,33 @@ export async function handleAiChat(request, env) {
     return authJson(request, env, { ok: false, error: 'ai_fetch_failed', message: 'Service IA indisponible.' }, 502);
   }
 
+  // Reponse streamee (SSE) : relayer le corps SANS le mettre en tampon —
+  // un await text() ici annulerait tout le benefice du streaming. La
+  // longueur de reponse n'est pas connue a ce stade : loggee a 0 avec un
+  // statut dedie 'ok_stream' pour rester distinguable dans ai_usage.
+  const upstreamContentType = aiResponse.headers.get('Content-Type') || '';
+  if (aiResponse.ok && upstreamContentType.includes('text/event-stream') && aiResponse.body) {
+    await logUsage(env, {
+      userId: user.id,
+      sessionId: user.sessionId,
+      ipHash,
+      model: null,
+      promptChars,
+      responseChars: 0,
+      status: 'ok_stream',
+      errorCode: null
+    });
+    return new Response(aiResponse.body, {
+      status: aiResponse.status,
+      headers: {
+        ...authCorsHeaders(request, env),
+        'Content-Type': 'text/event-stream; charset=utf-8',
+        'Cache-Control': 'no-cache',
+        'X-Accel-Buffering': 'no'
+      }
+    });
+  }
+
   const text = await aiResponse.text();
   await logUsage(env, {
     userId: user.id,

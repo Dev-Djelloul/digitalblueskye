@@ -21,7 +21,7 @@
 
 import { computeProjectPlan, DEFAULT_V3_PLACEHOLDERS } from './aiProjectManager.js';
 import { indexDocumentChunks, deleteDocumentVectors, queryRag, diagnoseRagPipeline, checkVectorizeHealth, listIndexedDocuments } from './ragPipeline.js';
-import { routeChatCompletion, diagnoseCloudflareAi, diagnoseOpenAi, diagnoseOpenRouterKey } from './modelRouter.js';
+import { routeChatCompletion, routeChatCompletionStream, diagnoseCloudflareAi, diagnoseOpenAi, diagnoseOpenRouterKey } from './modelRouter.js';
 import { detectUserIntent, planCapabilities, composeSystemPrompt, isOrchestratorEnabled } from './promptOrchestrator.js';
 import {
   detectCapabilities,
@@ -61,9 +61,11 @@ import { createProjectMemoryKnowledgeSource } from './knowledge/sources/projectM
 import { createObsidianKnowledgeSource } from './knowledge/sources/obsidianSource.js';
 import { planQuery, compareQueryPlannerWithLegacy } from './queryPlanner.js';
 
-const DEFAULT_MODEL = 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free';
+// Aligne sur OPENROUTER_MODEL dans wrangler.ai.toml (Claude Haiku 4.5,
+// payant) : ce fallback code ne sert que si la variable d'env est absente.
+const DEFAULT_MODEL = 'anthropic/claude-haiku-4.5';
 const FALLBACK_MODEL = 'openrouter/auto';
-const WORKER_BUILD = '2026-06-20-tavily-economy-v4';
+const WORKER_BUILD = '2026-07-12-streaming-haiku-v1';
 const TAVILY_SEARCH_ENDPOINT = 'https://api.tavily.com/search';
 const DEFAULT_MAX_TOKENS = 2000;
 // Plafond absolu du budget de sortie envoye aux modeles. L'ancien plafond de
@@ -354,6 +356,81 @@ function buildTavilyDiagnostics(apiKey, extra = {}) {
     tavily_endpoint: TAVILY_SEARCH_ENDPOINT,
     ...extra
   };
+}
+
+/**
+ * Relais SSE : transforme le flux SSE brut d'OpenRouter (deltas au format
+ * OpenAI : choices[0].delta.content, fin sur `data: [DONE]`) en un protocole
+ * SSE simple pour le frontend :
+ *   data: {"type":"meta", ...}        — 1er evenement, contexte complet
+ *                                       (modele, sources web, build...)
+ *   data: {"type":"delta","text":..}  — morceaux de texte au fil de l'eau
+ *   data: {"type":"error", ...}       — erreur upstream signalee en cours de flux
+ *   data: {"type":"done", ...}        — dernier evenement (longueur, finish_reason, usage)
+ * `onComplete({ fullText, finishReason, usage })` est appele a la fermeture du
+ * flux (telemetrie D1 via queueAiEvent cote appelant). Exportee pour les tests.
+ */
+export function createOpenRouterSseRelay({ upstreamBody, metaPayload, onComplete }) {
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let fullText = '';
+  let finishReason = null;
+  let usage = null;
+
+  const emitEvent = (controller, payload) => {
+    controller.enqueue(encoder.encode(`data: ${JSON.stringify(payload)}\n\n`));
+  };
+
+  const transform = new TransformStream({
+    start(controller) {
+      emitEvent(controller, { type: 'meta', ...(metaPayload || {}) });
+    },
+    transform(chunk, controller) {
+      buffer += decoder.decode(chunk, { stream: true });
+      let newlineIndex;
+      while ((newlineIndex = buffer.indexOf('\n')) !== -1) {
+        const line = buffer.slice(0, newlineIndex).replace(/\r$/, '').trim();
+        buffer = buffer.slice(newlineIndex + 1);
+        if (!line || line.startsWith(':')) continue; // keep-alive OpenRouter
+        if (!line.startsWith('data:')) continue;
+        const data = line.slice(5).trim();
+        if (data === '[DONE]') continue;
+        let parsed = null;
+        try { parsed = JSON.parse(data); } catch (_) { continue; }
+        if (parsed?.error) {
+          emitEvent(controller, {
+            type: 'error',
+            message: String(parsed.error?.message || 'stream_error').slice(0, 300)
+          });
+          continue;
+        }
+        if (parsed?.usage) usage = parsed.usage;
+        const choice = parsed?.choices?.[0];
+        if (choice?.finish_reason) finishReason = choice.finish_reason;
+        const delta = typeof choice?.delta?.content === 'string'
+          ? choice.delta.content
+          : (typeof choice?.text === 'string' ? choice.text : '');
+        if (delta) {
+          fullText += delta;
+          emitEvent(controller, { type: 'delta', text: delta });
+        }
+      }
+    },
+    flush(controller) {
+      emitEvent(controller, {
+        type: 'done',
+        reply_length: fullText.length,
+        finish_reason: finishReason,
+        usage
+      });
+      if (typeof onComplete === 'function') {
+        try { onComplete({ fullText, finishReason, usage }); } catch (_) { /* best effort */ }
+      }
+    }
+  });
+
+  return { readable: upstreamBody.pipeThrough(transform) };
 }
 
 function buildWebContextPrompt(language, searchResults, query, answer = '') {
@@ -3360,6 +3437,90 @@ export default {
           maxContinuations: maxContinuationsHint,
           shouldSearchWeb
         }
+      });
+    }
+
+    // ── Streaming SSE opt-in (body.stream === true) ─────────────────────
+    // Ouvre un flux OpenRouter et le relaie tel quel au navigateur : le
+    // premier token part des que le modele l'emet, au lieu d'attendre la
+    // reponse complete + Completion Guard + RQC. Ces deux garde-fous exigent
+    // le texte entier et sont donc VOLONTAIREMENT ignores en mode streaming
+    // (moins critiques avec les budgets de tokens debloques et Claude Haiku).
+    // Tout echec AVANT le premier octet (cle absente, 402/429 sur toute la
+    // chaine...) retombe silencieusement sur le chemin non-streame ci-dessous
+    // — aucun nouveau mode d'echec pour l'utilisateur.
+    if (body?.stream === true) {
+      const streamAttempt = await routeChatCompletionStream({
+        messages: conversationMessages,
+        systemPrompt: finalSystemPrompt,
+        maxTokens: effectiveMaxTokens,
+        temperature: effectiveTemperature,
+        env,
+        metadata: { language, allowedOrigin },
+        modelTier: effectiveModelTier,
+        onEvent: onRouterEvent
+      });
+      if (streamAttempt.ok) {
+        const metaPayload = {
+          ok: true,
+          worker_build: WORKER_BUILD,
+          provider: 'openrouter',
+          model: streamAttempt.model,
+          resolved_model: streamAttempt.model,
+          fallback_model_used: streamAttempt.model !== primaryModel,
+          streamed: true,
+          web_search_requested: shouldSearchWeb,
+          web_search_performed: webSearchPerformed,
+          web_search_error: webSearchError || '',
+          web_search_query: webSearchResolvedQuery,
+          web_search_results: (webSearchPerformed ? webSearchResults : []).map((r, i) => ({
+            index: i + 1,
+            title: r.title,
+            link: r.link,
+            snippet: r.snippet || '',
+            publishedDate: r.publishedDate || ''
+          }))
+        };
+        const relay = createOpenRouterSseRelay({
+          upstreamBody: streamAttempt.body,
+          metaPayload,
+          onComplete: ({ fullText, finishReason, usage }) => {
+            queueAiEvent(ctx, env, request, {
+              event_type: 'assistant_response',
+              event_value: compactText(fullText, 120),
+              language,
+              page_url: pageUrl,
+              session_id: sessionId,
+              meta: {
+                reply_length: fullText.length,
+                provider: 'openrouter',
+                model: streamAttempt.model,
+                streamed: true,
+                finish_reason: finishReason,
+                fallback: streamAttempt.model !== primaryModel,
+                web_search_performed: webSearchPerformed,
+                usage: usage || null
+              }
+            });
+          }
+        });
+        return new Response(relay.readable, {
+          status: 200,
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'text/event-stream; charset=utf-8',
+            'Cache-Control': 'no-cache',
+            'X-Accel-Buffering': 'no'
+          }
+        });
+      }
+      queueAiEvent(ctx, env, request, {
+        event_type: 'stream_fallback_to_json',
+        event_value: streamAttempt.errorType || 'stream_unavailable',
+        language,
+        page_url: pageUrl,
+        session_id: sessionId,
+        meta: { attempts_count: streamAttempt.attempts?.length || 0 }
       });
     }
 

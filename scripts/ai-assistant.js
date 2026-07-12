@@ -1027,6 +1027,11 @@
   const API_ENDPOINT = String(window.DBS_AI_ENDPOINT || '').trim() ||
     'https://digitalblueskye-ai.djelloulabid75.workers.dev';
   const API_USES_PROXY = /\/ai\/chat$/.test(API_ENDPOINT);
+  // Streaming SSE (premier token affiche des qu'il arrive). Kill-switch sans
+  // redeploiement : window.DBS_AI_STREAMING = false dans la page. Le Worker
+  // retombe de lui-meme sur la reponse JSON classique si le flux ne peut pas
+  // s'ouvrir — le front gere les deux formats quoi qu'il arrive.
+  const STREAMING_ENABLED = window.DBS_AI_STREAMING !== false;
   const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.readonly';
   const DRIVE_PICKER_SCRIPT_URL = 'https://apis.google.com/js/api.js';
   const GOOGLE_IDENTITY_SCRIPT_URL = 'https://accounts.google.com/gsi/client';
@@ -8679,6 +8684,57 @@
     return bubble;
   }
 
+  // Bulle assistant alimentee par un VRAI flux SSE (par opposition a
+  // addStreamingBotMessage ci-dessous, animation machine-a-ecrire sur un texte
+  // deja complet). update() re-rend le Markdown accumule, throttle a ~90ms
+  // pour ne pas saturer le DOM ; finalize() produit exactement le meme etat
+  // final qu'addStreamingBotMessage (memes classes, memes enhancers).
+  function beginLiveBotMessage() {
+    const bubble = document.createElement('article');
+    const content = document.createElement('div');
+    bubble.className = 'ai-assistant-message ai-assistant-message--bot is-streaming';
+    bubble.setAttribute('data-role', 'assistant');
+    content.className = 'ai-assistant-message-content';
+    bubble.appendChild(content);
+    messagesContainer.appendChild(bubble);
+    let lastRenderAt = 0;
+    let pendingText = '';
+    let renderTimer = 0;
+    const renderNow = () => {
+      content.innerHTML = `${renderMarkdownToHtml(pendingText)}<span class="ai-assistant-stream-caret" aria-hidden="true"></span>`;
+      scrollConversationToBottom('auto');
+    };
+    return {
+      bubble,
+      update(text) {
+        pendingText = String(text || '');
+        const now = performance.now();
+        if (now - lastRenderAt >= 90) {
+          lastRenderAt = now;
+          if (renderTimer) { clearTimeout(renderTimer); renderTimer = 0; }
+          renderNow();
+        } else if (!renderTimer) {
+          renderTimer = window.setTimeout(() => {
+            renderTimer = 0;
+            lastRenderAt = performance.now();
+            renderNow();
+          }, 90);
+        }
+      },
+      finalize(finalText) {
+        if (renderTimer) { clearTimeout(renderTimer); renderTimer = 0; }
+        const normalized = normalizeAssistantMarkdown(finalText);
+        bubble._assistantRawText = normalized;
+        content.innerHTML = renderMarkdownToHtml(normalized);
+        bubble.classList.remove('is-streaming');
+        enhanceBotBubble(bubble);
+        stabilizeTableLayoutsSoon(bubble);
+        scrollConversationToBottom('auto');
+        return bubble;
+      }
+    };
+  }
+
   function addStreamingBotMessage(text) {
     const fullText = normalizeAssistantMarkdown(text);
     const bubble = document.createElement('article');
@@ -10819,7 +10875,80 @@
     return payload;
   }
 
-  async function sendAssistantRequest(payload, signal) {
+  // Consomme le flux SSE emis par le Worker (protocole : data: {"type":
+  // "meta"|"delta"|"done"|"error", ...}) et retourne un objet de MEME forme
+  // que la reponse JSON classique (reply, web_search_*, model...), enrichi de
+  // streamed: true. handlers.onDelta(accumule, delta) est appele au fil de
+  // l'eau pour le rendu incremental.
+  async function consumeAssistantStream(response, handlers, startedAt) {
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let meta = {};
+    let accumulated = '';
+    let doneEvent = null;
+    let streamErrorMessage = '';
+    try {
+      for (;;) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        let newlineIndex;
+        while ((newlineIndex = buffer.indexOf('\n')) !== -1) {
+          const line = buffer.slice(0, newlineIndex).replace(/\r$/, '').trim();
+          buffer = buffer.slice(newlineIndex + 1);
+          if (!line.startsWith('data:')) continue;
+          let event = null;
+          try { event = JSON.parse(line.slice(5).trim()); } catch (_) { continue; }
+          if (event?.type === 'meta') {
+            meta = event;
+          } else if (event?.type === 'delta' && typeof event.text === 'string') {
+            accumulated += event.text;
+            try { handlers?.onDelta?.(accumulated, event.text); } catch (_) { /* le rendu ne doit jamais casser la lecture */ }
+          } else if (event?.type === 'done') {
+            doneEvent = event;
+          } else if (event?.type === 'error') {
+            streamErrorMessage = String(event.message || 'stream_error');
+          }
+        }
+      }
+    } catch (error) {
+      // Interruption (bouton stop, coupure reseau) avec du texte deja recu :
+      // la reponse partielle reste exploitable — on la finalise au lieu de la
+      // jeter (et la bulle deja affichee est reprise par le chemin de succes).
+      // Sans texte recu, on laisse remonter : askAI gere l'erreur comme avant.
+      if (accumulated) {
+        return { ...meta, ok: true, reply: accumulated, streamed: true, streamAborted: true, httpStatus: response.status };
+      }
+      throw error;
+    }
+    if (!accumulated) {
+      return {
+        ok: false,
+        error: streamErrorMessage ? 'stream_error' : 'empty_stream_reply',
+        diagnostic: streamErrorMessage ? { message: streamErrorMessage } : null,
+        httpStatus: response.status
+      };
+    }
+    assistantLog('debug', 'api_response', {
+      ok: true,
+      httpStatus: response.status,
+      model: meta?.resolved_model || meta?.model || '',
+      streamed: true,
+      finishReason: doneEvent?.finish_reason || null,
+      durationMs: Math.round(performance.now() - startedAt)
+    });
+    return {
+      ...meta,
+      ok: true,
+      reply: accumulated,
+      streamed: true,
+      finish_reason: doneEvent?.finish_reason || null,
+      httpStatus: response.status
+    };
+  }
+
+  async function sendAssistantRequest(payload, signal, streamHandlers = null) {
     const startedAt = performance.now();
     const response = await fetch(API_ENDPOINT, {
       method: 'POST',
@@ -10833,6 +10962,10 @@
     // on rouvre la modale de connexion plutot que d'afficher une erreur brute.
     if (response.status === 401) {
       try { window.DBSAuth?.refreshSession?.(); window.DBSAuth?.openAuthModal?.(); } catch (_) { /* no-op */ }
+    }
+    const responseContentType = String(response.headers.get('Content-Type') || '');
+    if (streamHandlers && response.ok && response.body && responseContentType.includes('text/event-stream')) {
+      return await consumeAssistantStream(response, streamHandlers, startedAt);
     }
     const raw = await response.text();
     let data = null;
@@ -11169,7 +11302,8 @@
         },
         documentSettings: assistantSettingsState.documents || {},
         ragTelemetry: ragContext.events || [],
-        webSearchQuery: userText
+        webSearchQuery: userText,
+        stream: STREAMING_ENABLED
       };
       assistantLog('debug', 'api_request', {
         historyMessages: payload.history.length,
@@ -11191,7 +11325,19 @@
         ragChunksLength: ragContext.selected?.length || 0,
         includeGlobalLibrary: Boolean(conversationProject?.ragUseGlobalLibrary || assistantSettingsState.documents?.ragUseGlobalLibrary)
       });
-      const data = await sendAssistantRequest(payload, requestController.signal);
+      // Rendu incremental : la bulle assistant est creee au PREMIER delta
+      // recu (le spinner reste affiche pendant la phase planners + RAG + web
+      // cote Worker), puis se remplit au fil du flux.
+      let liveStream = null;
+      const data = await sendAssistantRequest(payload, requestController.signal, {
+        onDelta: (accumulated) => {
+          if (!liveStream) {
+            loading.remove();
+            liveStream = beginLiveBotMessage();
+          }
+          liveStream.update(accumulated);
+        }
+      });
 
       loading.remove();
       if (data.ok) {
@@ -11226,7 +11372,12 @@
             : `\n\n**Statut recherche web**\nLa recherche web temps réel n’a pas pu aboutir : ${data.web_search_error}.`;
           cleanedReply += searchErrorNote;
         }
-        const botBubble = await addStreamingBotMessage(cleanedReply);
+        // Flux SSE : la bulle existe deja et contient le texte brut streame —
+        // on la finalise en place avec le texte nettoye (citations, sources).
+        // Sinon (reponse JSON classique), animation historique.
+        const botBubble = liveStream
+          ? liveStream.finalize(cleanedReply)
+          : await addStreamingBotMessage(cleanedReply);
         const displaySources = validCitedSources.length && isRagCitationsDisplayEnabled(ragCandidateProject) ? validCitedSources : [];
         if (data.web_search_performed && data.web_search_results?.length) {
           appendWebSearchSources(botBubble, data.web_search_results);

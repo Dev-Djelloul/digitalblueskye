@@ -45,7 +45,10 @@ export function normalizeModelTier(tier) {
 }
 
 export const FAST_MODEL_HINTS = ['google/gemini-2.5-flash-lite'];
-export const STRONG_MODEL_HINTS = ['qwen/qwen3-30b-a3b', 'mistralai/mistral-small-3.2-24b-instruct'];
+// Haiku 4.5 en tete des hints "strong" : sans lui, une requete tier strong
+// reordonnait mistral-small DEVANT le modele principal configure (Haiku),
+// c'est-a-dire un modele plus faible en premier.
+export const STRONG_MODEL_HINTS = ['anthropic/claude-haiku-4.5', 'qwen/qwen3-30b-a3b', 'mistralai/mistral-small-3.2-24b-instruct'];
 
 function getOpenAiModel(env, tier = MODEL_TIERS.BALANCED) {
   const normalizedTier = normalizeModelTier(tier);
@@ -1118,5 +1121,155 @@ export async function routeChatCompletion({
     errorType: lastFailure?.error_type || 'unknown',
     userMessage: USER_MESSAGES[language],
     cloudflareAiErrorDetail: lastCloudflareAiRecord?.error_detail || null
+  };
+}
+
+/**
+ * Variante STREAMING de routeChatCompletion : negocie l'ouverture d'un flux
+ * SSE OpenRouter (stream: true) en parcourant la meme chaine de modeles et la
+ * meme cascade de niveaux de tokens (retry 402), puis retourne le
+ * ReadableStream BRUT d'OpenRouter des que les headers d'un modele repondent
+ * 200 — le relais/transformation SSE est la responsabilite de l'appelant
+ * (cf. createOpenRouterSseRelay dans worker-openrouter.js).
+ *
+ * Volontairement hors perimetre (l'appelant retombe sur routeChatCompletion
+ * non-streame en cas d'echec ici) : Completion Guard et fallback OpenAI /
+ * Cloudflare AI — ils exigent le texte complet ou d'autres protocoles.
+ * Le timeout ne couvre QUE l'attente des headers : une fois le flux ouvert,
+ * l'abandonner en cours de route couperait la reponse cote utilisateur.
+ */
+export async function routeChatCompletionStream({
+  messages,
+  systemPrompt,
+  userPrompt,
+  maxTokens,
+  temperature,
+  env,
+  metadata,
+  modelTier,
+  onEvent,
+  fetchImpl,
+  timeoutMs
+}) {
+  const fetcher = typeof fetchImpl === 'function' ? fetchImpl : fetch;
+  const requestedModelTier = normalizeModelTier(modelTier);
+  const baseMessages = Array.isArray(messages) ? [...messages] : [];
+  if (userPrompt && baseMessages[baseMessages.length - 1]?.content !== userPrompt) {
+    baseMessages.push({ role: 'user', content: userPrompt });
+  }
+  const fullMessages = [{ role: 'system', content: String(systemPrompt || '') }, ...baseMessages];
+
+  const effectiveMaxTokens = Math.max(1, Number(maxTokens) || DEFAULT_MAX_TOKENS);
+  const tokenRetryLevels = TOKEN_RETRY_RATIOS
+    .map((ratio) => Math.max(MIN_USEFUL_OPENROUTER_TOKENS, Math.round(effectiveMaxTokens * ratio)))
+    .filter((value, index, array) => index === 0 || value < array[index - 1]);
+
+  const apiKey = cleanOpenRouterApiKey(env?.OPENROUTER_API_KEY);
+  if (!apiKey) return { ok: false, errorType: 'missing_openrouter_key', attempts: [] };
+
+  const headers = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${apiKey}`,
+    'HTTP-Referer': metadata?.allowedOrigin || 'https://digitalblueskye.com',
+    'X-Title': 'Digital Blue Skye AI'
+  };
+
+  const modelChain = buildModelChain(env, onEvent, requestedModelTier);
+  const attempts = [];
+
+  modelLoop:
+  for (const model of modelChain) {
+    for (let levelIndex = 0; levelIndex < tokenRetryLevels.length; levelIndex += 1) {
+      const tokenLimit = tokenRetryLevels[levelIndex];
+      emit(onEvent, EVENT_TYPES.MODEL_ATTEMPT, {
+        model, provider: 'openrouter', tokens_requested: tokenLimit, streaming: true
+      });
+      const controller = new AbortController();
+      const headerTimer = setTimeout(() => controller.abort(), timeoutMs || 30000);
+      const startedAt = Date.now();
+      let response;
+      try {
+        response = await fetcher('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers,
+          signal: controller.signal,
+          body: JSON.stringify({
+            model,
+            messages: fullMessages,
+            temperature: Number.isFinite(temperature) ? temperature : 0.35,
+            max_tokens: tokenLimit,
+            stream: true
+          })
+        });
+      } catch (error) {
+        clearTimeout(headerTimer);
+        const record = {
+          model,
+          provider: 'openrouter',
+          status_code: 0,
+          tokens_requested: tokenLimit,
+          error_type: error?.name === 'AbortError' ? 'timeout' : 'provider_error',
+          upstream_error: String(error?.message || error).slice(0, 300)
+        };
+        attempts.push(record);
+        emit(onEvent, EVENT_TYPES.MODEL_FAILED, record);
+        continue modelLoop;
+      }
+      clearTimeout(headerTimer);
+
+      if (response.ok && response.body) {
+        emit(onEvent, EVENT_TYPES.MODEL_SUCCESS, {
+          model,
+          provider: 'openrouter',
+          tokens_requested: tokenLimit,
+          streaming: true,
+          latency_ms: Date.now() - startedAt
+        });
+        return {
+          ok: true,
+          provider: 'openrouter',
+          model,
+          tokensRequested: tokenLimit,
+          body: response.body,
+          attempts
+        };
+      }
+
+      const raw = await response.text().catch(() => '');
+      let parsed = null;
+      try { parsed = raw ? JSON.parse(raw) : null; } catch (_) { /* parsed reste null */ }
+      const upstreamError = parsed?.error?.message || parsed?.message || `openrouter_http_${response.status}`;
+      const errorType = classifyFailure(response.status, upstreamError, false);
+      const record = {
+        model,
+        provider: 'openrouter',
+        status_code: response.status,
+        tokens_requested: tokenLimit,
+        error_type: errorType,
+        upstream_error: String(upstreamError).slice(0, 300)
+      };
+      attempts.push(record);
+      emit(onEvent, EVENT_TYPES.MODEL_FAILED, record);
+      if (errorType === 'rate_limit') emit(onEvent, EVENT_TYPES.RATE_LIMIT, record);
+      if (errorType === 'credit_limit') {
+        emit(onEvent, EVENT_TYPES.CREDIT_LIMIT, record);
+        if (isOpenRouterCreditExhausted(upstreamError)) {
+          return { ok: false, errorType: 'credit_limit', attempts };
+        }
+        if (levelIndex < tokenRetryLevels.length - 1) {
+          emit(onEvent, EVENT_TYPES.RETRY_REDUCED_TOKENS, {
+            model, from_max_tokens: tokenLimit, to_max_tokens: tokenRetryLevels[levelIndex + 1]
+          });
+          continue;
+        }
+      }
+      continue modelLoop;
+    }
+  }
+
+  return {
+    ok: false,
+    errorType: attempts[attempts.length - 1]?.error_type || 'all_models_failed',
+    attempts
   };
 }
