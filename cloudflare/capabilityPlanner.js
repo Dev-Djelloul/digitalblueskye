@@ -288,11 +288,11 @@ export function planCapabilities(capabilities, runtimeContext = {}) {
     preferredModelTier = 'fast';
   }
 
-  // Bornes alignees sur le Model Router existant (plancher 700, plafond 2200
-  // — cf. cloudflare/modelRouter.js DEFAULT_MAX_TOKENS/TOKEN_RETRY_LEVELS).
-  let preferredMaxTokens = 1100;
-  if (caps.needsLongAnswer || caps.needsTimeline || caps.needsExport) preferredMaxTokens = 2200;
-  else if (caps.complexity === 'low') preferredMaxTokens = 700;
+  // Bornes alignees sur le Model Router existant (defaut 2000, plafond 8192
+  // — cf. cloudflare/modelRouter.js DEFAULT_MAX_TOKENS/TOKEN_RETRY_RATIOS).
+  let preferredMaxTokens = 2200;
+  if (caps.needsLongAnswer || caps.needsTimeline || caps.needsExport) preferredMaxTokens = 4000;
+  else if (caps.complexity === 'low') preferredMaxTokens = 1200;
 
   let temperature = 0.35;
   if (caps.needsCode || caps.needsCalculations || caps.needsReasoning) temperature = 0.2;

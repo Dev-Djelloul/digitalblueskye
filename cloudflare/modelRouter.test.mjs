@@ -47,14 +47,17 @@ async function scenario429ThenFallback() {
 }
 
 async function scenario402ThenReducedTokens() {
+  // Le premier niveau de la cascade est desormais le budget effectif complet
+  // (DEFAULT_MAX_TOKENS = 2000) ; le 402 sur ce niveau doit provoquer un
+  // retry au niveau reduit suivant (cf. TOKEN_RETRY_RATIOS).
   const fetchImpl = async (url, opts) => {
     const payload = JSON.parse(opts.body);
-    if (payload.max_tokens === 700) return fakeResponse(402, { error: { message: 'This request requires more credits, or fewer max_tokens. You can only afford 400.' } });
+    if (payload.max_tokens === 2000) return fakeResponse(402, { error: { message: 'This request requires more credits, or fewer max_tokens. You can only afford 400.' } });
     return fakeResponse(200, { model: payload.model, choices: [{ message: { content: 'Reponse a tokens reduits' } }] });
   };
   const result = await routeChatCompletion(commonArgs(fetchImpl));
   console.assert(result.ok === true, 'scenario3: should succeed at reduced tokens');
-  console.assert(result.tokensRequested < 700, 'scenario3: tokens should be reduced');
+  console.assert(result.tokensRequested < 2000, 'scenario3: tokens should be reduced');
   const retryEvent = events.find((e) => e.type === 'openrouter_retry_reduced_tokens');
   console.assert(Boolean(retryEvent), 'scenario3: should log retry_reduced_tokens');
   console.log('scenario3 (402 puis reduction tokens):', result.ok, 'tokens=', result.tokensRequested);

@@ -1,5 +1,5 @@
 import { getVectorStoreProvider } from './vectorStore/index.js';
-import { embedText, EMBEDDING_DIMENSIONS } from './embeddings.js';
+import { embedText, embedTexts, getEmbeddingDimensions } from './embeddings.js';
 
 const NAMESPACE = 'rag';
 const DEFAULT_SIMILARITY_THRESHOLD = 0.72;
@@ -28,10 +28,15 @@ export async function indexDocumentChunks(env, { documentId, projectId, document
 
   const items = [];
   const d1Rows = [];
-  for (const chunk of chunks) {
-    const text = String(chunk?.text || '').trim();
-    if (!text) continue;
-    const vector = await embedText(env, text);
+  // Embeddings calcules par lots (embedTexts) et non plus chunk par chunk :
+  // l'indexation d'un long document passait par autant d'appels Workers AI
+  // sequentiels que de chunks.
+  const embeddableChunks = chunks.filter((chunk) => String(chunk?.text || '').trim());
+  const vectors = await embedTexts(env, embeddableChunks.map((chunk) => String(chunk.text).trim()));
+  for (let i = 0; i < embeddableChunks.length; i += 1) {
+    const chunk = embeddableChunks[i];
+    const text = String(chunk.text).trim();
+    const vector = vectors[i];
     if (!vector) continue;
     const id = chunkVectorId(documentId, chunk.index);
     items.push({
@@ -456,7 +461,7 @@ export async function checkVectorizeHealth(env) {
   }
   const startedAt = Date.now();
   try {
-    const probeVector = new Array(EMBEDDING_DIMENSIONS).fill(0);
+    const probeVector = new Array(getEmbeddingDimensions(env)).fill(0);
     await provider.query({ namespace: NAMESPACE, vector: probeVector, topK: 1 });
     return {
       status: 'operational',

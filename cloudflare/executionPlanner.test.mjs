@@ -34,7 +34,7 @@ function run(userMessage, opts = {}) {
   check('1. Bonjour: modelMode/preferredModelTier fast', r.plan.preferredModelTier === 'fast');
   check('1. Bonjour: useWeb false', r.plan.useWeb === false);
   check('1. Bonjour: useRag false', r.plan.useRag === false);
-  check('1. Bonjour: preferredMaxTokens 700', r.plan.preferredMaxTokens === 700);
+  check('1. Bonjour: preferredMaxTokens 1200', r.plan.preferredMaxTokens === 1200);
   check('1. Bonjour: answerMode short', r.intent.answerMode === 'short');
 }
 
@@ -69,7 +69,7 @@ function run(userMessage, opts = {}) {
   const r = run("Rédige un guide professionnel complet sur deux semaines en Crète avec tableau, checklist et sources.");
   check('5. guide crete: answerMode long_document', r.intent.answerMode === 'long_document');
   check('5. guide crete: useWeb ou useRag actif', r.plan.useWeb === true || r.plan.useRag === true);
-  check('5. guide crete: preferredMaxTokens >= 1600', r.plan.preferredMaxTokens >= 1600);
+  check('5. guide crete: preferredMaxTokens >= 3200', r.plan.preferredMaxTokens >= 3200);
   check('5. guide crete: useCompletionGuard true', r.plan.useCompletionGuard === true);
 }
 
@@ -116,7 +116,7 @@ function run(userMessage, opts = {}) {
 {
   const r = run('Rédige un document complet et détaillé avec export PDF de ce rapport.');
   check('11. long+export: answerMode long_document', r.intent.answerMode === 'long_document');
-  check('11. long+export: preferredMaxTokens >= 1600 (priorite Capability)', r.plan.preferredMaxTokens >= 1600);
+  check('11. long+export: preferredMaxTokens >= 3200 (priorite Capability)', r.plan.preferredMaxTokens >= 3200);
   check('11. long+export: exportPolicy export_ready', r.plan.exportPolicy === 'export_ready');
 }
 

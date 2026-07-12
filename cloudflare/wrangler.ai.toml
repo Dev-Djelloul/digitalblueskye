@@ -56,6 +56,26 @@ database_id = "eeb9d1b0-26ed-48a1-beb3-b0a944765174"
 # Tant que ces bindings sont absents, getVectorStoreProvider() retourne null et
 # le RAG navigateur (cote client) reste utilise sans regression.
 #
+# ── Migration embeddings bge-m3 (RECOMMANDEE, cf. cloudflare/embeddings.js) ──
+# Le modele d'embedding par defaut (bge-base-en-v1.5, 768 dims) est ANGLAIS :
+# la similarite semantique sur les contenus francais du site est degradee.
+# @cf/baai/bge-m3 (1024 dims) est multilingue. Les dimensions d'un index
+# Vectorize etant immuables, la migration passe par un NOUVEL index :
+# 1. wrangler vectorize create digitalblueskye-rag-m3 --dimensions=1024 --metric=cosine
+# 2. wrangler vectorize create-metadata-index digitalblueskye-rag-m3 --property-name=projectId --type=string
+#    wrangler vectorize create-metadata-index digitalblueskye-rag-m3 --property-name=documentId --type=string
+# 3. Ci-dessous : index_name = "digitalblueskye-rag-m3", et dans [vars] :
+#    EMBEDDING_MODEL = "@cf/baai/bge-m3"
+#    RAG_SIMILARITY_THRESHOLD = "0.60"   # bge-m3 score plus bas que bge-base ;
+#                                         # calibrer avec mode=rag_diagnose puis
+#                                         # de vraies requetes francaises.
+# 4. Redeployer, puis REINDEXER tous les documents (les vecteurs 768 dims de
+#    l'ancien index ne sont pas reutilisables) : re-importer les documents
+#    depuis l'interface (chaque import repasse par indexDocumentChunks, qui
+#    embed desormais par lots — cf. embedTexts).
+# 5. Verifier avec POST { "mode": "rag_diagnose" } puis supprimer l'ancien
+#    index : wrangler vectorize delete digitalblueskye-rag
+#
 # Diagnostic independant d'OpenRouter : POST { "mode": "rag_diagnose" } sur ce
 # Worker -> teste embedding + upsert + query + delete et renvoie le detail de
 # chaque etape (utile si le LLM est en 429/402 et qu'on veut juste valider le

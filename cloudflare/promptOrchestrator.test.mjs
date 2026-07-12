@@ -24,7 +24,7 @@ function run(userMessage, opts = {}) {
   check('q-courte: format short_answer', intent.expectedFormat === 'short_answer');
   check('q-courte: pas de RAG/web', intent.needsRag === false && intent.needsWeb === false);
   check('q-courte: profil default', plan.promptProfile === 'default');
-  check('q-courte: maxTokens court (700)', plan.maxTokensHint === 700);
+  check('q-courte: maxTokens court (1200)', plan.maxTokensHint === 1200);
 }
 
 // 2. Demande long document
@@ -34,7 +34,7 @@ function run(userMessage, opts = {}) {
   check('long-doc: format long_document', intent.expectedFormat === 'long_document');
   check('long-doc: requiresLongAnswer', intent.requiresLongAnswer === true);
   check('long-doc: profil long_document', plan.promptProfile === 'long_document');
-  check('long-doc: maxTokens eleve (2200)', plan.maxTokensHint === 2200);
+  check('long-doc: maxTokens eleve (4000)', plan.maxTokensHint === 4000);
   check('long-doc: tier strong', plan.preferredModelTier === 'strong');
   check('long-doc: completion guard actif', plan.useCompletionGuard === true);
 }

@@ -21,8 +21,13 @@
 
 import { applyCompletionGuard, resolveMaxContinuations, closeOpenMarkdownStructures } from './completionGuard.js';
 
-export const DEFAULT_MAX_TOKENS = 700;
-export const TOKEN_RETRY_LEVELS = [700, 500, 350];
+export const DEFAULT_MAX_TOKENS = 2000;
+// Echelle de repli proportionnelle au budget effectif (et non plus une liste
+// absolue [700, 500, 350] qui plafonnait la PREMIERE tentative a 700 tokens
+// quel que soit maxTokens) : la premiere tentative part toujours avec le
+// budget complet ; les niveaux reduits ne servent qu'aux retries 402
+// (credit_limit) d'OpenRouter.
+export const TOKEN_RETRY_RATIOS = [1, 0.55, 0.3];
 export const LAST_RESORT_MODEL = 'openrouter/auto';
 export const MIN_USEFUL_OPENROUTER_TOKENS = 128;
 
@@ -688,8 +693,8 @@ export async function routeChatCompletion({
   const fullMessages = [{ role: 'system', content: String(systemPrompt || '') }, ...baseMessages];
 
   const effectiveMaxTokens = Math.max(1, Number(maxTokens) || DEFAULT_MAX_TOKENS);
-  const tokenRetryLevels = TOKEN_RETRY_LEVELS
-    .map((level) => Math.min(level, effectiveMaxTokens))
+  const tokenRetryLevels = TOKEN_RETRY_RATIOS
+    .map((ratio) => Math.max(MIN_USEFUL_OPENROUTER_TOKENS, Math.round(effectiveMaxTokens * ratio)))
     .filter((value, index, array) => index === 0 || value < array[index - 1]);
   if (!tokenRetryLevels.length) tokenRetryLevels.push(effectiveMaxTokens);
 

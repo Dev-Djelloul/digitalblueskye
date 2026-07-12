@@ -247,12 +247,12 @@ export function resolveExecutionPlan({ intent, capabilityPlan = null, sourcePlan
     i.answerMode === 'short' && (i.evidenceMode === 'none' || i.evidenceMode === 'optional') && !requiresTable && !requiresExport
   );
   let preferredModelTier = capPlan?.preferredModelTier || i.modelMode || 'balanced';
-  let preferredMaxTokens = Number(capPlan?.preferredMaxTokens) || 1100;
+  let preferredMaxTokens = Number(capPlan?.preferredMaxTokens) || 2200;
   let temperature = Number.isFinite(capPlan?.temperature) ? capPlan.temperature : 0.35;
 
   if (isShortStable) {
     preferredModelTier = 'fast';
-    preferredMaxTokens = 700;
+    preferredMaxTokens = 1200;
     if (!forceWeb) useWeb = false;
     if (!forceWeb) { /* forceWeb reste source de verite, jamais ecrase */ }
     if (!forceRag && !(evidence?.sourceRequirement === 'rag_required' || evidence?.sourceRequirement === 'rag_preferred')) {
@@ -262,10 +262,10 @@ export function resolveExecutionPlan({ intent, capabilityPlan = null, sourcePlan
   }
 
   // Regle 6 — demande documentaire longue : tier strong/balanced, tokens
-  // >= 1600, Completion Guard actif, RQC strict.
+  // >= 3200, Completion Guard actif, RQC strict.
   if (isDocumentaryOrLong) {
     preferredModelTier = maxTier(preferredModelTier === 'fast' ? 'balanced' : preferredModelTier, 'balanced');
-    preferredMaxTokens = Math.max(preferredMaxTokens, 1600);
+    preferredMaxTokens = Math.max(preferredMaxTokens, 3200);
     push('long_document_strong_or_balanced_high_tokens');
   }
 

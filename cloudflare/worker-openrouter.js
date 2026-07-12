@@ -65,11 +65,13 @@ const DEFAULT_MODEL = 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free';
 const FALLBACK_MODEL = 'openrouter/auto';
 const WORKER_BUILD = '2026-06-20-tavily-economy-v4';
 const TAVILY_SEARCH_ENDPOINT = 'https://api.tavily.com/search';
-const DEFAULT_MAX_TOKENS = 700;
-// Niveaux de tokens essayes en cascade quand un modele renvoie 402 (credit
-// insuffisant pour le nombre de tokens demande) : on reduit avant de changer
-// de modele, plutot que d'abandonner directement.
-const TOKEN_RETRY_LEVELS = [700, 500, 350];
+const DEFAULT_MAX_TOKENS = 2000;
+// Plafond absolu du budget de sortie envoye aux modeles. L'ancien plafond de
+// 2200 tokens (avec premiere tentative a 700 via TOKEN_RETRY_LEVELS) tronquait
+// structurellement les reponses longues et forcait le Completion Guard a
+// multiplier les continuations. La cascade de retry 402 vit desormais dans
+// modelRouter.js (TOKEN_RETRY_RATIOS, proportionnelle au budget effectif).
+const MAX_TOKENS_CEILING = 8192;
 const WEB_SEARCH_TIMEOUT = 8000; // 8 secondes max par recherche web
 const WEB_SEARCH_CACHE_TTL = 21600000; // 6 heures de cache
 const WEB_SEARCH_DEDUPE_WINDOW = 60000; // 60 secondes
@@ -200,12 +202,16 @@ function buildSystemPrompt(language, dateContext) {
 function normalizeHistory(history) {
   if (!Array.isArray(history)) return [];
 
+  // 20 messages x 4000 caracteres : la troncature historique (16 x 1200)
+  // amputait le contenu des reponses longues precedentes et degradait les
+  // questions de suivi ("developpe le point 2"). ~20k tokens au pire cas,
+  // tres en-deca des fenetres de contexte des modeles de la chaine (>=128k).
   return history
     .filter((entry) => entry && typeof entry.content === 'string')
-    .slice(-16)
+    .slice(-20)
     .map((entry) => ({
       role: entry.role === 'assistant' ? 'assistant' : 'user',
-      content: entry.content.trim().slice(0, 1200)
+      content: entry.content.trim().slice(0, 4000)
     }))
     .filter((entry) => entry.content.length > 0);
 }
@@ -316,10 +322,13 @@ function extractReply(openRouterJson) {
   return '';
 }
 
-function extractSnippet(result, maxTokens = 300) {
+// 1200 caracteres par extrait (au lieu de 300) : avec 300, le modele ne
+// voyait que ~900 caracteres de contenu web au total et devait extrapoler le
+// reste — cause directe de reponses superficielles sur les questions web.
+function extractSnippet(result, maxChars = 1200) {
   const text = String(result?.snippet || result?.description || '');
-  if (text.length <= maxTokens) return text;
-  return text.slice(0, maxTokens).trim() + '...';
+  if (text.length <= maxChars) return text;
+  return text.slice(0, maxChars).trim() + '...';
 }
 
 function normalizeTavilyApiKey(apiKey) {
@@ -735,8 +744,15 @@ function buildTavilyOptions(env, intent) {
   const allowDeep = Boolean(intent?.deep) && !ultraEconomy;
   return {
     search_depth: allowDeep ? 'advanced' : 'basic',
-    max_results: ultraEconomy ? 1 : (allowDeep ? 3 : 3),
-    include_answer: false,
+    // 5 resultats (au lieu de 3) : le nombre de resultats ne change pas le
+    // cout Tavily (credits factures par recherche, pas par resultat), mais
+    // double presque la matiere premiere donnee au modele.
+    max_results: ultraEconomy ? 1 : 5,
+    // include_answer est inclus dans le credit de base de la recherche : la
+    // synthese Tavily donne au modele une vue d'ensemble recoupee que les
+    // extraits seuls ne fournissent pas (elle transite deja par
+    // buildWebContextPrompt via webSearchAnswer, plomberie existante).
+    include_answer: true,
     include_raw_content: false,
     mode: ultraEconomy ? 'ultra_economy' : 'economy',
     estimated_credits: allowDeep ? 2 : 1
@@ -2661,8 +2677,8 @@ export default {
       Number.isFinite(requestedMaxTokens) && requestedMaxTokens > 0 ? requestedMaxTokens : 0
     );
     const maxTokens = Number.isFinite(configuredMaxTokens) && configuredMaxTokens > 0
-      ? Math.min(Math.max(configuredMaxTokens, maxTokensFloor), 2200)
-      : Math.min(maxTokensFloor, 2200);
+      ? Math.min(Math.max(configuredMaxTokens, maxTokensFloor), MAX_TOKENS_CEILING)
+      : Math.min(maxTokensFloor, MAX_TOKENS_CEILING);
     // La cascade de niveaux de tokens (700/500/350 par defaut) est desormais
     // calculee a l'interieur de routeChatCompletion() a partir de ce
     // maxTokens effectif (cf. cloudflare/modelRouter.js).
@@ -3283,13 +3299,18 @@ export default {
     // les regles de priorite documentees dans executionPlanner.js). A
     // defaut (flag desactive ou erreur), on retombe exactement sur la
     // cascade Lot 8/9 existante — comportement identique a avant ce Lot.
-    const effectiveMaxTokens = executionPlan
-      ? Math.min(Math.max(Number(executionPlan.plan.preferredMaxTokens) || maxTokens, DEFAULT_MAX_TOKENS), 2200)
-      : capabilityPlan
-        ? Math.min(Math.max(Number(capabilityPlan.plan.preferredMaxTokens) || maxTokens, DEFAULT_MAX_TOKENS), 2200)
-        : orchestratorPlan
-          ? Math.min(Math.max(Number(orchestratorPlan.maxTokensHint) || maxTokens, DEFAULT_MAX_TOKENS), 2200)
-          : maxTokens;
+    // Les hints des planners restent des indications de LONGUEUR CIBLE, mais
+    // ne peuvent plus rabaisser le budget sous la moitie du maxTokens global :
+    // un hint "reponse courte" (1200) reste utile, un hint errone ne tronque
+    // plus une reponse riche. Plafond commun MAX_TOKENS_CEILING.
+    const plannerMaxTokensHint = Number(
+      executionPlan?.plan?.preferredMaxTokens
+      ?? capabilityPlan?.plan?.preferredMaxTokens
+      ?? orchestratorPlan?.maxTokensHint
+    ) || 0;
+    const effectiveMaxTokens = plannerMaxTokensHint > 0
+      ? Math.min(Math.max(plannerMaxTokensHint, Math.round(maxTokens / 2), DEFAULT_MAX_TOKENS / 2), MAX_TOKENS_CEILING)
+      : maxTokens;
     const effectiveTemperature = executionPlan && Number.isFinite(executionPlan.plan.temperature)
       ? executionPlan.plan.temperature
       : (capabilityPlan && Number.isFinite(capabilityPlan.plan.temperature)

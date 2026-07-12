@@ -1204,7 +1204,8 @@
   const maxStoredMessagesPerSession = 40;
   const maxStoredMessageLength = 8000;
   const maxConversationSummaryLength = 1800;
-  const apiHistoryWindow = 16;
+  // Aligne sur normalizeHistory() cote Worker (20 messages max envoyes a l'API).
+  const apiHistoryWindow = 20;
   // Plafond large (tous formats confondus) : ce n'est plus une limite a 10, le
   // vrai garde-fou est la capacite du stockage local.
   const maxKnowledgeDocuments = 200;

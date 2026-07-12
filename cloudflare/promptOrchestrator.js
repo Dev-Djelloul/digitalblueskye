@@ -182,10 +182,10 @@ export function planCapabilities(intent, runtimeContext = {}) {
   if (preferredResponseLength === 'long' || safeIntent.complexity === 'high') preferredModelTier = 'strong';
   else if (preferredResponseLength === 'short' && safeIntent.complexity === 'low') preferredModelTier = 'fast';
 
-  // Bornes alignees sur le worker (plancher 700, plafond 2200).
-  let maxTokensHint = 1100;
-  if (preferredResponseLength === 'long') maxTokensHint = 2200;
-  else if (preferredResponseLength === 'short') maxTokensHint = 700;
+  // Bornes alignees sur le worker (defaut 2000, plafond MAX_TOKENS_CEILING 8192).
+  let maxTokensHint = 2200;
+  if (preferredResponseLength === 'long') maxTokensHint = 4000;
+  else if (preferredResponseLength === 'short') maxTokensHint = 1200;
 
   let temperatureHint = 0.35;
   if (safeIntent.primaryIntent === 'technical_help') temperatureHint = 0.2;
