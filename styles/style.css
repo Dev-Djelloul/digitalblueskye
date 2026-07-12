@@ -18327,7 +18327,7 @@ body.ai-assistant-sidebar-is-resizing * {
 }
 
 .chat-logout-confirmation-panel p {
-  color: var(--text-secondary, #d9d0f5);
+  color: var(--text-secondary, b2a4dc);
   font-size: 0.95rem;
   margin: 0 0 24px;
   line-height: 1.5;
@@ -18361,7 +18361,7 @@ body.ai-assistant-sidebar-is-resizing * {
 
 .chat-logout-confirmation-no {
   background: var(--border-color, #3d3b52);
-  color: var(--text-color, #f2efff);
+  color: #f8f9fa;
 }
 
 .chat-logout-confirmation-no:hover {
