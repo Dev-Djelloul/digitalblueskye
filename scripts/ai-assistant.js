@@ -11472,7 +11472,7 @@
       if (isChatPage) {
         const confirmation = document.querySelector('[data-chat-logout-confirmation]');
         if (confirmation) {
-          confirmation.hidden = false;
+          confirmation.classList.add('is-visible');
           confirmation.setAttribute('aria-hidden', 'false');
         }
         return;
@@ -11491,9 +11491,8 @@
       const closeButtons = confirmation.querySelectorAll('[data-chat-logout-close]');
 
       const closeModal = () => {
-        confirmation.classList.remove('is-open');
+        confirmation.classList.remove('is-visible');
         confirmation.setAttribute('aria-hidden', 'true');
-        setTimeout(() => { confirmation.hidden = true; }, 160);
       };
 
       if (confirmBtn) {
