@@ -11420,6 +11420,12 @@
         window.location.href = '/chat.html';
         return;
       }
+      // Sur chat.html, vérifier l'authentification avant d'ouvrir le panel
+      const isAuthenticated = window.DBSAuth?.isAuthenticated?.();
+      if (!isAuthenticated) {
+        window.DBSAuth?.openAuthModal?.();
+        return;
+      }
       const isOpening = !panel.classList.contains('is-open');
       if (isOpening) placePanelInCurrentViewport();
       setAssistantPanelOpen(isOpening);
