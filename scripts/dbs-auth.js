@@ -665,6 +665,13 @@
       }
       if (action.dataset.dbsAccountAction === 'logout') {
         closeAccountPopover();
+        // Sur chat.html, afficher la modale de confirmation de déconnexion
+        const confirmation = document.querySelector('[data-chat-logout-confirmation]');
+        if (confirmation && document.body.classList.contains('chat-page')) {
+          confirmation.classList.add('is-visible');
+          confirmation.setAttribute('aria-hidden', 'false');
+          return;
+        }
         await logout();
       }
     });
