@@ -1054,6 +1054,10 @@
       'sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw',
     'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js':
       'sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG',
+    'https://cdnjs.cloudflare.com/ajax/libs/marked/16.3.0/lib/marked.umd.min.js':
+      'sha384-28tGVU6cfNCYHN01DPkRbQ5zNcqr7cHx7RE2PA0Os8oQsE0H1dRIJBoGPX75oXDs',
+    'https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.4.8/purify.min.js':
+      'sha384-R99bc6AdiNZcL+ueHrz0xh6SyglwkdixKGUnBqeJrDSFsFfD/HBaI345ap29kH9g',
   };
   const DRIVE_API_KEY = String(window.DBS_GOOGLE_API_KEY || '').trim();
   const DRIVE_CLIENT_ID = String(window.DBS_GOOGLE_CLIENT_ID || '').trim();
@@ -8255,6 +8259,182 @@
   // (openPrintablePdf, volontairement non touche dans cette phase).
   const AI_MARKDOWN_AST_PHASE2_ENABLED = true;
 
+  // ── Phase 5 : moteur Markdown externe (marked + DOMPurify) ──────────────
+  //
+  // Remplace le parsing maison pour le rendu CHAT uniquement (live +
+  // historique). Motivation : le parser ligne-par-ligne ne gere ni les listes
+  // imbriquees, ni le gras multi-lignes, ni les nombreux cas limites GFM —
+  // marked les gere nativement, et DOMPurify sanitise le HTML produit (le
+  // pipeline regex→innerHTML historique n'avait pas de sanitizer dedie).
+  // Les exports MD/HTML/PDF/DOCX restent VOLONTAIREMENT sur l'AST partage
+  // (phases 3/4) : leur contrat est teste et independant du rendu chat.
+  // Triple filet : marked pas encore charge (CDN lent/bloque) OU erreur OU
+  // window.DBS_AI_MARKDOWN_ENGINE = 'legacy' => repli AST puis
+  // formatBotMessageHtml, exactement comme avant cette phase.
+  const AI_MARKDOWN_ENGINE_PHASE5_ENABLED = window.DBS_AI_MARKDOWN_ENGINE !== 'legacy';
+  const MARKED_SCRIPT_URL = 'https://cdnjs.cloudflare.com/ajax/libs/marked/16.3.0/lib/marked.umd.min.js';
+  const DOMPURIFY_SCRIPT_URL = 'https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.4.8/purify.min.js';
+  let markdownEngineLoaderPromise = null;
+
+  function loadExternalScript(src) {
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = src;
+      script.async = true;
+      const integrity = SRI_HASHES[src];
+      if (integrity) {
+        script.integrity = integrity;
+        script.crossOrigin = 'anonymous';
+      }
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error(`script_load_failed:${src}`));
+      document.head.appendChild(script);
+    });
+  }
+
+  function markdownEngineAvailable() {
+    return typeof window.marked?.parse === 'function' && typeof window.DOMPurify?.sanitize === 'function';
+  }
+
+  // Chargement PRECOCE (des l'init, pas au premier message) pour que le
+  // moteur soit pret avant la premiere reponse. Best-effort : tout echec
+  // laisse markdownEngineAvailable() a false et le rendu retombe sur l'AST.
+  function loadMarkdownEngineLibraries() {
+    if (markdownEngineAvailable()) return Promise.resolve();
+    if (markdownEngineLoaderPromise) return markdownEngineLoaderPromise;
+    markdownEngineLoaderPromise = Promise.all([
+      typeof window.marked?.parse === 'function' ? Promise.resolve() : loadExternalScript(MARKED_SCRIPT_URL),
+      typeof window.DOMPurify?.sanitize === 'function' ? Promise.resolve() : loadExternalScript(DOMPURIFY_SCRIPT_URL)
+    ]).then(() => {
+      if (!markdownEngineAvailable()) throw new Error('markdown_engine_globals_missing');
+      console.info('[markdown-engine] Phase 5 active : rendu chat via marked + DOMPurify.');
+    }).catch((error) => {
+      markdownEngineLoaderPromise = null;
+      console.warn('[markdown-engine] chargement impossible, le rendu AST reste utilise', error?.message || error);
+    });
+    return markdownEngineLoaderPromise;
+  }
+
+  // Remplace des motifs dans les NOEUDS TEXTE d'un sous-arbre (jamais dans le
+  // HTML serialise : aucune chance de casser des attributs), en sautant les
+  // blocs de code. Sert aux citations [1]/[12] et aux emojis.
+  function replaceInTextNodes(root, regex, buildNode) {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode(node) {
+        for (let el = node.parentElement; el && el !== root; el = el.parentElement) {
+          if (el.tagName === 'PRE' || el.tagName === 'CODE') return NodeFilter.FILTER_REJECT;
+        }
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+    const textNodes = [];
+    while (walker.nextNode()) textNodes.push(walker.currentNode);
+    textNodes.forEach((node) => {
+      const text = node.nodeValue || '';
+      regex.lastIndex = 0;
+      if (!regex.test(text)) return;
+      regex.lastIndex = 0;
+      const fragment = document.createDocumentFragment();
+      let lastIndex = 0;
+      let match;
+      while ((match = regex.exec(text)) !== null) {
+        if (match.index > lastIndex) fragment.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
+        fragment.appendChild(buildNode(match));
+        lastIndex = match.index + match[0].length;
+        if (!regex.global) break;
+      }
+      if (lastIndex < text.length) fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
+      node.parentNode.replaceChild(fragment, node);
+    });
+  }
+
+  // Applique au DOM produit par marked le MEME contrat HTML que le renderer
+  // AST : classes de titres, enveloppe/classes de tableaux (consommees par
+  // enhanceTables + stabilizeTableLayouts), structure figure/figcaption des
+  // blocs de code (consommee par enhanceCodeBlocks), liens stylises, sup de
+  // citations (consommes par replaceCitationsWithSourceNames) et spans emoji.
+  function postProcessMarkedDom(container) {
+    container.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((heading) => {
+      const level = Number(heading.tagName.slice(1));
+      heading.classList.add('ai-assistant-heading', `ai-assistant-heading--h${level}`);
+    });
+
+    container.querySelectorAll('a[href]').forEach((anchor) => {
+      anchor.classList.add('ai-assistant-inline-link');
+      anchor.setAttribute('target', '_blank');
+      anchor.setAttribute('rel', 'noopener noreferrer');
+    });
+
+    container.querySelectorAll('table').forEach((table) => {
+      if (table.closest('.ai-assistant-table-wrap')) return;
+      const columnCount = table.rows?.[0]?.cells?.length || 0;
+      const columnClass = `ai-assistant-table--cols-${Math.min(Math.max(columnCount, 1), 10)}`;
+      table.classList.add('ai-assistant-table', columnClass);
+      if (columnCount >= 5) table.classList.add('ai-assistant-table--wide');
+      const wrap = document.createElement('div');
+      wrap.className = `ai-assistant-table-wrap${columnCount >= 5 ? ' ai-assistant-table--wide' : ''}`;
+      wrap.dataset.columns = String(columnCount);
+      table.parentNode.insertBefore(wrap, table);
+      wrap.appendChild(table);
+    });
+
+    container.querySelectorAll('pre > code').forEach((code) => {
+      const pre = code.parentElement;
+      if (pre.closest('.ai-assistant-code-block')) return;
+      const languageMatch = (code.getAttribute('class') || '').match(/language-([a-z0-9+#.-]+)/i);
+      const language = (languageMatch?.[1] || '').toLowerCase();
+      const figure = document.createElement('figure');
+      figure.className = 'ai-assistant-code-block';
+      const caption = document.createElement('figcaption');
+      caption.textContent = language || 'code';
+      figure.appendChild(caption);
+      pre.parentNode.insertBefore(figure, pre);
+      figure.appendChild(pre);
+      code.className = `language-${language || 'plain'}`;
+      // Reutilise la coloration legere existante (memes classes ai-token que
+      // le renderer AST) : highlightCodeForAst echappe elle-meme le code.
+      code.innerHTML = highlightCodeForAst(code.textContent || '', language);
+    });
+
+    replaceInTextNodes(container, /\[(\d{1,2})\]/g, (match) => {
+      const sup = document.createElement('sup');
+      sup.className = 'ai-assistant-citation';
+      sup.textContent = `[${match[1]}]`;
+      return sup;
+    });
+
+    replaceInTextNodes(
+      container,
+      /(\p{Extended_Pictographic}(?:️|︎)?(?:‍\p{Extended_Pictographic}(?:️|︎)?)*)/gu,
+      (match) => {
+        const span = document.createElement('span');
+        span.className = 'ai-assistant-emoji';
+        span.textContent = match[0];
+        return span;
+      }
+    );
+  }
+
+  function renderMarkdownWithEngine(rawText) {
+    // Memes pre-normalisations que le chemin AST : elles corrigent des
+    // sorties de modele reelles (tableaux colles sur une ligne, titres
+    // agglutines), pas des defauts du parser.
+    const normalized = splitInlineMarkdownTableLines(normalizeMarkdownBeforeRender(rawText));
+    const parsed = window.marked.parse(normalized, { gfm: true, breaks: true, async: false });
+    // FORBID_TAGS img : le parser legacy echappait tout HTML brut, donc une
+    // <img> injectee (reponse modele ou document RAG malveillant) ne se
+    // rendait jamais — on conserve cette garantie (anti-pixel de tracking).
+    const clean = window.DOMPurify.sanitize(String(parsed || ''), { FORBID_TAGS: ['img'] });
+    const container = document.createElement('div');
+    container.innerHTML = clean;
+    postProcessMarkedDom(container);
+    return container.innerHTML;
+  }
+
+  if (AI_MARKDOWN_ENGINE_PHASE5_ENABLED) {
+    try { loadMarkdownEngineLibraries(); } catch (_) { /* jamais bloquant */ }
+  }
+
   /**
    * Point d'entree unique pour le rendu Markdown -> HTML du chat (live et
    * historique). Tant que AI_MARKDOWN_AST_PHASE2_ENABLED est actif, tente le
@@ -8265,6 +8445,17 @@
    * a aucun appelant pour revenir integralement au comportement Phase 1.
    */
   function renderMarkdownToHtml(rawText) {
+    // Phase 5 : marked + DOMPurify des que le moteur est charge. Repli
+    // transparent sur l'AST (puis formatBotMessageHtml) sinon ou en erreur.
+    if (AI_MARKDOWN_ENGINE_PHASE5_ENABLED && markdownEngineAvailable()) {
+      try {
+        const html = renderMarkdownWithEngine(rawText);
+        if (html || !String(rawText || '').trim()) return html;
+        console.warn('[markdown-engine] rendu vide pour une entree non vide, repli AST');
+      } catch (error) {
+        console.warn('[markdown-engine] erreur de rendu, repli sur le renderer AST', error instanceof Error ? error.message : error);
+      }
+    }
     if (!AI_MARKDOWN_AST_PHASE2_ENABLED) return formatBotMessageHtml(rawText);
     try {
       // Normalise les listes compactes AVANT parsing AST, pour que les deux chemins
