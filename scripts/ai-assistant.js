@@ -11417,8 +11417,7 @@
   if (launcherButton && panel) {
     launcherButton.addEventListener('click', () => {
       if (!isChatPage) {
-        if (window.DBSAuth?.isAuthenticated?.()) window.location.href = '/chat.html';
-        else window.DBSAuth?.openAuthModal?.();
+        window.location.href = '/chat.html';
         return;
       }
       const isOpening = !panel.classList.contains('is-open');
