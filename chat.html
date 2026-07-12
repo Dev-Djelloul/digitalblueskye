@@ -36,23 +36,14 @@
     </div>
 
     <!--
-      Note technique : dbs-auth.js handle l'authentification.
-      Le launcher ne doit pas s'afficher avant la connexion sur cette page dédiée.
-      ai-assistant.js est chargé dynamiquement une fois l'utilisateur authentifié.
-      Voir docs/CHATBOT_AUTH_SECURITY.md.
+      Note technique : dbs-auth.js et ai-assistant.js injectent tout le reste
+      du DOM (rail, panneau, etc.) dynamiquement, exactement comme sur les
+      autres pages. La classe body.chat-page indique a ai-assistant.js qu'il
+      doit ouvrir + maximiser le panneau automatiquement (au lieu du mode
+      bulle flottante) une fois la session confirmee. Voir docs/CHATBOT_AUTH_SECURITY.md.
     -->
     <script src="/scripts/dbs-auth.js"></script>
-    <script>
-      // Charger ai-assistant.js dynamiquement après authentification
-      document.addEventListener('dbs-auth-changed', () => {
-        if (window.DBSAuth?.isAuthenticated?.() && !window.aiAssistantLoaded) {
-          window.aiAssistantLoaded = true;
-          const script = document.createElement('script');
-          script.src = '/scripts/ai-assistant.js';
-          document.body.appendChild(script);
-        }
-      });
-    </script>
+    <script src="/scripts/ai-assistant.js"></script>
     <script>
       (function () {
         const gate = document.querySelector('[data-chat-gate]');
