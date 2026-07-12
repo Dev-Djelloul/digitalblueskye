@@ -35,11 +35,24 @@
       <button type="button" class="dbs-profile-save" data-chat-gate-signin>Se connecter</button>
     </div>
 
+    <!-- Modale de confirmation de déconnexion -->
+    <div class="chat-logout-confirmation" data-chat-logout-confirmation hidden aria-hidden="true">
+      <div class="chat-logout-confirmation-backdrop" data-chat-logout-close></div>
+      <div class="chat-logout-confirmation-panel" role="dialog" aria-modal="true" aria-labelledby="chat-logout-title">
+        <h2 id="chat-logout-title" data-i18n="logoutConfirmTitle">Êtes-vous sûr de vouloir vous déconnecter ?</h2>
+        <p data-i18n="logoutConfirmDesc">Vous serez déconnecté de votre compte.</p>
+        <div class="chat-logout-confirmation-actions">
+          <button type="button" class="chat-logout-confirmation-yes" data-chat-logout-confirm data-i18n="yes">Oui</button>
+          <button type="button" class="chat-logout-confirmation-no" data-chat-logout-close data-i18n="no">Non</button>
+        </div>
+      </div>
+    </div>
+
     <!--
       Note technique : dbs-auth.js et ai-assistant.js injectent tout le reste
       du DOM (rail, panneau, etc.) dynamiquement, exactement comme sur les
       autres pages. La classe body.chat-page indique a ai-assistant.js qu'il
-      doit ouvrir + maximiser le panneau automatiquement (au lieu du mode
+      doit ouvrir + maximizer le panneau automatiquement (au lieu du mode
       bulle flottante) une fois la session confirmee. Voir docs/CHATBOT_AUTH_SECURITY.md.
     -->
     <script src="/scripts/dbs-auth.js"></script>

@@ -11469,13 +11469,49 @@
 
   if (closeButton && panel) {
     closeButton.addEventListener('click', () => {
-      // Sur la page dediee, fermer ne doit pas laisser une page vide derriere
-      // le panneau : on revient a l'accueil plutot que de juste masquer le panneau.
-      if (isChatPage) { window.location.href = '/index.html'; return; }
+      if (isChatPage) {
+        const confirmation = document.querySelector('[data-chat-logout-confirmation]');
+        if (confirmation) {
+          confirmation.hidden = false;
+          confirmation.setAttribute('aria-hidden', 'false');
+        }
+        return;
+      }
       setAssistantExpanded(false);
       setAssistantPanelOpen(false);
       updateScrollBottomButton();
     });
+  }
+
+  // Modale de confirmation de déconnexion sur chat.html
+  if (isChatPage) {
+    const confirmation = document.querySelector('[data-chat-logout-confirmation]');
+    if (confirmation) {
+      const confirmBtn = confirmation.querySelector('[data-chat-logout-confirm]');
+      const closeButtons = confirmation.querySelectorAll('[data-chat-logout-close]');
+
+      const closeModal = () => {
+        confirmation.classList.remove('is-open');
+        confirmation.setAttribute('aria-hidden', 'true');
+        setTimeout(() => { confirmation.hidden = true; }, 160);
+      };
+
+      if (confirmBtn) {
+        confirmBtn.addEventListener('click', async () => {
+          closeModal();
+          try { await window.DBSAuth?.logout?.(); } catch (_) { /* no-op */ }
+          window.location.href = '/index.html';
+        });
+      }
+
+      closeButtons.forEach((btn) => {
+        btn.addEventListener('click', closeModal);
+      });
+
+      confirmation.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') closeModal();
+      });
+    }
   }
 
   if (isChatPage) {

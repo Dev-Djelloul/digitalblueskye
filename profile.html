@@ -23,7 +23,7 @@
     <meta name="theme-color" content="#1f1d2b">
   </head>
   <body class="profile-page">
-    <a href="/index.html" class="profile-floating-logo" data-i18n-title="backToHome" data-i18n-aria-label="backToHome" title="Retour à l'accueil" aria-label="Retour à l'accueil">
+    <a href="/chat.html" class="profile-floating-logo" data-i18n-title="backToHome" data-i18n-aria-label="backToHome" title="Retour à l'accueil" aria-label="Retour à l'accueil">
       <img src="/assets/images/logo/DigitalBlueSkye-Logo.png" alt="Digitalblueskye" width="42" height="42" />
     </a>
 
@@ -96,9 +96,6 @@
                     <span data-dbs-profile-provider>Connecté via OAuth</span>
                     <p class="dbs-profile-saved" data-dbs-avatar-saved role="status" hidden data-i18n="photoUpdated">Photo de profil mise à jour.</p>
                   </div>
-                  <button type="button" class="dbs-profile-logout-icon dbs-identity-card-badge" data-dbs-logout data-i18n-aria-label="signOut" data-i18n-title="signOut" aria-label="Se déconnecter" title="Se déconnecter">
-                    <img src="/assets/images/ui/icons8-logout-100.png" alt="" aria-hidden="true" width="24" height="24" />
-                  </button>
                 </div>
                 <div class="dbs-setting-field">
                   <label for="dbs-profile-email" data-i18n="emailAddress">Adresse email</label>
@@ -901,12 +898,6 @@
             form.addEventListener('change', () => { profilePreferencesDirty = true; });
           });
 
-          document.querySelectorAll('[data-dbs-logout]').forEach((btn) => {
-            btn.addEventListener('click', async () => {
-              try { await window.DBSAuth.logout(); } catch (error) { console.warn('[profile] logout failed', error); }
-              render();
-            });
-          });
 
           document.querySelectorAll('[data-dbs-clear-local]').forEach((btn) => {
             btn.addEventListener('click', () => {

@@ -18272,3 +18272,99 @@ body.ai-assistant-sidebar-is-resizing * {
   line-height: 1.5;
   margin: 4px 0 0;
 }
+
+/* MODALE DE CONFIRMATION DE DÉCONNEXION (chat.html) */
+.chat-logout-confirmation {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chat-logout-confirmation-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+}
+
+.chat-logout-confirmation-panel {
+  position: relative;
+  z-index: 1;
+  background: var(--background-color, #1e1f2f);
+  border: 1px solid var(--border-color, #3d3b52);
+  border-radius: 12px;
+  padding: 32px;
+  max-width: 420px;
+  width: 90%;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease-out;
+}
+
+.chat-logout-confirmation-panel h2 {
+  color: var(--text-color, #f2efff);
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 12px;
+}
+
+.chat-logout-confirmation-panel p {
+  color: var(--text-secondary, #d9d0f5);
+  font-size: 0.95rem;
+  margin: 0 0 24px;
+  line-height: 1.5;
+}
+
+.chat-logout-confirmation-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.chat-logout-confirmation-yes,
+.chat-logout-confirmation-no {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.chat-logout-confirmation-yes {
+  background: #e74c3c;
+  color: white;
+}
+
+.chat-logout-confirmation-yes:hover {
+  background: #c0392b;
+}
+
+.chat-logout-confirmation-no {
+  background: var(--border-color, #3d3b52);
+  color: var(--text-color, #f2efff);
+}
+
+.chat-logout-confirmation-no:hover {
+  background: var(--border-secondary, #4a4760);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
