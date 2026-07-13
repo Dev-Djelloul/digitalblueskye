@@ -693,16 +693,36 @@ export function detectWebSearchIntent(message, body = {}) {
   ];
   const explicitKeywords = [
     'recherche web',
+    'recherche internet',
+    'recherche sur internet',
+    'recherche en ligne',
     'cherche sur internet',
     'vérifie sur internet',
     'verifie sur internet',
     'consulte le web',
+    // "fais une recherche" (imperatif) couvrait deja l'ordre direct, mais pas
+    // le tour de phrase interrogatif tres courant "peux-tu faire une
+    // recherche..." (bug reel observe en production, 2026-07-13) — ajoute la
+    // forme infinitive et quelques variantes frequentes.
     'fais une recherche',
+    'faire une recherche',
+    'fait une recherche',
+    'peux-tu chercher',
+    'peux tu chercher',
+    'peux-tu faire une recherche',
+    'peux tu faire une recherche',
+    'cherche des informations',
+    'trouve des informations',
     'recherche des sources',
     'recherche des informations récentes',
     'recherche des informations recentes',
     'cherche sur le web',
-    'consulte internet'
+    'consulte internet',
+    'recherche internet et plus poussée',
+    'recherche plus poussée',
+    'recherche plus poussee',
+    'va sur internet',
+    'va chercher sur internet'
   ];
   const forbiddenKeywords = [
     'définition',
@@ -763,14 +783,20 @@ export function detectWebSearchIntent(message, body = {}) {
 
   const explicitKeywordMatch = containsAnyKeyword(haystack, explicitKeywords);
   const noWebSearchRequested = containsAnyKeyword(haystack, noWebSearchKeywords);
-  const explicit = !noWebSearchRequested && (requestedExplicitly || explicitKeywordMatch);
+  const deepMatch = containsAnyKeyword(haystack, deepSearchKeywords);
+  // "recherche approfondie/détaillée" est deja une demande de recherche, pas
+  // seulement un reglage d'intensite a appliquer APRES coup — sans ce OR, un
+  // message ne contenant que deepSearchKeywords (aucune des explicitKeywords)
+  // ne declenchait jamais aucune recherche du tout (buildTavilyOptions
+  // n'ajuste `deep` que si shouldSearch est deja vrai par ailleurs).
+  const explicit = !noWebSearchRequested && (requestedExplicitly || explicitKeywordMatch || deepMatch);
   const mandatory = containsAnyKeyword(haystack, mandatoryKeywords) && !noWebSearchRequested;
 
   return {
     explicit,
     mandatory,
     forbidden: containsAnyKeyword(haystack, forbiddenKeywords),
-    deep: containsAnyKeyword(haystack, deepSearchKeywords),
+    deep: deepMatch,
     no_web_search_requested: noWebSearchRequested,
     matched_reason: explicit
       ? 'explicit_web_search_request'

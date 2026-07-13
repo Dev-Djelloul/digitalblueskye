@@ -153,6 +153,17 @@ export async function deleteDocumentVectors(env, { documentId }) {
       await env.DB.prepare('DELETE FROM rag_chunks WHERE document_id = ?').bind(documentId).run();
       await env.DB.prepare('DELETE FROM rag_sources WHERE id = ?').bind(documentId).run();
       await env.DB.prepare('DELETE FROM documents WHERE id = ?').bind(documentId).run();
+      // Purge aussi la trace evenementielle (ai_assistant_events) de ce
+      // documentId : sans ca, un document jamais correctement indexe (id
+      // orphelin issu d'un bug d'upload cote client, cf. scripts/ai-assistant.js
+      // buildKnowledgeDocumentId) ne matche jamais une ligne rag_chunks/
+      // documents, donc les DELETE ci-dessus sont des no-op silencieux — et
+      // buildDocumentList (worker-api.js) reconstruit indefiniment ce meme
+      // document comme entree fantome "Non indexe" depuis l'evenement
+      // document_uploaded jamais purge, meme apres un clic "Supprimer".
+      await env.DB.prepare(
+        `DELETE FROM ai_assistant_events WHERE event_type LIKE 'document_%' AND meta LIKE ?`
+      ).bind(`%"documentId":"${documentId}"%`).run();
     }
     return { ok: true, deleted: knownIds.length };
   } catch (error) {
