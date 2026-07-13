@@ -61,7 +61,7 @@ export async function indexDocumentChunks(env, { documentId, projectId, document
       await Promise.all(d1Rows.map((row) => env.DB.prepare(
         `INSERT INTO rag_chunks (id, document_id, project_id, document_name, chunk_index, locator, text)
          VALUES (?, ?, ?, ?, ?, ?, ?)
-         ON CONFLICT(id) DO UPDATE SET text = excluded.text, locator = excluded.locator, document_name = excluded.document_name`
+         ON CONFLICT(id) DO UPDATE SET project_id = excluded.project_id, text = excluded.text, locator = excluded.locator, document_name = excluded.document_name`
       ).bind(row.id, documentId, projectId || null, documentName || '', row.chunkIndex, row.locator, row.text).run()));
       // Granularite documentaire (onglet admin Sources & RAG) : additif,
       // n'affecte jamais la recherche vectorielle (rag_chunks reste la seule
