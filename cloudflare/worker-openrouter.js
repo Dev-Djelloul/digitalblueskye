@@ -2432,6 +2432,33 @@ export default {
       return jsonResponse({ ok: false, error: 'empty_message' }, 400, corsHeaders);
     }
 
+    // Signal RAG fiable (2026-07-13) : jusqu'ici, toute la chaine de decision
+    // RAG (Capability/Source/Execution/Tool Planner, Prompt Orchestrator)
+    // reposait UNIQUEMENT sur des heuristiques faillibles — ragTelemetry
+    // envoyee par le front (vide au premier message d'un fil, probleme
+    // d'oeuf-et-poule) et des regex de mots-cles sur le message
+    // (isDocumentBoundQuery, needsRag...) qui ne matchent pas une formulation
+    // naturelle ("tu peux voir le document que je viens d'ajouter ?"). Un
+    // projet pouvait avoir des documents indexes et disponibles sans que le
+    // RAG soit jamais interroge. On verifie ici, une seule fois, l'etat REEL
+    // de l'index pour ce projet (meme table que ragSource.js health()) et on
+    // OR-additionne ce signal a chaque hint hasRagSources/hasProjectDocuments
+    // plus bas — jamais de retrait d'un signal deja detecte, donc aucune
+    // regression sur le comportement existant si la requete echoue.
+    let projectHasIndexedDocuments = false;
+    if (body?.projectId && env?.DB) {
+      try {
+        const chunkCount = await env.DB
+          .prepare('SELECT COUNT(*) AS count FROM rag_chunks WHERE project_id = ? LIMIT 1')
+          .bind(body.projectId)
+          .first();
+        projectHasIndexedDocuments = Number(chunkCount?.count || 0) > 0;
+      } catch (error) {
+        console.warn('project_rag_check_failed', error instanceof Error ? error.message : String(error));
+        projectHasIndexedDocuments = false;
+      }
+    }
+
     // ── Capability Planner (Lot 8) ───────────────────────────────────────
     // Nouvelle PREMIERE etape du pipeline, executee immediatement apres
     // reception de la requete, avant tout autre module (web search decision,
@@ -2448,7 +2475,8 @@ export default {
     let capabilityPlan = null;
     if (isCapabilityPlannerEnabled(env)) {
       try {
-        const hasRagSourcesHint = ragTelemetry.some((evt) => ['rag_match', 'rag_context_used'].includes(evt?.event_type));
+        const hasRagSourcesHint = projectHasIndexedDocuments
+          || ragTelemetry.some((evt) => ['rag_match', 'rag_context_used'].includes(evt?.event_type));
         const capabilities = detectCapabilities({
           userMessage: message,
           language,
@@ -2512,8 +2540,9 @@ export default {
     let sourcePlan = null;
     if (isSourcePlannerEnabled(env)) {
       try {
-        const hasRagSourcesHint = ragTelemetry.some((evt) => ['rag_match', 'rag_context_used'].includes(evt?.event_type));
-        const hasProjectDocumentsHint = Boolean(body?.projectId) || ragTelemetry.length > 0 || attachments.length > 0;
+        const hasRagSourcesHint = projectHasIndexedDocuments
+          || ragTelemetry.some((evt) => ['rag_match', 'rag_context_used'].includes(evt?.event_type));
+        const hasProjectDocumentsHint = projectHasIndexedDocuments || ragTelemetry.length > 0 || attachments.length > 0;
         const hasProjectMemoryHint = Boolean(projectMemory && projectMemory.trim());
         const hasWebIntentHint = Boolean(capabilityPlan?.capabilities?.needsWeb);
 
@@ -2675,7 +2704,8 @@ export default {
           sourcePlan,
           executionPlan,
           hasUploadedFiles: hasFileContext || attachments.length > 0,
-          hasRagSources: ragTelemetry.some((evt) => ['rag_match', 'rag_context_used'].includes(evt?.event_type)),
+          hasRagSources: projectHasIndexedDocuments
+            || ragTelemetry.some((evt) => ['rag_match', 'rag_context_used'].includes(evt?.event_type)),
           hasWebAccess: true,
           hasExports: true,
           hasCalculator: true,
@@ -2793,6 +2823,7 @@ export default {
       const legacyForceRag = documentBound
         || Boolean(executionPlan ? executionPlan.plan.forceRag : sourcePlan?.plan?.forceRag);
       const legacyUseRag = documentBound
+        || projectHasIndexedDocuments
         || Boolean(capabilityPlan?.capabilities?.needsRag)
         || Boolean(sourcePlan?.plan?.useRag || sourcePlan?.plan?.forceRag)
         || Boolean(executionPlan?.plan?.useRag || executionPlan?.plan?.forceRag)
@@ -2801,8 +2832,9 @@ export default {
         userMessage: message,
         language,
         attachments,
-        hasProjectDocuments: Boolean(body?.projectId) || ragTelemetry.length > 0 || attachments.length > 0,
-        hasRagSources: ragTelemetry.some((evt) => ['rag_match', 'rag_context_used'].includes(evt?.event_type)),
+        hasProjectDocuments: projectHasIndexedDocuments || ragTelemetry.length > 0 || attachments.length > 0,
+        hasRagSources: projectHasIndexedDocuments
+          || ragTelemetry.some((evt) => ['rag_match', 'rag_context_used'].includes(evt?.event_type)),
         hasProjectMemory: Boolean(projectMemory && projectMemory.trim()),
         documents: documentTarget?.candidates || [],
         lastConsultedDocumentId: body?.lastConsultedDocumentId || null,
@@ -2908,8 +2940,15 @@ export default {
     // « as-tu enregistré ces documents ? ») : injecte l'inventaire REEL des
     // documents indexés pour que le modèle ne réponde plus avec son réflexe
     // générique « je ne mémorise rien » (cf. buildKnowledgeInventoryBlock).
+    // Declenche aussi, independamment de l'intention detectee dans le
+    // message, des que le projet actif a reellement des documents indexes
+    // (projectHasIndexedDocuments) : sans ce second declencheur, un message
+    // court/informel ("je viens de l'ajouter !") qui ne matche aucun mot-cle
+    // de KNOWLEDGE_INVENTORY_PATTERNS laissait le modele sans aucune
+    // conscience des documents du projet et il affirmait a tort n'y avoir
+    // pas acces, meme quand le RAG les avait deja indexes avec succes.
     let knowledgeInventoryBlock = '';
-    if (detectKnowledgeInventoryIntent(message)) {
+    if (detectKnowledgeInventoryIntent(message) || projectHasIndexedDocuments) {
       knowledgeInventoryBlock = await buildKnowledgeInventoryBlock(env, {
         projectId: body?.projectId || null,
         projectName: typeof body?.projectName === 'string' ? body.projectName.slice(0, 120) : '',
@@ -2945,7 +2984,8 @@ export default {
         // rag/web, jamais en retirer un deja detecte par les systemes
         // existants — tous ces plans sont null si leur flag est desactive
         // ou en cas d'erreur, donc comportement identique a avant ces Lots.
-        const hasRagSources = ragTelemetry.some((evt) => ['rag_match', 'rag_context_used'].includes(evt?.event_type))
+        const hasRagSources = projectHasIndexedDocuments
+          || ragTelemetry.some((evt) => ['rag_match', 'rag_context_used'].includes(evt?.event_type))
           || Boolean(capabilityPlan?.capabilities?.needsRag)
           || Boolean(sourcePlan?.plan?.useRag || sourcePlan?.plan?.forceRag)
           || Boolean(executionPlan?.plan?.useRag || executionPlan?.plan?.forceRag);
