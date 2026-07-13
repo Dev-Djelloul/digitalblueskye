@@ -3822,6 +3822,19 @@ function sqlPlaceholders(count) {
   return Array.from({ length: count }, () => "?").join(", ");
 }
 
+// Variante texte de parseAdminIds() : documents/rag_sources (id = chunkVectorId,
+// ex. "k_mr9lfo5u_...") et conversations (session_id) ne sont pas des entiers.
+function parseAdminStringIds(input) {
+  const rawIds = Array.isArray(input?.ids) ? input.ids : [input?.id];
+  return Array.from(
+    new Set(
+      rawIds
+        .map((value) => String(value ?? "").trim())
+        .filter((value) => value.length > 0 && value.length <= 200)
+    )
+  ).slice(0, 200);
+}
+
 function csvEscape(value) {
   const raw = value == null ? "" : String(value);
   const escaped = raw.replaceAll('"', '""');
@@ -6021,6 +6034,84 @@ async function handleAdminDocumentDelete(request, env, documentId) {
   return jsonResponse(request, env, payload, response.status);
 }
 
+// Suppression en masse (bouton "Supprimer la selection" des onglets
+// Documents ET Sources & RAG — meme espace d'id, rag_sources.id ===
+// documents.id, cf. indexDocumentChunks dans cloudflare/ragPipeline.js).
+// Chaque id declenche un appel individuel a mode:"rag_delete" sur le Worker
+// IA (Vectorize + rag_chunks + rag_sources + documents, cf.
+// deleteDocumentVectors) ; execution en parallele (le binding de service
+// AI_WORKER n'a pas de latence reseau reelle), bornee a 200 ids par
+// parseAdminStringIds. Un echec individuel n'interrompt pas les autres —
+// la reponse detaille ce qui a reussi/echoue.
+async function handleAdminDocumentsBulkDelete(request, env) {
+  if (request.method !== "POST") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  if (!env.AI_WORKER?.fetch) {
+    return jsonResponse(request, env, { ok: false, error: "ai_worker_binding_unavailable" }, 503);
+  }
+  const input = await readJsonBody(request);
+  const ids = parseAdminStringIds(input);
+  if (!ids.length) {
+    return jsonResponse(request, env, { ok: false, error: "Invalid payload" }, 422);
+  }
+  const results = await Promise.all(ids.map(async (documentId) => {
+    try {
+      const response = await env.AI_WORKER.fetch(new Request("https://digitalblueskye-ai/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode: "rag_delete", documentId }),
+      }));
+      const payload = await response.json().catch(() => ({ ok: false, error: "invalid_ai_worker_response" }));
+      return { id: documentId, ok: Boolean(payload.ok), error: payload.ok ? null : (payload.error || "unknown_error") };
+    } catch (error) {
+      return { id: documentId, ok: false, error: error?.message || "request_failed" };
+    }
+  }));
+  const deleted = results.filter((r) => r.ok).length;
+  const failed = results.filter((r) => !r.ok);
+  return jsonResponse(request, env, { ok: failed.length === 0, deleted, failed, results });
+}
+
+// Suppression en masse des exports (table `exports`, id numerique
+// autoincrement) : simple IN(...) D1, pas de binding de service necessaire.
+async function handleAdminExportsBulkDelete(request, env) {
+  if (request.method !== "POST") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const input = await readJsonBody(request);
+  const ids = parseAdminIds(input);
+  if (!ids.length) {
+    return jsonResponse(request, env, { ok: false, error: "Invalid payload" }, 422);
+  }
+  const result = await env.DB.prepare(`DELETE FROM exports WHERE id IN (${sqlPlaceholders(ids.length)})`)
+    .bind(...ids)
+    .run();
+  return jsonResponse(request, env, { ok: true, deleted: Number(result.meta?.changes || 0) });
+}
+
+// Suppression d'une ou plusieurs conversations : une conversation est un
+// regroupement de lignes ai_assistant_events par session_id (cf.
+// buildConversationList) — il n'existe pas de table "conversations" dediee.
+// Nettoie aussi conversation_exports (table specialisee du detail
+// conversation, cf. schema.sql) pour ne pas laisser de reference orpheline.
+async function handleAdminConversationsBulkDelete(request, env) {
+  if (request.method !== "POST") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  const input = await readJsonBody(request);
+  const sessionIds = parseAdminStringIds(input);
+  if (!sessionIds.length) {
+    return jsonResponse(request, env, { ok: false, error: "Invalid payload" }, 422);
+  }
+  const placeholders = sqlPlaceholders(sessionIds.length);
+  const [eventsResult] = await Promise.all([
+    env.DB.prepare(`DELETE FROM ai_assistant_events WHERE session_id IN (${placeholders})`).bind(...sessionIds).run(),
+    env.DB.prepare(`DELETE FROM conversation_exports WHERE session_id IN (${placeholders})`).bind(...sessionIds).run().catch(() => null),
+  ]);
+  return jsonResponse(request, env, { ok: true, deleted_sessions: sessionIds.length, deleted_events: Number(eventsResult.meta?.changes || 0) });
+}
+
 // Reindexe un document a partir du texte deja stocke en D1 (cf.
 // reindexSingleDocument). Contrairement a delete, le mode rag_reindex_document
 // exige un Bearer sur digitalblueskye-ai (KNOWLEDGE_ADMIN_TOKEN/ADMIN_TOKEN) :
@@ -6161,6 +6252,9 @@ async function handleAdminDocuments(request, env, url) {
   if (pathname === "/admin/documents/health") return await handleAdminDocumentsHealth(request, env);
   if (pathname === "/admin/documents/exports") return await handleAdminDocumentsExports(request, env, url);
   if (pathname === "/admin/documents/overview") return await handleAdminDocumentsOverview(request, env);
+  // Suppression en masse : DOIT etre teste avant le matcher generique
+  // "/delete" ci-dessous (qui traiterait sinon "delete" comme un documentId).
+  if (pathname === "/admin/documents/delete") return await handleAdminDocumentsBulkDelete(request, env);
 
   let documentId = documentIdFromPath(pathname, "/export");
   if (documentId) return await handleAdminDocumentExport(request, env, documentId);
@@ -6369,6 +6463,9 @@ async function handleAdminExports(request, env, url) {
   if (pathname === "/admin/exports/errors") return await handleAdminExportsErrors(request, env);
   if (pathname === "/admin/exports/health") return await handleAdminExportsHealth(request, env);
   if (pathname === "/admin/exports/overview") return await handleAdminExportsOverview(request, env);
+  // Suppression (unitaire ET en masse) : le front envoie toujours {ids:[...]}
+  // meme pour une seule ligne, cf. handleAdminExportsBulkDelete ci-dessus.
+  if (pathname === "/admin/exports/delete") return await handleAdminExportsBulkDelete(request, env);
 
   let exportId = exportIdFromPath(pathname, "/download");
   if (exportId) return await handleAdminExportDownload(request, env, exportId);
@@ -6638,6 +6735,10 @@ async function handleAdminConversations(request, env, url) {
   if (pathname === "/admin/conversations/stats") return await handleAdminConversationsStats(request, env, url);
   if (pathname === "/admin/conversations/analytics") return await handleAdminConversationsAnalytics(request, env);
   if (pathname === "/admin/conversations/timeline") return await handleAdminConversationsTimeline(request, env, url);
+  // Suppression (unitaire ET en masse) : le front envoie toujours
+  // {ids:[...]} — DOIT etre teste avant le matcher generique de session_id
+  // ci-dessous, qui traiterait sinon "delete" comme un session_id valide.
+  if (pathname === "/admin/conversations/delete") return await handleAdminConversationsBulkDelete(request, env);
 
   let sessionId = conversationSessionIdFromPath(pathname, "/tags");
   if (sessionId) return await handleAdminConversationTags(request, env, sessionId);

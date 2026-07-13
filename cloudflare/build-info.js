@@ -1,11 +1,11 @@
 // Fichier généré automatiquement par scripts/generate-build-info.mjs — ne pas éditer à la main.
 export const BUILD_INFO = {
-  "commit": "31acf0e",
-  "commitFull": "31acf0e56533934aba56201c96d8b3558116d695",
+  "commit": "5b20015",
+  "commitFull": "5b2001562eb04ae94d58aa78da1c40850e3c6191",
   "branch": "master",
-  "buildDate": "2026-07-12T19:22:14.855Z",
-  "buildDateLabel": "12/07/2026",
-  "buildTimeLabel": "21:22",
-  "githubCommitUrl": "https://github.com/Dev-Djelloul/digitalblueskye/commit/31acf0e56533934aba56201c96d8b3558116d695",
+  "buildDate": "2026-07-13T16:12:37.006Z",
+  "buildDateLabel": "13/07/2026",
+  "buildTimeLabel": "18:12",
+  "githubCommitUrl": "https://github.com/Dev-Djelloul/digitalblueskye/commit/5b2001562eb04ae94d58aa78da1c40850e3c6191",
   "githubBranchUrl": "https://github.com/Dev-Djelloul/digitalblueskye/tree/master"
 };

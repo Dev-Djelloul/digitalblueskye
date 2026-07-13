@@ -3683,6 +3683,51 @@
       cursor: default;
     }
 
+    /* Selection multiple (Documents, Sources & RAG, Exports, Conversations) */
+    .bulk-select-col {
+      width: 32px;
+      min-width: 32px;
+      padding: 0 0 0 14px !important;
+    }
+
+    .bulk-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 4px 12px;
+      color: #cfd8ec;
+      font-size: 13px;
+    }
+
+    .bulk-delete-btn {
+      background: rgba(255, 92, 92, 0.15);
+      border: 1px solid rgba(255, 92, 92, 0.4);
+      border-radius: 8px;
+      color: #ff8080;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 12px;
+    }
+
+    .bulk-delete-btn:hover {
+      background: rgba(255, 92, 92, 0.25);
+    }
+
+    .bulk-clear-btn {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 8px;
+      color: #b9c5dd;
+      cursor: pointer;
+      font-size: 12px;
+      padding: 6px 12px;
+    }
+
+    .bulk-clear-btn:hover {
+      background: rgba(255, 255, 255, 0.06);
+    }
+
     .conversation-pagination {
       display: flex;
       align-items: center;
@@ -6881,6 +6926,8 @@
         detail: null,
         debug: null,
         searchTimer: null,
+        // Selection multiple (suppression en masse) : Set de session_id (texte).
+        selectedIds: new Set(),
       },
       rag: {
         overview: null,
@@ -6898,6 +6945,9 @@
         selectedSourceId: null,
         detail: null,
         searchTimer: null,
+        // Selection multiple (suppression en masse) : Set d'id document (texte).
+        // Meme espace d'id que documentsAdmin (rag_sources.id === documents.id).
+        selectedSourceIds: new Set(),
       },
       documentsAdmin: {
         stats: null,
@@ -6910,6 +6960,8 @@
         selectedId: null,
         detail: null,
         searchTimer: null,
+        // Selection multiple (suppression en masse) : Set d'id document (texte).
+        selectedIds: new Set(),
       },
       exportsAdmin: {
         stats: null,
@@ -6922,6 +6974,8 @@
         selectedId: null,
         detail: null,
         searchTimer: null,
+        // Selection multiple (suppression en masse) : Set d'id export (numerique).
+        selectedIds: new Set(),
       },
       analyticsAdmin: {
         kpis: null,
@@ -7015,6 +7069,36 @@
     function badge(value) {
       const safe = escapeHtml(value);
       return `<span class="badge ${safe}">${safe}</span>`;
+    }
+
+    // ── Selection multiple / suppression en masse (Documents, Sources & RAG,
+    // Exports, Conversations) — helpers partages, un seul Set d'ids par onglet
+    // (stocke dans state.<tab>.selectedIds ou .selectedSourceIds), tous les
+    // ids traites comme des chaines (String(id)) pour un .has()/.add()
+    // coherent que l'id source soit un texte (documents) ou un nombre (exports).
+    function renderBulkSelectHeaderCell(pageIds, selectedSet) {
+      const allSelected = pageIds.length > 0 && pageIds.every((id) => selectedSet.has(String(id)));
+      return `<th class="bulk-select-col"><input type="checkbox" class="bulk-select-all" ${allSelected ? "checked" : ""} aria-label="Tout sélectionner sur cette page"></th>`;
+    }
+
+    function renderBulkSelectRowCell(id, selectedSet) {
+      const checked = selectedSet.has(String(id));
+      return `<td class="bulk-select-col"><input type="checkbox" class="bulk-select-row" data-select-id="${escapeHtml(id)}" ${checked ? "checked" : ""} aria-label="Sélectionner cette ligne"></td>`;
+    }
+
+    // actionPrefix : prefixe utilise pour les data-attributes du bouton de
+    // suppression en masse (ex. "doc", "rag", "export", "conv"), rattache au
+    // meme delegated click handler que les autres actions de l'onglet.
+    function renderBulkToolbar(selectedSet, actionPrefix, itemLabel) {
+      const count = selectedSet.size;
+      if (!count) return "";
+      return `
+        <div class="bulk-toolbar">
+          <span>${count} ${itemLabel}${count > 1 ? "s" : ""} sélectionné(s)</span>
+          <button type="button" class="bulk-delete-btn" data-bulk-action="${escapeHtml(actionPrefix)}-bulk-delete">Supprimer la sélection (${count})</button>
+          <button type="button" class="bulk-clear-btn" data-bulk-action="${escapeHtml(actionPrefix)}-bulk-clear">Annuler la sélection</button>
+        </div>
+      `;
     }
 
     function getScoreStatus(score) {
@@ -7536,6 +7620,7 @@
       const isSelected = source.id === state.rag.selectedSourceId;
       return `
         <tr class="${isSelected ? "is-active" : ""}" data-rag-source-row="${escapeHtml(source.id)}">
+          ${renderBulkSelectRowCell(source.id, state.rag.selectedSourceIds)}
           <td>
             <div class="source-name" style="--source-color:${color};">
               <div class="source-icon">${iconSvg(sourceTypeIcon(source.source_type || source.mime_type || ""))}</div>
@@ -7551,8 +7636,10 @@
           <td>
             <div class="action-cluster">
               <button class="icon-action" type="button" data-rag-action="open" data-id="${escapeHtml(source.id)}" aria-label="Voir métadonnées et chunks">${iconSvg("workflow")}</button>
-              <button class="icon-action" type="button" disabled title="Non implémenté dans ce lot" aria-label="Réindexer">↻</button>
-              <button class="icon-action" type="button" disabled title="Non implémenté dans ce lot" aria-label="Supprimer">⋮</button>
+              <!-- Meme espace d'id que documents.id (cf. indexDocumentChunks) :
+                   reutilise directement les routes /admin/documents/:id/*. -->
+              <button class="icon-action" type="button" data-rag-action="reindex" data-id="${escapeHtml(source.id)}" title="Réindexer (recalcule les embeddings)" aria-label="Réindexer">↻</button>
+              <button class="icon-action icon-action-danger" type="button" data-rag-action="delete" data-id="${escapeHtml(source.id)}" data-name="${escapeHtml(source.title || source.id)}" title="Supprimer définitivement" aria-label="Supprimer">🗑</button>
             </div>
           </td>
         </tr>
@@ -7735,10 +7822,11 @@
         <section class="sources-layout">
           <article class="source-card">
             <h2>Sources de connaissances</h2>
+            ${renderBulkToolbar(rag.selectedSourceIds, "rag", "source")}
             <div class="table-wrap">
               <table class="source-table">
-                <thead><tr><th>Source</th><th>Projet</th><th>Type</th><th>Statut</th><th>Chunks</th><th>Taille</th><th>Indexée le</th><th>Actions</th></tr></thead>
-                <tbody>${noSources ? `<tr><td colspan="8">Aucune source indexée.</td></tr>` : sources.items.map(renderRagSourceRow).join("")}</tbody>
+                <thead><tr>${renderBulkSelectHeaderCell(sources.items.map((s) => s.id), rag.selectedSourceIds)}<th>Source</th><th>Projet</th><th>Type</th><th>Statut</th><th>Chunks</th><th>Taille</th><th>Indexée le</th><th>Actions</th></tr></thead>
+                <tbody>${noSources ? `<tr><td colspan="9">Aucune source indexée.</td></tr>` : sources.items.map(renderRagSourceRow).join("")}</tbody>
               </table>
             </div>
             ${renderRagSourcePagination()}
@@ -7839,6 +7927,7 @@
       const isSelected = doc.id === state.documentsAdmin.selectedId;
       return `
         <tr class="${isSelected ? "is-active" : ""}" data-doc-row="${escapeHtml(doc.id)}">
+          ${renderBulkSelectRowCell(doc.id, state.documentsAdmin.selectedIds)}
           <td>
             <div class="document-name" style="--doc-color:${color};">
               <div class="document-icon">${escapeHtml((doc.source_type || doc.mime_type || "?").slice(0, 4).toUpperCase())}</div>
@@ -8016,10 +8105,11 @@
         <section class="documents-layout">
           <article class="document-card">
             <h2>Tous les documents</h2>
+            ${renderBulkToolbar(docs.selectedIds, "doc", "document")}
             <div class="table-wrap">
               <table class="document-table">
-                <thead><tr><th>Document</th><th>Type</th><th>Statut</th><th>Chunks</th><th>Taille</th><th>Indexé le</th><th>Utilisé</th><th>Actions</th></tr></thead>
-                <tbody>${noDocs ? `<tr><td colspan="8">Aucun document indexé.</td></tr>` : items.list.map(renderDocumentRow).join("")}</tbody>
+                <thead><tr>${renderBulkSelectHeaderCell(items.list.map((d) => d.id), docs.selectedIds)}<th>Document</th><th>Type</th><th>Statut</th><th>Chunks</th><th>Taille</th><th>Indexé le</th><th>Utilisé</th><th>Actions</th></tr></thead>
+                <tbody>${noDocs ? `<tr><td colspan="9">Aucun document indexé.</td></tr>` : items.list.map(renderDocumentRow).join("")}</tbody>
               </table>
             </div>
             ${renderDocumentsPagination()}
@@ -8204,6 +8294,7 @@
       const isSelected = exp.id === state.exportsAdmin.selectedId;
       return `
         <tr class="${isSelected ? "is-active" : ""}" data-export-row="${escapeHtml(exp.id)}">
+          ${renderBulkSelectRowCell(exp.id, state.exportsAdmin.selectedIds)}
           <td><strong>${escapeHtml(exp.filename || `export-${exp.id}`)}</strong><span style="display:block;color:#8f9db8;font-size:11px;">${escapeHtml(exp.export_type || "non mesuré")}</span></td>
           <td><span class="doc-chip" style="--doc-color:${color};">${escapeHtml(exp.export_format || "non mesuré")}</span></td>
           <td>${escapeHtml(exp.size_bytes != null ? formatExportBytesLabel(exp.size_bytes) : "non mesuré")}</td>
@@ -8218,7 +8309,7 @@
               ${exp.status === "failed"
                 ? `<button class="icon-action" type="button" data-export-action="retry" data-id="${escapeHtml(exp.id)}" aria-label="Relancer">↻</button>`
                 : `<button class="icon-action" type="button" disabled title="Non implémenté dans ce lot" aria-label="Relancer">↻</button>`}
-              <button class="icon-action" type="button" disabled title="Non implémenté dans ce lot" aria-label="Supprimer">⋮</button>
+              <button class="icon-action icon-action-danger" type="button" data-export-action="delete" data-id="${escapeHtml(exp.id)}" data-name="${escapeHtml(exp.filename || `export-${exp.id}`)}" title="Supprimer définitivement" aria-label="Supprimer">🗑</button>
             </div>
           </td>
         </tr>
@@ -8382,10 +8473,11 @@
         <section class="premium-grid">
           <article class="premium-card" style="grid-column:1/-1;">
             <h2>Tous les exports</h2>
+            ${renderBulkToolbar(exp.selectedIds, "export", "export")}
             <div class="table-wrap">
               <table class="export-table">
-                <thead><tr><th>Export</th><th>Format</th><th>Taille</th><th>Généré par</th><th>Date</th><th>Statut</th><th>Téléchargements</th><th>Actions</th></tr></thead>
-                <tbody>${noExports ? `<tr><td colspan="8" style="padding:20px;text-align:center;color:#97a5c2;">Aucun export.</td></tr>` : items.list.map(renderExportRow).join("")}</tbody>
+                <thead><tr>${renderBulkSelectHeaderCell(items.list.map((e) => e.id), exp.selectedIds)}<th>Export</th><th>Format</th><th>Taille</th><th>Généré par</th><th>Date</th><th>Statut</th><th>Téléchargements</th><th>Actions</th></tr></thead>
+                <tbody>${noExports ? `<tr><td colspan="9" style="padding:20px;text-align:center;color:#97a5c2;">Aucun export.</td></tr>` : items.list.map(renderExportRow).join("")}</tbody>
               </table>
             </div>
             ${renderExportsPagination()}
@@ -10511,6 +10603,7 @@
       const isSelected = conversation.session_id === state.conversations.selectedId;
       return `
         <tr class="${isSelected ? "is-active" : ""}" data-conv-row="${escapeHtml(conversation.session_id)}">
+          ${renderBulkSelectRowCell(conversation.session_id, state.conversations.selectedIds)}
           <td>
             <div class="conversation-name">
               <div class="conversation-topic-icon">${iconSvg("robot")}</div>
@@ -10526,7 +10619,7 @@
             <div class="action-cluster">
               <button class="icon-action" type="button" data-conv-action="open" data-id="${escapeHtml(conversation.session_id)}" aria-label="Ouvrir">${iconSvg("workflow")}</button>
               <button class="icon-action" type="button" data-conv-action="export" data-id="${escapeHtml(conversation.session_id)}" aria-label="Exporter">${iconSvg("download")}</button>
-              <button class="icon-action" type="button" disabled title="Non implémenté dans ce lot" aria-label="Plus">⋮</button>
+              <button class="icon-action icon-action-danger" type="button" data-conv-action="delete" data-id="${escapeHtml(conversation.session_id)}" data-name="${escapeHtml(conversation.session_label)}" title="Supprimer définitivement" aria-label="Supprimer">🗑</button>
             </div>
           </td>
         </tr>
@@ -10721,14 +10814,12 @@
       if (state.conversations.selectedId === sessionId) await loadConversationDetail(sessionId);
     }
 
-    async function renderAiDashboard() {
+    // Rendu pur (aucun fetch) : reutilise l'etat deja charge. Separe de
+    // renderAiDashboard() pour que la selection multiple (cases a cocher,
+    // toolbar de suppression en masse) puisse re-rendre sans re-interroger
+    // le serveur a chaque clic.
+    function renderConversationsView() {
       const conv = state.conversations;
-      try {
-        await Promise.all([loadConversationStats(), loadConversationFilters(), loadConversationList()]);
-        if (conv.selectedId && !conv.detail) await loadConversationDetail(conv.selectedId);
-      } catch (error) {
-        setNotice("#appNotice", error.message, "error");
-      }
       const stats = conv.stats || {};
       $("#aiMeta").innerHTML = `
         <span>Source : ai_assistant_events + conversation_tags/feedback/exports</span>
@@ -10770,10 +10861,11 @@
         <section class="conversation-layout">
           <article class="conversation-list-card">
             <h2>Toutes les conversations</h2>
+            ${renderBulkToolbar(conv.selectedIds, "conv", "conversation")}
             <div class="table-wrap">
               <table class="conversation-table">
-                <thead><tr><th>Conversation</th><th>Messages</th><th>Modèle utilisé</th><th>Dernier message</th><th>Latence</th><th>Statut</th><th>Actions</th></tr></thead>
-                <tbody>${conv.items.map(renderConversationRow).join("") || `<tr><td colspan="7">Aucune conversation disponible.</td></tr>`}</tbody>
+                <thead><tr>${renderBulkSelectHeaderCell(conv.items.map((c) => c.session_id), conv.selectedIds)}<th>Conversation</th><th>Messages</th><th>Modèle utilisé</th><th>Dernier message</th><th>Latence</th><th>Statut</th><th>Actions</th></tr></thead>
+                <tbody>${conv.items.map(renderConversationRow).join("") || `<tr><td colspan="8">Aucune conversation disponible.</td></tr>`}</tbody>
               </table>
             </div>
             ${renderConversationPagination()}
@@ -10891,6 +10983,17 @@
           </div>
         </article>
       `;
+    }
+
+    async function renderAiDashboard() {
+      const conv = state.conversations;
+      try {
+        await Promise.all([loadConversationStats(), loadConversationFilters(), loadConversationList()]);
+        if (conv.selectedId && !conv.detail) await loadConversationDetail(conv.selectedId);
+      } catch (error) {
+        setNotice("#appNotice", error.message, "error");
+      }
+      renderConversationsView();
     }
 
     function renderRecentActivity(activity) {
@@ -13605,6 +13708,20 @@
     });
 
     $("#aiContent").addEventListener("change", async (event) => {
+      if (event.target.classList.contains("bulk-select-row")) {
+        const id = event.target.dataset.selectId;
+        if (event.target.checked) state.conversations.selectedIds.add(id);
+        else state.conversations.selectedIds.delete(id);
+        renderConversationsView();
+        return;
+      }
+      if (event.target.classList.contains("bulk-select-all")) {
+        const pageIds = state.conversations.items.map((c) => String(c.session_id));
+        if (event.target.checked) pageIds.forEach((id) => state.conversations.selectedIds.add(id));
+        else pageIds.forEach((id) => state.conversations.selectedIds.delete(id));
+        renderConversationsView();
+        return;
+      }
       try {
         if (event.target.id === "convModelFilter") {
           state.conversations.model = event.target.value;
@@ -13660,6 +13777,33 @@
     });
 
     $("#aiContent").addEventListener("click", async (event) => {
+      const bulkButton = event.target.closest("button[data-bulk-action]");
+      if (bulkButton) {
+        const action = bulkButton.dataset.bulkAction;
+        if (action === "conv-bulk-clear") {
+          state.conversations.selectedIds.clear();
+          renderConversationsView();
+          return;
+        }
+        if (action === "conv-bulk-delete") {
+          const ids = Array.from(state.conversations.selectedIds);
+          if (!ids.length) return;
+          if (!window.confirm(`Supprimer définitivement ${ids.length} conversation(s) ? Tous les événements associés seront retirés — irréversible.`)) {
+            return;
+          }
+          try {
+            const result = await apiFetch("/admin/conversations/delete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ids }) });
+            state.conversations.selectedIds.clear();
+            setNotice("#appNotice", `${result.deleted_sessions} conversation(s) supprimée(s).`, "success");
+            state.conversations.selectedId = null;
+            state.conversations.detail = null;
+            await renderAiDashboard();
+          } catch (error) {
+            setNotice("#appNotice", error.message, "error");
+          }
+        }
+        return;
+      }
       const convButton = event.target.closest("button[data-conv-action]");
       if (convButton) {
         const action = convButton.dataset.convAction;
@@ -13669,13 +13813,21 @@
           if (action === "export") await exportConversation(id, convButton.dataset.format || "json");
           if (action === "page-prev") { state.conversations.page = Math.max(0, state.conversations.page - 1); await renderAiDashboard(); }
           if (action === "page-next") { state.conversations.page += 1; await renderAiDashboard(); }
+          if (action === "delete") {
+            const name = convButton.dataset.name || id;
+            if (!window.confirm(`Supprimer définitivement la conversation « ${name} » ? Irréversible.`)) return;
+            await apiFetch("/admin/conversations/delete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ids: [id] }) });
+            setNotice("#appNotice", "Conversation supprimée.", "success");
+            if (state.conversations.selectedId === id) { state.conversations.selectedId = null; state.conversations.detail = null; }
+            await renderAiDashboard();
+          }
         } catch (error) {
           setNotice("#appNotice", error.message, "error");
         }
         return;
       }
       const row = event.target.closest("tr[data-conv-row]");
-      if (row && !event.target.closest("button")) {
+      if (row && !event.target.closest("button") && !event.target.closest("input")) {
         try {
           await selectConversation(row.dataset.convRow);
         } catch (error) {
@@ -13710,6 +13862,20 @@
     });
 
     $("#pilotageContent").addEventListener("change", async (event) => {
+      if (event.target.classList.contains("bulk-select-row")) {
+        const id = event.target.dataset.selectId;
+        if (event.target.checked) state.rag.selectedSourceIds.add(id);
+        else state.rag.selectedSourceIds.delete(id);
+        renderPilotage();
+        return;
+      }
+      if (event.target.classList.contains("bulk-select-all")) {
+        const pageIds = state.rag.sources.items.map((s) => String(s.id));
+        if (event.target.checked) pageIds.forEach((id) => state.rag.selectedSourceIds.add(id));
+        else pageIds.forEach((id) => state.rag.selectedSourceIds.delete(id));
+        renderPilotage();
+        return;
+      }
       try {
         if (event.target.id === "ragProjectFilter") {
           state.rag.sources.projectId = event.target.value;
@@ -13729,6 +13895,38 @@
     });
 
     $("#pilotageContent").addEventListener("click", async (event) => {
+      const bulkButton = event.target.closest("button[data-bulk-action]");
+      if (bulkButton) {
+        const action = bulkButton.dataset.bulkAction;
+        if (action === "rag-bulk-clear") {
+          state.rag.selectedSourceIds.clear();
+          renderPilotage();
+          return;
+        }
+        if (action === "rag-bulk-delete") {
+          const ids = Array.from(state.rag.selectedSourceIds);
+          if (!ids.length) return;
+          if (!window.confirm(`Supprimer définitivement ${ids.length} source(s) ? Cette action retire les documents, leurs chunks et leurs vecteurs — irréversible.`)) {
+            return;
+          }
+          try {
+            // Meme route que le bulk-delete de l'onglet Documents (meme espace
+            // d'id, cf. renderRagSourceRow).
+            const result = await apiFetch("/admin/documents/delete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ids }) });
+            state.rag.selectedSourceIds.clear();
+            if (result.failed?.length) {
+              setNotice("#appNotice", `${result.deleted} source(s) supprimée(s), ${result.failed.length} échec(s).`, "error");
+            } else {
+              setNotice("#appNotice", `${result.deleted} source(s) supprimée(s).`, "success");
+            }
+            state.rag.selectedSourceId = null;
+            await loadPilotage();
+          } catch (error) {
+            setNotice("#appNotice", error.message, "error");
+          }
+        }
+        return;
+      }
       const ragButton = event.target.closest("button[data-rag-action]");
       if (ragButton) {
         const action = ragButton.dataset.ragAction;
@@ -13746,13 +13944,43 @@
             link.click();
             URL.revokeObjectURL(url);
           }
+          if (action === "reindex") {
+            ragButton.disabled = true;
+            const originalLabel = ragButton.textContent;
+            ragButton.textContent = "…";
+            try {
+              const result = await apiFetch(`/admin/documents/${encodeURIComponent(ragButton.dataset.id)}/reindex`, { method: "POST" });
+              setNotice("#appNotice", `Source réindexée (${result.indexed ?? 0} chunk(s)).`, "success");
+              if (state.rag.selectedSourceId === ragButton.dataset.id) await loadRagSourceDetail(ragButton.dataset.id);
+              renderPilotage();
+            } finally {
+              ragButton.disabled = false;
+              ragButton.textContent = originalLabel;
+            }
+          }
+          if (action === "delete") {
+            const name = ragButton.dataset.name || ragButton.dataset.id;
+            if (!window.confirm(`Supprimer définitivement « ${name} » ? Cette action retire le document, ses chunks et ses vecteurs — irréversible.`)) {
+              return;
+            }
+            ragButton.disabled = true;
+            try {
+              await apiFetch(`/admin/documents/${encodeURIComponent(ragButton.dataset.id)}/delete`, { method: "POST" });
+              setNotice("#appNotice", "Source supprimée.", "success");
+              if (state.rag.selectedSourceId === ragButton.dataset.id) state.rag.selectedSourceId = null;
+              await loadPilotage();
+            } catch (error) {
+              ragButton.disabled = false;
+              throw error;
+            }
+          }
         } catch (error) {
           setNotice("#appNotice", error.message, "error");
         }
         return;
       }
       const row = event.target.closest("tr[data-rag-source-row]");
-      if (row && !event.target.closest("button")) {
+      if (row && !event.target.closest("button") && !event.target.closest("input")) {
         try {
           await selectRagSource(row.dataset.ragSourceRow);
         } catch (error) {
@@ -13779,18 +14007,63 @@
     });
 
     $("#documentsContent").addEventListener("change", async (event) => {
-      if (event.target.id !== "docStatusFilter") return;
-      try {
-        state.documentsAdmin.items.status = event.target.value;
-        state.documentsAdmin.items.page = 0;
-        await loadDocumentList();
+      if (event.target.id === "docStatusFilter") {
+        try {
+          state.documentsAdmin.items.status = event.target.value;
+          state.documentsAdmin.items.page = 0;
+          await loadDocumentList();
+          renderDocuments();
+        } catch (error) {
+          setNotice("#appNotice", error.message, "error");
+        }
+        return;
+      }
+      if (event.target.classList.contains("bulk-select-row")) {
+        const id = event.target.dataset.selectId;
+        if (event.target.checked) state.documentsAdmin.selectedIds.add(id);
+        else state.documentsAdmin.selectedIds.delete(id);
         renderDocuments();
-      } catch (error) {
-        setNotice("#appNotice", error.message, "error");
+        return;
+      }
+      if (event.target.classList.contains("bulk-select-all")) {
+        const pageIds = state.documentsAdmin.items.list.map((d) => String(d.id));
+        if (event.target.checked) pageIds.forEach((id) => state.documentsAdmin.selectedIds.add(id));
+        else pageIds.forEach((id) => state.documentsAdmin.selectedIds.delete(id));
+        renderDocuments();
       }
     });
 
     $("#documentsContent").addEventListener("click", async (event) => {
+      const bulkButton = event.target.closest("button[data-bulk-action]");
+      if (bulkButton) {
+        const action = bulkButton.dataset.bulkAction;
+        if (action === "doc-bulk-clear") {
+          state.documentsAdmin.selectedIds.clear();
+          renderDocuments();
+          return;
+        }
+        if (action === "doc-bulk-delete") {
+          const ids = Array.from(state.documentsAdmin.selectedIds);
+          if (!ids.length) return;
+          if (!window.confirm(`Supprimer définitivement ${ids.length} document(s) ? Cette action retire les documents, leurs chunks et leurs vecteurs — irréversible.`)) {
+            return;
+          }
+          try {
+            const result = await apiFetch("/admin/documents/delete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ids }) });
+            state.documentsAdmin.selectedIds.clear();
+            if (result.failed?.length) {
+              setNotice("#appNotice", `${result.deleted} document(s) supprimé(s), ${result.failed.length} échec(s).`, "error");
+            } else {
+              setNotice("#appNotice", `${result.deleted} document(s) supprimé(s).`, "success");
+            }
+            state.documentsAdmin.selectedId = null;
+            await loadDocuments();
+          } catch (error) {
+            setNotice("#appNotice", error.message, "error");
+          }
+        }
+        return;
+      }
       const docButton = event.target.closest("button[data-doc-action]");
       if (docButton) {
         const action = docButton.dataset.docAction;
@@ -13850,7 +14123,7 @@
         return;
       }
       const row = event.target.closest("tr[data-doc-row]");
-      if (row && !event.target.closest("button")) {
+      if (row && !event.target.closest("button") && !event.target.closest("input")) {
         try {
           await selectDocument(row.dataset.docRow);
         } catch (error) {
@@ -13877,6 +14150,20 @@
     });
 
     $("#exportsContent").addEventListener("change", async (event) => {
+      if (event.target.classList.contains("bulk-select-row")) {
+        const id = event.target.dataset.selectId;
+        if (event.target.checked) state.exportsAdmin.selectedIds.add(id);
+        else state.exportsAdmin.selectedIds.delete(id);
+        renderExports();
+        return;
+      }
+      if (event.target.classList.contains("bulk-select-all")) {
+        const pageIds = state.exportsAdmin.items.list.map((e) => String(e.id));
+        if (event.target.checked) pageIds.forEach((id) => state.exportsAdmin.selectedIds.add(id));
+        else pageIds.forEach((id) => state.exportsAdmin.selectedIds.delete(id));
+        renderExports();
+        return;
+      }
       if (event.target.id !== "exportStatusFilter") return;
       try {
         state.exportsAdmin.items.status = event.target.value;
@@ -13889,6 +14176,32 @@
     });
 
     $("#exportsContent").addEventListener("click", async (event) => {
+      const bulkButton = event.target.closest("button[data-bulk-action]");
+      if (bulkButton) {
+        const action = bulkButton.dataset.bulkAction;
+        if (action === "export-bulk-clear") {
+          state.exportsAdmin.selectedIds.clear();
+          renderExports();
+          return;
+        }
+        if (action === "export-bulk-delete") {
+          const ids = Array.from(state.exportsAdmin.selectedIds);
+          if (!ids.length) return;
+          if (!window.confirm(`Supprimer définitivement ${ids.length} export(s) ? Irréversible.`)) {
+            return;
+          }
+          try {
+            const result = await apiFetch("/admin/exports/delete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ids }) });
+            state.exportsAdmin.selectedIds.clear();
+            setNotice("#appNotice", `${result.deleted} export(s) supprimé(s).`, "success");
+            state.exportsAdmin.selectedId = null;
+            await loadExports();
+          } catch (error) {
+            setNotice("#appNotice", error.message, "error");
+          }
+        }
+        return;
+      }
       const exportButton = event.target.closest("button[data-export-action]");
       if (exportButton) {
         const action = exportButton.dataset.exportAction;
@@ -13899,13 +14212,21 @@
           if (action === "retry") await retryExport(id);
           if (action === "page-prev") { state.exportsAdmin.items.page = Math.max(0, state.exportsAdmin.items.page - 1); await loadExportList(); renderExports(); }
           if (action === "page-next") { state.exportsAdmin.items.page += 1; await loadExportList(); renderExports(); }
+          if (action === "delete") {
+            const name = exportButton.dataset.name || id;
+            if (!window.confirm(`Supprimer définitivement « ${name} » ? Irréversible.`)) return;
+            await apiFetch("/admin/exports/delete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ids: [id] }) });
+            setNotice("#appNotice", "Export supprimé.", "success");
+            if (state.exportsAdmin.selectedId === id) state.exportsAdmin.selectedId = null;
+            await loadExports();
+          }
         } catch (error) {
           setNotice("#appNotice", error.message, "error");
         }
         return;
       }
       const row = event.target.closest("tr[data-export-row]");
-      if (row && !event.target.closest("button")) {
+      if (row && !event.target.closest("button") && !event.target.closest("input")) {
         try {
           await selectExport(row.dataset.exportRow);
         } catch (error) {
