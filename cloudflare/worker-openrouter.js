@@ -2442,7 +2442,7 @@ export default {
     const history = normalizeHistory(body?.history);
     const conversationSummary = normalizeConversationSummary(body?.conversationSummary);
     const projectMemory = typeof body?.projectMemory === 'string'
-      ? body.projectMemory.trim().slice(0, 2500)
+      ? body.projectMemory.trim().slice(0, 10000)
       : '';
     const sessionId = typeof body?.sessionId === 'string' ? body.sessionId : (typeof body?.session_id === 'string' ? body.session_id : '');
     const pageUrl = typeof body?.pageUrl === 'string' ? body.pageUrl : (typeof body?.page_url === 'string' ? body.page_url : '');

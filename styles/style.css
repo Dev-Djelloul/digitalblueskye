@@ -13387,6 +13387,12 @@ button.ai-assistant-project-row {
   width: 100%;
 }
 
+.ai-assistant-project-memory,
+.ai-assistant-project-settings textarea {
+  min-height: 140px;
+  resize: vertical;
+}
+
 .ai-assistant-project-settings,
 .ai-assistant-settings-section {
   background:
@@ -13629,8 +13635,9 @@ button.ai-assistant-project-row {
   font-size: 0.78rem;
   line-height: 1.4;
   margin-left: -8px;
+  min-height: 60px;
   padding: 4px 8px;
-  resize: none;
+  resize: vertical;
   transition: background 0.15s ease, border-color 0.15s ease;
   width: 100%;
 }

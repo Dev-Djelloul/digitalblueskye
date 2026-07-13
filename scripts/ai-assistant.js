@@ -1382,13 +1382,13 @@
     return {
       id: String(base.id || buildProjectId(base.name || 'project')).slice(0, 80),
       name: String(base.name || 'Projet').replace(/\s+/g, ' ').trim().slice(0, 80) || 'Projet',
-      description: String(base.description || '').replace(/\s+/g, ' ').trim().slice(0, 220),
+      description: String(base.description || '').trim().slice(0, 5000),
       icon: String(base.icon || String(base.name || 'P').charAt(0) || 'P').slice(0, 2).toUpperCase(),
       iconImage: String(base.iconImage || '').startsWith('data:image/') && String(base.iconImage || '').length <= maxProjectIconDataUrlLength ? String(base.iconImage) : '',
       color: /^#[0-9a-f]{6}$/i.test(String(base.color || '')) ? String(base.color) : '#79e6ff',
       createdAt: Number(base.createdAt) || now,
       updatedAt: Number(base.updatedAt) || Number(base.createdAt) || now,
-      memory: String(base.memory || '').slice(0, 2500),
+      memory: String(base.memory || '').slice(0, 10000),
       ragScope: ['project', 'multi_project', 'library'].includes(base.ragScope) ? base.ragScope : 'project',
       ragProjectIds: Array.isArray(base.ragProjectIds) ? base.ragProjectIds.map(String).slice(0, 12) : [],
       ragEnabled: base.ragEnabled !== false,
@@ -5432,7 +5432,7 @@
       : 'Mémoire persistante du projet : objectifs, preferences, contexte durable.';
     textarea.rows = 7;
     textarea.addEventListener('change', () => {
-      project.memory = textarea.value.slice(0, 2500);
+      project.memory = textarea.value.slice(0, 10000);
       project.updatedAt = Date.now();
       saveProjectsState();
       renderProjectWorkspace();
@@ -5691,7 +5691,7 @@
           </div>
           <div class="ai-assistant-identity-title">
             <input data-field="name" class="ai-assistant-identity-name-input" value="${escapeHtml(project.name)}" placeholder="${en ? 'Project name' : 'Nom du projet'}" maxlength="120">
-            <textarea data-field="description" class="ai-assistant-identity-desc-input" rows="2" placeholder="${en ? 'Add a description…' : 'Ajouter une description…'}">${escapeHtml(project.description || '')}</textarea>
+            <textarea data-field="description" class="ai-assistant-identity-desc-input" rows="4" placeholder="${en ? 'Add a description…' : 'Ajouter une description…'}">${escapeHtml(project.description || '')}</textarea>
             <div class="ai-assistant-identity-photo-actions">
               <button type="button" data-photo-action="upload">${en ? 'Change photo' : 'Changer la photo'}</button>
               <button type="button" data-photo-action="remove" ${project.iconImage ? '' : 'hidden'}>${en ? 'Remove photo' : 'Retirer la photo'}</button>
@@ -5841,7 +5841,7 @@
       } else if (field === 'ragMaxPassages') {
         project[field] = [3, 5, 8].includes(Number(event.target.value)) ? Number(event.target.value) : 5;
       } else {
-        project[field] = String(event.target.value || '').slice(0, field === 'description' ? 220 : 120);
+        project[field] = String(event.target.value || '').slice(0, field === 'description' ? 5000 : 120);
       }
       project.updatedAt = Date.now();
       saveProjectsState();
