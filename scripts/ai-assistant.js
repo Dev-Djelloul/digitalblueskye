@@ -3437,11 +3437,16 @@
         ocrUsed: false
       };
     }
-    const ocrPages = Math.min(pdfDoc.numPages, 6);
+    // OCR (PDF scanné / sans couche texte) : plus lent que l'extraction texte
+    // car Tesseract tourne dans le navigateur (~2-4 s/page). On plafonne à 20
+    // pages — assez pour couvrir un portfolio complet tout en bornant les PDF
+    // volumineux. Rendu à scale 2.0 (au lieu de 1.5) pour une meilleure
+    // lisibilité OCR (réduit les caractères fragmentés).
+    const ocrPages = Math.min(pdfDoc.numPages, 20);
     const ocrChunks = [];
     for (let pageNum = 1; pageNum <= ocrPages; pageNum += 1) {
       const page = await pdfDoc.getPage(pageNum);
-      const viewport = page.getViewport({ scale: 1.5 });
+      const viewport = page.getViewport({ scale: 2.0 });
       const canvas = document.createElement('canvas');
       canvas.width = Math.ceil(viewport.width);
       canvas.height = Math.ceil(viewport.height);
