@@ -435,6 +435,53 @@ export async function lexicalSearchChunks(env, { terms, projectId, includeGlobal
 }
 
 /**
+ * Reindexe UN document a partir du texte deja stocke en D1 (rag_chunks est
+ * la source de verite du texte, cf. indexDocumentChunks) : recalcule les
+ * embeddings avec le modele actuellement configure et upsert (idempotent,
+ * memes ids chunkVectorId). Sert au bouton "Reindexer" de l'admin Documents —
+ * utile apres un changement de modele d'embedding, ou si un document semble
+ * mal retrouve par le RAG.
+ */
+export async function reindexSingleDocument(env, { documentId }) {
+  const provider = getVectorStoreProvider(env);
+  if (!provider) return { ok: false, error: 'vector_store_unavailable' };
+  if (!documentId) return { ok: false, error: 'invalid_payload' };
+  if (!env?.DB) return { ok: false, error: 'db_unavailable' };
+  try {
+    const rows = await env.DB.prepare(
+      `SELECT id, document_id, project_id, document_name, chunk_index, locator, text
+       FROM rag_chunks WHERE document_id = ?`
+    ).bind(documentId).all();
+    const chunks = (rows?.results || []).filter((row) => String(row.text || '').trim());
+    if (!chunks.length) return { ok: false, error: 'document_not_found' };
+    const vectors = await embedTexts(env, chunks.map((row) => String(row.text).trim()));
+    const items = [];
+    let failed = 0;
+    chunks.forEach((row, index) => {
+      const vector = vectors[index];
+      if (!vector) { failed += 1; return; }
+      items.push({
+        id: row.id,
+        values: vector,
+        metadata: {
+          documentId: row.document_id,
+          projectId: row.project_id || '',
+          documentName: row.document_name || '',
+          chunkIndex: Number(row.chunk_index),
+          locator: row.locator || ''
+        }
+      });
+    });
+    if (items.length) await provider.upsert({ namespace: NAMESPACE, items });
+    return { ok: true, indexed: items.length, failed, total: chunks.length };
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    console.warn('rag_reindex_document_failed', detail);
+    return { ok: false, error: 'reindex_failed', detail };
+  }
+}
+
+/**
  * Réindexation serveur par lots — migration de modèle d'embedding (ex.
  * bge-base-en 768 dims → bge-m3 1024 dims sur un NOUVEL index Vectorize).
  * Lit les chunks depuis D1 (rag_chunks, source de vérité du TEXTE), recalcule

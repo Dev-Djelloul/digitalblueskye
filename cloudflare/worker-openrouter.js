@@ -20,7 +20,7 @@
  */
 
 import { computeProjectPlan, DEFAULT_V3_PLACEHOLDERS } from './aiProjectManager.js';
-import { indexDocumentChunks, deleteDocumentVectors, queryRag, diagnoseRagPipeline, checkVectorizeHealth, listIndexedDocuments, reindexChunksBatch } from './ragPipeline.js';
+import { indexDocumentChunks, deleteDocumentVectors, queryRag, diagnoseRagPipeline, checkVectorizeHealth, listIndexedDocuments, reindexChunksBatch, reindexSingleDocument } from './ragPipeline.js';
 import { routeChatCompletion, routeChatCompletionStream, diagnoseCloudflareAi, diagnoseOpenAi, diagnoseOpenRouterKey } from './modelRouter.js';
 import { detectUserIntent, planCapabilities, composeSystemPrompt, isOrchestratorEnabled } from './promptOrchestrator.js';
 import {
@@ -661,13 +661,23 @@ export function detectWebSearchIntent(message, body = {}) {
     'recent',
     'récente',
     'recente',
-    'dernier',
-    'dernière',
-    'derniere',
-    'dernières',
-    'dernieres',
+    // "dernier/dernière" seuls RETIRES (2026-07-13) : bug reel observe en
+    // production — "une derniere liste", "une derniere question", "en
+    // dernier lieu" declenchaient a tort une recherche web (Tavily recevait
+    // ensuite la phrase francaise brute et renvoyait des definitions du mot
+    // anglais "list"). "dernier/derniere" signifie "last/final" dans
+    // l'immense majorite des phrases francaises, pas "recent". Ne garder que
+    // des locutions non ambigues, ou le sens temporel est le seul possible.
     'dernières annonces',
     'dernieres annonces',
+    'dernières nouvelles',
+    'dernieres nouvelles',
+    'dernières tendances',
+    'dernieres tendances',
+    'dernière version disponible',
+    'derniere version disponible',
+    'dernière mise à jour',
+    'derniere mise a jour',
     'prix actuel',
     'cours',
     'disponibilité',
@@ -2373,6 +2383,23 @@ export default {
       return jsonResponse(result, 200, corsHeaders);
     }
 
+    // Reindexation d'UN SEUL document (bouton "Reindexer" de l'admin
+    // Documents) — meme garde-fou d'auth que rag_reindex ci-dessus. Appelee
+    // par worker-api.js via le binding de service AI_WORKER (jamais exposee
+    // publiquement autrement) : handleAdminDocumentReindex y transmet le
+    // meme Authorization Bearer que l'admin a utilise pour /admin/*, donc
+    // KNOWLEDGE_ADMIN_TOKEN/ADMIN_TOKEN doivent avoir la MEME valeur sur les
+    // deux Workers (digitalblueskye-api et digitalblueskye-ai) pour que ce
+    // bouton fonctionne — cf. commentaire dans wrangler.ai.toml.
+    if (mode === 'rag_reindex_document') {
+      const authStatus = getKnowledgeAuthStatus(request, env);
+      if (authStatus !== 0) {
+        return jsonResponse({ ok: false, error: authStatus === 401 ? 'missing_token' : 'invalid_token' }, authStatus, corsHeaders);
+      }
+      const result = await reindexSingleDocument(env, { documentId: body?.documentId });
+      return jsonResponse(result, 200, corsHeaders);
+    }
+
     if (mode === 'rag_query') {
       const result = await queryRag(env, {
         query: body?.query,
@@ -2999,6 +3026,15 @@ export default {
           executionPlan,
           projectContext: {
             projectId: body?.projectId || '',
+            // Fuite inter-projets corrigee (2026-07-13, cf. ragSource.js) :
+            // le RAG scope desormais STRICTEMENT au projet actif par defaut.
+            // Il ne deborde sur la bibliotheque globale que si l'utilisateur
+            // l'a choisi explicitement pour ce projet (ragScope 'library' ou
+            // 'multi_project', envoye par le front — cf. payload.ragScope
+            // dans scripts/ai-assistant.js, defaut 'project'). Sans projet
+            // actif (conversation autonome), ragSource.js applique deja son
+            // propre defaut (recherche globale), independamment de ce flag.
+            includeGlobalLibrary: (body?.ragScope || 'project') !== 'project',
             // Requete liee a un document : la memoire de projet ne doit
             // jamais servir a repondre au contenu de la question (regle
             // explicite), seulement l'historique de conversation peut aider

@@ -5999,6 +5999,54 @@ async function handleAdminDocumentDetails(request, env, documentId) {
   return jsonResponse(request, env, { ok: true, ...details });
 }
 
+// Supprime un document (Vectorize + rag_chunks + rag_sources + documents,
+// cf. deleteDocumentVectors dans cloudflare/ragPipeline.js) via le binding de
+// service AI_WORKER — jamais expose directement au public. La route
+// /admin/documents/:id/delete elle-meme est deja protegee par requireAdmin()
+// (cf. handleAdmin), donc aucun Bearer supplementaire n'est necessaire ici :
+// meme modele de confiance que handleAdminKnowledgeRefresh ci-dessus.
+async function handleAdminDocumentDelete(request, env, documentId) {
+  if (request.method !== "POST") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  if (!env.AI_WORKER?.fetch) {
+    return jsonResponse(request, env, { ok: false, error: "ai_worker_binding_unavailable" }, 503);
+  }
+  const response = await env.AI_WORKER.fetch(new Request("https://digitalblueskye-ai/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ mode: "rag_delete", documentId }),
+  }));
+  const payload = await response.json().catch(() => ({ ok: false, error: "invalid_ai_worker_response" }));
+  return jsonResponse(request, env, payload, response.status);
+}
+
+// Reindexe un document a partir du texte deja stocke en D1 (cf.
+// reindexSingleDocument). Contrairement a delete, le mode rag_reindex_document
+// exige un Bearer sur digitalblueskye-ai (KNOWLEDGE_ADMIN_TOKEN/ADMIN_TOKEN) :
+// on transmet donc le MEME header Authorization que l'admin a utilise pour
+// s'authentifier ici — necessite que le meme token soit configure sur les
+// deux Workers (cf. commentaire dans cloudflare/wrangler.ai.toml).
+async function handleAdminDocumentReindex(request, env, documentId) {
+  if (request.method !== "POST") {
+    return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
+  }
+  if (!env.AI_WORKER?.fetch) {
+    return jsonResponse(request, env, { ok: false, error: "ai_worker_binding_unavailable" }, 503);
+  }
+  const authHeader = request.headers.get("Authorization") || "";
+  const response = await env.AI_WORKER.fetch(new Request("https://digitalblueskye-ai/", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(authHeader ? { Authorization: authHeader } : {}),
+    },
+    body: JSON.stringify({ mode: "rag_reindex_document", documentId }),
+  }));
+  const payload = await response.json().catch(() => ({ ok: false, error: "invalid_ai_worker_response" }));
+  return jsonResponse(request, env, payload, response.status);
+}
+
 async function handleAdminDocumentsStats(request, env) {
   if (request.method !== "GET") {
     return jsonResponse(request, env, { ok: false, error: "Method not allowed" }, 405);
@@ -6116,6 +6164,12 @@ async function handleAdminDocuments(request, env, url) {
 
   let documentId = documentIdFromPath(pathname, "/export");
   if (documentId) return await handleAdminDocumentExport(request, env, documentId);
+
+  documentId = documentIdFromPath(pathname, "/delete");
+  if (documentId) return await handleAdminDocumentDelete(request, env, documentId);
+
+  documentId = documentIdFromPath(pathname, "/reindex");
+  if (documentId) return await handleAdminDocumentReindex(request, env, documentId);
 
   documentId = documentIdFromPath(pathname);
   if (documentId) return await handleAdminDocumentDetails(request, env, documentId);

@@ -1,4 +1,9 @@
-import { queryRag, queryDocumentTail, lexicalSearchChunks, getChunksByIndices } from '../../ragPipeline.js';
+import {
+  queryRag as defaultQueryRag,
+  queryDocumentTail as defaultQueryDocumentTail,
+  lexicalSearchChunks as defaultLexicalSearchChunks,
+  getChunksByIndices as defaultGetChunksByIndices
+} from '../../ragPipeline.js';
 
 function mapRagItem(item, projectId) {
   return {
@@ -18,7 +23,15 @@ function mapRagItem(item, projectId) {
   };
 }
 
-export function createRagKnowledgeSource() {
+// Parametres injectables (memes que createTavilyKnowledgeSource({ searchFn })) :
+// permettent de tester semanticSearch() sans D1/Vectorize reels. Le worker
+// appelle toujours createRagKnowledgeSource() sans argument en production.
+export function createRagKnowledgeSource({
+  queryRagFn = defaultQueryRag,
+  queryDocumentTailFn = defaultQueryDocumentTail,
+  lexicalSearchChunksFn = defaultLexicalSearchChunks,
+  getChunksByIndicesFn = defaultGetChunksByIndices
+} = {}) {
   return {
     key: 'rag',
     type: 'rag',
@@ -36,6 +49,18 @@ export function createRagKnowledgeSource() {
       const structural = options.structural || null;
       const targetDocumentId = options.targetDocumentId || null;
       const maxPassages = options.maxPassages || 8;
+      // BUG CORRIGE (2026-07-13) : includeGlobalLibrary etait fige a `true`
+      // en dur ci-dessous, donc TOUTE conversation liee a un projet
+      // interrogeait Vectorize SANS filtre projectId (queryRag() : filter =
+      // includeGlobalLibrary ? undefined : { projectId }) — un projet tout
+      // juste cree et vide pouvait recevoir des chunks de N'IMPORTE QUEL
+      // AUTRE projet et halluciner un inventaire a partir de leur contenu.
+      // Scope strict par defaut des qu'un projet est actif ; ne deborde sur
+      // la bibliotheque globale que si le projet le demande explicitement
+      // (options.projectContext.includeGlobalLibrary, derive de ragScope
+      // cote worker-openrouter.js) ou si aucun projet n'est actif (chat
+      // autonome, comportement inchange).
+      const includeGlobalLibrary = projectId ? Boolean(options.projectContext?.includeGlobalLibrary) : true;
       const byChunk = new Map();
       const addItems = (items) => {
         (items || []).forEach((item) => {
@@ -53,13 +78,19 @@ export function createRagKnowledgeSource() {
       //    ou section avec voisinage) — comble les angles morts du vectoriel.
       if (structural?.retrieval === 'tail' && targetDocumentId) {
         // document_tail_retrieval : derniers chunks par chunk_index.
-        const tail = await queryDocumentTail(env, { documentId: targetDocumentId, projectId, limit: Math.max(10, maxPassages) });
+        const tail = await queryDocumentTailFn(env, { documentId: targetDocumentId, projectId, limit: Math.max(10, maxPassages) });
         if (tail?.ok) addItems(tail.selected);
       } else if ((structural?.retrieval === 'lexical' || structural?.retrieval === 'section') && Array.isArray(structural.lexicalTerms) && structural.lexicalTerms.length) {
-        const lexical = await lexicalSearchChunks(env, {
+        const lexical = await lexicalSearchChunksFn(env, {
           terms: structural.lexicalTerms,
           projectId,
-          includeGlobalLibrary: true,
+          // includeGlobalLibrary (variable calculee plus haut, pas `true` en
+          // dur) : quand targetDocumentId est resolu, lexicalSearchChunks()
+          // scope de toute facon par documentId (ce flag est ignore) ; mais
+          // si la cible documentaire n'a PAS pu etre resolue (statut
+          // ambigu/aucun), ce flag redevient determinant et ne doit pas
+          // fuiter sur toute la bibliotheque pour un projet scope.
+          includeGlobalLibrary,
           documentId: targetDocumentId || undefined,
           limit: Math.max(12, maxPassages)
         });
@@ -77,7 +108,7 @@ export function createRagKnowledgeSource() {
               neighborsByDoc.set(item.documentId, list);
             });
             for (const [docId, indices] of neighborsByDoc.entries()) {
-              const neighbors = await getChunksByIndices(env, { documentId: docId, indices });
+              const neighbors = await getChunksByIndicesFn(env, { documentId: docId, indices });
               addItems(neighbors);
             }
           }
@@ -87,10 +118,10 @@ export function createRagKnowledgeSource() {
       // 2. Vectoriel TOUJOURS execute en complement (jamais remplace) — sauf
       //    tail pur, ou la position prime sur la similarite.
       if (structural?.retrieval !== 'tail') {
-        const result = await queryRag(env, {
+        const result = await queryRagFn(env, {
           query,
           projectId,
-          includeGlobalLibrary: true,
+          includeGlobalLibrary,
           maxPassages,
           similarityThreshold: options.similarityThreshold,
           // Ciblage documentaire strict : quand un document precis est vise

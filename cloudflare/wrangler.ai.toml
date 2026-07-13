@@ -12,6 +12,19 @@ database_id = "eeb9d1b0-26ed-48a1-beb3-b0a944765174"
 # Health dashboard auth:
 # Either configure ADMIN_TOKEN on this worker too, or prefer a dedicated shared token:
 # wrangler secret put HEALTH_CHECK_TOKEN -c cloudflare/wrangler.ai.toml
+#
+# Bouton "Reindexer" de l'admin Documents (mode rag_reindex_document,
+# cf. worker-openrouter.js) : worker-api.js transmet a ce Worker le MEME
+# header Authorization que l'admin a utilise sur digitalblueskye-api.
+# Pour que le bouton fonctionne, ADMIN_TOKEN (ou KNOWLEDGE_ADMIN_TOKEN) doit
+# donc avoir EXACTEMENT LA MEME VALEUR sur les deux Workers :
+#   wrangler secret put ADMIN_TOKEN -c cloudflare/wrangler.ai.toml
+#   (meme valeur que wrangler secret put ADMIN_TOKEN -c cloudflare/wrangler.api.toml)
+# Sans cela, le bouton renvoie une erreur 401/403 explicite (pas de blocage
+# silencieux). Le bouton "Supprimer" (mode rag_delete) n'a pas besoin de ce
+# token : la route /admin/documents/:id/delete est deja protegee par
+# ADMIN_TOKEN sur digitalblueskye-api, et l'appel a digitalblueskye-ai
+# transite par le binding de service AI_WORKER, jamais expose publiquement.
 
 # Completion Guard (cf. cloudflare/completionGuard.js) — actif par defaut.
 # Si OpenRouter tronque une reponse longue (finish_reason=length), le routeur

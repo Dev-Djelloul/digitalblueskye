@@ -3673,6 +3673,16 @@
       background: rgba(255, 255, 255, 0.035);
     }
 
+    .icon-action-danger:hover:not(:disabled) {
+      color: #ff8080;
+      background: rgba(255, 92, 92, 0.15);
+    }
+
+    .icon-action:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+
     .conversation-pagination {
       display: flex;
       align-items: center;
@@ -7844,8 +7854,8 @@
           <td>
             <div class="action-cluster">
               <button class="icon-action" type="button" data-doc-action="open" data-id="${escapeHtml(doc.id)}" aria-label="Voir détails">${iconSvg("workflow")}</button>
-              <button class="icon-action" type="button" disabled title="Non implémenté dans ce lot" aria-label="Réindexer">↻</button>
-              <button class="icon-action" type="button" disabled title="Non implémenté dans ce lot" aria-label="Supprimer">⋮</button>
+              <button class="icon-action" type="button" data-doc-action="reindex" data-id="${escapeHtml(doc.id)}" title="Réindexer (recalcule les embeddings)" aria-label="Réindexer">↻</button>
+              <button class="icon-action icon-action-danger" type="button" data-doc-action="delete" data-id="${escapeHtml(doc.id)}" data-name="${escapeHtml(doc.title || doc.id)}" title="Supprimer définitivement" aria-label="Supprimer">🗑</button>
             </div>
           </td>
         </tr>
@@ -13798,6 +13808,41 @@
             link.download = `document-${String(payload.document?.id || "export").slice(0, 24)}.json`;
             link.click();
             URL.revokeObjectURL(url);
+          }
+          if (action === "reindex") {
+            // apiFetch() leve une exception des que payload.ok est false ou
+            // que le HTTP status n'est pas 2xx (cf. sa definition) : le
+            // catch englobant plus bas gere donc deja tous les echecs, y
+            // compris le desalignement de token entre les deux Workers
+            // (rag_reindex_document exige un Bearer, cf. worker-api.js).
+            docButton.disabled = true;
+            const originalLabel = docButton.textContent;
+            docButton.textContent = "…";
+            try {
+              const result = await apiFetch(`/admin/documents/${encodeURIComponent(docButton.dataset.id)}/reindex`, { method: "POST" });
+              setNotice("#appNotice", `Document réindexé (${result.indexed ?? 0} chunk(s)).`, "success");
+              if (state.documentsAdmin.selectedId === docButton.dataset.id) await loadDocumentDetail(docButton.dataset.id);
+              renderDocuments();
+            } finally {
+              docButton.disabled = false;
+              docButton.textContent = originalLabel;
+            }
+          }
+          if (action === "delete") {
+            const name = docButton.dataset.name || docButton.dataset.id;
+            if (!window.confirm(`Supprimer définitivement « ${name} » ? Cette action retire le document, ses chunks et ses vecteurs — irréversible.`)) {
+              return;
+            }
+            docButton.disabled = true;
+            try {
+              await apiFetch(`/admin/documents/${encodeURIComponent(docButton.dataset.id)}/delete`, { method: "POST" });
+              setNotice("#appNotice", "Document supprimé.", "success");
+              if (state.documentsAdmin.selectedId === docButton.dataset.id) state.documentsAdmin.selectedId = null;
+              await loadDocuments();
+            } catch (error) {
+              docButton.disabled = false;
+              throw error;
+            }
           }
         } catch (error) {
           setNotice("#appNotice", error.message, "error");
