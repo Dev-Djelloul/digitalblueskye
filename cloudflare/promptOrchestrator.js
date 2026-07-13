@@ -275,8 +275,8 @@ const BLOCKS = {
     en: 'Never invent facts, figures, prices, dates, sources, citations or references. If information depends on recent or external data not provided, say so clearly.'
   },
   sources: {
-    fr: "Sources : cite les documents projet fournis avec leurs identifiants exacts [S1], [S2] (n'invente jamais d'identifiant) et les sources web avec leur numéro [1], [2] uniquement quand un index numéroté est fourni. La mémoire projet est un canal distinct : ne la cite pas avec [Sx].",
-    en: 'Sources: cite provided project documents with their exact identifiers [S1], [S2] (never invent one) and web sources with their number [1], [2] only when a numbered index is provided. Project memory is a separate channel: do not cite it with [Sx].'
+    fr: "Sources : cite les documents projet fournis avec leurs identifiants exacts [S1], [S2] (n'invente jamais d'identifiant et n'en cite jamais un pour un document que tu n'as pas réellement utilisé) et les sources web avec leur numéro [1], [2] uniquement quand un index numéroté est fourni. La mémoire projet est un canal distinct : ne la cite pas avec [Sx].",
+    en: 'Sources: cite provided project documents with their exact identifiers [S1], [S2] (never invent one, and never cite an identifier for a document you did not actually use) and web sources with their number [1], [2] only when a numbered index is provided. Project memory is a separate channel: do not cite it with [Sx].'
   },
   noSourceReminder: {
     fr: "Si aucune source documentaire n'a réellement été utilisée pour la réponse, indique-le explicitement plutôt que de laisser croire le contraire.",
