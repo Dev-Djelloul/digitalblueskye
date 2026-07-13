@@ -327,7 +327,7 @@ body :where(
 
 .page-about .page-intro-card {
   max-width: 920px;
-  padding: 32px clamp(24px, 4vw, 44px);
+  padding: 70px;
   width: min(100% - 32px, 980px);
 }
 
@@ -15690,6 +15690,45 @@ body.ai-assistant-sidebar-is-resizing * {
   background: rgb(121 230 255 / 14%);
   border-color: rgb(121 230 255 / 40%);
   transform: translateY(-1px);
+}
+
+/* Bouton « Régénérer » : présent dans chaque bulle assistant, mais visible
+   uniquement sur la dernière bulle assistant de la conversation (si un
+   message utilisateur ou l'indicateur de frappe la suit, elle n'est plus
+   :last-child et le bouton disparaît — c'est voulu, y compris pendant une
+   génération en cours). */
+.ai-assistant-regenerate-btn {
+  background: rgb(255 255 255 / 8%);
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: 999px;
+  color: #dfe8ff;
+  cursor: pointer;
+  display: none;
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  margin-top: 10px;
+  padding: 6px 11px;
+  -webkit-text-fill-color: #dfe8ff;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.ai-assistant-regenerate-btn:hover {
+  background: rgb(121 230 255 / 14%);
+  border-color: rgb(121 230 255 / 40%);
+  transform: translateY(-1px);
+}
+
+[data-theme="light"] .ai-assistant-regenerate-btn {
+  border-color: rgb(70 55 130 / 25%);
+  color: #3d3567;
+  -webkit-text-fill-color: #3d3567;
+}
+
+.ai-assistant-message--bot:last-child .ai-assistant-regenerate-btn {
+  display: inline-flex;
 }
 
 .ai-assistant-bubble-btn {

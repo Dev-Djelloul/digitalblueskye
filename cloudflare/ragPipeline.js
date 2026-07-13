@@ -435,6 +435,81 @@ export async function lexicalSearchChunks(env, { terms, projectId, includeGlobal
 }
 
 /**
+ * Réindexation serveur par lots — migration de modèle d'embedding (ex.
+ * bge-base-en 768 dims → bge-m3 1024 dims sur un NOUVEL index Vectorize).
+ * Lit les chunks depuis D1 (rag_chunks, source de vérité du TEXTE), recalcule
+ * les embeddings avec le modèle configuré (env.EMBEDDING_MODEL, cf.
+ * embeddings.js) et upsert dans l'index actuellement lié (VECTOR_INDEX).
+ * Paginé pour rester sous les limites CPU/sous-requêtes d'un Worker :
+ * l'appelant boucle avec nextOffset jusqu'à done=true. Idempotent (upsert).
+ */
+export async function reindexChunksBatch(env, { cursor, limit } = {}) {
+  const provider = getVectorStoreProvider(env);
+  if (!provider) return { ok: false, error: 'vector_store_unavailable' };
+  if (!env?.DB) return { ok: false, error: 'db_unavailable' };
+  const startedAt = Date.now();
+  const safeCursor = Math.max(0, Number(cursor) || 0);
+  // 40 max : 2 lots d'embeddings (embedTexts par 20) + 1 upsert + 2 D1 par
+  // appel, et le repli unitaire d'embedTexts reste sous la limite de
+  // sous-requetes du plan Workers Free meme en cas d'echec des lots.
+  const safeLimit = Math.max(1, Math.min(40, Number(limit) || 40));
+  try {
+    const totalRow = await env.DB.prepare('SELECT COUNT(*) AS total FROM rag_chunks').all();
+    const total = Number(totalRow?.results?.[0]?.total || 0);
+    // Pagination KEYSET (WHERE rowid > cursor), pas OFFSET : une suppression
+    // concurrente de document (mode rag_delete) ferait glisser des lignes
+    // sous un OFFSET et elles seraient sautees silencieusement ; le curseur
+    // rowid, lui, est insensible aux suppressions avant le curseur.
+    const rows = await env.DB.prepare(
+      `SELECT rowid AS row_id, id, document_id, project_id, document_name, chunk_index, locator, text
+       FROM rag_chunks WHERE rowid > ? ORDER BY rowid LIMIT ?`
+    ).bind(safeCursor, safeLimit).all();
+    const pageRows = rows?.results || [];
+    if (!pageRows.length) {
+      return { ok: true, processed: 0, indexed: 0, failed: 0, failedIds: [], total, nextCursor: safeCursor, done: true, duration_ms: Date.now() - startedAt };
+    }
+    const chunks = pageRows.filter((row) => String(row.text || '').trim());
+    const vectors = await embedTexts(env, chunks.map((row) => String(row.text).trim()));
+    const items = [];
+    const failedIds = [];
+    chunks.forEach((row, index) => {
+      const vector = vectors[index];
+      if (!vector) { failedIds.push(row.id); return; }
+      items.push({
+        id: row.id,
+        values: vector,
+        metadata: {
+          documentId: row.document_id,
+          projectId: row.project_id || '',
+          documentName: row.document_name || '',
+          chunkIndex: Number(row.chunk_index),
+          locator: row.locator || ''
+        }
+      });
+    });
+    if (items.length) await provider.upsert({ namespace: NAMESPACE, items });
+    const nextCursor = Number(pageRows[pageRows.length - 1].row_id);
+    return {
+      ok: true,
+      processed: pageRows.length,
+      indexed: items.length,
+      failed: failedIds.length,
+      // failed > 0 : rejouer le MEME cursor (idempotent) avant de poursuivre,
+      // sinon ces ids resteront absents du nouvel index.
+      failedIds,
+      total,
+      nextCursor,
+      done: pageRows.length < safeLimit,
+      duration_ms: Date.now() - startedAt
+    };
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    console.warn('rag_reindex_failed', detail);
+    return { ok: false, error: 'reindex_failed', detail, cursor: safeCursor };
+  }
+}
+
+/**
  * Probe de sante active et en lecture seule pour Vectorize (aucun
  * upsert/delete, contrairement a diagnoseRagPipeline ci-dessous) : confirme
  * que l'index repond reellement a une requete, independamment de toute

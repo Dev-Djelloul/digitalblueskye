@@ -20,7 +20,7 @@
  */
 
 import { computeProjectPlan, DEFAULT_V3_PLACEHOLDERS } from './aiProjectManager.js';
-import { indexDocumentChunks, deleteDocumentVectors, queryRag, diagnoseRagPipeline, checkVectorizeHealth, listIndexedDocuments } from './ragPipeline.js';
+import { indexDocumentChunks, deleteDocumentVectors, queryRag, diagnoseRagPipeline, checkVectorizeHealth, listIndexedDocuments, reindexChunksBatch } from './ragPipeline.js';
 import { routeChatCompletion, routeChatCompletionStream, diagnoseCloudflareAi, diagnoseOpenAi, diagnoseOpenRouterKey } from './modelRouter.js';
 import { detectUserIntent, planCapabilities, composeSystemPrompt, isOrchestratorEnabled } from './promptOrchestrator.js';
 import {
@@ -1960,6 +1960,105 @@ function buildPilotagePromptBlock(plan, language) {
     : `\n\nL'utilisateur pose une question de pilotage projet / priorisation. Utilise UNIQUEMENT les données réelles et déjà calculées ci-dessous pour répondre — n'invente jamais de métrique ou de statut. Si une donnée manque, écris littéralement "Donnée non disponible dans le monitoring actuel." Suis cette structure : Synthèse (état global, maturité, priorité principale), Top 3 actions recommandées (domaine, pourquoi, impact, effort, risque, action recommandée, critères d'acceptation), tableau Quick wins, tableau Risques, Feuille de route (Aujourd'hui / Cette semaine / V3).\n\nDONNÉES DE DÉCISION (JSON) :\n${json}`;
 }
 
+// ── Inventaire de la base de connaissances (questions méta) ────────────────
+//
+// Bug corrigé (2026-07-13) : à la question « quelles sources as-tu / as-tu
+// enregistré les documents ? », le modèle répondait avec son réflexe LLM
+// générique (« je ne mémorise rien, chaque conversation repart de zéro »)
+// alors que la plateforme indexe bien les documents de façon PERSISTANTE
+// (Vectorize + D1 rag_chunks, 70 documents au moment du correctif). Une
+// question méta sur la base ne déclenche ni RAG ni aucun contexte : le
+// modèle n'avait aucun moyen de connaître son propre inventaire. On détecte
+// donc ces questions et on injecte l'inventaire RÉEL (listIndexedDocuments)
+// dans le prompt système, avec une consigne de véracité explicite.
+
+// Patterns resserrés après revue adverse (faux positifs mesurés sur des
+// messages ordinaires de chef de projet) : jamais de « base »/« mémoire »
+// nus (base de données, base clients...), verbes bornés par \b (« enregistrer
+// un podcast » ne matche plus), objet documentaire exigé après le verbe, et
+// « bibliothèque » restreint aux formes documentaires (« bibliothèque de
+// composants React » exclue).
+const KNOWLEDGE_INVENTORY_PATTERNS = [
+  // « quelles sources/documents as-tu / possèdes-tu / reconnais-tu... »
+  /\b(quelles?|quels?|liste(?:[- ]moi)?|montre(?:[- ]moi)?|combien\s+de)\b[^.?!]{0,80}\b(documents?|sources?|fichiers?)\b[^.?!]{0,80}\b(as[- ]tu|avez[- ]vous|poss[e]des?|reconnais(?:[- ]tu)?|disposes?[- ]tu|tu\s+disposes?|indexe[es]?\b|enregistre[es]?\b|dans\s+ta\s+base|en\s+memoire)/i,
+  // « as-tu enregistré / mémorisé / indexé ... <objet documentaire> »
+  /\b(as[- ]tu|avez[- ]vous|est[- ]ce\s+que\s+tu\s+as)\b[^.?!]{0,50}\b(enregistre[es]?|memorise[es]?|indexe[es]?|retenu[es]?|sauvegarde[es]?|stocke[es]?|garde[es]?\s+en\s+memoire)\b[^.?!]{0,60}\b(documents?|sources?|fichiers?|rapports?|notes?|pdf|pieces?\s+jointes?|donnees|informations?)\b/i,
+  // « ta base de connaissances / documentaire »
+  /\b(ta|ton|votre)\s+(base\s+de\s+connaissances?|base\s+documentaire)\b/i,
+  // « ta bibliothèque (globale / de documents...) » — mais pas « votre
+  // bibliothèque de composants/scripts/... » (lookahead négatif sur « de »).
+  /\b(ta|ton|votre)\s+bibliotheque(?:\s+(?:globale|de\s+(?:documents?|sources?|fichiers?)))?\b(?!\s+de\b)/i,
+  // « documents indexés / persistants ... dans ta base / le rag / la plateforme »
+  /\b(documents?|sources?|fichiers?)\b[^.?!]{0,50}\b(indexes?|enregistres?|persistants?|stockes?)\b[^.?!]{0,50}\b(ta\s+base|base\s+de\s+connaissances?|base\s+documentaire|rag|plateforme|ta\s+memoire|index\s+vectoriel)/i,
+  // Anglais.
+  /\bwhat\s+(documents?|sources?|files?)\b[^.?!]{0,70}\b(do\s+you\s+(have|know|recognize|remember)|are\s+(indexed|stored|available|saved))/i,
+  /\b(did|have|do)\s+you\s+(save[d]?|store[d]?|index(ed)?|memoriz\w*|remember|record(ed)?)\b[^.?!]{0,60}\b(documents?|sources?|files?|knowledge)/i,
+  /\byour\s+knowledge\s+base\b/i
+];
+
+export function detectKnowledgeInventoryIntent(message) {
+  // Les retours à la ligne deviennent des fins de phrase AVANT la
+  // normalisation (qui écrase \n en espace) : sans cela, les gardes de
+  // portée [^.?!] des patterns traversaient les puces d'une liste.
+  const normalized = normalizeForKeywordMatching(String(message || '').replace(/[\r\n]+/g, '. '));
+  return KNOWLEDGE_INVENTORY_PATTERNS.some((pattern) => pattern.test(normalized));
+}
+
+export async function buildKnowledgeInventoryBlock(env, { projectId, projectName, hasProjectMemory, language } = {}) {
+  const en = language === 'en';
+  let projectDocs = [];
+  let globalDocs = [];
+  try {
+    [globalDocs, projectDocs] = await Promise.all([
+      listIndexedDocuments(env, { includeGlobalLibrary: true }),
+      projectId ? listIndexedDocuments(env, { projectId }) : Promise.resolve([])
+    ]);
+  } catch (error) {
+    console.warn('knowledge_inventory_failed', error instanceof Error ? error.message : String(error));
+    return '';
+  }
+
+  // Les noms de documents sont saisis par l'utilisateur (et la route
+  // rag_index n'est pas authentifiée) : neutralise sauts de ligne/tabulations
+  // et borne la longueur pour qu'un nom ne puisse pas injecter de fausses
+  // directives dans ce bloc systeme presente comme factuel.
+  const formatDoc = (doc) => {
+    const safeName = String(doc.name || '').replace(/[\r\n\t]+/g, ' ').slice(0, 150);
+    return `- ${safeName}${doc.indexedAt ? ` (${new Date(doc.indexedAt).toISOString().slice(0, 10)})` : ''}`;
+  };
+  const MAX_LISTED = 30;
+  const listed = (projectId ? projectDocs : globalDocs).slice(0, MAX_LISTED);
+  const scopeCount = projectId ? projectDocs.length : globalDocs.length;
+  const truncatedNote = scopeCount > MAX_LISTED
+    ? (en ? `\n… and ${scopeCount - MAX_LISTED} more document(s).` : `\n… et ${scopeCount - MAX_LISTED} autre(s) document(s).`)
+    : '';
+
+  const lines = en ? [
+    '',
+    '',
+    'FACTUAL INVENTORY OF YOUR KNOWLEDGE BASE (real data, just read from the platform database):',
+    `- This platform DOES persistently index documents (vector store + database). Total indexed documents across all projects: ${globalDocs.length}.`,
+    projectId
+      ? `- Active project${projectName ? ` "${projectName}"` : ''}: ${projectDocs.length} indexed document(s)${projectDocs.length ? ':' : '.'}`
+      : '- This conversation is not linked to a project: no project-scoped documents apply here, but the global library above exists.',
+    ...(listed.length ? [listed.map(formatDoc).join('\n') + truncatedNote] : []),
+    `- Persistent project memory: ${hasProjectMemory ? 'present for this project' : 'not set for this conversation'}.`,
+    'Answer the user\'s question about your knowledge base from THIS inventory only. Never claim that nothing is saved or that every conversation starts from zero: indexed documents and project memory ARE persistent across conversations. What is NOT persisted automatically: files attached ad hoc to a message (they must be imported into the project or library to be indexed). If document excerpts are also provided in the context, they complement this inventory — they never contradict it.'
+  ] : [
+    '',
+    '',
+    'INVENTAIRE FACTUEL DE TA BASE DE CONNAISSANCES (données réelles, lues à l\'instant dans la base de la plateforme) :',
+    `- Cette plateforme indexe bien les documents de façon PERSISTANTE (index vectoriel + base de données). Total de documents indexés tous projets confondus : ${globalDocs.length}.`,
+    projectId
+      ? `- Projet actif${projectName ? ` « ${projectName} »` : ''} : ${projectDocs.length} document(s) indexé(s)${projectDocs.length ? ' :' : '.'}`
+      : '- Cette conversation n\'est liée à aucun projet : aucun document de projet ne s\'applique ici, mais la bibliothèque globale ci-dessus existe.',
+    ...(listed.length ? [listed.map(formatDoc).join('\n') + truncatedNote] : []),
+    `- Mémoire projet persistante : ${hasProjectMemory ? 'présente pour ce projet' : 'non renseignée pour cette conversation'}.`,
+    'Réponds à la question de l\'utilisateur sur ta base de connaissances à partir de CET inventaire uniquement. Ne prétends jamais que rien n\'est enregistré ou que chaque conversation repart de zéro : les documents indexés et la mémoire projet SONT persistants d\'une conversation à l\'autre. Ce qui n\'est PAS persisté automatiquement : les fichiers joints ponctuellement à un message (ils doivent être importés dans le projet ou la bibliothèque pour être indexés). Si des passages documentaires sont également fournis dans le contexte, ils complètent cet inventaire — ils ne le contredisent jamais.'
+  ];
+  return lines.join('\n');
+}
+
 function effectiveKnowledgeTokenBudget(body, maxTokens) {
   const requested = Number(body?.knowledgeTokenBudget || body?.tokenBudget);
   if (Number.isFinite(requested) && requested > 0) return requested;
@@ -2258,6 +2357,19 @@ export default {
 
     if (mode === 'rag_delete') {
       const result = await deleteDocumentVectors(env, { documentId: body?.documentId });
+      return jsonResponse(result, 200, corsHeaders);
+    }
+
+    // Réindexation serveur (migration d'embeddings, cf. reindexChunksBatch) —
+    // protégée par Bearer token admin (KNOWLEDGE_ADMIN_TOKEN ou ADMIN_TOKEN),
+    // comme les routes /knowledge/*. Boucler : repartir de nextCursor tant
+    // que done=false ; si failed > 0, rejouer le même cursor.
+    if (mode === 'rag_reindex') {
+      const authStatus = getKnowledgeAuthStatus(request, env);
+      if (authStatus !== 0) {
+        return jsonResponse({ ok: false, error: authStatus === 401 ? 'missing_token' : 'invalid_token' }, authStatus, corsHeaders);
+      }
+      const result = await reindexChunksBatch(env, { cursor: body?.cursor, limit: body?.limit });
       return jsonResponse(result, 200, corsHeaders);
     }
 
@@ -2765,6 +2877,30 @@ export default {
       }
     }
 
+    // Question méta sur la base de connaissances (« quelles sources as-tu ?»,
+    // « as-tu enregistré ces documents ? ») : injecte l'inventaire REEL des
+    // documents indexés pour que le modèle ne réponde plus avec son réflexe
+    // générique « je ne mémorise rien » (cf. buildKnowledgeInventoryBlock).
+    let knowledgeInventoryBlock = '';
+    if (detectKnowledgeInventoryIntent(message)) {
+      knowledgeInventoryBlock = await buildKnowledgeInventoryBlock(env, {
+        projectId: body?.projectId || null,
+        projectName: typeof body?.projectName === 'string' ? body.projectName.slice(0, 120) : '',
+        hasProjectMemory: Boolean(projectMemory),
+        language
+      });
+      if (knowledgeInventoryBlock) {
+        queueAiEvent(ctx, env, request, {
+          event_type: 'knowledge_inventory_used',
+          event_value: body?.projectId ? 'project_scope' : 'global_scope',
+          language,
+          page_url: pageUrl,
+          session_id: sessionId,
+          meta: { project_id: body?.projectId || null }
+        });
+      }
+    }
+
     // ── Prompt Orchestrator (Lot 5) ─────────────────────────────────────
     // Couche de decision en amont du Model Router : detecte l'intention,
     // planifie les capacites, et compose un prompt systeme MODULAIRE compact
@@ -2851,7 +2987,7 @@ export default {
     // jamais sourcePolicyBlock, vient toujours en complement. Sans toolPlan
     // (flag desactive/erreur), bloc vide, comportement inchange.
     const toolPolicyBlock = toolPlan?.policy?.policyText ? ` ${toolPlan.policy.policyText}` : '';
-    let finalSystemPrompt = promptBasePrompt + pilotageBlock + sourcePolicyBlock + toolPolicyBlock;
+    let finalSystemPrompt = promptBasePrompt + pilotageBlock + knowledgeInventoryBlock + sourcePolicyBlock + toolPolicyBlock;
     let knowledgeResult = null;
     if (isKnowledgeOrchestratorEnabled(env)) {
       try {
@@ -3235,7 +3371,7 @@ export default {
       });
       if (webSearchPerformed) {
         finalSystemPrompt = [
-          promptBasePrompt + pilotageBlock,
+          promptBasePrompt + pilotageBlock + knowledgeInventoryBlock,
           buildWebContextPrompt(language, webSearchResults, webSearchResolvedQuery, webSearchAnswer)
         ].join('\n\n');
         safeLogJson('WEB_CONTEXT', {
@@ -3253,7 +3389,7 @@ export default {
         });
       } else {
         finalSystemPrompt = [
-          promptBasePrompt + pilotageBlock,
+          promptBasePrompt + pilotageBlock + knowledgeInventoryBlock,
           language === 'en'
             ? `Live web search was requested, but it did not return usable results. Technical status: ${webSearchError || 'no_results'}. Be transparent about this search failure; do not invent current facts.`
             : `Une recherche web temps reel a ete demandee, mais elle n'a pas retourne de resultats exploitables. Statut technique : ${webSearchError || 'no_results'}. Sois transparent sur cet echec de recherche ; n'invente pas de faits recents.`

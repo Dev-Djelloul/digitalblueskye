@@ -1,10 +1,30 @@
 (function () {
-  function initScrollToTop() {
-    var scrollToTopBtn = document.getElementById("scroll-to-top");
+  function createScrollToTopButton() {
+    var button = document.createElement("button");
+    button.id = "scroll-to-top";
+    button.className = "scroll-to-top";
+    button.type = "button";
+    button.setAttribute("data-i18n-title", "ui.backToTop");
+    button.setAttribute("title", "Retour en haut");
+    button.setAttribute("aria-label", "Retour en haut");
+    button.innerHTML =
+      '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false">' +
+      '<path d="M7 14l5-5 5 5z" fill="currentColor"></path>' +
+      "</svg>";
 
-    if (!scrollToTopBtn) {
+    document.body.appendChild(button);
+    return button;
+  }
+
+  function initScrollToTop() {
+    var scrollToTopBtn =
+      document.getElementById("scroll-to-top") || createScrollToTopButton();
+
+    if (!scrollToTopBtn || scrollToTopBtn.dataset.scrollToTopReady === "true") {
       return;
     }
+
+    scrollToTopBtn.dataset.scrollToTopReady = "true";
 
     function updateButtonVisibility() {
       var isVisible =

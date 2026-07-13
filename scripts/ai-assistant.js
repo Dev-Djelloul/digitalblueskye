@@ -133,6 +133,9 @@
         copied: 'Copied',
         scrollBottom: 'Go to latest message',
         exportDocument: 'Export document',
+        regenerate: 'Regenerate',
+        regenerateTitle: 'Regenerate this answer',
+        regenerateWithFilesUnavailable: 'Cannot regenerate: the previous answer relied on attached files. Send the message again with the files.',
         downloadMd: 'Download Markdown',
         downloadHtml: 'Download HTML',
         downloadPdf: 'Prepare PDF',
@@ -260,6 +263,9 @@
       copied: 'Copié',
       scrollBottom: 'Aller au dernier message',
       exportDocument: 'Exporter le document',
+      regenerate: 'Régénérer',
+      regenerateTitle: 'Régénérer cette réponse',
+      regenerateWithFilesUnavailable: 'Impossible de régénérer : la réponse précédente reposait sur des fichiers joints. Renvoyez le message avec les fichiers.',
       downloadMd: 'Télécharger Markdown',
       downloadHtml: 'Télécharger HTML',
       downloadPdf: 'Préparer le PDF',
@@ -6173,7 +6179,11 @@
     chatHistory = active?.history ? [...active.history] : [];
     if (!chatHistory.length) { addMessage('bot', i18n.greeting); return; }
     for (const msg of chatHistory) {
-      addMessage(msg.role === 'assistant' ? 'bot' : 'user', msg.content, { ragSourcesUsed: msg.ragSourcesUsed, webSourcesUsed: msg.webSourcesUsed });
+      const restoredBubble = addMessage(msg.role === 'assistant' ? 'bot' : 'user', msg.content, { ragSourcesUsed: msg.ragSourcesUsed, webSourcesUsed: msg.webSourcesUsed });
+      // Seules les vraies entrées assistant de l'historique sont
+      // régénérables (jamais le message d'accueil ni les notices, qui ne
+      // figurent pas dans chatHistory).
+      if (msg.role === 'assistant') markBubbleRegenerable(restoredBubble);
     }
   }
 
@@ -10402,6 +10412,57 @@
     });
   }
 
+  // Régénère la dernière réponse : retire la réponse assistant de
+  // l'historique (le modèle repart donc du dernier message utilisateur sans
+  // voir sa propre réponse précédente), supprime la bulle et relance askAI.
+  function regenerateLastAssistantReply(bubble) {
+    if (activeAssistantRequestController) return; // une requête est déjà en cours
+    const lastUserIndex = chatHistory.map((entry) => entry.role).lastIndexOf('user');
+    if (lastUserIndex === -1) return; // rien à régénérer (message d'accueil...)
+    const lastUserEntry = chatHistory[lastUserIndex];
+    const userText = String(lastUserEntry.content || '').trim();
+    if (!userText) return;
+    // Le contexte de fichiers/pièces jointes d'origine n'est pas conservé
+    // dans l'historique : régénérer un tour « fichiers joints » enverrait le
+    // texte-placeholder sans les données — on refuse explicitement.
+    if (lastUserEntry.hadAttachments) {
+      addMessage('bot', i18n.regenerateWithFilesUnavailable);
+      return;
+    }
+    // Coupe la lecture vocale de la réponse qu'on supprime (même séquence
+    // que le toggle TTS), sinon l'audio continue de narrer un contenu absent.
+    try {
+      speechTrackingToken += 1;
+      if (window.speechSynthesis) window.speechSynthesis.cancel();
+      clearSpeechTrackingVisual();
+    } catch (_) { /* jamais bloquant */ }
+    chatHistory.splice(lastUserIndex + 1);
+    persistActiveConversation();
+    bubble.remove();
+    askAI(userText);
+  }
+
+  // Pose le bouton « Régénérer » sur une bulle assistant. À n'appeler QUE
+  // pour les bulles correspondant à une vraie entrée assistant de
+  // chatHistory (réponse ou message d'erreur d'askAI, bulles restaurées de
+  // l'historique) — jamais sur les notices système (« Fichier prêt... »),
+  // qui ne sont pas dans l'historique : régénérer depuis une notice
+  // désynchroniserait le DOM et l'historique persisté. La visibilité reste
+  // pilotée par CSS (:last-child) : seul le dernier élément du fil l'affiche.
+  function markBubbleRegenerable(bubble) {
+    if (!bubble || bubble.dataset.regenerableApplied === '1') return bubble;
+    bubble.dataset.regenerableApplied = '1';
+    const regenerateBtn = document.createElement('button');
+    regenerateBtn.type = 'button';
+    regenerateBtn.className = 'ai-assistant-regenerate-btn';
+    regenerateBtn.textContent = `↻ ${i18n.regenerate}`;
+    regenerateBtn.title = i18n.regenerateTitle;
+    regenerateBtn.setAttribute('aria-label', i18n.regenerateTitle);
+    regenerateBtn.addEventListener('click', () => regenerateLastAssistantReply(bubble));
+    bubble.appendChild(regenerateBtn);
+    return bubble;
+  }
+
   function enhanceBotBubble(bubble) {
     if (!bubble || bubble.dataset.bubbleEnhanced === '1') return;
     bubble.dataset.bubbleEnhanced = '1';
@@ -10473,6 +10534,8 @@
     // Le bouton "copier toute la bulle" a ete retire volontairement : la copie ne
     // s'applique plus qu'aux elements reellement utiles (blocs de code via
     // enhanceCodeBlocks, tableaux via enhanceTables).
+    // Le bouton « Régénérer » n'est PAS pose ici : enhanceBotBubble s'applique
+    // aussi aux notices systeme, hors historique — cf. markBubbleRegenerable.
   }
 
   function setMicState(listening) {
@@ -11580,6 +11643,7 @@
         // source (le chemin addMessage ne couvre que le rechargement d'historique).
         replaceCitationsWithSourceNames(botBubble, displaySources, normalizedWebSources);
         attachSourcesPanelTrigger(botBubble, { ragSources: displaySources, webSources: normalizedWebSources });
+        markBubbleRegenerable(botBubble);
         speakText(cleanedReply, botBubble);
         chatHistory.push({
           role: 'assistant',
@@ -11628,7 +11692,7 @@
         } else {
           msg = formatAssistantApiError(data);
         }
-        addMessage('bot', msg);
+        markBubbleRegenerable(addMessage('bot', msg));
         chatHistory.push({ role: 'assistant', content: msg });
         persistActiveConversation();
       }
@@ -11685,7 +11749,15 @@
     setLibraryViewOpen(false);
     const visibleText = submission.visibleText;
     addMessage('user', visibleText);
-    chatHistory.push({ role: 'user', content: visibleText });
+    // hadAttachments : consommé par regenerateLastAssistantReply — un tour
+    // avec fichiers/pièces jointes ne peut pas être régénéré à l'identique
+    // (le contexte extrait n'est pas conservé dans l'historique).
+    const submissionHadAttachments = Boolean(fileContext || pendingVisionAttachments.length || pendingUploadMetadata.length);
+    chatHistory.push({
+      role: 'user',
+      content: visibleText,
+      ...(submissionHadAttachments ? { hadAttachments: true } : {})
+    });
     persistActiveConversation();
     input.value = '';
     resizeAssistantComposer();
