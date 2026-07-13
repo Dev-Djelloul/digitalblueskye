@@ -54,7 +54,7 @@
     }
 
     button {
-      min-height: 42px;
+      min-height: 36px;
       border: 1px solid var(--border);
       border-radius: 10px;
       background: rgba(255, 255, 255, 0.07);
@@ -679,18 +679,69 @@
       scrollbar-width: thin;
     }
 
+    /* Base table styles - utilisé comme fallback uniquement */
     table {
       width: 100%;
       border-collapse: collapse;
       min-width: 720px;
     }
 
+    /* Panel table (Santé globale, Activités IA, etc.) */
+    .table-wrap table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 720px;
+      table-layout: auto;
+    }
+
+    .table-wrap th,
+    .table-wrap td {
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: middle;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      font-size: 13px;
+    }
+
+    .table-wrap th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: var(--surface-2);
+      color: #dfe4ff;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      white-space: nowrap;
+      text-align: center;
+    }
+
+    .table-wrap th:first-child {
+      text-align: left;
+    }
+
+    .table-wrap td {
+      color: #eef2ff;
+      text-align: left;
+    }
+
+    .table-wrap tbody tr {
+      transition: background 0.16s ease;
+    }
+
+    .table-wrap tbody tr:hover {
+      background: rgba(124, 131, 255, 0.08);
+    }
+
+    /* Fallback for non-scoped tables */
     th,
     td {
       padding: 11px 12px;
       border-bottom: 1px solid var(--border);
       text-align: left;
-      vertical-align: top;
+      vertical-align: middle;
       word-break: break-word;
       overflow-wrap: anywhere;
     }
@@ -716,6 +767,115 @@
     }
 
     tbody tr:hover {
+      background: rgba(124, 131, 255, 0.08);
+    }
+
+    /* ─────────────────────────────────────────────────────────────── */
+    /* Système de tableaux harmonisés — tous les onglets */
+    /* ─────────────────────────────────────────────────────────────── */
+
+    /* Base commune pour tous les tableaux */
+    .data-table,
+    .conversation-table,
+    .source-table,
+    .document-table,
+    .export-table,
+    .pilotage-table,
+    .health-table,
+    .panel-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: auto;
+    }
+
+    .data-table th,
+    .conversation-table th,
+    .source-table th,
+    .document-table th,
+    .export-table th,
+    .pilotage-table th,
+    .health-table th,
+    .panel-table th {
+      position: static;
+      background: rgba(255, 255, 255, 0.025);
+      color: #8f9db8;
+      border: 1px solid rgba(104, 128, 170, 0.12);
+      padding: 10px 12px !important;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: none;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    .data-table th:first-child,
+    .conversation-table th:first-child,
+    .source-table th:first-child,
+    .document-table th:first-child,
+    .export-table th:first-child,
+    .pilotage-table th:first-child,
+    .health-table th:first-child,
+    .panel-table th:first-child {
+      text-align: center;
+    }
+
+    .data-table th:not(:first-child),
+    .conversation-table th:not(:first-child),
+    .source-table th:not(:first-child),
+    .document-table th:not(:first-child),
+    .export-table th:not(:first-child),
+    .pilotage-table th:not(:first-child),
+    .health-table th:not(:first-child),
+    .panel-table th:not(:first-child) {
+      text-align: left;
+    }
+
+    .data-table td,
+    .conversation-table td,
+    .source-table td,
+    .document-table td,
+    .export-table td,
+    .pilotage-table td,
+    .health-table td,
+    .panel-table td {
+      border: 1px solid rgba(104, 128, 170, 0.12);
+      padding: 10px 12px !important;
+      color: #dce6f8;
+      vertical-align: middle;
+      text-align: left;
+      font-size: 13px;
+    }
+
+    .data-table td:first-child,
+    .conversation-table td:first-child,
+    .source-table td:first-child,
+    .document-table td:first-child,
+    .export-table td:first-child,
+    .pilotage-table td:first-child,
+    .health-table td:first-child,
+    .panel-table td:first-child {
+      text-align: center;
+    }
+
+    .data-table tbody tr,
+    .conversation-table tbody tr,
+    .source-table tbody tr,
+    .document-table tbody tr,
+    .export-table tbody tr,
+    .pilotage-table tbody tr,
+    .health-table tbody tr,
+    .panel-table tbody tr {
+      transition: background 0.16s ease;
+    }
+
+    .data-table tbody tr:hover,
+    .conversation-table tbody tr:hover,
+    .source-table tbody tr:hover,
+    .document-table tbody tr:hover,
+    .export-table tbody tr:hover,
+    .pilotage-table tbody tr:hover,
+    .health-table tbody tr:hover,
+    .panel-table tbody tr:hover {
       background: rgba(124, 131, 255, 0.08);
     }
 
@@ -3501,27 +3661,24 @@
       margin: 0;
     }
 
+    /* Conversations table - column widths */
     .conversation-table {
-      width: 100%;
-      border-collapse: collapse;
       min-width: 800px;
-      table-layout: auto;
     }
 
     .conversation-table th:nth-child(1),
     .conversation-table td:nth-child(1) {
-      width: 25%;
+      width: 5%;
     }
 
     .conversation-table th:nth-child(2),
     .conversation-table td:nth-child(2) {
-      width: 10%;
+      width: 30%;
     }
 
     .conversation-table th:nth-child(3),
     .conversation-table td:nth-child(3) {
-      width: 15%;
-      text-align: left;
+      width: 5%;
     }
 
     .conversation-table th:nth-child(4),
@@ -3542,25 +3699,6 @@
     .conversation-table th:nth-child(7),
     .conversation-table td:nth-child(7) {
       width: 8%;
-    }
-
-    .conversation-table th {
-      position: static;
-      background: rgba(255, 255, 255, 0.025);
-      color: #8f9db8;
-      border: 1px solid rgba(104, 128, 170, 0.12);
-      padding: 8px 10px;
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: none;
-    }
-
-    .conversation-table td {
-      border: 1px solid rgba(104, 128, 170, 0.12);
-      color: #dce6f8;
-      padding: 8px 10px;
-      vertical-align: middle;
-      font-size: 13px;
     }
 
     .conversation-table {
@@ -3685,9 +3823,24 @@
 
     /* Selection multiple (Documents, Sources & RAG, Exports, Conversations) */
     .bulk-select-col {
-      width: 32px;
-      min-width: 32px;
-      padding: 0 0 0 14px !important;
+      width: 40px;
+      min-width: 40px;
+      padding: 10px 6px !important;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    .bulk-select-col input[type="checkbox"],
+    .bulk-select-row {
+      width: 14px;
+      height: 14px;
+      min-width: 14px;
+      min-height: 14px;
+      flex: 0 0 14px;
+      accent-color: #7c5cff;
+      cursor: pointer;
+      vertical-align: middle;
+      margin: 0;
     }
 
     .bulk-toolbar {
@@ -4141,76 +4294,62 @@
       background: linear-gradient(135deg, #7c5cff, #4838d8);
     }
 
+    /* Sources & RAG table */
     .source-table {
-      width: 100%;
-      table-layout: fixed;
-      border-collapse: collapse;
+      table-layout: auto;
       min-width: 850px;
     }
 
-    .source-table th {
-      position: static;
-      background: rgba(255, 255, 255, 0.025);
-      color: #8f9db8;
-      border: 1px solid rgba(104, 128, 170, 0.12);
-      padding: 8px 10px;
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: none;
+    .source-table th,
+    .source-table td {
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
-    .source-table td {
-      border: 1px solid rgba(104, 128, 170, 0.12);
-      padding: 8px 10px;
-      color: #dce6f8;
-      vertical-align: middle;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+    .source-table th {
+      font-size: 11px;
     }
 
     .source-table th:nth-child(1),
     .source-table td:nth-child(1) {
-      width: 26%;
+      width: 5%;
     }
 
     .source-table th:nth-child(2),
     .source-table td:nth-child(2) {
-      width: 12%;
+      width: 30%;
     }
 
     .source-table th:nth-child(3),
     .source-table td:nth-child(3) {
-      width: 12%;
+      width: 10%;
     }
 
     .source-table th:nth-child(4),
     .source-table td:nth-child(4) {
-      width: 11%;
+      width: 7%;
     }
 
     .source-table th:nth-child(5),
     .source-table td:nth-child(5) {
       width: 9%;
-      text-align: right;
+      text-align: start;
     }
 
     .source-table th:nth-child(6),
     .source-table td:nth-child(6) {
-      width: 11%;
+      width: 6%;
     }
 
     .source-table th:nth-child(7),
     .source-table td:nth-child(7) {
-      width: 11%;
+      width: 8%;
     }
 
     .source-table th:nth-child(8),
     .source-table td:nth-child(8) {
-      width: 8%;
+      width: 15%;
     }
 
     .source-name {
@@ -4599,77 +4738,63 @@
       background: linear-gradient(135deg, #7c5cff, #4838d8);
     }
 
+    /* Documents table */
     .document-table {
-      width: 100%;
       min-width: 900px;
-      table-layout: fixed;
-      border-collapse: collapse;
+      table-layout: auto;
+    }
+
+    .document-table th,
+    .document-table td {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .document-table th {
-      position: static;
-      background: rgba(255, 255, 255, 0.025);
-      color: #8f9db8;
-      border: 1px solid rgba(104, 128, 170, 0.12);
-      padding: 8px 10px;
       font-size: 11px;
-      font-weight: 600;
-      text-transform: none;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .document-table td {
-      border: 1px solid rgba(104, 128, 170, 0.12);
-      padding: 8px 10px;
-      color: #dce6f8;
-      vertical-align: middle;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
     }
 
     .document-table th:nth-child(1),
     .document-table td:nth-child(1) {
-      width: 26%;
+      width: 5%;
     }
 
     .document-table th:nth-child(2),
     .document-table td:nth-child(2) {
-      width: 11%;
+      width: 35%;
     }
 
     .document-table th:nth-child(3),
     .document-table td:nth-child(3) {
-      width: 11%;
+      width: 7%;
     }
 
     .document-table th:nth-child(4),
     .document-table td:nth-child(4) {
-      width: 9%;
-      text-align: right;
+      width: 7%;
+      text-align: start;
     }
 
     .document-table th:nth-child(5),
     .document-table td:nth-child(5) {
-      width: 11%;
+      width: 7%;
     }
 
     .document-table th:nth-child(6),
     .document-table td:nth-child(6) {
-      width: 13%;
+      width: 8%;
     }
 
     .document-table th:nth-child(7),
     .document-table td:nth-child(7) {
-      width: 9%;
-      text-align: right;
+      width: 12%;
+      text-align: start;
     }
 
     .document-table th:nth-child(8),
     .document-table td:nth-child(8) {
-      width: 10%;
+      width: 5%;
     }
 
     .document-name {
@@ -4813,7 +4938,7 @@
     }
 
     .doc-type-list strong {
-      text-align: right;
+      text-align: start;
       white-space: nowrap;
     }
 
@@ -6093,23 +6218,9 @@
         grid-column: 1/-1;
       }
 
-      .export-table th {
-        position: static;
-        background: rgba(255, 255, 255, 0.025);
-        color: #8f9db8;
-        border: 1px solid rgba(104, 128, 170, 0.12);
-        padding: 8px 10px;
-        font-size: 12px;
-        font-weight: 600;
-        text-transform: none;
-        white-space: nowrap;
-      }
-
+      /* Exports table - harmonized */
+      .export-table th,
       .export-table td {
-        border: 1px solid rgba(104, 128, 170, 0.12);
-        color: #dce6f8;
-        padding: 8px 10px;
-        vertical-align: middle;
         white-space: nowrap;
       }
 
@@ -6539,6 +6650,170 @@
         background: #f8fafc;
       }
     }
+
+    /* ─────────────────────────────────────────────────────────────── */
+    /* Modal de confirmation personnalisé */
+    /* ─────────────────────────────────────────────────────────────── */
+
+    .confirm-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadeInModal 0.2s ease-out;
+    }
+
+    @keyframes fadeInModal {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideInModal {
+      from {
+        opacity: 0;
+        transform: scale(0.92) translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    .confirm-modal-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+    }
+
+    .confirm-modal-content {
+      position: relative;
+      background: linear-gradient(180deg, rgba(47, 50, 78, 0.95), rgba(34, 36, 57, 0.92));
+      border: 1px solid rgba(124, 131, 255, 0.24);
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      max-width: 420px;
+      width: 90%;
+      overflow: hidden;
+      animation: slideInModal 0.3s ease-out;
+    }
+
+    .confirm-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 24px;
+      border-bottom: 1px solid rgba(124, 131, 255, 0.12);
+      background: rgba(255, 255, 255, 0.01);
+    }
+
+    .confirm-modal-header h3 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      color: #f8fbff;
+    }
+
+    .confirm-modal-close {
+      background: none;
+      border: none;
+      color: #98a6c7;
+      font-size: 28px;
+      cursor: pointer;
+      padding: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      transition: all 0.16s ease;
+    }
+
+    .confirm-modal-close:hover {
+      background: rgba(124, 131, 255, 0.08);
+      color: #dfe4ff;
+    }
+
+    .confirm-modal-body {
+      padding: 24px;
+      color: #c7d1e7;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .confirm-modal-body p {
+      margin: 0;
+    }
+
+    .confirm-modal-footer {
+      display: flex;
+      gap: 12px;
+      padding: 16px 24px;
+      border-top: 1px solid rgba(124, 131, 255, 0.12);
+      background: rgba(255, 255, 255, 0.005);
+      justify-content: center;
+    }
+
+    .btn-cancel,
+    .btn-danger {
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.16s ease;
+      min-width: 100px;
+      text-align: center;
+    }
+
+    .btn-cancel {
+      background: rgba(180, 188, 210, 0.1);
+      border-color: rgba(180, 188, 210, 0.24);
+      color: #b4bcd2;
+    }
+
+    .btn-cancel:hover {
+      background: rgba(180, 188, 210, 0.15);
+      border-color: rgba(180, 188, 210, 0.34);
+      color: #d0d7e8;
+    }
+
+    .btn-cancel:active {
+      background: rgba(180, 188, 210, 0.22);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, rgba(255, 122, 138, 0.18), rgba(255, 92, 92, 0.12));
+      border-color: rgba(255, 122, 138, 0.4);
+      color: #ff9da8;
+      font-weight: 700;
+    }
+
+    .btn-danger:hover {
+      background: linear-gradient(135deg, rgba(255, 122, 138, 0.28), rgba(255, 92, 92, 0.22));
+      border-color: rgba(255, 122, 138, 0.6);
+      color: #ffb6bf;
+      box-shadow: 0 4px 16px rgba(255, 122, 138, 0.2);
+    }
+
+    .btn-danger:active {
+      background: linear-gradient(135deg, rgba(255, 122, 138, 0.35), rgba(255, 92, 92, 0.28));
+      transform: scale(0.98);
+    }
   </style>
 </head>
 <body>
@@ -6661,7 +6936,7 @@
           </div>
         </div>
         <div class="table-wrap">
-          <table>
+          <table class="panel-table">
             <thead id="tableHead"></thead>
             <tbody id="tableBody"></tbody>
           </table>
@@ -7013,6 +7288,54 @@
       const node = $(target);
       node.textContent = message || "";
       node.className = message ? `notice show ${type || ""}` : "notice";
+    }
+
+    /* Modal de confirmation personnalisé */
+    function showConfirm(message, title = "Confirmation") {
+      return new Promise((resolve) => {
+        const modal = $("#confirmModal");
+        const titleEl = $("#confirmTitle");
+        const messageEl = $("#confirmMessage");
+        const cancelBtn = $("#confirmCancel");
+        const okBtn = $("#confirmOk");
+        const closeBtn = document.querySelector(".confirm-modal-close");
+        const overlay = document.querySelector(".confirm-modal-overlay");
+
+        titleEl.textContent = title;
+        messageEl.textContent = message;
+
+        const handleConfirm = () => {
+          cleanup();
+          resolve(true);
+        };
+
+        const handleCancel = () => {
+          cleanup();
+          resolve(false);
+        };
+
+        const cleanup = () => {
+          modal.style.display = "none";
+          cancelBtn.removeEventListener("click", handleCancel);
+          okBtn.removeEventListener("click", handleConfirm);
+          closeBtn.removeEventListener("click", handleCancel);
+          overlay.removeEventListener("click", handleCancel);
+          document.removeEventListener("keydown", handleEscape);
+        };
+
+        const handleEscape = (e) => {
+          if (e.key === "Escape") handleCancel();
+        };
+
+        cancelBtn.addEventListener("click", handleCancel);
+        okBtn.addEventListener("click", handleConfirm);
+        closeBtn.addEventListener("click", handleCancel);
+        overlay.addEventListener("click", handleCancel);
+        document.addEventListener("keydown", handleEscape);
+
+        modal.style.display = "flex";
+        okBtn.focus();
+      });
     }
 
     function adminHeaders() {
@@ -7552,7 +7875,7 @@
       if (!rows || !rows.length) return `<p class="health-empty">Donnée non disponible dans le monitoring actuel.</p>`;
       return `
         <div class="table-wrap">
-          <table>
+          <table class="health-table">
             <thead><tr>${columns.map(([, label]) => `<th>${escapeHtml(label)}</th>`).join("")}</tr></thead>
             <tbody>
               ${rows.map((row) => `<tr>${columns.map(([key]) => `<td>${escapeHtml(row[key] == null ? "n/a" : row[key])}</td>`).join("")}</tr>`).join("")}
@@ -9566,7 +9889,7 @@
             </article>
           </div>
           <div class="table-wrap health-table-wrapper">
-            <table>
+            <table class="health-table">
               <thead><tr><th>Intent</th><th>Occurrences</th></tr></thead>
               <tbody>${intentsRows}</tbody>
             </table>
@@ -9633,14 +9956,14 @@
           </div>
           <h3>Top tiers conseillés</h3>
           <div class="table-wrap health-table-wrapper">
-            <table>
+            <table class="health-table">
               <thead><tr><th>Tier</th><th>Occurrences</th></tr></thead>
               <tbody>${tiersRows}</tbody>
             </table>
           </div>
           <h3>Répartition des capacités</h3>
           <div class="table-wrap health-table-wrapper">
-            <table>
+            <table class="health-table">
               <thead><tr><th>Capacité</th><th>Occurrences</th></tr></thead>
               <tbody>${breakdownRows}</tbody>
             </table>
@@ -9720,21 +10043,21 @@
           </div>
           <h3>Top raisons</h3>
           <div class="table-wrap health-table-wrapper">
-            <table>
+            <table class="health-table">
               <thead><tr><th>Raison</th><th>Occurrences</th></tr></thead>
               <tbody>${reasonsRows}</tbody>
             </table>
           </div>
           <h3>Répartition besoin de preuve</h3>
           <div class="table-wrap health-table-wrapper">
-            <table>
+            <table class="health-table">
               <thead><tr><th>evidenceNeed</th><th>Occurrences</th></tr></thead>
               <tbody>${evidenceRows}</tbody>
             </table>
           </div>
           <h3>Répartition niveau de risque</h3>
           <div class="table-wrap health-table-wrapper">
-            <table>
+            <table class="health-table">
               <thead><tr><th>riskLevel</th><th>Occurrences</th></tr></thead>
               <tbody>${riskRows}</tbody>
             </table>
@@ -9821,21 +10144,21 @@
           </div>
           <h3>Top raisons</h3>
           <div class="table-wrap health-table-wrapper">
-            <table>
+            <table class="health-table">
               <thead><tr><th>Raison</th><th>Occurrences</th></tr></thead>
               <tbody>${reasonsRows}</tbody>
             </table>
           </div>
           <h3>Répartition des modes (answerMode)</h3>
           <div class="table-wrap health-table-wrapper">
-            <table>
+            <table class="health-table">
               <thead><tr><th>answerMode</th><th>Occurrences</th></tr></thead>
               <tbody>${answerModeRows}</tbody>
             </table>
           </div>
           <h3>Répartition des modes (evidenceMode)</h3>
           <div class="table-wrap health-table-wrapper">
-            <table>
+            <table class="health-table">
               <thead><tr><th>evidenceMode</th><th>Occurrences</th></tr></thead>
               <tbody>${evidenceModeRows}</tbody>
             </table>
@@ -9908,14 +10231,14 @@
           </div>
           <h3>Top raisons</h3>
           <div class="table-wrap health-table-wrapper">
-            <table>
+            <table class="health-table">
               <thead><tr><th>Raison</th><th>Occurrences</th></tr></thead>
               <tbody>${reasonsRows}</tbody>
             </table>
           </div>
           <h3>Répartition des outils utilisés</h3>
           <div class="table-wrap health-table-wrapper">
-            <table>
+            <table class="health-table">
               <thead><tr><th>Outil</th><th>Occurrences</th></tr></thead>
               <tbody>${usageRows}</tbody>
             </table>
@@ -9999,7 +10322,7 @@
             </article>
           </div>
           <div class="table-wrap health-table-wrapper">
-            <table>
+            <table class="health-table">
               <thead><tr><th>Modèle</th><th>Provider</th><th>Tentatives</th><th>Succès</th><th>Échecs</th><th>Taux de succès</th></tr></thead>
               <tbody>${rows}</tbody>
             </table>
@@ -10047,7 +10370,7 @@
             </article>
           </div>
           <div class="table-wrap health-table-wrapper">
-            <table>
+            <table class="health-table">
               <thead><tr><th>Tier demandé</th><th>Appels</th><th>Succès</th><th>Taux de succès</th></tr></thead>
               <tbody>${rows}</tbody>
             </table>
@@ -10119,7 +10442,7 @@
             </article>
           </div>
           <div class="table-wrap health-table-wrapper">
-            <table>
+            <table class="health-table">
               <thead><tr><th>Problème détecté</th><th>Occurrences</th></tr></thead>
               <tbody>${issueRows}</tbody>
             </table>
@@ -10952,7 +11275,7 @@
         <article class="health-card">
           <h2>Tableau détaillé</h2>
           <div class="table-wrap health-table-wrapper">
-            <table>
+            <table class="health-table">
               <thead>
                 <tr>
                   <th>Date</th>
@@ -13534,7 +13857,7 @@
     }
 
     async function deleteRow(id) {
-      if (!confirm(`Supprimer ${deleteLabelForTab()} ?`)) return;
+      if (!(await showConfirm(`Supprimer ${deleteLabelForTab()} ?`))) return;
       await apiFetch(deleteEndpointForTab(), {
         method: "POST",
         body: JSON.stringify({ id: Number(id) }),
@@ -13548,7 +13871,7 @@
         .map((id) => Number(id))
         .filter((id) => Number.isInteger(id) && id > 0);
       if (!ids.length) return;
-      if (!confirm(`Supprimer ${deleteLabelForTab(ids.length)} (${ids.length} ligne${ids.length > 1 ? "s" : ""}) ?`)) return;
+      if (!(await showConfirm(`Supprimer ${deleteLabelForTab(ids.length)} (${ids.length} ligne${ids.length > 1 ? "s" : ""}) ?`))) return;
       await apiFetch(deleteEndpointForTab(), {
         method: "POST",
         body: JSON.stringify({ ids }),
@@ -13788,7 +14111,7 @@
         if (action === "conv-bulk-delete") {
           const ids = Array.from(state.conversations.selectedIds);
           if (!ids.length) return;
-          if (!window.confirm(`Supprimer définitivement ${ids.length} conversation(s) ? Tous les événements associés seront retirés — irréversible.`)) {
+          if (!(await showConfirm(`Supprimer définitivement ${ids.length} conversation(s) ? Tous les événements associés seront retirés — irréversible.`))) {
             return;
           }
           try {
@@ -13815,7 +14138,7 @@
           if (action === "page-next") { state.conversations.page += 1; await renderAiDashboard(); }
           if (action === "delete") {
             const name = convButton.dataset.name || id;
-            if (!window.confirm(`Supprimer définitivement la conversation « ${name} » ? Irréversible.`)) return;
+            if (!(await showConfirm(`Supprimer définitivement la conversation « ${name} » ? Irréversible.`))) return;
             await apiFetch("/admin/conversations/delete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ids: [id] }) });
             setNotice("#appNotice", "Conversation supprimée.", "success");
             if (state.conversations.selectedId === id) { state.conversations.selectedId = null; state.conversations.detail = null; }
@@ -13906,7 +14229,7 @@
         if (action === "rag-bulk-delete") {
           const ids = Array.from(state.rag.selectedSourceIds);
           if (!ids.length) return;
-          if (!window.confirm(`Supprimer définitivement ${ids.length} source(s) ? Cette action retire les documents, leurs chunks et leurs vecteurs — irréversible.`)) {
+          if (!(await showConfirm(`Supprimer définitivement ${ids.length} source(s) ? Cette action retire les documents, leurs chunks et leurs vecteurs — irréversible.`))) {
             return;
           }
           try {
@@ -13960,7 +14283,7 @@
           }
           if (action === "delete") {
             const name = ragButton.dataset.name || ragButton.dataset.id;
-            if (!window.confirm(`Supprimer définitivement « ${name} » ? Cette action retire le document, ses chunks et ses vecteurs — irréversible.`)) {
+            if (!(await showConfirm(`Supprimer définitivement « ${name} » ? Cette action retire le document, ses chunks et ses vecteurs — irréversible.`))) {
               return;
             }
             ragButton.disabled = true;
@@ -14045,7 +14368,7 @@
         if (action === "doc-bulk-delete") {
           const ids = Array.from(state.documentsAdmin.selectedIds);
           if (!ids.length) return;
-          if (!window.confirm(`Supprimer définitivement ${ids.length} document(s) ? Cette action retire les documents, leurs chunks et leurs vecteurs — irréversible.`)) {
+          if (!(await showConfirm(`Supprimer définitivement ${ids.length} document(s) ? Cette action retire les documents, leurs chunks et leurs vecteurs — irréversible.`))) {
             return;
           }
           try {
@@ -14103,7 +14426,7 @@
           }
           if (action === "delete") {
             const name = docButton.dataset.name || docButton.dataset.id;
-            if (!window.confirm(`Supprimer définitivement « ${name} » ? Cette action retire le document, ses chunks et ses vecteurs — irréversible.`)) {
+            if (!(await showConfirm(`Supprimer définitivement « ${name} » ? Cette action retire le document, ses chunks et ses vecteurs — irréversible.`))) {
               return;
             }
             docButton.disabled = true;
@@ -14187,7 +14510,7 @@
         if (action === "export-bulk-delete") {
           const ids = Array.from(state.exportsAdmin.selectedIds);
           if (!ids.length) return;
-          if (!window.confirm(`Supprimer définitivement ${ids.length} export(s) ? Irréversible.`)) {
+          if (!(await showConfirm(`Supprimer définitivement ${ids.length} export(s) ? Irréversible.`))) {
             return;
           }
           try {
@@ -14214,7 +14537,7 @@
           if (action === "page-next") { state.exportsAdmin.items.page += 1; await loadExportList(); renderExports(); }
           if (action === "delete") {
             const name = exportButton.dataset.name || id;
-            if (!window.confirm(`Supprimer définitivement « ${name} » ? Irréversible.`)) return;
+            if (!(await showConfirm(`Supprimer définitivement « ${name} » ? Irréversible.`))) return;
             await apiFetch("/admin/exports/delete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ids: [id] }) });
             setNotice("#appNotice", "Export supprimé.", "success");
             if (state.exportsAdmin.selectedId === id) state.exportsAdmin.selectedId = null;
@@ -14514,6 +14837,25 @@
       });
     }
   </script>
+
+  <!-- Modal de confirmation personnalisé -->
+  <div id="confirmModal" class="confirm-modal" style="display: none;">
+    <div class="confirm-modal-overlay"></div>
+    <div class="confirm-modal-content">
+      <div class="confirm-modal-header">
+        <h3 id="confirmTitle">Confirmation</h3>
+        <button class="confirm-modal-close" aria-label="Fermer">&times;</button>
+      </div>
+      <div class="confirm-modal-body">
+        <p id="confirmMessage">Êtes-vous sûr de cette action ?</p>
+      </div>
+      <div class="confirm-modal-footer">
+        <button id="confirmCancel" class="btn-cancel">Annuler</button>
+        <button id="confirmOk" class="btn-danger">Supprimer</button>
+      </div>
+    </div>
+  </div>
+
   <script src="/scripts/translator.js"></script>
 </body>
 </html>
