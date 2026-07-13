@@ -3094,11 +3094,17 @@ export default {
           includeProjectMemory: !documentBound,
           // Recall RAG elargi pour les requetes documentaires strictes
           // (bibliographie, liste de chercheurs, fin de document) : plus de
-          // passages candidats et seuil de similarite abaisse, uniquement
-          // dans ce cas precis — comportement par defaut (maxPassages=8,
-          // seuil 0.72 dans ragPipeline.js) inchange sinon.
+          // passages candidats, uniquement dans ce cas precis — comportement
+          // par defaut (maxPassages=8) inchange sinon. Le seuil de similarite
+          // documentBound etait fige a 0.5 (héritage de la calibration
+          // initiale RAG_SIMILARITY_THRESHOLD=0.50, cf. wrangler.ai.toml) :
+          // recalibre le 2026-07-13 a 0.35 en meme temps que le defaut
+          // global, sinon ce cas precis — celui des requetes explicitement
+          // liees a un document — restait bloque sur l'ancien seuil trop
+          // strict pour des chunks longs/denses (PDF), exactement le
+          // scenario qui a motive la recalibration.
           maxPassages: documentBound ? 16 : 8,
-          similarityThreshold: documentBound ? 0.5 : undefined,
+          similarityThreshold: documentBound ? 0.35 : undefined,
           // Retrieval structurel + document cible (inertes hors documentBound).
           structural: structuralQuery.isStructural ? structuralQuery : null,
           targetDocumentId: documentBound ? documentTarget.documentId : null

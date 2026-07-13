@@ -4269,7 +4269,7 @@
     };
   }
 
-  function createStoredKnowledgeDocument(file, extracted, projectId = null) {
+  function createStoredKnowledgeDocument(file, extracted, projectId = null, presetId = null) {
     const text = normalizeKnowledgeText(extracted?.text);
     const project = getProjectById(projectId);
     const fallbackText = [
@@ -4281,7 +4281,7 @@
     ].filter(Boolean).join('\n');
     const chunks = chunkKnowledgeText(text || fallbackText);
     const doc = {
-      id: buildKnowledgeDocumentId(file?.name),
+      id: presetId || buildKnowledgeDocumentId(file?.name),
       projectId: project?.id || null,
       projectIds: project?.id ? [project.id] : [],
       name: extracted?.name || file?.name || 'document',
@@ -4426,8 +4426,19 @@
     try {
       for (const file of selected) {
         try {
+          // Un seul id genere par fichier, reutilise pour tous les
+          // evenements de telemetrie ET le document reellement indexe : les
+          // 3 appels distincts a buildKnowledgeDocumentId() (un par
+          // evenement + un dans createStoredKnowledgeDocument) produisaient
+          // chacun un id different (Date.now()/Math.random() non
+          // deterministes), donc aucun evenement document_uploaded ne
+          // correspondait jamais au document reellement indexe cote
+          // serveur — l'admin (buildDocumentList, worker-api.js) le
+          // reconstruisait alors comme une ligne fantome separee, "Non
+          // indexe", en plus de la vraie ligne indexee.
+          const documentId = buildKnowledgeDocumentId(file?.name);
           trackDocumentEvent('document_uploaded', {
-            id: buildKnowledgeDocumentId(file?.name),
+            id: documentId,
             name: file?.name,
             projectId: targetProject?.id || null
           }, {
@@ -4436,7 +4447,7 @@
           });
           let extracted;
           try {
-            trackDocumentEvent('document_parse_started', { id: buildKnowledgeDocumentId(file?.name), name: file?.name, projectId: targetProject?.id || null });
+            trackDocumentEvent('document_parse_started', { id: documentId, name: file?.name, projectId: targetProject?.id || null });
             extracted = await extractKnowledgeDocumentFromFile(file);
           } catch (error) {
             assistantLog('warn', 'library_extract_total_failed', {
@@ -4445,7 +4456,7 @@
             });
             extracted = buildFallbackKnowledgeExtraction(file, error);
           }
-          const doc = createStoredKnowledgeDocument(file, extracted, targetProject?.id || null);
+          const doc = createStoredKnowledgeDocument(file, extracted, targetProject?.id || null, documentId);
           doc.hasOriginalFile = await putKnowledgeOriginalFile(doc.id, file);
           knowledgeLibrary.documents = [
             doc,

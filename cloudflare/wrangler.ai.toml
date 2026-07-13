@@ -129,9 +129,12 @@ OPENROUTER_MODEL = "anthropic/claude-haiku-4.5"
 OPENROUTER_FALLBACK_MODELS = "google/gemini-2.5-flash-lite,mistralai/mistral-small-3.2-24b-instruct"
 # Embeddings multilingues (migration 2026-07-13, cf. cloudflare/embeddings.js) :
 # bge-m3 remplace bge-base-en-v1.5 (anglais uniquement) — indispensable pour la
-# similarité sémantique sur les contenus FRANÇAIS du site. Seuil calibré sur
-# la distribution mesurée post-migration (requetes reelles, 2026-07-13) :
-# pertinent = 0.41-0.66, bruit < 0.40 ; 0.60 ratait les requetes "personne"
-# (ex. « Qui est Denis ? » -> 0.42), 0.50 les capte en filtrant le bruit.
+# similarité sémantique sur les contenus FRANÇAIS du site. Seuil recalibré une
+# 2e fois le 2026-07-13 : 0.50 (calibré sur des requetes courtes type "Qui est
+# Denis ?" -> 0.42) rejetait des passages manifestement pertinents sur un
+# document long/dense (PDF archéologie, chunks longs) — scores mesurés
+# 0.31-0.49 sur du contenu clairement pertinent, y compris un quasi-verbatim
+# à 0.4856. bge-m3 score visiblement plus bas sur des chunks longs/denses que
+# sur de courtes requêtes ciblées ; 0.35 capte ces deux profils de requête.
 EMBEDDING_MODEL = "@cf/baai/bge-m3"
-RAG_SIMILARITY_THRESHOLD = "0.50"
+RAG_SIMILARITY_THRESHOLD = "0.35"

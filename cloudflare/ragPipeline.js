@@ -2,7 +2,11 @@ import { getVectorStoreProvider } from './vectorStore/index.js';
 import { embedText, embedTexts, getEmbeddingDimensions } from './embeddings.js';
 
 const NAMESPACE = 'rag';
-const DEFAULT_SIMILARITY_THRESHOLD = 0.72;
+// Repli utilise UNIQUEMENT si RAG_SIMILARITY_THRESHOLD est absente/invalide
+// (wrangler.ai.toml la definit toujours en pratique, cf. recalibration
+// 2026-07-13 : 0.35 — bge-m3 score plus bas que prevu sur des chunks
+// longs/denses, 0.50/0.72 rejetaient des passages manifestement pertinents).
+const DEFAULT_SIMILARITY_THRESHOLD = 0.35;
 const DEFAULT_MAX_PASSAGES = 5;
 
 function getSimilarityThreshold(env) {
