@@ -144,6 +144,8 @@
         collapse: 'Collapse',
         maximizeTitle: 'Expand assistant',
         restoreTitle: 'Restore assistant',
+        reduceTitle: 'Minimize to the side',
+        reduceRestoreTitle: 'Reopen assistant',
         micOn: 'Enable microphone',
         micOff: 'Stop microphone',
         ttsOn: 'Voice playback enabled',
@@ -274,6 +276,8 @@
       collapse: 'Réduire',
       maximizeTitle: "Agrandir l'assistant IA",
       restoreTitle: "Réduire l'assistant IA",
+      reduceTitle: 'Réduire sur le côté',
+      reduceRestoreTitle: "Rouvrir l'assistant",
       micOn: 'Activer le micro',
       micOff: 'Arrêter le micro',
       ttsOn: 'Lecture vocale activée',
@@ -832,6 +836,7 @@
           <header class="ai-assistant-header">
             ${createHistoryToggleMarkup()}
             <img class="ai-assistant-header-logo" src="/assets/images/logo/AI.png" alt="" width="42" height="46" loading="lazy" aria-hidden="true">
+            <button id="ai-assistant-reduce" class="ai-assistant-reduce" type="button" title="${i18n.reduceTitle}" aria-label="${i18n.reduceTitle}"><span aria-hidden="true"></span></button>
             <button id="ai-assistant-expand" class="ai-assistant-expand" type="button" title="${i18n.maximizeTitle}" aria-label="${i18n.maximizeTitle}" aria-pressed="false"><span aria-hidden="true"></span></button>
             <button id="ai-assistant-close" class="ai-assistant-close" type="button">&times;</button>
           </header>
@@ -1079,6 +1084,7 @@
   const panelHeader = panel ? panel.querySelector('.ai-assistant-header') : null;
   const launcherButton = document.getElementById('ai-assistant-launcher');
   const expandButton = document.getElementById('ai-assistant-expand');
+  const reduceButton = document.getElementById('ai-assistant-reduce');
   const closeButton = document.getElementById('ai-assistant-close');
   const messagesContainer = document.getElementById('ai-assistant-messages');
   const scrollBottomButton = document.getElementById('ai-assistant-scroll-bottom');
@@ -11962,6 +11968,48 @@
 
   if (expandButton && panel) {
     expandButton.addEventListener('click', () => setAssistantExpanded(!panel.classList.contains('is-expanded')));
+  }
+
+  // Bouton « Réduire » : rabat le panneau ouvert en une pastille verticale
+  // ancrée au bord droit de l'écran, sans fermer la conversation ni (sur
+  // chat.html) déclencher la déconnexion. Un clic sur la pastille restaure le
+  // panneau dans l'état où il était (agrandi ou flottant). Pendant la
+  // réduction, on masque le launcher robot via body.ai-assistant-minimized
+  // pour ne pas offrir deux affordances de réouverture concurrentes.
+  if (reduceButton && panel) {
+    let restorePill = document.getElementById('ai-assistant-restore-pill');
+    if (!restorePill) {
+      restorePill = document.createElement('button');
+      restorePill.id = 'ai-assistant-restore-pill';
+      restorePill.className = 'ai-assistant-restore-pill';
+      restorePill.type = 'button';
+      restorePill.innerHTML = '<img src="/assets/images/logo/AI.png" alt="" width="26" height="28" aria-hidden="true"><span aria-hidden="true"></span>';
+      document.body.appendChild(restorePill);
+    }
+    restorePill.title = i18n.reduceRestoreTitle;
+    restorePill.setAttribute('aria-label', i18n.reduceRestoreTitle);
+
+    let wasExpandedBeforeReduce = false;
+
+    const minimizeAssistant = () => {
+      wasExpandedBeforeReduce = panel.classList.contains('is-expanded');
+      document.body.classList.add('ai-assistant-minimized');
+      setAssistantPanelOpen(false);
+      restorePill.classList.add('is-visible');
+      updateScrollBottomButton();
+    };
+
+    const restoreAssistant = () => {
+      document.body.classList.remove('ai-assistant-minimized');
+      restorePill.classList.remove('is-visible');
+      placePanelInCurrentViewport();
+      setAssistantPanelOpen(true);
+      if (wasExpandedBeforeReduce) setAssistantExpanded(true);
+      updateScrollBottomButton();
+    };
+
+    reduceButton.addEventListener('click', minimizeAssistant);
+    restorePill.addEventListener('click', restoreAssistant);
   }
 
   let isWebSearchActive = false;

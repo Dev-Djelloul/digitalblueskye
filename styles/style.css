@@ -10466,6 +10466,19 @@ body.body-menu-open .ai-assistant-collapse-handle {
   font-family: var(--font-ai-assistant);
 }
 
+/* Sélecteur Google Drive (Picker) : le forcer AU-DESSUS du panneau de
+   l'assistant (z-index 2101). Sans cela, le picker s'ouvre derrière la
+   fenêtre du chatbot et ses fichiers deviennent inclickables. Les classes
+   .picker-dialog / .picker-dialog-bg sont les conteneurs stables générés
+   par l'API Google Picker, ajoutés directement au <body>. */
+.picker-dialog-bg {
+  z-index: 100000 !important;
+}
+
+.picker-dialog {
+  z-index: 100001 !important;
+}
+
 .ai-assistant-launcher,
 .ai-assistant-panel button,
 .ai-assistant-panel input,
@@ -15400,6 +15413,107 @@ body.ai-assistant-sidebar-is-resizing * {
   line-height: 1;
   right: 14px;
   top: 12px;
+}
+
+/* Bouton « Réduire » : même gabarit que le bouton agrandir, placé juste à sa
+   gauche (agrandir est à right:46px, largeur 27px). Icône : un simple tiret. */
+.ai-assistant-reduce {
+  align-items: center;
+  background: transparent;
+  border: 1px solid rgb(93 93 255 / 45%);
+  border-radius: 8px;
+  color: #5d5dff;
+  cursor: pointer;
+  display: inline-flex;
+  height: 27px;
+  justify-content: center;
+  padding: 0;
+  position: absolute;
+  right: 78px;
+  top: 13px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  width: 27px;
+  z-index: 4;
+}
+
+.ai-assistant-reduce span {
+  background: currentColor;
+  border-radius: 2px;
+  display: block;
+  height: 2px;
+  width: 12px;
+}
+
+.ai-assistant-reduce:hover {
+  border-color: rgb(200 34 255 / 70%);
+  box-shadow: 0 0 14px rgb(93 93 255 / 25%);
+  transform: translateY(-1px);
+}
+
+[data-theme="light"] .ai-assistant-reduce {
+  color: #4b3bd6;
+  border-color: rgb(75 59 214 / 40%);
+}
+
+/* Pastille de restauration ancrée au bord droit, visible seulement quand
+   l'assistant est réduit. Un clic restaure le panneau. */
+.ai-assistant-restore-pill {
+  align-items: center;
+  background:
+    linear-gradient(180deg, rgb(20 22 42 / 92%), rgb(11 13 28 / 94%)),
+    linear-gradient(130deg, rgb(116 99 255 / 90%), rgb(200 34 255 / 88%));
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  border: 2px solid transparent;
+  border-radius: 16px 0 0 16px;
+  box-shadow: 0 10px 30px rgb(5 5 15 / 55%), 0 0 22px rgb(123 86 255 / 30%);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  justify-content: center;
+  opacity: 0;
+  padding: 14px 9px;
+  pointer-events: none;
+  position: fixed;
+  right: 0;
+  top: 50%;
+  transform: translate(120%, -50%);
+  transition: transform 0.28s ease, opacity 0.28s ease;
+  z-index: 2101;
+}
+
+.ai-assistant-restore-pill.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(0, -50%);
+}
+
+.ai-assistant-restore-pill:hover {
+  box-shadow: 0 12px 34px rgb(5 5 15 / 60%), 0 0 30px rgb(200 34 255 / 40%);
+}
+
+.ai-assistant-restore-pill img {
+  display: block;
+  height: 28px;
+  width: 26px;
+}
+
+/* Chevron « ‹ » indiquant que la pastille se déplie vers la gauche. */
+.ai-assistant-restore-pill span {
+  border-left: 2px solid rgb(255 255 255 / 85%);
+  border-top: 2px solid rgb(255 255 255 / 85%);
+  display: block;
+  height: 8px;
+  transform: rotate(-45deg);
+  width: 8px;
+}
+
+/* Pendant la réduction, on masque le launcher robot et sa poignée pour ne
+   pas offrir deux façons concurrentes de rouvrir l'assistant. */
+body.ai-assistant-minimized .ai-assistant-launcher,
+body.ai-assistant-minimized .ai-assistant-collapse-handle {
+  display: none !important;
 }
 
 .ai-assistant-voice-controls {
