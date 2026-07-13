@@ -1065,9 +1065,16 @@
     'https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.4.8/purify.min.js':
       'sha384-R99bc6AdiNZcL+ueHrz0xh6SyglwkdixKGUnBqeJrDSFsFfD/HBaI345ap29kH9g',
   };
-  const DRIVE_API_KEY = String(window.DBS_GOOGLE_API_KEY || '').trim();
-  const DRIVE_CLIENT_ID = String(window.DBS_GOOGLE_CLIENT_ID || '').trim();
-  const DRIVE_APP_ID = String(window.DBS_GOOGLE_APP_ID || '').trim();
+  // Config Google Drive Picker. Valeurs de repli integrees ici pour que le
+  // Drive fonctionne sur TOUTES les pages qui chargent ce script (chat.html
+  // plein ecran + les autres pages), et pas seulement index.html ou la config
+  // etait definie inline. Ces identifiants sont publics par nature (cle API
+  // restreinte par referent HTTP, client ID OAuth expose cote client) ; ils
+  // etaient deja committes en clair dans index.html. Une page peut toujours
+  // surcharger via window.DBS_GOOGLE_* avant le chargement du script.
+  const DRIVE_API_KEY = String(window.DBS_GOOGLE_API_KEY || 'AIzaSyBsG2hp0tLMPue10IACfL3UmlBzZuXwRY0').trim();
+  const DRIVE_CLIENT_ID = String(window.DBS_GOOGLE_CLIENT_ID || '281736423201-mpf8m22jn2e3hbo9midf7binrf3a55m2.apps.googleusercontent.com').trim();
+  const DRIVE_APP_ID = String(window.DBS_GOOGLE_APP_ID || '281736423201').trim();
   const panel = document.getElementById('ai-assistant-panel');
   const panelHeader = panel ? panel.querySelector('.ai-assistant-header') : null;
   const launcherButton = document.getElementById('ai-assistant-launcher');
