@@ -636,8 +636,24 @@ function normalizeForKeywordMatching(value) {
 }
 
 function containsAnyKeyword(value, keywords) {
+  // Matching a LIMITES DE MOTS, plus jamais en sous-chaine libre (bug reel
+  // observe en production, 2026-07-13) : les forbiddenKeywords 'ux' et 'ui'
+  // matchaient en sous-chaine une enorme partie des phrases francaises
+  // ("peux", "deux", "mieux", "oui", "lui", "je suis", "aujourd hui"...),
+  // donc forbidden=true quasi systematiquement — ce qui bloquait le
+  // declenchement web par mandatoryKeywords et le chemin par defaut, meme
+  // sur des demandes legitimes. Idem 'cours' (mandatory) qui matchait
+  // "concours"/"discours". La normalisation amont garantit de l'ASCII
+  // minuscule sans accents, donc [a-z0-9] suffit comme definition de
+  // caractere de mot ; un 's' final optionnel tolere les pluriels
+  // ("classements", "actualites"...).
   const normalized = normalizeForKeywordMatching(value);
-  return keywords.some((keyword) => normalized.includes(normalizeForKeywordMatching(keyword)));
+  return keywords.some((keyword) => {
+    const needle = normalizeForKeywordMatching(keyword);
+    if (!needle) return false;
+    const escaped = needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return new RegExp(`(?<![a-z0-9])${escaped}s?(?![a-z0-9])`).test(normalized);
+  });
 }
 
 export function detectWebSearchIntent(message, body = {}) {
@@ -722,7 +738,18 @@ export function detectWebSearchIntent(message, body = {}) {
     'recherche plus poussée',
     'recherche plus poussee',
     'va sur internet',
-    'va chercher sur internet'
+    'va chercher sur internet',
+    // Demande de reponse SOURCEE depuis le web ("avec des sources internet
+    // sur lesquelles s'appuyer", "appuie-toi sur des sources web"...) :
+    // c'est une demande explicite de recherche web meme sans le verbe
+    // "chercher" (bug reel observe en production, 2026-07-13, sur une
+    // demande de mini-benchmark sourcé).
+    'sources internet',
+    'sources web',
+    'sources en ligne',
+    'sources fiables sur internet',
+    'appuie-toi sur internet',
+    'appuie toi sur internet'
   ];
   const forbiddenKeywords = [
     'définition',
