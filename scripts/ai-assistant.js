@@ -11983,7 +11983,7 @@
       restorePill.id = 'ai-assistant-restore-pill';
       restorePill.className = 'ai-assistant-restore-pill';
       restorePill.type = 'button';
-      restorePill.innerHTML = '<img src="/assets/images/logo/AI.png" alt="" width="26" height="28" aria-hidden="true"><span aria-hidden="true"></span>';
+      restorePill.innerHTML = '<img src="/assets/images/logo/AI.png" alt="" width="30" height="32" aria-hidden="true">';
       document.body.appendChild(restorePill);
     }
     restorePill.title = i18n.reduceRestoreTitle;
