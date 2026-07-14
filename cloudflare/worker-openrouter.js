@@ -4200,6 +4200,21 @@ export default {
       fallback_model_used: resolvedModel !== primaryModel
     };
 
+    // Citations documentaires du Knowledge Orchestrator. Le contexte injecte
+    // etiquette chaque passage [K1], [K2]... (voir knowledge/contextBuilder.js)
+    // et le modele les reprend dans sa reponse ; sans ce mapping, le front
+    // affichait des marqueurs opaques. On expose id + titre + source pour que
+    // l'interface remplace [Kx] par le nom reel du document.
+    if (Array.isArray(knowledgeResult?.citations) && knowledgeResult.citations.length) {
+      responseBody.knowledge_citations = knowledgeResult.citations.map((citation) => ({
+        id: citation.id,
+        title: citation.title || '',
+        source: citation.source || '',
+        document_id: citation.documentId || '',
+        url: citation.url || ''
+      }));
+    }
+
     if (resolvedProvider !== 'openrouter') {
       // Bascule reelle vers le second provider : journalise explicitement
       // pour que le back-office puisse distinguer "OpenRouter a repondu via

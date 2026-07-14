@@ -275,8 +275,13 @@ const BLOCKS = {
     en: 'Never invent facts, figures, prices, dates, sources, citations or references. If information depends on recent or external data not provided, say so clearly.'
   },
   sources: {
-    fr: "Sources : cite les documents projet fournis avec leurs identifiants exacts [S1], [S2] (n'invente jamais d'identifiant et n'en cite jamais un pour un document que tu n'as pas réellement utilisé) et les sources web avec leur numéro [1], [2] uniquement quand un index numéroté est fourni. La mémoire projet est un canal distinct : ne la cite pas avec [Sx].",
-    en: 'Sources: cite provided project documents with their exact identifiers [S1], [S2] (never invent one, and never cite an identifier for a document you did not actually use) and web sources with their number [1], [2] only when a numbered index is provided. Project memory is a separate channel: do not cite it with [Sx].'
+    // Les identifiants doivent etre repris VERBATIM du contexte injecte : le
+    // Knowledge Orchestrator etiquette ses passages [K1], [K2]... tandis que
+    // les documents projet fournis par le client utilisent [S1], [S2]. Nommer
+    // un seul de ces schemas poussait le modele a citer un identifiant absent
+    // du contexte (ex. [S1] alors que seuls des [Kx] etaient fournis).
+    fr: "Sources : cite les documents fournis avec leurs identifiants exacts, repris tels quels du contexte ci-dessous (par exemple [K1], [K2] ou [S1], [S2] selon ce qui t'est fourni). N'invente jamais d'identifiant, n'en utilise jamais un qui n'apparaît pas dans le contexte, et n'en cite jamais un pour un document que tu n'as pas réellement utilisé. Cite les sources web avec leur numéro [1], [2] uniquement quand un index numéroté est fourni. La mémoire projet est un canal distinct : ne la cite pas avec un identifiant de document.",
+    en: 'Sources: cite provided documents with their exact identifiers, copied verbatim from the context below (for example [K1], [K2] or [S1], [S2] depending on what you are given). Never invent an identifier, never use one that does not appear in the context, and never cite one for a document you did not actually use. Cite web sources with their number [1], [2] only when a numbered index is provided. Project memory is a separate channel: do not cite it with a document identifier.'
   },
   noSourceReminder: {
     fr: "Si aucune source documentaire n'a réellement été utilisée pour la réponse, indique-le explicitement plutôt que de laisser croire le contraire.",

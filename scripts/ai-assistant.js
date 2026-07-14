@@ -8783,6 +8783,14 @@
     return numberById;
   }
 
+  // Libelle court d'un document pour la pastille de citation : on retire
+  // l'extension (bruit visuel) et on tronque, le nom complet restant en
+  // infobulle et dans le panneau Sources.
+  function shortDocumentLabel(name, maxLength = 26) {
+    const base = String(name || '').replace(/\.[a-z0-9]{2,5}$/i, '').trim() || String(name || '');
+    return base.length > maxLength ? `${base.slice(0, maxLength - 1).trimEnd()}…` : base;
+  }
+
   function replaceCitationsWithSourceNames(root, ragSources, webSources) {
     if (!root) return;
     const ragMap = new Map();
@@ -8807,12 +8815,25 @@
           const entry = ragMap.get(Number(m[1]));
           if (m.index > last) frag.appendChild(document.createTextNode(text.slice(last, m.index)));
           if (entry) {
-            const span = document.createElement('span');
-            span.className = 'ai-source-ref';
-            span.textContent = `(${entry.number})`;
-            span.title = entry.name;
-            span.dataset.sourceNumber = String(entry.number);
-            frag.appendChild(span);
+            // Pastille documentaire : affiche le NOM REEL du document (et non
+            // un simple numero opaque), sur le modele de la pastille web qui
+            // affiche le domaine. Cliquable : ouvre le panneau Sources du
+            // message. Les documents indexes n'ont pas d'URL publique (seul
+            // leur texte est conserve cote Worker), d'où le panneau plutot
+            // qu'un lien vers un fichier.
+            const chip = document.createElement('button');
+            chip.type = 'button';
+            chip.className = 'ai-source-ref ai-source-ref--doc';
+            chip.textContent = shortDocumentLabel(entry.name);
+            chip.title = entry.name;
+            chip.dataset.sourceNumber = String(entry.number);
+            chip.addEventListener('click', () => {
+              // messageId est pose par attachSourcesPanelTrigger, appele juste
+              // apres ce rendu : on le lit donc au clic, pas a la construction.
+              const owner = chip.closest('[data-message-id]');
+              if (owner?.dataset.messageId) openSourcesPanelForMessage(owner.dataset.messageId);
+            });
+            frag.appendChild(chip);
           } else {
             frag.appendChild(document.createTextNode(m[0]));
           }
@@ -10764,8 +10785,14 @@
     if (!Array.isArray(usedSources) || !usedSources.length) return '';
     const heading = currentLanguage === 'en' ? '### Sources used' : '### Sources utilisées';
     const lines = usedSources.map((source) => {
-      const locatorLabel = source.locators.join(', ');
-      return `- [S${source.id}] ${source.documentName} — ${source.documentType} — ${locatorLabel}`;
+      // Type et locators sont facultatifs : les citations du Knowledge
+      // Orchestrator (Worker) n'en fournissent pas toujours. On ne concatene
+      // que les segments reellement presents pour eviter les tirets orphelins
+      // (et un crash si `locators` est absent).
+      const locatorLabel = (source.locators || []).join(', ');
+      return [`- [S${source.id}] ${source.documentName}`, source.documentType, locatorLabel]
+        .filter(Boolean)
+        .join(' — ');
     });
     return [heading, ...lines].join('\n');
   }
@@ -11720,6 +11747,32 @@
           });
         } else {
           cleanedReply = stripUnsupportedCitationMarkers(cleanedReply, 0);
+        }
+        // Citations documentaires du Knowledge Orchestrator (Worker). Il
+        // etiquette ses passages [K1], [K2]... (knowledge/contextBuilder.js) et
+        // le modele les reprend tels quels ; faute de mapping cote client, ces
+        // marqueurs restaient affiches bruts. Tout le pipeline de citations du
+        // front est deja construit autour de [S1], [S2] : on normalise donc
+        // K -> S et on alimente usedSources avec les citations renvoyees, ce qui
+        // reactive l'affichage existant (nom reel du document + panneau
+        // Sources) sans dupliquer la machinerie.
+        const knowledgeCitations = Array.isArray(data.knowledge_citations) ? data.knowledge_citations : [];
+        if (knowledgeCitations.length) {
+          cleanedReply = cleanedReply.replace(/\[K(\d{1,3})\]/gi, '[S$1]');
+          ragContext.usedSources = knowledgeCitations
+            .map((citation) => {
+              const id = Number(String(citation.id || '').replace(/^K/i, ''));
+              if (!Number.isFinite(id) || id <= 0) return null;
+              return {
+                id,
+                documentName: citation.title || citation.source || 'Document',
+                documentType: citation.source || '',
+                locators: [],
+                documentId: citation.document_id || '',
+                url: citation.url || ''
+              };
+            })
+            .filter(Boolean);
         }
         cleanedReply = stripUnsupportedRagCitationMarkers(cleanedReply, ragContext.usedSources?.map((source) => source.id) || []);
         // Le bloc "Sources utilisees" ne doit refleter que les [Sx] reellement

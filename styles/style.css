@@ -16211,6 +16211,25 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
   text-decoration: underline;
 }
 
+/* Pastille de citation documentaire : rendue cliquable (ouvre le panneau
+   Sources du message), donc c'est un <button> qu'on realigne sur le texte
+   courant plutot que sur le style natif des boutons. */
+.ai-source-ref--doc {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  font-style: italic;
+  font-weight: 650;
+  padding: 0;
+  text-decoration: none;
+}
+
+.ai-source-ref--doc:hover,
+.ai-source-ref--doc:focus-visible {
+  text-decoration: underline;
+}
+
 [data-theme="light"] .ai-source-ref {
   color: #5d3bd6;
   -webkit-text-fill-color: #5d3bd6;
