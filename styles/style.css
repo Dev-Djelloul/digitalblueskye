@@ -1934,6 +1934,9 @@ h3.title-banner {
   box-shadow: none;
   display: grid;
   height: auto;
+  /* Plancher de hauteur (sans dépasser l'écran) pour offrir plus de « ciel »
+     au défilement des constellations sur les fenêtres desktop peu hautes. */
+  min-height: min(82vh, 860px);
   margin-left: 0;
   margin-top: 0;
   margin-right: 0;

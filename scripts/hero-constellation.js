@@ -96,6 +96,21 @@
       edges: [[0, 1], [1, 2], [2, 3]] },
   ];
 
+  // Précalcule la bounding box normalisée de chaque figure : sert à garantir
+  // qu'une constellation tient ENTIÈREMENT dans le cadre (échelle + position
+  // contraintes), donc jamais coupée en haut/bas.
+  for (let i = 0; i < CATALOG.length; i += 1) {
+    const st = CATALOG[i].stars;
+    let minX = 1, maxX = 0, minY = 1, maxY = 0;
+    for (let k = 0; k < st.length; k += 1) {
+      if (st[k][0] < minX) minX = st[k][0];
+      if (st[k][0] > maxX) maxX = st[k][0];
+      if (st[k][1] < minY) minY = st[k][1];
+      if (st[k][1] > maxY) maxY = st[k][1];
+    }
+    CATALOG[i].bbox = { minX, maxX, minY, maxY, h: Math.max(0.001, maxY - minY) };
+  }
+
   let width = 0;
   let height = 0;
   let dpr = 1;
@@ -118,16 +133,37 @@
   function makeInstance(leftX) {
     const band = yBands[bandCursor % yBands.length];
     bandCursor += 1;
-    const inst = {
-      ci: nextCatalog % CATALOG.length,
+    const ci = nextCatalog % CATALOG.length;
+    nextCatalog += 1;
+    const bbox = CATALOG[ci].bbox;
+
+    // Marges (haut réservé au libellé) : la figure doit tenir entièrement.
+    const topM = 14 + 14; // marge + place du nom au-dessus
+    const botM = 14;
+    const bobRoom = 6;
+    const available = Math.max(30, height - topM - botM - bobRoom);
+
+    // Échelle souhaitée (fraction de largeur) bornée pour que la hauteur réelle
+    // de la figure (bbox.h * sizePx) ne dépasse jamais l'espace vertical.
+    let sizePx = (0.15 + Math.random() * 0.06) * width;
+    const maxSizeByHeight = available / bbox.h;
+    if (sizePx > maxSizeByHeight) sizePx = maxSizeByHeight;
+
+    // yTop tel que la figure reste dans [topM ; height - botM].
+    const yTopMin = topM - bbox.minY * sizePx;
+    const yTopMax = height - botM - bbox.maxY * sizePx - bobRoom;
+    let yTop = (band + (Math.random() - 0.5) * 0.05) * height - bbox.minY * sizePx;
+    if (yTopMax >= yTopMin) yTop = Math.min(yTopMax, Math.max(yTopMin, yTop));
+    else yTop = (height - bbox.h * sizePx) / 2 - bbox.minY * sizePx;
+
+    return {
+      ci,
       x: leftX,
-      yTop: (band + (Math.random() - 0.5) * 0.06) * height,
-      scale: 0.17 + Math.random() * 0.07,
+      yTop,
+      sizePx,
       phase: Math.random() * Math.PI * 2,
       bob: 0.4 + Math.random() * 0.6,
     };
-    nextCatalog += 1;
-    return inst;
   }
 
   function createInstances() {
@@ -176,8 +212,8 @@
 
   function drawConstellation(inst, light, starRGB, parX, parY) {
     const cons = CATALOG[inst.ci];
-    const sizePx = inst.scale * width;
-    const bob = Math.sin(t * 0.6 + inst.phase) * 4 * inst.bob;
+    const sizePx = inst.sizePx;
+    const bob = Math.sin(t * 0.6 + inst.phase) * 3 * inst.bob;
     const ox = inst.x + parX * 18;
     const oy = inst.yTop + bob + parY * 14;
 
@@ -313,7 +349,7 @@
     for (let i = 0; i < instances.length; i += 1) {
       const inst = instances[i];
       inst.x -= shift;
-      const consWidth = inst.scale * width;
+      const consWidth = inst.sizePx;
       if (inst.x + consWidth < -30) {
         const recycled = makeInstance(maxRight + slotGap);
         maxRight = recycled.x;
