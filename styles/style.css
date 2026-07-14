@@ -372,14 +372,23 @@ body :where(
   );
   border-radius: 999px;
   height: 4px;
-  margin: 52px auto;
+  margin: 60px auto;
   position: relative;
-  width: min(90%, 760px);
 }
 
-.home-page main > .intro-text + .intro-divider {
-  margin-bottom: 34px;
-  margin-top: 42px;
+/* Espacement UNIFORME autour des séparateurs : 60px de part et d'autre, aligné
+   sur le rythme vertical des sections. Les marges du séparateur se cumulaient
+   au padding de la section voisine, d'où des écarts très inégaux (42/94 puis
+   112/80). On neutralise donc le padding/marge de la section adjacente du côté
+   du séparateur : seul le margin du séparateur définit l'espace. */
+.home-page main > .intro-divider + section {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.home-page main > section:has(+ .intro-divider) {
+  margin-bottom: 0;
+  padding-bottom: 0;
 }
 
 .intro-divider::after {
@@ -596,7 +605,7 @@ section#skills,
 .intro-text .animated-title {
   display: inline-block;
   font-family: var(--font-title);
-  font-size: 4rem;
+  font-size: 3.3rem;
   line-height: 1.18;
   margin-bottom: 0;
   margin-top: 40px;
@@ -639,12 +648,12 @@ section#skills,
 
   /* Style de base */
   display: inline-block;
-  font-size: 1.1rem;
+  font-size: 0.85rem;
 
   /* Animation d'apparition */
   margin: 45px;
   opacity: 0;
-  padding: 12px 25px;
+  padding: 8px 16px;
   text-decoration: none;
   transform: translateY(50px);
   transition: opacity 0.8s ease-out, transform 0.8s ease-out;
@@ -1936,7 +1945,7 @@ h3.title-banner {
   height: auto;
   /* Plancher de hauteur (sans dépasser l'écran) pour offrir plus de « ciel »
      au défilement des constellations sur les fenêtres desktop peu hautes. */
-  min-height: min(82vh, 860px);
+  min-height: min(92vh, 992px);
   margin-left: 0;
   margin-top: 0;
   margin-right: 0;
