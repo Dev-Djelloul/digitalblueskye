@@ -3366,10 +3366,88 @@
     return tesseractLoaderPromise;
   }
 
+  // Prétraitement OCR : niveaux de gris + binarisation par seuil d'Otsu, avec
+  // auto-inversion si le fond est majoritairement sombre (Tesseract lit mieux
+  // du texte sombre sur fond clair). Améliore nettement les scans de documents
+  // (contraste net texte/fond). En cas d'échec (image atypique, canvas non
+  // lisible), on renvoie la source d'origine — jamais de régression.
+  function preprocessForOcr(drawable, width, height) {
+    try {
+      const w = width || drawable.width || drawable.naturalWidth;
+      const h = height || drawable.height || drawable.naturalHeight;
+      if (!w || !h) return drawable;
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      if (!ctx) return drawable;
+      ctx.drawImage(drawable, 0, 0, w, h);
+      const imageData = ctx.getImageData(0, 0, w, h);
+      const px = imageData.data;
+      const gray = new Uint8ClampedArray(px.length / 4);
+      const hist = new Array(256).fill(0);
+      for (let i = 0, g = 0; i < px.length; i += 4, g += 1) {
+        const lum = (px[i] * 0.299 + px[i + 1] * 0.587 + px[i + 2] * 0.114) | 0;
+        gray[g] = lum;
+        hist[lum] += 1;
+      }
+      const total = gray.length;
+      let sum = 0;
+      for (let t = 0; t < 256; t += 1) sum += t * hist[t];
+      let sumB = 0;
+      let wB = 0;
+      let maxVar = -1;
+      let threshold = 127;
+      for (let t = 0; t < 256; t += 1) {
+        wB += hist[t];
+        if (wB === 0) continue;
+        const wF = total - wB;
+        if (wF === 0) break;
+        sumB += t * hist[t];
+        const mB = sumB / wB;
+        const mF = (sum - sumB) / wF;
+        const between = wB * wF * (mB - mF) * (mB - mF);
+        if (between > maxVar) { maxVar = between; threshold = t; }
+      }
+      let lightCount = 0;
+      for (let g = 0; g < total; g += 1) if (gray[g] > threshold) lightCount += 1;
+      const darkBackground = lightCount < total / 2;
+      for (let i = 0, g = 0; i < px.length; i += 4, g += 1) {
+        const isLight = gray[g] > threshold;
+        const value = darkBackground ? (isLight ? 0 : 255) : (isLight ? 255 : 0);
+        px[i] = value;
+        px[i + 1] = value;
+        px[i + 2] = value;
+        px[i + 3] = 255;
+      }
+      ctx.putImageData(imageData, 0, 0);
+      return canvas;
+    } catch (_) {
+      return drawable;
+    }
+  }
+
+  // Prépare une source d'OCR binarisée. Accepte un canvas (page PDF déjà
+  // rendue) ou un File/Blob image (upload direct).
+  async function prepareOcrSource(input) {
+    if (typeof HTMLCanvasElement !== 'undefined' && input instanceof HTMLCanvasElement) {
+      return preprocessForOcr(input, input.width, input.height);
+    }
+    try {
+      const bitmap = await createImageBitmap(input);
+      const processed = preprocessForOcr(bitmap, bitmap.width, bitmap.height);
+      if (typeof bitmap.close === 'function') bitmap.close();
+      return processed;
+    } catch (_) {
+      return input;
+    }
+  }
+
   async function extractTextFromImage(file, lang) {
     const Tesseract = await loadTesseractLibrary();
     const ocrLang = lang === 'en' ? 'eng' : 'fra+eng';
-    const result = await Tesseract.recognize(file, ocrLang);
+    const source = await prepareOcrSource(file);
+    const result = await Tesseract.recognize(source, ocrLang);
     return String(result?.data?.text || '').replace(/\r/g, '').trim();
   }
 
