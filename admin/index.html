@@ -10973,8 +10973,39 @@
     // que pour certains providers/modeles. Quand il est absent, ce n'est pas
     // "non mesure" (laisse croire a une instrumentation manquante) mais bien
     // une donnee non fournie par le provider en amont.
+    // usage.cost est facture en dollars par OpenRouter (cf. worker-api.js,
+    // cost_total = somme des usage.cost). Precision adaptative : un cout de
+    // conversation est souvent inferieur au centime, l'arrondir a 2 decimales
+    // afficherait "0,00 $" et effacerait l'information. On garde donc 4
+    // decimales sous 1 centime, 2 au-dela. A ne pas confondre avec
+    // last_estimated_cost du Capability Planner, qui est une unite relative et
+    // non une devise : il n'est volontairement pas formate ici.
+    function formatUsd(value) {
+      const amount = Number(value);
+      if (!Number.isFinite(amount)) return null;
+      const render = (amountToRender, digits) => {
+        try {
+          return new Intl.NumberFormat("fr-FR", {
+            style: "currency",
+            currency: "USD",
+            currencyDisplay: "narrowSymbol",
+            minimumFractionDigits: digits,
+            maximumFractionDigits: digits
+          }).format(amountToRender);
+        } catch (error) {
+          return `${amountToRender.toFixed(digits)} $`;
+        }
+      };
+      // Un cout non nul mais sous le seuil d'affichage ne doit jamais s'ecrire
+      // "0,0000 $" : on lirait zero la ou il y a une depense reelle.
+      if (amount !== 0 && Math.abs(amount) < 0.0001) return `< ${render(0.0001, 4)}`;
+      return render(amount, amount !== 0 && Math.abs(amount) < 0.01 ? 4 : 2);
+    }
+
     function costNonFourni(value, suffix = "") {
-      return value == null ? "non fourni par l'API" : `${value}${suffix}`;
+      if (value == null) return "non fourni par l'API";
+      const formatted = formatUsd(value);
+      return formatted == null ? `${value}${suffix}` : `${formatted}${suffix}`;
     }
 
     function conversationStatusBadge(status) {
