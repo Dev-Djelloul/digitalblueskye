@@ -8842,7 +8842,11 @@
             const chip = document.createElement('button');
             chip.type = 'button';
             chip.className = 'ai-source-ref ai-source-ref--doc';
-            chip.textContent = shortDocumentLabel(entry.name);
+            // Icone document (markup statique, aucune donnee utilisateur) puis
+            // le libelle en noeud texte : le nom du document n'est jamais
+            // interprete comme du HTML.
+            chip.innerHTML = '<svg class="ai-source-ref__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm0 2 6 6h-6V4z"/></svg>';
+            chip.appendChild(document.createTextNode(shortDocumentLabel(entry.name)));
             chip.title = entry.name;
             chip.dataset.sourceNumber = String(entry.number);
             chip.addEventListener('click', () => {

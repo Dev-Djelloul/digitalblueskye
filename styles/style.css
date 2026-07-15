@@ -16213,21 +16213,45 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
 
 /* Pastille de citation documentaire : rendue cliquable (ouvre le panneau
    Sources du message), donc c'est un <button> qu'on realigne sur le texte
-   courant plutot que sur le style natif des boutons. */
+   courant plutot que sur le style natif des boutons. Fond leger + icone de
+   document : sans eux, le nom du fichier se confondait avec la phrase
+   ("... rapidement deployable Guide SAFE - Algorithme L'IA constitue ..."). */
 .ai-source-ref--doc {
-  background: none;
+  background: rgb(121 230 255 / 12%);
   border: 0;
+  border-radius: 6px;
   cursor: pointer;
   font: inherit;
-  font-style: italic;
-  font-weight: 650;
-  padding: 0;
+  font-style: normal;
+  font-weight: 600;
+  padding: 0.05em 0.42em;
   text-decoration: none;
+  white-space: nowrap;
+}
+
+/* Icone en SVG inline (cf. replaceCitationsWithSourceNames) : `fill:
+   currentColor` la fait suivre la couleur du theme, sans dependre du support
+   de `mask` — un masque non supporte aurait affiche un rectangle plein. */
+.ai-source-ref__icon {
+  fill: currentcolor;
+  height: 0.92em;
+  margin-right: 0.28em;
+  vertical-align: -0.12em;
+  width: 0.72em;
 }
 
 .ai-source-ref--doc:hover,
 .ai-source-ref--doc:focus-visible {
-  text-decoration: underline;
+  background: rgb(121 230 255 / 24%);
+}
+
+[data-theme="light"] .ai-source-ref--doc {
+  background: rgb(93 59 214 / 10%);
+}
+
+[data-theme="light"] .ai-source-ref--doc:hover,
+[data-theme="light"] .ai-source-ref--doc:focus-visible {
+  background: rgb(93 59 214 / 18%);
 }
 
 [data-theme="light"] .ai-source-ref {
