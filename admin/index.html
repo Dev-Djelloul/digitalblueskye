@@ -2554,6 +2554,8 @@
       display: none;
     }
 
+    /* .topbar est masquee : la refonte premium l'a remplacee par la sidebar et
+       les .premium-dashboard-header de chaque panneau. */
     #appView .topbar {
       display: none;
       position: sticky;
@@ -2563,6 +2565,22 @@
       padding: 18px 24px 12px;
       background: linear-gradient(180deg, rgba(11, 16, 32, 0.96), rgba(11, 16, 32, 0.72) 72%, transparent);
       backdrop-filter: blur(18px);
+    }
+
+    /* Exception : sous 768px la sidebar devient un tiroir hors-ecran et
+       #mobileSidebarBtn, seul moyen de l'ouvrir, vit dans cette topbar. On la
+       reaffiche donc en barre porte-bouton, sans ses enfants legacy.
+       A placer apres la regle ci-dessus : meme specificite, c'est l'ordre
+       d'apparition qui departage. */
+    @media (max-width: 768px) {
+      #appView .topbar {
+        display: flex;
+      }
+
+      #appView .topbar .brand,
+      #appView .topbar .toolbar {
+        display: none;
+      }
     }
 
     #appView .brand h1 {
@@ -5869,7 +5887,11 @@
       }
     }
 
-    @media (max-width: 1100px) {
+    /* Geometrie de la sidebar desktop (220px + 24px de gouttiere). Bornee au
+       dessus de 768px : sous ce seuil la sidebar est un tiroir hors-flux, et ce
+       bloc etant plus tardif que le @media 768px, il decalerait sinon le contenu
+       de la largeur d'une sidebar absente. */
+    @media (max-width: 1100px) and (min-width: 769px) {
       .premium-sidebar {
         width: 220px;
       }
@@ -5877,7 +5899,9 @@
       .shell:has(#appView:not(.hidden)) {
         padding-left: 244px;
       }
+    }
 
+    @media (max-width: 1100px) {
       #appView .topbar,
       #appView #appNotice,
       #appView #summary,
@@ -7159,6 +7183,12 @@
     // servi depuis le site (digitalblueskye.com/admin/) qui n'expose aucune
     // route /admin/* — seul le domaine API répond.
     const DEFAULT_API_BASE = "https://api.digitalblueskye.com";
+
+    // Sous 768px la sidebar devient un tiroir hors-flux (cf. @media 768px) : la
+    // largeur sauvegardee et le decalage du contenu ne s'y appliquent plus. Un
+    // style inline l'emportant toujours sur la feuille de styles, les poser en
+    // mobile ecraserait la mise en page du tiroir.
+    const sidebarDrawerQuery = window.matchMedia("(max-width: 768px)");
 
     function adminTabFromHash(hash = window.location.hash) {
       const value = String(hash || "").replace(/^#/, "");
@@ -13773,11 +13803,14 @@
 
         function setSidebarWidth(width, save = false) {
           const clampedWidth = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, width));
-          sidebar.style.width = `${clampedWidth}px`;
-          document.querySelector(".shell")?.style.setProperty("padding-left", `${clampedWidth + 16}px`);
           if (save) {
             localStorage.setItem("premiumSidebarWidth", clampedWidth);
           }
+          // En tiroir mobile la largeur sauvegardee n'a pas de sens : la poser
+          // ici decalerait le contenu de la largeur d'une sidebar absente.
+          if (sidebarDrawerQuery.matches) return;
+          sidebar.style.width = `${clampedWidth}px`;
+          document.querySelector(".shell")?.style.setProperty("padding-left", `${clampedWidth + 16}px`);
         }
 
         // Load saved width
@@ -14764,7 +14797,7 @@
       document.body.classList.toggle("sidebar-collapsed", collapsed);
       const sidebar = document.querySelector(".premium-sidebar");
       const shell = document.querySelector(".shell");
-      if (collapsed) {
+      if (collapsed || sidebarDrawerQuery.matches) {
         sidebar?.style.removeProperty("width");
         shell?.style.removeProperty("padding-left");
       } else {
@@ -14808,6 +14841,13 @@
     });
 
     $("#mobileSidebarOverlay")?.addEventListener("click", closeMobileSidebar);
+
+    // Au franchissement du seuil : on retire le decalage desktop en entrant en
+    // mobile, on le repose en sortant, et on referme un tiroir reste ouvert.
+    sidebarDrawerQuery.addEventListener("change", () => {
+      closeMobileSidebar();
+      applySidebarState(document.body.classList.contains("sidebar-collapsed"));
+    });
 
     $("#globalViewBtn").addEventListener("click", async () => {
       setActiveTab("health");
