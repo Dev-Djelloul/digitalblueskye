@@ -623,47 +623,6 @@ section#skills,
   transition: opacity 2.4s ease-out, transform 2.4s ease-out;
 }
 
-/* Bouton explorer */
-.intro-text .btn-explore {
-  /* Combinaison des animations */
-  animation: fadeInUp 0.8s ease forwards 3.5s, pulseButtonLight 2s infinite 3s,
-    textShine 3s linear infinite 3s,
-    /* textShine commence à 3s */ floatButton 3s ease-in-out infinite 5.5s; /* floatButton commence après 4s */
-
-  background: linear-gradient(45deg, var(--accent-color), #c822ff);
-
-  /* Effet brillant */
-  background-clip: text;
-  background-image: linear-gradient(
-    135deg,
-    var(--accent-color) 0%,
-    #fff 30%,
-    var(--accent-color) 60%,
-    #fff 100%
-  );
-  background-size: 200% auto;
-  border-radius: 10px;
-  box-shadow: 0 5px 15px rgb(var(--accent-rgb), 0.4);
-  color: transparent;
-
-  /* Style de base */
-  display: inline-block;
-  font-size: 0.85rem;
-
-  /* Animation d'apparition */
-  margin: 45px;
-  opacity: 0;
-  padding: 8px 16px;
-  text-decoration: none;
-  transform: translateY(50px);
-  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
-}
-
-.intro-text .btn-explore:hover {
-  box-shadow: 0 8px 20px rgb(var(--accent-rgb), 0.6);
-  transform: translateY(-3px);
-}
-
 /* Bouton de téléchargement CV */
 .btn-download-cv {
   align-items: center;
@@ -1293,7 +1252,7 @@ header .social-media img {
 .menu-controls {
   align-items: center;
   align-self: center;
-  display: flex;
+  display: none;
   gap: 20px;
   grid-column: 3;
   grid-row: 2;
@@ -1301,6 +1260,10 @@ header .social-media img {
   margin: 0; /* Ajustement de la marge pour le menu déroulant */
   padding: 0;
   width: 200px;
+}
+
+.header-social-strip .menu-controls {
+  display: flex;
 }
 
 .menu-controls button {
