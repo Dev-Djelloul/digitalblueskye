@@ -7462,7 +7462,7 @@
       };
       const cssClass = (status === "non_mesure" || status === "aucune_donnee_recente") ? "non-mesure" : (status || "unavailable");
       const safeStatus = escapeHtml(cssClass);
-      return `<span class="badge ${safeStatus}">${statusDot()}${escapeHtml(labels[status] || labels.unavailable)}</span>`;
+      return `<span class="badge ${safeStatus}">${statusDot()}<span style="flex: 1 1 auto; min-width: 0;">${escapeHtml(labels[status] || labels.unavailable)}</span></span>`;
     }
 
     function verificationBadge(value) {
@@ -7472,7 +7472,7 @@
         failed: "Échec du contrôle",
       };
       const safe = value === "verified" || value === "partial" || value === "failed" ? value : "partial";
-      return `<span class="badge ${safe === "verified" ? "operational" : (safe === "failed" ? "unavailable" : "partial")}">${statusDot()}${escapeHtml(labels[safe])}</span>`;
+      return `<span class="badge ${safe === "verified" ? "operational" : (safe === "failed" ? "unavailable" : "partial")}">${statusDot()}<span style="flex: 1 1 auto; min-width: 0;">${escapeHtml(labels[safe])}</span></span>`;
     }
 
     function formatDate(value) {
