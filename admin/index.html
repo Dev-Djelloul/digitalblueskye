@@ -6420,12 +6420,23 @@
         padding: 18px;
       }
 
-      .export-format-list > div,
-      .export-recent-row {
+      .export-format-list > div {
         display: grid;
         grid-template-columns: 20px minmax(0, 1fr) auto;
         gap: 12px;
         align-items: center;
+        font-size: 13px;
+      }
+
+      /* Rangees libelle/valeur (activite par jour, latences, alertes) : deux
+         enfants (span + strong), sans pastille. La grille 3 colonnes de
+         .export-format-list ecrasait leur libelle dans la colonne de 20px
+         ("2026-07-14" devenait "2..."). */
+      .export-recent-row {
+        display: grid;
+        grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+        gap: 4px 12px;
+        align-items: baseline;
         font-size: 13px;
       }
 
@@ -6446,6 +6457,7 @@
       .export-recent-row strong {
         color: #f8fbff;
         text-align: right;
+        overflow-wrap: anywhere;
       }
 
       .export-size-bar {
@@ -6571,27 +6583,36 @@
         width: auto;
       }
 
-      .health-dashboard .table-wrap,
+      /* Transformation « table → cartes » : reservee aux tables libelle/valeur
+         du sante/systeme (.health-table-wrapper), concues pour l'empilement
+         (2 colonnes, ou cellules porteuses de data-label). Tous les panneaux
+         partagent la classe health-dashboard : appliquee sans ce scope, la
+         transformation ecrasait aussi les tables de gestion multi-colonnes
+         (conversations, sources, documents, exports, services), dont les
+         largeurs de colonnes en % produisaient des cellules empilees de
+         quelques pixels — texte rendu lettre par lettre. Ces tables restent
+         donc de vraies tables : elles gardent leur min-width et defilent
+         horizontalement dans leur .table-wrap (overflow-x: auto). */
       .health-dashboard .health-table-wrapper {
         overflow: visible;
       }
 
-      .health-dashboard table,
-      .health-dashboard thead,
-      .health-dashboard tbody,
-      .health-dashboard tr,
-      .health-dashboard th,
-      .health-dashboard td {
+      .health-dashboard .health-table-wrapper table,
+      .health-dashboard .health-table-wrapper thead,
+      .health-dashboard .health-table-wrapper tbody,
+      .health-dashboard .health-table-wrapper tr,
+      .health-dashboard .health-table-wrapper th,
+      .health-dashboard .health-table-wrapper td {
         display: block;
         min-width: 0;
         width: 100%;
       }
 
-      .health-dashboard thead {
+      .health-dashboard .health-table-wrapper thead {
         display: none;
       }
 
-      .health-dashboard tr {
+      .health-dashboard .health-table-wrapper tr {
         margin-bottom: 12px;
         border: 1px solid var(--border);
         border-radius: 14px;
@@ -6599,7 +6620,7 @@
         overflow: hidden;
       }
 
-      .health-dashboard td {
+      .health-dashboard .health-table-wrapper td {
         display: grid;
         grid-template-columns: minmax(110px, 0.42fr) minmax(0, 1fr);
         gap: 10px;
@@ -6607,11 +6628,11 @@
         white-space: normal;
       }
 
-      .health-dashboard td:last-child {
+      .health-dashboard .health-table-wrapper td:last-child {
         border-bottom: 0;
       }
 
-      .health-dashboard td::before {
+      .health-dashboard .health-table-wrapper td::before {
         content: attr(data-label);
         color: var(--muted);
         font-size: 12px;
