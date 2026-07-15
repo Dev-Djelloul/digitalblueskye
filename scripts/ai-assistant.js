@@ -7824,7 +7824,7 @@
       .replace(/`([^`]+)`/g, '<code>$1</code>')
       .replace(/(\p{Extended_Pictographic}(?:\uFE0F|\uFE0E)?(?:\u200D\p{Extended_Pictographic}(?:\uFE0F|\uFE0E)?)*)/gu, '<span class="ai-assistant-emoji">$1</span>');
 
-    const normalizedBullets = safe.replace(/\s+-\s+/g, '\n- ');
+    const normalizedBullets = splitInlineBulletRuns(safe);
     const lines = normalizedBullets.split('\n').map((line) => line.trim());
 
     let html = '';
@@ -8066,10 +8066,28 @@
    * 'paragraph' {text}. Les separateurs horizontaux (---) sont ignores, a
    * l'identique de formatBotMessageHtml qui ne les affiche jamais.
    */
+  // Certains modeles listent plusieurs items sur UNE seule ligne
+  // ("- item1 - item2 - item3") : on redecoupe alors sur " - ". Mais la regle
+  // ne doit s'appliquer QU'AUX lignes deja reconnues comme puce. Appliquee a
+  // tout le texte, elle cassait n'importe quel tiret legitime : le nom de
+  // document "Guide SAFE - Algorithme.pdf" se retrouvait scinde en paragraphe
+  // "Guide SAFE" + puce "Algorithme.pdf" dans les exports. Le marqueur de tete
+  // (et son indentation, pour les listes imbriquees) est preserve tel quel.
+  function splitInlineBulletRuns(text) {
+    return String(text || '')
+      .split('\n')
+      .map((line) => {
+        const bullet = line.match(/^(\s*[-*]\s+)([\s\S]*)$/);
+        if (!bullet) return line;
+        return `${bullet[1]}${bullet[2].replace(/\s+-\s+/g, '\n- ')}`;
+      })
+      .join('\n');
+  }
+
   function parseMarkdownToBlocks(rawText) {
     const prepared = splitInlineMarkdownTableLines(normalizeMarkdownBeforeRender(rawText));
     const { withPlaceholders, nodes: codeNodes } = extractCodeBlocksAsNodes(prepared);
-    const normalizedBullets = withPlaceholders.replace(/\s+-\s+/g, '\n- ');
+    const normalizedBullets = splitInlineBulletRuns(withPlaceholders);
     const lines = normalizedBullets.split('\n').map((line) => line.trim());
 
     const blocks = [];
