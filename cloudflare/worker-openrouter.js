@@ -360,6 +360,23 @@ function buildTavilyDiagnostics(apiKey, extra = {}) {
  * `onComplete({ fullText, finishReason, usage })` est appele a la fermeture du
  * flux (telemetrie D1 via queueAiEvent cote appelant). Exportee pour les tests.
  */
+// Citations documentaires du Knowledge Orchestrator, mises en forme pour le
+// client. Le contexte injecte etiquette chaque passage [K1], [K2]... (voir
+// knowledge/contextBuilder.js) et le modele les reprend dans sa reponse : sans
+// ce mapping, l'interface affiche des marqueurs opaques. Partage par les DEUX
+// chemins de reponse (JSON classique ET meta du flux SSE) — ne l'exposer que
+// sur l'un des deux laissait le chat, qui streame, sans citations.
+export function buildKnowledgeCitationsPayload(knowledgeResult) {
+  const citations = Array.isArray(knowledgeResult?.citations) ? knowledgeResult.citations : [];
+  return citations.map((citation) => ({
+    id: citation.id,
+    title: citation.title || '',
+    source: citation.source || '',
+    document_id: citation.documentId || '',
+    url: citation.url || ''
+  }));
+}
+
 export function createOpenRouterSseRelay({ upstreamBody, metaPayload, onComplete }) {
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
@@ -3740,7 +3757,8 @@ export default {
             link: r.link,
             snippet: r.snippet || '',
             publishedDate: r.publishedDate || ''
-          }))
+          })),
+          knowledge_citations: buildKnowledgeCitationsPayload(knowledgeResult)
         };
         const relay = createOpenRouterSseRelay({
           upstreamBody: streamAttempt.body,
@@ -4200,19 +4218,9 @@ export default {
       fallback_model_used: resolvedModel !== primaryModel
     };
 
-    // Citations documentaires du Knowledge Orchestrator. Le contexte injecte
-    // etiquette chaque passage [K1], [K2]... (voir knowledge/contextBuilder.js)
-    // et le modele les reprend dans sa reponse ; sans ce mapping, le front
-    // affichait des marqueurs opaques. On expose id + titre + source pour que
-    // l'interface remplace [Kx] par le nom reel du document.
-    if (Array.isArray(knowledgeResult?.citations) && knowledgeResult.citations.length) {
-      responseBody.knowledge_citations = knowledgeResult.citations.map((citation) => ({
-        id: citation.id,
-        title: citation.title || '',
-        source: citation.source || '',
-        document_id: citation.documentId || '',
-        url: citation.url || ''
-      }));
+    const knowledgeCitationsPayload = buildKnowledgeCitationsPayload(knowledgeResult);
+    if (knowledgeCitationsPayload.length) {
+      responseBody.knowledge_citations = knowledgeCitationsPayload;
     }
 
     if (resolvedProvider !== 'openrouter') {
