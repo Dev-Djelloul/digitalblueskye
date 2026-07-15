@@ -9812,11 +9812,11 @@ body.body-menu-open #footer {
 }
 
 .methodology-item--combined {
-  background-image: url("/assets/images/backgrounds/ai-powered-device-concept.jpg");
+  background-image: url("/assets/images/backgrounds/technology-concept-with-futuristic-element.jpg");
   background-position: center top;
   background-repeat: no-repeat;
   background-size: cover;
-  height: clamp(520px, 66vw, 980px);
+  height: clamp(520px, 96vw, 1280px);
   margin: 0;
   margin-inline: auto;
   max-width: 100%;
