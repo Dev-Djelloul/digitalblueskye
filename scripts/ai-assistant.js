@@ -1213,16 +1213,113 @@
     fr: ['Aurelie', 'Amelie', 'Virginie', 'Marie', 'Thomas'],
     en: ['Samantha', 'Karen', 'Allison', 'Ava', 'Serena', 'Moira', 'Daniel']
   };
-  const conversationStorageKey = 'ai_assistant_conversations_v1';
-  const conversationCorruptStorageKey = 'ai_assistant_conversations_corrupt_v1';
+  // ── Cloisonnement du stockage par compte ─────────────────────────────────
+  // localStorage est commun a TOUS les comptes d'un meme navigateur. Ces cles
+  // etaient des constantes globales et rien ne les effacait a la deconnexion :
+  // la personne qui se connectait ensuite, meme avec une autre adresse, lisait
+  // les conversations, les projets, les documents et le profil du precedent.
+  // La connexion protegeait l'acces au chat, jamais les donnees.
+  //
+  // Chaque cle porteuse de donnees personnelles est donc suffixee par
+  // l'identite servie par DBSAuth (source de verite serveur : /auth/me).
+  // Les cles purement cosmetiques (position/taille du panneau, largeur de
+  // l'historique, layout de la bibliotheque, debug) restent communes : elles ne
+  // contiennent aucune donnee personnelle et suivent l'appareil, pas le compte.
+  const personalStorageKeys = Object.freeze({
+    conversations: 'ai_assistant_conversations_v1',
+    conversationsCorrupt: 'ai_assistant_conversations_corrupt_v1',
+    knowledgeLibrary: 'ai_assistant_knowledge_library_v1',
+    projects: 'ai_assistant_projects_v1',
+    settings: 'ai_assistant_settings_v3'
+  });
+
+  const anonymousStorageScope = 'anonymous';
+
+  function currentStorageScope() {
+    try {
+      const user = window.DBSAuth?.getCachedUser?.();
+      const identity = String(user?.id || user?.email || '').trim().toLowerCase();
+      return identity ? identity.replace(/[^a-z0-9@._-]+/g, '_') : anonymousStorageScope;
+    } catch (error) {
+      return anonymousStorageScope;
+    }
+  }
+
+  let storageScope = currentStorageScope();
+
+  let conversationStorageKey;
+  let conversationCorruptStorageKey;
+  let knowledgeLibraryStorageKey;
+  let projectsStorageKey;
+  let settingsStorageKey;
+
+  function applyStorageScope() {
+    conversationStorageKey = `${personalStorageKeys.conversations}::${storageScope}`;
+    conversationCorruptStorageKey = `${personalStorageKeys.conversationsCorrupt}::${storageScope}`;
+    knowledgeLibraryStorageKey = `${personalStorageKeys.knowledgeLibrary}::${storageScope}`;
+    projectsStorageKey = `${personalStorageKeys.projects}::${storageScope}`;
+    settingsStorageKey = `${personalStorageKeys.settings}::${storageScope}`;
+  }
+
+  // Donnees ecrites avant le cloisonnement : elles n'ont aucun proprietaire
+  // enregistre, le code ne peut pas savoir qui les a creees. localStorage etant
+  // propre a chaque navigateur, elles ont ete ecrites par la personne qui
+  // l'utilise : on les rattache au premier compte qui s'y connecte, une seule
+  // fois (la cle globale est ensuite supprimee). Jamais vers le scope anonyme,
+  // sinon un simple visiteur non connecte les recupererait.
+  function migrateLegacyStorageIntoScope() {
+    if (storageScope === anonymousStorageScope) return;
+    Object.values(personalStorageKeys).forEach((legacyKey) => {
+      try {
+        const legacyValue = localStorage.getItem(legacyKey);
+        if (legacyValue === null) return;
+        const scopedKey = `${legacyKey}::${storageScope}`;
+        if (localStorage.getItem(scopedKey) === null) localStorage.setItem(scopedKey, legacyValue);
+        localStorage.removeItem(legacyKey);
+      } catch (error) { /* no-op */ }
+    });
+  }
+
+  applyStorageScope();
+  migrateLegacyStorageIntoScope();
+
+  // Un changement de compte doit relire tout l'etat depuis le nouveau
+  // namespace : les cles seules ne suffisent pas, l'etat deja charge en memoire
+  // (et affiche) resterait celui du compte precedent.
+  //
+  // Enregistre ICI volontairement, et non a l'initialisation en bas de fichier :
+  // les ecouteurs 'dbs-auth-changed' se declenchent dans leur ordre
+  // d'enregistrement, et celui qui ouvre le panneau sur chat.html est declare
+  // plus bas. En passant en premier, on garantit que le panneau ne s'ouvre
+  // jamais sur les donnees du precedent utilisateur, meme brievement.
+  //
+  // Couvre aussi la deconnexion (scope -> anonymous) : le panneau retombe alors
+  // sur une conversation vierge au lieu de laisser celle du compte quitte.
+  document.addEventListener('dbs-auth-changed', () => {
+    const previousScope = storageScope;
+    storageScope = currentStorageScope();
+    if (storageScope === previousScope) return;
+    applyStorageScope();
+    migrateLegacyStorageIntoScope();
+    try {
+      loadProjectsState();
+      loadAssistantSettingsState();
+      loadKnowledgeLibrary();
+      ensureSessionState();
+      ensureProjectLinks();
+      renderSessionOptions();
+      renderProjectList();
+      renderCurrentConversation();
+    } catch (error) {
+      assistantLog('warn', 'storage_scope_reload_failed', { reason: error?.message || 'scope_reload_failed' });
+    }
+  });
+
   const panelPositionStorageKey = 'ai_assistant_panel_position_v1';
   const panelSizeStorageKey = 'ai_assistant_panel_size_v1';
   const historyPanelStorageKey = 'ai_assistant_history_panel_open_v1';
   const historyPanelWidthStorageKey = 'ai_assistant_history_panel_width_v1';
-  const knowledgeLibraryStorageKey = 'ai_assistant_knowledge_library_v1';
   const knowledgeLibraryLayoutStorageKey = 'ai_assistant_library_layout_v1';
-  const projectsStorageKey = 'ai_assistant_projects_v1';
-  const settingsStorageKey = 'ai_assistant_settings_v3';
   const sidebarProjectsCollapsedStorageKey = 'dbs_sidebar_projects_collapsed';
   const sidebarRecentChatsCollapsedStorageKey = 'dbs_sidebar_recent_chats_collapsed';
   const knowledgeLibraryDbName = 'digital_blue_skye_ai_library_v1';
