@@ -10742,26 +10742,34 @@
     return lines.slice(0, sourceStartIndex).join('\n').replace(/\n{3,}/g, '\n\n').trim();
   }
 
+  // ATTENTION aux classes de blancs ici : `\s` englobe les sauts de ligne. Un
+  // `\s{2,}` -> ' ' ecrasait donc chaque ligne vide du Markdown en simple
+  // espace, ce qui collait titres, paragraphes et items de liste les uns aux
+  // autres ("... et simple 2. Etape 2 — ..."). Ces nettoyages ne doivent
+  // toucher qu'aux espaces/tabulations D'UNE MEME LIGNE, jamais a la structure
+  // en blocs du Markdown.
   function stripUnsupportedCitationMarkers(rawText, maxSourceIndex = 0) {
     const maxIndex = Math.max(0, Number(maxSourceIndex) || 0);
     return String(rawText || '')
-      .replace(/\s*\[(\d{1,3})\]/g, (match, rawIndex) => {
+      .replace(/[ \t]*\[(\d{1,3})\]/g, (match, rawIndex) => {
         const index = Number(rawIndex);
         return index >= 1 && index <= maxIndex ? match : '';
       })
-      .replace(/\s{2,}/g, ' ')
+      .replace(/[ \t]{2,}/g, ' ')
       .replace(/\n[ \t]+/g, '\n')
       .trim();
   }
 
+  // Meme regle que stripUnsupportedCitationMarkers ci-dessus : on ne collapse
+  // que les espaces/tabulations d'une ligne, jamais les sauts de ligne.
   function stripUnsupportedRagCitationMarkers(rawText, validIds = []) {
     const validSet = new Set((validIds || []).map((id) => Number(id)).filter(Number.isFinite));
     return String(rawText || '')
-      .replace(/\s*\[S(\d{1,3})\]/gi, (match, rawIndex) => {
+      .replace(/[ \t]*\[S(\d{1,3})\]/gi, (match, rawIndex) => {
         const index = Number(rawIndex);
         return validSet.has(index) ? match : '';
       })
-      .replace(/\s{2,}/g, ' ')
+      .replace(/[ \t]{2,}/g, ' ')
       .replace(/\n[ \t]+/g, '\n')
       .trim();
   }
