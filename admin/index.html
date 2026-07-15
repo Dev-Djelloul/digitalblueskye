@@ -893,21 +893,18 @@
 
     .badge {
       display: inline-flex;
-      align-items: flex-start;
+      align-items: center;
       gap: 6px;
-      max-width: 150px;
+      max-width: 100%;
       min-height: 26px;
-      padding: 4px 10px;
+      padding: 3px 8px;
       border-radius: 999px;
       background: #eef3f8;
       color: #334155;
       font-size: 12px;
       font-weight: 600;
-      white-space: normal;
-      word-break: break-word;
-      overflow-wrap: break-word;
-      line-height: 1.4;
-      flex-wrap: wrap;
+      white-space: nowrap;
+      overflow-wrap: anywhere;
       transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
     }
 
@@ -3155,11 +3152,15 @@
       border-color: color-mix(in srgb, var(--score-color, var(--dash-cyan)) 28%, rgba(104, 128, 170, 0.2));
     }
 
+    /* La pastille reste ancree a droite du titre tant qu'il y a la place. Quand
+       la carte devient trop etroite (4 colonnes sous 1200px), c'est elle qui
+       passe a la ligne : le titre garde sa largeur et reste lisible. */
     .domain-card header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
+      gap: 8px 10px;
+      flex-wrap: wrap;
     }
 
     .domain-title {
@@ -3167,6 +3168,12 @@
       align-items: center;
       gap: 10px;
       min-width: 0;
+      flex: 1 1 auto;
+    }
+
+    /* La pastille garde sa taille intrinseque : jamais compressee, jamais coupee. */
+    .domain-card header .intel-badge {
+      flex: 0 0 auto;
     }
 
     .domain-icon {
@@ -3179,8 +3186,12 @@
       background: color-mix(in srgb, var(--score-color, var(--dash-cyan)) 16%, transparent);
     }
 
+    /* overflow-wrap : filet de securite pour un nom de domaine d'un seul mot plus
+       large que la carte. Le titre coupe alors plutot que de deborder. */
     .domain-title h3 {
       margin: 0;
+      min-width: 0;
+      overflow-wrap: anywhere;
       font-size: 15px;
       font-weight: 700;
     }
@@ -5093,24 +5104,23 @@
       font-weight: 700;
     }
 
+    /* Pilule d'etat : toujours sur une seule ligne. Les libelles qui l'alimentent
+       sont donc volontairement courts (cf. DOMAIN_STATUS_SHORT_LABELS). */
     .intel-badge {
       display: inline-flex;
-      align-items: flex-start;
-      justify-content: flex-start;
+      align-items: center;
+      justify-content: center;
       gap: 7px;
       min-height: 24px;
-      max-width: 160px;
+      max-width: 100%;
       width: fit-content;
       border-radius: 999px;
-      padding: 4px 10px;
+      padding: 3px 9px;
       background: rgba(104, 128, 170, 0.14);
       color: #c8d3ec;
       font-size: 12px;
       font-weight: 700;
-      white-space: normal;
-      word-break: break-word;
-      flex-wrap: wrap;
-      line-height: 1.3;
+      white-space: nowrap;
     }
 
     .intel-badge.sain,
@@ -7466,7 +7476,7 @@
       };
       const cssClass = (status === "non_mesure" || status === "aucune_donnee_recente") ? "non-mesure" : (status || "unavailable");
       const safeStatus = escapeHtml(cssClass);
-      return `<span class="badge ${safeStatus}">${statusDot()}<span style="flex: 1 1 auto; min-width: 0;">${escapeHtml(labels[status] || labels.unavailable)}</span></span>`;
+      return `<span class="badge ${safeStatus}">${statusDot()}${escapeHtml(labels[status] || labels.unavailable)}</span>`;
     }
 
     function verificationBadge(value) {
@@ -7476,7 +7486,7 @@
         failed: "Échec du contrôle",
       };
       const safe = value === "verified" || value === "partial" || value === "failed" ? value : "partial";
-      return `<span class="badge ${safe === "verified" ? "operational" : (safe === "failed" ? "unavailable" : "partial")}">${statusDot()}<span style="flex: 1 1 auto; min-width: 0;">${escapeHtml(labels[safe])}</span></span>`;
+      return `<span class="badge ${safe === "verified" ? "operational" : (safe === "failed" ? "unavailable" : "partial")}">${statusDot()}${escapeHtml(labels[safe])}</span>`;
     }
 
     function formatDate(value) {
@@ -11915,6 +11925,24 @@
       return map[String(status || "")] || "non-mesure";
     }
 
+    // .intel-badge est une pilule tenant sur une seule ligne : elle a besoin d'un
+    // libelle court. Le libelle backend (status_label, ex. "Fonctionnalite non
+    // developpee") reste descriptif pour les autres consommateurs de l'API et
+    // sert ici d'infobulle. Comme pour la classe CSS, on mappe sur la cle stable
+    // et jamais sur le libelle francais, qui peut etre reformule cote backend.
+    const DOMAIN_STATUS_SHORT_LABELS = {
+      operational: "Opérationnel",
+      degraded: "Dégradé",
+      quality_issue: "À surveiller",
+      limited_maturity: "Maturité limitée",
+      not_developed: "Non développé",
+      no_data: "Aucune donnée",
+    };
+
+    function domainStatusShortLabel(status, fallback) {
+      return DOMAIN_STATUS_SHORT_LABELS[String(status || "")] || fallback;
+    }
+
     // Dimension nullable (availability_score/quality_score/maturity_score) :
     // "non mesuré" si la donnée n'existe pas, jamais une valeur fabriquée.
     function renderDomainDimension(label, value) {
@@ -11927,6 +11955,8 @@
       const color = scoreColor(domain.score);
       const stats = domainStats(domain);
       const statusLabel = domain.status_label || scoreLabel(domain.score);
+      const badgeLabel = domainStatusShortLabel(domain.status, statusLabel);
+      const badgeTitle = badgeLabel === statusLabel ? "" : ` title="${escapeHtml(statusLabel)}"`;
       const explanation = String(domain.explanation || "").trim();
       return `
         <article class="domain-card" style="--score-color:${color}; animation-delay:${index * 18}ms;">
@@ -11935,7 +11965,7 @@
               <span class="domain-icon">${iconSvg(domainIcon(domain.domain))}</span>
               <h3>${escapeHtml(domain.domain)}</h3>
             </div>
-            <span class="intel-badge ${domainStatusBadgeClass(domain.status)}">${escapeHtml(statusLabel)}</span>
+            <span class="intel-badge ${domainStatusBadgeClass(domain.status)}"${badgeTitle}>${escapeHtml(badgeLabel)}</span>
           </header>
           <div class="domain-score">${domain.score === null || domain.score === undefined
             ? `<strong class="non-mesure">Non mesuré</strong>`
