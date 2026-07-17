@@ -13465,6 +13465,12 @@ button.ai-assistant-project-row {
   outline-offset: 3px;
 }
 
+/* Les lignes portent leur propre rythme vertical (padding + filet) : le gap du
+   conteneur ferait doublon. */
+.ai-assistant-project-settings .ai-assistant-project-rag-settings {
+  gap: 0;
+}
+
 .ai-assistant-project-check {
   align-items: center;
   display: flex !important;
@@ -13536,7 +13542,6 @@ button.ai-assistant-project-row {
   flex: 0 0 auto;
   height: 84px;
   justify-content: center;
-  overflow: hidden;
   position: relative;
   transition: border-color 0.15s ease, transform 0.12s ease;
   width: 84px;
@@ -13549,8 +13554,11 @@ button.ai-assistant-project-row {
   transform: translateY(-1px);
 }
 
+/* Le rognage vit ici (et non sur .ai-assistant-identity-photo) pour que le
+   badge appareil-photo puisse deborder de l'avatar sans etre coupe. */
 .ai-assistant-identity-photo-content {
   align-items: center;
+  border-radius: inherit;
   color: #fff;
   display: flex;
   font-family: var(--font-body);
@@ -13558,6 +13566,7 @@ button.ai-assistant-project-row {
   font-weight: 800;
   height: 100%;
   justify-content: center;
+  overflow: hidden;
   width: 100%;
 }
 
@@ -13568,24 +13577,34 @@ button.ai-assistant-project-row {
   width: 100%;
 }
 
-.ai-assistant-identity-photo-overlay {
+/* Badge appareil-photo toujours visible : porte a lui seul l'affordance
+   "changer la photo" (le bouton texte qui doublonnait a ete retire), et reste
+   decouvrable au toucher, contrairement a un survol. */
+.ai-assistant-identity-photo-badge {
   align-items: center;
-  background: rgb(10 10 24 / 55%);
-  bottom: 0;
+  background: rgb(10 10 24 / 82%);
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: 999px;
+  bottom: -2px;
+  color: rgb(246 247 255 / 92%);
   display: flex;
-  font-size: 1.1rem;
+  height: 26px;
   justify-content: center;
-  left: 0;
-  opacity: 0;
   position: absolute;
-  right: 0;
-  top: 0;
-  transition: opacity 0.15s ease;
+  right: -2px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  width: 26px;
 }
 
-.ai-assistant-identity-photo:hover .ai-assistant-identity-photo-overlay,
-.ai-assistant-identity-photo:focus-visible .ai-assistant-identity-photo-overlay {
-  opacity: 1;
+.ai-assistant-identity-photo-badge svg {
+  height: 14px;
+  width: 14px;
+}
+
+.ai-assistant-identity-photo:hover .ai-assistant-identity-photo-badge,
+.ai-assistant-identity-photo:focus-visible .ai-assistant-identity-photo-badge {
+  background: color-mix(in srgb, var(--project-color, #79e6ff) 55%, rgb(10 10 24 / 82%));
+  border-color: color-mix(in srgb, var(--project-color, #79e6ff) 75%, transparent);
 }
 
 .ai-assistant-identity-title {
@@ -13639,13 +13658,7 @@ button.ai-assistant-project-row {
   outline: none;
 }
 
-.ai-assistant-identity-photo-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.ai-assistant-identity-photo-actions button {
+.ai-assistant-identity-photo-remove {
   background: rgb(255 255 255 / 5%);
   border: 1px solid rgb(255 255 255 / 14%);
   border-radius: 8px;
@@ -13653,112 +13666,177 @@ button.ai-assistant-project-row {
   cursor: pointer;
   font-family: var(--font-body);
   font-size: 0.72rem;
+  justify-self: start;
   padding: 6px 11px;
   transition: background 0.15s ease;
 }
 
-.ai-assistant-identity-photo-actions button:hover {
+.ai-assistant-identity-photo-remove:hover {
   background: rgb(255 255 255 / 9%);
 }
 
-.ai-assistant-identity-style-row {
-  display: grid;
-  gap: 16px;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+.ai-assistant-identity-photo-remove[hidden] {
+  display: none;
 }
 
-.ai-assistant-identity-style-group {
+/* En-tete de section : titre + intention, pour que chaque reglage se lise sans
+   avoir a l'essayer. */
+.ai-assistant-settings-head {
   display: grid;
-  gap: 8px;
+  gap: 3px;
 }
 
-.ai-assistant-identity-style-label {
+.ai-assistant-settings-head p {
   color: rgb(235 240 255 / 55%);
   font-family: var(--font-body);
-  font-size: 0.7rem;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  margin: 0;
 }
 
-.ai-assistant-icon-picker {
+/* Ligne de reglage : libelle + aide a gauche, controle a droite, filet de
+   separation entre les lignes. Le <label> parent rend toute la ligne cliquable
+   pour les interrupteurs. */
+.ai-assistant-project-settings .ai-assistant-settings-row {
+  align-items: center;
+  border-bottom: 1px solid rgb(255 255 255 / 8%);
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  gap: 14px;
+  justify-content: space-between;
+  padding: 12px 0;
 }
 
-.ai-assistant-icon-choice {
-  background: rgb(255 255 255 / 5%);
-  border: 1px solid rgb(255 255 255 / 12%);
-  border-radius: 9px;
+.ai-assistant-project-settings .ai-assistant-settings-row:first-child {
+  padding-top: 0;
+}
+
+.ai-assistant-project-settings .ai-assistant-settings-row:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.ai-assistant-project-settings label.ai-assistant-settings-row {
   cursor: pointer;
-  font-size: 1.1rem;
-  height: 36px;
-  line-height: 1;
-  transition: background 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
-  width: 36px;
 }
 
-.ai-assistant-icon-choice:hover {
-  background: rgb(121 230 255 / 12%);
-  border-color: rgb(121 230 255 / 35%);
-  transform: translateY(-1px);
+.ai-assistant-settings-row-text {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
 }
 
-.ai-assistant-icon-choice.is-selected {
-  background: rgb(121 230 255 / 20%);
-  border-color: rgb(121 230 255 / 60%);
+.ai-assistant-settings-row-text strong {
+  color: rgb(246 247 255 / 92%);
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 600;
 }
 
-.ai-assistant-color-picker {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+.ai-assistant-settings-row-text small {
+  color: rgb(235 240 255 / 52%);
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  line-height: 1.4;
 }
 
-.ai-assistant-color-choice {
-  background: var(--swatch-color);
-  border: 2px solid transparent;
+/* Interrupteur : une case a cocher reste la source de verite (le gestionnaire
+   change lit .checked), seul le rendu change. */
+.ai-assistant-project-settings input.ai-assistant-switch {
+  appearance: none;
+  background: rgb(255 255 255 / 12%);
+  border: 1px solid rgb(255 255 255 / 16%);
   border-radius: 999px;
   cursor: pointer;
-  height: 30px;
+  flex: 0 0 auto;
+  height: 22px;
+  margin: 0;
   padding: 0;
   position: relative;
-  transition: transform 0.12s ease, border-color 0.15s ease;
-  width: 30px;
+  transition: background 0.18s ease, border-color 0.18s ease;
+  width: 38px;
 }
 
-.ai-assistant-color-choice:hover {
-  transform: translateY(-1px) scale(1.06);
-}
-
-.ai-assistant-color-choice.is-selected {
-  border-color: #fff;
-}
-
-.ai-assistant-color-choice.is-selected::after {
-  color: #fff;
-  content: '✓';
-  font-size: 0.8rem;
-  font-weight: 800;
-  left: 50%;
+.ai-assistant-project-settings input.ai-assistant-switch::after {
+  background: rgb(246 247 255 / 85%);
+  border-radius: 999px;
+  content: '';
+  height: 16px;
+  left: 2px;
   position: absolute;
-  text-shadow: 0 1px 3px rgb(0 0 0 / 45%);
   top: 50%;
-  transform: translate(-50%, -50%);
+  transform: translateY(-50%);
+  transition: left 0.18s ease, background 0.18s ease;
+  width: 16px;
 }
 
-.ai-assistant-color-choice--custom {
-  background: conic-gradient(from 180deg, #ff6b6b, #ffd166, #9df5c3, #6f9bff, #c822ff, #ff6b6b);
-  overflow: hidden;
+.ai-assistant-project-settings input.ai-assistant-switch:checked {
+  background: color-mix(in srgb, var(--project-color, #79e6ff) 60%, transparent);
+  border-color: color-mix(in srgb, var(--project-color, #79e6ff) 75%, transparent);
 }
 
-.ai-assistant-color-choice--custom input {
+.ai-assistant-project-settings input.ai-assistant-switch:checked::after {
+  background: #fff;
+  left: 18px;
+}
+
+.ai-assistant-project-settings input.ai-assistant-switch:focus-visible {
+  outline: 2px solid rgb(121 230 255 / 55%);
+  outline-offset: 2px;
+}
+
+/* Controle segmente : remplace un <select> pleine largeur pour trois valeurs. */
+.ai-assistant-segmented {
+  background: rgb(255 255 255 / 6%);
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 9px;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 2px;
+  padding: 2px;
+}
+
+/* Selecteur porte par .ai-assistant-project-settings : sans lui, la regle
+   generique ".ai-assistant-project-settings label { display: grid }" gagnerait. */
+.ai-assistant-project-settings .ai-assistant-segmented-option {
   cursor: pointer;
-  height: 100%;
+  display: block;
+  gap: 0;
+  margin: 0;
+}
+
+.ai-assistant-project-settings .ai-assistant-segmented-option input {
+  height: 1px;
   opacity: 0;
+  pointer-events: none;
   position: absolute;
-  inset: 0;
-  width: 100%;
+  width: 1px;
+}
+
+.ai-assistant-segmented-option span {
+  border-radius: 7px;
+  color: rgb(235 240 255 / 62%);
+  display: block;
+  font-family: var(--font-body);
+  font-size: 0.74rem;
+  font-weight: 600;
+  min-width: 34px;
+  padding: 5px 0;
+  text-align: center;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.ai-assistant-segmented-option:hover span {
+  color: rgb(246 247 255 / 90%);
+}
+
+.ai-assistant-segmented-option input:checked + span {
+  background: color-mix(in srgb, var(--project-color, #79e6ff) 26%, rgb(255 255 255 / 10%));
+  color: #fff;
+}
+
+.ai-assistant-segmented-option input:focus-visible + span {
+  outline: 2px solid rgb(121 230 255 / 55%);
+  outline-offset: 1px;
 }
 
 .ai-assistant-settings-danger {
@@ -13766,10 +13844,7 @@ button.ai-assistant-project-row {
 }
 
 .ai-assistant-settings-danger-actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-around;
-  gap: 8px;
+  display: grid;
 }
 
 .ai-assistant-settings-danger-btn {
@@ -13778,10 +13853,12 @@ button.ai-assistant-project-row {
   border-radius: 9px;
   color: rgb(246 247 255 / 88%);
   cursor: pointer;
+  flex: 0 0 auto;
   font-family: var(--font-body);
   font-size: 0.76rem;
-  padding: 8px 12px;
+  padding: 8px 14px;
   transition: background 0.15s ease, border-color 0.15s ease;
+  white-space: nowrap;
 }
 
 .ai-assistant-settings-danger-btn--amber {
@@ -14049,18 +14126,41 @@ button.ai-assistant-project-row {
   color: rgb(47 43 95 / 68%);
 }
 
-[data-theme="light"] .ai-assistant-identity-style-label {
-  color: rgb(47 43 95 / 55%);
-}
-
-[data-theme="light"] .ai-assistant-identity-photo-actions button {
+[data-theme="light"] .ai-assistant-identity-photo-remove {
   background: rgb(93 93 255 / 5%);
   border-color: rgb(93 93 255 / 14%);
   color: rgb(47 43 95 / 88%);
 }
 
-[data-theme="light"] .ai-assistant-identity-photo-actions button:hover {
+[data-theme="light"] .ai-assistant-identity-photo-remove:hover {
   background: rgb(93 93 255 / 10%);
+}
+
+[data-theme="light"] .ai-assistant-settings-head p,
+[data-theme="light"] .ai-assistant-settings-row-text small {
+  color: rgb(47 43 95 / 58%);
+}
+
+[data-theme="light"] .ai-assistant-settings-row-text strong {
+  color: #2f2b5f;
+}
+
+[data-theme="light"] .ai-assistant-project-settings .ai-assistant-settings-row {
+  border-bottom-color: rgb(93 93 255 / 12%);
+}
+
+[data-theme="light"] .ai-assistant-project-settings input.ai-assistant-switch {
+  background: rgb(93 93 255 / 14%);
+  border-color: rgb(93 93 255 / 18%);
+}
+
+[data-theme="light"] .ai-assistant-segmented {
+  background: rgb(93 93 255 / 6%);
+  border-color: rgb(93 93 255 / 14%);
+}
+
+[data-theme="light"] .ai-assistant-segmented-option span {
+  color: rgb(47 43 95 / 62%);
 }
 
 [data-theme="light"] .ai-assistant-stats-hero-value {
@@ -14070,11 +14170,6 @@ button.ai-assistant-project-row {
 [data-theme="light"] .ai-assistant-stats-hero {
   background: linear-gradient(180deg, rgb(255 255 255 / 99%), rgb(245 244 255 / 99%));
   border-color: rgb(93 93 255 / 18%);
-}
-
-[data-theme="light"] .ai-assistant-icon-choice {
-  background: rgb(93 93 255 / 5%);
-  border-color: rgb(93 93 255 / 14%);
 }
 
 [data-theme="light"] .ai-assistant-stats-pill {

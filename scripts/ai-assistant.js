@@ -5795,8 +5795,6 @@
     );
   }
 
-  const PROJECT_ICON_CHOICES = ['📁', '🚀', '🎯', '💡', '📚', '🧠', '🛠️', '🌍', '📈', '🎨', '🔬', '✈️'];
-  const PROJECT_COLOR_CHOICES = ['#79e6ff', '#9d7dff', '#c822ff', '#ff6bcb', '#ff8a65', '#ffd166', '#9df5c3', '#34dbc0', '#6f9bff', '#ff6b6b'];
 
   // Modale de confirmation stylisee, remplace window.confirm() pour les actions
   // de la Zone de danger (coherence visuelle avec le reste de l'assistant).
@@ -5880,61 +5878,98 @@
         <div class="ai-assistant-identity-header">
           <div class="ai-assistant-identity-photo" data-photo-trigger tabindex="0" role="button" aria-label="${en ? 'Change project photo' : 'Changer la photo du projet'}">
             <span class="ai-assistant-identity-photo-content" data-photo-content></span>
-            <span class="ai-assistant-identity-photo-overlay" aria-hidden="true">📷</span>
+            <span class="ai-assistant-identity-photo-badge" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                <circle cx="12" cy="13" r="4"></circle>
+              </svg>
+            </span>
           </div>
           <div class="ai-assistant-identity-title">
             <input data-field="name" class="ai-assistant-identity-name-input" value="${escapeHtml(project.name)}" placeholder="${en ? 'Project name' : 'Nom du projet'}" maxlength="120">
-            <textarea data-field="description" class="ai-assistant-identity-desc-input" rows="4" placeholder="${en ? 'Add a description…' : 'Ajouter une description…'}">${escapeHtml(project.description || '')}</textarea>
-            <div class="ai-assistant-identity-photo-actions">
-              <button type="button" data-photo-action="upload">${en ? 'Change photo' : 'Changer la photo'}</button>
-              <button type="button" data-photo-action="remove" ${project.iconImage ? '' : 'hidden'}>${en ? 'Remove photo' : 'Retirer la photo'}</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="ai-assistant-identity-style-row">
-          <div class="ai-assistant-identity-style-group">
-            <span class="ai-assistant-identity-style-label">${en ? 'Icon' : 'Icône'}</span>
-            <div class="ai-assistant-icon-picker" role="group" aria-label="${en ? 'Choose an icon' : 'Choisir une icône'}">
-              ${PROJECT_ICON_CHOICES.map((emoji) => `<button type="button" class="ai-assistant-icon-choice" data-icon-choice="${emoji}">${emoji}</button>`).join('')}
-            </div>
-          </div>
-          <div class="ai-assistant-identity-style-group">
-            <span class="ai-assistant-identity-style-label">${en ? 'Color' : 'Couleur'}</span>
-            <div class="ai-assistant-color-picker" role="group" aria-label="${en ? 'Choose a color' : 'Choisir une couleur'}">
-              ${PROJECT_COLOR_CHOICES.map((color) => `<button type="button" class="ai-assistant-color-choice" data-color-choice="${color}" style="--swatch-color:${color}" aria-label="${color}"></button>`).join('')}
-              <button type="button" class="ai-assistant-color-choice ai-assistant-color-choice--custom" data-color-custom aria-label="${en ? 'Custom color' : 'Couleur personnalisée'}">
-                <input type="color" data-field="color" value="${escapeHtml(project.color)}" tabindex="-1" aria-hidden="true">
-              </button>
-            </div>
+            <textarea data-field="description" class="ai-assistant-identity-desc-input" rows="3" placeholder="${en ? 'Add a description…' : 'Ajouter une description…'}">${escapeHtml(project.description || '')}</textarea>
+            <button type="button" data-photo-action="remove" class="ai-assistant-identity-photo-remove" ${project.iconImage ? '' : 'hidden'}>${en ? 'Remove photo' : 'Retirer la photo'}</button>
           </div>
         </div>
       </section>
 
       <section class="ai-assistant-settings-section">
-        <h4>${en ? 'RAG behavior' : 'Comportement RAG'}</h4>
+        <div class="ai-assistant-settings-head">
+          <h4>${en ? 'RAG behavior' : 'Comportement RAG'}</h4>
+          <p>${en ? 'How this project uses its documents to answer.' : 'Comment ce projet exploite ses documents pour répondre.'}</p>
+        </div>
         <div id="project-rag-settings" class="ai-assistant-project-rag-settings" data-project-rag-settings tabindex="-1" aria-label="${en ? 'Project RAG settings' : 'Réglages RAG du projet'}">
-          <label class="ai-assistant-project-check"><input data-field="ragEnabled" type="checkbox"><span>${en ? 'Enable RAG for this project' : 'Activer le RAG pour ce projet'}</span></label>
-          <label>${en ? 'Number of document passages used' : 'Nombre de passages documentaires utilisés'}<select data-field="ragMaxPassages">
-            <option value="3">3</option>
-            <option value="5">5</option>
-            <option value="8">8</option>
-          </select></label>
-          <label class="ai-assistant-project-check"><input data-field="ragUseGlobalLibrary" type="checkbox"><span>${en ? 'Use the global library' : 'Utiliser la bibliothèque globale'}</span></label>
-          <label class="ai-assistant-project-check"><input data-field="ragCitations" type="checkbox"><span>${en ? 'Cite sources in answers' : 'Citer les sources dans les réponses'}</span></label>
+          <label class="ai-assistant-settings-row">
+            <span class="ai-assistant-settings-row-text">
+              <strong>${en ? 'Enable RAG for this project' : 'Activer le RAG pour ce projet'}</strong>
+              <small>${en ? 'Answers draw on the sources linked to the project.' : 'Les réponses s’appuient sur les sources liées au projet.'}</small>
+            </span>
+            <input data-field="ragEnabled" type="checkbox" class="ai-assistant-switch">
+          </label>
+          <div class="ai-assistant-settings-row">
+            <span class="ai-assistant-settings-row-text">
+              <strong>${en ? 'Document passages' : 'Passages documentaires'}</strong>
+              <small>${en ? 'Number of extracts injected into the context.' : 'Nombre d’extraits injectés dans le contexte.'}</small>
+            </span>
+            <div class="ai-assistant-segmented" role="radiogroup" aria-label="${en ? 'Number of document passages used' : 'Nombre de passages documentaires utilisés'}">
+              ${[3, 5, 8].map((count) => `
+                <label class="ai-assistant-segmented-option">
+                  <input type="radio" name="ragMaxPassages-${escapeHtml(project.id)}" data-field="ragMaxPassages" value="${count}">
+                  <span>${count}</span>
+                </label>`).join('')}
+            </div>
+          </div>
+          <label class="ai-assistant-settings-row">
+            <span class="ai-assistant-settings-row-text">
+              <strong>${en ? 'Use the global library' : 'Utiliser la bibliothèque globale'}</strong>
+              <small>${en ? 'Also search documents outside this project.' : 'Cherche aussi dans les documents hors de ce projet.'}</small>
+            </span>
+            <input data-field="ragUseGlobalLibrary" type="checkbox" class="ai-assistant-switch">
+          </label>
+          <label class="ai-assistant-settings-row">
+            <span class="ai-assistant-settings-row-text">
+              <strong>${en ? 'Cite sources in answers' : 'Citer les sources dans les réponses'}</strong>
+              <small>${en ? 'Each answer lists the documents it relied on.' : 'Chaque réponse indique les documents utilisés.'}</small>
+            </span>
+            <input data-field="ragCitations" type="checkbox" class="ai-assistant-switch">
+          </label>
         </div>
       </section>
 
       <section class="ai-assistant-settings-section ai-assistant-settings-danger">
+        <header class="ai-assistant-settings-head">
+          <h4>${en ? 'Sensitive zone' : 'Zone sensible'}</h4>
+          <p>${en ? 'These actions cannot be undone.' : 'Ces actions sont irréversibles.'}</p>
+        </header>
         <div class="ai-assistant-settings-danger-actions">
-          <button type="button" data-danger-action="clear-memory" class="ai-assistant-settings-danger-btn ai-assistant-settings-danger-btn--amber">${en ? 'Clear project memory' : 'Vider la mémoire du projet'}</button>
-          <button type="button" data-danger-action="unlink-sources" class="ai-assistant-settings-danger-btn ai-assistant-settings-danger-btn--purple">${en ? 'Unlink all sources' : 'Délier toutes les sources'}</button>
-          <button type="button" data-danger-action="delete-project" class="ai-assistant-settings-danger-btn ai-assistant-settings-danger-btn--red">${en ? 'Delete project' : 'Supprimer le projet'}</button>
+          <div class="ai-assistant-settings-row">
+            <span class="ai-assistant-settings-row-text">
+              <strong>${en ? 'Clear project memory' : 'Vider la mémoire du projet'}</strong>
+              <small>${en ? 'Erases what the assistant remembers. Conversations are kept.' : 'Efface ce que l’assistant a retenu. Les conversations sont conservées.'}</small>
+            </span>
+            <button type="button" data-danger-action="clear-memory" class="ai-assistant-settings-danger-btn ai-assistant-settings-danger-btn--amber">${en ? 'Clear' : 'Vider'}</button>
+          </div>
+          <div class="ai-assistant-settings-row">
+            <span class="ai-assistant-settings-row-text">
+              <strong>${en ? 'Unlink all sources' : 'Délier toutes les sources'}</strong>
+              <small>${en ? 'Detaches the documents. The files stay in the library.' : 'Détache les documents. Les fichiers restent dans la bibliothèque.'}</small>
+            </span>
+            <button type="button" data-danger-action="unlink-sources" class="ai-assistant-settings-danger-btn ai-assistant-settings-danger-btn--purple">${en ? 'Unlink' : 'Délier'}</button>
+          </div>
+          <div class="ai-assistant-settings-row">
+            <span class="ai-assistant-settings-row-text">
+              <strong>${en ? 'Delete project' : 'Supprimer le projet'}</strong>
+              <small>${en ? 'Removes the project, its memory and its conversations.' : 'Supprime le projet, sa mémoire et ses conversations.'}</small>
+            </span>
+            <button type="button" data-danger-action="delete-project" class="ai-assistant-settings-danger-btn ai-assistant-settings-danger-btn--red">${en ? 'Delete' : 'Supprimer'}</button>
+          </div>
         </div>
       </section>`;
 
-    const maxPassages = form.querySelector('[data-field="ragMaxPassages"]');
-    if (maxPassages) maxPassages.value = String(project.ragMaxPassages || 5);
+    // Controle segmente (radios) et non plus un <select> : on coche l'option
+    // correspondante. normalizeProject() garantit une valeur dans [3, 5, 8].
+    const maxPassages = form.querySelector(`[data-field="ragMaxPassages"][value="${project.ragMaxPassages || 5}"]`);
+    if (maxPassages) maxPassages.checked = true;
     const ragEnabled = form.querySelector('[data-field="ragEnabled"]');
     if (ragEnabled) ragEnabled.checked = project.ragEnabled !== false;
     const ragUseGlobalLibrary = form.querySelector('[data-field="ragUseGlobalLibrary"]');
@@ -5959,51 +5994,12 @@
         }
       }
       if (removeBtn) removeBtn.hidden = !project.iconImage;
-      form.querySelectorAll('[data-icon-choice]').forEach((button) => {
-        button.classList.toggle('is-selected', !project.iconImage && button.dataset.iconChoice === project.icon);
-      });
-      form.querySelectorAll('[data-color-choice]').forEach((button) => {
-        button.classList.toggle('is-selected', button.dataset.colorChoice === project.color);
-      });
     };
     updateIdentity();
 
-    form.querySelectorAll('[data-icon-choice]').forEach((button) => {
-      button.addEventListener('click', () => {
-        project.icon = button.dataset.iconChoice;
-        project.iconImage = '';
-        project.updatedAt = Date.now();
-        saveProjectsState();
-        updateIdentity();
-        renderProjectList();
-      });
-    });
-
-    form.querySelectorAll('[data-color-choice]').forEach((button) => {
-      button.addEventListener('click', () => {
-        project.color = button.dataset.colorChoice;
-        project.updatedAt = Date.now();
-        const colorField = form.querySelector('[data-field="color"]');
-        if (colorField) colorField.value = project.color;
-        saveProjectsState();
-        updateIdentity();
-        renderProjectList();
-      });
-    });
-
-    form.querySelector('[data-color-custom]')?.addEventListener('click', (event) => {
-      if (event.target.closest('input')) return;
-      form.querySelector('[data-field="color"]')?.click();
-    });
-
-    form.querySelector('[data-field="color"]')?.addEventListener('input', (event) => {
-      project.color = event.target.value;
-      project.updatedAt = Date.now();
-      saveProjectsState();
-      updateIdentity();
-      renderProjectList();
-    });
-
+    // L'avatar est le seul declencheur d'import : le bouton "Changer la photo"
+    // faisait doublon avec lui. Le badge appareil-photo (toujours visible, pas
+    // seulement au survol) porte l'affordance, y compris au toucher.
     const triggerPhotoUpload = async () => {
       await importProjectIconImage(project);
       updateIdentity();
@@ -6012,7 +6008,6 @@
     form.querySelector('[data-photo-trigger]')?.addEventListener('keydown', (event) => {
       if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); triggerPhotoUpload(); }
     });
-    form.querySelector('[data-photo-action="upload"]')?.addEventListener('click', triggerPhotoUpload);
     form.querySelector('[data-photo-action="remove"]')?.addEventListener('click', () => {
       project.iconImage = '';
       project.updatedAt = Date.now();
@@ -6028,7 +6023,7 @@
 
     form.addEventListener('change', (event) => {
       const field = event.target?.dataset?.field;
-      if (!field || field === 'color') return;
+      if (!field) return;
       if (['ragEnabled', 'ragUseGlobalLibrary', 'ragCitations'].includes(field)) {
         project[field] = Boolean(event.target.checked);
       } else if (field === 'ragMaxPassages') {

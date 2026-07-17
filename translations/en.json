@@ -106,15 +106,16 @@
     "pageTitle": "Projects - Digitalblueskye Blog",
     "allTitle": "My web projects",
     "viewLive": "Learn more about this project",
-    "viewRidingCities": "Explore the Riding Cities HTML/CSS project",
-    "viewBooki": "See front-end skills applied to the Booki project",
-    "viewOhmyfood": "Review CSS animations in the Ohmyfood project",
-    "viewPrintIt": "Discover the Print it JavaScript project",
-    "viewSophieBluel": "Study API integration in the Sophie Bluel project",
-    "viewMemoryGame": "View the JavaScript logic in Memory Game",
-    "viewArcadiaZoo": "Explore the Arcadia Zoo full-stack project",
-    "viewBudgetBuddy": "Discover the Budget Buddy React project",
-    "viewTetrisWindsurf": "Try the Tetris Windsurf WebGL project"
+    "viewRidingCities": "Discover the Riding Cities project",
+    "viewBooki": "Discover the Booki project",
+    "viewOhmyfood": "Discover the Ohmyfood project",
+    "viewPrintIt": "Discover the Print It project",
+    "viewSophieBluel": "Discover the Sophie Bluel project",
+    "viewMemoryGame": "Discover the Memory Game project",
+    "viewArcadiaZoo": "Discover the Arcadia Zoo project",
+    "viewBudgetBuddy": "Discover the Budget Buddy project",
+    "viewTetrisWindsurf": "Discover the Tetris Windsurf project",
+    "viewFermeDesAmandiers": "Discover the Ferme des Amandiers project"
   },
   "assistant": {
     "launcher": "Digital AI",
@@ -347,7 +348,8 @@
     "memoryGame": "MEMORY GAME",
     "arcadiaZoo": "ARCADIA ZOO",
     "budgetBuddy": "BUDGET BUDDY",
-    "tetrisWindsurf": "TETRIS WINDSURF"
+    "tetrisWindsurf": "TETRIS WINDSURF",
+    "fermeDesAmandiers": "FERME DES AMANDIERS"
   },
   "projectNames": {
     "ridingCities": "Riding Cities",
@@ -358,7 +360,8 @@
     "memoryGame": "Memory Game",
     "arcadiaZoo": "Arcadia Zoo",
     "budgetBuddy": "Budget Buddy",
-    "tetrisWindsurf": "Tetris Windsurf"
+    "tetrisWindsurf": "Tetris Windsurf",
+    "fermeDesAmandiers": "Ferme des Amandiers"
   },
   "projectDescriptions": {
     "ridingCities": {
@@ -396,6 +399,10 @@
     "tetrisWindsurf": {
       "short": "Tetris-inspired windsurfing game",
       "full": "Tetris Windsurf is a fun and engaging video game developed with HTML, CSS, JavaScript, and WebGL. It was designed to be accessible across multiple devices, with a responsive interface and intuitive controls. This project was completed as part of my training with Studi to master modern web development tools."
+    },
+    "fermeDesAmandiers": {
+      "short": "Dynamic showcase website for a market garden farm",
+      "full": "Ferme des Amandiers is an OpenClassrooms project focused on a dynamic showcase website that displays seasonal baskets available for pickup on Wednesday and Saturday. The project emphasizes a clear, responsive interface designed for easy maintenance."
     }
   },
   "projectDetails": {
@@ -474,6 +481,13 @@
       "objective": "The objective of this project was to create a fun and engaging video game that combines the logic of the famous Tetris game with a water sports theme. This game was designed to be accessible on different devices, with a responsive interface and intuitive controls for all types of users.",
       "technologiesDetail": "This project was developed using vanilla JavaScript for game logic and interactions, HTML5 Canvas for graphical rendering of game elements, and CSS3 for user interface styling. I also implemented WebGL for certain advanced visual effects like water particles and light reflections. The responsive design allows for an optimal experience on all devices, from smartphones to wide screens.",
       "challengesSolutions": "The main challenge was adapting Tetris' classic game mechanics to a windsurfing theme while maintaining fluid and intuitive gameplay. I solved this problem by designing custom Tetris pieces that resemble windsurfing elements and adding visual effects such as waves and water splashes to enhance the nautical atmosphere. Another challenge was optimizing performance for mobile devices, which I solved by implementing efficient rendering techniques and adapting graphical complexity based on device capabilities."
+    },
+    "fermeDesAmandiers": {
+      "title": "Ferme des Amandiers - Digitalblueskye Portfolio",
+      "headerTitle": "FERME DES AMANDIERS PROJECT",
+      "objective": "The objective of this project was to create a dynamic showcase website for a market garden farm, with a clear emphasis on seasonal baskets available for pickup. The site had to offer a smooth, responsive experience that was easy to maintain.",
+      "technologiesDetail": "I developed this project with HTML5 and CSS3 for structure and styling, while integrating content that could be easily updated for basket availability. The focus was on a clear, responsive interface suited to the site's purpose.",
+      "challengesSolutions": "The main challenge was to create a site that was easy to maintain while remaining attractive and informative. I solved this by structuring the content clearly and setting up a presentation logic tailored to seasonal information and availability constraints."
     }
   },
   "navigation": {
