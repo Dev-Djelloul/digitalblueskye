@@ -285,10 +285,15 @@
             <circle cx="700" cy="750" r="10" class="skills-dots" data-category="design" onclick="toggleSkillsCategory('design')"/>
             <text x="720" y="770" class="skills-branch-label" text-anchor="start" data-category="design" onclick="toggleSkillsCategory('design')" data-i18n="skills.design">Design</text>
 
-            <!-- Tools -->
-            <line x1="500" y1="500" x2="300" y2="750" class="skills-star-line"/>
-            <circle cx="300" cy="750" r="10" class="skills-dots" data-category="tools" onclick="toggleSkillsCategory('tools')"/>
-            <text x="280" y="770" class="skills-branch-label" text-anchor="end" data-category="tools" onclick="toggleSkillsCategory('tools')" data-i18n="skills.tools">Tools</text>
+            <!-- Tools & IA -->
+            <line x1="500" y1="500" x2="200" y2="650" class="skills-star-line"/>
+            <circle cx="200" cy="650" r="10" class="skills-dots" data-category="tools-ia" onclick="toggleSkillsCategory('tools-ia')"/>
+            <text x="170" y="680" class="skills-branch-label" text-anchor="end" data-category="tools-ia" onclick="toggleSkillsCategory('tools-ia')">Tools & IA</text>
+
+            <!-- PM & Agile -->
+            <line x1="500" y1="500" x2="800" y2="650" class="skills-star-line"/>
+            <circle cx="800" cy="650" r="10" class="skills-dots" data-category="pm-agile" onclick="toggleSkillsCategory('pm-agile')"/>
+            <text x="830" y="680" class="skills-branch-label" text-anchor="start" data-category="pm-agile" onclick="toggleSkillsCategory('pm-agile')">PM & Agile</text>
 
             <!-- Centre -->
             <circle cx="500" cy="500" r="50" class="skills-center-dot"/>
@@ -298,256 +303,61 @@
 
         <div class="skills-categories">
           <!-- Frontend -->
-          <div class="skills-category" data-category="frontend" data-aos="fade-up">
+          <div class="skills-category" data-category="frontend">
             <h3 class="category-title" data-i18n="skills.frontend">Frontend</h3>
-            <div class="skills-grid">
-              <div class="skill">
-                <a
-                  href="https://developer.mozilla.org/fr/docs/Web/HTML"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="skill-icon"
-                >
-                  <img src="/assets/images/ui/icons8-html5-50.png" alt="HTML5" />
-                </a>
-                <p>HTML5</p>
-              </div>
-              <div class="skill">
-                <a
-                  href="https://developer.mozilla.org/fr/docs/Web/CSS"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="skill-icon"
-                >
-                  <img src="/assets/images/ui/icons8-css3-50.png" alt="CSS3" />
-                </a>
-                <p>CSS3</p>
-              </div>
-              <div class="skill">
-                <a
-                  href="https://developer.mozilla.org/fr/docs/Web/JavaScript"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="skill-icon"
-                >
-                  <img
-                    src="/assets/images/ui/icons8-javascript-48.png"
-                    alt="JavaScript"
-                  />
-                </a>
-                <p>JavaScript</p>
-              </div>
-              <div class="skill">
-                <a
-                  href="https://getbootstrap.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="skill-icon"
-                >
-                  <img
-                    src="/assets/images/ui/icons8-bootstrap-48.png"
-                    alt="Bootstrap"
-                  />
-                </a>
-                <p>Bootstrap</p>
-              </div>
-              <div class="skill">
-                <a
-                  href="https://reactjs.org/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="skill-icon"
-                >
-                  <img src="/assets/images/ui/icons8-react-48.png" alt="React" />
-                </a>
-                <p>React</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Design -->
-          <div class="skills-category" data-category="design" data-aos="fade-up">
-            <h3 class="category-title" data-i18n="skills.design">Design</h3>
-            <div class="skills-grid">
-              <div class="skill">
-                <a
-                  href="https://www.canva.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="skill-icon"
-                >
-                  <img src="/assets/images/ui/icons8-canva-48.png" alt="Canva" />
-                </a>
-                <p>Canva</p>
-              </div>
-              <div class="skill">
-                <a
-                  href="https://www.figma.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="skill-icon"
-                >
-                  <img src="/assets/images/ui/icons8-figma-48.png" alt="Figma" />
-                </a>
-                <p>Figma</p>
-              </div>
+            <div class="skills-compact-grid">
+              <a href="https://developer.mozilla.org/fr/docs/Web/HTML" target="_blank" rel="noopener noreferrer" class="skill-compact" title="HTML5"><img src="/assets/images/ui/icons8-html5-50.png" alt="HTML5" /><span>HTML5</span></a>
+              <a href="https://developer.mozilla.org/fr/docs/Web/CSS" target="_blank" rel="noopener noreferrer" class="skill-compact" title="CSS3"><img src="/assets/images/ui/icons8-css3-50.png" alt="CSS3" /><span>CSS3</span></a>
+              <a href="https://developer.mozilla.org/fr/docs/Web/JavaScript" target="_blank" rel="noopener noreferrer" class="skill-compact" title="JavaScript"><img src="/assets/images/ui/icons8-javascript-48.png" alt="JavaScript" /><span>JavaScript</span></a>
+              <a href="https://getbootstrap.com/" target="_blank" rel="noopener noreferrer" class="skill-compact" title="Bootstrap"><img src="/assets/images/ui/icons8-bootstrap-48.png" alt="Bootstrap" /><span>Bootstrap</span></a>
+              <a href="https://reactjs.org/" target="_blank" rel="noopener noreferrer" class="skill-compact" title="React"><img src="/assets/images/ui/icons8-react-48.png" alt="React" /><span>React</span></a>
             </div>
           </div>
 
           <!-- Backend -->
-          <div class="skills-category" data-category="backend" data-aos="fade-up">
+          <div class="skills-category" data-category="backend">
             <h3 class="category-title" data-i18n="skills.backend">Backend</h3>
-            <div class="skills-grid">
-              <div class="skill">
-                <a
-                  href="https://www.php.net/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="skill-icon"
-                >
-                  <img src="/assets/images/ui/icons8-php-48.png" alt="PHP" />
-                </a>
-                <p>PHP</p>
-              </div>
-              <div class="skill">
-                <a
-                  href="https://nodejs.org/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="skill-icon"
-                >
-                  <img src="/assets/images/ui/icons8-node-js-48.png" alt="Node.js" />
-                </a>
-                <p>Node.js</p>
-              </div>
-              <div class="skill">
-                <a
-                  href="https://www.mysql.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="skill-icon"
-                >
-                  <img src="/assets/images/ui/icons8-mysql-48.png" alt="MySQL" />
-                </a>
-                <p>MySQL</p>
-              </div>
-              <div class="skill">
-                <a
-                  href="https://www.mongodb.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="skill-icon"
-                >
-                  <img src="/assets/images/ui/icons8-mongodb-48.png" alt="MongoDB" />
-                </a>
-                <p>MongoDB</p>
-              </div>
+            <div class="skills-compact-grid">
+              <a href="https://www.php.net/" target="_blank" rel="noopener noreferrer" class="skill-compact" title="PHP"><img src="/assets/images/ui/icons8-php-48.png" alt="PHP" /><span>PHP</span></a>
+              <a href="https://nodejs.org/" target="_blank" rel="noopener noreferrer" class="skill-compact" title="Node.js"><img src="/assets/images/ui/icons8-node-js-48.png" alt="Node.js" /><span>Node.js</span></a>
+              <a href="https://www.mysql.com/" target="_blank" rel="noopener noreferrer" class="skill-compact" title="MySQL"><img src="/assets/images/ui/icons8-mysql-48.png" alt="MySQL" /><span>MySQL</span></a>
+              <a href="https://www.mongodb.com/" target="_blank" rel="noopener noreferrer" class="skill-compact" title="MongoDB"><img src="/assets/images/ui/icons8-mongodb-48.png" alt="MongoDB" /><span>MongoDB</span></a>
             </div>
           </div>
 
-          <!-- Environnement & Outils -->
-          <div class="skills-category" data-category="tools" data-aos="fade-up">
-            <h3 class="category-title" data-i18n="skills.tools">Environnement & Outils</h3>
-            <div class="skills-grid">
-              <div class="skill">
-                <a
-                  href="https://github.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="skill-icon"
-                >
-                  <img src="/assets/images/ui/icons8-github-64.png" alt="GitHub" />
-                </a>
-                <p>GitHub</p>
-              </div>
-              <div class="skill">
-                <a
-                  href="https://code.visualstudio.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="skill-icon"
-                >
-                  <img src="/assets/images/ui/icons8-vs-code-48.png" alt="VS Code" />
-                </a>
-                <p>VS Code</p>
-              </div>
-              <div class="skill">
-                <a
-                  href="https://www.heroku.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="skill-icon"
-                >
-                  <img src="/assets/images/ui/icons8-heroku-48.png" alt="Heroku" />
-                </a>
-                <p>Heroku</p>
-              </div>
-              <div class="skill">
-                <a
-                  href="https://www.netlify.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="skill-icon"
-                >
-                  <img src="/assets/images/ui/icons8-netlify-48.png" alt="Netlify" />
-                </a>
-                <p>Netlify</p>
-              </div>
-              <div class="skill">
-                <a
-                  href="https://chatgpt.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="skill-icon"
-                >
-                  <img src="/assets/images/ui/icons8-chatgpt-50.png" alt="ChatGPT" />
-                </a>
-                <p>ChatGPT</p>
-              </div>
-              <div class="skill">
-                <a
-                  href="https://claude.ai/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="skill-icon"
-                >
-                  <img src="/assets/images/ui/icons8-claude-48.png" alt="Claude" />
-                </a>
-                <p>Claude</p>
-              </div>
-              <div class="skill">
-                <a
-                  href="https://gemini.google.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="skill-icon"
-                >
-                  <img src="/assets/images/ui/gemini_logo.png" alt="Gemini" />
-                </a>
-                <p>Gemini</p>
-              </div>
-              <div class="skill">
-                <a
-                  href="https://copilot.microsoft.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="skill-icon"
-                >
-                  <img src="/assets/images/ui/icons8-3d-microsoft-copilot-logo-94.png" alt="Microsoft Copilot" />
-                </a>
-                <p>Copilot</p>
-              </div>
-              <div class="skill">
-                <a
-                  href="https://www.microsoft.com/fr-fr/microsoft-365"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="skill-icon"
-                >
-                  <img src="/assets/images/ui/icons8-microsoft-office-2019-48.png" alt="Microsoft Pack Office" />
-                </a>
-                <p>Pack Office</p>
-              </div>
+          <!-- Design -->
+          <div class="skills-category" data-category="design">
+            <h3 class="category-title" data-i18n="skills.design">Design</h3>
+            <div class="skills-compact-grid">
+              <a href="https://www.canva.com/" target="_blank" rel="noopener noreferrer" class="skill-compact" title="Canva"><img src="/assets/images/ui/icons8-canva-48.png" alt="Canva" /><span>Canva</span></a>
+              <a href="https://www.figma.com/" target="_blank" rel="noopener noreferrer" class="skill-compact" title="Figma"><img src="/assets/images/ui/icons8-figma-48.png" alt="Figma" /><span>Figma</span></a>
+            </div>
+          </div>
+
+          <!-- Tools & IA -->
+          <div class="skills-category" data-category="tools-ia">
+            <h3 class="category-title">Tools & IA</h3>
+            <div class="skills-compact-grid">
+              <a href="https://github.com/" target="_blank" rel="noopener noreferrer" class="skill-compact" title="GitHub"><img src="/assets/images/ui/icons8-github-64.png" alt="GitHub" /><span>GitHub</span></a>
+              <a href="https://code.visualstudio.com/" target="_blank" rel="noopener noreferrer" class="skill-compact" title="VS Code"><img src="/assets/images/ui/icons8-vs-code-48.png" alt="VS Code" /><span>VS Code</span></a>
+              <a href="https://www.heroku.com/" target="_blank" rel="noopener noreferrer" class="skill-compact" title="Heroku"><img src="/assets/images/ui/icons8-heroku-48.png" alt="Heroku" /><span>Heroku</span></a>
+              <a href="https://www.netlify.com/" target="_blank" rel="noopener noreferrer" class="skill-compact" title="Netlify"><img src="/assets/images/ui/icons8-netlify-48.png" alt="Netlify" /><span>Netlify</span></a>
+              <a href="https://chatgpt.com/" target="_blank" rel="noopener noreferrer" class="skill-compact" title="ChatGPT"><img src="/assets/images/ui/icons8-chatgpt-50.png" alt="ChatGPT" /><span>ChatGPT</span></a>
+              <a href="https://claude.ai/" target="_blank" rel="noopener noreferrer" class="skill-compact" title="Claude"><img src="/assets/images/ui/icons8-claude-48.png" alt="Claude" /><span>Claude</span></a>
+              <a href="https://gemini.google.com/" target="_blank" rel="noopener noreferrer" class="skill-compact" title="Gemini"><img src="/assets/images/ui/gemini_logo.png" alt="Gemini" /><span>Gemini</span></a>
+              <a href="https://copilot.microsoft.com/" target="_blank" rel="noopener noreferrer" class="skill-compact" title="Copilot"><img src="/assets/images/ui/icons8-3d-microsoft-copilot-logo-94.png" alt="Copilot" /><span>Copilot</span></a>
+              <a href="https://www.microsoft.com/fr-fr/microsoft-365" target="_blank" rel="noopener noreferrer" class="skill-compact" title="Pack Office"><img src="/assets/images/ui/icons8-microsoft-office-2019-48.png" alt="Pack Office" /><span>Pack Office</span></a>
+            </div>
+          </div>
+
+          <!-- PM & Agile -->
+          <div class="skills-category" data-category="pm-agile">
+            <h3 class="category-title">PM & Agile</h3>
+            <div class="skills-compact-grid">
+              <div class="skill-compact" title="Agile"><img src="/assets/images/ui/agile-icon.png" alt="Agile" /><span>Agile</span></div>
+              <div class="skill-compact" title="Scrum"><img src="/assets/images/ui/scrum-icon.png" alt="Scrum" /><span>Scrum</span></div>
+              <div class="skill-compact" title="Leadership"><img src="/assets/images/ui/leadership-icon.png" alt="Leadership" /><span>Leadership</span></div>
+              <div class="skill-compact" title="Project Planning"><img src="/assets/images/ui/planning-icon.png" alt="Planning" /><span>Planning</span></div>
             </div>
           </div>
         </div>
@@ -661,6 +471,7 @@
         const allCategories = document.querySelectorAll('.skills-category');
         const selectedCategory = document.querySelector(`.skills-category[data-category="${categoryId}"]`);
         const allDots = document.querySelectorAll('.skills-dots');
+        const allLabels = document.querySelectorAll('.skills-branch-label');
 
         allCategories.forEach(cat => {
           if (cat === selectedCategory) {
@@ -675,6 +486,14 @@
             dot.classList.toggle('active');
           } else {
             dot.classList.remove('active');
+          }
+        });
+
+        allLabels.forEach(label => {
+          if (label.getAttribute('data-category') === categoryId) {
+            label.classList.toggle('active');
+          } else {
+            label.classList.remove('active');
           }
         });
       }
