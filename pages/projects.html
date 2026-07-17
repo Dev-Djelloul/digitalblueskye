@@ -235,9 +235,16 @@
           <p>Portfolio de sites vitrines, interfaces responsives, applications connectées à des API et projets full-stack avec base de données, authentification et déploiement.</p>
         </header>
 
+        <div class="projects-filter-bar" role="toolbar" aria-label="Filtrer les projets par étiquette">
+          <span class="projects-filter-label">Filtrer par :</span>
+          <div id="project-filter-chips" class="projects-filter-chips"></div>
+        </div>
+
+        <p id="projects-empty-state" class="projects-empty-state" hidden>Aucun projet ne correspond à ce filtre.</p>
+
         <div class="projects-grid">
           <!-- Projet 1 -->
-          <div class="project-card" data-aos="fade-up" id="project-1">
+          <div class="project-card" data-aos="fade-up" id="project-1" data-tags="HTML/CSS,Front-end,Responsive">
             <img src="/assets/images/projects/imagesRidingCities/header-optimized.webp" alt="Projet-Riding-Cities" width="1440" height="880" />
             <div class="project-info">
               <div>
@@ -249,8 +256,9 @@
                   bases avec l'école Openclassrooms.
                 </p>
                 <div class="project-tech">
-                  <span>HTML5</span>
-                  <span>CSS3</span>
+                  <span>HTML/CSS</span>
+                  <span>Front-end</span>
+                  <span>Responsive</span>
                 </div>
               </div>
               <div class="project-links">
@@ -264,7 +272,7 @@
           </div>
 
           <!-- Projet 2 - Booki -->
-          <div class="project-card" data-aos="fade-up" id="project-2">
+          <div class="project-card" data-aos="fade-up" id="project-2" data-tags="HTML/CSS,Responsive,Front-end">
             <img
               src="/assets/images/projects/imagesBooki/hebergements/1_xlarge/aw-creative-VGs8z60yT2c-unsplash.jpg"
               alt="Projet-Booki" width="4032" height="3024"
@@ -279,9 +287,9 @@
                   avec l'école Openclassrooms.
                 </p>
                 <div class="project-tech">
-                  <span>HTML5</span>
-                  <span>CSS3</span>
+                  <span>HTML/CSS</span>
                   <span>Responsive</span>
+                  <span>Front-end</span>
                 </div>
               </div>
               <div class="project-links">
@@ -293,7 +301,7 @@
           </div>
 
           <!-- Projet 3 - Ohmyfood -->
-          <div class="project-card" data-aos="fade-up" id="project-3">
+          <div class="project-card" data-aos="fade-up" id="project-3" data-tags="HTML/CSS,Animations,Front-end">
             <img
               src="/assets/images/projects/imagesOhMyFood/restaurants/jay-wennington-N_Y88TWmGwA-unsplash.jpg"
               alt="Projet-ohmyfood" width="4402" height="2935"
@@ -308,9 +316,9 @@
                   avec l'école Openclassrooms.
                 </p>
                 <div class="project-tech">
-                  <span>HTML5</span>
-                  <span>CSS3</span>
+                  <span>HTML/CSS</span>
                   <span>Animations</span>
+                  <span>Front-end</span>
                 </div>
               </div>
               <div class="project-links">
@@ -322,7 +330,7 @@
           </div>
 
           <!-- Projet 4 - Print it -->
-          <div class="project-card" data-aos="fade-up" id="project-4">
+          <div class="project-card" data-aos="fade-up" id="project-4" data-tags="HTML/CSS,JavaScript,Front-end">
             <img src="/assets/images/projects/imagesPrint-it/yellow-book.jpeg" alt="Project-Print-it" width="587" height="379" loading="lazy" />
             <div class="project-info">
               <div>
@@ -334,9 +342,9 @@
                   Openclassrooms.
                 </p>
                 <div class="project-tech">
-                  <span>HTML5</span>
-                  <span>CSS3</span>
+                  <span>HTML/CSS</span>
                   <span>JavaScript</span>
+                  <span>Front-end</span>
                 </div>
               </div>
               <div class="project-links">
@@ -348,7 +356,7 @@
           </div>
 
           <!-- Projet 5 - Sophie Bluel -->
-          <div class="project-card" data-aos="fade-up" id="project-5">
+          <div class="project-card" data-aos="fade-up" id="project-5" data-tags="HTML/CSS,JavaScript,API,Front-end">
             <img src="/assets/images/projects/imagesSophieBluel/sophie-bluel-optimized.webp" alt="Projet-Sophie-Bluel" width="948" height="710" loading="lazy" />
             <div class="project-info">
               <div>
@@ -365,11 +373,10 @@
                   du web.
                 </p>
                 <div class="project-tech">
-                  <span>HTML5</span>
-                  <span>CSS3</span>
+                  <span>HTML/CSS</span>
                   <span>JavaScript</span>
-                  <span>NPM</span>
                   <span>API</span>
+                  <span>Front-end</span>
                 </div>
               </div>
               <div class="project-links">
@@ -383,7 +390,7 @@
           </div>
 
           <!-- Projet 6 - Memory Game -->
-          <div class="project-card" data-aos="fade-up" id="project-6">
+          <div class="project-card" data-aos="fade-up" id="project-6" data-tags="JavaScript,Game,Front-end">
             <img src="/assets/images/projects/imagesMemoryGame/jeu_de_memory.jpg" alt="Projet-Memory-Game" width="800" height="800" loading="lazy" />
             <div class="project-info">
               <div>
@@ -395,9 +402,9 @@
                   fondamentaux du web.
                 </p>
                 <div class="project-tech">
-                  <span>HTML5</span>
-                  <span>CSS3</span>
                   <span>JavaScript</span>
+                  <span>Game</span>
+                  <span>Front-end</span>
                 </div>
               </div>
               <div class="project-links">
@@ -411,7 +418,7 @@
           </div>
 
           <!-- Projet 7 - Arcadia Zoo -->
-          <div class="project-card" data-aos="fade-up" id="project-7">
+          <div class="project-card" data-aos="fade-up" id="project-7" data-tags="Full-stack,PHP/MySQL,JavaScript,Bootstrap">
             <img src="/assets/images/projects/imagesArcadiaZoo/background-zoo.jpeg" alt="Projet-Arcadia-Zoo" width="4406" height="3405" loading="lazy" />
             <div class="project-info">
               <div>
@@ -432,14 +439,10 @@
                   !
                 </p>
                 <div class="project-tech">
-                  <span>HTML5</span>
-                  <span>CSS3</span>
+                  <span>Full-stack</span>
+                  <span>PHP/MySQL</span>
                   <span>Bootstrap</span>
                   <span>JavaScript</span>
-                  <span>PHP</span>
-                  <span>MySQL</span>
-                  <span>MongoDB</span>
-                  <span>Heroku</span>
                 </div>
               </div>
               <div class="project-links">
@@ -453,7 +456,7 @@
           </div>
 
           <!-- Projet 8 - Budget Buddy -->
-          <div class="project-card" data-aos="fade-up" id="project-8">
+          <div class="project-card" data-aos="fade-up" id="project-8" data-tags="React,JavaScript,App,Front-end">
             <img src="/assets/images/projects/imagesBudgetBuddy/blue-1761175.jpg" alt="Projet-Budget-Buddy" width="2645" height="2210" loading="lazy" />
             <div class="project-info">
               <div>
@@ -466,10 +469,10 @@
                   Studi pour maîtriser les outils modernes de développement web.
                 </p>
                 <div class="project-tech">
-                  <span>HTML5</span>
-                  <span>CSS3</span>
+                  <span>React</span>
                   <span>JavaScript</span>
-                  <span>React.js</span>
+                  <span>App</span>
+                  <span>Front-end</span>
                 </div>
               </div>
               <div class="project-links">
@@ -483,7 +486,7 @@
           </div>
 
           <!-- Projet 9 - Tetris Windsurf -->
-          <div class="project-card" data-aos="fade-up" id="project-9">
+          <div class="project-card" data-aos="fade-up" id="project-9" data-tags="JavaScript,WebGL,Game,Responsive">
             <img
               src="/assets/images/projects/imagesTetrisWindsurf/Tetris-cover-page-optimized.webp"
               alt="Projet-Tetris-Windsurf" width="1600" height="1067" loading="lazy"
@@ -501,10 +504,9 @@
                 </p>
                 <div class="project-tech">
                   <span>JavaScript</span>
-                  <span>HTML5 Canvas</span>
-                  <span>CSS3</span>
                   <span>WebGL</span>
-                  <span>Responsive Design</span>
+                  <span>Game</span>
+                  <span>Responsive</span>
                 </div>
               </div>
               <div class="project-links">
@@ -518,7 +520,7 @@
           </div>
 
           <!-- Projet 10 - Ferme des Amandiers -->
-          <div class="project-card" data-aos="fade-up" id="project-10">
+          <div class="project-card" data-aos="fade-up" id="project-10" data-tags="Full-stack,PHP/MySQL,Responsive,Front-end">
             <img
               src="/assets/images/projects/imagesFermeDesAmandiers/hero-header.jpg"
               alt="Projet-Ferme-des-Amandiers" width="1600" height="1000" loading="lazy"
@@ -530,11 +532,10 @@
                   Ferme des Amandiers est un projet OpenClassrooms autour d’un site vitrine dynamique permettant d’afficher les paniers disponibles selon la saison et le jour de vente. Le projet met l’accent sur une interface claire, responsive et pensée pour une maintenance simple.
                 </p>
                 <div class="project-tech">
-                  <span>HTML5</span>
-                  <span>CSS3</span>
-                  <span>JavaScript</span>
-                  <span>PHP</span>
-                  <span>MySQL</span>
+                  <span>Full-stack</span>
+                  <span>PHP/MySQL</span>
+                  <span>Responsive</span>
+                  <span>Front-end</span>
                 </div>
               </div>
               <div class="project-links">
@@ -648,6 +649,66 @@
             behavior: "smooth",
           });
         });
+      });
+    </script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const filterBar = document.getElementById("project-filter-chips");
+        const emptyState = document.getElementById("projects-empty-state");
+        const cards = Array.from(document.querySelectorAll(".projects-grid .project-card"));
+
+        if (!filterBar || !cards.length) return;
+
+        const allTags = Array.from(
+          new Set(
+            cards.flatMap((card) => {
+              const raw = card.getAttribute("data-tags") || "";
+              return raw
+                .split(",")
+                .map((tag) => tag.trim())
+                .filter(Boolean);
+            })
+          )
+        ).sort((a, b) => a.localeCompare(b));
+
+        const createChip = (value, label) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "project-filter-chip";
+          button.dataset.filter = value;
+          button.textContent = label;
+          button.setAttribute("aria-pressed", "false");
+          button.addEventListener("click", () => {
+            document.querySelectorAll(".project-filter-chip").forEach((chip) => {
+              chip.classList.toggle("is-active", chip === button);
+              chip.setAttribute("aria-pressed", chip === button ? "true" : "false");
+            });
+
+            const visibleCards = cards.filter((card) => {
+              const cardTags = (card.getAttribute("data-tags") || "")
+                .split(",")
+                .map((tag) => tag.trim())
+                .filter(Boolean);
+              const shouldShow = value === "all" || cardTags.includes(value);
+              card.style.display = shouldShow ? "" : "none";
+              return shouldShow;
+            });
+
+            if (emptyState) {
+              emptyState.hidden = visibleCards.length > 0;
+            }
+          });
+          return button;
+        };
+
+        filterBar.appendChild(createChip("all", "Tous"));
+        allTags.forEach((tag) => filterBar.appendChild(createChip(tag, tag)));
+
+        const firstChip = filterBar.querySelector(".project-filter-chip");
+        if (firstChip) {
+          firstChip.classList.add("is-active");
+          firstChip.setAttribute("aria-pressed", "true");
+        }
       });
     </script>
     <script src="/scripts/translator.js"></script>
