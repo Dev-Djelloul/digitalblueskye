@@ -192,6 +192,19 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // --- Traduction des aria-label avec data-i18n-aria-label (ex: cartes-liens compactes) ---
+    const ariaLabelElements = document.querySelectorAll('[data-i18n-aria-label]');
+    console.log("Found " + ariaLabelElements.length + " elements with [data-i18n-aria-label].");
+    ariaLabelElements.forEach(element => {
+      const key = element.getAttribute('data-i18n-aria-label');
+      const translation = getNestedTranslation(translations, key);
+      if (translation) {
+        element.setAttribute('aria-label', translation);
+      } else {
+        console.warn("No aria-label translation found for key: " + key + " on element:", element);
+      }
+    });
+
     // --- Traduction des placeholders avec data-i18n-placeholder ---
     const placeholderElements = document.querySelectorAll('[data-i18n-placeholder]');
     console.log("Found " + placeholderElements.length + " elements with [data-i18n-placeholder].");
