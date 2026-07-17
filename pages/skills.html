@@ -246,9 +246,59 @@
           <p>HTML5, CSS3, JavaScript, React, Bootstrap, Sass, PHP, Node.js, MySQL, MongoDB, UX, design, ChatGPT, Claude, Gemini, Microsoft Copilot, Microsoft Pack Office, GitHub, Netlify et Heroku.</p>
         </header>
 
+        <!-- Étoile interactive -->
+        <div class="skills-star-section" data-aos="fade-up">
+          <svg class="skills-star-diagram" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="skillsCenterGrad">
+                <stop offset="0%" style="stop-color:rgb(100, 100, 255);stop-opacity:1" />
+                <stop offset="100%" style="stop-color:rgb(70, 70, 200);stop-opacity:0.7" />
+              </radialGradient>
+              <style>
+                .skills-core-circle { fill: none; stroke: var(--color-primary, rgba(93, 93, 255, 0.3)); stroke-width: 0.5; }
+                .skills-star-line { fill: none; stroke: var(--color-primary, rgba(93, 93, 255, 0.2)); stroke-width: 2; }
+                .skills-dots { fill: var(--color-primary, rgba(93, 93, 255, 0.7)); cursor: pointer; transition: all 0.3s ease; }
+                .skills-dots:hover { fill: #fff; filter: drop-shadow(0 0 10px var(--color-primary, rgba(93, 93, 255, 0.8))); }
+                .skills-dots.active { fill: #fff; filter: drop-shadow(0 0 15px var(--color-primary, rgba(93, 93, 255, 1))); }
+                .skills-center-dot { fill: url(#skillsCenterGrad); }
+                .skills-branch-label { cursor: pointer; transition: all 0.3s ease; user-select: none; font-weight:600; font-size:14px; fill:rgba(255,255,255,0.8); }
+                .skills-branch-label:hover { fill: #fff; filter: brightness(1.2); }
+              </style>
+            </defs>
+
+            <circle cx="500" cy="500" r="80" class="skills-core-circle"/>
+            <circle cx="500" cy="500" r="150" class="skills-core-circle"/>
+            <circle cx="500" cy="500" r="220" class="skills-core-circle"/>
+
+            <!-- Frontend -->
+            <line x1="500" y1="500" x2="500" y2="150" class="skills-star-line"/>
+            <circle cx="500" cy="150" r="10" class="skills-dots" data-category="frontend" onclick="toggleSkillsCategory('frontend')"/>
+            <text x="500" y="120" class="skills-branch-label" text-anchor="middle" data-category="frontend" onclick="toggleSkillsCategory('frontend')" data-i18n="skills.frontend">Frontend</text>
+
+            <!-- Backend -->
+            <line x1="500" y1="500" x2="800" y2="550" class="skills-star-line"/>
+            <circle cx="800" cy="550" r="10" class="skills-dots" data-category="backend" onclick="toggleSkillsCategory('backend')"/>
+            <text x="850" y="560" class="skills-branch-label" text-anchor="start" data-category="backend" onclick="toggleSkillsCategory('backend')" data-i18n="skills.backend">Backend</text>
+
+            <!-- Design -->
+            <line x1="500" y1="500" x2="700" y2="750" class="skills-star-line"/>
+            <circle cx="700" cy="750" r="10" class="skills-dots" data-category="design" onclick="toggleSkillsCategory('design')"/>
+            <text x="720" y="770" class="skills-branch-label" text-anchor="start" data-category="design" onclick="toggleSkillsCategory('design')" data-i18n="skills.design">Design</text>
+
+            <!-- Tools -->
+            <line x1="500" y1="500" x2="300" y2="750" class="skills-star-line"/>
+            <circle cx="300" cy="750" r="10" class="skills-dots" data-category="tools" onclick="toggleSkillsCategory('tools')"/>
+            <text x="280" y="770" class="skills-branch-label" text-anchor="end" data-category="tools" onclick="toggleSkillsCategory('tools')" data-i18n="skills.tools">Tools</text>
+
+            <!-- Centre -->
+            <circle cx="500" cy="500" r="50" class="skills-center-dot"/>
+            <text x="500" y="510" text-anchor="middle" style="font-size:18px; font-weight:bold; fill:#fff">Skills</text>
+          </svg>
+        </div>
+
         <div class="skills-categories">
           <!-- Frontend -->
-          <div class="skills-category" data-aos="fade-up">
+          <div class="skills-category" data-category="frontend" data-aos="fade-up">
             <h3 class="category-title" data-i18n="skills.frontend">Frontend</h3>
             <div class="skills-grid">
               <div class="skill">
@@ -316,7 +366,7 @@
           </div>
 
           <!-- Design -->
-          <div class="skills-category" data-aos="fade-up">
+          <div class="skills-category" data-category="design" data-aos="fade-up">
             <h3 class="category-title" data-i18n="skills.design">Design</h3>
             <div class="skills-grid">
               <div class="skill">
@@ -345,7 +395,7 @@
           </div>
 
           <!-- Backend -->
-          <div class="skills-category" data-aos="fade-up">
+          <div class="skills-category" data-category="backend" data-aos="fade-up">
             <h3 class="category-title" data-i18n="skills.backend">Backend</h3>
             <div class="skills-grid">
               <div class="skill">
@@ -396,7 +446,7 @@
           </div>
 
           <!-- Environnement & Outils -->
-          <div class="skills-category" data-aos="fade-up">
+          <div class="skills-category" data-category="tools" data-aos="fade-up">
             <h3 class="category-title" data-i18n="skills.tools">Environnement & Outils</h3>
             <div class="skills-grid">
               <div class="skill">
@@ -613,6 +663,33 @@
             behavior: "smooth",
           });
         });
+      });
+    </script>
+    <script>
+      function toggleSkillsCategory(categoryId) {
+        const allCategories = document.querySelectorAll('.skills-category');
+        const selectedCategory = document.querySelector(`.skills-category[data-category="${categoryId}"]`);
+        const allDots = document.querySelectorAll('.skills-dots');
+
+        allCategories.forEach(cat => {
+          if (cat === selectedCategory) {
+            cat.classList.toggle('active');
+          } else {
+            cat.classList.remove('active');
+          }
+        });
+
+        allDots.forEach(dot => {
+          if (dot.getAttribute('data-category') === categoryId) {
+            dot.classList.toggle('active');
+          } else {
+            dot.classList.remove('active');
+          }
+        });
+      }
+
+      document.addEventListener('DOMContentLoaded', function() {
+        toggleSkillsCategory('frontend');
       });
     </script>
     <script src="/scripts/translator.js"></script>
