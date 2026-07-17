@@ -246,9 +246,11 @@
           <p>HTML5, CSS3, JavaScript, React, Bootstrap, Sass, PHP, Node.js, MySQL, MongoDB, UX, design, ChatGPT, Claude, Gemini, Microsoft Copilot, Microsoft Pack Office, GitHub, Netlify et Heroku.</p>
         </header>
 
-        <p class="skills-star-hint">Cliquez sur une branche de l'étoile pour ouvrir ses technologies</p>
+        <div class="skills-star-hint">
+          <img src="/assets/images/ui/icons8-click-96.png" alt="Cliquez sur une branche de l'étoile pour ouvrir ses technologies" />
+        </div>
 
-        <!-- Étoile interactive : 6 branches, tiroirs de mini-icônes -->
+        <!-- Étoile interactive : 8 branches, tiroirs de mini-icônes -->
         <div class="skills-star-section" data-aos="fade-up">
           <div class="skills-star-wrap">
             <svg class="skills-star-diagram" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Étoile des compétences">
@@ -257,6 +259,9 @@
                   <stop offset="0%" stop-color="#7b7bff" stop-opacity="1" />
                   <stop offset="100%" stop-color="#4646c8" stop-opacity="0.9" />
                 </radialGradient>
+                <clipPath id="skillsCenterClip">
+                  <circle cx="500" cy="500" r="60" />
+                </clipPath>
               </defs>
 
               <!-- Cercles concentriques -->
@@ -265,66 +270,85 @@
               <circle cx="500" cy="500" r="330" class="skills-ring" />
 
               <!-- Arcs entre branches adjacentes -->
-              <path class="skills-arc" d="M500,170 Q715,128 786,335" />
-              <path class="skills-arc" d="M786,335 Q930,500 786,665" />
-              <path class="skills-arc" d="M786,665 Q715,872 500,830" />
-              <path class="skills-arc" d="M500,830 Q285,872 214,665" />
-              <path class="skills-arc" d="M214,665 Q70,500 214,335" />
-              <path class="skills-arc" d="M214,335 Q285,128 500,170" />
+              <path class="skills-arc" d="M500,170 Q642,158 733,267" />
+              <path class="skills-arc" d="M733,267 Q842,358 830,500" />
+              <path class="skills-arc" d="M830,500 Q842,642 733,733" />
+              <path class="skills-arc" d="M733,733 Q642,842 500,830" />
+              <path class="skills-arc" d="M500,830 Q358,842 267,733" />
+              <path class="skills-arc" d="M267,733 Q158,642 170,500" />
+              <path class="skills-arc" d="M170,500 Q158,358 267,267" />
+              <path class="skills-arc" d="M267,267 Q358,158 500,170" />
 
               <!-- Rayons -->
               <line x1="500" y1="500" x2="500" y2="170" class="skills-spoke" />
-              <line x1="500" y1="500" x2="786" y2="335" class="skills-spoke" />
-              <line x1="500" y1="500" x2="786" y2="665" class="skills-spoke" />
+              <line x1="500" y1="500" x2="733" y2="267" class="skills-spoke" />
+              <line x1="500" y1="500" x2="830" y2="500" class="skills-spoke" />
+              <line x1="500" y1="500" x2="733" y2="733" class="skills-spoke" />
               <line x1="500" y1="500" x2="500" y2="830" class="skills-spoke" />
-              <line x1="500" y1="500" x2="214" y2="665" class="skills-spoke" />
-              <line x1="500" y1="500" x2="214" y2="335" class="skills-spoke" />
+              <line x1="500" y1="500" x2="267" y2="733" class="skills-spoke" />
+              <line x1="500" y1="500" x2="170" y2="500" class="skills-spoke" />
+              <line x1="500" y1="500" x2="267" y2="267" class="skills-spoke" />
 
-              <!-- Frontend -->
+              <!-- Frontend (haut) -->
               <g class="skills-branch" data-category="frontend" tabindex="0" role="button" aria-label="Frontend" onclick="toggleSkillDrawer('frontend')">
                 <text x="500" y="126" text-anchor="middle" class="skills-branch-label">Frontend</text>
                 <text x="500" y="148" text-anchor="middle" class="skills-branch-sub">(HTML, CSS, JS)</text>
                 <circle cx="500" cy="170" r="11" class="skills-dot" />
               </g>
 
-              <!-- Backend -->
+              <!-- Backend (haut-droite) -->
               <g class="skills-branch" data-category="backend" tabindex="0" role="button" aria-label="Backend" onclick="toggleSkillDrawer('backend')">
-                <text x="812" y="330" text-anchor="start" class="skills-branch-label">Backend</text>
-                <text x="812" y="352" text-anchor="start" class="skills-branch-sub">(PHP, Node.js)</text>
-                <circle cx="786" cy="335" r="11" class="skills-dot" />
+                <text x="762" y="256" text-anchor="start" class="skills-branch-label">Backend</text>
+                <text x="762" y="278" text-anchor="start" class="skills-branch-sub">(PHP, Node.js)</text>
+                <circle cx="733" cy="267" r="11" class="skills-dot" />
               </g>
 
-              <!-- Databases -->
+              <!-- Databases (droite) -->
               <g class="skills-branch" data-category="databases" tabindex="0" role="button" aria-label="Databases" onclick="toggleSkillDrawer('databases')">
-                <text x="812" y="660" text-anchor="start" class="skills-branch-label">Databases</text>
-                <text x="812" y="682" text-anchor="start" class="skills-branch-sub">(MySQL, MongoDB)</text>
-                <circle cx="786" cy="665" r="11" class="skills-dot" />
+                <text x="858" y="495" text-anchor="start" class="skills-branch-label">Databases</text>
+                <text x="858" y="517" text-anchor="start" class="skills-branch-sub">(MySQL, MongoDB)</text>
+                <circle cx="830" cy="500" r="11" class="skills-dot" />
               </g>
 
-              <!-- Design / UX -->
+              <!-- Design / UX (bas-droite) -->
               <g class="skills-branch" data-category="design" tabindex="0" role="button" aria-label="Design et UX" onclick="toggleSkillDrawer('design')">
-                <circle cx="500" cy="830" r="11" class="skills-dot" />
-                <text x="500" y="878" text-anchor="middle" class="skills-branch-label">Design / UX</text>
-                <text x="500" y="900" text-anchor="middle" class="skills-branch-sub">(UI / Responsive)</text>
+                <text x="762" y="740" text-anchor="start" class="skills-branch-label">Design / UX</text>
+                <text x="762" y="762" text-anchor="start" class="skills-branch-sub">(UI / Responsive)</text>
+                <circle cx="733" cy="733" r="11" class="skills-dot" />
               </g>
 
-              <!-- PM & Agile -->
+              <!-- PM & Agile (bas) -->
               <g class="skills-branch" data-category="pm-agile" tabindex="0" role="button" aria-label="Project Management et Agile" onclick="toggleSkillDrawer('pm-agile')">
-                <text x="188" y="660" text-anchor="end" class="skills-branch-label">PM &amp; Agile</text>
-                <text x="188" y="682" text-anchor="end" class="skills-branch-sub">(Leadership)</text>
-                <circle cx="214" cy="665" r="11" class="skills-dot" />
+                <circle cx="500" cy="830" r="11" class="skills-dot" />
+                <text x="500" y="878" text-anchor="middle" class="skills-branch-label">PM &amp; Agile</text>
+                <text x="500" y="900" text-anchor="middle" class="skills-branch-sub">(Leadership)</text>
               </g>
 
-              <!-- AI & Tools -->
-              <g class="skills-branch" data-category="ai-tools" tabindex="0" role="button" aria-label="AI et Tools" onclick="toggleSkillDrawer('ai-tools')">
-                <text x="188" y="330" text-anchor="end" class="skills-branch-label">AI &amp; Tools</text>
-                <text x="188" y="352" text-anchor="end" class="skills-branch-sub">(ChatGPT, Claude)</text>
-                <circle cx="214" cy="335" r="11" class="skills-dot" />
+              <!-- Tools (bas-gauche) -->
+              <g class="skills-branch" data-category="tools" tabindex="0" role="button" aria-label="Tools" onclick="toggleSkillDrawer('tools')">
+                <text x="238" y="740" text-anchor="end" class="skills-branch-label">Tools</text>
+                <text x="238" y="762" text-anchor="end" class="skills-branch-sub">(VS Code, GitHub)</text>
+                <circle cx="267" cy="733" r="11" class="skills-dot" />
               </g>
 
-              <!-- Centre -->
+              <!-- Environnement (gauche) -->
+              <g class="skills-branch" data-category="environnement" tabindex="0" role="button" aria-label="Environnement" onclick="toggleSkillDrawer('environnement')">
+                <text x="142" y="495" text-anchor="end" class="skills-branch-label">Environnement</text>
+                <text x="142" y="517" text-anchor="end" class="skills-branch-sub">(Netlify, Heroku)</text>
+                <circle cx="170" cy="500" r="11" class="skills-dot" />
+              </g>
+
+              <!-- AI (haut-gauche) -->
+              <g class="skills-branch" data-category="ai" tabindex="0" role="button" aria-label="Intelligence artificielle" onclick="toggleSkillDrawer('ai')">
+                <text x="238" y="256" text-anchor="end" class="skills-branch-label">AI</text>
+                <text x="238" y="278" text-anchor="end" class="skills-branch-sub">(ChatGPT, Claude)</text>
+                <circle cx="267" cy="267" r="11" class="skills-dot" />
+              </g>
+
+              <!-- Centre : portrait -->
+              <circle cx="500" cy="500" r="62" class="skills-center-ring" />
               <circle cx="500" cy="500" r="60" class="skills-center-dot" />
-              <text x="500" y="509" text-anchor="middle" class="skills-center-label">Djelloul</text>
+              <image href="/assets/images/portrait/my-notion-face-transparent.png" x="426" y="430" width="148" height="148" clip-path="url(#skillsCenterClip)" preserveAspectRatio="xMidYMid slice" />
             </svg>
 
             <!-- Tiroirs de mini-icônes -->
@@ -360,20 +384,25 @@
               <a href="https://www.microsoft.com/fr-fr/microsoft-365/project/project-management-software" target="_blank" rel="noopener noreferrer" class="skill-mini" title="Microsoft Project"><img src="/assets/images/ui/icons8-project-64.png" alt="Microsoft Project" /></a>
             </div>
 
-            <div class="skill-drawer" data-drawer="ai-tools">
+            <div class="skill-drawer" data-drawer="tools">
+              <a href="https://code.visualstudio.com/" target="_blank" rel="noopener noreferrer" class="skill-mini" title="VS Code"><img src="/assets/images/ui/icons8-vs-code-48.png" alt="VS Code" /></a>
+              <a href="https://github.com/" target="_blank" rel="noopener noreferrer" class="skill-mini" title="GitHub"><img src="/assets/images/ui/icons8-github-64.png" alt="GitHub" /></a>
+              <a href="https://www.microsoft.com/fr-fr/microsoft-365" target="_blank" rel="noopener noreferrer" class="skill-mini" title="Pack Office"><img src="/assets/images/ui/icons8-microsoft-office-2019-48.png" alt="Pack Office" /></a>
+            </div>
+
+            <div class="skill-drawer" data-drawer="environnement">
+              <a href="https://www.netlify.com/" target="_blank" rel="noopener noreferrer" class="skill-mini" title="Netlify"><img src="/assets/images/ui/icons8-netlify-48.png" alt="Netlify" /></a>
+              <a href="https://www.heroku.com/" target="_blank" rel="noopener noreferrer" class="skill-mini" title="Heroku"><img src="/assets/images/ui/icons8-heroku-48.png" alt="Heroku" /></a>
+            </div>
+
+            <div class="skill-drawer" data-drawer="ai">
               <a href="https://chatgpt.com/" target="_blank" rel="noopener noreferrer" class="skill-mini" title="ChatGPT"><img src="/assets/images/ui/icons8-chatgpt-50.png" alt="ChatGPT" /></a>
               <a href="https://claude.ai/" target="_blank" rel="noopener noreferrer" class="skill-mini" title="Claude"><img src="/assets/images/ui/icons8-claude-48.png" alt="Claude" /></a>
               <a href="https://gemini.google.com/" target="_blank" rel="noopener noreferrer" class="skill-mini" title="Gemini"><img src="/assets/images/ui/gemini_logo.png" alt="Gemini" /></a>
               <a href="https://copilot.microsoft.com/" target="_blank" rel="noopener noreferrer" class="skill-mini" title="Microsoft Copilot"><img src="/assets/images/ui/icons8-3d-microsoft-copilot-logo-94.png" alt="Microsoft Copilot" /></a>
-              <a href="https://github.com/" target="_blank" rel="noopener noreferrer" class="skill-mini" title="GitHub"><img src="/assets/images/ui/icons8-github-64.png" alt="GitHub" /></a>
-              <a href="https://code.visualstudio.com/" target="_blank" rel="noopener noreferrer" class="skill-mini" title="VS Code"><img src="/assets/images/ui/icons8-vs-code-48.png" alt="VS Code" /></a>
-              <a href="https://www.netlify.com/" target="_blank" rel="noopener noreferrer" class="skill-mini" title="Netlify"><img src="/assets/images/ui/icons8-netlify-48.png" alt="Netlify" /></a>
-              <a href="https://www.heroku.com/" target="_blank" rel="noopener noreferrer" class="skill-mini" title="Heroku"><img src="/assets/images/ui/icons8-heroku-48.png" alt="Heroku" /></a>
-              <a href="https://www.microsoft.com/fr-fr/microsoft-365" target="_blank" rel="noopener noreferrer" class="skill-mini" title="Pack Office"><img src="/assets/images/ui/icons8-microsoft-office-2019-48.png" alt="Pack Office" /></a>
             </div>
           </div>
         </div>
-      </div>
       </section>
 
 

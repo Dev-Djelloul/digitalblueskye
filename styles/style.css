@@ -7938,16 +7938,24 @@ h1.main-title-animated .title-icon {
   width: 100%;
 }
 
-/* Sous-titre indicatif sous le titre principal */
+/* Indice « cliquez » (icône) sous le titre principal */
 .skills-star-hint {
-  text-align: center;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 1rem;
-  margin: 0.5rem 0 1rem;
+  display: flex;
+  justify-content: center;
+  margin: 0.5rem 0 0.25rem;
 }
 
-[data-theme="light"] .skills-star-hint {
-  color: rgba(30, 30, 60, 0.7);
+.skills-star-hint img {
+  width: 54px;
+  height: 54px;
+  object-fit: contain;
+  cursor: pointer;
+  animation: skills-click-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes skills-click-pulse {
+  0%, 100% { transform: translateY(0); opacity: 0.85; }
+  50% { transform: translateY(-6px); opacity: 1; }
 }
 
 /* Conteneur de l'étoile + tiroirs */
@@ -7985,15 +7993,15 @@ h1.main-title-animated .title-icon {
   stroke-width: 1.5;
 }
 
-.skills-center-dot {
-  fill: url(#skillsCenterGrad);
+/* Centre : anneau + pastille + portrait */
+.skills-center-ring {
+  fill: none;
+  stroke: rgba(143, 143, 255, 0.65);
+  stroke-width: 3;
 }
 
-.skills-center-label {
-  fill: #fff;
-  font-family: var(--font-body);
-  font-size: 26px;
-  font-weight: 700;
+.skills-center-dot {
+  fill: url(#skillsCenterGrad);
 }
 
 /* Branches cliquables */
@@ -8054,14 +8062,16 @@ h1.main-title-animated .title-icon {
   fill: var(--accent-color);
 }
 
-/* Tiroir de mini-icônes, ancré à côté de son titre */
+/* Tiroir de mini-icônes, ancré à côté de son titre.
+   Fond sombre dans les deux thèmes : les pastilles blanches
+   ci-dessous garantissent la lisibilité de tous les logos. */
 .skill-drawer {
   position: absolute;
   display: grid;
   grid-template-columns: repeat(3, auto);
   gap: 7px;
   padding: 9px;
-  background: rgba(18, 16, 42, 0.95);
+  background: rgba(18, 16, 42, 0.96);
   border: 1px solid rgba(93, 93, 255, 0.45);
   border-radius: 10px;
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
@@ -8078,52 +8088,54 @@ h1.main-title-animated .title-icon {
   pointer-events: auto;
 }
 
-[data-theme="light"] .skill-drawer {
-  background: rgba(255, 255, 255, 0.97);
-  border-color: rgba(93, 93, 255, 0.35);
-  box-shadow: 0 10px 28px rgba(60, 60, 120, 0.22);
-}
-
-/* Ancrage de chaque tiroir près de sa branche */
+/* Ancrage de chaque tiroir près de sa branche (ouverture vers le centre) */
 .skill-drawer[data-drawer="frontend"] { left: 50%; top: 19%; transform: translate(-50%, 0) scale(0.85); }
 .skill-drawer[data-drawer="frontend"].open { transform: translate(-50%, 0) scale(1); }
 
-.skill-drawer[data-drawer="backend"] { left: 78.6%; top: 33.5%; transform: translate(-100%, -50%) scale(0.85); }
-.skill-drawer[data-drawer="backend"].open { transform: translate(-100%, -50%) scale(1); }
+.skill-drawer[data-drawer="backend"] { left: 71%; top: 30%; transform: translate(-100%, 0) scale(0.85); }
+.skill-drawer[data-drawer="backend"].open { transform: translate(-100%, 0) scale(1); }
 
-.skill-drawer[data-drawer="databases"] { left: 78.6%; top: 66.5%; transform: translate(-100%, -50%) scale(0.85); }
+.skill-drawer[data-drawer="databases"] { left: 80%; top: 50%; transform: translate(-100%, -50%) scale(0.85); }
 .skill-drawer[data-drawer="databases"].open { transform: translate(-100%, -50%) scale(1); }
 
-.skill-drawer[data-drawer="design"] { left: 50%; top: 81%; transform: translate(-50%, -100%) scale(0.85); }
-.skill-drawer[data-drawer="design"].open { transform: translate(-50%, -100%) scale(1); }
+.skill-drawer[data-drawer="design"] { left: 71%; top: 70%; transform: translate(-100%, -100%) scale(0.85); }
+.skill-drawer[data-drawer="design"].open { transform: translate(-100%, -100%) scale(1); }
 
-.skill-drawer[data-drawer="pm-agile"] { left: 21.4%; top: 66.5%; transform: translate(0, -50%) scale(0.85); }
-.skill-drawer[data-drawer="pm-agile"].open { transform: translate(0, -50%) scale(1); }
+.skill-drawer[data-drawer="pm-agile"] { left: 50%; top: 81%; transform: translate(-50%, -100%) scale(0.85); }
+.skill-drawer[data-drawer="pm-agile"].open { transform: translate(-50%, -100%) scale(1); }
 
-.skill-drawer[data-drawer="ai-tools"] { left: 21.4%; top: 33.5%; transform: translate(0, -50%) scale(0.85); }
-.skill-drawer[data-drawer="ai-tools"].open { transform: translate(0, -50%) scale(1); }
+.skill-drawer[data-drawer="tools"] { left: 29%; top: 70%; transform: translate(0, -100%) scale(0.85); }
+.skill-drawer[data-drawer="tools"].open { transform: translate(0, -100%) scale(1); }
 
-/* Mini-icône cliquable */
+.skill-drawer[data-drawer="environnement"] { left: 20%; top: 50%; transform: translate(0, -50%) scale(0.85); }
+.skill-drawer[data-drawer="environnement"].open { transform: translate(0, -50%) scale(1); }
+
+.skill-drawer[data-drawer="ai"] { left: 30%; top: 27%; transform: translate(0, -100%) scale(0.85); }
+.skill-drawer[data-drawer="ai"].open { transform: translate(0, -100%) scale(1); }
+
+/* Pastille blanche : lisible dans les deux thèmes pour tous les logos */
 .skill-mini {
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 7px;
-  background: rgba(93, 93, 255, 0.12);
-  transition: background 0.2s ease, transform 0.2s ease;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .skill-mini img {
-  width: 18px;
-  height: 18px;
+  width: 19px;
+  height: 19px;
   object-fit: contain;
   display: block;
 }
 
 .skill-mini:hover {
-  background: rgba(93, 93, 255, 0.4);
   transform: scale(1.18);
+  box-shadow: 0 3px 9px rgba(93, 93, 255, 0.55);
 }
 
 /* Sur petit écran : le tiroir passe sous l'étoile */
