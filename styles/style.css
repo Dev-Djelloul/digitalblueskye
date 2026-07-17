@@ -7930,11 +7930,96 @@ h1.main-title-animated .title-icon {
   color: var(--accent-color);
 }
 
+/* Ligne héro : badge d'accroche + colonne étoile */
+.skills-hero-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3rem;
+  margin: 1.5rem auto 2rem;
+  max-width: 1240px;
+  width: 100%;
+}
+
+/* Badge stylisé pour la phrase d'accroche */
+.skills-intro-badge {
+  background: linear-gradient(145deg, rgb(16 18 34 / 85%), rgb(30 20 60 / 70%));
+  border: 1px solid rgb(93 93 255 / 32%);
+  border-radius: 20px;
+  box-shadow: 0 18px 44px rgb(5 8 20 / 35%);
+  flex: 0 1 320px;
+  overflow: hidden;
+  padding: 1.9rem 2rem;
+  position: relative;
+}
+
+.skills-intro-badge::before {
+  background: linear-gradient(120deg, rgb(93 93 255 / 18%), transparent 65%);
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+}
+
+.skills-intro-badge-glyph {
+  align-items: center;
+  background: linear-gradient(45deg, var(--accent-color), #c822ff);
+  border-radius: 999px;
+  color: #fff;
+  display: inline-flex;
+  font-size: 1.1rem;
+  height: 38px;
+  justify-content: center;
+  margin-bottom: 0.9rem;
+  position: relative;
+  width: 38px;
+}
+
+.skills-intro-badge p {
+  color: rgb(255 255 255 / 88%);
+  font-size: 1rem;
+  line-height: 1.6;
+  margin: 0;
+  position: relative;
+}
+
+[data-theme="light"] .skills-intro-badge {
+  background: linear-gradient(145deg, #fff, #f2f1ff);
+  border-color: rgb(93 93 255 / 25%);
+  box-shadow: 0 18px 44px rgb(93 93 255 / 16%);
+}
+
+[data-theme="light"] .skills-hero-row .skills-intro-badge p {
+  background: none;
+  color: #33335c;
+  -webkit-text-fill-color: currentColor;
+}
+
+.skills-star-column {
+  align-items: center;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+}
+
+@media (width <= 900px) {
+  .skills-hero-row {
+    flex-direction: column;
+  }
+
+  .skills-intro-badge {
+    flex: 0 1 auto;
+    max-width: 480px;
+    width: 100%;
+  }
+}
+
 /* Étoile interactive pour les compétences */
 .skills-star-section {
   display: flex;
   justify-content: center;
-  margin: 3rem 0 4rem;
+  margin: 1.5rem 0 3rem;
   width: 100%;
 }
 
@@ -7962,7 +8047,7 @@ h1.main-title-animated .title-icon {
 .skills-star-wrap {
   position: relative;
   width: 100%;
-  max-width: 560px;
+  max-width: 760px;
   margin: 0 auto;
 }
 
@@ -8062,6 +8147,14 @@ h1.main-title-animated .title-icon {
   fill: var(--accent-color);
 }
 
+/* .skills-branch.active .skills-branch-sub (3 sélecteurs) écrasait sinon la couleur
+   claire du thème light dès qu'une branche est ouverte : ceci ajoute un niveau de
+   spécificité pour garder le sous-titre lisible en permanence. */
+[data-theme="light"] .skills-branch:hover .skills-branch-sub,
+[data-theme="light"] .skills-branch.active .skills-branch-sub {
+  fill: rgba(40, 40, 80, 0.85);
+}
+
 /* Tiroir de mini-icônes, ancré à côté de son titre.
    Fond sombre dans les deux thèmes : les pastilles blanches
    ci-dessous garantissent la lisibilité de tous les logos. */
@@ -8069,11 +8162,11 @@ h1.main-title-animated .title-icon {
   position: absolute;
   display: grid;
   grid-template-columns: repeat(3, auto);
-  gap: 7px;
-  padding: 9px;
+  gap: 8px;
+  padding: 11px;
   background: rgba(18, 16, 42, 0.96);
   border: 1px solid rgba(93, 93, 255, 0.45);
-  border-radius: 10px;
+  border-radius: 11px;
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
   opacity: 0;
   visibility: hidden;
@@ -8117,9 +8210,9 @@ h1.main-title-animated .title-icon {
 .skill-mini {
   display: grid;
   place-items: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
   background: #fff;
   border: 1px solid rgba(0, 0, 0, 0.06);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
@@ -8127,8 +8220,8 @@ h1.main-title-animated .title-icon {
 }
 
 .skill-mini img {
-  width: 19px;
-  height: 19px;
+  width: 23px;
+  height: 23px;
   object-fit: contain;
   display: block;
 }
