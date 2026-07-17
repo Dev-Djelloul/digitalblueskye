@@ -246,127 +246,133 @@
           <p>HTML5, CSS3, JavaScript, React, Bootstrap, Sass, PHP, Node.js, MySQL, MongoDB, UX, design, ChatGPT, Claude, Gemini, Microsoft Copilot, Microsoft Pack Office, GitHub, Netlify et Heroku.</p>
         </header>
 
-        <p class="skills-star-hint">Cliquez sur une branche de l'étoile pour explorer les technologies</p>
+        <p class="skills-star-hint">Cliquez sur une branche de l'étoile pour ouvrir ses technologies</p>
 
-        <!-- Étoile interactive -->
+        <!-- Étoile interactive : 6 branches, tiroirs de mini-icônes -->
         <div class="skills-star-section" data-aos="fade-up">
-          <svg class="skills-star-diagram" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <radialGradient id="skillsCenterGrad">
-                <stop offset="0%" style="stop-color:rgb(100, 100, 255);stop-opacity:1" />
-                <stop offset="100%" style="stop-color:rgb(70, 70, 200);stop-opacity:0.7" />
-              </radialGradient>
-              <style>
-                .skills-core-circle { fill: none; stroke: var(--color-primary, rgba(93, 93, 255, 0.3)); stroke-width: 0.5; }
-                .skills-star-line { fill: none; stroke: var(--color-primary, rgba(93, 93, 255, 0.2)); stroke-width: 2; }
-                .skills-dots { fill: var(--color-primary, rgba(93, 93, 255, 0.7)); cursor: pointer; transition: all 0.3s ease; }
-                .skills-dots:hover { fill: #fff; filter: drop-shadow(0 0 10px var(--color-primary, rgba(93, 93, 255, 0.8))); }
-                .skills-dots.active { fill: #fff; filter: drop-shadow(0 0 15px var(--color-primary, rgba(93, 93, 255, 1))); }
-                .skills-center-dot { fill: url(#skillsCenterGrad); }
-                .skills-branch-label { cursor: pointer; transition: all 0.3s ease; user-select: none; font-weight:600; font-size:14px; fill:rgba(255,255,255,0.8); }
-                .skills-branch-label:hover { fill: #fff; filter: brightness(1.2); }
-              </style>
-            </defs>
+          <div class="skills-star-wrap">
+            <svg class="skills-star-diagram" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Étoile des compétences">
+              <defs>
+                <radialGradient id="skillsCenterGrad">
+                  <stop offset="0%" stop-color="#7b7bff" stop-opacity="1" />
+                  <stop offset="100%" stop-color="#4646c8" stop-opacity="0.9" />
+                </radialGradient>
+              </defs>
 
-            <circle cx="500" cy="500" r="80" class="skills-core-circle"/>
-            <circle cx="500" cy="500" r="150" class="skills-core-circle"/>
-            <circle cx="500" cy="500" r="220" class="skills-core-circle"/>
+              <!-- Cercles concentriques -->
+              <circle cx="500" cy="500" r="120" class="skills-ring" />
+              <circle cx="500" cy="500" r="225" class="skills-ring" />
+              <circle cx="500" cy="500" r="330" class="skills-ring" />
 
-            <!-- Frontend -->
-            <line x1="500" y1="500" x2="500" y2="150" class="skills-star-line"/>
-            <circle cx="500" cy="150" r="10" class="skills-dots" data-category="frontend" onclick="toggleSkillsCategory('frontend')"/>
-            <text x="500" y="120" class="skills-branch-label" text-anchor="middle" data-category="frontend" onclick="toggleSkillsCategory('frontend')" data-i18n="skills.frontend">Frontend</text>
+              <!-- Arcs entre branches adjacentes -->
+              <path class="skills-arc" d="M500,170 Q715,128 786,335" />
+              <path class="skills-arc" d="M786,335 Q930,500 786,665" />
+              <path class="skills-arc" d="M786,665 Q715,872 500,830" />
+              <path class="skills-arc" d="M500,830 Q285,872 214,665" />
+              <path class="skills-arc" d="M214,665 Q70,500 214,335" />
+              <path class="skills-arc" d="M214,335 Q285,128 500,170" />
 
-            <!-- Backend -->
-            <line x1="500" y1="500" x2="800" y2="550" class="skills-star-line"/>
-            <circle cx="800" cy="550" r="10" class="skills-dots" data-category="backend" onclick="toggleSkillsCategory('backend')"/>
-            <text x="850" y="560" class="skills-branch-label" text-anchor="start" data-category="backend" onclick="toggleSkillsCategory('backend')" data-i18n="skills.backend">Backend</text>
+              <!-- Rayons -->
+              <line x1="500" y1="500" x2="500" y2="170" class="skills-spoke" />
+              <line x1="500" y1="500" x2="786" y2="335" class="skills-spoke" />
+              <line x1="500" y1="500" x2="786" y2="665" class="skills-spoke" />
+              <line x1="500" y1="500" x2="500" y2="830" class="skills-spoke" />
+              <line x1="500" y1="500" x2="214" y2="665" class="skills-spoke" />
+              <line x1="500" y1="500" x2="214" y2="335" class="skills-spoke" />
 
-            <!-- Design -->
-            <line x1="500" y1="500" x2="700" y2="750" class="skills-star-line"/>
-            <circle cx="700" cy="750" r="10" class="skills-dots" data-category="design" onclick="toggleSkillsCategory('design')"/>
-            <text x="720" y="770" class="skills-branch-label" text-anchor="start" data-category="design" onclick="toggleSkillsCategory('design')" data-i18n="skills.design">Design</text>
+              <!-- Frontend -->
+              <g class="skills-branch" data-category="frontend" tabindex="0" role="button" aria-label="Frontend" onclick="toggleSkillDrawer('frontend')">
+                <text x="500" y="126" text-anchor="middle" class="skills-branch-label">Frontend</text>
+                <text x="500" y="148" text-anchor="middle" class="skills-branch-sub">(HTML, CSS, JS)</text>
+                <circle cx="500" cy="170" r="11" class="skills-dot" />
+              </g>
 
-            <!-- Tools & IA -->
-            <line x1="500" y1="500" x2="400" y2="750" class="skills-star-line"/>
-            <circle cx="400" cy="750" r="10" class="skills-dots" data-category="tools-ia" onclick="toggleSkillsCategory('tools-ia')"/>
-            <text x="380" y="770" class="skills-branch-label" text-anchor="end" data-category="tools-ia" onclick="toggleSkillsCategory('tools-ia')">Tools &amp; IA</text>
+              <!-- Backend -->
+              <g class="skills-branch" data-category="backend" tabindex="0" role="button" aria-label="Backend" onclick="toggleSkillDrawer('backend')">
+                <text x="812" y="330" text-anchor="start" class="skills-branch-label">Backend</text>
+                <text x="812" y="352" text-anchor="start" class="skills-branch-sub">(PHP, Node.js)</text>
+                <circle cx="786" cy="335" r="11" class="skills-dot" />
+              </g>
 
-            <!-- PM & Agile -->
-            <line x1="500" y1="500" x2="200" y2="550" class="skills-star-line"/>
-            <circle cx="200" cy="550" r="10" class="skills-dots" data-category="pm-agile" onclick="toggleSkillsCategory('pm-agile')"/>
-            <text x="150" y="560" class="skills-branch-label" text-anchor="end" data-category="pm-agile" onclick="toggleSkillsCategory('pm-agile')">PM &amp; Agile</text>
+              <!-- Databases -->
+              <g class="skills-branch" data-category="databases" tabindex="0" role="button" aria-label="Databases" onclick="toggleSkillDrawer('databases')">
+                <text x="812" y="660" text-anchor="start" class="skills-branch-label">Databases</text>
+                <text x="812" y="682" text-anchor="start" class="skills-branch-sub">(MySQL, MongoDB)</text>
+                <circle cx="786" cy="665" r="11" class="skills-dot" />
+              </g>
 
-            <!-- Centre -->
-            <circle cx="500" cy="500" r="50" class="skills-center-dot"/>
-            <text x="500" y="510" text-anchor="middle" style="font-size:18px; font-weight:bold; fill:#fff">Skills</text>
-          </svg>
+              <!-- Design / UX -->
+              <g class="skills-branch" data-category="design" tabindex="0" role="button" aria-label="Design et UX" onclick="toggleSkillDrawer('design')">
+                <circle cx="500" cy="830" r="11" class="skills-dot" />
+                <text x="500" y="878" text-anchor="middle" class="skills-branch-label">Design / UX</text>
+                <text x="500" y="900" text-anchor="middle" class="skills-branch-sub">(UI / Responsive)</text>
+              </g>
+
+              <!-- PM & Agile -->
+              <g class="skills-branch" data-category="pm-agile" tabindex="0" role="button" aria-label="Project Management et Agile" onclick="toggleSkillDrawer('pm-agile')">
+                <text x="188" y="660" text-anchor="end" class="skills-branch-label">PM &amp; Agile</text>
+                <text x="188" y="682" text-anchor="end" class="skills-branch-sub">(Leadership)</text>
+                <circle cx="214" cy="665" r="11" class="skills-dot" />
+              </g>
+
+              <!-- AI & Tools -->
+              <g class="skills-branch" data-category="ai-tools" tabindex="0" role="button" aria-label="AI et Tools" onclick="toggleSkillDrawer('ai-tools')">
+                <text x="188" y="330" text-anchor="end" class="skills-branch-label">AI &amp; Tools</text>
+                <text x="188" y="352" text-anchor="end" class="skills-branch-sub">(ChatGPT, Claude)</text>
+                <circle cx="214" cy="335" r="11" class="skills-dot" />
+              </g>
+
+              <!-- Centre -->
+              <circle cx="500" cy="500" r="60" class="skills-center-dot" />
+              <text x="500" y="509" text-anchor="middle" class="skills-center-label">Djelloul</text>
+            </svg>
+
+            <!-- Tiroirs de mini-icônes -->
+            <div class="skill-drawer" data-drawer="frontend">
+              <a href="https://developer.mozilla.org/fr/docs/Web/HTML" target="_blank" rel="noopener noreferrer" class="skill-mini" title="HTML5"><img src="/assets/images/ui/icons8-html5-50.png" alt="HTML5" /></a>
+              <a href="https://developer.mozilla.org/fr/docs/Web/CSS" target="_blank" rel="noopener noreferrer" class="skill-mini" title="CSS3"><img src="/assets/images/ui/icons8-css3-50.png" alt="CSS3" /></a>
+              <a href="https://developer.mozilla.org/fr/docs/Web/JavaScript" target="_blank" rel="noopener noreferrer" class="skill-mini" title="JavaScript"><img src="/assets/images/ui/icons8-javascript-48.png" alt="JavaScript" /></a>
+              <a href="https://sass-lang.com/" target="_blank" rel="noopener noreferrer" class="skill-mini" title="Sass"><img src="/assets/images/ui/icons8-sass-48.png" alt="Sass" /></a>
+              <a href="https://getbootstrap.com/" target="_blank" rel="noopener noreferrer" class="skill-mini" title="Bootstrap"><img src="/assets/images/ui/icons8-bootstrap-48.png" alt="Bootstrap" /></a>
+              <a href="https://reactjs.org/" target="_blank" rel="noopener noreferrer" class="skill-mini" title="React"><img src="/assets/images/ui/icons8-react-48.png" alt="React" /></a>
+            </div>
+
+            <div class="skill-drawer" data-drawer="backend">
+              <a href="https://www.php.net/" target="_blank" rel="noopener noreferrer" class="skill-mini" title="PHP"><img src="/assets/images/ui/icons8-php-48.png" alt="PHP" /></a>
+              <a href="https://nodejs.org/" target="_blank" rel="noopener noreferrer" class="skill-mini" title="Node.js"><img src="/assets/images/ui/icons8-node-js-48.png" alt="Node.js" /></a>
+              <a href="https://www.npmjs.com/" target="_blank" rel="noopener noreferrer" class="skill-mini" title="npm"><img src="/assets/images/ui/icons8-npm-32.png" alt="npm" /></a>
+            </div>
+
+            <div class="skill-drawer" data-drawer="databases">
+              <a href="https://www.mysql.com/" target="_blank" rel="noopener noreferrer" class="skill-mini" title="MySQL"><img src="/assets/images/ui/icons8-mysql-48.png" alt="MySQL" /></a>
+              <a href="https://www.mongodb.com/" target="_blank" rel="noopener noreferrer" class="skill-mini" title="MongoDB"><img src="/assets/images/ui/icons8-mongodb-48.png" alt="MongoDB" /></a>
+            </div>
+
+            <div class="skill-drawer" data-drawer="design">
+              <a href="https://www.canva.com/" target="_blank" rel="noopener noreferrer" class="skill-mini" title="Canva"><img src="/assets/images/ui/icons8-canva-48.png" alt="Canva" /></a>
+              <a href="https://www.figma.com/" target="_blank" rel="noopener noreferrer" class="skill-mini" title="Figma"><img src="/assets/images/ui/icons8-figma-48.png" alt="Figma" /></a>
+            </div>
+
+            <div class="skill-drawer" data-drawer="pm-agile">
+              <a href="https://www.atlassian.com/software/jira" target="_blank" rel="noopener noreferrer" class="skill-mini" title="Jira"><img src="/assets/images/ui/icons8-jira-48.png" alt="Jira" /></a>
+              <a href="https://www.notion.so/" target="_blank" rel="noopener noreferrer" class="skill-mini" title="Notion"><img src="/assets/images/ui/icons8-notion-48.png" alt="Notion" /></a>
+              <a href="https://slack.com/" target="_blank" rel="noopener noreferrer" class="skill-mini" title="Slack"><img src="/assets/images/ui/icons8-slack-48.png" alt="Slack" /></a>
+              <a href="https://www.microsoft.com/fr-fr/microsoft-365/project/project-management-software" target="_blank" rel="noopener noreferrer" class="skill-mini" title="Microsoft Project"><img src="/assets/images/ui/icons8-project-64.png" alt="Microsoft Project" /></a>
+            </div>
+
+            <div class="skill-drawer" data-drawer="ai-tools">
+              <a href="https://chatgpt.com/" target="_blank" rel="noopener noreferrer" class="skill-mini" title="ChatGPT"><img src="/assets/images/ui/icons8-chatgpt-50.png" alt="ChatGPT" /></a>
+              <a href="https://claude.ai/" target="_blank" rel="noopener noreferrer" class="skill-mini" title="Claude"><img src="/assets/images/ui/icons8-claude-48.png" alt="Claude" /></a>
+              <a href="https://gemini.google.com/" target="_blank" rel="noopener noreferrer" class="skill-mini" title="Gemini"><img src="/assets/images/ui/gemini_logo.png" alt="Gemini" /></a>
+              <a href="https://copilot.microsoft.com/" target="_blank" rel="noopener noreferrer" class="skill-mini" title="Microsoft Copilot"><img src="/assets/images/ui/icons8-3d-microsoft-copilot-logo-94.png" alt="Microsoft Copilot" /></a>
+              <a href="https://github.com/" target="_blank" rel="noopener noreferrer" class="skill-mini" title="GitHub"><img src="/assets/images/ui/icons8-github-64.png" alt="GitHub" /></a>
+              <a href="https://code.visualstudio.com/" target="_blank" rel="noopener noreferrer" class="skill-mini" title="VS Code"><img src="/assets/images/ui/icons8-vs-code-48.png" alt="VS Code" /></a>
+              <a href="https://www.netlify.com/" target="_blank" rel="noopener noreferrer" class="skill-mini" title="Netlify"><img src="/assets/images/ui/icons8-netlify-48.png" alt="Netlify" /></a>
+              <a href="https://www.heroku.com/" target="_blank" rel="noopener noreferrer" class="skill-mini" title="Heroku"><img src="/assets/images/ui/icons8-heroku-48.png" alt="Heroku" /></a>
+              <a href="https://www.microsoft.com/fr-fr/microsoft-365" target="_blank" rel="noopener noreferrer" class="skill-mini" title="Pack Office"><img src="/assets/images/ui/icons8-microsoft-office-2019-48.png" alt="Pack Office" /></a>
+            </div>
+          </div>
         </div>
-
-        <div class="skills-categories">
-          <!-- Frontend -->
-          <div class="skills-category" data-category="frontend">
-            <h3 class="category-title" data-i18n="skills.frontend" onclick="toggleSkillsCategory('frontend')">Frontend</h3>
-            <div class="skills-compact-grid">
-              <a href="https://developer.mozilla.org/fr/docs/Web/HTML" target="_blank" rel="noopener noreferrer" class="skill-compact" title="HTML5"><img src="/assets/images/ui/icons8-html5-50.png" alt="HTML5" /><span>HTML5</span></a>
-              <a href="https://developer.mozilla.org/fr/docs/Web/CSS" target="_blank" rel="noopener noreferrer" class="skill-compact" title="CSS3"><img src="/assets/images/ui/icons8-css3-50.png" alt="CSS3" /><span>CSS3</span></a>
-              <a href="https://developer.mozilla.org/fr/docs/Web/JavaScript" target="_blank" rel="noopener noreferrer" class="skill-compact" title="JavaScript"><img src="/assets/images/ui/icons8-javascript-48.png" alt="JavaScript" /><span>JavaScript</span></a>
-              <a href="https://getbootstrap.com/" target="_blank" rel="noopener noreferrer" class="skill-compact" title="Bootstrap"><img src="/assets/images/ui/icons8-bootstrap-48.png" alt="Bootstrap" /><span>Bootstrap</span></a>
-              <a href="https://reactjs.org/" target="_blank" rel="noopener noreferrer" class="skill-compact" title="React"><img src="/assets/images/ui/icons8-react-48.png" alt="React" /><span>React</span></a>
-            </div>
-          </div>
-
-          <!-- Backend -->
-          <div class="skills-category" data-category="backend">
-            <h3 class="category-title" data-i18n="skills.backend" onclick="toggleSkillsCategory('backend')">Backend</h3>
-            <div class="skills-compact-grid">
-              <a href="https://www.php.net/" target="_blank" rel="noopener noreferrer" class="skill-compact" title="PHP"><img src="/assets/images/ui/icons8-php-48.png" alt="PHP" /><span>PHP</span></a>
-              <a href="https://nodejs.org/" target="_blank" rel="noopener noreferrer" class="skill-compact" title="Node.js"><img src="/assets/images/ui/icons8-node-js-48.png" alt="Node.js" /><span>Node.js</span></a>
-              <a href="https://www.mysql.com/" target="_blank" rel="noopener noreferrer" class="skill-compact" title="MySQL"><img src="/assets/images/ui/icons8-mysql-48.png" alt="MySQL" /><span>MySQL</span></a>
-              <a href="https://www.mongodb.com/" target="_blank" rel="noopener noreferrer" class="skill-compact" title="MongoDB"><img src="/assets/images/ui/icons8-mongodb-48.png" alt="MongoDB" /><span>MongoDB</span></a>
-            </div>
-          </div>
-
-          <!-- Design -->
-          <div class="skills-category" data-category="design">
-            <h3 class="category-title" data-i18n="skills.design" onclick="toggleSkillsCategory('design')">Design</h3>
-            <div class="skills-compact-grid">
-              <a href="https://www.canva.com/" target="_blank" rel="noopener noreferrer" class="skill-compact" title="Canva"><img src="/assets/images/ui/icons8-canva-48.png" alt="Canva" /><span>Canva</span></a>
-              <a href="https://www.figma.com/" target="_blank" rel="noopener noreferrer" class="skill-compact" title="Figma"><img src="/assets/images/ui/icons8-figma-48.png" alt="Figma" /><span>Figma</span></a>
-            </div>
-          </div>
-
-          <!-- Tools & IA -->
-          <div class="skills-category" data-category="tools-ia">
-            <h3 class="category-title" onclick="toggleSkillsCategory('tools-ia')">Tools &amp; IA</h3>
-            <div class="skills-compact-grid">
-              <a href="https://github.com/" target="_blank" rel="noopener noreferrer" class="skill-compact" title="GitHub"><img src="/assets/images/ui/icons8-github-64.png" alt="GitHub" /><span>GitHub</span></a>
-              <a href="https://code.visualstudio.com/" target="_blank" rel="noopener noreferrer" class="skill-compact" title="VS Code"><img src="/assets/images/ui/icons8-vs-code-48.png" alt="VS Code" /><span>VS Code</span></a>
-              <a href="https://www.heroku.com/" target="_blank" rel="noopener noreferrer" class="skill-compact" title="Heroku"><img src="/assets/images/ui/icons8-heroku-48.png" alt="Heroku" /><span>Heroku</span></a>
-              <a href="https://www.netlify.com/" target="_blank" rel="noopener noreferrer" class="skill-compact" title="Netlify"><img src="/assets/images/ui/icons8-netlify-48.png" alt="Netlify" /><span>Netlify</span></a>
-              <a href="https://chatgpt.com/" target="_blank" rel="noopener noreferrer" class="skill-compact" title="ChatGPT"><img src="/assets/images/ui/icons8-chatgpt-50.png" alt="ChatGPT" /><span>ChatGPT</span></a>
-              <a href="https://claude.ai/" target="_blank" rel="noopener noreferrer" class="skill-compact" title="Claude"><img src="/assets/images/ui/icons8-claude-48.png" alt="Claude" /><span>Claude</span></a>
-              <a href="https://gemini.google.com/" target="_blank" rel="noopener noreferrer" class="skill-compact" title="Gemini"><img src="/assets/images/ui/gemini_logo.png" alt="Gemini" /><span>Gemini</span></a>
-              <a href="https://copilot.microsoft.com/" target="_blank" rel="noopener noreferrer" class="skill-compact" title="Copilot"><img src="/assets/images/ui/icons8-3d-microsoft-copilot-logo-94.png" alt="Copilot" /><span>Copilot</span></a>
-              <a href="https://www.microsoft.com/fr-fr/microsoft-365" target="_blank" rel="noopener noreferrer" class="skill-compact" title="Pack Office"><img src="/assets/images/ui/icons8-microsoft-office-2019-48.png" alt="Pack Office" /><span>Pack Office</span></a>
-            </div>
-          </div>
-
-          <!-- PM & Agile -->
-          <div class="skills-category" data-category="pm-agile">
-            <h3 class="category-title" onclick="toggleSkillsCategory('pm-agile')">Project Management &amp; Agile</h3>
-            <div class="skills-compact-grid">
-              <div class="skill-compact" title="Agile"><img src="/assets/images/ui/agile-icon.png" alt="Agile" /><span>Agile</span></div>
-              <div class="skill-compact" title="Scrum"><img src="/assets/images/ui/scrum-icon.png" alt="Scrum" /><span>Scrum</span></div>
-              <div class="skill-compact" title="Leadership"><img src="/assets/images/ui/leadership-icon.png" alt="Leadership" /><span>Leadership</span></div>
-              <div class="skill-compact" title="Project Planning"><img src="/assets/images/ui/planning-icon.png" alt="Planning" /><span>Planning</span></div>
-            </div>
-          </div>
-        </div>
-
-        <p class="skills-note">
-          💡 Cliquez sur les branches de l'étoile ou sur les barres pour explorer les catégories de compétences. Les blocs affichent les outils et technologies avec liens vers leurs sites officiels.
-        </p>
       </div>
       </section>
 
@@ -473,39 +479,42 @@
       });
     </script>
     <script>
-      function toggleSkillsCategory(categoryId) {
-        const allCategories = document.querySelectorAll('.skills-category');
-        const selectedCategory = document.querySelector(`.skills-category[data-category="${categoryId}"]`);
-        const allDots = document.querySelectorAll('.skills-dots');
-        const allLabels = document.querySelectorAll('.skills-branch-label');
+      function toggleSkillDrawer(categoryId) {
+        const drawer = document.querySelector(`.skill-drawer[data-drawer="${categoryId}"]`);
+        if (!drawer) return;
+        const willOpen = !drawer.classList.contains('open');
 
-        allCategories.forEach(cat => {
-          if (cat === selectedCategory) {
-            cat.classList.toggle('active');
-          } else {
-            cat.classList.remove('active');
-          }
-        });
+        document.querySelectorAll('.skill-drawer').forEach(d => d.classList.remove('open'));
+        document.querySelectorAll('.skills-branch').forEach(b => b.classList.remove('active'));
 
-        allDots.forEach(dot => {
-          if (dot.getAttribute('data-category') === categoryId) {
-            dot.classList.toggle('active');
-          } else {
-            dot.classList.remove('active');
-          }
-        });
-
-        allLabels.forEach(label => {
-          if (label.getAttribute('data-category') === categoryId) {
-            label.classList.toggle('active');
-          } else {
-            label.classList.remove('active');
-          }
-        });
+        if (willOpen) {
+          drawer.classList.add('open');
+          document
+            .querySelector(`.skills-branch[data-category="${categoryId}"]`)
+            .classList.add('active');
+        }
       }
 
-      document.addEventListener('DOMContentLoaded', function() {
-        toggleSkillsCategory('frontend');
+      document.addEventListener('DOMContentLoaded', function () {
+        toggleSkillDrawer('frontend');
+
+        // Clavier : Entrée / Espace sur une branche
+        document.querySelectorAll('.skills-branch').forEach(branch => {
+          branch.addEventListener('keydown', e => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              toggleSkillDrawer(branch.getAttribute('data-category'));
+            }
+          });
+        });
+
+        // Clic à l'extérieur de l'étoile : on referme
+        document.addEventListener('click', e => {
+          if (!e.target.closest('.skills-star-wrap')) {
+            document.querySelectorAll('.skill-drawer').forEach(d => d.classList.remove('open'));
+            document.querySelectorAll('.skills-branch').forEach(b => b.classList.remove('active'));
+          }
+        });
       });
     </script>
     <script src="/scripts/translator.js"></script>
@@ -514,7 +523,6 @@
     <script src="/scripts/dbs-auth.js"></script>
     <script src="/scripts/ai-assistant.js"></script>
     <script src="/scripts/parallax-effect.js"></script>
-    <script src="/scripts/skills-parallax.js"></script>
     <script src="/scripts/navbar-dropdown.js?v=20260604-click-menu"></script>
     <script src="/scripts/scroll-to-top.js"></script>
   </body>
