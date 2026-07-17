@@ -245,7 +245,7 @@
 
         <div class="skills-hero-row">
           <aside class="skills-intro-badge" data-aos="fade-right">
-            <span class="skills-intro-badge-glyph" aria-hidden="true">✦</span>
+            <img class="skills-intro-badge-glyph" src="/assets/images/ui/icons8-click-96.png" alt="" aria-hidden="true" />
             <p data-i18n="skills.introLead">
               Des compétences web et projet au service d’expériences digitales structurées, accessibles et orientées qualité.
             </p>
@@ -253,7 +253,7 @@
 
           <div class="skills-star-column">
             <div class="skills-star-hint">
-              <img src="/assets/images/ui/icons8-click-96.png" alt="Cliquez sur une branche de l'étoile pour ouvrir ses technologies" />
+              <img src="/assets/images/ui/icons8-click-96.png" alt="Survolez une branche de l'étoile pour découvrir ses technologies" />
             </div>
 
             <!-- Étoile interactive : 8 branches, tiroirs de mini-icônes -->
@@ -265,8 +265,12 @@
                   <stop offset="0%" stop-color="#7b7bff" stop-opacity="1" />
                   <stop offset="100%" stop-color="#4646c8" stop-opacity="0.9" />
                 </radialGradient>
+                <linearGradient id="skillsLabelGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#5d5dff" />
+                  <stop offset="100%" stop-color="#c822ff" />
+                </linearGradient>
                 <clipPath id="skillsCenterClip">
-                  <circle cx="500" cy="500" r="60" />
+                  <circle cx="500" cy="500" r="76" />
                 </clipPath>
               </defs>
 
@@ -296,65 +300,65 @@
               <line x1="500" y1="500" x2="267" y2="267" class="skills-spoke" />
 
               <!-- Frontend (haut) -->
-              <g class="skills-branch" data-category="frontend" tabindex="0" role="button" aria-label="Frontend" onclick="toggleSkillDrawer('frontend')">
+              <g class="skills-branch" data-category="frontend" tabindex="0" role="button" aria-label="Frontend">
                 <text x="500" y="126" text-anchor="middle" class="skills-branch-label">Frontend</text>
                 <text x="500" y="148" text-anchor="middle" class="skills-branch-sub">(HTML, CSS, JS)</text>
                 <circle cx="500" cy="170" r="11" class="skills-dot" />
               </g>
 
               <!-- Backend (haut-droite) -->
-              <g class="skills-branch" data-category="backend" tabindex="0" role="button" aria-label="Backend" onclick="toggleSkillDrawer('backend')">
+              <g class="skills-branch" data-category="backend" tabindex="0" role="button" aria-label="Backend">
                 <text x="762" y="256" text-anchor="start" class="skills-branch-label">Backend</text>
                 <text x="762" y="278" text-anchor="start" class="skills-branch-sub">(PHP, Node.js)</text>
                 <circle cx="733" cy="267" r="11" class="skills-dot" />
               </g>
 
               <!-- Databases (droite) -->
-              <g class="skills-branch" data-category="databases" tabindex="0" role="button" aria-label="Databases" onclick="toggleSkillDrawer('databases')">
+              <g class="skills-branch" data-category="databases" tabindex="0" role="button" aria-label="Databases">
                 <text x="858" y="495" text-anchor="start" class="skills-branch-label">Databases</text>
                 <text x="858" y="517" text-anchor="start" class="skills-branch-sub">(MySQL, MongoDB)</text>
                 <circle cx="830" cy="500" r="11" class="skills-dot" />
               </g>
 
               <!-- Design / UX (bas-droite) -->
-              <g class="skills-branch" data-category="design" tabindex="0" role="button" aria-label="Design et UX" onclick="toggleSkillDrawer('design')">
+              <g class="skills-branch" data-category="design" tabindex="0" role="button" aria-label="Design et UX">
                 <text x="762" y="740" text-anchor="start" class="skills-branch-label">Design / UX</text>
                 <text x="762" y="762" text-anchor="start" class="skills-branch-sub">(UI / Responsive)</text>
                 <circle cx="733" cy="733" r="11" class="skills-dot" />
               </g>
 
               <!-- PM & Agile (bas) -->
-              <g class="skills-branch" data-category="pm-agile" tabindex="0" role="button" aria-label="Project Management et Agile" onclick="toggleSkillDrawer('pm-agile')">
+              <g class="skills-branch" data-category="pm-agile" tabindex="0" role="button" aria-label="Project Management et Agile">
                 <circle cx="500" cy="830" r="11" class="skills-dot" />
                 <text x="500" y="878" text-anchor="middle" class="skills-branch-label">PM &amp; Agile</text>
                 <text x="500" y="900" text-anchor="middle" class="skills-branch-sub">(Leadership)</text>
               </g>
 
               <!-- Tools (bas-gauche) -->
-              <g class="skills-branch" data-category="tools" tabindex="0" role="button" aria-label="Tools" onclick="toggleSkillDrawer('tools')">
+              <g class="skills-branch" data-category="tools" tabindex="0" role="button" aria-label="Tools">
                 <text x="238" y="740" text-anchor="end" class="skills-branch-label">Tools</text>
                 <text x="238" y="762" text-anchor="end" class="skills-branch-sub">(VS Code, GitHub)</text>
                 <circle cx="267" cy="733" r="11" class="skills-dot" />
               </g>
 
               <!-- Environnement (gauche) -->
-              <g class="skills-branch" data-category="environnement" tabindex="0" role="button" aria-label="Environnement" onclick="toggleSkillDrawer('environnement')">
+              <g class="skills-branch" data-category="environnement" tabindex="0" role="button" aria-label="Environnement">
                 <text x="142" y="495" text-anchor="end" class="skills-branch-label">Environnement</text>
                 <text x="142" y="517" text-anchor="end" class="skills-branch-sub">(Netlify, Heroku)</text>
                 <circle cx="170" cy="500" r="11" class="skills-dot" />
               </g>
 
               <!-- AI (haut-gauche) -->
-              <g class="skills-branch" data-category="ai" tabindex="0" role="button" aria-label="Intelligence artificielle" onclick="toggleSkillDrawer('ai')">
+              <g class="skills-branch" data-category="ai" tabindex="0" role="button" aria-label="Intelligence artificielle">
                 <text x="238" y="256" text-anchor="end" class="skills-branch-label">AI</text>
                 <text x="238" y="278" text-anchor="end" class="skills-branch-sub">(ChatGPT, Claude)</text>
                 <circle cx="267" cy="267" r="11" class="skills-dot" />
               </g>
 
               <!-- Centre : portrait -->
-              <circle cx="500" cy="500" r="62" class="skills-center-ring" />
-              <circle cx="500" cy="500" r="60" class="skills-center-dot" />
-              <image href="/assets/images/portrait/my-notion-face-transparent.png" x="426" y="430" width="148" height="148" clip-path="url(#skillsCenterClip)" preserveAspectRatio="xMidYMid slice" />
+              <circle cx="500" cy="500" r="78" class="skills-center-ring" />
+              <circle cx="500" cy="500" r="76" class="skills-center-dot" />
+              <image href="/assets/images/portrait/my-notion-face-transparent.png" x="406" y="406" width="188" height="188" clip-path="url(#skillsCenterClip)" preserveAspectRatio="xMidYMid slice" />
             </svg>
 
             <!-- Tiroirs de mini-icônes -->
@@ -516,42 +520,82 @@
       });
     </script>
     <script>
-      function toggleSkillDrawer(categoryId) {
-        const drawer = document.querySelector(`.skill-drawer[data-drawer="${categoryId}"]`);
-        if (!drawer) return;
-        const willOpen = !drawer.classList.contains('open');
+      function openSkillDrawer(categoryId) {
+        document.querySelectorAll('.skill-drawer').forEach(d => {
+          d.classList.toggle('open', d.dataset.drawer === categoryId);
+        });
+        document.querySelectorAll('.skills-branch').forEach(b => {
+          const isActive = b.getAttribute('data-category') === categoryId;
+          b.classList.toggle('active', isActive);
+          b.setAttribute('aria-expanded', String(isActive));
+        });
+      }
 
+      function closeSkillDrawers() {
         document.querySelectorAll('.skill-drawer').forEach(d => d.classList.remove('open'));
-        document.querySelectorAll('.skills-branch').forEach(b => b.classList.remove('active'));
-
-        if (willOpen) {
-          drawer.classList.add('open');
-          document
-            .querySelector(`.skills-branch[data-category="${categoryId}"]`)
-            .classList.add('active');
-        }
+        document.querySelectorAll('.skills-branch').forEach(b => {
+          b.classList.remove('active');
+          b.setAttribute('aria-expanded', 'false');
+        });
       }
 
       document.addEventListener('DOMContentLoaded', function () {
-        toggleSkillDrawer('frontend');
+        const branches = document.querySelectorAll('.skills-branch');
+        const drawers = document.querySelectorAll('.skill-drawer');
+        branches.forEach(b => b.setAttribute('aria-expanded', 'false'));
 
-        // Clavier : Entrée / Espace sur une branche
-        document.querySelectorAll('.skills-branch').forEach(branch => {
-          branch.addEventListener('keydown', e => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              toggleSkillDrawer(branch.getAttribute('data-category'));
-            }
+        // Un vrai pointeur (souris/trackpad) : ouverture au survol, la compétence
+        // elle-même (lien) reste cliquable dans le tiroir.
+        const canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+        if (canHover) {
+          let closeTimer = null;
+          const scheduleClose = () => {
+            clearTimeout(closeTimer);
+            closeTimer = setTimeout(closeSkillDrawers, 200);
+          };
+          const openNow = categoryId => {
+            clearTimeout(closeTimer);
+            openSkillDrawer(categoryId);
+          };
+
+          branches.forEach(branch => {
+            const categoryId = branch.getAttribute('data-category');
+            branch.addEventListener('mouseenter', () => openNow(categoryId));
+            branch.addEventListener('mouseleave', scheduleClose);
+            branch.addEventListener('focus', () => openNow(categoryId));
+            branch.addEventListener('blur', scheduleClose);
           });
-        });
 
-        // Clic à l'extérieur de l'étoile : on referme
-        document.addEventListener('click', e => {
-          if (!e.target.closest('.skills-star-wrap')) {
-            document.querySelectorAll('.skill-drawer').forEach(d => d.classList.remove('open'));
-            document.querySelectorAll('.skills-branch').forEach(b => b.classList.remove('active'));
-          }
-        });
+          drawers.forEach(drawer => {
+            drawer.addEventListener('mouseenter', () => openNow(drawer.dataset.drawer));
+            drawer.addEventListener('mouseleave', scheduleClose);
+          });
+
+          document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') closeSkillDrawers();
+          });
+        } else {
+          // Écrans tactiles : pas de survol, on garde un déclenchement au tap.
+          branches.forEach(branch => {
+            const categoryId = branch.getAttribute('data-category');
+            branch.addEventListener('click', () => {
+              const willOpen = !branch.classList.contains('active');
+              closeSkillDrawers();
+              if (willOpen) openSkillDrawer(categoryId);
+            });
+            branch.addEventListener('keydown', e => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                branch.dispatchEvent(new Event('click'));
+              }
+            });
+          });
+
+          document.addEventListener('click', e => {
+            if (!e.target.closest('.skills-star-wrap')) closeSkillDrawers();
+          });
+        }
       });
     </script>
     <script src="/scripts/translator.js"></script>

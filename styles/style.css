@@ -7962,17 +7962,22 @@ h1.main-title-animated .title-icon {
 }
 
 .skills-intro-badge-glyph {
-  align-items: center;
-  background: linear-gradient(45deg, var(--accent-color), #c822ff);
+  background: rgb(255 255 255 / 10%);
+  border: 1px solid rgb(93 93 255 / 30%);
   border-radius: 999px;
-  color: #fff;
-  display: inline-flex;
-  font-size: 1.1rem;
-  height: 38px;
-  justify-content: center;
+  box-sizing: border-box;
+  display: block;
+  height: 44px;
   margin-bottom: 0.9rem;
+  object-fit: contain;
+  padding: 9px;
   position: relative;
-  width: 38px;
+  width: 44px;
+}
+
+[data-theme="light"] .skills-intro-badge-glyph {
+  background: rgb(93 93 255 / 8%);
+  border-color: rgb(93 93 255 / 22%);
 }
 
 .skills-intro-badge p {
@@ -7989,10 +7994,13 @@ h1.main-title-animated .title-icon {
   box-shadow: 0 18px 44px rgb(93 93 255 / 16%);
 }
 
+/* [data-theme="light"] .skills-section p impose color:transparent !important
+   (technique de texte en dégradé utilisée ailleurs sur la page) : le badge a son
+   propre fond et a besoin d'un texte plein, d'où le !important pour le rattraper. */
 [data-theme="light"] .skills-hero-row .skills-intro-badge p {
-  background: none;
-  color: #33335c;
-  -webkit-text-fill-color: currentColor;
+  background: none !important;
+  color: #33335c !important;
+  -webkit-text-fill-color: #33335c !important;
 }
 
 .skills-star-column {
@@ -8099,12 +8107,14 @@ h1.main-title-animated .title-icon {
   transition: fill 0.25s ease, r 0.25s ease;
 }
 
+/* Gradient partagé par les deux thèmes : lisible sur fond sombre comme clair,
+   évite d'avoir à recolorer le libellé par thème. */
 .skills-branch-label {
-  fill: rgba(255, 255, 255, 0.9);
+  fill: url(#skillsLabelGradient);
   font-family: var(--font-body);
   font-size: 26px;
-  font-weight: 600;
-  transition: fill 0.25s ease;
+  font-weight: 700;
+  transition: filter 0.25s ease;
   user-select: none;
 }
 
@@ -8126,7 +8136,7 @@ h1.main-title-animated .title-icon {
 .skills-branch:hover .skills-branch-label,
 .skills-branch:focus-visible .skills-branch-label,
 .skills-branch.active .skills-branch-label {
-  fill: #8f8fff;
+  filter: drop-shadow(0 0 7px rgba(93, 93, 255, 0.75));
 }
 
 .skills-branch:hover .skills-branch-sub,
@@ -8134,17 +8144,8 @@ h1.main-title-animated .title-icon {
   fill: rgba(255, 255, 255, 0.75);
 }
 
-[data-theme="light"] .skills-branch-label {
-  fill: #2b2b5a;
-}
-
 [data-theme="light"] .skills-branch-sub {
   fill: rgba(40, 40, 80, 0.6);
-}
-
-[data-theme="light"] .skills-branch:hover .skills-branch-label,
-[data-theme="light"] .skills-branch.active .skills-branch-label {
-  fill: var(--accent-color);
 }
 
 /* .skills-branch.active .skills-branch-sub (3 sélecteurs) écrasait sinon la couleur
