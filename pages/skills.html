@@ -252,12 +252,47 @@
           </aside>
 
           <div class="skills-star-column">
-            <div class="skills-star-hint">
-              <img src="/assets/images/ui/icons8-click-96.png" alt="Survolez une branche de l'étoile pour découvrir ses technologies" />
-            </div>
-
             <!-- Étoile interactive : 8 branches, tiroirs de mini-icônes -->
             <div class="skills-star-section" data-aos="fade-up">
+          <div class="skills-star-halo">
+            <!-- Constellation décorative de mains autour de l'étoile -->
+            <svg class="skills-constellation" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+              <defs>
+                <symbol id="constellationHand" viewBox="0 0 96 96">
+                  <image href="/assets/images/ui/icons8-click-96.png" width="96" height="96" />
+                </symbol>
+              </defs>
+
+              <g class="skills-constellation-lines">
+                <line x1="743" y1="80" x2="920" y2="258" />
+                <line x1="920" y1="258" x2="920" y2="743" />
+                <line x1="920" y1="743" x2="743" y2="920" />
+                <line x1="743" y1="920" x2="258" y2="920" />
+                <line x1="258" y1="920" x2="80" y2="743" />
+                <line x1="80" y1="743" x2="80" y2="258" />
+                <line x1="80" y1="258" x2="258" y2="80" />
+                <line x1="258" y1="80" x2="743" y2="80" />
+              </g>
+
+              <g class="skills-constellation-hands">
+                <use href="#constellationHand" x="725" y="62" width="36" height="36" />
+                <use href="#constellationHand" x="902" y="240" width="36" height="36" />
+                <use href="#constellationHand" x="902" y="725" width="36" height="36" />
+                <use href="#constellationHand" x="725" y="902" width="36" height="36" />
+                <use href="#constellationHand" x="240" y="902" width="36" height="36" />
+                <use href="#constellationHand" x="62" y="725" width="36" height="36" />
+                <use href="#constellationHand" x="62" y="240" width="36" height="36" />
+                <use href="#constellationHand" x="240" y="62" width="36" height="36" />
+              </g>
+
+              <g class="skills-constellation-hands skills-constellation-hands--faint">
+                <use href="#constellationHand" x="882" y="882" width="20" height="20" />
+                <use href="#constellationHand" x="98" y="882" width="20" height="20" />
+                <use href="#constellationHand" x="98" y="98" width="20" height="20" />
+                <use href="#constellationHand" x="882" y="98" width="20" height="20" />
+              </g>
+            </svg>
+
           <div class="skills-star-wrap">
             <svg class="skills-star-diagram" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Étoile des compétences">
               <defs>
@@ -412,8 +447,9 @@
               <a href="https://copilot.microsoft.com/" target="_blank" rel="noopener noreferrer" class="skill-mini" title="Microsoft Copilot"><img src="/assets/images/ui/icons8-3d-microsoft-copilot-logo-94.png" alt="Microsoft Copilot" /></a>
             </div>
           </div>
-        </div>
           </div>
+        </div>
+        </div>
         </div>
       </section>
 

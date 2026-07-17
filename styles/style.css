@@ -280,7 +280,6 @@ body :where(
 .page-intro-title {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
   background-clip: text;
-  background-clip: text;
   color: transparent;
   display: inline-block;
   font-family: var(--font-title);
@@ -591,7 +590,6 @@ section#skills,
     #b16cff 100%   /* Gouvernance - Violet */
   );
   background-clip: text;
-  background-clip: text;
   color: transparent;
   text-decoration: none;
   -webkit-text-fill-color: transparent;
@@ -814,7 +812,6 @@ section#skills,
     #ff5f6d 64%,
     #b16cff 100%
   );
-  background-clip: text;
   background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
@@ -1135,6 +1132,7 @@ header.site-header {
   align-self: flex-start;
   display: flex;
   flex: 1 1 auto;
+  flex-direction: column;
   height: auto;
   justify-content: flex-start;
   min-height: 0;
@@ -1289,7 +1287,6 @@ header .social-media img {
 
 [data-theme="light"] .dropdown-nav a {
   background: linear-gradient(45deg, #5d5dff, #c822ff);
-  background-clip: text;
   background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
@@ -1674,7 +1671,6 @@ body.body-menu-open .compact-header {
 .dropdown-nav .dropdown-gamma-link {
   align-items: center;
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
-  background-clip: text;
   background-clip: text;
   display: inline-flex;
   font-family: var(--font-title);
@@ -2061,7 +2057,6 @@ section.page-title-container
 .page-title-container .page-subtitle {
   background: linear-gradient(45deg, #5d5dff, #c822ff);
   background-clip: text;
-  background-clip: text;
   color: transparent !important;
   font-family: var(--font-title);
   font-optical-sizing: auto;
@@ -2077,13 +2072,11 @@ section.page-title-container
 .page-title-container .news-page-title {
   background: linear-gradient(45deg, #ffdbe7, #ffeaf2);
   background-clip: text;
-  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 [data-theme="light"] .page-title-container .news-page-title {
   background: linear-gradient(45deg, #5d5dff, #c822ff);
-  background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -2193,7 +2186,6 @@ section.page-title-container
 
 .news-card-title {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
-  background-clip: text;
   background-clip: text;
   color: transparent;
   display: inline-block;
@@ -2739,7 +2731,6 @@ h1.main-title-animated .title-icon {
 [data-theme="light"] .blog-title {
   background: linear-gradient(45deg, #5d5dff, #c822ff);
   background-clip: text;
-  background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
 }
@@ -2894,7 +2885,6 @@ h1.main-title-animated .title-icon {
 .blog-card-title {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
   background-clip: text;
-  background-clip: text;
   font-family: var(--font-title);
   font-size: 1.5rem;
   margin-bottom: 15px;
@@ -2903,7 +2893,6 @@ h1.main-title-animated .title-icon {
 
 [data-theme="light"] .blog-card-title {
   background: linear-gradient(45deg, #5d5dff, #c822ff);
-  background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -3031,7 +3020,6 @@ h1.main-title-animated .title-icon {
 
 .consent-banner__title {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
-  background-clip: text;
   background-clip: text;
   font-family: var(--font-title);
   font-size: 1.35rem;
@@ -3276,7 +3264,6 @@ h1.main-title-animated .title-icon {
 .legal-container h1 {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
   background-clip: text;
-  background-clip: text;
   font-family: var(--font-title);
   font-optical-sizing: auto;
   font-size: clamp(2rem, 4vw, 2.8rem);
@@ -3314,7 +3301,6 @@ h1.main-title-animated .title-icon {
 
 .legal-container h2 {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
-  background-clip: text;
   background-clip: text;
   font-family: var(--font-title);
   font-size: 1.35rem;
@@ -3399,7 +3385,6 @@ h1.main-title-animated .title-icon {
 .ia-page .hero h1 {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
   background-clip: text;
-  background-clip: text;
   font-family: "Space Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   font-optical-sizing: auto;
   font-size: 1.75rem;
@@ -3467,7 +3452,6 @@ h1.main-title-animated .title-icon {
 .ia-page .ia-code-title {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
   background-clip: text;
-  background-clip: text;
   color: transparent;
   display: inline-block;
   font-family: "Space Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -3511,7 +3495,6 @@ h1.main-title-animated .title-icon {
 .ia-page .code-box .code-subtitle {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
   background-clip: text;
-  background-clip: text;
   color: transparent;
   display: inline-block;
   font-weight: 600;
@@ -3521,7 +3504,6 @@ h1.main-title-animated .title-icon {
 
 .ia-page .code-box .code-reference {
   background: linear-gradient(90deg, #ffb347, #ff6b3d);
-  background-clip: text;
   background-clip: text;
   color: transparent;
   display: inline-block;
@@ -4084,7 +4066,6 @@ h1.main-title-animated .title-icon {
 .article-title-main {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
   background-clip: text;
-  background-clip: text;
   font-family: var(--font-title);
   font-optical-sizing: auto;
   font-size: 3.6rem;
@@ -4096,7 +4077,6 @@ h1.main-title-animated .title-icon {
 
 [data-theme="light"] .article-title-main {
   background: linear-gradient(45deg, #5d5dff, #c822ff);
-  background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -4111,7 +4091,6 @@ h1.main-title-animated .title-icon {
 
 [data-theme="light"] .article-dateline-detailed {
   background: linear-gradient(45deg, #5d5dff, #c822ff);
-  background-clip: text;
   background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
@@ -4431,7 +4410,6 @@ h1.main-title-animated .title-icon {
 
 [data-theme="light"] .article-body h2 {
   background: linear-gradient(45deg, #5d5dff, #c822ff);
-  background-clip: text;
   background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
@@ -5018,7 +4996,6 @@ h1.main-title-animated .title-icon {
 .about-text-box h2 {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
   background-clip: text;
-  background-clip: text;
   color: transparent;
   display: inline-block;
   font-size: clamp(2rem, 3.2vw, 2.35rem);
@@ -5049,7 +5026,6 @@ h1.main-title-animated .title-icon {
 
 .about-text-box h3 {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
-  background-clip: text;
   background-clip: text;
   color: transparent;
   display: inline-block;
@@ -5085,7 +5061,6 @@ h1.main-title-animated .title-icon {
 [data-theme="light"] .page-about .about-text-box li {
   background: linear-gradient(45deg, #5d5dff, #c822ff);
   background-clip: text;
-  background-clip: text;
   color: transparent !important;
   -webkit-text-fill-color: transparent;
 }
@@ -5094,7 +5069,6 @@ h1.main-title-animated .title-icon {
 [data-theme="light"] .skills-section .category-title,
 [data-theme="light"] .skills-section p {
   background: linear-gradient(45deg, #5d5dff, #c822ff);
-  background-clip: text;
   background-clip: text;
   color: transparent !important;
   -webkit-text-fill-color: transparent;
@@ -5105,7 +5079,6 @@ h1.main-title-animated .title-icon {
 [data-theme="light"] .contact-email,
 [data-theme="light"] .contact-email a {
   background: linear-gradient(45deg, #5d5dff, #c822ff);
-  background-clip: text;
   background-clip: text;
   color: transparent !important;
   -webkit-text-fill-color: transparent;
@@ -5122,7 +5095,6 @@ h1.main-title-animated .title-icon {
 [data-theme="light"] .explorer-page h1.main-title-animated {
   background: linear-gradient(45deg, #5d5dff, #c822ff);
   background-clip: text;
-  background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
 }
@@ -5130,7 +5102,6 @@ h1.main-title-animated .title-icon {
 [data-theme="light"] .page-intro-title,
 [data-theme="light"] .page-intro-card .page-intro-title {
   background: linear-gradient(45deg, #5d5dff, #c822ff);
-  background-clip: text;
   background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
@@ -5188,7 +5159,6 @@ h1.main-title-animated .title-icon {
 
 .page-about .about-values strong {
   background: linear-gradient(90deg, var(--accent-color), #ff8c42);
-  background-clip: text;
   background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
@@ -5392,7 +5362,6 @@ h1.main-title-animated .title-icon {
 .page-about .about-ai-tools h3 {
   background: linear-gradient(45deg, #79e6ff, #c822ff);
   background-clip: text;
-  background-clip: text;
   color: transparent;
   display: inline-block;
   font-size: 1.55rem;
@@ -5467,7 +5436,6 @@ h1.main-title-animated .title-icon {
 
 .page-about .process-body h3 {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
-  background-clip: text;
   background-clip: text;
   color: transparent;
   display: inline-block;
@@ -5594,7 +5562,6 @@ h1.main-title-animated .title-icon {
 [data-theme="light"] .page-about .timeline-link {
   background: rgb(93 93 255 / 12%);
   background-clip: border-box;
-  background-clip: border-box;
   border-color: rgb(93 93 255 / 35%);
   color: #5d5dff;
   -webkit-text-fill-color: #5d5dff;
@@ -5603,7 +5570,6 @@ h1.main-title-animated .title-icon {
 [data-theme="light"] .page-about .timeline-org,
 [data-theme="light"] .page-about .skill-group h3 {
   background: linear-gradient(90deg, #7f5bf4, #d654a4);
-  background-clip: text;
   background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
@@ -6922,16 +6888,16 @@ h1.main-title-animated .title-icon {
 }
 
 .projects-filter-header {
-  display: flex;
   align-items: center;
-  justify-content: space-between;
+  display: flex;
   flex-wrap: wrap;
   gap: 16px;
+  justify-content: space-between;
 }
 
 .projects-filter-title {
-  display: flex;
   align-items: center;
+  display: flex;
   gap: 12px;
 }
 
@@ -6941,87 +6907,87 @@ h1.main-title-animated .title-icon {
   font-size: 0.95rem;
   font-weight: 700;
   letter-spacing: 0.08em;
-  text-transform: uppercase;
   margin: 0;
+  text-transform: uppercase;
 }
 
 .projects-filter-meta {
-  font-size: 0.8rem;
   color: rgb(255 255 255 / 60%);
+  font-size: 0.8rem;
   font-weight: 500;
   letter-spacing: 0.05em;
 }
 
 .projects-filter-reset {
-  display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
   background: rgb(255 255 255 / 5%);
   border: 1px solid rgb(93 93 255 / 25%);
   border-radius: 8px;
   color: var(--text-color);
   cursor: pointer;
+  display: flex;
+  font-family: var(--font-title);
   font-size: 0.85rem;
   font-weight: 600;
-  font-family: var(--font-title);
-  transition: all 0.2s ease;
-  text-transform: uppercase;
+  gap: 8px;
   letter-spacing: 0.05em;
+  padding: 8px 16px;
+  text-transform: uppercase;
+  transition: all 0.2s ease;
 }
 
 .projects-filter-reset:hover {
   background: rgb(93 93 255 / 12%);
   border-color: rgb(93 93 255 / 50%);
-  transform: translateY(-1px);
   box-shadow: 0 4px 12px rgb(93 93 255 / 15%);
+  transform: translateY(-1px);
 }
 
 .projects-filter-reset:disabled {
-  opacity: 0.5;
   cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .projects-filter-chips {
+  backdrop-filter: blur(10px);
+  background: rgb(255 255 255 / 3%);
+  border: 1px solid rgb(93 93 255 / 15%);
+  border-radius: 16px;
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
   justify-content: center;
   padding: 16px;
-  background: rgb(255 255 255 / 3%);
-  border: 1px solid rgb(93 93 255 / 15%);
-  border-radius: 16px;
-  backdrop-filter: blur(10px);
 }
 
 .project-filter-chip {
-  position: relative;
-  display: inline-flex;
   align-items: center;
-  gap: 8px;
   background: rgb(255 255 255 / 6%);
   border: 1px solid rgb(93 93 255 / 25%);
   border-radius: 999px;
   color: var(--text-color);
   cursor: pointer;
+  display: inline-flex;
   font-family: var(--font-title);
   font-size: 0.9rem;
   font-weight: 600;
+  gap: 8px;
   letter-spacing: 0.03em;
   padding: 10px 16px;
-  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
   text-transform: none;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .project-filter-chip::before {
-  content: '';
-  position: absolute;
-  inset: -2px;
   background: linear-gradient(45deg, rgb(93 93 255 / 30%), rgb(200 34 255 / 25%));
   border-radius: inherit;
+  content: '';
+  inset: -2px;
   opacity: 0;
-  transition: opacity 0.2s ease;
   pointer-events: none;
+  position: absolute;
+  transition: opacity 0.2s ease;
   z-index: -1;
 }
 
@@ -7035,18 +7001,18 @@ h1.main-title-animated .title-icon {
 }
 
 .project-filter-chip-badge {
-  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  min-width: 22px;
-  height: 22px;
-  padding: 0 6px;
   background: rgb(93 93 255 / 30%);
   border-radius: 11px;
+  color: rgb(150 150 255);
+  display: inline-flex;
   font-size: 0.75rem;
   font-weight: 700;
-  color: rgb(150 150 255);
+  height: 22px;
+  justify-content: center;
   margin-left: 4px;
+  min-width: 22px;
+  padding: 0 6px;
   transition: all 0.2s ease;
 }
 
@@ -7059,21 +7025,23 @@ h1.main-title-animated .title-icon {
 
 .project-filter-chip.is-active .project-filter-chip-badge {
   background: rgb(255 255 255 / 25%);
-  color: white;
   box-shadow: inset 0 0 0 1px rgb(255 255 255 / 40%);
+  color: white;
 }
 
 @keyframes chip-badge-pop {
   0% {
-    transform: scale(0.8);
     opacity: 0;
+    transform: scale(0.8);
   }
+
   50% {
     transform: scale(1.15);
   }
+
   100% {
-    transform: scale(1);
     opacity: 1;
+    transform: scale(1);
   }
 }
 
@@ -7204,7 +7172,6 @@ h1.main-title-animated .title-icon {
 #projects .project-info p,
 #projects .project-links a {
   background-clip: text;
-  background-clip: text;
   background-image: linear-gradient(45deg, #5d5dff, #c822ff);
   color: transparent;
   -webkit-text-fill-color: transparent;
@@ -7223,7 +7190,6 @@ h1.main-title-animated .title-icon {
 .project-detail p,
 .project-detail li,
 .project-detail .project-links a:not(.btn-live, .btn-github, .btn-view-code) {
-  background-clip: text;
   background-clip: text;
   background-image: linear-gradient(45deg, #5d5dff, #c822ff);
   color: transparent;
@@ -7424,7 +7390,6 @@ h1.main-title-animated .title-icon {
 .project-content strong,
 .project-content a {
   background: linear-gradient(45deg, #5d5dff, #c822ff);
-  background-clip: text;
   background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
@@ -7932,12 +7897,12 @@ h1.main-title-animated .title-icon {
 
 /* Ligne héro : badge d'accroche + colonne étoile */
 .skills-hero-row {
-  display: flex;
   align-items: center;
-  justify-content: center;
+  display: flex;
   gap: 3rem;
+  justify-content: center;
   margin: 1.5rem auto 2rem;
-  max-width: 1240px;
+  max-width: 1400px;
   width: 100%;
 }
 
@@ -7962,14 +7927,14 @@ h1.main-title-animated .title-icon {
 }
 
 .skills-intro-badge-glyph {
+  object-fit: contain;
   background: rgb(255 255 255 / 10%);
   border: 1px solid rgb(93 93 255 / 30%);
   border-radius: 999px;
   box-sizing: border-box;
-  display: block;
+  display: inline;
   height: 44px;
   margin-bottom: 0.9rem;
-  object-fit: contain;
   padding: 9px;
   position: relative;
   width: 44px;
@@ -8031,70 +7996,122 @@ h1.main-title-animated .title-icon {
   width: 100%;
 }
 
-/* Indice « cliquez » (icône) sous le titre principal */
-.skills-star-hint {
+/* Halo autour de l'étoile : centre .skills-star-wrap et porte la constellation
+   décorative de mains en arrière-plan, tout autour du diagramme. */
+.skills-star-halo {
+  align-items: center;
+  aspect-ratio: 1 / 1;
   display: flex;
   justify-content: center;
-  margin: 0.5rem 0 0.25rem;
+  margin: 0 auto;
+  max-width: 1120px;
+  position: relative;
+  width: 100%;
 }
 
-.skills-star-hint img {
-  width: 54px;
-  height: 54px;
-  object-fit: contain;
-  cursor: pointer;
-  animation: skills-click-pulse 1.8s ease-in-out infinite;
+/* Constellation décorative : ne capte jamais le survol/clic, purement visuelle */
+.skills-constellation {
+  height: 100%;
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  width: 100%;
+  z-index: 0;
 }
 
-@keyframes skills-click-pulse {
-  0%, 100% { transform: translateY(0); opacity: 0.85; }
-  50% { transform: translateY(-6px); opacity: 1; }
+.skills-constellation-lines line {
+  stroke: rgb(147 130 255 / 35%);
+  stroke-dasharray: 4 6;
+  stroke-width: 1.5;
+}
+
+.skills-constellation-hands use {
+  animation: skills-constellation-twinkle 4s ease-in-out infinite;
+  filter: drop-shadow(0 0 4px rgb(93 93 255 / 35%));
+}
+
+.skills-constellation-hands--faint use {
+  animation-duration: 5.5s;
+  opacity: 0.55;
+}
+
+.skills-constellation-hands use:nth-child(2) { animation-delay: 0.6s; }
+.skills-constellation-hands use:nth-child(3) { animation-delay: 1.2s; }
+.skills-constellation-hands use:nth-child(4) { animation-delay: 1.8s; }
+.skills-constellation-hands use:nth-child(5) { animation-delay: 2.4s; }
+.skills-constellation-hands use:nth-child(6) { animation-delay: 3s; }
+.skills-constellation-hands use:nth-child(7) { animation-delay: 3.6s; }
+.skills-constellation-hands use:nth-child(8) { animation-delay: 4.2s; }
+
+@keyframes skills-constellation-twinkle {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.85; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skills-constellation-hands use {
+    animation: none;
+    opacity: 0.6;
+  }
+}
+
+/* La constellation a besoin d'une marge réelle autour du carré de 760px de l'étoile :
+   en dessous de ce seuil, ce dégagement n'est plus garanti, on la masque proprement. */
+@media (width <= 1400px) {
+  .skills-constellation {
+    display: none;
+  }
+
+  .skills-star-halo {
+    max-width: 760px;
+  }
 }
 
 /* Conteneur de l'étoile + tiroirs */
 .skills-star-wrap {
+  margin: 0 auto;
+  max-width: 760px;
   position: relative;
   width: 100%;
-  max-width: 760px;
-  margin: 0 auto;
+  z-index: 1;
 }
 
 .skills-star-diagram {
   display: block;
-  width: 100%;
+  filter: drop-shadow(0 0 26px rgb(93 93 255 / 28%));
   height: auto;
   overflow: visible;
-  filter: drop-shadow(0 0 26px rgba(93, 93, 255, 0.28));
+  width: 100%;
 }
 
 /* Traits de l'étoile */
 .skills-ring {
   fill: none;
-  stroke: rgba(93, 93, 255, 0.22);
-  stroke-width: 1.5;
+  stroke: rgb(93 93 255 / 22%);
   stroke-dasharray: 5 7;
+  stroke-width: 1.5;
 }
 
 .skills-arc {
   fill: none;
-  stroke: rgba(93, 93, 255, 0.28);
+  stroke: rgb(93 93 255 / 28%);
   stroke-width: 1.5;
 }
 
 .skills-spoke {
-  stroke: rgba(93, 93, 255, 0.3);
+  stroke: rgb(93 93 255 / 30%);
   stroke-width: 1.5;
 }
 
 /* Centre : anneau + pastille + portrait */
 .skills-center-ring {
   fill: none;
-  stroke: rgba(143, 143, 255, 0.65);
+  stroke: rgb(143 143 255 / 65%);
   stroke-width: 3;
 }
 
 .skills-center-dot {
-  fill: url(#skillsCenterGrad);
+  fill: url("#skillsCenterGrad");
 }
 
 /* Branches cliquables */
@@ -8103,14 +8120,14 @@ h1.main-title-animated .title-icon {
 }
 
 .skills-dot {
-  fill: rgba(93, 93, 255, 0.85);
+  fill: rgb(93 93 255 / 85%);
   transition: fill 0.25s ease, r 0.25s ease;
 }
 
 /* Gradient partagé par les deux thèmes : lisible sur fond sombre comme clair,
    évite d'avoir à recolorer le libellé par thème. */
 .skills-branch-label {
-  fill: url(#skillsLabelGradient);
+  fill: url("#skillsLabelGradient");
   font-family: var(--font-body);
   font-size: 26px;
   font-weight: 700;
@@ -8119,7 +8136,7 @@ h1.main-title-animated .title-icon {
 }
 
 .skills-branch-sub {
-  fill: rgba(255, 255, 255, 0.5);
+  fill: rgb(255 255 255 / 50%);
   font-family: var(--font-body);
   font-size: 17px;
   transition: fill 0.25s ease;
@@ -8136,16 +8153,16 @@ h1.main-title-animated .title-icon {
 .skills-branch:hover .skills-branch-label,
 .skills-branch:focus-visible .skills-branch-label,
 .skills-branch.active .skills-branch-label {
-  filter: drop-shadow(0 0 7px rgba(93, 93, 255, 0.75));
+  filter: drop-shadow(0 0 7px rgb(93 93 255 / 75%));
 }
 
 .skills-branch:hover .skills-branch-sub,
 .skills-branch.active .skills-branch-sub {
-  fill: rgba(255, 255, 255, 0.75);
+  fill: rgb(255 255 255 / 75%);
 }
 
 [data-theme="light"] .skills-branch-sub {
-  fill: rgba(40, 40, 80, 0.6);
+  fill: rgb(40 40 80 / 60%);
 }
 
 /* .skills-branch.active .skills-branch-sub (3 sélecteurs) écrasait sinon la couleur
@@ -8153,33 +8170,33 @@ h1.main-title-animated .title-icon {
    spécificité pour garder le sous-titre lisible en permanence. */
 [data-theme="light"] .skills-branch:hover .skills-branch-sub,
 [data-theme="light"] .skills-branch.active .skills-branch-sub {
-  fill: rgba(40, 40, 80, 0.85);
+  fill: rgb(40 40 80 / 85%);
 }
 
 /* Tiroir de mini-icônes, ancré à côté de son titre.
    Fond sombre dans les deux thèmes : les pastilles blanches
    ci-dessous garantissent la lisibilité de tous les logos. */
 .skill-drawer {
-  position: absolute;
-  display: grid;
-  grid-template-columns: repeat(3, auto);
-  gap: 8px;
-  padding: 11px;
-  background: rgba(18, 16, 42, 0.96);
-  border: 1px solid rgba(93, 93, 255, 0.45);
+  background: rgb(18 16 42 / 96%);
+  border: 1px solid rgb(93 93 255 / 45%);
   border-radius: 11px;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 10px 28px rgb(0 0 0 / 50%);
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(3, auto);
   opacity: 0;
-  visibility: hidden;
+  padding: 11px;
   pointer-events: none;
+  position: absolute;
   transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), visibility 0.25s;
+  visibility: hidden;
   z-index: 4;
 }
 
 .skill-drawer.open {
   opacity: 1;
-  visibility: visible;
   pointer-events: auto;
+  visibility: visible;
 }
 
 /* Ancrage de chaque tiroir près de sa branche (ouverture vers le centre) */
@@ -8209,27 +8226,27 @@ h1.main-title-animated .title-icon {
 
 /* Pastille blanche : lisible dans les deux thèmes pour tous les logos */
 .skill-mini {
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 9px;
   background: #fff;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgb(0 0 0 / 6%);
+  border-radius: 9px;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 20%);
+  display: grid;
+  height: 36px;
+  place-items: center;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  width: 36px;
 }
 
 .skill-mini img {
-  width: 23px;
-  height: 23px;
   object-fit: contain;
   display: block;
+  height: 23px;
+  width: 23px;
 }
 
 .skill-mini:hover {
+  box-shadow: 0 3px 9px rgb(93 93 255 / 55%);
   transform: scale(1.18);
-  box-shadow: 0 3px 9px rgba(93, 93, 255, 0.55);
 }
 
 /* Sur petit écran : le tiroir passe sous l'étoile */
@@ -8324,7 +8341,6 @@ h1.main-title-animated .title-icon {
 @supports (-webkit-background-clip: text) {
   .contact-submit-text,
   .contact-toast span {
-    background-clip: text;
     background-clip: text;
     background-image: linear-gradient(90deg, #6d63ff, #c822ff, #ff72b6);
     color: transparent;
@@ -8511,7 +8527,6 @@ h1.main-title-animated .title-icon {
 [data-theme="light"] .contact-email span {
   background: linear-gradient(45deg, #5d5dff, #c822ff);
   background-clip: text;
-  background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
 }
@@ -8558,7 +8573,6 @@ h1.main-title-animated .title-icon {
 }
 
 #footer .footer-container {
-  place-items: flex-start center;
   display: grid;
   gap: 80px;
   grid-template-columns: repeat(3, minmax(220px, 1fr));
@@ -8566,6 +8580,7 @@ h1.main-title-animated .title-icon {
   margin: 0 auto 70px;
   max-width: 1100px;
   padding: 20px 40px 40px;
+  place-items: flex-start center;
   width: 100%;
 }
 
@@ -8719,7 +8734,6 @@ body.body-menu-open #footer {
 [data-theme="light"] #footer .footer-section h3 {
   background: linear-gradient(45deg, #5d5dff, #c822ff);
   background-clip: text;
-  background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
 }
@@ -8727,7 +8741,6 @@ body.body-menu-open #footer {
 [data-theme="light"] #footer .footer-section p,
 [data-theme="light"] #footer .footer-section a {
   background: linear-gradient(45deg, #5d5dff, #c822ff);
-  background-clip: text;
   background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
@@ -8739,7 +8752,6 @@ body.body-menu-open #footer {
 
 [data-theme="light"] #footer .footer-bottom p {
   background: linear-gradient(45deg, #5d5dff, #c822ff);
-  background-clip: text;
   background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
@@ -9555,8 +9567,8 @@ body.body-menu-open #footer {
   }
 
   .skills-compact-grid {
-    justify-content: center;
     gap: 1rem;
+    justify-content: center;
   }
 }
 
@@ -9633,14 +9645,12 @@ body.body-menu-open #footer {
 [data-theme="light"] .dropdown-nav a {
   background: linear-gradient(45deg, #5d5dff, #c822ff);
   background-clip: text;
-  background-clip: text;
   color: transparent; /* Utilise la couleur de texte du thème clair */
   -webkit-text-fill-color: transparent;
 }
 
 [data-theme="light"] .dropdown-nav .dropdown-gamma-link {
   background: linear-gradient(45deg, #5d5dff, #c822ff);
-  background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -9779,14 +9789,12 @@ body.body-menu-open #footer {
   .page-title-container .page-subtitle {
     background: linear-gradient(45deg, #5d5dff, #c822ff);
     background-clip: text;
-    background-clip: text;
     color: transparent;
     -webkit-text-fill-color: transparent;
   }
 
   .page-title-container .news-page-title {
     background: linear-gradient(45deg, #ffdbe7, #ffeaf2);
-    background-clip: text;
     background-clip: text;
     color: transparent;
     -webkit-text-fill-color: transparent;
@@ -9880,9 +9888,9 @@ body.body-menu-open #footer {
 
   .trust-title-brand {
     align-items: center;
-    gap: 6px 0;
     display: inline-flex !important;
     flex-direction: column;
+    gap: 6px 0;
     justify-content: center;
   }
 
@@ -9930,7 +9938,6 @@ body.body-menu-open #footer {
 .trust-section a {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
   background-clip: text;
-  background-clip: text;
   color: transparent;
   font-family: var(--font-title);
   -webkit-text-fill-color: transparent;
@@ -9938,7 +9945,6 @@ body.body-menu-open #footer {
 
 .trust-section .trust-highlight {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
-  background-clip: text;
   background-clip: text;
   color: transparent;
   font-weight: 700;
@@ -10055,7 +10061,6 @@ body.body-menu-open #footer {
 .logos-list a:hover {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
   background-clip: text;
-  background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
 }
@@ -10147,9 +10152,9 @@ body.body-menu-open #footer {
 
 .trust-title-brand {
   align-items: center;
-  gap: 4px 8px;
   display: inline-flex !important;
   flex-wrap: nowrap;
+  gap: 4px 8px;
   justify-content: center;
   white-space: normal;
 }
@@ -10203,11 +10208,11 @@ body.body-menu-open #footer {
 }
 
 .trust-cert-header {
-  place-content: center space-evenly;
   align-items: flex-end;
   display: flex;
   flex-flow: column-reverse wrap;
   gap: 15px;
+  place-content: center space-evenly;
 }
 
 .trust-cert-header h3 {
@@ -10276,7 +10281,6 @@ body.body-menu-open #footer {
 .trust-section .section-title,
 .trust-section .section-subtitle {
   background: linear-gradient(45deg, #5d5dff, #c822ff);
-  background-clip: text;
   background-clip: text;
   color: transparent !important;
   -webkit-text-fill-color: transparent;
@@ -11067,7 +11071,6 @@ body.chat-page {
 
 .chat-page-gate h1 {
   background: linear-gradient(90deg, #4fd1ff 0%, #7c5cff 45%, #ff5f6d 100%);
-  background-clip: text;
   background-clip: text;
   color: transparent;
   font-family: var(--font-title);
@@ -12080,8 +12083,8 @@ body.profile-page .profile-main {
 .dbs-profile-shell-header {
   align-items: center;
   border-bottom: 1px solid rgb(93 93 255 / 18%);
-  gap: 32px 90px;
   display: grid;
+  gap: 32px 90px;
   grid-template-columns: 1fr auto 1fr;
   margin-bottom: 40px;
   padding-bottom: 16px;
@@ -12173,7 +12176,6 @@ body.profile-page .profile-main {
 .dbs-profile-shell-header h1 {
   background: linear-gradient(90deg, #4fd1ff 0%, #7c5cff 45%, #ff5f6d 100%);
   background-clip: text;
-  background-clip: text;
   color: transparent;
   font-family: var(--font-body);
   font-size: clamp(1.6rem, 2.4vw, 2.1rem);
@@ -12260,7 +12262,6 @@ body.profile-page .profile-main {
 
 .dbs-profile-panel-heading h2 {
   background: linear-gradient(90deg, #7ce6ff 0%, #b48bff 100%);
-  background-clip: text;
   background-clip: text;
   color: transparent;
   font-family: var(--font-title);
@@ -15473,7 +15474,6 @@ button.ai-assistant-project-row {
 }
 
 .ai-sources-panel-body {
-  place-content: start flex-start;
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
@@ -15481,6 +15481,7 @@ button.ai-assistant-project-row {
   min-height: 0;
   overflow-y: auto;
   padding: 14px 14px 16px 18px;
+  place-content: start flex-start;
 }
 
 .ai-sources-section {
@@ -15964,7 +15965,6 @@ body.ai-assistant-sidebar-is-resizing * {
     #ff5f6d 64%,
     #b16cff 100%
   );
-  background-clip: text;
   background-clip: text;
   color: transparent;
   font-family: var(--font-body);
@@ -16677,7 +16677,6 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
 
 .ai-assistant-emoji {
   background: none !important;
-  background-clip: border-box;
   background-clip: border-box;
   color: initial;
   font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif !important;
@@ -17589,7 +17588,6 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
     #ff5f6d 64%,
     #b16cff 100%
   );
-  background-clip: text;
   background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
