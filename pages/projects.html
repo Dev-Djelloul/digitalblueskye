@@ -236,7 +236,19 @@
         </header>
 
         <div class="projects-filter-bar" role="toolbar" aria-label="Filtrer les projets par étiquette">
-          <span class="projects-filter-label">Filtrer par :</span>
+          <div class="projects-filter-header">
+            <div class="projects-filter-title">
+              <span class="projects-filter-label" data-i18n="projects.filterBy">Filtrer par</span>
+              <span class="projects-filter-meta">• <span id="active-filters-count">0</span> actif(s)</span>
+            </div>
+            <button id="reset-filters-btn" class="projects-filter-reset" title="Réinitialiser les filtres" aria-label="Réinitialiser les filtres" disabled>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                <path d="M3 3v5h5"></path>
+              </svg>
+              Réinitialiser
+            </button>
+          </div>
           <div id="project-filter-chips" class="projects-filter-chips"></div>
         </div>
 
@@ -244,7 +256,7 @@
 
         <div class="projects-grid">
           <!-- Projet 1 -->
-          <div class="project-card" data-aos="fade-up" id="project-1" data-tags="HTML/CSS,Front-end,Responsive">
+          <div class="project-card" data-aos="fade-up" id="project-1" data-tags="HTML5,CSS3,Responsive,Frontend">
             <img src="/assets/images/projects/imagesRidingCities/header-optimized.webp" alt="Projet-Riding-Cities" width="1440" height="880" />
             <div class="project-info">
               <div>
@@ -272,7 +284,7 @@
           </div>
 
           <!-- Projet 2 - Booki -->
-          <div class="project-card" data-aos="fade-up" id="project-2" data-tags="HTML/CSS,Responsive,Front-end">
+          <div class="project-card" data-aos="fade-up" id="project-2" data-tags="HTML5,CSS3,Responsive,Frontend">
             <img
               src="/assets/images/projects/imagesBooki/hebergements/1_xlarge/aw-creative-VGs8z60yT2c-unsplash.jpg"
               alt="Projet-Booki" width="4032" height="3024"
@@ -301,7 +313,7 @@
           </div>
 
           <!-- Projet 3 - Ohmyfood -->
-          <div class="project-card" data-aos="fade-up" id="project-3" data-tags="HTML/CSS,Animations,Front-end">
+          <div class="project-card" data-aos="fade-up" id="project-3" data-tags="HTML5,CSS3,Sass,Animations,Responsive,Frontend">
             <img
               src="/assets/images/projects/imagesOhMyFood/restaurants/jay-wennington-N_Y88TWmGwA-unsplash.jpg"
               alt="Projet-ohmyfood" width="4402" height="2935"
@@ -330,7 +342,7 @@
           </div>
 
           <!-- Projet 4 - Print it -->
-          <div class="project-card" data-aos="fade-up" id="project-4" data-tags="HTML/CSS,JavaScript,Front-end">
+          <div class="project-card" data-aos="fade-up" id="project-4" data-tags="HTML5,CSS3,JavaScript,Carousel,Frontend">
             <img src="/assets/images/projects/imagesPrint-it/yellow-book.jpeg" alt="Project-Print-it" width="587" height="379" loading="lazy" />
             <div class="project-info">
               <div>
@@ -356,7 +368,7 @@
           </div>
 
           <!-- Projet 5 - Sophie Bluel -->
-          <div class="project-card" data-aos="fade-up" id="project-5" data-tags="HTML/CSS,JavaScript,API,Front-end">
+          <div class="project-card" data-aos="fade-up" id="project-5" data-tags="HTML5,CSS3,JavaScript,API,JWT,Authentification,Frontend">
             <img src="/assets/images/projects/imagesSophieBluel/sophie-bluel-optimized.webp" alt="Projet-Sophie-Bluel" width="948" height="710" loading="lazy" />
             <div class="project-info">
               <div>
@@ -390,7 +402,7 @@
           </div>
 
           <!-- Projet 6 - Memory Game -->
-          <div class="project-card" data-aos="fade-up" id="project-6" data-tags="JavaScript,Game,Front-end">
+          <div class="project-card" data-aos="fade-up" id="project-6" data-tags="HTML5,CSS3,JavaScript,Jeu,Animations,Frontend">
             <img src="/assets/images/projects/imagesMemoryGame/jeu_de_memory.jpg" alt="Projet-Memory-Game" width="800" height="800" loading="lazy" />
             <div class="project-info">
               <div>
@@ -418,7 +430,7 @@
           </div>
 
           <!-- Projet 7 - Arcadia Zoo -->
-          <div class="project-card" data-aos="fade-up" id="project-7" data-tags="Full-stack,PHP/MySQL,JavaScript,Bootstrap">
+          <div class="project-card" data-aos="fade-up" id="project-7" data-tags="Full-stack,PHP,MySQL,MongoDB,Node.js,Bootstrap,JavaScript,Authentification,CRUD">
             <img src="/assets/images/projects/imagesArcadiaZoo/background-zoo.jpeg" alt="Projet-Arcadia-Zoo" width="4406" height="3405" loading="lazy" />
             <div class="project-info">
               <div>
@@ -456,7 +468,7 @@
           </div>
 
           <!-- Projet 8 - Budget Buddy -->
-          <div class="project-card" data-aos="fade-up" id="project-8" data-tags="React,JavaScript,App,Front-end">
+          <div class="project-card" data-aos="fade-up" id="project-8" data-tags="React,JavaScript,ChartJS,Frontend,SPA,Hooks,ContextAPI">
             <img src="/assets/images/projects/imagesBudgetBuddy/blue-1761175.jpg" alt="Projet-Budget-Buddy" width="2645" height="2210" loading="lazy" />
             <div class="project-info">
               <div>
@@ -486,7 +498,7 @@
           </div>
 
           <!-- Projet 9 - Tetris Windsurf -->
-          <div class="project-card" data-aos="fade-up" id="project-9" data-tags="JavaScript,WebGL,Game,Responsive">
+          <div class="project-card" data-aos="fade-up" id="project-9" data-tags="JavaScript,Canvas,WebGL,Jeu,Responsive,Animations,Frontend">
             <img
               src="/assets/images/projects/imagesTetrisWindsurf/Tetris-cover-page-optimized.webp"
               alt="Projet-Tetris-Windsurf" width="1600" height="1067" loading="lazy"
@@ -520,7 +532,7 @@
           </div>
 
           <!-- Projet 10 - Ferme des Amandiers -->
-          <div class="project-card" data-aos="fade-up" id="project-10" data-tags="Full-stack,PHP/MySQL,Responsive,Front-end">
+          <div class="project-card" data-aos="fade-up" id="project-10" data-tags="Full-stack,PHP,MySQL,JavaScript,Responsive,Dynamique">
             <img
               src="/assets/images/projects/imagesFermeDesAmandiers/hero-header.jpg"
               alt="Projet-Ferme-des-Amandiers" width="1600" height="1000" loading="lazy"
@@ -655,6 +667,8 @@
       document.addEventListener("DOMContentLoaded", () => {
         const filterBar = document.getElementById("project-filter-chips");
         const emptyState = document.getElementById("projects-empty-state");
+        const resetBtn = document.getElementById("reset-filters-btn");
+        const activeCountDisplay = document.getElementById("active-filters-count");
         const cards = Array.from(document.querySelectorAll(".projects-grid .project-card"));
 
         if (!filterBar || !cards.length) return;
@@ -671,44 +685,122 @@
           )
         ).sort((a, b) => a.localeCompare(b));
 
+        const countProjectsByTag = (tag) => {
+          return cards.filter((card) => {
+            const cardTags = (card.getAttribute("data-tags") || "")
+              .split(",")
+              .map((t) => t.trim())
+              .filter(Boolean);
+            return cardTags.includes(tag);
+          }).length;
+        };
+
+        const updateFilterState = () => {
+          const activeChips = Array.from(document.querySelectorAll(".project-filter-chip.is-active"));
+          const activeCount = activeChips.filter((c) => c.dataset.filter !== "all").length;
+
+          if (activeCountDisplay) {
+            activeCountDisplay.textContent = activeCount;
+          }
+
+          if (resetBtn) {
+            resetBtn.disabled = activeCount === 0;
+          }
+        };
+
         const createChip = (value, label) => {
           const button = document.createElement("button");
           button.type = "button";
           button.className = "project-filter-chip";
           button.dataset.filter = value;
-          button.textContent = label;
           button.setAttribute("aria-pressed", "false");
+
+          const labelSpan = document.createElement("span");
+          labelSpan.textContent = label;
+
+          if (value !== "all") {
+            const badge = document.createElement("span");
+            badge.className = "project-filter-chip-badge";
+            badge.textContent = countProjectsByTag(value);
+            button.appendChild(labelSpan);
+            button.appendChild(badge);
+          } else {
+            button.appendChild(labelSpan);
+          }
+
           button.addEventListener("click", () => {
-            document.querySelectorAll(".project-filter-chip").forEach((chip) => {
-              chip.classList.toggle("is-active", chip === button);
-              chip.setAttribute("aria-pressed", chip === button ? "true" : "false");
-            });
+            if (value === "all") {
+              document.querySelectorAll(".project-filter-chip").forEach((chip) => {
+                chip.classList.remove("is-active");
+                chip.setAttribute("aria-pressed", "false");
+              });
+              button.classList.add("is-active");
+              button.setAttribute("aria-pressed", "true");
+            } else {
+              document.querySelector(".project-filter-chip[data-filter='all']").classList.remove("is-active");
+              document.querySelector(".project-filter-chip[data-filter='all']").setAttribute("aria-pressed", "false");
+              button.classList.toggle("is-active");
+              button.setAttribute("aria-pressed", button.classList.contains("is-active"));
+            }
 
             const visibleCards = cards.filter((card) => {
+              const isAllActive = document.querySelector(".project-filter-chip[data-filter='all']").classList.contains("is-active");
+
+              if (isAllActive) return true;
+
+              const activeFilters = Array.from(document.querySelectorAll(".project-filter-chip.is-active"))
+                .map((c) => c.dataset.filter)
+                .filter((f) => f !== "all");
+
+              if (activeFilters.length === 0) return true;
+
               const cardTags = (card.getAttribute("data-tags") || "")
                 .split(",")
                 .map((tag) => tag.trim())
                 .filter(Boolean);
-              const shouldShow = value === "all" || cardTags.includes(value);
-              card.style.display = shouldShow ? "" : "none";
-              return shouldShow;
+
+              return activeFilters.some((filter) => cardTags.includes(filter));
+            });
+
+            cards.forEach((card) => {
+              card.style.display = visibleCards.includes(card) ? "" : "none";
             });
 
             if (emptyState) {
               emptyState.hidden = visibleCards.length > 0;
             }
+
+            updateFilterState();
           });
+
           return button;
         };
 
         filterBar.appendChild(createChip("all", "Tous"));
         allTags.forEach((tag) => filterBar.appendChild(createChip(tag, tag)));
 
+        if (resetBtn) {
+          resetBtn.addEventListener("click", () => {
+            document.querySelectorAll(".project-filter-chip").forEach((chip) => {
+              chip.classList.remove("is-active");
+              chip.setAttribute("aria-pressed", "false");
+            });
+            const allChip = document.querySelector(".project-filter-chip[data-filter='all']");
+            if (allChip) {
+              allChip.classList.add("is-active");
+              allChip.setAttribute("aria-pressed", "true");
+              allChip.click();
+            }
+          });
+        }
+
         const firstChip = filterBar.querySelector(".project-filter-chip");
         if (firstChip) {
           firstChip.classList.add("is-active");
           firstChip.setAttribute("aria-pressed", "true");
         }
+
+        updateFilterState();
       });
     </script>
     <script src="/scripts/translator.js"></script>

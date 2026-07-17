@@ -65,6 +65,7 @@
         newChat: 'New conversation',
         projects: 'Projects',
         createProject: 'Create a project',
+        noProjectsYet: 'No projects yet.',
         recentDiscussions: 'Recent discussions',
         settings: 'Settings access',
         library: 'Library',
@@ -197,6 +198,7 @@
       newChat: 'Nouvelle discussion',
       projects: 'Projets',
       createProject: 'Créer un projet',
+      noProjectsYet: 'Aucun projet pour le moment.',
       recentDiscussions: 'Discussions récentes',
       settings: 'Accès réglages',
       library: 'Bibliothèque',
@@ -5411,11 +5413,11 @@
       const empty = document.createElement('div');
       empty.className = 'ai-assistant-sidebar-empty-state';
       const text = document.createElement('p');
-      text.textContent = 'Aucun projet pour le moment.';
+      text.textContent = i18n.noProjectsYet;
       const button = document.createElement('button');
       button.type = 'button';
       button.className = 'ai-assistant-sidebar-empty-action';
-      button.textContent = 'Créer un projet';
+      button.textContent = i18n.createProject;
       button.addEventListener('click', createProjectFromPrompt);
       empty.append(text, button);
       projectList.appendChild(empty);
@@ -5471,10 +5473,10 @@
       const empty = document.createElement('div');
       empty.className = 'ai-assistant-project-empty-panel';
       const text = document.createElement('p');
-      text.textContent = en ? 'No project yet.' : 'Aucun projet pour le moment.';
+      text.textContent = i18n.noProjectsYet;
       const button = document.createElement('button');
       button.type = 'button';
-      button.textContent = en ? 'Create a project' : 'Créer un projet';
+      button.textContent = i18n.createProject;
       button.addEventListener('click', createProjectFromPrompt);
       empty.append(text, button);
       projectContent.appendChild(empty);

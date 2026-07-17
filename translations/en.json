@@ -115,7 +115,8 @@
     "viewArcadiaZoo": "Discover the Arcadia Zoo project",
     "viewBudgetBuddy": "Discover the Budget Buddy project",
     "viewTetrisWindsurf": "Discover the Tetris Windsurf project",
-    "viewFermeDesAmandiers": "Discover the Ferme des Amandiers project"
+    "viewFermeDesAmandiers": "Discover the Ferme des Amandiers project",
+    "filterBy": "Filter by"
   },
   "assistant": {
     "launcher": "Digital AI",
