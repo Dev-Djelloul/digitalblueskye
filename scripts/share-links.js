@@ -61,6 +61,46 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
     },
+    networkee: (el) => {
+      el.addEventListener("click", async (e) => {
+        e.preventDefault();
+        try {
+          const resp = await fetch("/.netlify/functions/publish-to-networkee", {
+            method: "POST",
+            body: JSON.stringify({
+              title: document.title,
+              url: pageUrl,
+            }),
+          });
+          const data = await resp.json();
+          if (data.success) {
+            const labelText = isFrench ? "Partagé sur Networkee !" : "Shared on Networkee!";
+            const label = el.querySelector(".share-networkee-label");
+            if (label) {
+              label.textContent = labelText;
+            } else if (el.querySelector("img")) {
+              const span = document.createElement("span");
+              span.className = "share-networkee-label";
+              span.textContent = labelText;
+              el.appendChild(span);
+            }
+            el.classList.add("is-shared");
+            setTimeout(() => {
+              const existingLabel = el.querySelector(".share-networkee-label");
+              if (existingLabel) {
+                existingLabel.remove();
+              }
+              el.classList.remove("is-shared");
+            }, 2000);
+          } else {
+            alert(isFrench ? "Erreur: " + (data.message || data.error) : "Error: " + (data.message || data.error));
+          }
+        } catch (error) {
+          console.error("Networkee share failed", error);
+          alert(isFrench ? "Erreur de partage" : "Share failed");
+        }
+      });
+    },
   };
 
   document.querySelectorAll("[data-share]").forEach((el) => {
