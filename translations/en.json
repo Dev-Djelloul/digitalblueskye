@@ -116,6 +116,7 @@
     "viewBudgetBuddy": "Discover the Budget Buddy project",
     "viewTetrisWindsurf": "Discover the Tetris Windsurf project",
     "viewFermeDesAmandiers": "Discover the Ferme des Amandiers project",
+    "viewNetworkee": "Discover the Networkee project",
     "filterBy": "Filter by"
   },
   "assistant": {
@@ -350,7 +351,8 @@
     "arcadiaZoo": "ARCADIA ZOO",
     "budgetBuddy": "BUDGET BUDDY",
     "tetrisWindsurf": "TETRIS WINDSURF",
-    "fermeDesAmandiers": "FERME DES AMANDIERS"
+    "fermeDesAmandiers": "FERME DES AMANDIERS",
+    "networkee": "NETWORKEE"
   },
   "projectNames": {
     "ridingCities": "Riding Cities",
@@ -362,7 +364,8 @@
     "arcadiaZoo": "Arcadia Zoo",
     "budgetBuddy": "Budget Buddy",
     "tetrisWindsurf": "Tetris Windsurf",
-    "fermeDesAmandiers": "Ferme des Amandiers"
+    "fermeDesAmandiers": "Ferme des Amandiers",
+    "networkee": "Networkee"
   },
   "projectDescriptions": {
     "ridingCities": {
@@ -404,6 +407,10 @@
     "fermeDesAmandiers": {
       "short": "Dynamic showcase website for a market garden farm",
       "full": "Ferme des Amandiers is an OpenClassrooms project focused on a dynamic showcase website that displays seasonal baskets available for pickup on Wednesday and Saturday. The project emphasizes a clear, responsive interface designed for easy maintenance."
+    },
+    "networkee": {
+      "short": "Mini social network for digital professionals",
+      "full": "Networkee is a full-stack mini social network for digital professionals, inspired by LinkedIn: a paginated feed with text, image and video posts, likes, comments, reposts, follows, notifications and job offers with applications. Built with PHP 8.2 and vanilla JavaScript, it runs on MySQL locally and PostgreSQL in production, deployed on Railway in a Docker container (Nginx + PHP-FPM)."
     }
   },
   "projectDetails": {
@@ -489,6 +496,13 @@
       "objective": "The objective of this project was to create a dynamic showcase website for a market garden farm, with a clear emphasis on seasonal baskets available for pickup. The site had to offer a smooth, responsive experience that was easy to maintain.",
       "technologiesDetail": "I developed this project with HTML5 and CSS3 for structure and styling, while integrating content that could be easily updated for basket availability. The focus was on a clear, responsive interface suited to the site's purpose.",
       "challengesSolutions": "The main challenge was to create a site that was easy to maintain while remaining attractive and informative. I solved this by structuring the content clearly and setting up a presentation logic tailored to seasonal information and availability constraints."
+    },
+    "networkee": {
+      "title": "Networkee - Digitalblueskye Portfolio",
+      "headerTitle": "NETWORKEE PROJECT",
+      "objective": "The goal was to build a complete social network dedicated to web professionals — developers, project managers, UX designers — bringing together in one place a news feed, member profiles, a follow system, notifications and a job board with applications. The interface takes its cues from LinkedIn: profile cards on hover, a media composer, a light/dark theme and a floating \"Quick access\" panel available on every page.",
+      "technologiesDetail": "The back end relies on PHP 8.2 with PDO and prepared statements, deliberately without any framework to keep the code minimal and readable. The database layer supports two engines with the same logical schema: MySQL 8 for local development and PostgreSQL in production — the code detects the environment and adapts automatically. The front end combines HTML, CSS with custom variables for theming, and vanilla JavaScript with jQuery. Production runs on Railway in a Docker container with Nginx and PHP-FPM, and an idempotent initialization script creates missing tables on every deployment.",
+      "challengesSolutions": "The main challenge was keeping a single codebase working on two database engines, from local XAMPP to Railway production. I solved it by centralizing the connection logic, maintaining both SQL dialects in parallel and making the production schema script idempotent. Other highlights include secure authentication with hashed passwords and token-based password reset, client-side media size checks before upload, and a notification system that marks items as read on click and redirects to the related content."
     }
   },
   "navigation": {

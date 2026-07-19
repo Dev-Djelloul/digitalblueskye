@@ -117,6 +117,7 @@
     "viewBudgetBuddy": "Découvrir le projet Budget Buddy",
     "viewTetrisWindsurf": "Découvrir le projet Tetris Windsurf",
     "viewFermeDesAmandiers": "Découvrir le projet Ferme des Amandiers",
+    "viewNetworkee": "Découvrir le projet Networkee",
     "filterBy": "Filtrer par"
   },
   "assistant": {
@@ -351,7 +352,8 @@
     "arcadiaZoo": "ARCADIA ZOO",
     "budgetBuddy": "BUDGET BUDDY",
     "tetrisWindsurf": "TETRIS WINDSURF",
-    "fermeDesAmandiers": "FERME DES AMANDIERS"
+    "fermeDesAmandiers": "FERME DES AMANDIERS",
+    "networkee": "NETWORKEE"
   },
   "projectNames": {
     "ridingCities": "Riding Cities",
@@ -363,7 +365,8 @@
     "arcadiaZoo": "Arcadia Zoo",
     "budgetBuddy": "Budget Buddy",
     "tetrisWindsurf": "Tetris Windsurf",
-    "fermeDesAmandiers": "Ferme des Amandiers"
+    "fermeDesAmandiers": "Ferme des Amandiers",
+    "networkee": "Networkee"
   },
   "projectDescriptions": {
     "ridingCities": {
@@ -405,6 +408,10 @@
     "fermeDesAmandiers": {
       "short": "Site vitrine dynamique pour une ferme maraîchère",
       "full": "Ferme des Amandiers est un projet OpenClassrooms axé sur un site vitrine dynamique mettant en avant les paniers saisonniers disponibles à retirer le mercredi et le samedi. Le projet met l'accent sur une interface claire et responsive, pensée pour être facile à maintenir."
+    },
+    "networkee": {
+      "short": "Mini réseau social des professionnels du digital",
+      "full": "Networkee est un mini réseau social full-stack destiné aux professionnels du digital, inspiré de LinkedIn : fil d'actualité paginé avec posts texte, image ou vidéo, likes, commentaires, repartages, suivi de membres, notifications et offres d'emploi avec candidatures. Développé en PHP 8.2 et JavaScript vanilla, il tourne sur MySQL en local et PostgreSQL en production, déployé sur Railway dans un conteneur Docker (Nginx + PHP-FPM)."
     }
   },
   "projectDetails": {
@@ -489,6 +496,13 @@
       "objective": "L’objectif de ce projet était de créer un site vitrine dynamique pour une ferme maraîchère, avec une mise en avant claire des paniers saisonniers disponibles à la collecte. Le site devait offrir une expérience fluide, responsive et facile à maintenir.",
       "technologiesDetail": "J’ai développé ce projet avec HTML5 et CSS3 pour la structure et le style, en intégrant un contenu facilement modifiable pour les disponibilités des paniers. L’accent a été mis sur une interface claire, responsive et adaptée à l’usage du site.",
       "challengesSolutions": "Le principal défi était de proposer un site simple à maintenir tout en restant attractif et informatif. J’ai résolu ce problème en structurant le contenu de manière claire et en mettant en place une logique de présentation adaptée aux informations saisonnières et aux contraintes de disponibilité."
+    },
+    "networkee": {
+      "title": "Networkee - Portfolio Digitalblueskye",
+      "headerTitle": "PROJET NETWORKEE",
+      "objective": "L’objectif était de construire un réseau social complet dédié aux professionnels du web — développeurs, chefs de projet, UX designers — réunissant en un seul endroit un fil d’actualité, des profils membres, un système de suivi, des notifications et un espace d’offres d’emploi avec candidatures. L’interface s’inspire de LinkedIn : cartes de profil au survol, composer média, thème clair/sombre et panneau flottant « Accès rapide » présent sur toutes les pages.",
+      "technologiesDetail": "Le back-end repose sur PHP 8.2 avec PDO et requêtes préparées, volontairement sans framework pour garder un code minimal et lisible. La couche base de données supporte deux moteurs avec le même schéma logique : MySQL 8 en développement local et PostgreSQL en production — le code détecte l’environnement et s’adapte automatiquement. Le front-end combine HTML, CSS avec variables custom pour le thème, et JavaScript vanilla avec jQuery. La production tourne sur Railway dans un conteneur Docker avec Nginx et PHP-FPM, et un script d’initialisation idempotent crée les tables manquantes à chaque déploiement.",
+      "challengesSolutions": "Le principal défi était de faire fonctionner un même code sur deux moteurs de base de données, du XAMPP local à la production Railway. Je l’ai résolu en centralisant la logique de connexion, en maintenant les deux dialectes SQL en parallèle et en rendant le script de schéma de production idempotent. Parmi les autres points forts : une authentification sécurisée avec mots de passe hachés et réinitialisation par lien à jeton, un contrôle de taille des médias côté client avant tout envoi, et un système de notifications qui marque les éléments comme lus au clic en redirigeant vers le contenu concerné."
     }
   },
   "navigation": {
