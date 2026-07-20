@@ -67,13 +67,16 @@ document.addEventListener("DOMContentLoaded", () => {
       // propre fil avec sa session (aucun jeton, chacun partage sur son compte).
       el.addEventListener("click", (e) => {
         e.preventDefault();
-        // Récupère l'image OG de l'article pour l'aperçu (façon LinkedIn).
-        const ogImage =
-          document.querySelector('meta[property="og:image"]')?.getAttribute("content") || "";
+        // Image de l'article pour l'aperçu : l'image principale (celle de la
+        // liste blogArticles.html, via data-share-image) en priorité, sinon l'og:image.
+        const shareImage =
+          el.getAttribute("data-share-image") ||
+          document.querySelector('meta[property="og:image"]')?.getAttribute("content") ||
+          "";
         const shareIntentUrl =
           "https://networkee.up.railway.app/pages/share.php" +
           `?url=${encodedUrl}&title=${encodedTitle}` +
-          (ogImage ? `&image=${encodeURIComponent(ogImage)}` : "");
+          (shareImage ? `&image=${encodeURIComponent(shareImage)}` : "");
         const w = 600;
         const h = 660;
         const left = window.screenX + (window.outerWidth - w) / 2;
