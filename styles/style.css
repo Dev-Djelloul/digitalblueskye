@@ -4504,6 +4504,13 @@ h1.main-title-animated .title-icon {
   width: 24px;
 }
 
+/* Le logo Networkee est large (~2:1) : on préserve son ratio d'origine au lieu
+   de le forcer dans un carré 24×24 (le bouton s'élargit légèrement en pilule). */
+.share-btn.share-networkee img {
+  width: auto;
+  height: 26px;
+}
+
 .share-copy-label {
   font-size: 0.95rem;
   margin-left: 8px;
