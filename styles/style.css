@@ -4489,6 +4489,7 @@ h1.main-title-animated .title-icon {
   border: 1px solid rgb(93 93 255 / 45%);
   border-radius: 999px;
   color: #fff;
+  cursor: pointer;
   display: inline-flex;
   font-family: var(--font-title);
   justify-content: center;

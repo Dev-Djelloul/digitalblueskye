@@ -67,12 +67,30 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
           const resp = await fetch("/.netlify/functions/publish-to-networkee", {
             method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               title: document.title,
               url: pageUrl,
             }),
           });
-          const data = await resp.json();
+
+          if (!resp.ok && resp.status === 405) {
+            // Fonction absente : normal en local (Live Server ne fait pas tourner
+            // les Netlify Functions), seul le site déployé sur Netlify peut publier.
+            throw new Error(
+              isFrench
+                ? "Fonction indisponible en local — teste depuis le site déployé sur Netlify."
+                : "Function unavailable locally — test from the site deployed on Netlify."
+            );
+          }
+
+          let data;
+          try {
+            data = await resp.json();
+          } catch {
+            throw new Error(isFrench ? "Réponse invalide du serveur" : "Invalid server response");
+          }
+
           if (data.success) {
             const labelText = isFrench ? "Partagé sur Networkee !" : "Shared on Networkee!";
             const label = el.querySelector(".share-networkee-label");
@@ -97,7 +115,7 @@ document.addEventListener("DOMContentLoaded", () => {
           }
         } catch (error) {
           console.error("Networkee share failed", error);
-          alert(isFrench ? "Erreur de partage" : "Share failed");
+          alert(error.message || (isFrench ? "Erreur de partage" : "Share failed"));
         }
       });
     },
