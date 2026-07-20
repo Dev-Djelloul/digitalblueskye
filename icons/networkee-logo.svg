@@ -1,5 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="64" height="64">
-  <!-- Infinity symbol (∞) in Networkee teal color -->
-  <path d="M 25 50 Q 15 35, 25 20 Q 35 5, 50 20 Q 65 35, 50 50 Q 35 65, 25 50 M 75 50 Q 85 35, 75 20 Q 65 5, 50 20 Q 35 35, 50 50 Q 65 65, 75 50"
-        fill="none" stroke="#20C997" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>

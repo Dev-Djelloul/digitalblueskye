@@ -62,61 +62,27 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     },
     networkee: (el) => {
-      el.addEventListener("click", async (e) => {
+      // Ouvre la page de partage Networkee en popup, façon x.com/intent ou
+      // LinkedIn : l'utilisateur voit un aperçu de l'article et publie sur son
+      // propre fil avec sa session (aucun jeton, chacun partage sur son compte).
+      el.addEventListener("click", (e) => {
         e.preventDefault();
-        try {
-          const resp = await fetch("/.netlify/functions/publish-to-networkee", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              title: document.title,
-              url: pageUrl,
-            }),
-          });
-
-          if (!resp.ok && resp.status === 405) {
-            // Fonction absente : normal en local (Live Server ne fait pas tourner
-            // les Netlify Functions), seul le site déployé sur Netlify peut publier.
-            throw new Error(
-              isFrench
-                ? "Fonction indisponible en local — teste depuis le site déployé sur Netlify."
-                : "Function unavailable locally — test from the site deployed on Netlify."
-            );
-          }
-
-          let data;
-          try {
-            data = await resp.json();
-          } catch {
-            throw new Error(isFrench ? "Réponse invalide du serveur" : "Invalid server response");
-          }
-
-          if (data.success) {
-            const labelText = isFrench ? "Partagé sur Networkee !" : "Shared on Networkee!";
-            const label = el.querySelector(".share-networkee-label");
-            if (label) {
-              label.textContent = labelText;
-            } else if (el.querySelector("img")) {
-              const span = document.createElement("span");
-              span.className = "share-networkee-label";
-              span.textContent = labelText;
-              el.appendChild(span);
-            }
-            el.classList.add("is-shared");
-            setTimeout(() => {
-              const existingLabel = el.querySelector(".share-networkee-label");
-              if (existingLabel) {
-                existingLabel.remove();
-              }
-              el.classList.remove("is-shared");
-            }, 2000);
-          } else {
-            alert(isFrench ? "Erreur: " + (data.message || data.error) : "Error: " + (data.message || data.error));
-          }
-        } catch (error) {
-          console.error("Networkee share failed", error);
-          alert(error.message || (isFrench ? "Erreur de partage" : "Share failed"));
-        }
+        // Récupère l'image OG de l'article pour l'aperçu (façon LinkedIn).
+        const ogImage =
+          document.querySelector('meta[property="og:image"]')?.getAttribute("content") || "";
+        const shareIntentUrl =
+          "https://networkee.up.railway.app/pages/share.php" +
+          `?url=${encodedUrl}&title=${encodedTitle}` +
+          (ogImage ? `&image=${encodeURIComponent(ogImage)}` : "");
+        const w = 600;
+        const h = 660;
+        const left = window.screenX + (window.outerWidth - w) / 2;
+        const top = window.screenY + (window.outerHeight - h) / 2;
+        window.open(
+          shareIntentUrl,
+          "networkee-share",
+          `popup,noopener,width=${w},height=${h},left=${left},top=${top}`
+        );
       });
     },
   };

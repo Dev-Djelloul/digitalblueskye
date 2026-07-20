@@ -414,3 +414,6 @@ FodyWeavers.xsd
 .DS_Store
 rag-backup-before-purge.sql
 .claude/
+
+# Local Netlify folder
+.netlify
