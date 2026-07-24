@@ -117,6 +117,9 @@
     "viewTetrisWindsurf": "Discover the Tetris Windsurf project",
     "viewFermeDesAmandiers": "Discover the Ferme des Amandiers project",
     "viewNetworkee": "Discover the Networkee project",
+    "viewWorldWildLife": "Discover the World Wild Life project",
+    "viewSkyeOrbital": "Discover the Skye Orbital project",
+    "viewCodexLinguistica": "Discover the Codex Linguistica project",
     "filterBy": "Filter by"
   },
   "assistant": {
@@ -352,7 +355,10 @@
     "budgetBuddy": "BUDGET BUDDY",
     "tetrisWindsurf": "TETRIS WINDSURF",
     "fermeDesAmandiers": "FERME DES AMANDIERS",
-    "networkee": "NETWORKEE"
+    "networkee": "NETWORKEE",
+    "worldWildLife": "WORLD WILD LIFE",
+    "skyeOrbital": "SKYE ORBITAL",
+    "codexLinguistica": "CODEX LINGUISTICA"
   },
   "projectNames": {
     "ridingCities": "Riding Cities",
@@ -365,7 +371,10 @@
     "budgetBuddy": "Budget Buddy",
     "tetrisWindsurf": "Tetris Windsurf",
     "fermeDesAmandiers": "Ferme des Amandiers",
-    "networkee": "Networkee"
+    "networkee": "Networkee",
+    "worldWildLife": "World Wild Life",
+    "skyeOrbital": "Skye Orbital",
+    "codexLinguistica": "Codex Linguistica"
   },
   "projectDescriptions": {
     "ridingCities": {
@@ -411,6 +420,18 @@
     "networkee": {
       "short": "Mini social network for digital professionals",
       "full": "Networkee is a full-stack mini social network for digital professionals, inspired by LinkedIn: a paginated feed with text, image and video posts, likes, comments, reposts, follows, notifications and job offers with applications. Built with PHP 8.2 and vanilla JavaScript, it runs on MySQL locally and PostgreSQL in production, deployed on Railway in a Docker container (Nginx + PHP-FPM)."
+    },
+    "worldWildLife": {
+      "short": "Interactive explorer of the world's wildlife species",
+      "full": "World Wild Life is an interactive web application to browse, filter and explore 250 real animal species across 7 habitats and 8 geographic regions, with live IUCN conservation statuses. Vanilla JS front end with a Leaflet map and Chart.js charts, REST API on Cloudflare Workers with a D1 database and KV cache."
+    },
+    "skyeOrbital": {
+      "short": "Real-time dashboard of satellites in orbit",
+      "full": "Skye Orbital is a real-time dashboard that visualizes over 13,000 active satellites and space debris on an interactive 3D globe, with visible-pass prediction and orbital close-approach detection. Client-side SGP4 propagation via satellite.js, WebGL rendering with CesiumJS, Cloudflare back end (Workers, D1, KV, Queues, Workers AI)."
+    },
+    "codexLinguistica": {
+      "short": "Interactive explorer of the world's ancient writing systems",
+      "full": "Codex Linguistica is an interactive web application to explore the history, geography and genealogy of 42 ancient writing systems across 8 genetic families — from Proto-Sinaitic to living alphabets like Hebrew or Arabic. Interactive map (MapLibre GL), dynamic timeline and a table of authentic Unicode glyphs, with an interactive quiz and progression system."
     }
   },
   "projectDetails": {
@@ -503,6 +524,27 @@
       "objective": "The goal was to build a complete social network dedicated to web professionals — developers, project managers, UX designers — bringing together in one place a news feed, member profiles, a follow system, notifications and a job board with applications. The interface takes its cues from LinkedIn: profile cards on hover, a media composer, a light/dark theme and a floating \"Quick access\" panel available on every page.",
       "technologiesDetail": "The back end relies on PHP 8.2 with PDO and prepared statements, deliberately without any framework to keep the code minimal and readable. The database layer supports two engines with the same logical schema: MySQL 8 for local development and PostgreSQL in production — the code detects the environment and adapts automatically. The front end combines HTML, CSS with custom variables for theming, and vanilla JavaScript with jQuery. Production runs on Railway in a Docker container with Nginx and PHP-FPM, and an idempotent initialization script creates missing tables on every deployment.",
       "challengesSolutions": "The main challenge was keeping a single codebase working on two database engines, from local XAMPP to Railway production. I solved it by centralizing the connection logic, maintaining both SQL dialects in parallel and making the production schema script idempotent. Other highlights include secure authentication with hashed passwords and token-based password reset, client-side media size checks before upload, and a notification system that marks items as read on click and redirects to the related content."
+    },
+    "worldWildLife": {
+      "title": "World Wild Life - Digitalblueskye Portfolio",
+      "headerTitle": "WORLD WILD LIFE PROJECT",
+      "objective": "The goal was to build a wildlife-discovery application backed by real data: 250 species across 5 taxonomic classes, with their habitats, diets and IUCN conservation statuses, explorable through an interactive map, charts and full-text search.",
+      "technologiesDetail": "The front end is vanilla HTML/CSS/JS, with Leaflet.js for the regions map (real GeoJSON borders) and Chart.js for the distribution charts. The back end is a REST API on Cloudflare Workers, backed by Cloudflare D1 (SQLite) for data and Cloudflare KV to cache expensive endpoints (filters, stats, regions). The front end is hosted on Netlify.",
+      "challengesSolutions": "The main challenge was integrating reliable, up-to-date conservation data: a batch sync with the IUCN Red List API corrected 14 wrong statuses, complemented by a secure live route (token kept as a Cloudflare secret) for on-demand checks. Filtering strictly on the IUCN's global scope also required care to avoid mistakenly applying a regional status to a species."
+    },
+    "skyeOrbital": {
+      "title": "Skye Orbital - Digitalblueskye Portfolio",
+      "headerTitle": "SKYE ORBITAL PROJECT",
+      "objective": "The goal was to make readable and accessible to a non-specialist audience something that usually stays an abstract table of coordinates: where a satellite is right now, when it will be visible from a given point, and which objects are dangerously converging with one another in low Earth orbit.",
+      "technologiesDetail": "The front end is static (vanilla HTML/CSS/JS), with no framework or bundler: CesiumJS renders the 3D globe in WebGL (PointPrimitiveCollection and LabelCollection to keep it smooth with 13,000+ objects), and satellite.js computes SGP4 orbital propagation directly in the browser. The Cloudflare back end serves orbital elements (TLE) through Workers with a KV cache (2h TTL, respecting CelesTrak's rate limit) and Cron Triggers for periodic refresh; D1 stores the object catalog, detected close approaches and daily briefings. Close-approach detection runs on a 4-stage Cloudflare Queues pipeline (parse → bin-and-dispatch → precompute → scan → refine), and the daily natural-language briefing is generated via Workers AI.",
+      "challengesSolutions": "The main technical challenge was rendering over 13,000 tracked objects in real time without hurting performance: the fix was to delegate all position computation to the browser (SGP4 via satellite.js) and let the server only cache and serve the raw orbital elements. Close-approach detection needed a dedicated multi-stage pipeline to stay practical at that scale over a 72h window, with a 5km production threshold — deliberately presented as an indicative geometric signal, not an operational collision prediction."
+    },
+    "codexLinguistica": {
+      "title": "Codex Linguistica - Digitalblueskye Portfolio",
+      "headerTitle": "CODEX LINGUISTICA PROJECT",
+      "objective": "The goal was to make the complex genealogy of human writing systems explorable and accessible — 42 scripts across 8 genetic families, from the 3rd millennium BCE to today — by combining a map of their places of origin, a filterable timeline and an authentic Unicode rendering of each alphabet's glyphs.",
+      "technologiesDetail": "The front end is semantic HTML5 and vanilla JavaScript in ES6 modules, styled with Tailwind CSS, with no framework. The mapping layer relies on MapLibre GL to locate each script's place of origin, paired with a dynamic timeline to filter by era. Google Noto Sans/Serif Historical fonts ensure authentic Unicode rendering for each writing system (Phoenician, Linear B, Egyptian Hieroglyphs, and more). The back end is a dedicated Cloudflare Worker API, hosted on Netlify with Cloudflare DNS.",
+      "challengesSolutions": "The main challenge was structuring a genealogy of 42 scripts across 8 families with sometimes ambiguous lineages (bridges between families, scripts derived from several sources) while keeping navigation simple through the map and timeline. Faithfully rendering ancient glyphs also required loading specialized Unicode fonts per writing system rather than a single generic font, to preserve each alphabet's visual authenticity."
     }
   },
   "navigation": {

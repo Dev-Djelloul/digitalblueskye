@@ -3,12 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title data-i18n="projectNames.networkee">Networkee</title>
+    <title data-i18n="projectNames.codexLinguistica">Codex Linguistica</title>
     <meta
       name="description"
-      content="Networkee: a full-stack mini social network for digital professionals, built with PHP 8.2, MySQL/PostgreSQL and vanilla JavaScript, deployed on Railway with Docker."
+      content="Codex Linguistica: an interactive explorer of 42 ancient writing systems across 8 genetic families, with an interactive map, timeline and authentic Unicode glyphs, built with MapLibre GL and Tailwind CSS."
     />
-    <link rel="canonical" href="https://digitalblueskye.com/projects/networkee.html" />
+    <link rel="canonical" href="https://digitalblueskye.com/projects/codex-linguistica.html" />
     <link rel="stylesheet" href="/styles/style.css" />
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
     <link rel="icon" href="/favicon.ico" sizes="any" />
@@ -81,28 +81,27 @@
     <main>
       <section class="project-detail">
         <div class="project-hero" data-aos="fade-up">
-          <img src="/assets/images/projects/imagesNetworkee/networkee.png" alt="Networkee project home page" width="2516" height="1204" />
+          <img src="/assets/images/projects/imagesCodexLinguistica/codex-linguistica-hero.png" alt="Codex Linguistica interactive map and timeline" width="1600" height="900" />
         </div>
 
         <div class="project-content" data-aos="fade-up">
-          <h1 class="title-banner" data-i18n="projectNames.networkee">NETWORKEE</h1>
+          <h1 class="title-banner" data-i18n="projectNames.codexLinguistica">CODEX LINGUISTICA</h1>
 
-          <p data-i18n="projectDescriptions.networkee.full">
-            Networkee is a full-stack mini social network for digital professionals, inspired by LinkedIn: a paginated feed with text, image and video posts, likes, comments, reposts, follows, notifications and job offers with applications. Built with PHP 8.2 and vanilla JavaScript, it runs on MySQL locally and PostgreSQL in production, deployed on Railway in a Docker container (Nginx + PHP-FPM).
+          <p data-i18n="projectDescriptions.codexLinguistica.full">
+            Codex Linguistica is an interactive web application to explore the history, geography and genealogy of 42 ancient writing systems across 8 genetic families — from Proto-Sinaitic to living alphabets like Hebrew or Arabic. Interactive map (MapLibre GL), dynamic timeline and a table of authentic Unicode glyphs, with an interactive quiz and progression system.
           </p>
 
           <div class="project-tech">
-            <span>PHP 8.2</span>
-            <span>MySQL</span>
-            <span>PostgreSQL</span>
             <span>JavaScript</span>
-            <span>Docker</span>
-            <span>Railway</span>
+            <span>MapLibre GL</span>
+            <span>Tailwind CSS</span>
+            <span>Cloudflare Workers</span>
+            <span>Netlify</span>
           </div>
 
           <div class="project-links">
             <a href="/pages/projects.html" class="btn-back-projects" data-i18n="projectDetails.backToProjectsList">All projects</a>
-            <a href="https://networkee.up.railway.app/" target="_blank" rel="noopener noreferrer" class="btn-live" data-i18n="projectDetails.viewLive">
+            <a href="https://codex-linguistica.pages.dev/" target="_blank" rel="noopener noreferrer" class="btn-live" data-i18n="projectDetails.viewLive">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1-2-2h6"></path>
                 <polyline points="15 3 21 3 21 9"></polyline>
@@ -110,7 +109,7 @@
               </svg>
               Visit the site
             </a>
-            <a href="https://github.com/Dev-Djelloul/Networkee" target="_blank" rel="noopener noreferrer" class="btn-view-code" data-i18n="projectDetails.viewCode">
+            <a href="https://github.com/Dev-Djelloul/Codex-Linguistica" target="_blank" rel="noopener noreferrer" class="btn-view-code" data-i18n="projectDetails.viewCode">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
               </svg>
@@ -123,40 +122,39 @@
           <h3 class="title-banner section-title" data-i18n="projectDetails.details">PROJECT DETAILS</h3>
 
           <h4 data-i18n="projectDetails.objective">Objective</h4>
-          <p data-i18n="projectDetails.networkee.objective">
-            The goal was to build a complete social network dedicated to web professionals — developers, project managers, UX designers — bringing together in one place a news feed, member profiles, a follow system, notifications and a job board with applications. The interface takes its cues from LinkedIn: profile cards on hover, a media composer, a light/dark theme and a floating "Quick access" panel available on every page.
+          <p data-i18n="projectDetails.codexLinguistica.objective">
+            The goal was to make the complex genealogy of human writing systems explorable and accessible — 42 scripts across 8 genetic families, from the 3rd millennium BCE to today — by combining a map of their places of origin, a filterable timeline and an authentic Unicode rendering of each alphabet's glyphs.
           </p>
 
           <h4 data-i18n="projectDetails.technologies">Technologies used</h4>
-          <p data-i18n="projectDetails.networkee.technologiesDetail">
-            The back end relies on PHP 8.2 with PDO and prepared statements, deliberately without any framework to keep the code minimal and readable. The database layer supports two engines with the same logical schema: MySQL 8 for local development and PostgreSQL in production — the code detects the environment and adapts automatically. The front end combines HTML, CSS with custom variables for theming, and vanilla JavaScript with jQuery. Production runs on Railway in a Docker container with Nginx and PHP-FPM, and an idempotent initialization script creates missing tables on every deployment.
+          <p data-i18n="projectDetails.codexLinguistica.technologiesDetail">
+            The front end is semantic HTML5 and vanilla JavaScript in ES6 modules, styled with Tailwind CSS, with no framework. The mapping layer relies on MapLibre GL to locate each script's place of origin, paired with a dynamic timeline to filter by era. Google Noto Sans/Serif Historical fonts ensure authentic Unicode rendering for each writing system (Phoenician, Linear B, Egyptian Hieroglyphs, and more). The back end is a dedicated Cloudflare Worker API, hosted on Netlify with Cloudflare DNS.
           </p>
 
           <h4 data-i18n="projectDetails.challengesAndSolutions">Challenges and solutions</h4>
-          <p data-i18n="projectDetails.networkee.challengesSolutions">
-            The main challenge was keeping a single codebase working on two database engines, from local XAMPP to Railway production. I solved it by centralizing the connection logic, maintaining both SQL dialects in parallel and making the production schema script idempotent. Other highlights include secure authentication with hashed passwords and token-based password reset, client-side media size checks before upload, and a notification system that marks items as read on click and redirects to the related content.
+          <p data-i18n="projectDetails.codexLinguistica.challengesSolutions">
+            The main challenge was structuring a genealogy of 42 scripts across 8 families with sometimes ambiguous lineages (bridges between families, scripts derived from several sources) while keeping navigation simple through the map and timeline. Faithfully rendering ancient glyphs also required loading specialized Unicode fonts per writing system rather than a single generic font, to preserve each alphabet's visual authenticity.
           </p>
         </div>
 
         <div class="project-gallery" data-aos="fade-up">
           <h3 class="title-banner" data-i18n="projectDetails.gallery">GALLERY</h3>
           <div class="gallery-grid">
-            <div class="gallery-item"><img src="/assets/images/projects/imagesNetworkee/networkee-hero.png" alt="Networkee project home page" width="2516" height="1204" loading="lazy" /></div>
-            <div class="gallery-item"><img src="/assets/images/projects/imagesNetworkee/networkee-offres.png" alt="Networkee job offers page with filters and application" width="2502" height="1208" loading="lazy" /></div>
-            <div class="gallery-item"><img src="/assets/images/projects/imagesNetworkee/networkee-notifications.png" alt="Networkee notifications page" width="2486" height="1262" loading="lazy" /></div>
+            <div class="gallery-item"><img src="/assets/images/projects/imagesCodexLinguistica/codex-linguistica-hero.png" alt="Codex Linguistica map and timeline of ancient scripts" width="1600" height="900" loading="lazy" /></div>
+            <div class="gallery-item"><img src="/assets/images/projects/imagesCodexLinguistica/codex-linguistica-timeline.png" alt="Codex Linguistica script list with progression badges" width="1600" height="850" loading="lazy" /></div>
           </div>
         </div>
 
         <div class="project-navigation">
-          <a href="/projects/ferme-des-amandiers.html" class="prev-project" data-project-key="fermeDesAmandiers" data-i18n-title="projects.prevProject" title="Previous project: Ferme des Amandiers">
+          <a href="/projects/skye-orbital.html" class="prev-project" data-project-key="skyeOrbital" data-i18n-title="projects.prevProject" title="Previous project: Skye Orbital">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="19" y1="12" x2="5" y2="12"></line>
               <polyline points="12 19 5 12 12 5"></polyline>
             </svg>
-            <span class="project-name-display">Ferme des Amandiers</span>
+            <span class="project-name-display">Skye Orbital</span>
           </a>
-          <a href="/projects/world-wild-life.html" class="next-project" data-project-key="worldWildLife" data-i18n-title="projects.nextProject" title="Next project: World Wild Life">
-            <span class="project-name-display">World Wild Life</span>
+          <a href="/projects/riding-cities.html" class="next-project" data-project-key="ridingCities" data-i18n-title="projects.nextProject" title="Next project: Riding Cities">
+            <span class="project-name-display">Riding Cities</span>
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="5" y1="12" x2="19" y2="12"></line>
               <polyline points="12 5 19 12 12 19"></polyline>
