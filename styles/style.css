@@ -262,7 +262,7 @@ body :where(
 }
 
 .page-intro {
-  margin: 0 auto 0px;
+  margin: 0 auto 150px;
   max-width: 980px;
   padding: 0 20px;
   text-align: center;
@@ -307,7 +307,7 @@ body :where(
   border: 1px solid rgb(93 93 255 / 28%);
   border-radius: 20px;
   box-shadow: 0 18px 44px rgb(5 8 20 / 30%);
-  margin: 1.75rem auto 0;
+  margin: 6rem auto 0;
   max-width: 760px;
   padding: 1.6rem 2.25rem;
   position: relative;
@@ -6973,7 +6973,7 @@ h1.main-title-animated .title-icon {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  margin: 0 auto 32px;
+  margin: 0 auto 65px;
   max-width: 1320px;
   padding: 0 24px;
 }
@@ -7442,7 +7442,7 @@ h1.main-title-animated .title-icon {
 }
 
 .project-hero img {
-  object-fit: cover;
+  object-fit: contain;
   display: block;
   filter: saturate(1.05) contrast(1.05);
   height: 100%;
