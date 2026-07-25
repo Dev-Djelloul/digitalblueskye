@@ -120,6 +120,7 @@
     "viewWorldWildLife": "Discover the World Wild Life project",
     "viewSkyeOrbital": "Discover the Skye Orbital project",
     "viewCodexLinguistica": "Discover the Codex Linguistica project",
+    "viewDcaTimeMachine": "Discover the DCA Time Machine project",
     "filterBy": "Filter by"
   },
   "assistant": {
@@ -284,7 +285,9 @@
     }
   },
   "explorer": {
-    "mainPageTitle": "Web Project Gallery"
+    "mainPageTitle": "Web Project Gallery",
+    "prevArrow": "Previous project",
+    "nextArrow": "Next project"
   },
   "contact": {
     "name": "Name",
@@ -358,7 +361,8 @@
     "networkee": "NETWORKEE",
     "worldWildLife": "WORLD WILD LIFE",
     "skyeOrbital": "SKYE ORBITAL",
-    "codexLinguistica": "CODEX LINGUISTICA"
+    "codexLinguistica": "CODEX LINGUISTICA",
+    "dcaTimeMachine": "DCA TIME MACHINE"
   },
   "projectNames": {
     "ridingCities": "Riding Cities",
@@ -374,7 +378,8 @@
     "networkee": "Networkee",
     "worldWildLife": "World Wild Life",
     "skyeOrbital": "Skye Orbital",
-    "codexLinguistica": "Codex Linguistica"
+    "codexLinguistica": "Codex Linguistica",
+    "dcaTimeMachine": "DCA Time Machine"
   },
   "projectDescriptions": {
     "ridingCities": {
@@ -432,6 +437,10 @@
     "codexLinguistica": {
       "short": "Interactive explorer of the world's ancient writing systems",
       "full": "Codex Linguistica is an interactive web application to explore the history, geography and genealogy of 42 ancient writing systems across 8 genetic families — from Proto-Sinaitic to living alphabets like Hebrew or Arabic. Interactive map (MapLibre GL), dynamic timeline and a table of authentic Unicode glyphs, with an interactive quiz and progression system."
+    },
+    "dcaTimeMachine": {
+      "short": "Crypto DCA vs Lump-Sum simulator with a sarcastic verdict",
+      "full": "DCA Time Machine is a React simulator that lets you remonter le temps and compare Dollar-Cost Averaging against a Lump-Sum investment on Bitcoin, Ethereum or Solana. It computes a sarcastic, shareable verdict, a comparison mode across up to three cryptos, an S&P 500 benchmark overlay, a volatility heatmap and a challenge mode with a localStorage score, all backed by live CoinGecko data with a local fallback."
     }
   },
   "projectDetails": {
@@ -545,6 +554,13 @@
       "objective": "The goal was to make the complex genealogy of human writing systems explorable and accessible — 42 scripts across 8 genetic families, from the 3rd millennium BCE to today — by combining a map of their places of origin, a filterable timeline and an authentic Unicode rendering of each alphabet's glyphs.",
       "technologiesDetail": "The front end is semantic HTML5 and vanilla JavaScript in ES6 modules, styled with Tailwind CSS, with no framework. The mapping layer relies on MapLibre GL to locate each script's place of origin, paired with a dynamic timeline to filter by era. Google Noto Sans/Serif Historical fonts ensure authentic Unicode rendering for each writing system (Phoenician, Linear B, Egyptian Hieroglyphs, and more). The back end is a dedicated Cloudflare Worker API, hosted on Netlify with Cloudflare DNS.",
       "challengesSolutions": "The main challenge was structuring a genealogy of 42 scripts across 8 families with sometimes ambiguous lineages (bridges between families, scripts derived from several sources) while keeping navigation simple through the map and timeline. Faithfully rendering ancient glyphs also required loading specialized Unicode fonts per writing system rather than a single generic font, to preserve each alphabet's visual authenticity."
+    },
+    "dcaTimeMachine": {
+      "title": "DCA Time Machine - Digitalblueskye Portfolio",
+      "headerTitle": "DCA TIME MACHINE PROJECT",
+      "objective": "The goal was to make the DCA vs Lump-Sum debate tangible by letting anyone pick a start date, a monthly amount and a crypto, then instantly see what each strategy would be worth today — with a sarcastic, shareable verdict rather than a dry number, and without ever pretending to be investment advice.",
+      "technologiesDetail": "The app is built with React 18 and Vite, entirely front-end with no backend. Recharts renders the valuation curves, the volatility heatmap and the S&P 500 benchmark overlay. Historical and live prices come from the CoinGecko API with a local JSON fallback so the simulator keeps working offline or when the API is rate-limited. Challenge mode scores persist in localStorage, and results can be exported as a shareable PNG receipt.",
+      "challengesSolutions": "The main challenge was keeping the simulation reliable without a backend: historical crypto prices had to be fetched, cached and gracefully degraded to a local fallback whenever CoinGecko was unavailable or rate-limited, while still supporting a three-way comparison mode and an S&P 500 overlay computed on the same timeline. Rendering an exportable PNG receipt client-side, matching the app's own visual identity, was solved by generating the export straight from the DOM rather than a separate template."
     }
   },
   "navigation": {

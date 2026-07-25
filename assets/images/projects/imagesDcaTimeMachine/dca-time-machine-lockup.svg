@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 80">
+  <!-- Icon (same geometry as dca-time-machine-icon.svg, scaled to 64x64) -->
+  <g transform="translate(8,8)">
+    <path d="M 48.85 46.15 A 22 22 0 1 1 43 13"
+          fill="none" stroke="#39FF9C" stroke-width="6" stroke-linecap="square"/>
+    <rect x="38.5" y="8.5" width="9" height="9" fill="#39FF9C"/>
+    <line x1="32" y1="20" x2="32" y2="44" stroke="#39FF9C" stroke-width="3"/>
+    <rect x="27" y="25" width="10" height="14" fill="#39FF9C"/>
+  </g>
+
+  <!-- Wordmark, terminal-prompt style -->
+  <text x="90" y="47"
+        font-family="'IBM Plex Mono','Space Mono',monospace"
+        font-size="28" font-weight="700" letter-spacing="0.5">
+    <tspan fill="#FFB020">&gt;</tspan><tspan fill="#39FF9C" dx="10">DCA_TIME_MACHINE</tspan>
+  </text>
+
+  <!-- Static "blinking cursor" flourish at end of line -->
+  <rect x="452" y="26" width="14" height="30" fill="#39FF9C"/>
+</svg>

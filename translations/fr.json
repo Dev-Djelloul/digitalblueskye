@@ -121,6 +121,7 @@
     "viewWorldWildLife": "Découvrir le projet World Wild Life",
     "viewSkyeOrbital": "Découvrir le projet Skye Orbital",
     "viewCodexLinguistica": "Découvrir le projet Codex Linguistica",
+    "viewDcaTimeMachine": "Découvrir le projet DCA Time Machine",
     "filterBy": "Filtrer par"
   },
   "assistant": {
@@ -285,7 +286,9 @@
     }
   },
   "explorer": {
-    "mainPageTitle": "Galerie de réalisations web"
+    "mainPageTitle": "Galerie de réalisations web",
+    "prevArrow": "Projet précédent",
+    "nextArrow": "Projet suivant"
   },
   "contact": {
     "name": "Nom",
@@ -359,7 +362,8 @@
     "networkee": "NETWORKEE",
     "worldWildLife": "WORLD WILD LIFE",
     "skyeOrbital": "SKYE ORBITAL",
-    "codexLinguistica": "CODEX LINGUISTICA"
+    "codexLinguistica": "CODEX LINGUISTICA",
+    "dcaTimeMachine": "DCA TIME MACHINE"
   },
   "projectNames": {
     "ridingCities": "Riding Cities",
@@ -375,7 +379,8 @@
     "networkee": "Networkee",
     "worldWildLife": "World Wild Life",
     "skyeOrbital": "Skye Orbital",
-    "codexLinguistica": "Codex Linguistica"
+    "codexLinguistica": "Codex Linguistica",
+    "dcaTimeMachine": "DCA Time Machine"
   },
   "projectDescriptions": {
     "ridingCities": {
@@ -433,12 +438,17 @@
     "codexLinguistica": {
       "short": "Explorateur interactif des écritures anciennes du monde",
       "full": "Codex Linguistica est une application web interactive pour explorer l'histoire, la géographie et la généalogie de 42 systèmes d'écriture anciens répartis en 8 familles génétiques — du Proto-Sinaïtique aux alphabets vivants comme l'Hébreu ou l'Arabe. Carte interactive (MapLibre GL), frise chronologique dynamique et tableau de glyphes Unicode authentiques, avec un quiz interactif et un système de progression."
+    },
+    "dcaTimeMachine": {
+      "short": "Simulateur crypto DCA vs Lump-Sum au verdict sarcastique",
+      "full": "DCA Time Machine est un simulateur React qui permet de remonter le temps et de comparer l'investissement programmé (DCA) à un placement d'un coup (Lump-Sum) sur Bitcoin, Ethereum ou Solana. Il calcule un verdict sarcastique et partageable, propose un mode comparaison jusqu'à trois cryptos, une superposition avec le S&P 500, une heatmap de volatilité et un mode défi avec score sauvegardé en localStorage, le tout alimenté par les données CoinGecko en temps réel avec un repli local."
     }
   },
   "projectDetails": {
     "overview": "Aperçu",
     "technologies": "Technologies utilisées",
     "challenges": "Défis",
+    "challengesAndSolutions": "Défis et solutions",
     "details": "Détails du projet",
     "objective": "Objectif",
     "backToHome": "Accueil",
@@ -545,6 +555,13 @@
       "objective": "L’objectif était de rendre accessible et explorable la généalogie complexe des systèmes d’écriture humains — 42 écritures sur 8 familles génétiques, du 3e millénaire avant J.-C. à aujourd’hui — en combinant une carte des foyers d’apparition, une frise chronologique filtrable et une visualisation authentique des glyphes Unicode de chaque alphabet.",
       "technologiesDetail": "Le front-end est en HTML5 sémantique et JavaScript vanilla en modules ES6, stylé avec Tailwind CSS, sans framework. La cartographie repose sur MapLibre GL pour localiser les foyers d’apparition des écritures, couplée à une frise chronologique dynamique pour filtrer par époque. Les polices Google Noto Sans/Serif Historical assurent un rendu Unicode authentique pour chaque système d’écriture (Phénicien, Linéaire B, Hiéroglyphes égyptiens, etc.). Le backend est une API Cloudflare Worker dédiée, l’hébergement combine Netlify et Cloudflare DNS.",
       "challengesSolutions": "Le principal défi était de structurer une généalogie de 42 écritures sur 8 familles avec des filiations parfois ambiguës (ponts entre familles, écritures dérivées de plusieurs sources) tout en gardant une navigation simple par carte et frise chronologique. Le rendu fidèle des glyphes anciens a aussi nécessité de charger des polices Unicode spécialisées par système d’écriture plutôt qu’une police générique, pour préserver l’authenticité visuelle de chaque alphabet."
+    },
+    "dcaTimeMachine": {
+      "title": "DCA Time Machine - Portfolio Digitalblueskye",
+      "headerTitle": "PROJET DCA TIME MACHINE",
+      "objective": "L’objectif était de rendre concret le débat DCA vs Lump-Sum en permettant à chacun de choisir une date de départ, un montant mensuel et une crypto, puis de voir instantanément ce que vaudrait chaque stratégie aujourd’hui — avec un verdict sarcastique et partageable plutôt qu’un chiffre froid, sans jamais se substituer à un conseil en investissement.",
+      "technologiesDetail": "L’application est construite avec React 18 et Vite, entièrement front-end et sans backend. Recharts affiche les courbes de valorisation, la heatmap de volatilité et la superposition avec le S&P 500. Les prix historiques et en temps réel proviennent de l’API CoinGecko, avec un repli sur un fichier JSON local pour que le simulateur continue de fonctionner hors ligne ou en cas de limitation de l’API. Les scores du mode défi sont sauvegardés en localStorage, et les résultats peuvent être exportés sous forme de reçu PNG partageable.",
+      "challengesSolutions": "Le principal défi était de garantir une simulation fiable sans backend : les prix historiques des cryptos devaient être récupérés, mis en cache et dégradés proprement vers un repli local en cas d’indisponibilité ou de limitation de CoinGecko, tout en conservant un mode comparaison à trois cryptos et une superposition S&P 500 calculée sur la même chronologie. La génération d’un reçu PNG exportable côté client, fidèle à l’identité visuelle de l’application, a été résolue en générant l’export directement à partir du DOM plutôt que d’un gabarit séparé."
     }
   },
   "navigation": {
