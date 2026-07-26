@@ -67,10 +67,10 @@
         <div class="dbs-profile-layout">
           <nav class="dbs-profile-nav" role="tablist" data-i18n-aria-label="profileSectionsAria" aria-label="Sections du profil">
             <button type="button" class="dbs-profile-tab is-active" id="dbs-tab-identity" role="tab" aria-selected="true" aria-controls="dbs-panel-identity" data-dbs-profile-tab="identity" data-i18n="tabIdentity">Identité</button>
-            <button type="button" class="dbs-profile-tab" id="dbs-tab-preferences" role="tab" aria-selected="false" aria-controls="dbs-panel-preferences" data-dbs-profile-tab="preferences" data-i18n="tabPreferences">Préférences IA</button>
-            <button type="button" class="dbs-profile-tab" id="dbs-tab-ai-settings" role="tab" aria-selected="false" aria-controls="dbs-panel-ai-settings" data-dbs-profile-tab="ai-settings" data-i18n="tabAiSettings">Paramètres IA</button>
             <button type="button" class="dbs-profile-tab" id="dbs-tab-companion" role="tab" aria-selected="false" aria-controls="dbs-panel-companion" data-dbs-profile-tab="companion" data-i18n="tabCompanion">Compagnon IA</button>
+            <button type="button" class="dbs-profile-tab" id="dbs-tab-preferences" role="tab" aria-selected="false" aria-controls="dbs-panel-preferences" data-dbs-profile-tab="preferences" data-i18n="tabPreferences">Préférences IA</button>
             <button type="button" class="dbs-profile-tab" id="dbs-tab-usage" role="tab" aria-selected="false" aria-controls="dbs-panel-usage" data-dbs-profile-tab="usage" data-i18n="tabUsage">Utilisation IA</button>
+            <button type="button" class="dbs-profile-tab" id="dbs-tab-ai-settings" role="tab" aria-selected="false" aria-controls="dbs-panel-ai-settings" data-dbs-profile-tab="ai-settings" data-i18n="tabAiSettings">Paramètres IA</button>
             <button type="button" class="dbs-profile-tab" id="dbs-tab-history" role="tab" aria-selected="false" aria-controls="dbs-panel-history" data-dbs-profile-tab="history" data-i18n="tabHistory">Historique</button>
             <button type="button" class="dbs-profile-tab" id="dbs-tab-local-data" role="tab" aria-selected="false" aria-controls="dbs-panel-local-data" data-dbs-profile-tab="local-data" data-i18n="tabLocalData">Données locales</button>
             <button type="button" class="dbs-profile-tab" id="dbs-tab-security" role="tab" aria-selected="false" aria-controls="dbs-panel-security" data-dbs-profile-tab="security" data-i18n="tabSecurity">Sécurité</button>
@@ -528,7 +528,7 @@
           google: '/assets/images/ui/icons8-google-50.png',
           github: '/assets/images/ui/icons8-github-96.png'
         };
-        const VALID_TABS = ['identity', 'preferences', 'ai-settings', 'companion', 'usage', 'history', 'local-data', 'security'];
+        const VALID_TABS = ['identity', 'companion', 'preferences', 'usage', 'ai-settings', 'history', 'local-data', 'security'];
         const AVATAR_OVERRIDE_KEY = 'dbs_profile_avatar_override';
         // 256px suffisait pour le petit avatar circulaire, mais le rendait flou
         // une fois agrandi dans le lightbox (600px+). 768px reste largement

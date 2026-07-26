@@ -19495,3 +19495,200 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
     transform: translateY(0);
   }
 }
+
+/* =========================================================================
+   profile.html — MODE CLAIR (data-theme="light")
+   Le reste de ce fichier (section "profile.html — coquille Mon profil...")
+   suppose un fond sombre fixe : body.profile-page et les conteneurs
+   (.dbs-profile-page, .dbs-profile-shell, .dbs-auth-panel) ont un gradient
+   sombre CODE EN DUR, jamais pilote par data-theme, donc le mode clair
+   choisi depuis le menu du chatbot (Apparence) ne changeait strictement
+   rien sur cette page. Palette alignee sur les overrides clairs deja en
+   place pour .dbs-account-popover plus haut dans ce fichier.
+   ========================================================================= */
+[data-theme="light"] body.profile-page {
+  background:
+    radial-gradient(circle at top, rgb(93 93 255 / 12%), transparent 40%),
+    linear-gradient(180deg, #f7f7ff 0%, #efeeff 52%, #f9f6ff 100%);
+  color: rgb(20 22 40 / 92%);
+}
+
+[data-theme="light"] .dbs-profile-page,
+[data-theme="light"] .dbs-profile-shell,
+[data-theme="light"] .dbs-auth-panel {
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 97%), rgb(244 246 255 / 97%)),
+    rgb(255 255 255 / 97%);
+  border-color: rgb(93 93 255 / 20%);
+  box-shadow: 0 18px 44px rgb(88 74 136 / 12%);
+}
+
+[data-theme="light"] .dbs-profile-page h1,
+[data-theme="light"] .dbs-auth-panel-title,
+[data-theme="light"] .dbs-identity-card strong,
+[data-theme="light"] .dbs-account-popover-name {
+  color: rgb(20 22 40 / 94%);
+}
+
+[data-theme="light"] .dbs-auth-panel-desc,
+[data-theme="light"] .dbs-user-status,
+[data-theme="light"] .dbs-auth-label,
+[data-theme="light"] .dbs-profile-field label,
+[data-theme="light"] .dbs-profile-signed-out-text,
+[data-theme="light"] .dbs-profile-identity-provider,
+[data-theme="light"] .dbs-profile-shell-subtitle,
+[data-theme="light"] .dbs-profile-panel-heading p,
+[data-theme="light"] .dbs-identity-card span,
+[data-theme="light"] .dbs-setting-field label,
+[data-theme="light"] .dbs-toggle-field > span,
+[data-theme="light"] .dbs-setting-field small,
+[data-theme="light"] .dbs-profile-note,
+[data-theme="light"] .dbs-security-card span,
+[data-theme="light"] .dbs-usage-card span,
+[data-theme="light"] .dbs-usage-card small,
+[data-theme="light"] .dbs-companion-option span,
+[data-theme="light"] .dbs-companion-desc,
+[data-theme="light"] .dbs-local-data-card dd,
+[data-theme="light"] .dbs-session-item-meta,
+[data-theme="light"] .dbs-auth-sep {
+  color: rgb(30 32 55 / 74%);
+}
+
+[data-theme="light"] .dbs-security-card strong,
+[data-theme="light"] .dbs-usage-card strong,
+[data-theme="light"] .dbs-companion-option strong,
+[data-theme="light"] .dbs-local-data-card dt,
+[data-theme="light"] .dbs-local-data-card h3,
+[data-theme="light"] .dbs-session-item-device,
+[data-theme="light"] .dbs-account-popover-header strong {
+  color: rgb(20 22 40 / 90%);
+}
+
+[data-theme="light"] .dbs-auth-input,
+[data-theme="light"] .dbs-profile-field input,
+[data-theme="light"] .dbs-profile-field select,
+[data-theme="light"] .dbs-setting-field input,
+[data-theme="light"] .dbs-setting-field select {
+  background: rgb(93 93 255 / 6%);
+  border-color: rgb(93 93 255 / 26%);
+  color: rgb(20 22 40 / 92%);
+}
+
+[data-theme="light"] .dbs-profile-field input[disabled],
+[data-theme="light"] .dbs-setting-field input[disabled] {
+  color: rgb(30 32 55 / 55%);
+}
+
+[data-theme="light"] .dbs-oauth-btn {
+  background: rgb(255 255 255 / 90%);
+  color: rgb(20 22 40 / 92%);
+}
+
+[data-theme="light"] .dbs-oauth-btn:hover:not([disabled]) {
+  background: rgb(93 93 255 / 8%);
+}
+
+[data-theme="light"] .dbs-profile-tab {
+  color: rgb(30 32 55 / 68%);
+}
+
+[data-theme="light"] .dbs-profile-tab:hover {
+  background: rgb(93 93 255 / 8%);
+  color: rgb(20 22 40 / 92%);
+}
+
+[data-theme="light"] .dbs-profile-tab.is-active {
+  background: rgb(93 93 255 / 12%);
+  border-color: rgb(93 93 255 / 40%);
+  color: rgb(20 22 40 / 94%);
+}
+
+[data-theme="light"] .dbs-status-badge {
+  background: rgb(93 93 255 / 6%);
+  border-color: rgb(93 93 255 / 30%);
+  color: rgb(30 32 55 / 80%);
+}
+
+[data-theme="light"] .dbs-status-badge.is-secure {
+  border-color: rgb(93 93 255 / 55%);
+  color: rgb(93 60 220 / 95%);
+}
+
+[data-theme="light"] .dbs-profile-kicker {
+  color: rgb(93 60 220 / 90%);
+}
+
+[data-theme="light"] .dbs-usage-bar {
+  background: rgb(93 93 255 / 12%);
+}
+
+[data-theme="light"] .dbs-identity-card,
+[data-theme="light"] .dbs-security-card,
+[data-theme="light"] .dbs-usage-card,
+[data-theme="light"] .dbs-local-data-card,
+[data-theme="light"] .dbs-session-item,
+[data-theme="light"] .dbs-companion-option {
+  background: rgb(93 93 255 / 3%);
+  border-color: rgb(93 93 255 / 18%);
+}
+
+[data-theme="light"] .dbs-companion-option.is-active {
+  background: rgb(93 93 255 / 8%);
+  border-color: rgb(93 93 255 / 45%);
+}
+
+[data-theme="light"] .dbs-companion-tag {
+  background: rgb(93 93 255 / 8%);
+  color: rgb(30 32 55 / 70%);
+}
+
+[data-theme="light"] .dbs-companion-option.is-active .dbs-companion-tag {
+  background: rgb(93 60 220 / 12%);
+  color: rgb(93 60 220 / 95%);
+}
+
+[data-theme="light"] .dbs-companion-try,
+[data-theme="light"] .dbs-profile-secondary-action {
+  border-color: rgb(93 93 255 / 30%);
+  color: rgb(30 32 55 / 82%);
+}
+
+[data-theme="light"] .dbs-companion-try:hover,
+[data-theme="light"] .dbs-profile-secondary-action:hover {
+  background: rgb(93 93 255 / 8%);
+  color: rgb(20 22 40 / 94%);
+}
+
+[data-theme="light"] .dbs-profile-secondary-action--warning {
+  border-color: rgb(200 120 20 / 45%);
+  color: rgb(160 90 10 / 92%);
+}
+
+[data-theme="light"] .dbs-profile-secondary-action--warning:hover {
+  background: rgb(200 120 20 / 10%);
+  color: rgb(140 75 5 / 96%);
+}
+
+[data-theme="light"] .dbs-session-item-badge {
+  background: rgb(93 60 220 / 10%);
+  color: rgb(93 60 220 / 95%);
+}
+
+[data-theme="light"] .dbs-session-item-revoke {
+  border-color: rgb(210 60 90 / 40%);
+  color: rgb(170 40 65 / 90%);
+}
+
+[data-theme="light"] .dbs-session-item-revoke:hover {
+  background: rgb(210 60 90 / 8%);
+}
+
+[data-theme="light"] .dbs-avatar-lightbox-close {
+  background: rgb(255 255 255 / 90%);
+  border-color: rgb(93 93 255 / 30%);
+  color: rgb(20 22 40 / 90%);
+}
+
+[data-theme="light"] .dbs-profile-home-link {
+  color: rgb(93 60 220 / 90%);
+}
