@@ -165,6 +165,7 @@
         reasoningStillWorking: 'Still working on it',
         reasoningFinalizing: 'Finalizing the response',
         rateLimitError: 'The AI provider is temporarily saturated. Please try again in a few moments.',
+        hourlyRateLimitError: "You've reached the hourly message limit for your account. Please try again after the top of the next hour — check the AI usage tab in your profile for details.",
         friendlyApiError: 'I hit a temporary issue. Please try again in a few seconds.',
         openRouterLimited: 'The generation engine is temporarily limited. Sources were retrieved when available, but the full reformulated answer could not be generated.',
         openRouterFallbackTitle: 'Summary from retrieved sources',
@@ -298,6 +299,7 @@
       reasoningStillWorking: 'Toujours en cours de traitement',
       reasoningFinalizing: 'Finalisation de la réponse',
       rateLimitError: "Le fournisseur IA est temporairement saturé. Réessaie dans quelques instants.",
+      hourlyRateLimitError: "Tu as atteint la limite de messages par heure pour ton compte. Réessaie après le prochain top horaire — consulte l'onglet Utilisation IA de ton profil pour le détail.",
       friendlyApiError: "Oups, je rencontre un souci temporaire. Réessaie dans quelques secondes.",
       openRouterLimited: "Le moteur de génération est temporairement limité. Les sources ont été récupérées lorsque disponibles, mais la reformulation complète n'a pas pu être générée.",
       openRouterFallbackTitle: 'Synthèse à partir des sources récupérées',
@@ -11333,7 +11335,14 @@
 
   function formatAssistantApiError(apiError) {
     const diagnostic = typeof apiError === 'object' && apiError !== null ? apiError.diagnostic : null;
-    const statusCode = Number(diagnostic?.status_code || diagnostic?.status || 0);
+    const statusCode = Number(diagnostic?.status_code || diagnostic?.status || apiError?.httpStatus || 0);
+    // RATE_LIMITED : quota horaire par utilisateur applique par le proxy
+    // /ai/chat (voir cloudflare/auth.js checkRateLimit), distinct du 429
+    // upstream saturation traite plus bas. Message dedie car l'utilisateur
+    // doit attendre le prochain top horaire, pas juste "quelques instants".
+    if (typeof apiError === 'object' && apiError !== null && apiError.error === 'RATE_LIMITED') {
+      return i18n.hourlyRateLimitError;
+    }
     const normalized = String(
       typeof apiError === 'object' && apiError !== null
         ? `${apiError.error || ''} ${diagnostic?.upstream_error || ''}`
