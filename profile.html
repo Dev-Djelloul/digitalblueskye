@@ -70,10 +70,10 @@
             <button type="button" class="dbs-profile-tab" id="dbs-tab-preferences" role="tab" aria-selected="false" aria-controls="dbs-panel-preferences" data-dbs-profile-tab="preferences" data-i18n="tabPreferences">Préférences IA</button>
             <button type="button" class="dbs-profile-tab" id="dbs-tab-ai-settings" role="tab" aria-selected="false" aria-controls="dbs-panel-ai-settings" data-dbs-profile-tab="ai-settings" data-i18n="tabAiSettings">Paramètres IA</button>
             <button type="button" class="dbs-profile-tab" id="dbs-tab-companion" role="tab" aria-selected="false" aria-controls="dbs-panel-companion" data-dbs-profile-tab="companion" data-i18n="tabCompanion">Compagnon IA</button>
-            <button type="button" class="dbs-profile-tab" id="dbs-tab-security" role="tab" aria-selected="false" aria-controls="dbs-panel-security" data-dbs-profile-tab="security" data-i18n="tabSecurity">Sécurité</button>
             <button type="button" class="dbs-profile-tab" id="dbs-tab-usage" role="tab" aria-selected="false" aria-controls="dbs-panel-usage" data-dbs-profile-tab="usage" data-i18n="tabUsage">Utilisation IA</button>
             <button type="button" class="dbs-profile-tab" id="dbs-tab-history" role="tab" aria-selected="false" aria-controls="dbs-panel-history" data-dbs-profile-tab="history" data-i18n="tabHistory">Historique</button>
             <button type="button" class="dbs-profile-tab" id="dbs-tab-local-data" role="tab" aria-selected="false" aria-controls="dbs-panel-local-data" data-dbs-profile-tab="local-data" data-i18n="tabLocalData">Données locales</button>
+            <button type="button" class="dbs-profile-tab" id="dbs-tab-security" role="tab" aria-selected="false" aria-controls="dbs-panel-security" data-dbs-profile-tab="security" data-i18n="tabSecurity">Sécurité</button>
           </nav>
 
           <div class="dbs-profile-content">
@@ -217,24 +217,6 @@
               <p class="dbs-profile-saved" data-dbs-companion-saved role="status" hidden data-i18n="companionUpdated">Compagnon IA mis à jour.</p>
             </section>
 
-            <section class="dbs-profile-panel" id="dbs-panel-security" role="tabpanel" aria-labelledby="dbs-tab-security" data-dbs-profile-panel="security" hidden>
-              <div class="dbs-profile-panel-heading">
-                <h2 data-i18n="tabSecurity">Sécurité du compte</h2>
-                <p data-i18n="securityDesc">Votre session est gérée côté serveur. Aucune clé API n'est exposée dans le navigateur.</p>
-              </div>
-              <div class="dbs-info-grid">
-                <article class="dbs-security-card"><span data-i18n="connectedProvider">Fournisseur connecté</span><strong data-dbs-security-provider>OAuth</strong></article>
-                <article class="dbs-security-card"><span data-i18n="session">Session</span><strong data-i18n="active">Active</strong></article>
-                <article class="dbs-security-card"><span data-i18n="sessionType">Type de session</span><strong data-i18n="secureCookie">Cookie sécurisé HttpOnly</strong></article>
-                <article class="dbs-security-card"><span data-i18n="account">Compte</span><strong data-i18n="secured">Sécurisé</strong></article>
-              </div>
-              <div class="dbs-profile-actions-row">
-                <button type="button" class="dbs-profile-secondary-action" data-dbs-revoke-others data-i18n="revokeOtherSessions">Terminer les autres sessions</button>
-                <button type="button" class="dbs-profile-secondary-action" data-dbs-clear-local data-i18n="clearLocalData">Supprimer les données locales de ce navigateur</button>
-              </div>
-              <p class="dbs-profile-saved" data-dbs-security-saved role="status" hidden></p>
-            </section>
-
             <section class="dbs-profile-panel" id="dbs-panel-usage" role="tabpanel" aria-labelledby="dbs-tab-usage" data-dbs-profile-panel="usage" hidden>
               <div class="dbs-profile-panel-heading">
                 <h2 data-i18n="tabUsage">Utilisation IA</h2>
@@ -291,6 +273,24 @@
                 </div>
                 <p class="dbs-profile-saved" data-dbs-local-saved role="status" hidden data-i18n="localDataCleared">Données locales supprimées.</p>
               </div>
+            </section>
+
+            <section class="dbs-profile-panel" id="dbs-panel-security" role="tabpanel" aria-labelledby="dbs-tab-security" data-dbs-profile-panel="security" hidden>
+              <div class="dbs-profile-panel-heading">
+                <h2 data-i18n="tabSecurity">Sécurité du compte</h2>
+                <p data-i18n="securityDesc">Votre session est gérée côté serveur. Aucune clé API n'est exposée dans le navigateur.</p>
+              </div>
+              <div class="dbs-info-grid">
+                <article class="dbs-security-card"><span data-i18n="connectedProvider">Fournisseur connecté</span><strong data-dbs-security-provider>OAuth</strong></article>
+                <article class="dbs-security-card"><span data-i18n="session">Session</span><strong class="dbs-status-positive"><span class="dbs-status-dot" aria-hidden="true"></span><span data-i18n="active">Active</span></strong></article>
+                <article class="dbs-security-card"><span data-i18n="sessionType">Type de session</span><strong data-i18n="secureCookie">Cookie sécurisé HttpOnly</strong></article>
+                <article class="dbs-security-card"><span data-i18n="account">Compte</span><strong class="dbs-status-positive"><span class="dbs-status-dot" aria-hidden="true"></span><span data-i18n="secured">Sécurisé</span></strong></article>
+              </div>
+              <div class="dbs-profile-actions-row">
+                <button type="button" class="dbs-profile-secondary-action dbs-profile-secondary-action--warning" data-dbs-revoke-others data-i18n="revokeOtherSessions">Terminer les autres sessions</button>
+                <button type="button" class="dbs-profile-secondary-action" data-dbs-clear-local data-i18n="clearLocalData">Supprimer les données locales de ce navigateur</button>
+              </div>
+              <p class="dbs-profile-saved" data-dbs-security-saved role="status" hidden></p>
             </section>
           </div>
         </div>
@@ -501,7 +501,7 @@
           google: '/assets/images/ui/icons8-google-50.png',
           github: '/assets/images/ui/icons8-github-96.png'
         };
-        const VALID_TABS = ['identity', 'preferences', 'ai-settings', 'companion', 'security', 'usage', 'history', 'local-data'];
+        const VALID_TABS = ['identity', 'preferences', 'ai-settings', 'companion', 'usage', 'history', 'local-data', 'security'];
         const AVATAR_OVERRIDE_KEY = 'dbs_profile_avatar_override';
         // 256px suffisait pour le petit avatar circulaire, mais le rendait flou
         // une fois agrandi dans le lightbox (600px+). 768px reste largement

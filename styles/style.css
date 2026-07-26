@@ -12486,6 +12486,33 @@ body.profile-page .profile-main {
   color: #fff;
 }
 
+.dbs-profile-secondary-action--warning {
+  border-color: rgb(255 176 87 / 40%);
+  color: rgb(255 200 140 / 92%);
+}
+
+.dbs-profile-secondary-action--warning:hover {
+  background: rgb(255 176 87 / 10%);
+  border-color: rgb(255 176 87 / 70%);
+  color: #ffd8ab;
+}
+
+.dbs-status-positive {
+  align-items: center;
+  color: rgb(110 231 168) !important;
+  display: inline-flex;
+  gap: 6px;
+}
+
+.dbs-status-dot {
+  background: rgb(110 231 168);
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px rgb(110 231 168 / 18%);
+  display: inline-block;
+  height: 8px;
+  width: 8px;
+}
+
 .dbs-profile-home-link {
   color: rgb(121 230 255 / 88%);
   font-size: 0.84rem;
