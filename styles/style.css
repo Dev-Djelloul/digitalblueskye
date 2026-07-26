@@ -16892,30 +16892,60 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
   top: 8px;
 }
 
-.ai-assistant-export-actions {
+/* Rangee unique de pied de bulle : Regenerer a gauche, exports (MD/HTML/PDF/
+   DOCX) a droite, aux deux extremites — cf. getOrCreateBubbleActionsRow dans
+   ai-assistant.js. Un seul separateur/marge porte desormais sur la rangee
+   entiere ; les deux groupes internes ne sont que des flex-wrap. */
+.ai-assistant-bubble-actions-row {
   align-items: center;
   border-top: 1px solid rgb(255 255 255 / 10%);
   display: flex;
   flex-wrap: wrap;
-  gap: 7px;
+  gap: 10px;
+  justify-content: space-between;
   margin-top: 12px;
   padding-top: 10px;
 }
 
+.ai-assistant-bubble-actions-left,
+.ai-assistant-bubble-actions-right {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.ai-assistant-export-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
 .ai-assistant-export-btn {
+  align-items: center;
   background: rgb(255 255 255 / 8%);
   border: 1px solid rgb(255 255 255 / 18%);
   border-radius: 999px;
   color: #dfe8ff;
   cursor: pointer;
+  display: inline-flex;
   font-family: var(--font-body);
   font-size: 0.68rem;
   font-weight: 700;
+  gap: 6px;
   letter-spacing: 0.04em;
   line-height: 1;
-  padding: 6px 9px;
+  padding: 6px 11px 6px 8px;
   -webkit-text-fill-color: #dfe8ff;
   transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.ai-assistant-export-btn img {
+  display: block;
+  height: 14px;
+  object-fit: contain;
+  width: 14px;
 }
 
 .ai-assistant-export-btn:hover {
@@ -16930,6 +16960,7 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
    :last-child et le bouton disparaît — c'est voulu, y compris pendant une
    génération en cours). */
 .ai-assistant-regenerate-btn {
+  align-items: center;
   background: rgb(255 255 255 / 8%);
   border: 1px solid rgb(255 255 255 / 18%);
   border-radius: 999px;
@@ -16939,18 +16970,30 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
   font-family: var(--font-body);
   font-size: 0.68rem;
   font-weight: 700;
+  gap: 6px;
   letter-spacing: 0.04em;
   line-height: 1;
-  margin-top: 10px;
-  padding: 6px 11px;
+  padding: 6px 12px 6px 8px;
   -webkit-text-fill-color: #dfe8ff;
   transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.ai-assistant-regenerate-btn img {
+  display: block;
+  height: 14px;
+  object-fit: contain;
+  transition: transform 0.35s ease;
+  width: 14px;
 }
 
 .ai-assistant-regenerate-btn:hover {
   background: rgb(121 230 255 / 14%);
   border-color: rgb(121 230 255 / 40%);
   transform: translateY(-1px);
+}
+
+.ai-assistant-regenerate-btn:hover img {
+  transform: rotate(180deg);
 }
 
 [data-theme="light"] .ai-assistant-regenerate-btn {
@@ -17526,19 +17569,51 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
 }
 
 .ai-assistant-quick-action {
-  background: rgb(255 255 255 / 7%);
-  border: 1px solid rgb(255 255 255 / 16%);
+  align-items: center;
+  background: rgb(121 230 255 / 8%);
+  border: 1px solid rgb(121 230 255 / 26%);
   border-radius: 999px;
-  color: rgb(236 239 255 / 94%);
+  color: rgb(236 239 255 / 92%);
   cursor: pointer;
+  display: inline-flex;
   font-family: var(--font-body);
   font-size: 0.73rem;
-  padding: 7px 10px;
+  padding: 7px 12px;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Petite fleche reveelee au survol (largeur/opacite animees plutot que
+   display, pour un glissement fluide au lieu d'un pop soudain). */
+.ai-assistant-quick-action::after {
+  content: "→";
+  display: inline-block;
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-width 0.2s ease, opacity 0.2s ease, margin-left 0.2s ease;
 }
 
 .ai-assistant-quick-action:hover {
-  background: rgb(93 93 255 / 24%);
-  border-color: rgb(93 93 255 / 60%);
+  background: linear-gradient(120deg, rgb(121 230 255 / 22%), rgb(93 93 255 / 22%));
+  border-color: rgb(121 230 255 / 60%);
+  box-shadow: 0 4px 14px rgb(121 230 255 / 16%);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.ai-assistant-quick-action:hover::after {
+  margin-left: 2px;
+  max-width: 16px;
+  opacity: 1;
+}
+
+.ai-assistant-quick-action:active {
+  transform: translateY(0);
+}
+
+.ai-assistant-quick-action:focus-visible {
+  outline: 2px solid rgb(121 230 255 / 60%);
+  outline-offset: 2px;
 }
 
 .ai-assistant-form {
@@ -18677,7 +18752,7 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
   -webkit-text-fill-color: #2f2b5f;
 }
 
-[data-theme="light"] .ai-assistant-export-actions {
+[data-theme="light"] .ai-assistant-bubble-actions-row {
   border-top-color: rgb(93 93 255 / 14%);
 }
 
@@ -18773,8 +18848,16 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
 }
 
 [data-theme="light"] .ai-assistant-quick-action {
-  background: rgb(93 93 255 / 8%);
+  background: rgb(93 93 255 / 6%);
+  border-color: rgb(93 93 255 / 24%);
   color: #2f2b5f;
+}
+
+[data-theme="light"] .ai-assistant-quick-action:hover {
+  background: linear-gradient(120deg, rgb(93 93 255 / 16%), rgb(200 34 255 / 12%));
+  border-color: rgb(93 93 255 / 45%);
+  box-shadow: 0 4px 14px rgb(93 93 255 / 12%);
+  color: #1e1a3d;
 }
 
 [data-theme="light"] .ai-assistant-voice-btn {

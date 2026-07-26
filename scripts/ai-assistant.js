@@ -324,6 +324,14 @@
     // Utilise le chemin racine absolu qui fonctionne partout (localhost, Netlify, etc.)
     return `/assets/images/ui/${fileName}`;
   }
+  function resolveChatbotIconUrl(fileName) {
+    return `/assets/images/chatbot/${fileName}`;
+  }
+  const mdExportIconUrl = resolveChatbotIconUrl('icons8-markdown-64.png');
+  const htmlExportIconUrl = resolveChatbotIconUrl('icons8-html-64.png');
+  const pdfExportIconUrl = resolveChatbotIconUrl('icons8-pdf-64.png');
+  const docxExportIconUrl = resolveChatbotIconUrl('icons8-microsoft-word-64.png');
+  const regenerateIconUrl = resolveChatbotIconUrl('icons8-regenerate-64.png');
   const copyPasteIconUrl = resolveUiIconUrl('icons8-copy-paste-48.png');
   const filesIconUrl = resolveUiIconUrl('icons8-files-64.png');
   const driveIconUrl = resolveUiIconUrl('icons8-google-drive-64.png');
@@ -9830,7 +9838,7 @@
           -webkit-text-fill-color: #6b6d8f !important;
         }
         .ai-assistant-pdf-export .ai-assistant-message-actions,
-        .ai-assistant-pdf-export .ai-assistant-export-actions,
+        .ai-assistant-pdf-export .ai-assistant-bubble-actions-row,
         .ai-assistant-pdf-export .ai-assistant-code-copy-btn { display: none !important; }
       </style>
       <div class="meta">Digital Blue Skye AI - ${new Date().toLocaleDateString(currentLanguage === 'en' ? 'en-US' : 'fr-FR')}</div>
@@ -10740,17 +10748,35 @@
   // qui ne sont pas dans l'historique : régénérer depuis une notice
   // désynchroniserait le DOM et l'historique persisté. La visibilité reste
   // pilotée par CSS (:last-child) : seul le dernier élément du fil l'affiche.
+  // Rangee unique d'actions en pied de bulle : Regenerer a gauche, exports
+  // (MD/HTML/PDF/DOCX) a droite, aux deux extremites (justify-content:
+  // space-between en CSS). markBubbleRegenerable et enhanceBotBubble
+  // peuplent chacun leur cote independamment et dans un ordre variable selon
+  // le chemin (nouvelle reponse vs restauration d'historique) : cette
+  // fonction cree la rangee au premier appel, quel qu'il soit, et la
+  // reutilise ensuite.
+  function getOrCreateBubbleActionsRow(bubble) {
+    let row = bubble.querySelector(':scope > .ai-assistant-bubble-actions-row');
+    if (!row) {
+      row = document.createElement('div');
+      row.className = 'ai-assistant-bubble-actions-row';
+      row.innerHTML = '<div class="ai-assistant-bubble-actions-left"></div><div class="ai-assistant-bubble-actions-right"></div>';
+      bubble.appendChild(row);
+    }
+    return row;
+  }
+
   function markBubbleRegenerable(bubble) {
     if (!bubble || bubble.dataset.regenerableApplied === '1') return bubble;
     bubble.dataset.regenerableApplied = '1';
     const regenerateBtn = document.createElement('button');
     regenerateBtn.type = 'button';
     regenerateBtn.className = 'ai-assistant-regenerate-btn';
-    regenerateBtn.textContent = `↻ ${i18n.regenerate}`;
+    regenerateBtn.innerHTML = `<img src="${regenerateIconUrl}" alt="" aria-hidden="true"><span>${i18n.regenerate}</span>`;
     regenerateBtn.title = i18n.regenerateTitle;
     regenerateBtn.setAttribute('aria-label', i18n.regenerateTitle);
     regenerateBtn.addEventListener('click', () => regenerateLastAssistantReply(bubble));
-    bubble.appendChild(regenerateBtn);
+    getOrCreateBubbleActionsRow(bubble).querySelector('.ai-assistant-bubble-actions-left').appendChild(regenerateBtn);
     return bubble;
   }
 
@@ -10778,6 +10804,7 @@
       const exports = [
         {
           label: 'MD',
+          icon: mdExportIconUrl,
           title: i18n.downloadMd,
           // Phase 3 : Markdown re-serialise depuis l'AST (texte normalise),
           // repli automatique sur le texte brut dans buildMarkdownExportText.
@@ -10785,6 +10812,7 @@
         },
         {
           label: 'HTML',
+          icon: htmlExportIconUrl,
           title: i18n.downloadHtml,
           // Phase 3 : corps construit depuis l'AST partage (+ citations
           // reappliquees), repli automatique sur le DOM live dans
@@ -10796,6 +10824,7 @@
         },
         {
           label: 'PDF',
+          icon: pdfExportIconUrl,
           title: i18n.downloadPdf,
           // Phase 4 : PDF construit depuis l'AST partage, citations numerotees
           // comme le chat via bubble._sourcesPayload ; repli automatique sur
@@ -10804,6 +10833,7 @@
         },
         {
           label: 'DOCX',
+          icon: docxExportIconUrl,
           title: i18n.downloadDocx,
           // Phase 4 : DOCX construit depuis l'AST partage (memes citations) ;
           // repli automatique sur l'ancien export DOCX dans buildDocxDocumentXml.
@@ -10814,13 +10844,13 @@
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'ai-assistant-export-btn';
-        button.textContent = item.label;
+        button.innerHTML = `<img src="${item.icon}" alt="" aria-hidden="true"><span>${item.label}</span>`;
         button.title = item.title;
         button.setAttribute('aria-label', item.title);
         button.addEventListener('click', item.action);
         exportActions.appendChild(button);
       });
-      bubble.appendChild(exportActions);
+      getOrCreateBubbleActionsRow(bubble).querySelector('.ai-assistant-bubble-actions-right').appendChild(exportActions);
     }
     // Le bouton "copier toute la bulle" a ete retire volontairement : la copie ne
     // s'applique plus qu'aux elements reellement utiles (blocs de code via
@@ -11358,8 +11388,12 @@
     trigger.setAttribute('aria-label', currentLanguage === 'en' ? `View ${count} sources for this reply` : `Voir les ${count} sources de cette réponse`);
     trigger.addEventListener('click', () => openSourcesPanelForMessage(messageId));
 
-    const exportActions = bubble.querySelector('.ai-assistant-export-actions');
-    if (exportActions) bubble.insertBefore(trigger, exportActions);
+    // .ai-assistant-export-actions n'est plus un enfant direct de bubble
+    // (nichee dans .ai-assistant-bubble-actions-row > ...-right depuis le
+    // regroupement Regenerer/exports) : insertBefore exige un enfant direct,
+    // on cible donc la rangee elle-meme.
+    const actionsRow = bubble.querySelector(':scope > .ai-assistant-bubble-actions-row');
+    if (actionsRow) bubble.insertBefore(trigger, actionsRow);
     else bubble.appendChild(trigger);
   }
 
