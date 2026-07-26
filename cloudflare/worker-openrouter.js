@@ -221,6 +221,124 @@ function buildCompanionPromptBlock(companion, language) {
   return block ? ` ${block}` : '';
 }
 
+// Preferences IA (profile.html, onglet "Preferences IA") : projectStyle,
+// favoriteFormat, detailLevel, preferredLanguage, tone. Meme logique que le
+// Compagnon IA — chaque dimension ajoute une instruction courte au prompt
+// systeme, jamais un remplacement des garde-fous de base. Les valeurs par
+// defaut (digital_project_manager / balanced / fr / standard) n'ajoutent
+// aucun bloc : ce sont deja le comportement neutre du prompt de base.
+// favoriteFormat fait exception et s'applique toujours (y compris sa valeur
+// par defaut), car sans lui le modele n'a aucun format de repli explicite
+// quand l'utilisateur ne precise rien dans son message.
+const PROJECT_STYLE_BLOCKS = {
+  fr: {
+    general: "Reste generaliste : n'adopte aucune posture metier predefinie, adapte-toi uniquement au sujet apporte par l'utilisateur.",
+    technical: "Privilegie l'angle technique/architecture (implementation, code, infrastructure, choix techniques) meme sur des sujets larges.",
+    product_strategy: "Privilegie l'angle produit/strategie (positionnement, valeur utilisateur, priorisation, impact business).",
+    marketing_content: "Privilegie l'angle marketing/contenu (message, audience cible, canaux, storytelling commercial).",
+    watch_benchmark: "Privilegie l'angle veille/benchmark (comparaisons, tendances, analyse concurrentielle), meme sans demande explicite de comparatif.",
+    portfolio_career: "Privilegie l'angle portfolio/carriere (valorisation de competences, presentation professionnelle, storytelling personnel)."
+  },
+  en: {
+    general: "Stay generalist: do not adopt any predefined professional posture, adapt only to the topic the user brings.",
+    technical: "Favor the technical/architecture angle (implementation, code, infrastructure, technical choices) even on broad topics.",
+    product_strategy: "Favor the product/strategy angle (positioning, user value, prioritization, business impact).",
+    marketing_content: "Favor the marketing/content angle (messaging, target audience, channels, commercial storytelling).",
+    watch_benchmark: "Favor the watch/benchmark angle (comparisons, trends, competitive analysis), even without an explicit comparison request.",
+    portfolio_career: "Favor the portfolio/career angle (skills showcase, professional presentation, personal storytelling)."
+  }
+};
+
+const FAVORITE_FORMAT_BLOCKS = {
+  fr: {
+    text: "texte structure (paragraphes clairs, sans tableau ni liste imposee)",
+    table: 'un tableau Markdown',
+    checklist: 'une checklist a cocher',
+    action_plan: "un plan d'action structure en etapes",
+    roadmap: 'une roadmap chronologique par jalons',
+    synthesis: 'une synthese courte et condensee',
+    html_deliverable: "un livrable HTML autonome pret a exporter"
+  },
+  en: {
+    text: 'structured text (clear paragraphs, no imposed table or list)',
+    table: 'a Markdown table',
+    checklist: 'a checkable checklist',
+    action_plan: 'a structured step-by-step action plan',
+    roadmap: 'a chronological roadmap with milestones',
+    synthesis: 'a short, condensed summary',
+    html_deliverable: 'a standalone, export-ready HTML deliverable'
+  }
+};
+
+const DETAIL_LEVEL_BLOCKS = {
+  fr: {
+    concise: 'Reponses courtes : va a l\'essentiel, evite tout developpement superflu.',
+    detailed: 'Reponses approfondies : developpe le contexte, les nuances et les alternatives.',
+    expert: 'Registre expert : suppose une bonne connaissance du domaine, ne reexplique pas les bases, sois dense et precis.'
+  },
+  en: {
+    concise: 'Short answers: go straight to the point, avoid any superfluous development.',
+    detailed: 'In-depth answers: develop context, nuances and alternatives.',
+    expert: 'Expert register: assume solid domain knowledge, do not re-explain basics, be dense and precise.'
+  }
+};
+
+const PREFERRED_LANGUAGE_BLOCKS = {
+  fr: {
+    en: "Reponds toujours en anglais, meme si l'utilisateur ecrit en francais, sauf demande explicite contraire dans le message.",
+    bilingual: "Fournis les points cles en francais ET en anglais (bilingue), sauf demande explicite contraire dans le message."
+  },
+  en: {
+    en: 'Always reply in English, even if the user writes in French, unless the message explicitly requests otherwise.',
+    bilingual: 'Provide key points in both French AND English (bilingual), unless the message explicitly requests otherwise.'
+  }
+};
+
+const TONE_BLOCKS = {
+  fr: {
+    pedagogical: 'Ton pedagogique : explique les concepts, illustre avec des exemples, vulgarise sans etre condescendant.',
+    direct: "Ton direct et concis : va droit au but, pas de formules de politesse superflues, priorise l'actionnable.",
+    expert: 'Ton expert / pair-a-pair : registre technique soutenu, pas de simplification excessive.',
+    creative: 'Ton creatif : formulations originales, images, style engageant, tout en restant professionnel.',
+    strategic: 'Ton strategique : vision macro, implications business, priorisation, oriente decideur.'
+  },
+  en: {
+    pedagogical: 'Educational tone: explain concepts, illustrate with examples, simplify without being condescending.',
+    direct: 'Direct and concise tone: get straight to the point, no superfluous pleasantries, prioritize actionable content.',
+    expert: 'Expert / peer-to-peer tone: sustained technical register, no excessive simplification.',
+    creative: 'Creative tone: original phrasing, imagery, engaging style, while staying professional.',
+    strategic: 'Strategic tone: macro view, business implications, prioritization, decision-maker oriented.'
+  }
+};
+
+function buildPreferencesPromptBlock(preferences, language) {
+  const lang = language === 'en' ? 'en' : 'fr';
+  const prefs = preferences && typeof preferences === 'object' ? preferences : {};
+  const parts = [];
+
+  const projectStyle = String(prefs.projectStyle || '').trim().toLowerCase();
+  if (PROJECT_STYLE_BLOCKS[lang][projectStyle]) parts.push(PROJECT_STYLE_BLOCKS[lang][projectStyle]);
+
+  const favoriteFormat = String(prefs.favoriteFormat || '').trim().toLowerCase();
+  const formatLabel = FAVORITE_FORMAT_BLOCKS[lang][favoriteFormat];
+  if (formatLabel) {
+    parts.push(lang === 'en'
+      ? `If the user's message does not specify a format, default to: ${formatLabel}.`
+      : `Si le message de l'utilisateur ne precise pas de format, privilegie par defaut : ${formatLabel}.`);
+  }
+
+  const detailLevel = String(prefs.detailLevel || '').trim().toLowerCase();
+  if (DETAIL_LEVEL_BLOCKS[lang][detailLevel]) parts.push(DETAIL_LEVEL_BLOCKS[lang][detailLevel]);
+
+  const preferredLanguage = String(prefs.preferredLanguage || '').trim().toLowerCase();
+  if (PREFERRED_LANGUAGE_BLOCKS[lang][preferredLanguage]) parts.push(PREFERRED_LANGUAGE_BLOCKS[lang][preferredLanguage]);
+
+  const tone = String(prefs.tone || '').trim().toLowerCase();
+  if (TONE_BLOCKS[lang][tone]) parts.push(TONE_BLOCKS[lang][tone]);
+
+  return parts.length ? ` ${parts.join(' ')}` : '';
+}
+
 function normalizeHistory(history) {
   if (!Array.isArray(history)) return [];
 
@@ -3009,6 +3127,7 @@ export default {
     const dateContext = normalizeDateContext(body?.currentDate);
     const systemPrompt = buildSystemPrompt(language, dateContext);
     const companionBlock = buildCompanionPromptBlock(body?.preferences?.companion, language);
+    const preferencesBlock = buildPreferencesPromptBlock(body?.preferences, language);
     const configuredMaxTokens = Number(env.OPENROUTER_MAX_TOKENS);
     const requestedMaxTokens = Number(body?.maxTokens);
     const maxTokensFloor = Math.max(
@@ -3155,7 +3274,7 @@ export default {
     // jamais sourcePolicyBlock, vient toujours en complement. Sans toolPlan
     // (flag desactive/erreur), bloc vide, comportement inchange.
     const toolPolicyBlock = toolPlan?.policy?.policyText ? ` ${toolPlan.policy.policyText}` : '';
-    let finalSystemPrompt = promptBasePrompt + pilotageBlock + knowledgeInventoryBlock + sourcePolicyBlock + toolPolicyBlock + companionBlock;
+    let finalSystemPrompt = promptBasePrompt + pilotageBlock + knowledgeInventoryBlock + sourcePolicyBlock + toolPolicyBlock + companionBlock + preferencesBlock;
     let knowledgeResult = null;
     if (isKnowledgeOrchestratorEnabled(env)) {
       try {
@@ -3554,7 +3673,7 @@ export default {
       });
       if (webSearchPerformed) {
         finalSystemPrompt = [
-          promptBasePrompt + pilotageBlock + knowledgeInventoryBlock + companionBlock,
+          promptBasePrompt + pilotageBlock + knowledgeInventoryBlock + companionBlock + preferencesBlock,
           buildWebContextPrompt(language, webSearchResults, webSearchResolvedQuery, webSearchAnswer)
         ].join('\n\n');
         safeLogJson('WEB_CONTEXT', {
@@ -3572,7 +3691,7 @@ export default {
         });
       } else {
         finalSystemPrompt = [
-          promptBasePrompt + pilotageBlock + knowledgeInventoryBlock + companionBlock,
+          promptBasePrompt + pilotageBlock + knowledgeInventoryBlock + companionBlock + preferencesBlock,
           language === 'en'
             ? `Live web search was requested, but it did not return usable results. Technical status: ${webSearchError || 'no_results'}. Be transparent about this search failure; do not invent current facts.`
             : `Une recherche web temps reel a ete demandee, mais elle n'a pas retourne de resultats exploitables. Statut technique : ${webSearchError || 'no_results'}. Sois transparent sur cet echec de recherche ; n'invente pas de faits recents.`

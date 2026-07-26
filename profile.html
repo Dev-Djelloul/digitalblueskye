@@ -116,28 +116,33 @@
             <section class="dbs-profile-panel" id="dbs-panel-preferences" role="tabpanel" aria-labelledby="dbs-tab-preferences" data-dbs-profile-panel="preferences" hidden>
               <div class="dbs-profile-panel-heading">
                 <h2 data-i18n="tabPreferences">Préférences IA</h2>
-                <p data-i18n="preferencesDesc">Ces réglages personnalisent les réponses. V1 front stockée localement, avec synchronisation du ton quand le backend le supporte.</p>
+                <p data-i18n="preferencesDesc">Ces réglages influencent réellement les réponses de l'assistant à chaque message : angle métier, format par défaut, niveau de détail, langue et ton.</p>
               </div>
               <form class="dbs-profile-grid" data-dbs-preferences-form>
                 <div class="dbs-setting-field">
                   <label for="dbs-pref-project-style" data-i18n="projectStyle">Style de projet</label>
                   <select id="dbs-pref-project-style" data-dbs-pref="projectStyle"></select>
+                  <small data-i18n="projectStyleHint">Oriente l'angle métier des réponses (technique, produit, marketing, veille, portfolio...).</small>
                 </div>
                 <div class="dbs-setting-field">
                   <label for="dbs-pref-favorite-format" data-i18n="favoriteFormat">Format favori</label>
                   <select id="dbs-pref-favorite-format" data-dbs-pref="favoriteFormat"></select>
+                  <small data-i18n="favoriteFormatHint">Format utilisé par défaut quand ta question ne précise pas de format particulier.</small>
                 </div>
                 <div class="dbs-setting-field">
                   <label for="dbs-pref-detail-level" data-i18n="detailLevel">Niveau de détail</label>
                   <select id="dbs-pref-detail-level" data-dbs-pref="detailLevel"></select>
+                  <small data-i18n="detailLevelHint">Longueur et profondeur des réponses : court, équilibré, approfondi ou expert.</small>
                 </div>
                 <div class="dbs-setting-field">
                   <label for="dbs-pref-language" data-i18n="preferredLanguage">Langue préférée</label>
                   <select id="dbs-pref-language" data-dbs-pref="preferredLanguage"></select>
+                  <small data-i18n="preferredLanguageHint">Par défaut, l'assistant répond dans la langue de ton message. Force une langue si besoin.</small>
                 </div>
                 <div class="dbs-setting-field">
                   <label for="dbs-pref-tone" data-i18n="assistantTone">Ton de l'assistant</label>
                   <select id="dbs-pref-tone" data-dbs-pref="tone"></select>
+                  <small data-i18n="assistantToneHint">Registre de communication : pédagogique, direct, expert, créatif ou stratégique.</small>
                 </div>
                 <div class="dbs-profile-form-footer">
                   <button type="submit" class="dbs-profile-save" data-i18n="savePreferences">Enregistrer les préférences</button>
@@ -381,12 +386,17 @@
           save: ['Enregistrer', 'Save'],
           changesSaved: ['Modifications enregistrées.', 'Changes saved.'],
           saveFailed: ["Échec de l'enregistrement.", 'Save failed.'],
-          preferencesDesc: ['Ces réglages personnalisent les réponses. V1 front stockée localement, avec synchronisation du ton quand le backend le supporte.', 'These settings personalize responses. Front-end v1 stored locally, with tone sync once the backend supports it.'],
+          preferencesDesc: ["Ces réglages influencent réellement les réponses de l'assistant à chaque message : angle métier, format par défaut, niveau de détail, langue et ton.", "These settings genuinely influence the assistant's replies on every message: professional angle, default format, detail level, language and tone."],
           projectStyle: ['Style de projet', 'Project style'],
+          projectStyleHint: ["Oriente l'angle métier des réponses (technique, produit, marketing, veille, portfolio...).", 'Orients the professional angle of replies (technical, product, marketing, watch, portfolio...).'],
           favoriteFormat: ['Format favori', 'Favorite format'],
+          favoriteFormatHint: ['Format utilisé par défaut quand ta question ne précise pas de format particulier.', 'Format used by default when your question does not specify a particular format.'],
           detailLevel: ['Niveau de détail', 'Detail level'],
+          detailLevelHint: ['Longueur et profondeur des réponses : court, équilibré, approfondi ou expert.', 'Length and depth of replies: concise, balanced, detailed or expert.'],
           preferredLanguage: ['Langue préférée', 'Preferred language'],
+          preferredLanguageHint: ["Par défaut, l'assistant répond dans la langue de ton message. Force une langue si besoin.", 'By default, the assistant replies in the language of your message. Force a language if needed.'],
           assistantTone: ["Ton de l'assistant", 'Assistant tone'],
+          assistantToneHint: ['Registre de communication : pédagogique, direct, expert, créatif ou stratégique.', 'Communication register: educational, direct, expert, creative or strategic.'],
           savePreferences: ['Enregistrer les préférences', 'Save preferences'],
           preferencesSaved: ['Préférences enregistrées.', 'Preferences saved.'],
           aiSettingsDesc: ["Gérez les réglages persistants de l'assistant, notamment la voix, l'audio et les préférences d'interaction.", "Manage the assistant's persistent settings, including voice, audio and interaction preferences."],
