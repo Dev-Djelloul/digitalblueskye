@@ -11830,6 +11830,17 @@ body.profile-page [hidden] {
   width: 20px;
 }
 
+/* Icone de fournisseur (Google/GitHub) devant le nom du provider connecte :
+   Identite, Securite, Historique. */
+.dbs-provider-icon {
+  border-radius: 4px;
+  height: 16px;
+  margin-right: 6px;
+  object-fit: contain;
+  vertical-align: -3px;
+  width: 16px;
+}
+
 .dbs-profile-identity-avatar {
   object-fit: cover;
   border: 2px solid rgb(121 230 255 / 40%);

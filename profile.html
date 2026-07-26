@@ -847,6 +847,20 @@
           if (el) el.textContent = value;
         }
 
+        // Icone du fournisseur OAuth (Google/GitHub) precedant son nom, la ou
+        // le fournisseur connecte est affiche (identite, securite, historique).
+        // Vide pour local-dev / email : pas d'icone dediee dans ce cas.
+        function providerIconTag(providerKey) {
+          const icon = PROVIDER_ICONS[providerKey];
+          return icon ? `<img src="${icon}" alt="" class="dbs-provider-icon" aria-hidden="true">` : '';
+        }
+
+        function setProviderHtml(selector, providerKey, label) {
+          const el = document.querySelector(selector);
+          if (!el) return;
+          el.innerHTML = `${providerIconTag(providerKey)}${escapeHtml(label)}`;
+        }
+
         let historyLoaded = false;
         async function loadHistoryTab(force) {
           if (historyLoaded && !force) return;
@@ -865,7 +879,7 @@
               return;
             }
             setText('[data-dbs-last-login]', formatDateTime(result.lastLoginAt));
-            setText('[data-dbs-history-provider]', PROVIDERS[result.provider] || result.provider || 'OAuth');
+            setProviderHtml('[data-dbs-history-provider]', result.provider, PROVIDERS[result.provider] || result.provider || 'OAuth');
             setText('[data-dbs-history-created]', formatDateTime(result.accountCreatedAt));
             const activeCount = result.sessions.filter((s) => s.active).length;
             setText('[data-dbs-history-active-count]', String(activeCount));
@@ -955,8 +969,12 @@
           const displayLabel = document.querySelector('[data-dbs-profile-display-label]');
           if (displayLabel) displayLabel.textContent = user.displayName || user.email || 'Digitalblueskye';
           const providerName = PROVIDERS[user.provider] || user.provider || 'OAuth';
-          document.querySelectorAll('[data-dbs-profile-provider]').forEach((el) => { el.textContent = `${t('connectedViaPrefix')}${providerName}`; });
-          document.querySelectorAll('[data-dbs-security-provider], [data-dbs-history-provider]').forEach((el) => { el.textContent = providerName; });
+          document.querySelectorAll('[data-dbs-profile-provider]').forEach((el) => {
+            el.innerHTML = `${providerIconTag(user.provider)}${escapeHtml(`${t('connectedViaPrefix')}${providerName}`)}`;
+          });
+          document.querySelectorAll('[data-dbs-security-provider], [data-dbs-history-provider]').forEach((el) => {
+            el.innerHTML = `${providerIconTag(user.provider)}${escapeHtml(providerName)}`;
+          });
 
           const emailInput = document.getElementById('dbs-profile-email');
           if (emailInput) emailInput.value = user.email || '';
