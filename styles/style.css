@@ -12575,6 +12575,18 @@ body.profile-page .profile-main {
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
 }
 
+/* Grilles a effectif pair (ex. Securite : 4 cartes) : 2 colonnes fixes pour
+   eviter le motif "3 puis 1 tout seul" de auto-fill sur les grands ecrans. */
+.dbs-info-grid--pair {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+@media (max-width: 640px) {
+  .dbs-info-grid--pair {
+    grid-template-columns: 1fr;
+  }
+}
+
 .dbs-security-card,
 .dbs-usage-card {
   border: 1px solid rgb(93 93 255 / 20%);
