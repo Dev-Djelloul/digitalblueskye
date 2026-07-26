@@ -168,7 +168,7 @@ function buildSystemPrompt(language, dateContext) {
       'Never invent facts, figures, prices, dates, rankings, citations, sources or URLs. When information depends on current or external data and none is provided, say so explicitly instead of guessing. Only output a Markdown link when the URL comes verbatim from provided web results or sources; otherwise name the source in plain text.',
       'When web excerpts, files or documents are provided, use them as raw material: analyze, cross-check and synthesize instead of copying them.',
       'Format: follow the format requested by the user. Long answers: short clearly-titled sections (##/###), paragraphs of 2-4 lines, lists of 4-7 items, and a short closing "Key takeaways" block. Headings and list items each start their own line, with blank lines between sections.',
-      'Tables: use a real Markdown table (header row, |---| separator, one item per row, each row on a single physical line; use <br> inside a cell for multiple points — never a bullet list or a real line break inside a cell). Always answer benchmark/comparison requests with such a table. Prefer subheaded sections over a table when content gets too long.',
+      'Tables: use a real Markdown table (header row, |---| separator, one item per row, each row on a single physical line; use <br> inside a cell for multiple points — never a bullet list or a real line break inside a cell). Default to such a table for benchmark/comparison requests, UNLESS a default-format preference is set further below in this prompt (favorite-format instruction) or the user explicitly asks for a different format — in that case, follow that preference/request instead, even for a comparison. Prefer subheaded sections over a table when content gets too long.',
       'No LaTeX or math syntax ($...$, \\(...\\), \\rightarrow, or any backslash command): this chat renders plain Markdown only — type characters like → directly, and rephrase in plain text any LaTeX found in a source.',
       'Citations: cite numbered web sources as [1], [2] only when a numbered source index is provided, and project documents with their exact given identifiers [S1], [S2]. Never invent citation numbers or identifiers, and never cite an identifier for a document you did not actually use. Project memory is a separate channel: never cite it as [Sx], refer to it as project memory (state both — project memory + [Sx] — when an answer combines them), and point out contradictions between memory and documents instead of silently picking one. If no project document source was used for the reply, say so explicitly.',
       'Deliverables (documents, notes, audits, benchmarks, syntheses): produce a clean hierarchical structure that converts well to HTML, PDF or DOCX, without decorative filler.',
@@ -183,7 +183,7 @@ function buildSystemPrompt(language, dateContext) {
     "N'invente jamais de faits, chiffres, prix, dates, classements, citations, sources ou URL. Quand une information dépend de données récentes ou externes non fournies, dis-le explicitement au lieu de deviner. Ne produis un lien Markdown que si l'URL provient telle quelle des résultats web ou des sources fournis ; sinon, nomme la source en texte simple.",
     "Quand des extraits web, fichiers ou documents sont fournis, utilise-les comme matière première : analyse, recoupe et synthétise au lieu de les recopier.",
     "Format : respecte le format demandé par l'utilisateur. Réponses longues : sections courtes et titrées (##/###), paragraphes de 2-4 lignes, listes de 4-7 éléments, et un court bloc final « À retenir ». Titres et éléments de liste commencent chacun leur propre ligne, avec des lignes vides entre les sections.",
-    "Tableaux : utilise un vrai tableau Markdown (ligne d'en-tête, séparateur |---|, un élément par ligne, chaque ligne du tableau sur UNE seule ligne physique ; <br> dans une cellule pour plusieurs points — jamais de liste à puces ni de vrai saut de ligne dans une cellule). Réponds toujours aux demandes de comparatif/benchmark par un tel tableau. Préfère des sections titrées à un tableau quand le contenu devient trop long.",
+    "Tableaux : utilise un vrai tableau Markdown (ligne d'en-tête, séparateur |---|, un élément par ligne, chaque ligne du tableau sur UNE seule ligne physique ; <br> dans une cellule pour plusieurs points — jamais de liste à puces ni de vrai saut de ligne dans une cellule). Par défaut, réponds aux demandes de comparatif/benchmark par un tel tableau, SAUF si une préférence de format par défaut est indiquée plus bas dans ce prompt (instruction de format favori) ou si l'utilisateur demande explicitement un autre format dans son message — dans ce cas, suis cette préférence/demande à la place, même pour un comparatif. Préfère des sections titrées à un tableau quand le contenu devient trop long.",
     "Pas de LaTeX ni de syntaxe mathématique ($...$, \\(...\\), \\rightarrow, ni aucune commande à backslash) : ce chat rend uniquement du Markdown simple — tape directement les caractères comme →, et reformule en texte simple tout LaTeX présent dans une source.",
     "Citations : cite les sources web numérotées [1], [2] uniquement quand un index numéroté est fourni, et les documents projet avec leurs identifiants exacts [S1], [S2]. N'invente jamais de numéro ni d'identifiant, et ne cite jamais un identifiant pour un document que tu n'as pas réellement utilisé. La mémoire projet est un canal distinct : ne la cite jamais en [Sx], désigne-la comme mémoire projet (indique les deux — mémoire projet + [Sx] — quand une réponse les combine), et signale les contradictions entre mémoire et documents au lieu de trancher silencieusement. Si aucune source documentaire projet n'a été utilisée pour la réponse, indique-le explicitement.",
     "Livrables (documents, notes, audits, benchmarks, synthèses) : produis une structure hiérarchique propre, convertible en HTML, PDF ou DOCX, sans remplissage décoratif.",
@@ -272,12 +272,12 @@ const FAVORITE_FORMAT_BLOCKS = {
 
 const DETAIL_LEVEL_BLOCKS = {
   fr: {
-    concise: 'Reponses courtes : va a l\'essentiel, evite tout developpement superflu.',
+    concise: "Reponses courtes : va a l'essentiel, evite tout developpement superflu. Ceci prime sur les indications de structuration de reponses longues donnees plus haut dans ce prompt (sections multiples, etc.) : meme pour une question large, une comparaison ou une demande de livrable, reste bref (quelques phrases ou un tableau/une liste courte suffisent, sans section \"a retenir\" separee).",
     detailed: 'Reponses approfondies : developpe le contexte, les nuances et les alternatives.',
     expert: 'Registre expert : suppose une bonne connaissance du domaine, ne reexplique pas les bases, sois dense et precis.'
   },
   en: {
-    concise: 'Short answers: go straight to the point, avoid any superfluous development.',
+    concise: "Short answers: go straight to the point, avoid any superfluous development. This overrides the long-answer structuring guidance given earlier in this prompt (multiple sections, etc.): even for a broad question, a comparison or a deliverable request, stay brief (a few sentences or a short table/list is enough, no separate \"key takeaways\" section).",
     detailed: 'In-depth answers: develop context, nuances and alternatives.',
     expert: 'Expert register: assume solid domain knowledge, do not re-explain basics, be dense and precise.'
   }
@@ -323,8 +323,8 @@ function buildPreferencesPromptBlock(preferences, language) {
   const formatLabel = FAVORITE_FORMAT_BLOCKS[lang][favoriteFormat];
   if (formatLabel) {
     parts.push(lang === 'en'
-      ? `If the user's message does not specify a format, default to: ${formatLabel}.`
-      : `Si le message de l'utilisateur ne precise pas de format, privilegie par defaut : ${formatLabel}.`);
+      ? `If the user's message does not specify a format, default to: ${formatLabel} — this takes priority over the default "always a table for comparisons/benchmarks" rule stated earlier in this prompt.`
+      : `Si le message de l'utilisateur ne precise pas de format, privilegie par defaut : ${formatLabel} — ceci prime sur la regle "toujours un tableau pour un comparatif/benchmark" enoncee plus haut dans ce prompt.`);
   }
 
   const detailLevel = String(prefs.detailLevel || '').trim().toLowerCase();
