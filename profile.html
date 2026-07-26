@@ -157,54 +157,74 @@
                 <p data-i18n="aiSettingsDesc">Gérez les réglages persistants de l'assistant, notamment la voix, l'audio et les préférences d'interaction.</p>
               </div>
               <p class="dbs-profile-note" data-i18n="aiSettingsNote">Ces paramètres s'appliquent à votre expérience globale. Les réglages RAG propres à chaque projet restent dans les paramètres du projet. Les réglages techniques avancés sont disponibles dans Digital Blue Skye Studio.</p>
-              <form class="dbs-profile-grid" data-dbs-ai-settings-form>
-                <div class="dbs-setting-field">
-                  <label for="dbs-ai-voice" data-i18n="assistantVoice">Voix de l'assistant</label>
-                  <select id="dbs-ai-voice" data-dbs-ai-pref="aiVoice">
-                    <option value="auto" data-i18n="autoVoice">Voix auto</option>
-                  </select>
-                  <small data-i18n="voicesHint">Les voix disponibles dépendent du navigateur et du système.</small>
+              <form class="dbs-profile-settings-form" data-dbs-ai-settings-form>
+                <div class="dbs-settings-group">
+                  <h3 class="dbs-settings-group-title" data-i18n="aiSettingsGroupVoice">Voix &amp; audio</h3>
+                  <div class="dbs-profile-grid">
+                    <div class="dbs-setting-field">
+                      <label for="dbs-ai-voice" data-i18n="assistantVoice">Voix de l'assistant</label>
+                      <select id="dbs-ai-voice" data-dbs-ai-pref="aiVoice">
+                        <option value="auto" data-i18n="autoVoice">Voix auto</option>
+                      </select>
+                      <small data-i18n="voicesHint">Les voix disponibles dépendent du navigateur et du système.</small>
+                    </div>
+                    <div class="dbs-setting-field">
+                      <label for="dbs-ai-voice-language" data-i18n="voiceLanguage">Langue vocale</label>
+                      <select id="dbs-ai-voice-language" data-dbs-ai-pref="voiceLanguage">
+                        <option value="auto" data-i18n="automatic">Automatique</option>
+                        <option value="fr" data-i18n="french">Français</option>
+                        <option value="en" data-i18n="english">Anglais</option>
+                      </select>
+                      <small data-i18n="voiceLanguageHint">Langue utilisée pour la lecture audio, indépendamment de la langue de l'interface.</small>
+                    </div>
+                    <label class="dbs-setting-field dbs-toggle-field">
+                      <span data-i18n="autoVoiceMode">Mode voix automatique</span>
+                      <input type="checkbox" data-dbs-ai-pref="voiceAuto" />
+                      <small data-i18n="autoVoiceModeHint">Voix auto activée lorsque disponible.</small>
+                    </label>
+                    <label class="dbs-setting-field dbs-toggle-field">
+                      <span data-i18n="readResponsesAloud">Lecture vocale des réponses</span>
+                      <input type="checkbox" data-dbs-ai-pref="readResponsesAloud" />
+                      <small data-i18n="readResponsesAloudHint">Lire automatiquement à voix haute chaque nouvelle réponse de l'assistant.</small>
+                    </label>
+                    <label class="dbs-setting-field dbs-toggle-field">
+                      <span data-i18n="micInteraction">Micro / interaction vocale</span>
+                      <input type="checkbox" data-dbs-ai-pref="showMicrophone" />
+                      <small data-i18n="micInteractionHint">Afficher le bouton micro dans la barre de saisie du chat.</small>
+                    </label>
+                  </div>
                 </div>
-                <div class="dbs-setting-field">
-                  <label for="dbs-ai-voice-language" data-i18n="voiceLanguage">Langue vocale</label>
-                  <select id="dbs-ai-voice-language" data-dbs-ai-pref="voiceLanguage">
-                    <option value="auto" data-i18n="automatic">Automatique</option>
-                    <option value="fr" data-i18n="french">Français</option>
-                    <option value="en" data-i18n="english">Anglais</option>
-                  </select>
+
+                <div class="dbs-settings-group">
+                  <h3 class="dbs-settings-group-title" data-i18n="aiSettingsGroupDisplay">Affichage &amp; confort</h3>
+                  <div class="dbs-profile-grid">
+                    <div class="dbs-setting-field">
+                      <label for="dbs-ai-chat-density" data-i18n="chatDensity">Densité du chat</label>
+                      <select id="dbs-ai-chat-density" data-dbs-ai-pref="chatDensity">
+                        <option value="comfortable" data-i18n="comfortable">Confortable</option>
+                        <option value="compact" data-i18n="compact">Compacte</option>
+                      </select>
+                      <small data-i18n="chatDensityHint">Compacte resserre l'espacement entre les bulles et les paragraphes.</small>
+                    </div>
+                    <label class="dbs-setting-field dbs-toggle-field">
+                      <span data-i18n="suggestions">Suggestions</span>
+                      <input type="checkbox" data-dbs-ai-pref="showSuggestions" />
+                      <small data-i18n="suggestionsHint">Proposer 2-3 questions de suivi cliquables après chaque réponse.</small>
+                    </label>
+                  </div>
                 </div>
-                <label class="dbs-setting-field dbs-toggle-field">
-                  <span data-i18n="autoVoiceMode">Mode voix automatique</span>
-                  <input type="checkbox" data-dbs-ai-pref="voiceAuto" />
-                  <small data-i18n="autoVoiceModeHint">Voix auto activée lorsque disponible.</small>
-                </label>
-                <label class="dbs-setting-field dbs-toggle-field">
-                  <span data-i18n="readResponsesAloud">Lecture vocale des réponses</span>
-                  <input type="checkbox" data-dbs-ai-pref="readResponsesAloud" />
-                  <small data-i18n="readResponsesAloudHint">Activer la lecture audio automatique des réponses.</small>
-                </label>
-                <label class="dbs-setting-field dbs-toggle-field">
-                  <span data-i18n="micInteraction">Micro / interaction vocale</span>
-                  <input type="checkbox" data-dbs-ai-pref="showMicrophone" />
-                  <small data-i18n="micInteractionHint">Afficher le micro dans le chat.</small>
-                </label>
-                <div class="dbs-setting-field">
-                  <label for="dbs-ai-chat-density" data-i18n="chatDensity">Densité du chat</label>
-                  <select id="dbs-ai-chat-density" data-dbs-ai-pref="chatDensity">
-                    <option value="comfortable" data-i18n="comfortable">Confortable</option>
-                    <option value="compact" data-i18n="compact">Compacte</option>
-                  </select>
+
+                <div class="dbs-settings-group">
+                  <h3 class="dbs-settings-group-title" data-i18n="aiSettingsGroupSources">Sources</h3>
+                  <div class="dbs-profile-grid">
+                    <label class="dbs-setting-field dbs-toggle-field">
+                      <span data-i18n="availableSources">Sources disponibles</span>
+                      <input type="checkbox" data-dbs-ai-pref="showSourcesWhenAvailable" />
+                      <small data-i18n="availableSourcesHint">Afficher le bloc « Sources utilisées » (documents projet et résultats web) sous les réponses.</small>
+                    </label>
+                  </div>
                 </div>
-                <label class="dbs-setting-field dbs-toggle-field">
-                  <span data-i18n="suggestions">Suggestions</span>
-                  <input type="checkbox" data-dbs-ai-pref="showSuggestions" />
-                  <small data-i18n="suggestionsHint">Afficher les suggestions lorsque l'assistant en propose.</small>
-                </label>
-                <label class="dbs-setting-field dbs-toggle-field">
-                  <span data-i18n="availableSources">Sources disponibles</span>
-                  <input type="checkbox" data-dbs-ai-pref="showSourcesWhenAvailable" />
-                  <small data-i18n="availableSourcesHint">Afficher les sources quand elles sont disponibles.</small>
-                </label>
+
                 <div class="dbs-profile-form-footer">
                   <button type="submit" class="dbs-profile-save" data-i18n="saveAiSettings">Enregistrer les paramètres IA</button>
                   <p class="dbs-profile-saved" data-dbs-ai-settings-saved role="status" hidden data-i18n="aiSettingsSaved">Paramètres IA enregistrés.</p>
@@ -401,26 +421,31 @@
           preferencesSaved: ['Préférences enregistrées.', 'Preferences saved.'],
           aiSettingsDesc: ["Gérez les réglages persistants de l'assistant, notamment la voix, l'audio et les préférences d'interaction.", "Manage the assistant's persistent settings, including voice, audio and interaction preferences."],
           aiSettingsNote: ["Ces paramètres s'appliquent à votre expérience globale. Les réglages RAG propres à chaque projet restent dans les paramètres du projet. Les réglages techniques avancés sont disponibles dans Digital Blue Skye Studio.", 'These settings apply to your global experience. Project-specific RAG settings stay in the project settings. Advanced technical settings are available in Digital Blue Skye Studio.'],
+          aiSettingsGroupVoice: ['Voix & audio', 'Voice & audio'],
+          aiSettingsGroupDisplay: ['Affichage & confort', 'Display & comfort'],
+          aiSettingsGroupSources: ['Sources', 'Sources'],
           assistantVoice: ["Voix de l'assistant", 'Assistant voice'],
           autoVoice: ['Voix auto', 'Auto voice'],
           voicesHint: ['Les voix disponibles dépendent du navigateur et du système.', 'Available voices depend on the browser and system.'],
           voiceLanguage: ['Langue vocale', 'Voice language'],
+          voiceLanguageHint: ["Langue utilisée pour la lecture audio, indépendamment de la langue de l'interface.", "Language used for audio playback, independent of the interface language."],
           automatic: ['Automatique', 'Automatic'],
           french: ['Français', 'French'],
           english: ['Anglais', 'English'],
           autoVoiceMode: ['Mode voix automatique', 'Automatic voice mode'],
           autoVoiceModeHint: ['Voix auto activée lorsque disponible.', 'Auto voice enabled when available.'],
           readResponsesAloud: ['Lecture vocale des réponses', 'Read responses aloud'],
-          readResponsesAloudHint: ['Activer la lecture audio automatique des réponses.', 'Enable automatic audio playback of responses.'],
+          readResponsesAloudHint: ["Lire automatiquement à voix haute chaque nouvelle réponse de l'assistant.", "Automatically read each new assistant response aloud."],
           micInteraction: ['Micro / interaction vocale', 'Mic / voice interaction'],
-          micInteractionHint: ['Afficher le micro dans le chat.', 'Show the microphone in chat.'],
+          micInteractionHint: ['Afficher le bouton micro dans la barre de saisie du chat.', 'Show the microphone button in the chat input bar.'],
           chatDensity: ['Densité du chat', 'Chat density'],
+          chatDensityHint: ["Compacte resserre l'espacement entre les bulles et les paragraphes.", 'Compact tightens the spacing between bubbles and paragraphs.'],
           comfortable: ['Confortable', 'Comfortable'],
           compact: ['Compacte', 'Compact'],
           suggestions: ['Suggestions', 'Suggestions'],
-          suggestionsHint: ["Afficher les suggestions lorsque l'assistant en propose.", 'Show suggestions when the assistant offers them.'],
+          suggestionsHint: ['Proposer 2-3 questions de suivi cliquables après chaque réponse.', 'Offer 2-3 clickable follow-up questions after each response.'],
           availableSources: ['Sources disponibles', 'Available sources'],
-          availableSourcesHint: ['Afficher les sources quand elles sont disponibles.', 'Show sources when available.'],
+          availableSourcesHint: ['Afficher le bloc « Sources utilisées » (documents projet et résultats web) sous les réponses.', 'Show the "Sources used" block (project documents and web results) under responses.'],
           saveAiSettings: ['Enregistrer les paramètres IA', 'Save AI settings'],
           aiSettingsSaved: ['Paramètres IA enregistrés.', 'AI settings saved.'],
           companionDesc: ["Choisissez le mode de travail qui guidera Digital Blue Skye AI. Le compagnon actif influence réellement les réponses de l'assistant, à chaque message envoyé dans le chat.", "Choose the working mode that will guide Digital Blue Skye AI. The active companion genuinely influences the assistant's replies, on every message sent in the chat."],

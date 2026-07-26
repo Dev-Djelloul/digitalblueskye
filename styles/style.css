@@ -12415,6 +12415,33 @@ body.profile-page .profile-main {
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
+/* Regroupement visuel de profile.html#ai-settings (Parametres IA) : plusieurs
+   .dbs-profile-grid, chacun precede d'un intitule de sous-section, au lieu
+   d'une seule grille plate melangeant voix, affichage et sources. */
+.dbs-profile-settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.dbs-settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dbs-settings-group-title {
+  border-bottom: 1px solid rgb(93 93 255 / 20%);
+  color: rgb(246 247 255 / 92%);
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  margin: 0;
+  padding-bottom: 8px;
+  text-transform: uppercase;
+}
+
 .dbs-setting-field {
   display: flex;
   flex-direction: column;
@@ -16467,6 +16494,14 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
   width: 40px;
 }
 
+/* .ai-assistant-voice-btn pose display:inline-flex avec la meme specificite
+   que la regle UA [hidden] { display:none } : sans ce garde-fou, l'attribut
+   hidden pose par applyAssistantUiPreferences() (reglage "Micro /
+   interaction vocale") ne masquerait pas visuellement le bouton. */
+.ai-assistant-voice-btn[hidden] {
+  display: none;
+}
+
 .ai-assistant-web-search-btn {
   align-items: center;
   background: transparent;
@@ -16580,7 +16615,35 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
   overflow: hidden auto;
   overscroll-behavior: contain;
   padding: 28px var(--ai-thread-gutter) 14px;
-  transition: padding 0.22s ease;
+  transition: padding 0.22s ease, gap 0.22s ease;
+}
+
+/* Densite "Compacte" (Parametres IA > Densite du chat) : resserre l'espace
+   entre les bulles et a l'interieur de chaque bulle, sans rien casser du
+   Markdown (tables, code) qui garde ses propres regles. */
+.ai-assistant-panel.is-density-compact .ai-assistant-messages {
+  gap: 14px;
+}
+
+.ai-assistant-panel.is-density-compact .ai-assistant-message {
+  padding: 8px 12px;
+}
+
+.ai-assistant-panel.is-density-compact .assistant-markdown,
+.ai-assistant-panel.is-density-compact .ai-markdown {
+  line-height: 1.5;
+}
+
+.ai-assistant-panel.is-density-compact .assistant-markdown p,
+.ai-assistant-panel.is-density-compact .ai-markdown p {
+  margin: 0 0 0.6rem;
+}
+
+.ai-assistant-panel.is-density-compact .assistant-markdown ul,
+.ai-assistant-panel.is-density-compact .assistant-markdown ol,
+.ai-assistant-panel.is-density-compact .ai-markdown ul,
+.ai-assistant-panel.is-density-compact .ai-markdown ol {
+  margin: 0.3rem 0 0.7rem;
 }
 
 .ai-assistant-scroll-bottom {
@@ -19540,6 +19603,7 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
 [data-theme="light"] .dbs-setting-field label,
 [data-theme="light"] .dbs-toggle-field > span,
 [data-theme="light"] .dbs-setting-field small,
+[data-theme="light"] .dbs-settings-group-title,
 [data-theme="light"] .dbs-profile-note,
 [data-theme="light"] .dbs-security-card span,
 [data-theme="light"] .dbs-usage-card span,

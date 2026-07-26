@@ -1169,6 +1169,7 @@
   const webSearchButton = document.getElementById('ai-assistant-web-search');
   const stopButton = document.getElementById('ai-assistant-stop');
   const assistantSendButton = document.querySelector('#ai-assistant-form .ai-assistant-send-btn');
+  const quickActionsContainer = document.getElementById('ai-assistant-quick-actions');
   let fileInput = document.getElementById('ai-assistant-file-input');
   let chatHistory = [];
   let sourcesPanelMessageCounter = 0;
@@ -1191,6 +1192,14 @@
   let identityReadyPromise = null;
   let driveTokenClient = null;
   let isVoiceOutputEnabled = true;
+  // Reglages "Parametres IA" (profile.html#ai-settings) qui influencent le
+  // comportement client, au-dela de la seule voix de synthese (aiVoice, deja
+  // geree via getStoredVoicePreference). Valeurs par defaut alignees sur
+  // DEFAULT_ASSISTANT_PREFERENCES (scripts/dbs-auth.js) ; ecrasees par
+  // applyAssistantUiPreferences() des que DBSAuth est disponible.
+  let voiceLanguagePreference = 'auto';
+  let showSourcesPreferenceEnabled = true;
+  let showSuggestionsPreferenceEnabled = true;
   let isListening = false;
   let activeAssistantRequestController = null;
   let activeContextSessionId = '';
@@ -10834,6 +10843,85 @@
     ttsButton.setAttribute('aria-label', enabled ? i18n.ttsOn : i18n.ttsOff);
   }
 
+  // Applique au chat les reglages de profile.html#ai-settings qui ne
+  // touchent ni au prompt IA (contrairement a Preferences IA / Compagnon IA,
+  // deja transmis dans le payload) ni au choix de voix (deja gere par
+  // getStoredVoicePreference). Appelee au chargement et a chaque
+  // 'dbs-auth-changed' (connexion, ou hydratation tardive des prefs
+  // serveur), pour rester a jour sans recharger la page.
+  function applyAssistantUiPreferences() {
+    let prefs = null;
+    try { prefs = window.DBSAuth?.getAssistantPreferences?.(); } catch (_) { prefs = null; }
+    if (!prefs) return;
+
+    isVoiceOutputEnabled = prefs.readResponsesAloud === true;
+    setTtsState(isVoiceOutputEnabled);
+    if (!isVoiceOutputEnabled && window.speechSynthesis) {
+      speechTrackingToken += 1;
+      window.speechSynthesis.cancel();
+      clearSpeechTrackingVisual();
+    }
+
+    if (micButton && !micButton.dataset.speechUnsupported) {
+      micButton.hidden = prefs.showMicrophone === false;
+    }
+
+    voiceLanguagePreference = ['fr', 'en'].includes(prefs.voiceLanguage) ? prefs.voiceLanguage : 'auto';
+    showSourcesPreferenceEnabled = prefs.showSourcesWhenAvailable !== false;
+    showSuggestionsPreferenceEnabled = prefs.showSuggestions !== false;
+    if (!showSuggestionsPreferenceEnabled && quickActionsContainer) quickActionsContainer.innerHTML = '';
+
+    if (panel) panel.classList.toggle('is-density-compact', prefs.chatDensity === 'compact');
+  }
+
+  // Suggestions de questions de suivi (case "Suggestions" de Parametres IA) :
+  // heuristique legere basee sur la forme de la reponse (tableau, liste,
+  // reponse longue), sans appel IA supplementaire. Rendues dans le rail de
+  // chips deja stylise au-dessus du composer (#ai-assistant-quick-actions),
+  // jusqu'ici jamais peuple.
+  function buildFollowUpSuggestions(replyText) {
+    const text = String(replyText || '');
+    const isEn = currentLanguage === 'en';
+    const hasTable = /\|.+\|/.test(text) && /\n\s*\|?\s*:?-{2,}/.test(text);
+    const hasList = /(^|\n)\s*(\d+[.)]|[-*])\s+/.test(text);
+    const isLong = text.length > 900;
+    const suggestions = [];
+
+    if (hasTable) suggestions.push(isEn ? 'Add another comparison criterion' : 'Ajoute un autre critère de comparaison');
+    if (hasList) suggestions.push(isEn ? 'Expand on point 2' : 'Développe le point 2');
+    if (isLong) suggestions.push(isEn ? 'Summarize in 3 points' : 'Résume en 3 points');
+    suggestions.push(isEn ? 'Give a concrete example' : 'Donne un exemple concret');
+    suggestions.push(isEn ? 'What are the risks or limitations?' : 'Quels sont les risques ou limites ?');
+
+    return Array.from(new Set(suggestions)).slice(0, 3);
+  }
+
+  function clearFollowUpSuggestions() {
+    if (quickActionsContainer) quickActionsContainer.innerHTML = '';
+  }
+
+  function renderFollowUpSuggestions(replyText) {
+    if (!quickActionsContainer) return;
+    quickActionsContainer.innerHTML = '';
+    if (!showSuggestionsPreferenceEnabled) return;
+    buildFollowUpSuggestions(replyText).forEach((label) => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'ai-assistant-quick-action';
+      chip.textContent = label;
+      chip.addEventListener('click', () => {
+        if (!input) return;
+        clearFollowUpSuggestions();
+        input.value = label;
+        resizeAssistantComposer();
+        const form = document.getElementById('ai-assistant-form');
+        if (form?.requestSubmit) form.requestSubmit();
+        else form?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+      });
+      quickActionsContainer.appendChild(chip);
+    });
+  }
+
   function sanitizeTextForSpeech(rawText) {
     return String(rawText || '')
       .replace(/\r/g, ' ')
@@ -10965,6 +11053,11 @@
   // (_assistantRawText) avec la liste des sources, pour que les exports
   // MD/HTML/PDF/DOCX conservent cette information.
   function appendRagSources(bubble, usedSources) {
+    // "Sources disponibles" (Parametres IA) : masque le bloc "Sources
+    // utilisees" quand l'utilisateur ne veut pas les voir, independamment du
+    // reglage ragCitations propre au projet (qui, lui, controle si la citation
+    // existe cote prompt/RAG — cf. isRagCitationsDisplayEnabled).
+    if (!showSourcesPreferenceEnabled) return;
     const sources = Array.isArray(usedSources) ? usedSources : [];
     if (!bubble || !sources.length) return;
     const sourceMarkdown = buildRagSourcesMarkdown(sources);
@@ -11337,6 +11430,7 @@
   // complement du texte exportable (_assistantRawText) pour les exports
   // MD/HTML/PDF/DOCX.
   function appendWebSearchSources(bubble, results) {
+    if (!showSourcesPreferenceEnabled) return;
     const sources = normalizeWebSearchResults(results);
     const content = bubble?.querySelector('.ai-assistant-message-content');
     if (!content || !sources.length) return;
@@ -11768,7 +11862,11 @@
     if (bubble && segmentSpans.length) {
       activeSpeechTracking = { bubble, segmentSpans, speechSegments, activeSegmentIndex: -1, hasRealBoundaryEvent: false, fallbackTimerId: 0, fallbackStartTimeoutId: 0 };
     }
-    const activeLang = currentLanguage === 'en' ? 'en' : 'fr';
+    // "Langue vocale" (Parametres IA) prime sur la langue d'interface quand
+    // elle est explicitement fixee a fr/en ; "auto" retombe sur currentLanguage.
+    const activeLang = voiceLanguagePreference === 'auto'
+      ? (currentLanguage === 'en' ? 'en' : 'fr')
+      : voiceLanguagePreference;
     const utterance = new SpeechSynthesisUtterance(speechText);
     utterance.lang = activeLang === 'en' ? 'en-US' : 'fr-FR';
     utterance.voice = selectedTtsVoices[activeLang] || null;
@@ -11794,6 +11892,7 @@
   }
 
   async function askAI(userText, fileContext = '', attachments = [], uploadMetadata = []) {
+    clearFollowUpSuggestions();
     const loading = addTypingMessage();
     const requestController = new AbortController();
     activeAssistantRequestController = requestController;
@@ -11978,6 +12077,7 @@
         attachSourcesPanelTrigger(botBubble, { ragSources: displaySources, webSources: normalizedWebSources });
         markBubbleRegenerable(botBubble);
         speakText(cleanedReply, botBubble);
+        renderFollowUpSuggestions(cleanedReply);
         chatHistory.push({
           role: 'assistant',
           content: cleanedReply,
@@ -12131,12 +12231,12 @@
         clearSpeechTrackingVisual();
       }
     });
-    setTtsState(isVoiceOutputEnabled);
   }
 
   if (micButton) {
     if (!speechRecognition) {
       micButton.disabled = true;
+      micButton.dataset.speechUnsupported = '1';
       micButton.title = i18n.speechUnsupported;
       micButton.setAttribute('aria-label', i18n.speechUnsupported);
     } else {
@@ -12153,6 +12253,13 @@
       };
     }
   }
+
+  // Applique les Parametres IA (voix auto, micro, densite, sources,
+  // suggestions) une premiere fois au chargement, puis a chaque changement de
+  // session d'authentification (connexion, ou hydratation tardive des
+  // preferences serveur via /auth/preferences).
+  applyAssistantUiPreferences();
+  document.addEventListener('dbs-auth-changed', applyAssistantUiPreferences);
 
   // Page dediee /chat.html : le chatbot n'est plus une bulle flottante mais
   // occupe toute la page, ouverte et maximisee automatiquement une fois la
