@@ -261,18 +261,35 @@
                 <h2 data-i18n="tabLocalData">Données locales</h2>
                 <p data-i18n="localDataDesc">Ces actions suppriment uniquement les données stockées dans ce navigateur. Elles ne suppriment pas votre compte serveur.</p>
               </div>
+
               <div class="dbs-local-data-card">
+                <h3 data-i18n="localDataWhatTitle">Ce qui est stocké ici, et pourquoi</h3>
+                <p class="dbs-profile-note" data-i18n="localDataWhatDesc">Le serveur reste la seule source de vérité (session, préférences enregistrées). Ce navigateur garde une copie locale de certaines données pour que l'interface s'affiche instantanément sans attendre le réseau, et pour fonctionner brièvement hors-ligne.</p>
                 <dl>
-                  <div><dt data-i18n="localPreferencesCache">Cache préférences local</dt><dd>dbs_profile_preferences_cache</dd></div>
-                  <div><dt data-i18n="legacyCaches">Caches ancienne version</dt><dd>dbs_user_session, dbs_user_profile</dd></div>
-                  <div><dt data-i18n="serverSession">Session serveur</dt><dd data-i18n="keptUnlessLogout">Conservée sauf déconnexion explicite</dd></div>
+                  <div><dt data-i18n="localPreferencesCache">Cache préférences IA</dt><dd data-i18n="localPreferencesCacheDesc">Copie locale de vos préférences (style, ton, compagnon...) pour un affichage instantané avant confirmation du serveur.</dd></div>
+                  <div><dt data-i18n="localAvatarCache">Photo de profil personnalisée</dt><dd data-i18n="localAvatarCacheDesc">Stockée uniquement dans ce navigateur — jamais envoyée au serveur (aucun endpoint d'upload n'existe encore).</dd></div>
+                  <div><dt data-i18n="legacyCaches">Anciens caches (v1)</dt><dd data-i18n="legacyCachesDesc">Résidus d'une ancienne version de l'authentification, conservés uniquement en cas de retour arrière.</dd></div>
+                  <div><dt data-i18n="serverSession">Session serveur</dt><dd data-i18n="keptUnlessLogout">Non concernée par ces actions : reste active tant que vous ne vous déconnectez pas explicitement.</dd></div>
                 </dl>
+              </div>
+
+              <div class="dbs-local-data-card">
+                <h3 data-i18n="clearLocalPreferences">Supprimer les préférences locales</h3>
+                <p class="dbs-profile-note" data-i18n="clearLocalPreferencesDesc">Efface uniquement le cache de préférences IA pour revenir aux réglages par défaut sur cet appareil. Votre photo de profil et le thème restent inchangés. Utile si vos préférences semblent bloquées sur d'anciennes valeurs.</p>
                 <div class="dbs-profile-actions-row">
                   <button type="button" class="dbs-profile-secondary-action" data-dbs-clear-preferences data-i18n="clearLocalPreferences">Supprimer les préférences locales</button>
-                  <button type="button" class="dbs-profile-secondary-action" data-dbs-clear-local data-i18n="resetProfileExperience">Réinitialiser l'expérience profil</button>
                 </div>
-                <p class="dbs-profile-saved" data-dbs-local-saved role="status" hidden data-i18n="localDataCleared">Données locales supprimées.</p>
               </div>
+
+              <div class="dbs-local-data-card">
+                <h3 data-i18n="resetProfileExperience">Réinitialiser l'expérience profil</h3>
+                <p class="dbs-profile-note" data-i18n="resetProfileExperienceDesc">Efface tout ce qui est propre à ce navigateur : préférences IA, photo de profil personnalisée, thème et langue choisis. Votre compte, vos vraies préférences enregistrées côté serveur et votre session restent intacts. Utile pour repartir d'un affichage neutre sur cet appareil, par exemple avant de le prêter.</p>
+                <div class="dbs-profile-actions-row">
+                  <button type="button" class="dbs-profile-secondary-action dbs-profile-secondary-action--warning" data-dbs-reset-experience data-i18n="resetProfileExperience">Réinitialiser l'expérience profil</button>
+                </div>
+              </div>
+
+              <p class="dbs-profile-saved" data-dbs-local-saved role="status" hidden data-i18n="localDataCleared">Données locales supprimées.</p>
             </section>
 
             <section class="dbs-profile-panel" id="dbs-panel-security" role="tabpanel" aria-labelledby="dbs-tab-security" data-dbs-profile-panel="security" hidden>
@@ -450,13 +467,22 @@
           unknownDevice: ['Appareil inconnu', 'Unknown device'],
           neverConnected: ['Jamais', 'Never'],
           localDataDesc: ['Ces actions suppriment uniquement les données stockées dans ce navigateur. Elles ne suppriment pas votre compte serveur.', 'These actions only remove data stored in this browser. They do not delete your server account.'],
-          localPreferencesCache: ['Cache préférences local', 'Local preferences cache'],
-          legacyCaches: ['Caches ancienne version', 'Legacy caches'],
+          localDataWhatTitle: ['Ce qui est stocké ici, et pourquoi', "What's stored here, and why"],
+          localDataWhatDesc: ["Le serveur reste la seule source de vérité (session, préférences enregistrées). Ce navigateur garde une copie locale de certaines données pour que l'interface s'affiche instantanément sans attendre le réseau, et pour fonctionner brièvement hors-ligne.", "The server remains the single source of truth (session, saved preferences). This browser keeps a local copy of some data so the interface renders instantly without waiting on the network, and to work briefly offline."],
+          localPreferencesCache: ['Cache préférences IA', 'AI preferences cache'],
+          localPreferencesCacheDesc: ['Copie locale de vos préférences (style, ton, compagnon...) pour un affichage instantané avant confirmation du serveur.', 'Local copy of your preferences (style, tone, companion...) for instant display before server confirmation.'],
+          localAvatarCache: ['Photo de profil personnalisée', 'Custom profile photo'],
+          localAvatarCacheDesc: ["Stockée uniquement dans ce navigateur — jamais envoyée au serveur (aucun endpoint d'upload n'existe encore).", "Stored only in this browser — never sent to the server (no upload endpoint exists yet)."],
+          legacyCaches: ['Anciens caches (v1)', 'Legacy caches (v1)'],
+          legacyCachesDesc: ["Résidus d'une ancienne version de l'authentification, conservés uniquement en cas de retour arrière.", 'Leftovers from an older authentication version, kept only in case of rollback.'],
           serverSession: ['Session serveur', 'Server session'],
-          keptUnlessLogout: ['Conservée sauf déconnexion explicite', 'Kept unless explicitly signed out'],
+          keptUnlessLogout: ['Non concernée par ces actions : reste active tant que vous ne vous déconnectez pas explicitement.', 'Not affected by these actions: stays active until you explicitly sign out.'],
           clearLocalPreferences: ['Supprimer les préférences locales', 'Clear local preferences'],
+          clearLocalPreferencesDesc: ["Efface uniquement le cache de préférences IA pour revenir aux réglages par défaut sur cet appareil. Votre photo de profil et le thème restent inchangés. Utile si vos préférences semblent bloquées sur d'anciennes valeurs.", 'Clears only the AI preferences cache to restore defaults on this device. Your profile photo and theme stay unchanged. Useful if your preferences seem stuck on old values.'],
           resetProfileExperience: ["Réinitialiser l'expérience profil", 'Reset profile experience'],
-          localDataCleared: ['Données locales supprimées.', 'Local data cleared.'],
+          resetProfileExperienceDesc: ["Efface tout ce qui est propre à ce navigateur : préférences IA, photo de profil personnalisée, thème et langue choisis. Votre compte, vos vraies préférences enregistrées côté serveur et votre session restent intacts. Utile pour repartir d'un affichage neutre sur cet appareil, par exemple avant de le prêter.", 'Clears everything specific to this browser: AI preferences, custom profile photo, chosen theme and language. Your account, your real server-saved preferences and your session stay intact. Useful to start fresh on this device, e.g. before lending it.'],
+          localDataCleared: ['Préférences locales supprimées.', 'Local preferences cleared.'],
+          profileExperienceReset: ["Expérience profil réinitialisée sur cet appareil.", 'Profile experience reset on this device.'],
           close: ['Fermer', 'Close'],
           enlargedProfilePhoto: ['Photo de profil agrandie', 'Enlarged profile photo'],
           invalidEmail: ['Merci de saisir une adresse email valide.', 'Please enter a valid email address.'],
@@ -1146,7 +1172,12 @@
             btn.addEventListener('click', () => {
               try {
                 window.DBSAuth?.clearLocalProfileData?.();
-                setStatus('[data-dbs-local-saved]', true);
+                // Le message de confirmation doit apparaitre dans le panneau
+                // ou se trouve le bouton clique (Securite ou Donnees locales
+                // partagent ce meme data-attribute), jamais dans un panneau
+                // masque appartenant a un autre onglet.
+                const el = btn.closest('.dbs-profile-panel')?.querySelector('.dbs-profile-saved');
+                if (el) { el.textContent = t('localDataCleared'); el.hidden = false; }
               } catch (error) {
                 console.warn('[profile] clear local data failed', error);
               }
@@ -1158,9 +1189,23 @@
               window.DBSAuth?.clearLocalProfileData?.();
               fillPreferenceOptions();
               render();
-              setStatus('[data-dbs-local-saved]', true);
+              const el = document.querySelector('[data-dbs-local-saved]');
+              if (el) { el.textContent = t('localDataCleared'); el.hidden = false; }
             } catch (error) {
               console.warn('[profile] clear preferences failed', error);
+            }
+          });
+
+          // Reset complet local (prefs + avatar + theme + langue) : un reload
+          // est necessaire car le theme/la langue ne sont appliques qu'au
+          // chargement de la page (bootstrap en tete de fichier), pas de
+          // maniere reactive ensuite.
+          document.querySelector('[data-dbs-reset-experience]')?.addEventListener('click', () => {
+            try {
+              window.DBSAuth?.resetLocalProfileExperience?.();
+              window.location.reload();
+            } catch (error) {
+              console.warn('[profile] reset profile experience failed', error);
             }
           });
 

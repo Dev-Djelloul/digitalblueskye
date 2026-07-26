@@ -12725,30 +12725,47 @@ body.profile-page .profile-main {
   border: 1px solid rgb(93 93 255 / 20%);
   border-radius: 12px;
   padding: 14px;
+  text-align: left;
+}
+
+.dbs-local-data-card + .dbs-local-data-card {
+  margin-top: 14px;
+}
+
+.dbs-local-data-card h3 {
+  color: rgb(121 230 255 / 92%);
+  font-size: 0.92rem;
+  margin: 0 0 8px;
+}
+
+.dbs-local-data-card > .dbs-profile-note {
+  margin-bottom: 0;
 }
 
 .dbs-local-data-card dl {
   display: grid;
-  gap: 8px;
-  margin: 0 0 4px;
+  gap: 12px;
+  margin: 12px 0 0;
 }
 
 .dbs-local-data-card dl > div {
   display: flex;
-  gap: 8px;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 3px;
 }
 
 .dbs-local-data-card dt {
-  color: rgb(235 240 255 / 70%);
-  font-size: 0.8rem;
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 600;
 }
 
 .dbs-local-data-card dd {
-  color: rgb(235 240 255 / 88%);
-  font-size: 0.8rem;
+  color: rgb(235 240 255 / 72%);
+  font-size: 0.78rem;
+  line-height: 1.45;
   margin: 0;
-  text-align: right;
+  text-align: left;
 }
 
 @media (width <= 760px) {

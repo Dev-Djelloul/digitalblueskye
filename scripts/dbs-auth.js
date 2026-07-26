@@ -201,6 +201,22 @@
     return { ok: true, preferences: getAssistantPreferences() };
   }
 
+  // Reset complet, propre a CE navigateur uniquement : preferences + photo de
+  // profil personnalisee + theme/langue choisis. Ne touche jamais au compte
+  // serveur ni a la session — distinct de clearLocalProfileData() qui ne vide
+  // que le cache de preferences (voir profile.html, onglet "Donnees locales").
+  function resetLocalProfileExperience() {
+    try {
+      localStorage.removeItem(PROFILE_PREFS_KEY);
+      LEGACY_SESSION_KEYS.forEach((key) => localStorage.removeItem(key));
+      localStorage.removeItem(AVATAR_OVERRIDE_KEY);
+      localStorage.removeItem('theme');
+      localStorage.removeItem('language');
+    } catch (_) { /* no-op */ }
+    dispatchChanged();
+    return { ok: true };
+  }
+
   // ---------------------------------------------------------------------
   // Utilisation IA et historique de connexion (D1 cote serveur). En
   // dev-session (localhost sans backend), il n'existe aucune donnee reelle :
@@ -981,6 +997,7 @@
     fetchAssistantPreferences,
     saveAssistantPreferences,
     clearLocalProfileData,
+    resetLocalProfileExperience,
     fetchUsageStats,
     fetchSessionHistory,
     revokeSession,
