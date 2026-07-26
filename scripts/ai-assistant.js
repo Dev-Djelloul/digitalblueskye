@@ -154,6 +154,7 @@
         speechUnsupported: 'Voice dictation is not available on this browser',
         loading: '...',
         thinking: 'Thinking',
+        tableStreamingPlaceholder: 'Generating the table…',
         reasoningStart: 'Reading your request',
         reasoningAnalyzing: 'Analyzing intent',
         reasoningRagChecking: 'Checking project documents',
@@ -288,6 +289,7 @@
       speechUnsupported: 'Dictée vocale non disponible sur ce navigateur',
       loading: '...',
       thinking: 'Réflexion',
+      tableStreamingPlaceholder: 'Génération du tableau…',
       reasoningStart: 'Lecture de la demande',
       reasoningAnalyzing: "Analyse de l'intention",
       reasoningRagChecking: 'Consultation des documents du projet',
@@ -9131,6 +9133,39 @@
     return bubble;
   }
 
+  // Pendant le streaming, un tableau Markdown encore en cours de generation
+  // (derniere ligne du buffer toujours a l'interieur du tableau, sans ligne
+  // vide qui le referme) peut etre reparse par marked avec un nombre de
+  // colonnes different a chaque tick tant que la derniere ligne n'est pas
+  // terminee — source de flashs/chevauchements visuels le temps qu'elle se
+  // complete (davantage visible depuis que "Format favori: Tableau" rend les
+  // tableaux plus frequents). On masque ce tableau encore ouvert derriere un
+  // indicateur discret jusqu'a ce qu'une ligne vide (ou finalize(), qui ne
+  // passe jamais par cette fonction) confirme qu'il est complet.
+  function withholdIncompleteTrailingTable(text, placeholder) {
+    const raw = String(text || '');
+    const lines = raw.split('\n');
+    let tableStart = -1;
+    for (let i = lines.length - 1; i >= 0; i -= 1) {
+      const line = lines[i];
+      if (line.trim() === '') break;
+      // Debut de ligne "|" suffisant (pas besoin du "|" de fermeture) : en
+      // streaming, une ligne de tableau est le plus souvent capturee AVANT
+      // que son dernier "|" soit arrive.
+      if (/^\s*\|/.test(line)) { tableStart = i; continue; }
+      break;
+    }
+    if (tableStart === -1) return raw;
+    const block = lines.slice(tableStart);
+    // Un vrai tableau GFM a une ligne d'entete PUIS une ligne separatrice
+    // (---) : sous ce seuil, ce n'est qu'une ligne isolee commencant par
+    // "|" (pas un tableau en cours), on ne masque rien.
+    const hasSeparatorRow = block.length >= 2 && /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)*\|?\s*$/.test(block[1]);
+    if (!hasSeparatorRow) return raw;
+    const before = lines.slice(0, tableStart).join('\n').replace(/\s+$/, '');
+    return before ? `${before}\n\n${placeholder}` : placeholder;
+  }
+
   // Bulle assistant alimentee par un VRAI flux SSE (par opposition a
   // addStreamingBotMessage ci-dessous, animation machine-a-ecrire sur un texte
   // deja complet). update() re-rend le Markdown accumule, throttle a ~90ms
@@ -9148,7 +9183,8 @@
     let pendingText = '';
     let renderTimer = 0;
     const renderNow = () => {
-      content.innerHTML = `${renderMarkdownToHtml(pendingText)}<span class="ai-assistant-stream-caret" aria-hidden="true"></span>`;
+      const displayText = withholdIncompleteTrailingTable(pendingText, `_${i18n.tableStreamingPlaceholder}_`);
+      content.innerHTML = `${renderMarkdownToHtml(displayText)}<span class="ai-assistant-stream-caret" aria-hidden="true"></span>`;
       scrollConversationToBottom('auto');
     };
     return {
