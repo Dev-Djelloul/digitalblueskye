@@ -201,6 +201,77 @@
     return { ok: true, preferences: getAssistantPreferences() };
   }
 
+  // ---------------------------------------------------------------------
+  // Utilisation IA et historique de connexion (D1 cote serveur). En
+  // dev-session (localhost sans backend), il n'existe aucune donnee reelle :
+  // on renvoie source:'local-dev' pour que l'UI affiche un etat explicite
+  // plutot que des chiffres inventes.
+  // ---------------------------------------------------------------------
+  async function fetchUsageStats() {
+    if (getDevSession()) return { ok: true, source: 'local-dev', usage: null };
+    if (!isAuthenticated()) return { ok: false, source: 'local', usage: null, error: 'AUTH_REQUIRED' };
+    try {
+      const res = await fetchWithTimeout(`${API_BASE}/auth/usage`, { credentials: 'include' });
+      const data = await res.json().catch(() => ({}));
+      if (data?.ok) return { ok: true, source: 'd1', usage: data.usage };
+      return { ok: false, source: 'local', usage: null, error: data?.error || 'usage_unavailable' };
+    } catch (_) {
+      return { ok: false, source: 'local', usage: null, error: 'network_error' };
+    }
+  }
+
+  async function fetchSessionHistory() {
+    if (getDevSession()) return { ok: true, source: 'local-dev', sessions: [], provider: 'local-dev' };
+    if (!isAuthenticated()) return { ok: false, source: 'local', sessions: [], error: 'AUTH_REQUIRED' };
+    try {
+      const res = await fetchWithTimeout(`${API_BASE}/auth/sessions`, { credentials: 'include' });
+      const data = await res.json().catch(() => ({}));
+      if (data?.ok) {
+        return {
+          ok: true,
+          source: 'd1',
+          provider: data.provider || '',
+          accountCreatedAt: data.accountCreatedAt || null,
+          lastLoginAt: data.lastLoginAt || null,
+          sessions: Array.isArray(data.sessions) ? data.sessions : []
+        };
+      }
+      return { ok: false, source: 'local', sessions: [], error: data?.error || 'sessions_unavailable' };
+    } catch (_) {
+      return { ok: false, source: 'local', sessions: [], error: 'network_error' };
+    }
+  }
+
+  async function revokeSession(sessionId) {
+    if (getDevSession() || !isAuthenticated()) return { ok: false, error: 'AUTH_REQUIRED' };
+    try {
+      const res = await fetchWithTimeout(`${API_BASE}/auth/sessions/revoke`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId })
+      });
+      const data = await res.json().catch(() => ({}));
+      return { ok: Boolean(data?.ok) };
+    } catch (_) {
+      return { ok: false, error: 'network_error' };
+    }
+  }
+
+  async function revokeOtherSessions() {
+    if (getDevSession() || !isAuthenticated()) return { ok: false, error: 'AUTH_REQUIRED' };
+    try {
+      const res = await fetchWithTimeout(`${API_BASE}/auth/sessions/revoke-others`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+      const data = await res.json().catch(() => ({}));
+      return { ok: Boolean(data?.ok) };
+    } catch (_) {
+      return { ok: false, error: 'network_error' };
+    }
+  }
+
   // --- Fallback dev (localhost uniquement) ---------------------------------
   function getDevSession() {
     if (!isLocalhost()) return null;
@@ -910,6 +981,10 @@
     fetchAssistantPreferences,
     saveAssistantPreferences,
     clearLocalProfileData,
+    fetchUsageStats,
+    fetchSessionHistory,
+    revokeSession,
+    revokeOtherSessions,
     syncDbsAuthUI: syncAuthUI,
     renderDbsProfileAvatar: renderProfileAvatar
   };

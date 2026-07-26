@@ -229,37 +229,48 @@
                 <article class="dbs-security-card"><span data-i18n="account">Compte</span><strong data-i18n="secured">Sécurisé</strong></article>
               </div>
               <div class="dbs-profile-actions-row">
+                <button type="button" class="dbs-profile-secondary-action" data-dbs-revoke-others data-i18n="revokeOtherSessions">Terminer les autres sessions</button>
                 <button type="button" class="dbs-profile-secondary-action" data-dbs-clear-local data-i18n="clearLocalData">Supprimer les données locales de ce navigateur</button>
               </div>
+              <p class="dbs-profile-saved" data-dbs-security-saved role="status" hidden></p>
             </section>
 
             <section class="dbs-profile-panel" id="dbs-panel-usage" role="tabpanel" aria-labelledby="dbs-tab-usage" data-dbs-profile-panel="usage" hidden>
               <div class="dbs-profile-panel-heading">
                 <h2 data-i18n="tabUsage">Utilisation IA</h2>
-                <p data-i18n="usageDesc">Suivi préparé pour les quotas et la journalisation serveur.</p>
+                <p data-i18n="usageDesc">Suivi des quotas et de la dernière activité IA, journalisés côté serveur.</p>
               </div>
-              <div class="dbs-info-grid">
-                <article class="dbs-usage-card"><span data-i18n="currentLimit">Limite actuelle</span><strong data-i18n="currentLimitValue">50 messages / heure par utilisateur connecté</strong></article>
+              <div class="dbs-info-grid" data-dbs-usage-grid>
+                <article class="dbs-usage-card"><span data-i18n="currentLimit">Limite actuelle</span><strong data-dbs-usage-limit data-i18n="loading">Chargement…</strong></article>
+                <article class="dbs-usage-card"><span data-i18n="messagesThisHour">Messages cette heure</span><strong data-dbs-usage-this-hour data-i18n="loading">Chargement…</strong>
+                  <div class="dbs-usage-bar"><span data-dbs-usage-bar-fill></span></div>
+                </article>
+                <article class="dbs-usage-card"><span data-i18n="messagesLast24h">Messages (24 h)</span><strong data-dbs-usage-24h data-i18n="loading">Chargement…</strong></article>
+                <article class="dbs-usage-card"><span data-i18n="lastActivity">Dernière activité</span><strong data-dbs-usage-last-activity data-i18n="loading">Chargement…</strong></article>
+                <article class="dbs-usage-card"><span data-i18n="aiModel">Dernier modèle utilisé</span><strong data-dbs-usage-last-model data-i18n="loading">Chargement…</strong></article>
                 <article class="dbs-usage-card"><span data-i18n="protectedEndpoint">Endpoint protégé</span><strong>/ai/chat</strong></article>
-                <article class="dbs-usage-card"><span data-i18n="status">Statut</span><strong data-i18n="secureAiAccess">Accès IA sécurisé via le Worker API</strong><small data-i18n="directCallsNote">Les appels directs au Worker IA seront progressivement désactivés.</small></article>
-                <article class="dbs-usage-card"><span data-i18n="messagesThisHour">Messages cette heure</span><strong data-i18n="comingSoon">Bientôt disponible</strong></article>
-                <article class="dbs-usage-card"><span data-i18n="lastActivity">Dernière activité</span><strong data-i18n="comingSoon">Bientôt disponible</strong></article>
-                <article class="dbs-usage-card"><span data-i18n="aiModel">Modèle IA</span><strong data-i18n="managedByWorker">Géré côté Worker</strong></article>
-                <article class="dbs-usage-card"><span data-i18n="logging">Journalisation</span><strong data-i18n="plannedInEvents">Prévue dans ai_usage_events</strong></article>
+              </div>
+              <p class="dbs-profile-note" data-dbs-usage-message hidden></p>
+              <div class="dbs-profile-actions-row">
+                <button type="button" class="dbs-profile-secondary-action" data-dbs-usage-refresh data-i18n="refresh">Actualiser</button>
               </div>
             </section>
 
             <section class="dbs-profile-panel" id="dbs-panel-history" role="tabpanel" aria-labelledby="dbs-tab-history" data-dbs-profile-panel="history" hidden>
               <div class="dbs-profile-panel-heading">
                 <h2 data-i18n="tabHistory">Historique de connexion</h2>
-                <p data-i18n="historyDesc">L'historique détaillé sera relié à la table user_sessions lors d'une prochaine étape backend.</p>
+                <p data-i18n="historyDesc">Sessions serveur associées à votre compte, les plus récentes en premier.</p>
               </div>
               <div class="dbs-info-grid">
-                <article class="dbs-usage-card"><span data-i18n="lastLogin">Dernière connexion</span><strong data-dbs-last-login data-i18n="availableSoon">Disponible prochainement</strong></article>
-                <article class="dbs-usage-card"><span data-i18n="providerUsed">Fournisseur utilisé</span><strong data-dbs-history-provider>OAuth</strong></article>
-                <article class="dbs-usage-card"><span data-i18n="activeSessions">Sessions actives</span><strong data-i18n="detailedManagementSoon">Gestion détaillée bientôt disponible</strong></article>
-                <article class="dbs-usage-card"><span data-i18n="fullHistory">Historique complet</span><strong data-i18n="plannedViaSessions">Prévu via user_sessions</strong></article>
-                <article class="dbs-usage-card"><span data-i18n="deviceIp">Appareil / IP</span><strong data-i18n="hiddenForNow">Masqué pour le moment</strong></article>
+                <article class="dbs-usage-card"><span data-i18n="lastLogin">Dernière connexion</span><strong data-dbs-last-login data-i18n="loading">Chargement…</strong></article>
+                <article class="dbs-usage-card"><span data-i18n="providerUsed">Fournisseur utilisé</span><strong data-dbs-history-provider data-i18n="loading">Chargement…</strong></article>
+                <article class="dbs-usage-card"><span data-i18n="activeSessions">Sessions actives</span><strong data-dbs-history-active-count data-i18n="loading">Chargement…</strong></article>
+                <article class="dbs-usage-card"><span data-i18n="accountCreated">Compte créé le</span><strong data-dbs-history-created data-i18n="loading">Chargement…</strong></article>
+              </div>
+              <p class="dbs-profile-note" data-dbs-history-message hidden></p>
+              <ul class="dbs-session-list" data-dbs-session-list></ul>
+              <div class="dbs-profile-actions-row">
+                <button type="button" class="dbs-profile-secondary-action" data-dbs-history-refresh data-i18n="refresh">Actualiser</button>
               </div>
             </section>
 
@@ -405,22 +416,39 @@
           secureAiAccess: ['Accès IA sécurisé via le Worker API', 'Secure AI access via the Worker API'],
           directCallsNote: ['Les appels directs au Worker IA seront progressivement désactivés.', 'Direct calls to the AI Worker will be progressively disabled.'],
           messagesThisHour: ['Messages cette heure', 'Messages this hour'],
+          messagesLast24h: ['Messages (24 h)', 'Messages (24h)'],
           comingSoon: ['Bientôt disponible', 'Coming soon'],
           lastActivity: ['Dernière activité', 'Last activity'],
           aiModel: ['Modèle IA', 'AI model'],
           managedByWorker: ['Géré côté Worker', 'Managed by the Worker'],
           logging: ['Journalisation', 'Logging'],
           plannedInEvents: ['Prévue dans ai_usage_events', 'Planned in ai_usage_events'],
-          historyDesc: ["L'historique détaillé sera relié à la table user_sessions lors d'une prochaine étape backend.", 'Detailed history will be linked to the user_sessions table in a future backend step.'],
+          historyDesc: ['Sessions serveur associées à votre compte, les plus récentes en premier.', 'Server sessions linked to your account, most recent first.'],
           lastLogin: ['Dernière connexion', 'Last login'],
           availableSoon: ['Disponible prochainement', 'Available soon'],
           providerUsed: ['Fournisseur utilisé', 'Provider used'],
           activeSessions: ['Sessions actives', 'Active sessions'],
+          accountCreated: ['Compte créé le', 'Account created on'],
           detailedManagementSoon: ['Gestion détaillée bientôt disponible', 'Detailed management coming soon'],
           fullHistory: ['Historique complet', 'Full history'],
           plannedViaSessions: ['Prévu via user_sessions', 'Planned via user_sessions'],
           deviceIp: ['Appareil / IP', 'Device / IP'],
           hiddenForNow: ['Masqué pour le moment', 'Hidden for now'],
+          loading: ['Chargement…', 'Loading…'],
+          refresh: ['Actualiser', 'Refresh'],
+          revokeOtherSessions: ['Terminer les autres sessions', 'Sign out other sessions'],
+          revokeSession: ['Déconnecter', 'Sign out'],
+          currentSession: ['Cette session', 'This session'],
+          sessionRevoked: ['Révoquée', 'Revoked'],
+          otherSessionsRevoked: ['Toutes les autres sessions ont été déconnectées.', 'All other sessions have been signed out.'],
+          revokeFailed: ['Échec de la déconnexion de cette session.', 'Failed to sign out this session.'],
+          usageDevNote: ["Suivi indisponible en connexion locale de test (dev). Connectez-vous via Google, GitHub ou email pour voir vos quotas réels.", 'Tracking unavailable in local dev sign-in. Sign in with Google, GitHub or email to see your real quotas.'],
+          usageErrorNote: ["Impossible de charger l'utilisation IA pour le moment.", 'Could not load AI usage right now.'],
+          historyDevNote: ["Historique indisponible en connexion locale de test (dev). Connectez-vous via Google, GitHub ou email pour voir vos sessions réelles.", 'History unavailable in local dev sign-in. Sign in with Google, GitHub or email to see your real sessions.'],
+          historyErrorNote: ["Impossible de charger l'historique de connexion pour le moment.", 'Could not load sign-in history right now.'],
+          noSessions: ['Aucune session enregistrée.', 'No recorded sessions.'],
+          unknownDevice: ['Appareil inconnu', 'Unknown device'],
+          neverConnected: ['Jamais', 'Never'],
           localDataDesc: ['Ces actions suppriment uniquement les données stockées dans ce navigateur. Elles ne suppriment pas votre compte serveur.', 'These actions only remove data stored in this browser. They do not delete your server account.'],
           localPreferencesCache: ['Cache préférences local', 'Local preferences cache'],
           legacyCaches: ['Caches ancienne version', 'Legacy caches'],
@@ -602,6 +630,8 @@
           if (updateHash !== false) {
             try { history.replaceState(null, '', `#${name}`); } catch (_) { /* no-op */ }
           }
+          if (name === 'usage') loadUsageTab(false);
+          if (name === 'history') loadHistoryTab(false);
         }
 
         function wireTabs() {
@@ -735,6 +765,149 @@
           el.hidden = !visible;
         }
 
+        function formatDateTime(iso) {
+          if (!iso) return t('neverConnected');
+          const date = new Date(iso);
+          if (Number.isNaN(date.getTime())) return t('neverConnected');
+          try {
+            return new Intl.DateTimeFormat(EN ? 'en-US' : 'fr-FR', { dateStyle: 'medium', timeStyle: 'short' }).format(date);
+          } catch (_) {
+            return date.toLocaleString();
+          }
+        }
+
+        function deviceLabelFromUA(ua) {
+          const value = String(ua || '');
+          if (!value) return t('unknownDevice');
+          let browser = 'Navigateur';
+          if (/edg\//i.test(value)) browser = 'Edge';
+          else if (/chrome\//i.test(value) && !/chromium/i.test(value)) browser = 'Chrome';
+          else if (/firefox\//i.test(value)) browser = 'Firefox';
+          else if (/safari\//i.test(value) && !/chrome\//i.test(value)) browser = 'Safari';
+          let os = '';
+          if (/iphone|ipad/i.test(value)) os = 'iOS';
+          else if (/mac os x/i.test(value)) os = 'macOS';
+          else if (/windows/i.test(value)) os = 'Windows';
+          else if (/android/i.test(value)) os = 'Android';
+          else if (/linux/i.test(value)) os = 'Linux';
+          return os ? `${browser} · ${os}` : browser;
+        }
+
+        let usageLoaded = false;
+        async function loadUsageTab(force) {
+          if (usageLoaded && !force) return;
+          const messageEl = document.querySelector('[data-dbs-usage-message]');
+          if (messageEl) messageEl.hidden = true;
+          try {
+            const result = await window.DBSAuth?.fetchUsageStats?.();
+            if (result?.error === 'AUTH_REQUIRED') return; // session pas encore hydratee : retente via render()
+            usageLoaded = true;
+            if (result?.source === 'local-dev') {
+              renderUsagePlaceholder(t('usageDevNote'));
+              return;
+            }
+            if (!result?.ok || !result.usage) {
+              renderUsagePlaceholder(t('usageErrorNote'));
+              return;
+            }
+            const usage = result.usage;
+            setText('[data-dbs-usage-limit]', EN
+              ? `${usage.limit} messages / hour, signed-in users`
+              : `${usage.limit} messages / heure par utilisateur connecté`);
+            setText('[data-dbs-usage-this-hour]', `${usage.messagesThisHour} / ${usage.limit}`);
+            setText('[data-dbs-usage-24h]', String(usage.messagesLast24h));
+            setText('[data-dbs-usage-last-activity]', usage.lastActivityAt ? formatDateTime(usage.lastActivityAt) : t('neverConnected'));
+            setText('[data-dbs-usage-last-model]', usage.lastModel || t('managedByWorker'));
+            const ratio = usage.limit > 0 ? usage.messagesThisHour / usage.limit : 0;
+            const bar = document.querySelector('[data-dbs-usage-bar-fill]');
+            const barWrap = bar?.closest('.dbs-usage-bar');
+            if (bar) bar.style.width = `${Math.min(100, Math.round(ratio * 100))}%`;
+            if (barWrap) {
+              barWrap.classList.toggle('is-warning', ratio >= 0.7 && ratio < 0.9);
+              barWrap.classList.toggle('is-critical', ratio >= 0.9);
+            }
+          } catch (error) {
+            console.warn('[profile] usage load failed', error);
+            renderUsagePlaceholder(t('usageErrorNote'));
+          }
+        }
+
+        function renderUsagePlaceholder(message) {
+          ['[data-dbs-usage-limit]', '[data-dbs-usage-this-hour]', '[data-dbs-usage-24h]', '[data-dbs-usage-last-activity]', '[data-dbs-usage-last-model]'].forEach((sel) => {
+            setText(sel, '—');
+          });
+          const messageEl = document.querySelector('[data-dbs-usage-message]');
+          if (messageEl) { messageEl.textContent = message; messageEl.hidden = false; }
+        }
+
+        function setText(selector, value) {
+          const el = document.querySelector(selector);
+          if (el) el.textContent = value;
+        }
+
+        let historyLoaded = false;
+        async function loadHistoryTab(force) {
+          if (historyLoaded && !force) return;
+          const messageEl = document.querySelector('[data-dbs-history-message]');
+          if (messageEl) messageEl.hidden = true;
+          try {
+            const result = await window.DBSAuth?.fetchSessionHistory?.();
+            if (result?.error === 'AUTH_REQUIRED') return; // session pas encore hydratee : retente via render()
+            historyLoaded = true;
+            if (result?.source === 'local-dev') {
+              renderHistoryPlaceholder(t('historyDevNote'));
+              return;
+            }
+            if (!result?.ok) {
+              renderHistoryPlaceholder(t('historyErrorNote'));
+              return;
+            }
+            setText('[data-dbs-last-login]', formatDateTime(result.lastLoginAt));
+            setText('[data-dbs-history-provider]', PROVIDERS[result.provider] || result.provider || 'OAuth');
+            setText('[data-dbs-history-created]', formatDateTime(result.accountCreatedAt));
+            const activeCount = result.sessions.filter((s) => s.active).length;
+            setText('[data-dbs-history-active-count]', String(activeCount));
+            renderSessionList(result.sessions);
+          } catch (error) {
+            console.warn('[profile] history load failed', error);
+            renderHistoryPlaceholder(t('historyErrorNote'));
+          }
+        }
+
+        function renderHistoryPlaceholder(message) {
+          ['[data-dbs-last-login]', '[data-dbs-history-provider]', '[data-dbs-history-created]', '[data-dbs-history-active-count]'].forEach((sel) => setText(sel, '—'));
+          const list = document.querySelector('[data-dbs-session-list]');
+          if (list) list.innerHTML = '';
+          const messageEl = document.querySelector('[data-dbs-history-message]');
+          if (messageEl) { messageEl.textContent = message; messageEl.hidden = false; }
+        }
+
+        function renderSessionList(sessions) {
+          const list = document.querySelector('[data-dbs-session-list]');
+          if (!list) return;
+          if (!sessions.length) {
+            list.innerHTML = `<li class="dbs-session-item"><span class="dbs-session-item-meta">${escapeHtml(t('noSessions'))}</span></li>`;
+            return;
+          }
+          list.innerHTML = sessions.map((session) => {
+            const statusClass = session.current ? 'is-current' : (session.active ? '' : 'is-revoked');
+            const badge = session.current
+              ? `<span class="dbs-session-item-badge">${escapeHtml(t('currentSession'))}</span>`
+              : (!session.active ? `<span class="dbs-session-item-badge">${escapeHtml(t('sessionRevoked'))}</span>` : '');
+            const revokeBtn = (!session.current && session.active)
+              ? `<button type="button" class="dbs-session-item-revoke" data-dbs-revoke-session="${escapeHtml(session.id)}">${escapeHtml(t('revokeSession'))}</button>`
+              : '';
+            return `<li class="dbs-session-item ${statusClass}">
+              <div class="dbs-session-item-info">
+                <span class="dbs-session-item-device">${escapeHtml(deviceLabelFromUA(session.userAgent))}</span>
+                <span class="dbs-session-item-meta">${escapeHtml(formatDateTime(session.createdAt))}</span>
+              </div>
+              ${badge}
+              ${revokeBtn}
+            </li>`;
+          }).join('');
+        }
+
         // ---------------------------------------------------------------
         // Rendu principal. Doit toujours degrader proprement si DBSAuth ou
         // /auth/me sont indisponibles : l'etat par defaut (deconnecte) reste
@@ -764,6 +937,8 @@
             profilePreferencesHydrated = false;
             profilePreferencesDirty = false;
             profilePreferencesUserId = user.id || '';
+            usageLoaded = false;
+            historyLoaded = false;
           }
 
           if (signedOutCard) signedOutCard.hidden = true;
@@ -799,6 +974,10 @@
           } catch (error) {
             console.warn('[profile] preferences render failed', error);
           }
+
+          const activeTab = document.querySelector('[data-dbs-profile-tab].is-active')?.dataset.dbsProfileTab;
+          if (activeTab === 'usage') loadUsageTab(false);
+          if (activeTab === 'history') loadHistoryTab(false);
         }
 
         function wireForms() {
@@ -896,6 +1075,50 @@
           document.querySelectorAll('[data-dbs-preferences-form], [data-dbs-ai-settings-form]').forEach((form) => {
             form.addEventListener('input', () => { profilePreferencesDirty = true; });
             form.addEventListener('change', () => { profilePreferencesDirty = true; });
+          });
+
+          document.querySelector('[data-dbs-usage-refresh]')?.addEventListener('click', () => loadUsageTab(true));
+          document.querySelector('[data-dbs-history-refresh]')?.addEventListener('click', () => loadHistoryTab(true));
+
+          document.querySelector('[data-dbs-session-list]')?.addEventListener('click', async (event) => {
+            const btn = event.target.closest('[data-dbs-revoke-session]');
+            if (!btn) return;
+            btn.disabled = true;
+            try {
+              const result = await window.DBSAuth?.revokeSession?.(btn.dataset.dbsRevokeSession);
+              if (result?.ok) {
+                loadHistoryTab(true);
+              } else {
+                btn.disabled = false;
+                const messageEl = document.querySelector('[data-dbs-history-message]');
+                if (messageEl) { messageEl.textContent = t('revokeFailed'); messageEl.hidden = false; }
+              }
+            } catch (error) {
+              console.warn('[profile] revoke session failed', error);
+              btn.disabled = false;
+            }
+          });
+
+          document.querySelector('[data-dbs-revoke-others]')?.addEventListener('click', async (event) => {
+            const btn = event.currentTarget;
+            const savedEl = document.querySelector('[data-dbs-security-saved]');
+            if (window.DBSAuth?.getCachedUser?.()?.provider === 'local-dev') {
+              if (savedEl) { savedEl.textContent = t('usageDevNote'); savedEl.hidden = false; }
+              return;
+            }
+            btn.disabled = true;
+            try {
+              const result = await window.DBSAuth?.revokeOtherSessions?.();
+              if (savedEl) {
+                savedEl.textContent = result?.ok ? t('otherSessionsRevoked') : t('revokeFailed');
+                savedEl.hidden = false;
+              }
+              if (result?.ok) loadHistoryTab(true);
+            } catch (error) {
+              console.warn('[profile] revoke others failed', error);
+            } finally {
+              btn.disabled = false;
+            }
           });
 
 

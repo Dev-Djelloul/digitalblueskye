@@ -11515,6 +11515,10 @@
       const response = await fetch(API_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        // Meme logique que sendAssistantRequest() : le cookie de session n'est
+        // requis (et cross-origin) que lorsque API_ENDPOINT pointe vers le
+        // proxy /ai/chat authentifie.
+        credentials: API_USES_PROXY ? 'include' : 'same-origin',
         signal: controller.signal,
         body: JSON.stringify(payload)
       });

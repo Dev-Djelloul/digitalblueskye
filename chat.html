@@ -15,6 +15,29 @@
         // dbs-auth.js ne lit que cet attribut, pas localStorage directement).
         const savedLanguage = (localStorage.getItem('language') || '').toLowerCase().startsWith('en') ? 'en' : 'fr';
         document.documentElement.lang = savedLanguage;
+
+        // Route le chat via le proxy IA authentifie (session + rate limit +
+        // journalisation ai_usage_events), au lieu de l'appel direct historique
+        // au Worker IA. Sans danger : chat.html exige deja une connexion avant
+        // tout envoi de message (voir data-chat-gate plus bas). Voir
+        // docs/CHATBOT_AUTH_SECURITY.md.
+        //
+        // Exception : la "connexion locale de test (dev)" (localhost sans
+        // vrai cookie de session, voir dbs-auth.js/devLogin) n'a aucune
+        // session cote api.digitalblueskye.com. La forcer vers le proxy y
+        // ferait echouer chaque message en 401. Une vraie connexion OAuth en
+        // localhost (cookie cross-site reel) continue elle de passer par le
+        // proxy normalement.
+        let hasFakeDevSession = false;
+        try {
+          hasFakeDevSession = /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)
+            && Boolean(localStorage.getItem('dbs_dev_session'));
+        } catch (_) { hasFakeDevSession = false; }
+
+        if (!hasFakeDevSession) {
+          const apiBase = (String(window.DBS_API_BASE || '').trim().replace(/\/+$/, '')) || 'https://api.digitalblueskye.com';
+          window.DBS_AI_ENDPOINT = `${apiBase}/ai/chat`;
+        }
       })();
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Gelasio:ital,wght@0,400..700;1,400..700&family=Indie+Flower&display=swap" rel="stylesheet">

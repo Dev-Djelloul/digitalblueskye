@@ -10,6 +10,10 @@
  *   - PATCH /auth/preferences     -> sauvegarde preferences utilisateur en D1
  *   - POST /auth/logout           -> revoque la session + supprime le cookie
  *   - PATCH /auth/profile         -> maj displayName (compat preference legacy)
+ *   - GET  /auth/usage            -> quotas et derniere activite IA (ai_usage_events)
+ *   - GET  /auth/sessions         -> historique des sessions actives/revoquees
+ *   - POST /auth/sessions/revoke  -> revoque une session precise (autre que la courante)
+ *   - POST /auth/sessions/revoke-others -> revoque toutes les sessions sauf la courante
  *   - POST /ai/chat               -> proxy IA protege (session + rate limit + log)
  *
  * SECURITE :
@@ -805,6 +809,97 @@ async function handlePreferencesPatch(request, env) {
 }
 
 // ---------------------------------------------------------------------------
+// Utilisation IA (GET /auth/usage) : quotas + derniere activite, lus depuis
+// ai_rate_limits (fenetre horaire courante) et ai_usage_events (historique).
+// ---------------------------------------------------------------------------
+async function handleUsageGet(request, env) {
+  await ensureSchema(env);
+  const user = await getSessionUser(env, request);
+  if (!user) return authJson(request, env, { ok: false, error: 'AUTH_REQUIRED' }, 401);
+
+  const limit = Number(env.AI_RATE_LIMIT_USER || 50);
+  const windowStart = new Date(Math.floor(Date.now() / 3600000) * 3600000).toISOString();
+  const rateRow = await env.DB.prepare('SELECT window_start, count FROM ai_rate_limits WHERE rate_key = ?').bind(`user:${user.id}`).first();
+  const messagesThisHour = rateRow && rateRow.window_start === windowStart ? rateRow.count : 0;
+
+  const lastEvent = await env.DB.prepare('SELECT created_at, model, status FROM ai_usage_events WHERE user_id = ? ORDER BY created_at DESC LIMIT 1').bind(user.id).first();
+  const last24h = await env.DB.prepare('SELECT COUNT(*) AS count FROM ai_usage_events WHERE user_id = ? AND created_at >= ?')
+    .bind(user.id, new Date(Date.now() - 24 * 3600000).toISOString()).first();
+
+  return authJson(request, env, {
+    ok: true,
+    usage: {
+      limit,
+      messagesThisHour,
+      remaining: Math.max(0, limit - messagesThisHour),
+      messagesLast24h: last24h?.count || 0,
+      lastActivityAt: lastEvent?.created_at || null,
+      lastModel: lastEvent?.model || null,
+      lastStatus: lastEvent?.status || null
+    }
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Historique de connexion (GET /auth/sessions) + revocation (POST). Ne
+// retourne jamais le token de session lui-meme (seul son hash est stocke),
+// seulement des metadonnees suffisantes pour que l'utilisateur reconnaisse
+// et puisse revoquer un appareil.
+// ---------------------------------------------------------------------------
+async function handleSessionsGet(request, env) {
+  await ensureSchema(env);
+  const user = await getSessionUser(env, request);
+  if (!user) return authJson(request, env, { ok: false, error: 'AUTH_REQUIRED' }, 401);
+
+  const userRow = await env.DB.prepare('SELECT created_at, last_login_at FROM users WHERE id = ?').bind(user.id).first();
+  const sessionsResult = await env.DB.prepare(
+    'SELECT id, created_at, expires_at, revoked_at, user_agent FROM user_sessions WHERE user_id = ? ORDER BY created_at DESC LIMIT 20'
+  ).bind(user.id).all();
+
+  const sessions = (sessionsResult?.results || []).map((row) => ({
+    id: row.id,
+    current: row.id === user.sessionId,
+    createdAt: row.created_at,
+    expiresAt: row.expires_at,
+    active: !row.revoked_at && Date.parse(row.expires_at) > Date.now(),
+    userAgent: row.user_agent || ''
+  }));
+
+  return authJson(request, env, {
+    ok: true,
+    provider: user.provider,
+    accountCreatedAt: userRow?.created_at || null,
+    lastLoginAt: userRow?.last_login_at || null,
+    sessions
+  });
+}
+
+async function handleSessionRevoke(request, env) {
+  await ensureSchema(env);
+  const user = await getSessionUser(env, request);
+  if (!user) return authJson(request, env, { ok: false, error: 'AUTH_REQUIRED' }, 401);
+
+  let body = {};
+  try { body = await request.json(); } catch (_) { body = {}; }
+  const targetId = String(body.sessionId || '').trim();
+  if (!targetId || targetId === user.sessionId) {
+    return authJson(request, env, { ok: false, error: 'invalid_session' }, 400);
+  }
+  await env.DB.prepare('UPDATE user_sessions SET revoked_at = ? WHERE id = ? AND user_id = ? AND revoked_at IS NULL')
+    .bind(nowIso(), targetId, user.id).run();
+  return authJson(request, env, { ok: true });
+}
+
+async function handleSessionsRevokeOthers(request, env) {
+  await ensureSchema(env);
+  const user = await getSessionUser(env, request);
+  if (!user) return authJson(request, env, { ok: false, error: 'AUTH_REQUIRED' }, 401);
+  await env.DB.prepare('UPDATE user_sessions SET revoked_at = ? WHERE user_id = ? AND id != ? AND revoked_at IS NULL')
+    .bind(nowIso(), user.id, user.sessionId).run();
+  return authJson(request, env, { ok: true });
+}
+
+// ---------------------------------------------------------------------------
 // Connexion par email (magic link) : POST /auth/email/request cree un token
 // a usage unique et envoie le lien par email (Cloudflare Email Sending) ;
 // GET /auth/email/verify le consomme et cree une session, comme un callback
@@ -1058,6 +1153,10 @@ export async function handleAuthRoutes(request, env, url) {
   if (pathname === '/auth/preferences' && request.method === 'GET') return handlePreferencesGet(request, env);
   if (pathname === '/auth/preferences' && request.method === 'PATCH') return handlePreferencesPatch(request, env);
   if (pathname === '/auth/profile' && request.method === 'PATCH') return handleProfilePatch(request, env);
+  if (pathname === '/auth/usage' && request.method === 'GET') return handleUsageGet(request, env);
+  if (pathname === '/auth/sessions' && request.method === 'GET') return handleSessionsGet(request, env);
+  if (pathname === '/auth/sessions/revoke' && request.method === 'POST') return handleSessionRevoke(request, env);
+  if (pathname === '/auth/sessions/revoke-others' && request.method === 'POST') return handleSessionsRevokeOthers(request, env);
 
   return authJson(request, env, { ok: false, error: 'not_found' }, 404);
 }

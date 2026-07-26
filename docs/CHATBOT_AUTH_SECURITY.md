@@ -53,6 +53,11 @@ défaut (voir §7).
 | `/auth/me` | GET | État de session (source de vérité) |
 | `/auth/logout` | POST | Révoque la session en D1 + supprime le cookie |
 | `/auth/profile` | PATCH | Modifie `displayName` / `preference.tone` / `preference.theme` |
+| `/auth/preferences` | GET / PATCH | Lit / écrit les préférences assistant complètes (`user_preferences`) |
+| `/auth/usage` | GET | Quotas IA (fenêtre horaire courante) + dernière activité (`ai_usage_events`) |
+| `/auth/sessions` | GET | Historique des sessions (`user_sessions`) + dernière connexion (`users.last_login_at`) |
+| `/auth/sessions/revoke` | POST | `{ sessionId }` → révoque une session précise (jamais la session courante) |
+| `/auth/sessions/revoke-others` | POST | Révoque toutes les sessions sauf la session courante |
 | `/ai/chat` | POST | Proxy IA protégé (401 `AUTH_REQUIRED` si non connecté) |
 
 ## 4. Variables & secrets Cloudflare (Worker API)
