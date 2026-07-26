@@ -160,68 +160,123 @@
               <form class="dbs-profile-settings-form" data-dbs-ai-settings-form>
                 <div class="dbs-settings-group">
                   <h3 class="dbs-settings-group-title" data-i18n="aiSettingsGroupVoice">Voix &amp; audio</h3>
-                  <div class="dbs-profile-grid">
-                    <div class="dbs-setting-field">
-                      <label for="dbs-ai-voice" data-i18n="assistantVoice">Voix de l'assistant</label>
-                      <select id="dbs-ai-voice" data-dbs-ai-pref="aiVoice">
-                        <option value="auto" data-i18n="autoVoice">Voix auto</option>
-                      </select>
-                      <small data-i18n="voicesHint">Les voix disponibles dépendent du navigateur et du système.</small>
+                  <div class="dbs-settings-card">
+                    <div class="dbs-settings-row">
+                      <span class="dbs-settings-row-icon" aria-hidden="true">🗣️</span>
+                      <div class="dbs-settings-row-text">
+                        <span class="dbs-settings-row-label" id="dbs-ai-voice-label" data-i18n="assistantVoice">Voix de l'assistant</span>
+                        <small data-i18n="voicesHint">Les voix disponibles dépendent du navigateur et du système.</small>
+                      </div>
+                      <div class="dbs-settings-row-control">
+                        <select id="dbs-ai-voice" data-dbs-ai-pref="aiVoice" aria-labelledby="dbs-ai-voice-label">
+                          <option value="auto" data-i18n="autoVoice">Voix auto</option>
+                        </select>
+                      </div>
                     </div>
-                    <div class="dbs-setting-field">
-                      <label for="dbs-ai-voice-language" data-i18n="voiceLanguage">Langue vocale</label>
-                      <select id="dbs-ai-voice-language" data-dbs-ai-pref="voiceLanguage">
-                        <option value="auto" data-i18n="automatic">Automatique</option>
-                        <option value="fr" data-i18n="french">Français</option>
-                        <option value="en" data-i18n="english">Anglais</option>
-                      </select>
-                      <small data-i18n="voiceLanguageHint">Langue utilisée pour la lecture audio, indépendamment de la langue de l'interface.</small>
+                    <div class="dbs-settings-row">
+                      <span class="dbs-settings-row-icon" aria-hidden="true">🌐</span>
+                      <div class="dbs-settings-row-text">
+                        <span class="dbs-settings-row-label" id="dbs-ai-voice-language-label" data-i18n="voiceLanguage">Langue vocale</span>
+                        <small data-i18n="voiceLanguageHint">Langue utilisée pour la lecture audio, indépendamment de la langue de l'interface.</small>
+                      </div>
+                      <div class="dbs-settings-row-control">
+                        <select id="dbs-ai-voice-language" data-dbs-ai-pref="voiceLanguage" aria-labelledby="dbs-ai-voice-language-label">
+                          <option value="auto" data-i18n="automatic">Automatique</option>
+                          <option value="fr" data-i18n="french">Français</option>
+                          <option value="en" data-i18n="english">Anglais</option>
+                        </select>
+                      </div>
                     </div>
-                    <label class="dbs-setting-field dbs-toggle-field">
-                      <span data-i18n="autoVoiceMode">Mode voix automatique</span>
-                      <input type="checkbox" data-dbs-ai-pref="voiceAuto" />
-                      <small data-i18n="autoVoiceModeHint">Voix auto activée lorsque disponible.</small>
-                    </label>
-                    <label class="dbs-setting-field dbs-toggle-field">
-                      <span data-i18n="readResponsesAloud">Lecture vocale des réponses</span>
-                      <input type="checkbox" data-dbs-ai-pref="readResponsesAloud" />
-                      <small data-i18n="readResponsesAloudHint">Lire automatiquement à voix haute chaque nouvelle réponse de l'assistant.</small>
-                    </label>
-                    <label class="dbs-setting-field dbs-toggle-field">
-                      <span data-i18n="micInteraction">Micro / interaction vocale</span>
-                      <input type="checkbox" data-dbs-ai-pref="showMicrophone" />
-                      <small data-i18n="micInteractionHint">Afficher le bouton micro dans la barre de saisie du chat.</small>
-                    </label>
+                    <div class="dbs-settings-row">
+                      <span class="dbs-settings-row-icon" aria-hidden="true">🔁</span>
+                      <div class="dbs-settings-row-text">
+                        <span class="dbs-settings-row-label" id="dbs-ai-voice-auto-label" data-i18n="autoVoiceMode">Mode voix automatique</span>
+                        <small data-i18n="autoVoiceModeHint">Voix auto activée lorsque disponible.</small>
+                      </div>
+                      <div class="dbs-settings-row-control">
+                        <label class="dbs-toggle-switch">
+                          <input type="checkbox" data-dbs-ai-pref="voiceAuto" aria-labelledby="dbs-ai-voice-auto-label" />
+                          <span class="dbs-toggle-switch-track" aria-hidden="true"></span>
+                        </label>
+                      </div>
+                    </div>
+                    <div class="dbs-settings-row">
+                      <span class="dbs-settings-row-icon" aria-hidden="true">🔊</span>
+                      <div class="dbs-settings-row-text">
+                        <span class="dbs-settings-row-label" id="dbs-ai-read-aloud-label" data-i18n="readResponsesAloud">Lecture vocale des réponses</span>
+                        <small data-i18n="readResponsesAloudHint">Lire automatiquement à voix haute chaque nouvelle réponse de l'assistant.</small>
+                      </div>
+                      <div class="dbs-settings-row-control">
+                        <label class="dbs-toggle-switch">
+                          <input type="checkbox" data-dbs-ai-pref="readResponsesAloud" aria-labelledby="dbs-ai-read-aloud-label" />
+                          <span class="dbs-toggle-switch-track" aria-hidden="true"></span>
+                        </label>
+                      </div>
+                    </div>
+                    <div class="dbs-settings-row">
+                      <span class="dbs-settings-row-icon" aria-hidden="true">🎙️</span>
+                      <div class="dbs-settings-row-text">
+                        <span class="dbs-settings-row-label" id="dbs-ai-mic-label" data-i18n="micInteraction">Micro / interaction vocale</span>
+                        <small data-i18n="micInteractionHint">Afficher le bouton micro dans la barre de saisie du chat.</small>
+                      </div>
+                      <div class="dbs-settings-row-control">
+                        <label class="dbs-toggle-switch">
+                          <input type="checkbox" data-dbs-ai-pref="showMicrophone" aria-labelledby="dbs-ai-mic-label" />
+                          <span class="dbs-toggle-switch-track" aria-hidden="true"></span>
+                        </label>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
                 <div class="dbs-settings-group">
                   <h3 class="dbs-settings-group-title" data-i18n="aiSettingsGroupDisplay">Affichage &amp; confort</h3>
-                  <div class="dbs-profile-grid">
-                    <div class="dbs-setting-field">
-                      <label for="dbs-ai-chat-density" data-i18n="chatDensity">Densité du chat</label>
-                      <select id="dbs-ai-chat-density" data-dbs-ai-pref="chatDensity">
-                        <option value="comfortable" data-i18n="comfortable">Confortable</option>
-                        <option value="compact" data-i18n="compact">Compacte</option>
-                      </select>
-                      <small data-i18n="chatDensityHint">Compacte resserre l'espacement entre les bulles et les paragraphes.</small>
+                  <div class="dbs-settings-card">
+                    <div class="dbs-settings-row">
+                      <span class="dbs-settings-row-icon" aria-hidden="true">🧩</span>
+                      <div class="dbs-settings-row-text">
+                        <span class="dbs-settings-row-label" id="dbs-ai-density-label" data-i18n="chatDensity">Densité du chat</span>
+                        <small data-i18n="chatDensityHint">Compacte resserre l'espacement entre les bulles et les paragraphes.</small>
+                      </div>
+                      <div class="dbs-settings-row-control">
+                        <select id="dbs-ai-chat-density" data-dbs-ai-pref="chatDensity" aria-labelledby="dbs-ai-density-label">
+                          <option value="comfortable" data-i18n="comfortable">Confortable</option>
+                          <option value="compact" data-i18n="compact">Compacte</option>
+                        </select>
+                      </div>
                     </div>
-                    <label class="dbs-setting-field dbs-toggle-field">
-                      <span data-i18n="suggestions">Suggestions</span>
-                      <input type="checkbox" data-dbs-ai-pref="showSuggestions" />
-                      <small data-i18n="suggestionsHint">Proposer 2-3 questions de suivi cliquables après chaque réponse.</small>
-                    </label>
+                    <div class="dbs-settings-row">
+                      <span class="dbs-settings-row-icon" aria-hidden="true">💡</span>
+                      <div class="dbs-settings-row-text">
+                        <span class="dbs-settings-row-label" id="dbs-ai-suggestions-label" data-i18n="suggestions">Suggestions</span>
+                        <small data-i18n="suggestionsHint">Proposer 2-3 questions de suivi cliquables après chaque réponse.</small>
+                      </div>
+                      <div class="dbs-settings-row-control">
+                        <label class="dbs-toggle-switch">
+                          <input type="checkbox" data-dbs-ai-pref="showSuggestions" aria-labelledby="dbs-ai-suggestions-label" />
+                          <span class="dbs-toggle-switch-track" aria-hidden="true"></span>
+                        </label>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
                 <div class="dbs-settings-group">
                   <h3 class="dbs-settings-group-title" data-i18n="aiSettingsGroupSources">Sources</h3>
-                  <div class="dbs-profile-grid">
-                    <label class="dbs-setting-field dbs-toggle-field">
-                      <span data-i18n="availableSources">Sources disponibles</span>
-                      <input type="checkbox" data-dbs-ai-pref="showSourcesWhenAvailable" />
-                      <small data-i18n="availableSourcesHint">Afficher le bloc « Sources utilisées » (documents projet et résultats web) sous les réponses.</small>
-                    </label>
+                  <div class="dbs-settings-card">
+                    <div class="dbs-settings-row">
+                      <span class="dbs-settings-row-icon" aria-hidden="true">📎</span>
+                      <div class="dbs-settings-row-text">
+                        <span class="dbs-settings-row-label" id="dbs-ai-sources-label" data-i18n="availableSources">Sources disponibles</span>
+                        <small data-i18n="availableSourcesHint">Afficher le bloc « Sources utilisées » (documents projet et résultats web) sous les réponses.</small>
+                      </div>
+                      <div class="dbs-settings-row-control">
+                        <label class="dbs-toggle-switch">
+                          <input type="checkbox" data-dbs-ai-pref="showSourcesWhenAvailable" aria-labelledby="dbs-ai-sources-label" />
+                          <span class="dbs-toggle-switch-track" aria-hidden="true"></span>
+                        </label>
+                      </div>
+                    </div>
                   </div>
                 </div>
 

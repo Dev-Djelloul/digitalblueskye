@@ -12431,15 +12431,153 @@ body.profile-page .profile-main {
 }
 
 .dbs-settings-group-title {
-  border-bottom: 1px solid rgb(93 93 255 / 20%);
   color: rgb(246 247 255 / 92%);
   font-family: var(--font-body);
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.06em;
   margin: 0;
-  padding-bottom: 8px;
   text-transform: uppercase;
+}
+
+/* profile.html#ai-settings (Parametres IA) : chaque groupe est une carte de
+   lignes "reglage systeme" (icone + libelle/description a gauche, controle a
+   droite) plutot qu'une grille plate melangeant selects et cases a cocher —
+   bien plus scannable des que le nombre de reglages grandit. */
+.dbs-settings-card {
+  background: rgb(255 255 255 / 3%);
+  border: 1px solid rgb(93 93 255 / 20%);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.dbs-settings-row {
+  align-items: center;
+  display: flex;
+  gap: 14px;
+  padding: 14px 16px;
+}
+
+.dbs-settings-row + .dbs-settings-row {
+  border-top: 1px solid rgb(93 93 255 / 14%);
+}
+
+.dbs-settings-row-icon {
+  flex: 0 0 auto;
+  font-size: 1.05rem;
+  line-height: 1;
+  width: 22px;
+}
+
+.dbs-settings-row-text {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.dbs-settings-row-label {
+  color: rgb(246 247 255 / 92%);
+  font-size: 0.84rem;
+  font-weight: 650;
+}
+
+.dbs-settings-row-text small {
+  color: rgb(235 240 255 / 55%);
+  font-size: 0.74rem;
+  line-height: 1.4;
+}
+
+.dbs-settings-row-control {
+  flex: 0 0 auto;
+}
+
+.dbs-settings-row-control select {
+  background: rgb(14 17 40 / 95%);
+  border: 1px solid rgb(93 93 255 / 30%);
+  border-radius: 10px;
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  min-width: 152px;
+  padding: 7px 9px;
+}
+
+/* Interrupteur pilule (remplace la case a cocher native, peu lisible et
+   incoherente d'un navigateur a l'autre) : l'input reste un vrai checkbox —
+   seule son apparence est masquee — donc la logique JS existante
+   ([data-dbs-ai-pref], .checked) continue de fonctionner sans changement. */
+.dbs-toggle-switch {
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 auto;
+  height: 24px;
+  position: relative;
+  width: 42px;
+}
+
+.dbs-toggle-switch input {
+  cursor: pointer;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  position: absolute;
+  width: 100%;
+  z-index: 1;
+}
+
+.dbs-toggle-switch-track {
+  background: rgb(255 255 255 / 14%);
+  border: 1px solid rgb(93 93 255 / 35%);
+  border-radius: 999px;
+  display: block;
+  height: 100%;
+  position: relative;
+  transition: background 0.18s ease, border-color 0.18s ease;
+  width: 100%;
+}
+
+.dbs-toggle-switch-track::after {
+  background: #fff;
+  border-radius: 50%;
+  content: "";
+  height: 16px;
+  left: 2px;
+  position: absolute;
+  top: 2px;
+  transition: transform 0.18s ease;
+  width: 16px;
+}
+
+.dbs-toggle-switch input:checked + .dbs-toggle-switch-track {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+}
+
+.dbs-toggle-switch input:checked + .dbs-toggle-switch-track::after {
+  transform: translateX(18px);
+}
+
+.dbs-toggle-switch input:focus-visible + .dbs-toggle-switch-track {
+  outline: 2px solid rgb(121 230 255 / 60%);
+  outline-offset: 2px;
+}
+
+@media (width <= 640px) {
+  .dbs-settings-row {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .dbs-settings-row-control {
+    margin-left: 36px;
+  }
+
+  .dbs-settings-row-control select {
+    min-width: 0;
+    width: 100%;
+  }
 }
 
 .dbs-setting-field {
@@ -19639,6 +19777,34 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
 [data-theme="light"] .dbs-profile-field input[disabled],
 [data-theme="light"] .dbs-setting-field input[disabled] {
   color: rgb(30 32 55 / 55%);
+}
+
+[data-theme="light"] .dbs-settings-card {
+  background: rgb(93 93 255 / 3%);
+  border-color: rgb(93 93 255 / 18%);
+}
+
+[data-theme="light"] .dbs-settings-row + .dbs-settings-row {
+  border-top-color: rgb(93 93 255 / 12%);
+}
+
+[data-theme="light"] .dbs-settings-row-label {
+  color: rgb(20 22 40 / 92%);
+}
+
+[data-theme="light"] .dbs-settings-row-text small {
+  color: rgb(30 32 55 / 62%);
+}
+
+[data-theme="light"] .dbs-settings-row-control select {
+  background: rgb(93 93 255 / 6%);
+  border-color: rgb(93 93 255 / 26%);
+  color: rgb(20 22 40 / 92%);
+}
+
+[data-theme="light"] .dbs-toggle-switch-track {
+  background: rgb(93 93 255 / 10%);
+  border-color: rgb(93 93 255 / 32%);
 }
 
 [data-theme="light"] .dbs-oauth-btn {
