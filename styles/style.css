@@ -16873,8 +16873,8 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
 .ai-assistant-table-copy-btn {
   align-items: center;
   backdrop-filter: blur(6px);
-  background: rgb(12 14 30 / 78%);
-  border: 1px solid rgb(255 255 255 / 20%);
+  background: rgb(19 23 52 / 82%);
+  border: 1px solid rgb(121 230 255 / 32%);
   border-radius: 8px;
   cursor: pointer;
   display: inline-flex;
@@ -16962,11 +16962,9 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
 
 .ai-assistant-message--bot {
   align-self: flex-start;
-  background: rgb(93 93 255 / 17%);
-  background: linear-gradient(92deg, #9ec4ff 0%, #9d7dff 45%, #e086ff 100%);
-  background-clip: text;
-  border: 1px solid rgb(93 93 255 / 45%);
-  color: transparent;
+  background: linear-gradient(180deg, rgb(19 23 52 / 90%), rgb(12 15 35 / 90%)), rgb(14 17 40 / 92%);
+  border: 1px solid rgb(121 230 255 / 28%);
+  color: #f2efff;
   margin-left: 40px;
 }
 
@@ -19036,10 +19034,10 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
 [data-theme="dark"] {
   --ai-text: #f5f0ff;
   --ai-text-muted: #d9d0f5;
-  --ai-surface: rgb(17 12 38 / 82%);
-  --ai-surface-soft: rgb(255 255 255 / 7%);
-  --ai-border: rgb(255 255 255 / 15%);
-  --ai-accent: #8ab4ff;
+  --ai-surface: rgb(24 28 58 / 85%);
+  --ai-surface-soft: rgb(255 255 255 / 12%);
+  --ai-border: rgb(121 230 255 / 26%);
+  --ai-accent: #79e6ff;
 }
 
 [data-theme="light"] {
