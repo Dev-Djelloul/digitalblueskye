@@ -12557,11 +12557,17 @@ body.profile-page .profile-main {
   font-family: var(--font-body);
   gap: 4px;
   padding: 12px;
+  position: relative;
   text-align: left;
 }
 
 .dbs-companion-option:hover {
   border-color: rgb(121 230 255 / 45%);
+}
+
+.dbs-companion-option:focus-visible {
+  outline: 2px solid rgb(121 230 255 / 60%);
+  outline-offset: 2px;
 }
 
 .dbs-companion-option.is-active {
@@ -12578,6 +12584,71 @@ body.profile-page .profile-main {
 .dbs-companion-option span {
   font-size: 0.78rem;
   line-height: 1.4;
+}
+
+.dbs-companion-icon {
+  font-size: 1.3rem;
+  line-height: 1;
+  margin-bottom: 2px;
+}
+
+.dbs-companion-check {
+  align-items: center;
+  background: rgb(110 231 168);
+  border-radius: 50%;
+  color: #06281a;
+  display: flex;
+  font-size: 0.68rem;
+  font-weight: 700;
+  height: 18px;
+  justify-content: center;
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  width: 18px;
+}
+
+.dbs-companion-desc {
+  min-height: 2.8em;
+}
+
+.dbs-companion-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 2px;
+}
+
+.dbs-companion-tag {
+  background: rgb(93 93 255 / 14%);
+  border-radius: 999px;
+  color: rgb(235 240 255 / 75%);
+  font-size: 0.68rem;
+  padding: 2px 8px;
+}
+
+.dbs-companion-option.is-active .dbs-companion-tag {
+  background: rgb(121 230 255 / 16%);
+  color: rgb(121 230 255 / 95%);
+}
+
+.dbs-companion-try {
+  background: transparent;
+  border: 1px solid rgb(93 93 255 / 30%);
+  border-radius: 8px;
+  color: rgb(235 240 255 / 85%);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.74rem;
+  margin-top: 8px;
+  padding: 6px 10px;
+  align-self: flex-start;
+}
+
+.dbs-companion-try:hover {
+  background: rgb(121 230 255 / 10%);
+  border-color: rgb(121 230 255 / 55%);
+  color: #fff;
 }
 
 .dbs-info-grid {

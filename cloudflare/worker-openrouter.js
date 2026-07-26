@@ -191,6 +191,36 @@ function buildSystemPrompt(language, dateContext) {
   ].join(' ');
 }
 
+// Compagnon IA (profile.html, onglet "Compagnon IA") : bloc de persona
+// additionnel, injecte APRES buildSystemPrompt() — vient renforcer un angle
+// de reponse, jamais remplacer les garde-fous (anti-hallucination, format,
+// citations) qui restent identiques quel que soit le compagnon actif.
+// 'skye' (defaut) et toute valeur inconnue/absente ne rajoutent aucun bloc :
+// c'est le comportement neutre historique du prompt de base.
+const COMPANION_PROMPT_BLOCKS = {
+  fr: {
+    pilot: "Compagnon actif : Pilot (mode chef de projet). Structure systematiquement ta reponse autour de : priorites, risques, decisions a prendre, livrables attendus et jalons/roadmap. Signale explicitement les arbitrages et leurs consequences.",
+    builder: "Compagnon actif : Builder (mode technique). Privilegie la precision technique : architecture, choix d'implementation, code, tests, robustesse et dette technique. Va droit aux details concrets (nommage, structure, edge cases) plutot qu'a des generalites.",
+    scout: "Compagnon actif : Scout (mode veille/benchmark). Oriente ta reponse vers la recherche, la comparaison et l'analyse concurrentielle : tendances, alternatives, forces/faiblesses. Distingue toujours clairement les faits sources des interpretations.",
+    muse: "Compagnon actif : Muse (mode redaction). Soigne particulierement le style et la narration : structure editoriale, accroche, fluidite, vocabulaire varie — adapte au format demande (article, portfolio, support professionnel).",
+    guardian: "Compagnon actif : Guardian (mode securite). Priorise systematiquement les angles authentification, conformite, resilience et bonnes pratiques de securite ; signale explicitement tout risque ou mauvaise pratique identifiee, meme non demande."
+  },
+  en: {
+    pilot: "Active companion: Pilot (project manager mode). Systematically structure your answer around: priorities, risks, decisions to make, expected deliverables and milestones/roadmap. Explicitly call out trade-offs and their consequences.",
+    builder: "Active companion: Builder (technical mode). Favor technical precision: architecture, implementation choices, code, tests, robustness and technical debt. Go straight to concrete details (naming, structure, edge cases) rather than generalities.",
+    scout: "Active companion: Scout (watch/benchmark mode). Orient your answer toward research, comparison and competitive analysis: trends, alternatives, strengths/weaknesses. Always clearly separate sourced facts from interpretation.",
+    muse: "Active companion: Muse (writing mode). Pay particular attention to style and narrative: editorial structure, hook, flow, varied vocabulary — adapted to the requested format (article, portfolio, professional material).",
+    guardian: "Active companion: Guardian (security mode). Systematically prioritize authentication, compliance, resilience and security best-practice angles; explicitly flag any identified risk or bad practice, even unprompted."
+  }
+};
+
+function buildCompanionPromptBlock(companion, language) {
+  const key = String(companion || '').trim().toLowerCase();
+  const lang = language === 'en' ? 'en' : 'fr';
+  const block = COMPANION_PROMPT_BLOCKS[lang][key];
+  return block ? ` ${block}` : '';
+}
+
 function normalizeHistory(history) {
   if (!Array.isArray(history)) return [];
 
@@ -2978,6 +3008,7 @@ export default {
     const primaryModel = env.OPENROUTER_MODEL || DEFAULT_MODEL;
     const dateContext = normalizeDateContext(body?.currentDate);
     const systemPrompt = buildSystemPrompt(language, dateContext);
+    const companionBlock = buildCompanionPromptBlock(body?.preferences?.companion, language);
     const configuredMaxTokens = Number(env.OPENROUTER_MAX_TOKENS);
     const requestedMaxTokens = Number(body?.maxTokens);
     const maxTokensFloor = Math.max(
@@ -3124,7 +3155,7 @@ export default {
     // jamais sourcePolicyBlock, vient toujours en complement. Sans toolPlan
     // (flag desactive/erreur), bloc vide, comportement inchange.
     const toolPolicyBlock = toolPlan?.policy?.policyText ? ` ${toolPlan.policy.policyText}` : '';
-    let finalSystemPrompt = promptBasePrompt + pilotageBlock + knowledgeInventoryBlock + sourcePolicyBlock + toolPolicyBlock;
+    let finalSystemPrompt = promptBasePrompt + pilotageBlock + knowledgeInventoryBlock + sourcePolicyBlock + toolPolicyBlock + companionBlock;
     let knowledgeResult = null;
     if (isKnowledgeOrchestratorEnabled(env)) {
       try {
@@ -3523,7 +3554,7 @@ export default {
       });
       if (webSearchPerformed) {
         finalSystemPrompt = [
-          promptBasePrompt + pilotageBlock + knowledgeInventoryBlock,
+          promptBasePrompt + pilotageBlock + knowledgeInventoryBlock + companionBlock,
           buildWebContextPrompt(language, webSearchResults, webSearchResolvedQuery, webSearchAnswer)
         ].join('\n\n');
         safeLogJson('WEB_CONTEXT', {
@@ -3541,7 +3572,7 @@ export default {
         });
       } else {
         finalSystemPrompt = [
-          promptBasePrompt + pilotageBlock + knowledgeInventoryBlock,
+          promptBasePrompt + pilotageBlock + knowledgeInventoryBlock + companionBlock,
           language === 'en'
             ? `Live web search was requested, but it did not return usable results. Technical status: ${webSearchError || 'no_results'}. Be transparent about this search failure; do not invent current facts.`
             : `Une recherche web temps reel a ete demandee, mais elle n'a pas retourne de resultats exploitables. Statut technique : ${webSearchError || 'no_results'}. Sois transparent sur cet echec de recherche ; n'invente pas de faits recents.`

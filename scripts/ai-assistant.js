@@ -12234,9 +12234,29 @@
       setAssistantPanelOpen(true);
       setAssistantExpanded(true);
       updateScrollBottomButton();
+      applyPendingChatPrompt();
     };
     document.addEventListener('dbs-auth-changed', openChatPageAssistant);
     openChatPageAssistant();
+  }
+
+  // Pre-remplissage depuis profile.html ("Tester dans le chat", onglet
+  // Compagnon IA) : suggere une question adaptee au compagnon choisi SANS
+  // l'envoyer automatiquement — l'utilisateur garde la main. Cle a usage
+  // unique (consommee immediatement) pour ne jamais re-remplir le champ au
+  // prochain chargement de la page.
+  function applyPendingChatPrompt() {
+    if (!input) return;
+    let pending = '';
+    try {
+      pending = localStorage.getItem('dbs_pending_chat_prompt') || '';
+      if (pending) localStorage.removeItem('dbs_pending_chat_prompt');
+    } catch (_) { pending = ''; }
+    if (!pending || input.value.trim()) return;
+    input.value = pending;
+    resizeAssistantComposer();
+    input.focus();
+    input.setSelectionRange(input.value.length, input.value.length);
   }
 
   if (expandButton && panel) {

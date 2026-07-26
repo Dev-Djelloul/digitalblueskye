@@ -210,7 +210,7 @@
             <section class="dbs-profile-panel" id="dbs-panel-companion" role="tabpanel" aria-labelledby="dbs-tab-companion" data-dbs-profile-panel="companion" hidden>
               <div class="dbs-profile-panel-heading">
                 <h2 data-i18n="tabCompanion">Compagnon IA</h2>
-                <p data-i18n="companionDesc">Choisissez le mode de travail qui guidera Digital Blue Skye AI.</p>
+                <p data-i18n="companionDesc">Choisissez le mode de travail qui guidera Digital Blue Skye AI. Le compagnon actif influence réellement les réponses de l'assistant, à chaque message envoyé dans le chat.</p>
               </div>
               <p class="dbs-companion-active-summary" data-dbs-companion-summary>Compagnon actif : Skye</p>
               <div class="dbs-companion-grid" data-dbs-companion-grid></div>
@@ -413,7 +413,8 @@
           availableSourcesHint: ['Afficher les sources quand elles sont disponibles.', 'Show sources when available.'],
           saveAiSettings: ['Enregistrer les paramètres IA', 'Save AI settings'],
           aiSettingsSaved: ['Paramètres IA enregistrés.', 'AI settings saved.'],
-          companionDesc: ['Choisissez le mode de travail qui guidera Digital Blue Skye AI.', 'Choose the working mode that will guide Digital Blue Skye AI.'],
+          companionDesc: ["Choisissez le mode de travail qui guidera Digital Blue Skye AI. Le compagnon actif influence réellement les réponses de l'assistant, à chaque message envoyé dans le chat.", "Choose the working mode that will guide Digital Blue Skye AI. The active companion genuinely influences the assistant's replies, on every message sent in the chat."],
+          tryInChat: ['Tester dans le chat', 'Try in chat'],
           companionUpdated: ['Compagnon IA mis à jour.', 'AI companion updated.'],
           activeCompanionPrefix: ['Compagnon actif : ', 'Active companion: '],
           securityDesc: ["Votre session est gérée côté serveur. Aucune clé API n'est exposée dans le navigateur.", 'Your session is managed server-side. No API key is ever exposed in the browser.'],
@@ -622,19 +623,19 @@
           showSourcesWhenAvailable: true
         };
         const COMPANIONS = EN ? [
-          ['skye', 'Skye', 'Balanced general assistant for everyday conversations.'],
-          ['pilot', 'Pilot', 'Project manager mode: priorities, risks, decisions, deliverables, roadmap.'],
-          ['builder', 'Builder', 'Technical mode: code, architecture, debugging, integration, robustness.'],
-          ['scout', 'Scout', 'Watch mode: benchmarking, trends, research, competitive analysis.'],
-          ['muse', 'Muse', 'Writing mode: storytelling, portfolio, articles, professional materials.'],
-          ['guardian', 'Guardian', 'Security mode: authentication, compliance, resilience, best practices.']
+          { key: 'skye', name: 'Skye', icon: '🧭', desc: 'Balanced general assistant for everyday conversations.', tags: ['Versatile', 'Everyday', 'Balanced'], example: 'Help me organize my work day on the SAFE project.' },
+          { key: 'pilot', name: 'Pilot', icon: '🗂️', desc: 'Project manager mode: priorities, risks, decisions, deliverables, roadmap.', tags: ['Priorities', 'Risks', 'Roadmap'], example: 'Prioritize the 3 critical actions for the next two weeks on my project.' },
+          { key: 'builder', name: 'Builder', icon: '🛠️', desc: 'Technical mode: code, architecture, debugging, integration, robustness.', tags: ['Code', 'Architecture', 'Debug'], example: 'Review my backend architecture and flag the technical risks.' },
+          { key: 'scout', name: 'Scout', icon: '🔍', desc: 'Watch mode: benchmarking, trends, research, competitive analysis.', tags: ['Watch', 'Benchmark', 'Trends'], example: 'Compare competing solutions in the social matching market.' },
+          { key: 'muse', name: 'Muse', icon: '✍️', desc: 'Writing mode: storytelling, portfolio, articles, professional materials.', tags: ['Writing', 'Storytelling', 'Portfolio'], example: 'Write a punchy hook for my digital project manager portfolio.' },
+          { key: 'guardian', name: 'Guardian', icon: '🛡️', desc: 'Security mode: authentication, compliance, resilience, best practices.', tags: ['Security', 'Compliance', 'Best practices'], example: 'Audit my OAuth authentication and flag the security risks.' }
         ] : [
-          ['skye', 'Skye', 'Assistant général équilibré pour accompagner les échanges du quotidien.'],
-          ['pilot', 'Pilot', 'Mode chef de projet : priorités, risques, décisions, livrables, roadmap.'],
-          ['builder', 'Builder', 'Mode technique : code, architecture, debug, intégration, robustesse.'],
-          ['scout', 'Scout', 'Mode veille : benchmark, tendances, recherche, analyse concurrentielle.'],
-          ['muse', 'Muse', 'Mode rédaction : storytelling, portfolio, articles, supports professionnels.'],
-          ['guardian', 'Guardian', 'Mode sécurité : authentification, conformité, résilience, bonnes pratiques.']
+          { key: 'skye', name: 'Skye', icon: '🧭', desc: 'Assistant général équilibré pour accompagner les échanges du quotidien.', tags: ['Polyvalent', 'Quotidien', 'Équilibré'], example: 'Aide-moi à organiser ma journée de travail sur le projet SAFE.' },
+          { key: 'pilot', name: 'Pilot', icon: '🗂️', desc: 'Mode chef de projet : priorités, risques, décisions, livrables, roadmap.', tags: ['Priorités', 'Risques', 'Roadmap'], example: 'Priorise les 3 actions critiques des deux prochaines semaines sur mon projet.' },
+          { key: 'builder', name: 'Builder', icon: '🛠️', desc: 'Mode technique : code, architecture, debug, intégration, robustesse.', tags: ['Code', 'Architecture', 'Debug'], example: 'Revois l’architecture de mon backend et signale les risques techniques.' },
+          { key: 'scout', name: 'Scout', icon: '🔍', desc: 'Mode veille : benchmark, tendances, recherche, analyse concurrentielle.', tags: ['Veille', 'Benchmark', 'Tendances'], example: 'Compare les solutions concurrentes sur le marché du matching social.' },
+          { key: 'muse', name: 'Muse', icon: '✍️', desc: 'Mode rédaction : storytelling, portfolio, articles, supports professionnels.', tags: ['Rédaction', 'Storytelling', 'Portfolio'], example: 'Rédige une accroche percutante pour mon portfolio de chef de projet digital.' },
+          { key: 'guardian', name: 'Guardian', icon: '🛡️', desc: 'Mode sécurité : authentification, conformité, résilience, bonnes pratiques.', tags: ['Sécurité', 'Conformité', 'Bonnes pratiques'], example: 'Audite mon authentification OAuth et signale les risques de sécurité.' }
         ];
 
         // ---------------------------------------------------------------
@@ -759,8 +760,8 @@
           renderAiSettings(prefs);
           const summary = document.querySelector('[data-dbs-companion-summary]');
           if (summary) {
-            const active = COMPANIONS.find(([key]) => key === (prefs.companion || 'skye'));
-            summary.textContent = `${t('activeCompanionPrefix')}${active ? active[1] : 'Skye'}`;
+            const active = COMPANIONS.find((c) => c.key === (prefs.companion || 'skye'));
+            summary.textContent = `${t('activeCompanionPrefix')}${active ? `${active.icon} ${active.name}` : 'Skye'}`;
           }
         }
 
@@ -778,11 +779,18 @@
         function renderCompanionGrid(activeCompanion) {
           const grid = document.querySelector('[data-dbs-companion-grid]');
           if (!grid) return;
-          grid.innerHTML = COMPANIONS.map(([key, name, desc]) => `
-            <button type="button" class="dbs-companion-option ${key === activeCompanion ? 'is-active' : ''}" data-companion="${key}">
-              <strong>${name}</strong>
-              <span>${desc}</span>
-            </button>`).join('');
+          grid.innerHTML = COMPANIONS.map((c) => {
+            const isActive = c.key === activeCompanion;
+            return `
+            <div class="dbs-companion-option ${isActive ? 'is-active' : ''}" data-companion="${c.key}" role="button" tabindex="0">
+              ${isActive ? '<span class="dbs-companion-check" aria-hidden="true">✓</span>' : ''}
+              <span class="dbs-companion-icon" aria-hidden="true">${c.icon}</span>
+              <strong>${escapeHtml(c.name)}</strong>
+              <span class="dbs-companion-desc">${escapeHtml(c.desc)}</span>
+              <span class="dbs-companion-tags">${c.tags.map((tag) => `<span class="dbs-companion-tag">${escapeHtml(tag)}</span>`).join('')}</span>
+              <button type="button" class="dbs-companion-try" data-companion-try="${c.key}">${escapeHtml(t('tryInChat'))}</button>
+            </div>`;
+          }).join('');
         }
 
         function setStatus(selector, visible) {
@@ -1104,18 +1112,39 @@
             }
           });
 
-          document.querySelector('[data-dbs-companion-grid]')?.addEventListener('click', async (event) => {
-            const btn = event.target.closest('[data-companion]');
-            if (!btn) return;
+          async function selectCompanion(companionKey) {
             try {
-              const result = await window.DBSAuth.saveAssistantPreferences({ companion: btn.dataset.companion });
+              const result = await window.DBSAuth.saveAssistantPreferences({ companion: companionKey });
               profilePreferencesDirty = false;
               profilePreferencesHydrated = true;
-              applyPreferencesToForm(result?.preferences || window.DBSAuth?.getAssistantPreferences?.() || { companion: btn.dataset.companion });
+              applyPreferencesToForm(result?.preferences || window.DBSAuth?.getAssistantPreferences?.() || { companion: companionKey });
               setStatus('[data-dbs-companion-saved]', true);
             } catch (error) {
               console.warn('[profile] companion save failed', error);
             }
+          }
+
+          document.querySelector('[data-dbs-companion-grid]')?.addEventListener('click', async (event) => {
+            const tryBtn = event.target.closest('[data-companion-try]');
+            if (tryBtn) {
+              const key = tryBtn.dataset.companionTry;
+              const companion = COMPANIONS.find((c) => c.key === key);
+              await selectCompanion(key);
+              try { localStorage.setItem('dbs_pending_chat_prompt', companion?.example || ''); } catch (_) { /* no-op */ }
+              window.location.href = '/chat.html';
+              return;
+            }
+            const card = event.target.closest('[data-companion]');
+            if (!card) return;
+            selectCompanion(card.dataset.companion);
+          });
+
+          document.querySelector('[data-dbs-companion-grid]')?.addEventListener('keydown', (event) => {
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+            const card = event.target.closest('[data-companion]');
+            if (!card) return;
+            event.preventDefault();
+            selectCompanion(card.dataset.companion);
           });
 
           document.querySelectorAll('[data-dbs-preferences-form], [data-dbs-ai-settings-form]').forEach((form) => {
