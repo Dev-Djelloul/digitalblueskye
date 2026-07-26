@@ -16922,30 +16922,41 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
   gap: 7px;
 }
 
+/* Icone seule : le libelle textuel reste dans le DOM (span, cf.
+   .visually-hidden plus bas) pour le nom accessible / la copie-collage,
+   mais n'est plus affiche visuellement — le tooltip natif (title) et
+   aria-label portent l'information au survol/lecteur d'ecran. */
 .ai-assistant-export-btn {
   align-items: center;
   background: rgb(255 255 255 / 8%);
   border: 1px solid rgb(255 255 255 / 18%);
-  border-radius: 999px;
+  border-radius: 50%;
   color: #dfe8ff;
   cursor: pointer;
   display: inline-flex;
-  font-family: var(--font-body);
-  font-size: 0.68rem;
-  font-weight: 700;
-  gap: 6px;
-  letter-spacing: 0.04em;
-  line-height: 1;
-  padding: 6px 11px 6px 8px;
+  height: 30px;
+  justify-content: center;
+  padding: 0;
   -webkit-text-fill-color: #dfe8ff;
   transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  width: 30px;
+}
+
+.ai-assistant-export-btn span {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
 }
 
 .ai-assistant-export-btn img {
   display: block;
-  height: 14px;
+  height: 16px;
   object-fit: contain;
-  width: 14px;
+  width: 16px;
 }
 
 .ai-assistant-export-btn:hover {
@@ -16963,27 +16974,34 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
   align-items: center;
   background: rgb(255 255 255 / 8%);
   border: 1px solid rgb(255 255 255 / 18%);
-  border-radius: 999px;
+  border-radius: 50%;
   color: #dfe8ff;
   cursor: pointer;
   display: none;
-  font-family: var(--font-body);
-  font-size: 0.68rem;
-  font-weight: 700;
-  gap: 6px;
-  letter-spacing: 0.04em;
-  line-height: 1;
-  padding: 6px 12px 6px 8px;
+  height: 30px;
+  justify-content: center;
+  padding: 0;
   -webkit-text-fill-color: #dfe8ff;
   transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  width: 30px;
+}
+
+.ai-assistant-regenerate-btn span {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
 }
 
 .ai-assistant-regenerate-btn img {
   display: block;
-  height: 14px;
+  height: 16px;
   object-fit: contain;
   transition: transform 0.35s ease;
-  width: 14px;
+  width: 16px;
 }
 
 .ai-assistant-regenerate-btn:hover {
