@@ -121,6 +121,28 @@ const RX = {
   // Memes lookarounds Unicode que testGenerationVerb ci-dessus (meme cause :
   // "écris"/"écrire" en debut d'alternative).
   docGenerationVerb: /(?<![\p{L}\p{N}_])((?:documente|documenter)\s+(?:ce|mon|cette)\s+code|jsdoc|docstrings?|(?:g[ée]n[èe]re|g[ée]n[ée]rer)\s+(?:la\s+)?doc(?:umentation)?\s+(?:de\s+ce\s+code|technique|de\s+l['e]api|api)|(?:[ée]cris|[ée]crire)\s+la\s+doc(?:umentation)?\s+(?:de\s+ce\s+code|technique)|document\s+this\s+code|generate\s+(?:jsdoc|docstrings?|documentation\s+for\s+this)|write\s+(?:the\s+)?documentation\s+for\s+this\s+code|api\s+documentation\s+for\s+this)(?![\p{L}\p{N}_])/iu,
+  // Demande de refactoring (reecriture propre SANS changement de
+  // comportement). Necessite un vrai bloc de code (meme logique que
+  // codeReviewVerb/testGenerationVerb) : impossible de refactorer du code
+  // qu'on n'a jamais vu. "refactor" seul est deja dans RX.technical (utilise
+  // par le fallback technical_help) : cette regex dediee doit donc etre
+  // verifiee AVANT isCodeReview dans detectUserIntent, sinon "refactor ce
+  // code" tomberait dans le profil code_review generique au lieu du profil
+  // refactoring dedie (regles differentes : preserver le comportement,
+  // AVANT/APRES, pas de recherche de bugs).
+  // NOTE : verbes irreguliers trouves en test manuel — "rendre" (infinitif
+  // irregulier de "rends", pas juste "rend"+"s") et "nettoyer" (le radical
+  // change de "nettoi-" a "nettoy-" a l'infinitif, verbe en -oyer comme
+  // "employer"/"envoyer" : ajouter juste "r" a "nettoie" donne "nettoier",
+  // qui n'existe pas). Les deux formes sont donc listees explicitement au
+  // lieu d'un suffixe optionnel.
+  refactoringVerb: /(?<![\p{L}\p{N}_])(refactor(?:e|es|er|ing)?|(?:rends?|rendre)\s+(?:ce|ton)\s+code\s+(?:plus\s+)?lisible|am[ée]liore(?:r)?\s+la\s+lisibilit[ée]|(?:nettoie|nettoyer)\s+ce\s+code|simplifie(?:r)?\s+ce\s+code|clean\s*up\s+this\s+code|make\s+this\s+(?:more\s+)?readable|simplify\s+this\s+code|rewrite\s+this\s+(?:cleanly|clean))(?![\p{L}\p{N}_])/iu,
+  // Assistant Git : message de commit / nom de branche / description de PR /
+  // changelog. Ne necessite PAS de bloc de code (le diff/la description
+  // suffit en texte). NOTE : (?:g[ée]n[èe]re|g[ée]n[ée]rer) reutilise le
+  // meme correctif Unicode que testGenerationVerb/docGenerationVerb
+  // (present "génère" en È, infinitif "générer" en É — pas le meme accent).
+  gitAssistantVerb: /(?<![\p{L}\p{N}_])((?:[ée]cris|[ée]crire)\s+(?:un\s+)?message\s+de\s+commit|(?:g[ée]n[èe]re|g[ée]n[ée]rer)\s+(?:un\s+)?message\s+de\s+commit|propose(?:r)?\s+(?:un\s+)?message\s+de\s+commit|message\s+de\s+commit\s+pour|commit\s+message\s+for\s+this|write\s+a\s+commit\s+message|nom\s+de\s+branche|branch\s+name\s+for\s+this|suggest\s+a\s+branch\s+name|description\s+de\s+(?:pr|pull\s+request)|pr\s+description|write\s+a\s+pr\s+description|(?:g[ée]n[èe]re|g[ée]n[ée]rer)\s+(?:un\s+)?changelog|generate\s+a\s+changelog|git\s+commit\s+message)(?![\p{L}\p{N}_])/iu,
   table: /\b(tableau|table|grille|matrice|colonnes?|en\s+ligne[s]?\s+et\s+colonnes?|sous\s+forme\s+de\s+tableau|in\s+a\s+table)\b/i,
   webRecency: /\b(aujourd['\s]hui|maintenant|actuel|actuelle|actuellement|r[ée]cent|r[ée]cente|derni[èe]res?\s+(?:nouvelles?|actualit[ée]s?|infos?)|actualit[ée]s?|en\s+202\d|cette\s+ann[ée]e|ce\s+mois|prix\s+actuel|cours\s+(?:de|du)|latest|current|recent|today|right\s+now|breaking|news|live)\b/i,
   ragProject: /\b(le\s+projet|ce\s+projet|du\s+projet|dans\s+le\s+projet|ce\s+document|ce\s+fichier|cette\s+source|selon\s+(?:le\s+projet|la\s+doc|le\s+document)|que\s+dit\s+(?:le|la|ce)|d['e]apr[èe]s\s+(?:le|la|ce|mes)\s+(?:projet|document|source|fichier|note)|in\s+(?:the|my)\s+project|the\s+document\s+says)\b/i,
@@ -175,7 +197,9 @@ export function detectUserIntent({ userMessage = '', projectContext = null, hasR
     docGenerationVerb: RX.docGenerationVerb.test(msg),
     architectureAnalysisVerb: RX.architectureAnalysisVerb.test(msg),
     hasErrorTrace: RX.hasErrorTrace.test(msg),
-    debugVerb: RX.debugVerb.test(msg)
+    debugVerb: RX.debugVerb.test(msg),
+    refactoringVerb: RX.refactoringVerb.test(msg),
+    gitAssistantVerb: RX.gitAssistantVerb.test(msg)
   };
 
   // Revue de code : necessite un bloc de code REELLEMENT fourni (sinon on ne
@@ -201,6 +225,13 @@ export function detectUserIntent({ userMessage = '', projectContext = null, hasR
   // Documentation de code : le verbe est deja specifique (JSDoc/docstring/
   // "documente ce code"), pas besoin d'exiger un bloc de code en plus.
   const isCodeDocumentation = Boolean(flags.docGenerationVerb);
+  // Refactoring : necessite un bloc de code REEL (meme logique que
+  // isCodeReview/isTestGeneration) — reecrire "proprement" suppose d'avoir
+  // le code source reel sous les yeux.
+  const isRefactoring = Boolean(flags.hasCodeBlock && flags.refactoringVerb);
+  // Assistant Git : le verbe est deja specifique (message de commit/nom de
+  // branche/description de PR/changelog), pas besoin de bloc de code.
+  const isGitAssistant = Boolean(flags.gitAssistantVerb);
 
   const needsWeb = Boolean(hasWebIntent || flags.webRecency);
   const needsRag = Boolean(hasRagSources || flags.ragProject || flags.projectAnalysis);
@@ -222,9 +253,11 @@ export function detectUserIntent({ userMessage = '', projectContext = null, hasR
   else if (isSecurityAudit) { primaryIntent = 'security_audit'; reasons.push('security_audit_signal'); }
   else if (isPerformanceAudit) { primaryIntent = 'performance_audit'; reasons.push('performance_audit_signal'); }
   else if (isArchitectureAnalysis) { primaryIntent = 'architecture_analysis'; reasons.push('architecture_analysis_signal'); }
+  else if (isGitAssistant) { primaryIntent = 'git_assistant'; reasons.push('git_assistant_signal'); }
   else if (isDebugAssistance) { primaryIntent = 'debug_assistance'; reasons.push('debug_assistance_signal'); }
   else if (isTestGeneration) { primaryIntent = 'test_generation'; reasons.push('test_generation_signal'); }
   else if (isCodeDocumentation) { primaryIntent = 'code_documentation'; reasons.push('code_documentation_signal'); }
+  else if (isRefactoring) { primaryIntent = 'refactoring'; reasons.push('refactoring_signal'); }
   else if (isCodeReview) { primaryIntent = 'code_review'; reasons.push('code_review_signal'); }
   else if (flags.technical) { primaryIntent = 'technical_help'; reasons.push('technical_keyword'); }
   else if (flags.projectAnalysis) { primaryIntent = 'project_analysis'; reasons.push('project_analysis_keyword'); }
@@ -251,6 +284,8 @@ export function detectUserIntent({ userMessage = '', projectContext = null, hasR
   else if (primaryIntent === 'debug_assistance') expectedFormat = 'debug_report';
   else if (primaryIntent === 'test_generation') expectedFormat = 'test_suite';
   else if (primaryIntent === 'code_documentation') expectedFormat = 'code_documentation';
+  else if (primaryIntent === 'refactoring') expectedFormat = 'refactored_code';
+  else if (primaryIntent === 'git_assistant') expectedFormat = 'git_output';
   else if (primaryIntent === 'code_review') expectedFormat = 'code_review_report';
   else if (primaryIntent === 'technical_help') expectedFormat = 'step_by_step';
   else if (primaryIntent === 'summary') expectedFormat = 'structured_answer';
@@ -343,7 +378,13 @@ export function planCapabilities(intent, runtimeContext = {}) {
   // que soit le calcul generique ci-dessus — la fiabilite prime sur le cout
   // ici (un signature de fonction ou un comportement invente est pire qu'une
   // reponse plus couteuse).
-  if (['code_review', 'security_audit', 'performance_audit', 'test_generation', 'code_documentation', 'architecture_analysis', 'debug_assistance'].includes(safeIntent.primaryIntent)) preferredModelTier = 'strong';
+  if (['code_review', 'security_audit', 'performance_audit', 'test_generation', 'code_documentation', 'architecture_analysis', 'debug_assistance', 'refactoring'].includes(safeIntent.primaryIntent)) preferredModelTier = 'strong';
+  // git_assistant est volontairement EXCLU de ce tier "strong" force : un
+  // message de commit/nom de branche est une tache courte et peu risquee
+  // (contrairement a un refactoring ou un audit, une erreur ici coute juste
+  // une regeneration) — le tier generique base sur la longueur/complexite
+  // suffit, pas besoin de payer le surcout systematique du modele le plus
+  // capable.
 
   // Bornes alignees sur le worker (defaut 2000, plafond MAX_TOKENS_CEILING 8192).
   let maxTokensHint = 2200;
@@ -352,10 +393,10 @@ export function planCapabilities(intent, runtimeContext = {}) {
 
   let temperatureHint = 0.35;
   if (safeIntent.primaryIntent === 'security_audit') temperatureHint = 0.1;
-  else if (['code_review', 'performance_audit', 'test_generation', 'code_documentation', 'debug_assistance'].includes(safeIntent.primaryIntent)) temperatureHint = 0.15;
+  else if (['code_review', 'performance_audit', 'test_generation', 'code_documentation', 'debug_assistance', 'refactoring'].includes(safeIntent.primaryIntent)) temperatureHint = 0.15;
   else if (safeIntent.primaryIntent === 'technical_help' || safeIntent.primaryIntent === 'architecture_analysis') temperatureHint = 0.2;
   else if (safeIntent.primaryIntent === 'creative') temperatureHint = 0.7;
-  else if (safeIntent.primaryIntent === 'document_generation' || safeIntent.primaryIntent === 'project_analysis') temperatureHint = 0.3;
+  else if (safeIntent.primaryIntent === 'document_generation' || safeIntent.primaryIntent === 'project_analysis' || safeIntent.primaryIntent === 'git_assistant') temperatureHint = 0.3;
 
   // Completion Guard : utile des qu'on attend une reponse longue ou complexe.
   const useCompletionGuard = Boolean(
@@ -372,6 +413,8 @@ export function planCapabilities(intent, runtimeContext = {}) {
   else if (safeIntent.primaryIntent === 'debug_assistance') promptProfile = 'debug_assistance';
   else if (safeIntent.primaryIntent === 'test_generation') promptProfile = 'test_generation';
   else if (safeIntent.primaryIntent === 'code_documentation') promptProfile = 'code_documentation';
+  else if (safeIntent.primaryIntent === 'refactoring') promptProfile = 'refactoring';
+  else if (safeIntent.primaryIntent === 'git_assistant') promptProfile = 'git_assistant';
   else if (safeIntent.primaryIntent === 'code_review') promptProfile = 'code_review';
   else if (safeIntent.primaryIntent === 'technical_help') promptProfile = 'technical';
   else if (safeIntent.primaryIntent === 'planning' || safeIntent.primaryIntent === 'project_analysis') promptProfile = 'project_manager';
@@ -499,6 +542,14 @@ const BLOCKS = {
     fr: "Assistance au débogage : analyse uniquement l'erreur, le message ou la stack trace réellement fournis, sans inventer de cause absente du contexte donné. Structure ta réponse en quatre parties, dans cet ordre : (1) Diagnostic — ce que dit précisément l'erreur (type, message, ligne/fichier si identifiable), (2) Cause probable — l'hypothèse la plus vraisemblable, en citant l'élément du code ou du message qui la justifie, (3) Correctif — le changement de code concret à appliquer, (4) Vérification — comment confirmer que le correctif résout le problème. Si plusieurs causes sont plausibles avec les informations disponibles, présente-les classées par probabilité au lieu d'en choisir une arbitrairement. Si des informations manquent pour diagnostiquer avec certitude (version, contexte d'exécution, code appelant), dis-le explicitement et demande-les plutôt que de deviner.",
     en: "Debug assistance: analyze only the error, message or stack trace actually provided, without inventing a cause absent from the given context. Structure your answer into four parts, in this order: (1) Diagnosis — what the error precisely says (type, message, line/file if identifiable), (2) Probable cause — the most likely hypothesis, citing the element of the code or message that justifies it, (3) Fix — the concrete code change to apply, (4) Verification — how to confirm the fix resolves the issue. If several causes are plausible given the available information, present them ranked by likelihood instead of arbitrarily picking one. If information is missing to diagnose with certainty (version, runtime context, calling code), state it explicitly and ask for it instead of guessing."
   },
+  refactoring: {
+    fr: "Refactoring : réécris uniquement le code réellement fourni, sans changer son comportement observable (mêmes entrées → mêmes sorties) et sans ajouter de fonctionnalité absente. Explique chaque changement significatif : nommage plus clair, réduction de duplication, simplification de structure de contrôle, extraction de fonction, idiome plus adapté au langage détecté. Donne la version refactorée complète (pas un extrait partiel), avec un AVANT/APRÈS ciblé sur les changements les plus importants si utile à la clarté. Si un changement modifierait le comportement observable (effet de bord, ordre d'exécution, gestion d'erreur), signale-le explicitement plutôt que de le faire silencieusement.",
+    en: "Refactoring: rewrite only the code actually provided, without changing its observable behavior (same inputs → same outputs) and without adding an absent feature. Explain each significant change: clearer naming, reduced duplication, simplified control flow, function extraction, an idiom better suited to the detected language. Give the complete refactored version (not a partial excerpt), with a targeted BEFORE/AFTER on the most important changes if useful for clarity. If a change would alter observable behavior (side effect, execution order, error handling), flag it explicitly instead of doing it silently."
+  },
+  gitAssistant: {
+    fr: "Assistant Git : base-toi uniquement sur les changements réellement décrits ou fournis (diff, description, code), sans inventer de fichiers modifiés ou de motivation absente. Pour un message de commit : respecte le format Conventional Commits si le contexte s'y prête (type(scope) : description courte à l'impératif, sous 72 caractères sur la première ligne), sinon une phrase claire à l'impératif décrivant le POURQUOI plus que le COMMENT. Pour un nom de branche : format court en kebab-case (ex. feat/nom-fonctionnalite, fix/nom-bug). Pour une description de PR : résumé des changements, motivation, et un plan de test si pertinent. Propose 2-3 alternatives quand la formulation est ambiguë plutôt qu'une seule option arbitraire.",
+    en: "Git assistant: rely only on the changes actually described or provided (diff, description, code), without inventing modified files or an absent motivation. For a commit message: follow Conventional Commits format when the context fits (type(scope): short imperative description, under 72 characters on the first line), otherwise a clear imperative sentence describing WHY more than HOW. For a branch name: short kebab-case format (e.g. feat/feature-name, fix/bug-name). For a PR description: summary of changes, motivation, and a test plan if relevant. Offer 2-3 alternatives when the phrasing is ambiguous instead of one arbitrary option."
+  },
   projectManager: {
     fr: "Pilotage projet : raisonne comme un chef de projet. Donne des priorités claires, des actions concrètes, des risques et des prochaines étapes. Appuie-toi uniquement sur les données réelles fournies, sans rien inventer.",
     en: 'Project steering: reason like a project manager. Give clear priorities, concrete actions, risks and next steps. Rely only on the real data provided, inventing nothing.'
@@ -573,6 +624,13 @@ export function composeSystemPrompt({
   if (plan.promptProfile === 'debug_assistance') {
     parts.push(BLOCKS.technical[lang]);
     parts.push(BLOCKS.debugAssistance[lang]);
+  }
+  if (plan.promptProfile === 'refactoring') {
+    parts.push(BLOCKS.technical[lang]);
+    parts.push(BLOCKS.refactoring[lang]);
+  }
+  if (plan.promptProfile === 'git_assistant') {
+    parts.push(BLOCKS.gitAssistant[lang]);
   }
   if (plan.promptProfile === 'project_manager') {
     parts.push(BLOCKS.projectManager[lang]);

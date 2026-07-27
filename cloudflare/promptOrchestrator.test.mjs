@@ -310,6 +310,57 @@ function run(userMessage, opts = {}) {
   check('bug-generique-sans-trace: reste technical_help', intent.primaryIntent === 'technical_help');
 }
 
+// 7sexvicies. Refactoring (bloc de code + verbe dedie)
+{
+  const { intent, plan } = run('Refactor ce code, rends-le plus lisible :\n```js\nfunction f(a,b){var x=a+b;return x}\n```');
+  check('refactoring: intent refactoring', intent.primaryIntent === 'refactoring');
+  check('refactoring: format refactored_code', intent.expectedFormat === 'refactored_code');
+  check('refactoring: profil refactoring', plan.promptProfile === 'refactoring');
+  check('refactoring: tier strong', plan.preferredModelTier === 'strong');
+  check('refactoring: temperature basse (0.15)', plan.temperatureHint === 0.15);
+  const prompt = composeSystemPrompt({ intent, plan });
+  check('refactoring: prompt contient bloc refactoring', /Refactoring :|Refactoring:/i.test(prompt));
+}
+
+// 7septvicies. Refactoring SANS bloc de code -> ne declenche pas refactoring
+{
+  const { intent } = run('Peux-tu me parler des bonnes pratiques de refactoring en général ?');
+  check('refactoring-sans-code: pas refactoring', intent.primaryIntent !== 'refactoring');
+}
+
+// 7octovicies. Verbes irreguliers "rendre"/"nettoyer" (bug trouve en test
+// manuel : "rends+r" ne donne pas "rendre" (infinitif irregulier), et
+// "nettoie+r" donne "nettoier" qui n'existe pas — le radical devient
+// "nettoy-" a l'infinitif comme "employer"/"envoyer").
+{
+  const cas1 = run('Peux-tu rendre ce code plus lisible ?\n```js\nfunction f(a,b){return a+b}\n```');
+  check('refactoring-rendre: intent refactoring', cas1.intent.primaryIntent === 'refactoring');
+  const cas2 = run('Peux-tu nettoyer ce code ?\n```js\nfunction f(a,b){return a+b}\n```');
+  check('refactoring-nettoyer: intent refactoring', cas2.intent.primaryIntent === 'refactoring');
+}
+
+// 7novovicies. Assistant Git (verbe dedie, sans bloc de code)
+{
+  const { intent, plan } = run('Écris un message de commit pour ces changements : ajout du dark mode.');
+  check('git: intent git_assistant', intent.primaryIntent === 'git_assistant');
+  check('git: format git_output', intent.expectedFormat === 'git_output');
+  check('git: profil git_assistant', plan.promptProfile === 'git_assistant');
+  check('git: tier PAS force strong (balanced)', plan.preferredModelTier === 'balanced');
+  check('git: temperature moderee (0.3)', plan.temperatureHint === 0.3);
+  const prompt = composeSystemPrompt({ intent, plan });
+  check('git: prompt contient bloc assistant git', /Assistant Git :|Git assistant:/i.test(prompt));
+}
+
+// 7trigies. Nom de branche / description de PR / changelog
+{
+  const b = run('Quel nom de branche pour cette fonctionnalité de dark mode ?');
+  check('git-branche: intent git_assistant', b.intent.primaryIntent === 'git_assistant');
+  const c = run('Écris une description de PR pour ces changements.');
+  check('git-pr: intent git_assistant', c.intent.primaryIntent === 'git_assistant');
+  const d = run('Generate a changelog for this release.');
+  check('git-changelog: intent git_assistant', d.intent.primaryIntent === 'git_assistant');
+}
+
 // 8. Demande plan d'action
 {
   const { intent, plan } = run('Que dois-je faire aujourd\'hui sur le projet ?');

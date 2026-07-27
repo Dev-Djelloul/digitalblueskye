@@ -10976,6 +10976,14 @@
     technical_help: {
       fr: ['Donne un exemple concret', 'Explique étape par étape', 'Quels sont les risques ou limites ?'],
       en: ['Give a concrete example', 'Explain step by step', 'What are the risks or limitations?']
+    },
+    refactoring: {
+      fr: ['Vérifie que le comportement est identique', 'Génère des tests pour cette version', 'Explique le changement le plus important'],
+      en: ['Verify the behavior is identical', 'Generate tests for this version', 'Explain the most important change']
+    },
+    git_assistant: {
+      fr: ['Propose une autre formulation', 'Adapte au format Conventional Commits', 'Raccourcis la première ligne'],
+      en: ['Suggest another wording', 'Adapt to Conventional Commits format', 'Shorten the first line']
     }
   };
 
