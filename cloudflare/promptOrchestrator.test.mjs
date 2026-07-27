@@ -263,6 +263,53 @@ function run(userMessage, opts = {}) {
   }
 }
 
+// 7unvicies. Analyse d'architecture (verbe dedie, pas besoin de bloc de code)
+{
+  const { intent, plan } = run('Analyse l\'architecture de ce projet : y a-t-il des dépendances circulaires ?');
+  check('architecture: intent architecture_analysis', intent.primaryIntent === 'architecture_analysis');
+  check('architecture: format architecture_report', intent.expectedFormat === 'architecture_report');
+  check('architecture: requiresLongAnswer', intent.requiresLongAnswer === true);
+  check('architecture: profil architecture_analysis', plan.promptProfile === 'architecture_analysis');
+  check('architecture: tier strong', plan.preferredModelTier === 'strong');
+  const prompt = composeSystemPrompt({ intent, plan });
+  check('architecture: prompt contient bloc architecture', /Analyse d'architecture|Architecture analysis:/i.test(prompt));
+}
+
+// 7duovicies. "l'architecture" SANS espace apres l'apostrophe (bug trouve en
+// test manuel : la regex exigeait a tort un espace apres l' pour la branche
+// "analyse l'architecture", cassant l'elision francaise normale).
+{
+  const cas1 = run('Analyse l\'architecture de ce projet.');
+  check('architecture-elision-analyse: intent architecture_analysis', cas1.intent.primaryIntent === 'architecture_analysis');
+  const cas2 = run('Peux-tu analyser l\'architecture de ce projet ?');
+  check('architecture-elision-analyser: intent architecture_analysis', cas2.intent.primaryIntent === 'architecture_analysis');
+}
+
+// 7trevicies. Assistance au debogage : stack trace reelle (sans verbe explicite)
+{
+  const { intent, plan } = run('TypeError: Cannot read property \'x\' of undefined\n    at foo (app.js:12:5)\n    at bar (app.js:20:3)');
+  check('debug: intent debug_assistance', intent.primaryIntent === 'debug_assistance');
+  check('debug: format debug_report', intent.expectedFormat === 'debug_report');
+  check('debug: profil debug_assistance', plan.promptProfile === 'debug_assistance');
+  check('debug: tier strong', plan.preferredModelTier === 'strong');
+  check('debug: temperature basse (0.15)', plan.temperatureHint === 0.15);
+  const prompt = composeSystemPrompt({ intent, plan });
+  check('debug: prompt contient bloc debogage', /Assistance au débogage|Debug assistance:/i.test(prompt));
+}
+
+// 7quatervicies. Assistance au debogage : verbe explicite sans stack trace
+{
+  const { intent } = run('Pourquoi est-ce que ça plante quand je clique sur le bouton ?');
+  check('debug-verbe-sans-trace: intent debug_assistance', intent.primaryIntent === 'debug_assistance');
+}
+
+// 7quinvicies. "bug"/"erreur" generiques SANS trace ni verbe de diagnostic
+// explicite restent technical_help (pas de faux positif debug_assistance).
+{
+  const { intent } = run('Il y a un bug dans mon code, peux-tu regarder ?');
+  check('bug-generique-sans-trace: reste technical_help', intent.primaryIntent === 'technical_help');
+}
+
 // 8. Demande plan d'action
 {
   const { intent, plan } = run('Que dois-je faire aujourd\'hui sur le projet ?');

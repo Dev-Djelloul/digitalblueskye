@@ -77,6 +77,28 @@ const RX = {
   // tres courant ("peux-tu accélérer ce endpoint ?"). [éèe] couvre les deux
   // graphies (+ la forme non accentuee).
   performanceAuditVerb: /(?<![\p{L}\p{N}_])(optimi[sz]e[rz]?|am[ée]liore[rz]?\s+(?:les?\s+)?(?:performances?|perf|vitesse|rapidit[ée])|acc[ée]l[éèe]re(?:r)?|plus\s+rapide|trop\s+lent[e]?|c['e]est\s+lent|(?:[çc]a)\s+rame|lenteur[s]?|fuite[s]?\s+m[ée]moire|memory\s+leak|complexit[ée]\s+algorithmique|big\s*[- ]?o|requ[êe]tes?\s+redondantes?|requ[êe]tes?\s+n\+1|n\+1\s+quer(?:y|ies)|optimi[sz]e\s+(?:this|my)|speed\s+up|reduce\s+latency|performance\s+(?:audit|review|issue|report)|slow\s+(?:code|query|queries|function|endpoint)|bottleneck[s]?|goulot[s]?\s+d['e]?[ée]tranglement|latence|throughput|scalabilit[ée])(?![\p{L}\p{N}_])/iu,
+  // Demande d'analyse d'architecture (patterns, couplage/cohesion,
+  // dependances circulaires, scalabilite structurelle) — distinct de
+  // projectAnalysis (maturite/sante de PROJET, angle gestion) : ici l'angle
+  // est technique/structurel. "scalabilit[ée]" volontairement PAS repris ici
+  // seul (deja couvert par performanceAuditVerb) pour eviter toute ambiguite
+  // de priorite ; seule la combinaison avec "architecture" est ciblee.
+  // NOTE : "l'architecture" s'ecrit SANS espace apres l'apostrophe (elision
+  // francaise devant voyelle) — trouve en test manuel : la premiere
+  // alternative exigeait a tort un \s+ commun entre (?:l['e]|cette|mon) et
+  // "architecture", ce qui cassait le cas "l'" (aucun espace) tout en
+  // marchant pour "cette architecture"/"mon architecture" (espace normal).
+  // (?:l['’]\s*|cette\s+|mon\s+) traite "l'" separement, sans exiger
+  // d'espace apres l'apostrophe.
+  architectureAnalysisVerb: /(?<![\p{L}\p{N}_])((?:analyse|analyser)\s+(?:l['’]\s*|cette\s+|mon\s+)architecture|(?:revois|revoir|review)\s+l['e]architecture|architecture\s+review|d[ée]pendances?\s+circulaires?|circular\s+dependenc(?:y|ies)|s[ée]paration\s+des\s+responsabilit[ée]s|separation\s+of\s+concerns|couplage\s+(?:fort|excessif)|high\s+coupling|(?:faible|mauvaise)\s+coh[ée]sion|low\s+cohesion|design\s+pattern[s]?|patron[s]?\s+de\s+conception|(?:bien|mal)\s+structur[ée]e?|is\s+this\s+well[- ]structured|architecture\s+(?:propre|solide|robuste|logicielle))(?![\p{L}\p{N}_])/iu,
+  // Demande d'assistance au debogage. Deux signaux independants :
+  // hasErrorTrace (stack trace / message d'erreur REELLEMENT colle — signal
+  // factuel fort, JS/Python/Java) et debugVerb (formulation explicite de
+  // demande de diagnostic, avec ou sans trace). NOTE : erreur/exception/bug
+  // seuls restent dans RX.technical (trop generiques pour ce profil dedie
+  // sans trace ni verbe de diagnostic explicite).
+  hasErrorTrace: /\b(traceback\s*\(most recent call last\)|uncaught\s+\w*error|\w+error:\s|\w+exception(?:\s+in\s+thread)?|file\s+"[^"]+",\s+line\s+\d+|at\s+[\w.$<>]+\s*\([^)]*:\d+:\d+\)|stack\s*trace)\b/i,
+  debugVerb: /(?<![\p{L}\p{N}_])(pourquoi\s+(?:est-ce\s+que\s+)?[çc]a\s+(?:plante|crash|bug|casse)|pourquoi\s+(?:mon|ce)\s+code\s+(?:plante|crash|bug)|(?:d[ée]bogue|d[ée]boguer|debug(?:ge)?(?:r)?)\s+(?:ce|cette|mon)|aide[- ]moi\s+[àa]\s+(?:d[ée]boguer|corriger)|quelle\s+est\s+la\s+cause\s+de\s+(?:cette|l['e])\s*erreur|pourquoi\s+j['e]ai\s+cette\s+erreur|root\s+cause|why\s+(?:does|is)\s+(?:this|it)\s+(?:crash|fail|break)|debug\s+this|find\s+the\s+root\s+cause)(?![\p{L}\p{N}_])/iu,
   // Demande de generation de tests (unitaires/integration). Necessite un vrai
   // bloc de code fourni (verifie via hasCodeBlock dans detectUserIntent,
   // meme logique que codeReviewVerb) : on ne peut pas ecrire des tests
@@ -150,7 +172,10 @@ export function detectUserIntent({ userMessage = '', projectContext = null, hasR
     securityAuditVerb: RX.securityAuditVerb.test(msg),
     performanceAuditVerb: RX.performanceAuditVerb.test(msg),
     testGenerationVerb: RX.testGenerationVerb.test(msg),
-    docGenerationVerb: RX.docGenerationVerb.test(msg)
+    docGenerationVerb: RX.docGenerationVerb.test(msg),
+    architectureAnalysisVerb: RX.architectureAnalysisVerb.test(msg),
+    hasErrorTrace: RX.hasErrorTrace.test(msg),
+    debugVerb: RX.debugVerb.test(msg)
   };
 
   // Revue de code : necessite un bloc de code REELLEMENT fourni (sinon on ne
@@ -163,6 +188,12 @@ export function detectUserIntent({ userMessage = '', projectContext = null, hasR
   // Audit de performance : idem, ne necessite pas de bloc de code (un site
   // "lent" ou une "fuite memoire" peuvent etre decrits sans extrait de code).
   const isPerformanceAudit = Boolean(flags.performanceAuditVerb);
+  // Analyse d'architecture : ne necessite pas de bloc de code (peut porter
+  // sur une organisation de modules decrite en texte).
+  const isArchitectureAnalysis = Boolean(flags.architectureAnalysisVerb);
+  // Debogage : une vraie stack trace/erreur collee suffit seule (signal
+  // factuel fort) ; sinon il faut un verbe de diagnostic explicite.
+  const isDebugAssistance = Boolean(flags.hasErrorTrace || flags.debugVerb);
   // Generation de tests : necessite un bloc de code REEL (meme logique que
   // isCodeReview) — impossible d'ecrire des tests pertinents sans voir le
   // code a tester.
@@ -190,6 +221,8 @@ export function detectUserIntent({ userMessage = '', projectContext = null, hasR
   if (isRagRetrievalQuestion) { primaryIntent = 'rag_query'; reasons.push('rag_retrieval_question'); }
   else if (isSecurityAudit) { primaryIntent = 'security_audit'; reasons.push('security_audit_signal'); }
   else if (isPerformanceAudit) { primaryIntent = 'performance_audit'; reasons.push('performance_audit_signal'); }
+  else if (isArchitectureAnalysis) { primaryIntent = 'architecture_analysis'; reasons.push('architecture_analysis_signal'); }
+  else if (isDebugAssistance) { primaryIntent = 'debug_assistance'; reasons.push('debug_assistance_signal'); }
   else if (isTestGeneration) { primaryIntent = 'test_generation'; reasons.push('test_generation_signal'); }
   else if (isCodeDocumentation) { primaryIntent = 'code_documentation'; reasons.push('code_documentation_signal'); }
   else if (isCodeReview) { primaryIntent = 'code_review'; reasons.push('code_review_signal'); }
@@ -214,6 +247,8 @@ export function detectUserIntent({ userMessage = '', projectContext = null, hasR
   else if (primaryIntent === 'planning') expectedFormat = 'checklist';
   else if (primaryIntent === 'security_audit') expectedFormat = 'security_audit_report';
   else if (primaryIntent === 'performance_audit') expectedFormat = 'performance_audit_report';
+  else if (primaryIntent === 'architecture_analysis') expectedFormat = 'architecture_report';
+  else if (primaryIntent === 'debug_assistance') expectedFormat = 'debug_report';
   else if (primaryIntent === 'test_generation') expectedFormat = 'test_suite';
   else if (primaryIntent === 'code_documentation') expectedFormat = 'code_documentation';
   else if (primaryIntent === 'code_review') expectedFormat = 'code_review_report';
@@ -231,6 +266,7 @@ export function detectUserIntent({ userMessage = '', projectContext = null, hasR
     primaryIntent === 'code_review' ||
     primaryIntent === 'security_audit' ||
     primaryIntent === 'performance_audit' ||
+    primaryIntent === 'architecture_analysis' ||
     primaryIntent === 'test_generation' ||
     flags.longHint ||
     (primaryIntent === 'planning' && flags.longHint)
@@ -307,7 +343,7 @@ export function planCapabilities(intent, runtimeContext = {}) {
   // que soit le calcul generique ci-dessus — la fiabilite prime sur le cout
   // ici (un signature de fonction ou un comportement invente est pire qu'une
   // reponse plus couteuse).
-  if (['code_review', 'security_audit', 'performance_audit', 'test_generation', 'code_documentation'].includes(safeIntent.primaryIntent)) preferredModelTier = 'strong';
+  if (['code_review', 'security_audit', 'performance_audit', 'test_generation', 'code_documentation', 'architecture_analysis', 'debug_assistance'].includes(safeIntent.primaryIntent)) preferredModelTier = 'strong';
 
   // Bornes alignees sur le worker (defaut 2000, plafond MAX_TOKENS_CEILING 8192).
   let maxTokensHint = 2200;
@@ -316,8 +352,8 @@ export function planCapabilities(intent, runtimeContext = {}) {
 
   let temperatureHint = 0.35;
   if (safeIntent.primaryIntent === 'security_audit') temperatureHint = 0.1;
-  else if (['code_review', 'performance_audit', 'test_generation', 'code_documentation'].includes(safeIntent.primaryIntent)) temperatureHint = 0.15;
-  else if (safeIntent.primaryIntent === 'technical_help') temperatureHint = 0.2;
+  else if (['code_review', 'performance_audit', 'test_generation', 'code_documentation', 'debug_assistance'].includes(safeIntent.primaryIntent)) temperatureHint = 0.15;
+  else if (safeIntent.primaryIntent === 'technical_help' || safeIntent.primaryIntent === 'architecture_analysis') temperatureHint = 0.2;
   else if (safeIntent.primaryIntent === 'creative') temperatureHint = 0.7;
   else if (safeIntent.primaryIntent === 'document_generation' || safeIntent.primaryIntent === 'project_analysis') temperatureHint = 0.3;
 
@@ -332,6 +368,8 @@ export function planCapabilities(intent, runtimeContext = {}) {
   let promptProfile = 'default';
   if (safeIntent.primaryIntent === 'security_audit') promptProfile = 'security_audit';
   else if (safeIntent.primaryIntent === 'performance_audit') promptProfile = 'performance_audit';
+  else if (safeIntent.primaryIntent === 'architecture_analysis') promptProfile = 'architecture_analysis';
+  else if (safeIntent.primaryIntent === 'debug_assistance') promptProfile = 'debug_assistance';
   else if (safeIntent.primaryIntent === 'test_generation') promptProfile = 'test_generation';
   else if (safeIntent.primaryIntent === 'code_documentation') promptProfile = 'code_documentation';
   else if (safeIntent.primaryIntent === 'code_review') promptProfile = 'code_review';
@@ -453,6 +491,14 @@ const BLOCKS = {
     fr: "Documentation de code : documente uniquement les éléments réellement fournis (signatures, paramètres, comportements visibles dans le code), sans inventer de paramètre, de valeur de retour ou de comportement absent. Utilise le format natif du langage détecté (JSDoc pour JS/TS, docstrings pour Python, etc.) : description courte, chaque paramètre avec son type et son rôle, la valeur de retour, et les exceptions levées si elles sont identifiables dans le code. Pour une documentation plus large (README, doc d'API), structure en sections claires avec des exemples d'usage réalistes basés sur le code réellement fourni. Si un comportement n'est pas clair depuis le code fourni (ex. effet de bord non visible), dis-le explicitement plutôt que de le deviner.",
     en: "Code documentation: document only the elements actually provided (signatures, parameters, behaviors visible in the code), without inventing a parameter, return value or behavior that is absent. Use the native format of the detected language (JSDoc for JS/TS, docstrings for Python, etc.): short description, each parameter with its type and role, the return value, and thrown exceptions if identifiable from the code. For broader documentation (README, API docs), structure it into clear sections with realistic usage examples based on the code actually provided. If a behavior is unclear from the provided code (e.g. a non-visible side effect), state it explicitly instead of guessing."
   },
+  architectureAnalysis: {
+    fr: "Analyse d'architecture : évalue uniquement les éléments réellement fournis (code, description de la structure, organisation des fichiers), sans inventer de composants ou de dépendances absents. Structure ton analyse en quatre axes, dans cet ordre : (1) Respect des patterns et principes (séparation des responsabilités, patterns adaptés au contexte), (2) Couplage et cohésion (dépendances entre modules, niveau d'indépendance), (3) Dépendances circulaires ou problématiques (cite précisément les modules concernés), (4) Scalabilité et évolutivité (facilité d'ajout de fonctionnalités, points de rigidité). Pour chaque problème réel identifié : impact concret (quel scénario de développement futur il complique) et une piste de refactoring concrète. Distingue clairement les défauts objectifs (dépendance circulaire, duplication) des choix qui restent une question de compromis (monolithe vs microservices) : pour ces derniers, présente les compromis plutôt qu'un verdict tranché. Si les éléments fournis ne permettent pas d'évaluer un axe (ex. pas assez de code pour juger du couplage global), dis-le explicitement plutôt que de conclure sans base.",
+    en: "Architecture analysis: evaluate only the elements actually provided (code, structure description, file organization), without inventing absent components or dependencies. Structure your analysis into four axes, in this order: (1) Adherence to patterns and principles (separation of concerns, patterns suited to the context), (2) Coupling and cohesion (dependencies between modules, level of independence), (3) Circular or problematic dependencies (cite the exact modules involved), (4) Scalability and evolvability (ease of adding features, points of rigidity). For each real issue identified: concrete impact (which future development scenario it complicates) and a concrete refactoring path. Clearly distinguish objective flaws (circular dependency, duplication) from choices that remain a matter of tradeoff (monolith vs microservices): for the latter, present the tradeoffs rather than a blunt verdict. If the provided elements don't allow assessing an axis (e.g. not enough code to judge overall coupling), state it explicitly instead of concluding without basis."
+  },
+  debugAssistance: {
+    fr: "Assistance au débogage : analyse uniquement l'erreur, le message ou la stack trace réellement fournis, sans inventer de cause absente du contexte donné. Structure ta réponse en quatre parties, dans cet ordre : (1) Diagnostic — ce que dit précisément l'erreur (type, message, ligne/fichier si identifiable), (2) Cause probable — l'hypothèse la plus vraisemblable, en citant l'élément du code ou du message qui la justifie, (3) Correctif — le changement de code concret à appliquer, (4) Vérification — comment confirmer que le correctif résout le problème. Si plusieurs causes sont plausibles avec les informations disponibles, présente-les classées par probabilité au lieu d'en choisir une arbitrairement. Si des informations manquent pour diagnostiquer avec certitude (version, contexte d'exécution, code appelant), dis-le explicitement et demande-les plutôt que de deviner.",
+    en: "Debug assistance: analyze only the error, message or stack trace actually provided, without inventing a cause absent from the given context. Structure your answer into four parts, in this order: (1) Diagnosis — what the error precisely says (type, message, line/file if identifiable), (2) Probable cause — the most likely hypothesis, citing the element of the code or message that justifies it, (3) Fix — the concrete code change to apply, (4) Verification — how to confirm the fix resolves the issue. If several causes are plausible given the available information, present them ranked by likelihood instead of arbitrarily picking one. If information is missing to diagnose with certainty (version, runtime context, calling code), state it explicitly and ask for it instead of guessing."
+  },
   projectManager: {
     fr: "Pilotage projet : raisonne comme un chef de projet. Donne des priorités claires, des actions concrètes, des risques et des prochaines étapes. Appuie-toi uniquement sur les données réelles fournies, sans rien inventer.",
     en: 'Project steering: reason like a project manager. Give clear priorities, concrete actions, risks and next steps. Rely only on the real data provided, inventing nothing.'
@@ -519,6 +565,14 @@ export function composeSystemPrompt({
   if (plan.promptProfile === 'code_documentation') {
     parts.push(BLOCKS.technical[lang]);
     parts.push(BLOCKS.codeDocumentation[lang]);
+  }
+  if (plan.promptProfile === 'architecture_analysis') {
+    parts.push(BLOCKS.technical[lang]);
+    parts.push(BLOCKS.architectureAnalysis[lang]);
+  }
+  if (plan.promptProfile === 'debug_assistance') {
+    parts.push(BLOCKS.technical[lang]);
+    parts.push(BLOCKS.debugAssistance[lang]);
   }
   if (plan.promptProfile === 'project_manager') {
     parts.push(BLOCKS.projectManager[lang]);
