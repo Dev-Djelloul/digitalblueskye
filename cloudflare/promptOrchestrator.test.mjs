@@ -142,6 +142,37 @@ function run(userMessage, opts = {}) {
   check('code-review-non-securite: reste code_review', intent.primaryIntent === 'code_review');
 }
 
+// 7nonies. Audit de performance (sans bloc de code : comportement decrit en texte)
+{
+  const { intent, plan } = run('Mon API est trop lente, peux-tu m\'aider à optimiser les performances ? Il y a beaucoup de requêtes redondantes.');
+  check('performance-audit: intent performance_audit', intent.primaryIntent === 'performance_audit');
+  check('performance-audit: format performance_audit_report', intent.expectedFormat === 'performance_audit_report');
+  check('performance-audit: requiresLongAnswer', intent.requiresLongAnswer === true);
+  check('performance-audit: profil performance_audit', plan.promptProfile === 'performance_audit');
+  check('performance-audit: tier strong', plan.preferredModelTier === 'strong');
+  check('performance-audit: temperature basse (0.15)', plan.temperatureHint === 0.15);
+  const prompt = composeSystemPrompt({ intent, plan });
+  check('performance-audit: prompt contient bloc audit de performance', /Audit de performance|Performance audit:/i.test(prompt));
+}
+
+// 7decies. Audit de performance avec bloc de code -> reste performance_audit (pas code_review generique)
+{
+  const { intent } = run('Optimise ce code, il a une complexité algorithmique catastrophique :\n```js\nfor (let i = 0; i < n; i++) { for (let j = 0; j < n; j++) { for (let k = 0; k < n; k++) { /* ... */ } } }\n```');
+  check('performance-audit-avec-code: intent performance_audit (pas code_review)', intent.primaryIntent === 'performance_audit');
+}
+
+// 7undecies. Mention isolee de fuite memoire -> performance_audit, meme sans le mot "optimise"
+{
+  const { intent } = run('Je pense qu\'il y a une fuite mémoire dans mon application Node.');
+  check('performance-audit-fuite: intent performance_audit', intent.primaryIntent === 'performance_audit');
+}
+
+// 7duodecies. Audit de securite garde la priorite sur performance quand les deux signaux coexistent
+{
+  const { intent } = run('Ce endpoint est lent ET vulnérable à une injection SQL, peux-tu tout analyser ?');
+  check('securite-prioritaire-sur-perf: intent security_audit', intent.primaryIntent === 'security_audit');
+}
+
 // 8. Demande plan d'action
 {
   const { intent, plan } = run('Que dois-je faire aujourd\'hui sur le projet ?');

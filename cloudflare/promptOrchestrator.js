@@ -52,6 +52,12 @@ const RX = {
   // Unicode que codeReviewVerb ci-dessus (meme raison : plusieurs
   // alternatives se terminent par un caractere accentue).
   securityAuditVerb: /(?<![\p{L}\p{N}_])(audit\s+(?:de\s+)?s[ée]curit[ée]|security\s+audit|pentest(?:ing)?|test\s+d['e]intrusion|faille[s]?\s+de\s+s[ée]curit[ée]|vuln[ée]rabilit[ée]s?|vulnerabilit(?:y|ies)|owasp|injection\s+sql|sql\s+injection|xss|csrf|s[ée]curise\s+(?:mon|ce|cette|le|la)\s+(?:site|api|application|serveur|projet|backend|worker|code)|check\s+for\s+vulnerabilit(?:y|ies)|security\s+review|harden(?:ing)?\s+(?:my|this)|vulnerability\s+scan)(?![\p{L}\p{N}_])/iu,
+  // Demande d'audit/optimisation de performance (perimetre dedie, distinct
+  // des categories generiques de codeReviewVerb). Meme technique de
+  // lookarounds Unicode que ci-dessus (plusieurs alternatives se terminent
+  // par un caractere accentue : "rapidit[ée]", "complexit[ée]", "lenteur"
+  // n'est pas concerne mais "acc[ée]l[èe]re" et "latence" le sont potentiellement).
+  performanceAuditVerb: /(?<![\p{L}\p{N}_])(optimi[sz]e[rz]?|am[ée]liore[rz]?\s+(?:les?\s+)?(?:performances?|perf|vitesse|rapidit[ée])|acc[ée]l[èe]re[rz]?|plus\s+rapide|trop\s+lent[e]?|c['e]est\s+lent|(?:[çc]a)\s+rame|lenteur[s]?|fuite[s]?\s+m[ée]moire|memory\s+leak|complexit[ée]\s+algorithmique|big\s*[- ]?o|requ[êe]tes?\s+redondantes?|requ[êe]tes?\s+n\+1|n\+1\s+quer(?:y|ies)|optimi[sz]e\s+(?:this|my)|speed\s+up|reduce\s+latency|performance\s+(?:audit|review|issue|report)|slow\s+(?:code|query|queries|function|endpoint)|bottleneck[s]?|goulot[s]?\s+d['e]?[ée]tranglement|latence|throughput|scalabilit[ée])(?![\p{L}\p{N}_])/iu,
   table: /\b(tableau|table|grille|matrice|colonnes?|en\s+ligne[s]?\s+et\s+colonnes?|sous\s+forme\s+de\s+tableau|in\s+a\s+table)\b/i,
   webRecency: /\b(aujourd['\s]hui|maintenant|actuel|actuelle|actuellement|r[ée]cent|r[ée]cente|derni[èe]res?\s+(?:nouvelles?|actualit[ée]s?|infos?)|actualit[ée]s?|en\s+202\d|cette\s+ann[ée]e|ce\s+mois|prix\s+actuel|cours\s+(?:de|du)|latest|current|recent|today|right\s+now|breaking|news|live)\b/i,
   ragProject: /\b(le\s+projet|ce\s+projet|du\s+projet|dans\s+le\s+projet|ce\s+document|ce\s+fichier|cette\s+source|selon\s+(?:le\s+projet|la\s+doc|le\s+document)|que\s+dit\s+(?:le|la|ce)|d['e]apr[èe]s\s+(?:le|la|ce|mes)\s+(?:projet|document|source|fichier|note)|in\s+(?:the|my)\s+project|the\s+document\s+says)\b/i,
@@ -100,7 +106,8 @@ export function detectUserIntent({ userMessage = '', projectContext = null, hasR
     ragQuestion: RX.ragQuestion.test(msg),
     hasCodeBlock: RX.codeBlockFence.test(msg),
     codeReviewVerb: RX.codeReviewVerb.test(msg),
-    securityAuditVerb: RX.securityAuditVerb.test(msg)
+    securityAuditVerb: RX.securityAuditVerb.test(msg),
+    performanceAuditVerb: RX.performanceAuditVerb.test(msg)
   };
 
   // Revue de code : necessite un bloc de code REELLEMENT fourni (sinon on ne
@@ -110,6 +117,9 @@ export function detectUserIntent({ userMessage = '', projectContext = null, hasR
   // Audit de securite : ne necessite PAS de bloc de code (peut porter sur une
   // architecture, une config, des dependances decrites en texte).
   const isSecurityAudit = Boolean(flags.securityAuditVerb);
+  // Audit de performance : idem, ne necessite pas de bloc de code (un site
+  // "lent" ou une "fuite memoire" peuvent etre decrits sans extrait de code).
+  const isPerformanceAudit = Boolean(flags.performanceAuditVerb);
 
   const needsWeb = Boolean(hasWebIntent || flags.webRecency);
   const needsRag = Boolean(hasRagSources || flags.ragProject || flags.projectAnalysis);
@@ -120,6 +130,7 @@ export function detectUserIntent({ userMessage = '', projectContext = null, hasR
   // specifique/contraignant au plus generique).
   let primaryIntent = 'unknown';
   if (isSecurityAudit) { primaryIntent = 'security_audit'; reasons.push('security_audit_signal'); }
+  else if (isPerformanceAudit) { primaryIntent = 'performance_audit'; reasons.push('performance_audit_signal'); }
   else if (isCodeReview) { primaryIntent = 'code_review'; reasons.push('code_review_signal'); }
   else if (flags.technical) { primaryIntent = 'technical_help'; reasons.push('technical_keyword'); }
   else if (flags.projectAnalysis) { primaryIntent = 'project_analysis'; reasons.push('project_analysis_keyword'); }
@@ -142,6 +153,7 @@ export function detectUserIntent({ userMessage = '', projectContext = null, hasR
   else if (requiresTable) expectedFormat = 'table';
   else if (primaryIntent === 'planning') expectedFormat = 'checklist';
   else if (primaryIntent === 'security_audit') expectedFormat = 'security_audit_report';
+  else if (primaryIntent === 'performance_audit') expectedFormat = 'performance_audit_report';
   else if (primaryIntent === 'code_review') expectedFormat = 'code_review_report';
   else if (primaryIntent === 'technical_help') expectedFormat = 'step_by_step';
   else if (primaryIntent === 'summary') expectedFormat = 'structured_answer';
@@ -156,6 +168,7 @@ export function detectUserIntent({ userMessage = '', projectContext = null, hasR
     primaryIntent === 'project_analysis' ||
     primaryIntent === 'code_review' ||
     primaryIntent === 'security_audit' ||
+    primaryIntent === 'performance_audit' ||
     flags.longHint ||
     (primaryIntent === 'planning' && flags.longHint)
   );
@@ -226,10 +239,10 @@ export function planCapabilities(intent, runtimeContext = {}) {
   let preferredModelTier = 'balanced';
   if (preferredResponseLength === 'long' || safeIntent.complexity === 'high') preferredModelTier = 'strong';
   else if (preferredResponseLength === 'short' && safeIntent.complexity === 'low') preferredModelTier = 'fast';
-  // Revue de code / audit de securite : toujours le modele le plus capable,
-  // quel que soit le calcul generique ci-dessus — la fiabilite prime sur le
-  // cout ici.
-  if (safeIntent.primaryIntent === 'code_review' || safeIntent.primaryIntent === 'security_audit') preferredModelTier = 'strong';
+  // Revue de code / audit de securite / audit de performance : toujours le
+  // modele le plus capable, quel que soit le calcul generique ci-dessus — la
+  // fiabilite prime sur le cout ici.
+  if (['code_review', 'security_audit', 'performance_audit'].includes(safeIntent.primaryIntent)) preferredModelTier = 'strong';
 
   // Bornes alignees sur le worker (defaut 2000, plafond MAX_TOKENS_CEILING 8192).
   let maxTokensHint = 2200;
@@ -238,7 +251,7 @@ export function planCapabilities(intent, runtimeContext = {}) {
 
   let temperatureHint = 0.35;
   if (safeIntent.primaryIntent === 'security_audit') temperatureHint = 0.1;
-  else if (safeIntent.primaryIntent === 'code_review') temperatureHint = 0.15;
+  else if (safeIntent.primaryIntent === 'code_review' || safeIntent.primaryIntent === 'performance_audit') temperatureHint = 0.15;
   else if (safeIntent.primaryIntent === 'technical_help') temperatureHint = 0.2;
   else if (safeIntent.primaryIntent === 'creative') temperatureHint = 0.7;
   else if (safeIntent.primaryIntent === 'document_generation' || safeIntent.primaryIntent === 'project_analysis') temperatureHint = 0.3;
@@ -253,6 +266,7 @@ export function planCapabilities(intent, runtimeContext = {}) {
   // Profil de prompt — priorite explicite (un seul profil retenu).
   let promptProfile = 'default';
   if (safeIntent.primaryIntent === 'security_audit') promptProfile = 'security_audit';
+  else if (safeIntent.primaryIntent === 'performance_audit') promptProfile = 'performance_audit';
   else if (safeIntent.primaryIntent === 'code_review') promptProfile = 'code_review';
   else if (safeIntent.primaryIntent === 'technical_help') promptProfile = 'technical';
   else if (safeIntent.primaryIntent === 'planning' || safeIntent.primaryIntent === 'project_analysis') promptProfile = 'project_manager';
@@ -360,6 +374,10 @@ const BLOCKS = {
     fr: "Audit de sécurité : évalue uniquement les éléments réellement fournis (code, configuration, description d'architecture), sans supposer de contexte absent. Structure ton analyse en cinq axes, dans cet ordre : (1) Authentification et autorisation (contrôle d'accès, gestion de session, tokens), (2) Injection et validation d'entrée (SQL, NoSQL, XSS, injection de commande, path traversal), (3) Configuration et exposition (CORS, en-têtes de sécurité, secrets en dur, variables d'environnement, permissions excessives), (4) Dépendances et chaîne d'approvisionnement (versions obsolètes, CVE connus), (5) Données sensibles (chiffrement, stockage, journalisation, RGPD/PII). Pour chaque faille réelle : sévérité (critique/élevée/moyenne/faible), preuve concrète (extrait cité ou comportement décrit), scénario d'exploitation (comment un attaquant l'utiliserait), et remédiation concrète et applicable. Si un axe ne peut pas être évalué faute d'éléments fournis (par exemple aucune liste de dépendances), dis-le explicitement plutôt que d'inventer un risque générique. Termine par un tableau d'actions prioritaires trié par sévérité décroissante.",
     en: "Security audit: evaluate only the elements actually provided (code, configuration, architecture description), without assuming absent context. Structure your analysis into five axes, in this order: (1) Authentication and authorization (access control, session handling, tokens), (2) Injection and input validation (SQL, NoSQL, XSS, command injection, path traversal), (3) Configuration and exposure (CORS, security headers, hardcoded secrets, environment variables, excessive permissions), (4) Dependencies and supply chain (outdated versions, known CVEs), (5) Sensitive data (encryption, storage, logging, GDPR/PII). For each real flaw: severity (critical/high/medium/low), concrete evidence (quoted excerpt or described behavior), exploitation scenario (how an attacker would use it), and a concrete, applicable remediation. If an axis cannot be assessed due to missing information (e.g. no dependency list provided), state it explicitly instead of inventing a generic risk. End with a priority action table sorted by decreasing severity."
   },
+  performanceAudit: {
+    fr: "Audit de performance : analyse uniquement les éléments réellement fournis (code, description du comportement observé), sans supposer de volumétrie ou de contexte absent. Structure ton analyse en quatre catégories, dans cet ordre : (1) Complexité algorithmique (boucles imbriquées, récursion coûteuse, structures de données inadaptées), (2) Requêtes et I/O (requêtes redondantes ou n+1, appels réseau synchrones/bloquants, absence de cache), (3) Mémoire et ressources (fuites mémoire, objets non libérés, allocations excessives), (4) Rendu et charge frontend (re-rendus inutiles, bundles surdimensionnés, chargement bloquant), si pertinent. Pour chaque problème réel : sévérité (critique/majeur/mineur), localisation précise (ligne, fonction ou extrait cité), impact estimé (ex. complexité O(n²) au lieu de O(n log n) sur une collection de taille N), et un correctif de code optimisé prêt à appliquer. Si une catégorie ne présente aucun problème réel, écris-le explicitement (« Aucun problème détecté ») plutôt que d'inventer un point mineur pour la remplir. Termine par un tableau récapitulatif trié par sévérité décroissante.",
+    en: "Performance audit: analyze only the elements actually provided (code, described observed behavior), without assuming volume or absent context. Structure your analysis into four categories, in this order: (1) Algorithmic complexity (nested loops, costly recursion, unsuitable data structures), (2) Queries and I/O (redundant or n+1 queries, synchronous/blocking network calls, missing cache), (3) Memory and resources (memory leaks, unreleased objects, excessive allocations), (4) Frontend rendering and load (unnecessary re-renders, oversized bundles, blocking load), when relevant. For each real issue: severity (critical/major/minor), precise location (line, function or quoted excerpt), estimated impact (e.g. O(n²) complexity instead of O(n log n) on a collection of size N), and a ready-to-apply optimized code fix. If a category has no real issue, state it explicitly (\"No issue detected\") instead of inventing a minor point to fill it. End with a summary table sorted by decreasing severity."
+  },
   projectManager: {
     fr: "Pilotage projet : raisonne comme un chef de projet. Donne des priorités claires, des actions concrètes, des risques et des prochaines étapes. Appuie-toi uniquement sur les données réelles fournies, sans rien inventer.",
     en: 'Project steering: reason like a project manager. Give clear priorities, concrete actions, risks and next steps. Rely only on the real data provided, inventing nothing.'
@@ -414,6 +432,10 @@ export function composeSystemPrompt({
   if (plan.promptProfile === 'security_audit') {
     parts.push(BLOCKS.technical[lang]);
     parts.push(BLOCKS.securityAudit[lang]);
+  }
+  if (plan.promptProfile === 'performance_audit') {
+    parts.push(BLOCKS.technical[lang]);
+    parts.push(BLOCKS.performanceAudit[lang]);
   }
   if (plan.promptProfile === 'project_manager') {
     parts.push(BLOCKS.projectManager[lang]);
