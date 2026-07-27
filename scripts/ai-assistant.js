@@ -8999,6 +8999,10 @@
               // creation du chip et le clic de l'utilisateur (attachSourcesPanelTrigger,
               // qui pose root.dataset.messageId, tourne juste apres ce rendu,
               // donc l'attribut est deja present bien avant tout clic reel).
+              // Diagnostic (cf. commentaire equivalent dans openRagSourceDocument) :
+              // confirme que le clic part bien avec un documentId, avant meme
+              // la recherche locale. A retirer une fois la cause confirmee.
+              assistantLog('warn', 'rag_source_ref_clicked', { documentId: entry.documentId || '', name: entry.name, messageId: root.dataset.messageId || '' });
               const opened = entry.documentId ? await openRagSourceDocument(entry.documentId) : false;
               if (!opened && root.dataset.messageId) openSourcesPanelForMessage(root.dataset.messageId);
             });
@@ -11372,7 +11376,20 @@
   // local) — l'appelant peut alors retomber sur un autre comportement.
   async function openRagSourceDocument(documentId) {
     const target = getKnowledgeDocumentById(documentId);
-    if (!target) return false;
+    if (!target) {
+      // Diagnostic volontairement TOUJOURS visible (assistantLog force les
+      // niveaux warn/error meme hors mode debug) : permet de confirmer en
+      // conditions reelles si le documentId d'une citation correspond a un
+      // identifiant vraiment absent de knowledgeLibrary.documents (cache
+      // client, cf. getKnowledgeDocumentById), ou s'il s'agit d'un probleme
+      // de format/namespace d'identifiant entre le RAG serveur et le cache
+      // local. A retirer une fois la cause confirmee.
+      assistantLog('warn', 'rag_source_document_not_found_locally', {
+        documentId,
+        knownLocalDocumentIds: (knowledgeLibrary.documents || []).map((doc) => doc.id)
+      });
+      return false;
+    }
     // 1) Fichier original (PDF, XLSX, DOCX...) -> nouvel onglet / outil adapté.
     try {
       const original = await getKnowledgeOriginalFile(target);
