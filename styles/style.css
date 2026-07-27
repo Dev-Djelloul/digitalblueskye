@@ -12332,14 +12332,19 @@ body.profile-page .profile-main {
   margin: 0 0 16px;
 }
 
+/* Carte d'identité principale : avatar centré + infos en dessous, fond légèrement
+   contrasté, padding plus généreux. */
 .dbs-identity-card {
   align-items: center;
+  background: linear-gradient(135deg, rgb(93 93 255 / 8%), rgb(121 230 255 / 5%));
   border: 1px solid rgb(93 93 255 / 22%);
-  border-radius: 12px;
+  border-radius: 14px;
   display: flex;
+  flex-direction: column;
   gap: 12px;
-  margin-bottom: 16px;
-  padding: 12px;
+  margin-bottom: 20px;
+  padding: 18px;
+  text-align: center;
 }
 
 .dbs-identity-card-badge {
@@ -12407,6 +12412,15 @@ body.profile-page .profile-main {
 .dbs-avatar-lightbox-close:focus-visible {
   border-color: rgb(121 230 255 / 55%);
   outline: none;
+}
+
+/* Panels Identité et Sécurité : centrer le contenu max-width pour ne pas
+   étirer les petits écrans ni faire des lignes trop longues en grand écran. */
+#dbs-panel-identity .dbs-profile-grid,
+#dbs-panel-security {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 600px;
 }
 
 .dbs-profile-grid {
@@ -12634,32 +12648,40 @@ body.profile-page .profile-main {
   font-size: 0.72rem;
 }
 
+/* Rangée d'actions (boutons) : centrer en bloc sur une ou deux colonnes selon
+   l'écran, avec gap généreux. */
 .dbs-profile-actions-row {
   align-items: center;
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: 16px;
+  justify-content: center;
+  margin-top: 24px;
 }
 
 .dbs-profile-form-footer {
   grid-column: 1 / -1;
 }
 
+/* Boutons secondaires : style subtil avec hover animé. */
 .dbs-profile-secondary-action {
-  background: transparent;
-  border: 1px solid rgb(93 93 255 / 30%);
+  background: rgb(93 93 255 / 8%);
+  border: 1px solid rgb(93 93 255 / 28%);
   border-radius: 10px;
   color: rgb(235 240 255 / 85%);
   cursor: pointer;
   font-family: var(--font-body);
   font-size: 0.82rem;
-  padding: 8px 14px;
+  font-weight: 600;
+  padding: 8px 16px;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
 }
 
 .dbs-profile-secondary-action:hover {
-  border-color: rgb(121 230 255 / 55%);
+  background: rgb(121 230 255 / 14%);
+  border-color: rgb(121 230 255 / 50%);
   color: #fff;
+  transform: translateY(-1px);
 }
 
 .dbs-profile-secondary-action--warning {
@@ -12816,10 +12838,14 @@ body.profile-page .profile-main {
   color: #fff;
 }
 
+/* Grilles d'infos : centrer dans un conteneur avec max-width pour les grands écrans. */
 .dbs-info-grid {
   display: grid;
   gap: 12px;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 600px;
 }
 
 /* Grilles a effectif pair (ex. Securite : 4 cartes) : 2 colonnes fixes pour
@@ -12834,14 +12860,24 @@ body.profile-page .profile-main {
   }
 }
 
+/* Cartes de sécurité/utilisation : gradient de fond, border subtle, padding
+   généreux pour une apparence plus spacieuse. Transition au survol. */
 .dbs-security-card,
 .dbs-usage-card {
-  border: 1px solid rgb(93 93 255 / 20%);
+  background: linear-gradient(135deg, rgb(93 93 255 / 6%), rgb(121 230 255 / 3%));
+  border: 1px solid rgb(93 93 255 / 22%);
   border-radius: 12px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 12px;
+  gap: 6px;
+  padding: 14px;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.dbs-security-card:hover,
+.dbs-usage-card:hover {
+  background: linear-gradient(135deg, rgb(93 93 255 / 10%), rgb(121 230 255 / 6%));
+  border-color: rgb(93 93 255 / 35%);
 }
 
 .dbs-security-card span,
@@ -19957,8 +19993,14 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
 [data-theme="light"] .dbs-local-data-card,
 [data-theme="light"] .dbs-session-item,
 [data-theme="light"] .dbs-companion-option {
-  background: rgb(93 93 255 / 3%);
+  background: linear-gradient(135deg, rgb(93 93 255 / 4%), rgb(200 100 255 / 2%));
   border-color: rgb(93 93 255 / 18%);
+}
+
+[data-theme="light"] .dbs-security-card:hover,
+[data-theme="light"] .dbs-usage-card:hover {
+  background: linear-gradient(135deg, rgb(93 93 255 / 8%), rgb(200 100 255 / 4%));
+  border-color: rgb(93 93 255 / 32%);
 }
 
 [data-theme="light"] .dbs-companion-option.is-active {
@@ -19978,13 +20020,15 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
 
 [data-theme="light"] .dbs-companion-try,
 [data-theme="light"] .dbs-profile-secondary-action {
-  border-color: rgb(93 93 255 / 30%);
+  background: rgb(93 93 255 / 6%);
+  border-color: rgb(93 93 255 / 28%);
   color: rgb(30 32 55 / 82%);
 }
 
 [data-theme="light"] .dbs-companion-try:hover,
 [data-theme="light"] .dbs-profile-secondary-action:hover {
-  background: rgb(93 93 255 / 8%);
+  background: rgb(93 93 255 / 12%);
+  border-color: rgb(93 93 255 / 45%);
   color: rgb(20 22 40 / 94%);
 }
 
