@@ -24,6 +24,14 @@ const RX = {
   // (verbe "dire/contenir/indiquer..."), distincte d'une demande d'action.
   ragQuestion: /\b(que\s+(?:dit|disent|contient|contiennent|indique|pr[ée]cise|mentionne|raconte)|selon\s+(?:le|la|ce|mon|mes|cette)|d['e]apr[èe]s\s+(?:le|la|ce|mon|mes|cette))\b/i,
   technical: /\b(corrige|corriger|bug|d[ée]bogue|debug|erreur|exception|stack\s*trace|refactor|optimise\s+le\s+code|code|fonction|m[ée]thode|api|endpoint|regex|sql|requ[êe]te|compile|typescript|javascript|python|deploy|d[ée]ploie)\b/i,
+  // Bloc de code fourni par l'utilisateur (```lang ... ``` ou ``` seul) —
+  // signal factuel (pas d'interpretation), utilise pour distinguer une revue
+  // de code reelle d'une simple question technique sans code a analyser.
+  codeBlockFence: /```/,
+  // Demande explicite de revue/audit de code (verbe dedie), distincte du
+  // signal "technical" plus large (qui matche aussi une simple question sur
+  // une API sans code fourni).
+  codeReviewVerb: /\b(revois|reviewe?r?|revue\s+de\s+code|code\s*review|audite[rz]?|audit\s+(?:de\s+)?(?:code|s[ée]curit[ée])|trouve\s+(?:les\s+|des\s+)?bugs?|trouve\s+(?:les\s+|des\s+)?failles|(?:trouve|cherche)\s+(?:les\s+|des\s+)?vuln[ée]rabilit[ée]s?|s[ée]curise\s+ce\s+code|relis\s+(?:mon|ce)\s+code|v[ée]rifie\s+(?:mon|ce)\s+code|analyse\s+(?:mon|ce|cette)\s+code|review\s+this\s+code|find\s+bugs?|find\s+(?:the\s+)?vulnerabilit(?:y|ies)|security\s+audit|check\s+this\s+code)\b/i,
   table: /\b(tableau|table|grille|matrice|colonnes?|en\s+ligne[s]?\s+et\s+colonnes?|sous\s+forme\s+de\s+tableau|in\s+a\s+table)\b/i,
   webRecency: /\b(aujourd['\s]hui|maintenant|actuel|actuelle|actuellement|r[ée]cent|r[ée]cente|derni[èe]res?\s+(?:nouvelles?|actualit[ée]s?|infos?)|actualit[ée]s?|en\s+202\d|cette\s+ann[ée]e|ce\s+mois|prix\s+actuel|cours\s+(?:de|du)|latest|current|recent|today|right\s+now|breaking|news|live)\b/i,
   ragProject: /\b(le\s+projet|ce\s+projet|du\s+projet|dans\s+le\s+projet|ce\s+document|ce\s+fichier|cette\s+source|selon\s+(?:le\s+projet|la\s+doc|le\s+document)|que\s+dit\s+(?:le|la|ce)|d['e]apr[èe]s\s+(?:le|la|ce|mes)\s+(?:projet|document|source|fichier|note)|in\s+(?:the|my)\s+project|the\s+document\s+says)\b/i,
@@ -69,8 +77,15 @@ export function detectUserIntent({ userMessage = '', projectContext = null, hasR
     projectAnalysis: RX.projectAnalysis.test(msg),
     creative: RX.creative.test(msg),
     question: RX.question.test(msg),
-    ragQuestion: RX.ragQuestion.test(msg)
+    ragQuestion: RX.ragQuestion.test(msg),
+    hasCodeBlock: RX.codeBlockFence.test(msg),
+    codeReviewVerb: RX.codeReviewVerb.test(msg)
   };
+
+  // Revue de code : necessite un bloc de code REELLEMENT fourni (sinon on ne
+  // reviewerait qu'une description sans rien a analyser) + soit un verbe de
+  // revue explicite, soit un signal technique generique (corrige/bug/...).
+  const isCodeReview = Boolean(flags.hasCodeBlock && (flags.codeReviewVerb || flags.technical));
 
   const needsWeb = Boolean(hasWebIntent || flags.webRecency);
   const needsRag = Boolean(hasRagSources || flags.ragProject || flags.projectAnalysis);
@@ -80,7 +95,8 @@ export function detectUserIntent({ userMessage = '', projectContext = null, hasR
   // Choix de l'intention primaire — ordre de priorite explicite (du plus
   // specifique/contraignant au plus generique).
   let primaryIntent = 'unknown';
-  if (flags.technical) { primaryIntent = 'technical_help'; reasons.push('technical_keyword'); }
+  if (isCodeReview) { primaryIntent = 'code_review'; reasons.push('code_review_signal'); }
+  else if (flags.technical) { primaryIntent = 'technical_help'; reasons.push('technical_keyword'); }
   else if (flags.projectAnalysis) { primaryIntent = 'project_analysis'; reasons.push('project_analysis_keyword'); }
   else if (isRagRetrievalQuestion) { primaryIntent = 'rag_query'; reasons.push('rag_retrieval_question'); }
   else if (flags.planning) { primaryIntent = 'planning'; reasons.push('planning_keyword'); }
@@ -100,6 +116,7 @@ export function detectUserIntent({ userMessage = '', projectContext = null, hasR
   if (primaryIntent === 'document_generation') expectedFormat = 'long_document';
   else if (requiresTable) expectedFormat = 'table';
   else if (primaryIntent === 'planning') expectedFormat = 'checklist';
+  else if (primaryIntent === 'code_review') expectedFormat = 'code_review_report';
   else if (primaryIntent === 'technical_help') expectedFormat = 'step_by_step';
   else if (primaryIntent === 'summary') expectedFormat = 'structured_answer';
   else if (primaryIntent === 'project_analysis') expectedFormat = 'markdown_report';
@@ -111,6 +128,7 @@ export function detectUserIntent({ userMessage = '', projectContext = null, hasR
   const requiresLongAnswer = Boolean(
     primaryIntent === 'document_generation' ||
     primaryIntent === 'project_analysis' ||
+    primaryIntent === 'code_review' ||
     flags.longHint ||
     (primaryIntent === 'planning' && flags.longHint)
   );
@@ -181,6 +199,9 @@ export function planCapabilities(intent, runtimeContext = {}) {
   let preferredModelTier = 'balanced';
   if (preferredResponseLength === 'long' || safeIntent.complexity === 'high') preferredModelTier = 'strong';
   else if (preferredResponseLength === 'short' && safeIntent.complexity === 'low') preferredModelTier = 'fast';
+  // Revue de code : toujours le modele le plus capable, quel que soit le
+  // calcul generique ci-dessus — la fiabilite prime sur le cout ici.
+  if (safeIntent.primaryIntent === 'code_review') preferredModelTier = 'strong';
 
   // Bornes alignees sur le worker (defaut 2000, plafond MAX_TOKENS_CEILING 8192).
   let maxTokensHint = 2200;
@@ -188,7 +209,8 @@ export function planCapabilities(intent, runtimeContext = {}) {
   else if (preferredResponseLength === 'short') maxTokensHint = 1200;
 
   let temperatureHint = 0.35;
-  if (safeIntent.primaryIntent === 'technical_help') temperatureHint = 0.2;
+  if (safeIntent.primaryIntent === 'code_review') temperatureHint = 0.15;
+  else if (safeIntent.primaryIntent === 'technical_help') temperatureHint = 0.2;
   else if (safeIntent.primaryIntent === 'creative') temperatureHint = 0.7;
   else if (safeIntent.primaryIntent === 'document_generation' || safeIntent.primaryIntent === 'project_analysis') temperatureHint = 0.3;
 
@@ -201,7 +223,8 @@ export function planCapabilities(intent, runtimeContext = {}) {
 
   // Profil de prompt — priorite explicite (un seul profil retenu).
   let promptProfile = 'default';
-  if (safeIntent.primaryIntent === 'technical_help') promptProfile = 'technical';
+  if (safeIntent.primaryIntent === 'code_review') promptProfile = 'code_review';
+  else if (safeIntent.primaryIntent === 'technical_help') promptProfile = 'technical';
   else if (safeIntent.primaryIntent === 'planning' || safeIntent.primaryIntent === 'project_analysis') promptProfile = 'project_manager';
   else if (safeIntent.primaryIntent === 'document_generation' || preferredResponseLength === 'long') promptProfile = 'long_document';
   else if (safeIntent.primaryIntent === 'comparison') promptProfile = 'comparison';
@@ -299,6 +322,10 @@ const BLOCKS = {
     fr: 'Aide technique : sois précis et concret. Donne des étapes reproductibles, des blocs de code en ``` avec le langage, et signale les hypothèses ou prérequis. Ne devine pas une API ou une signature : dis-le si tu n\'es pas sûr.',
     en: 'Technical help: be precise and concrete. Give reproducible steps, code blocks in ``` with the language, and flag assumptions or prerequisites. Do not guess an API or signature: say so if unsure.'
   },
+  codeReview: {
+    fr: "Revue de code : analyse le code réellement fourni, sans en inventer ni en supposer des parties absentes. Structure ta réponse en quatre catégories, dans cet ordre : (1) Bugs et erreurs de logique, (2) Sécurité (injection, XSS, CSRF, secrets en dur, validation d'entrée manquante), (3) Performance (complexité algorithmique, requêtes redondantes, appels bloquants), (4) Lisibilité et bonnes pratiques. Pour chaque problème réel : sévérité (critique/majeur/mineur), localisation précise (ligne, fonction ou extrait cité), un scénario concret de défaillance (entrée/état → conséquence), et un correctif de code prêt à appliquer. Si une catégorie ne présente aucun problème réel, écris-le explicitement (« Aucun problème détecté ») plutôt que d'inventer un point mineur pour la remplir. Termine par un tableau récapitulatif trié par sévérité décroissante.",
+    en: "Code review: analyze only the code actually provided, without inventing or assuming absent parts. Structure your answer into four categories, in this order: (1) Bugs and logic errors, (2) Security (injection, XSS, CSRF, hardcoded secrets, missing input validation), (3) Performance (algorithmic complexity, redundant queries, blocking calls), (4) Readability and best practices. For each real issue: severity (critical/major/minor), precise location (line, function or quoted excerpt), a concrete failure scenario (input/state → consequence), and a ready-to-apply code fix. If a category has no real issue, state it explicitly (\"No issue detected\") instead of inventing a minor point to fill it. End with a summary table sorted by decreasing severity."
+  },
   projectManager: {
     fr: "Pilotage projet : raisonne comme un chef de projet. Donne des priorités claires, des actions concrètes, des risques et des prochaines étapes. Appuie-toi uniquement sur les données réelles fournies, sans rien inventer.",
     en: 'Project steering: reason like a project manager. Give clear priorities, concrete actions, risks and next steps. Rely only on the real data provided, inventing nothing.'
@@ -345,6 +372,10 @@ export function composeSystemPrompt({
   }
   if (plan.promptProfile === 'technical') {
     parts.push(BLOCKS.technical[lang]);
+  }
+  if (plan.promptProfile === 'code_review') {
+    parts.push(BLOCKS.technical[lang]);
+    parts.push(BLOCKS.codeReview[lang]);
   }
   if (plan.promptProfile === 'project_manager') {
     parts.push(BLOCKS.projectManager[lang]);

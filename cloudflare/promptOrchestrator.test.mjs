@@ -84,6 +84,33 @@ function run(userMessage, opts = {}) {
   check('technique: temperature basse', plan.temperatureHint === 0.2);
 }
 
+// 7bis. Revue de code (bloc de code + verbe de revue)
+{
+  const { intent, plan } = run('Revois ce code et trouve les bugs :\n```js\nfunction add(a, b) { return a + b }\n```');
+  check('code-review: intent code_review', intent.primaryIntent === 'code_review');
+  check('code-review: format code_review_report', intent.expectedFormat === 'code_review_report');
+  check('code-review: requiresLongAnswer', intent.requiresLongAnswer === true);
+  check('code-review: profil code_review', plan.promptProfile === 'code_review');
+  check('code-review: tier strong', plan.preferredModelTier === 'strong');
+  check('code-review: temperature basse (0.15)', plan.temperatureHint === 0.15);
+  check('code-review: maxTokens eleve (4000)', plan.maxTokensHint === 4000);
+  const prompt = composeSystemPrompt({ intent, plan });
+  check('code-review: prompt contient bloc revue de code', /Revue de code|Code review:/i.test(prompt));
+  check('code-review: prompt contient bloc technique', /Aide technique|Technical help/i.test(prompt));
+}
+
+// 7ter. Bloc de code SANS verbe de revue mais avec signal technique -> code_review
+{
+  const { intent } = run('```python\ndef f(x):\n  return x/0\n```\ncorrige cette fonction');
+  check('code-review-technical: intent code_review', intent.primaryIntent === 'code_review');
+}
+
+// 7quater. Meme verbe de revue mais SANS bloc de code -> reste technical_help
+{
+  const { intent } = run('Peux-tu faire une revue de code de mon projet en general ?');
+  check('code-review-sans-code: pas code_review', intent.primaryIntent !== 'code_review');
+}
+
 // 8. Demande plan d'action
 {
   const { intent, plan } = run('Que dois-je faire aujourd\'hui sur le projet ?');
