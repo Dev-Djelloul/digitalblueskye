@@ -16934,12 +16934,12 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
   color: #dfe8ff;
   cursor: pointer;
   display: inline-flex;
-  height: 30px;
+  height: 36px;
   justify-content: center;
   padding: 0;
   -webkit-text-fill-color: #dfe8ff;
   transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
-  width: 30px;
+  width: 36px;
 }
 
 .ai-assistant-export-btn span {
@@ -16954,9 +16954,9 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
 
 .ai-assistant-export-btn img {
   display: block;
-  height: 16px;
+  height: 20px;
   object-fit: contain;
-  width: 16px;
+  width: 20px;
 }
 
 .ai-assistant-export-btn:hover {
@@ -16978,12 +16978,12 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
   color: #dfe8ff;
   cursor: pointer;
   display: none;
-  height: 30px;
+  height: 36px;
   justify-content: center;
   padding: 0;
   -webkit-text-fill-color: #dfe8ff;
   transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
-  width: 30px;
+  width: 36px;
 }
 
 .ai-assistant-regenerate-btn span {
@@ -16998,10 +16998,10 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
 
 .ai-assistant-regenerate-btn img {
   display: block;
-  height: 16px;
+  height: 20px;
   object-fit: contain;
   transition: transform 0.35s ease;
-  width: 16px;
+  width: 20px;
 }
 
 .ai-assistant-regenerate-btn:hover {
