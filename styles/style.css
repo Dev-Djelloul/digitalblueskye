@@ -16964,18 +16964,15 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
    aria-label portent l'information au survol/lecteur d'ecran. */
 .ai-assistant-export-btn {
   align-items: center;
-  background: rgb(255 255 255 / 8%);
-  border: 1px solid rgb(255 255 255 / 18%);
-  border-radius: 50%;
+  background: transparent;
+  border: none;
   color: #dfe8ff;
   cursor: pointer;
   display: inline-flex;
-  height: 36px;
   justify-content: center;
   padding: 0;
   -webkit-text-fill-color: #dfe8ff;
-  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
-  width: 36px;
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 .ai-assistant-export-btn span {
@@ -16990,15 +16987,14 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
 
 .ai-assistant-export-btn img {
   display: block;
-  height: 20px;
+  height: 44px;
+  width: 44px;
   object-fit: contain;
-  width: 20px;
 }
 
 .ai-assistant-export-btn:hover {
-  background: rgb(121 230 255 / 14%);
-  border-color: rgb(121 230 255 / 40%);
-  transform: translateY(-1px);
+  opacity: 0.7;
+  transform: scale(1.05);
 }
 
 /* Bouton « Régénérer » : présent dans chaque bulle assistant, mais visible
@@ -17008,18 +17004,15 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
    génération en cours). */
 .ai-assistant-regenerate-btn {
   align-items: center;
-  background: rgb(255 255 255 / 8%);
-  border: 1px solid rgb(255 255 255 / 18%);
-  border-radius: 50%;
+  background: transparent;
+  border: none;
   color: #dfe8ff;
   cursor: pointer;
   display: none;
-  height: 36px;
   justify-content: center;
   padding: 0;
   -webkit-text-fill-color: #dfe8ff;
-  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
-  width: 36px;
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 .ai-assistant-regenerate-btn span {
@@ -17034,16 +17027,14 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
 
 .ai-assistant-regenerate-btn img {
   display: block;
-  height: 20px;
   object-fit: contain;
+  width: 44px;
+  height: 44px;
   transition: transform 0.35s ease;
-  width: 20px;
 }
 
 .ai-assistant-regenerate-btn:hover {
-  background: rgb(121 230 255 / 14%);
-  border-color: rgb(121 230 255 / 40%);
-  transform: translateY(-1px);
+  opacity: 0.7;
 }
 
 .ai-assistant-regenerate-btn:hover img {
@@ -17051,7 +17042,6 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
 }
 
 [data-theme="light"] .ai-assistant-regenerate-btn {
-  border-color: rgb(70 55 130 / 25%);
   color: #3d3567;
   -webkit-text-fill-color: #3d3567;
 }
@@ -18811,15 +18801,12 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
 }
 
 [data-theme="light"] .ai-assistant-export-btn {
-  background: rgb(93 93 255 / 9%);
-  border-color: rgb(93 93 255 / 22%);
   color: #2f2b5f;
   -webkit-text-fill-color: #2f2b5f;
 }
 
 [data-theme="light"] .ai-assistant-export-btn:hover {
-  background: rgb(93 93 255 / 15%);
-  border-color: rgb(93 93 255 / 38%);
+  opacity: 0.7;
 }
 
 [data-theme="light"] .ai-assistant-inline-link {
