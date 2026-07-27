@@ -16006,17 +16006,27 @@ button.ai-assistant-project-row {
   border: 1px solid rgb(93 93 255 / 26%);
   border-radius: 12px;
   display: grid;
-  gap: 8px;
-  overflow: visible;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  overflow: hidden;
   padding: 12px 13px;
-  /* Reserve l'espace occupe par .ai-source-thumb (60px + 12px de marge,
-     position: absolute) en bas de carte : sans ce padding, une carte au
-     contenu court (peu de locators, pas de date) a une hauteur totale
-     inferieure a celle du bloc vignette, qui remonte alors chevaucher le
-     titre et la fleche d'ouverture dans l'en-tete (cf. capture utilisateur
-     montrant la fleche decalee hors de la carte). */
-  padding-bottom: 84px;
   position: relative;
+  align-items: start;
+}
+
+/* Conteneur du contenu textuel : colonne gauche qui prend l'espace disponible */
+.ai-source-card-content {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+
+/* Conteneur de la vignette : colonne droite fixe */
+.ai-source-card-thumb-wrapper {
+  display: flex;
+  align-items: flex-start;
+  flex: 0 0 auto;
 }
 
 /* Vignette de la carte source : très petite, discrètement placée dans un coin.
@@ -16036,10 +16046,7 @@ button.ai-assistant-project-row {
   overflow: hidden;
   width: 60px;
   height: 60px;
-  position: absolute;
-  bottom: 12px;
-  right: 12px;
-  flex: none;
+  flex: 0 0 auto;
 }
 
 /* object-fit: contain affiche l'image entière sans découpe. */
@@ -16102,7 +16109,9 @@ a.ai-source-card:focus-visible {
 .ai-source-card-head {
   align-items: center;
   display: flex;
-  gap: 12px;
+  gap: 8px;
+  min-width: 0;
+  flex-wrap: wrap;
 }
 
 .ai-source-number-badge {
@@ -16152,8 +16161,9 @@ a.ai-source-card:focus-visible {
   object-fit: contain;
   margin-left: auto;
   flex-shrink: 0;
-  opacity: 0.7;
+  opacity: 0.6;
   transition: opacity 0.2s ease;
+  display: block;
 }
 
 .ai-source-card--openable:hover .ai-source-open-indicator {
@@ -16217,6 +16227,12 @@ a.ai-source-card:focus-visible {
   font-weight: 650;
   line-height: 1.35;
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  word-break: break-word;
 }
 
 .ai-source-title--centered {
@@ -20229,4 +20245,26 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
 
 [data-theme="light"] .dbs-profile-home-link {
   color: rgb(93 60 220 / 90%);
+}
+
+/* Media query pour les cartes sources en mobile */
+@media (max-width: 640px) {
+  .ai-source-card {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .ai-source-card-thumb-wrapper {
+    justify-self: end;
+    margin-top: 4px;
+  }
+
+  .ai-source-card-head {
+    gap: 6px;
+  }
+
+  .ai-source-title {
+    font-size: 0.76rem;
+    -webkit-line-clamp: 2;
+  }
 }

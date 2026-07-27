@@ -11345,6 +11345,10 @@
     card.rel = 'noopener noreferrer';
     card.setAttribute('aria-label', currentLanguage === 'en' ? `Open source: ${source.title}` : `Ouvrir la source : ${source.title}`);
 
+    // Conteneur gauche pour le contenu textuel
+    const contentWrapper = document.createElement('div');
+    contentWrapper.className = 'ai-source-card-content';
+
     const head = document.createElement('div');
     head.className = 'ai-source-card-head';
     head.appendChild(buildSourceFaviconElement(domain));
@@ -11357,31 +11361,33 @@
     openIndicator.setAttribute('aria-hidden', 'true');
     openIndicator.textContent = '↗';
     head.appendChild(openIndicator);
-    card.appendChild(head);
+    contentWrapper.appendChild(head);
 
     const titleEl = document.createElement('strong');
     titleEl.className = 'ai-source-title';
     titleEl.textContent = source.title;
-    card.appendChild(titleEl);
+    contentWrapper.appendChild(titleEl);
 
     if (source.snippet) {
       const snippet = document.createElement('p');
       snippet.className = 'ai-source-snippet';
       snippet.textContent = source.snippet;
-      card.appendChild(snippet);
+      contentWrapper.appendChild(snippet);
     }
 
     if (source.publishedDate) {
       const meta = document.createElement('span');
       meta.className = 'ai-source-meta';
       meta.textContent = source.publishedDate;
-      card.appendChild(meta);
+      contentWrapper.appendChild(meta);
     }
 
     const badge = document.createElement('span');
     badge.className = 'ai-source-badge ai-source-badge--web';
     badge.textContent = currentLanguage === 'en' ? 'WEB' : 'WEB';
-    card.appendChild(badge);
+    contentWrapper.appendChild(badge);
+
+    card.appendChild(contentWrapper);
 
     return card;
   }
@@ -11546,6 +11552,10 @@
     card.setAttribute('tabindex', '0');
     card.setAttribute('aria-label', `${en ? 'Open document: ' : 'Ouvrir le document : '}${source.documentName}`);
 
+    // Conteneur gauche pour le contenu textuel
+    const contentWrapper = document.createElement('div');
+    contentWrapper.className = 'ai-source-card-content';
+
     const head = document.createElement('div');
     head.className = 'ai-source-card-head';
 
@@ -11567,12 +11577,12 @@
     openIndicator.alt = '';
     openIndicator.setAttribute('aria-hidden', 'true');
     head.appendChild(openIndicator);
-    card.appendChild(head);
+    contentWrapper.appendChild(head);
 
     const meta = document.createElement('span');
     meta.className = 'ai-source-meta';
     meta.textContent = (source.locators || []).join(', ');
-    card.appendChild(meta);
+    contentWrapper.appendChild(meta);
 
     // Date et heure d'ajout (tracabilite) depuis l'import du document.
     const added = Number(doc?.importedAt) || 0;
@@ -11583,19 +11593,25 @@
       const datePart = when.toLocaleDateString(en ? 'en-US' : 'fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
       const timePart = when.toLocaleTimeString(en ? 'en-US' : 'fr-FR', { hour: '2-digit', minute: '2-digit' });
       addedEl.textContent = en ? `Added ${datePart} at ${timePart}` : `Ajouté le ${datePart} à ${timePart}`;
-      card.appendChild(addedEl);
+      contentWrapper.appendChild(addedEl);
     }
-
-    if (source.excerpt) card.dataset.excerpt = source.excerpt;
 
     const badge = document.createElement('span');
     badge.className = `ai-source-badge ${isGlobal ? 'ai-source-badge--global' : 'ai-source-badge--project'}`;
     badge.textContent = isGlobal
       ? (en ? 'Global library' : 'Bibliothèque globale')
       : (en ? 'Project' : 'Projet');
-    card.appendChild(badge);
+    contentWrapper.appendChild(badge);
 
-    card.appendChild(buildRagSourceThumb(source, doc));
+    card.appendChild(contentWrapper);
+
+    if (source.excerpt) card.dataset.excerpt = source.excerpt;
+
+    // Conteneur droit pour la vignette
+    const thumbWrapper = document.createElement('div');
+    thumbWrapper.className = 'ai-source-card-thumb-wrapper';
+    thumbWrapper.appendChild(buildRagSourceThumb(source, doc));
+    card.appendChild(thumbWrapper);
 
     // Clic / Entrée -> ouvre le document local dans un nouvel onglet (fichier
     // original si disponible, sinon apercu). Cf. openRagSourceDocument,
