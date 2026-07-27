@@ -111,6 +111,37 @@ function run(userMessage, opts = {}) {
   check('code-review-sans-code: pas code_review', intent.primaryIntent !== 'code_review');
 }
 
+// 7quinquies. Audit de securite (sans bloc de code : architecture/config decrite en texte)
+{
+  const { intent, plan } = run('Peux-tu faire un audit de sécurité de mon API : gestion des tokens, CORS et secrets stockés en dur ?');
+  check('security-audit: intent security_audit', intent.primaryIntent === 'security_audit');
+  check('security-audit: format security_audit_report', intent.expectedFormat === 'security_audit_report');
+  check('security-audit: requiresLongAnswer', intent.requiresLongAnswer === true);
+  check('security-audit: profil security_audit', plan.promptProfile === 'security_audit');
+  check('security-audit: tier strong', plan.preferredModelTier === 'strong');
+  check('security-audit: temperature tres basse (0.1)', plan.temperatureHint === 0.1);
+  const prompt = composeSystemPrompt({ intent, plan });
+  check('security-audit: prompt contient bloc audit de securite', /Audit de sécurité|Security audit:/i.test(prompt));
+}
+
+// 7sexies. Audit de securite avec bloc de code -> reste security_audit (perimetre plus large que code_review)
+{
+  const { intent } = run('Fais un audit de sécurité complet de ce endpoint :\n```js\napp.get("/user", (req, res) => db.query("SELECT * FROM users WHERE id=" + req.query.id))\n```');
+  check('security-audit-avec-code: intent security_audit (pas code_review)', intent.primaryIntent === 'security_audit');
+}
+
+// 7septies. Mention isolee de vulnerabilite/XSS -> security_audit, meme sans le mot "audit"
+{
+  const { intent } = run('Est-ce que mon application est vulnérable au XSS ?');
+  check('security-audit-xss: intent security_audit', intent.primaryIntent === 'security_audit');
+}
+
+// 7octies. Revue de code classique (sans signal de securite) -> reste code_review, pas security_audit
+{
+  const { intent } = run('Revois ce code et dis-moi si la logique est correcte :\n```js\nfunction sum(a, b) { return a - b }\n```');
+  check('code-review-non-securite: reste code_review', intent.primaryIntent === 'code_review');
+}
+
 // 8. Demande plan d'action
 {
   const { intent, plan } = run('Que dois-je faire aujourd\'hui sur le projet ?');
