@@ -173,6 +173,17 @@ function run(userMessage, opts = {}) {
   check('securite-prioritaire-sur-perf: intent security_audit', intent.primaryIntent === 'security_audit');
 }
 
+// 7terdecies. Question RAG explicite mentionnant securite/lenteur/bugs -> rag_query,
+// PAS un audit autonome (priorite a la recuperation documentaire reelle).
+{
+  const { intent } = run('Que dit le projet sur les vulnérabilités de sécurité identifiées ?', { hasRagSources: true });
+  check('rag-question-avec-mot-securite: intent rag_query (pas security_audit)', intent.primaryIntent === 'rag_query');
+}
+{
+  const { intent } = run('Selon la documentation du projet, quels bugs de performance ont été trouvés ?', { hasRagSources: true });
+  check('rag-question-avec-mot-perf-bug: intent rag_query (pas performance_audit/code_review)', intent.primaryIntent === 'rag_query');
+}
+
 // 8. Demande plan d'action
 {
   const { intent, plan } = run('Que dois-je faire aujourd\'hui sur le projet ?');

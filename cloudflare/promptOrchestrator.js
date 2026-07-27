@@ -128,13 +128,21 @@ export function detectUserIntent({ userMessage = '', projectContext = null, hasR
 
   // Choix de l'intention primaire — ordre de priorite explicite (du plus
   // specifique/contraignant au plus generique).
+  //
+  // isRagRetrievalQuestion est verifie EN PREMIER, avant les audits : une
+  // vraie question de recuperation ("que dit le projet sur les
+  // vulnérabilités de sécurité ?") doit faire citer les documents projet
+  // existants, pas declencher un audit de securite/performance "invente" par
+  // le modele sur un sujet qui n'a jamais ete fourni. Sans cette priorite,
+  // le simple mot "sécurité"/"lent"/"bug" dans une question de recuperation
+  // RAG detournait a tort l'intention vers un audit autonome.
   let primaryIntent = 'unknown';
-  if (isSecurityAudit) { primaryIntent = 'security_audit'; reasons.push('security_audit_signal'); }
+  if (isRagRetrievalQuestion) { primaryIntent = 'rag_query'; reasons.push('rag_retrieval_question'); }
+  else if (isSecurityAudit) { primaryIntent = 'security_audit'; reasons.push('security_audit_signal'); }
   else if (isPerformanceAudit) { primaryIntent = 'performance_audit'; reasons.push('performance_audit_signal'); }
   else if (isCodeReview) { primaryIntent = 'code_review'; reasons.push('code_review_signal'); }
   else if (flags.technical) { primaryIntent = 'technical_help'; reasons.push('technical_keyword'); }
   else if (flags.projectAnalysis) { primaryIntent = 'project_analysis'; reasons.push('project_analysis_keyword'); }
-  else if (isRagRetrievalQuestion) { primaryIntent = 'rag_query'; reasons.push('rag_retrieval_question'); }
   else if (flags.planning) { primaryIntent = 'planning'; reasons.push('planning_keyword'); }
   else if (flags.document) { primaryIntent = 'document_generation'; reasons.push('document_keyword'); }
   else if (flags.comparison) { primaryIntent = 'comparison'; reasons.push('comparison_keyword'); }
