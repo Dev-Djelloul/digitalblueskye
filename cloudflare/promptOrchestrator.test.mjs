@@ -184,6 +184,85 @@ function run(userMessage, opts = {}) {
   check('rag-question-avec-mot-perf-bug: intent rag_query (pas performance_audit/code_review)', intent.primaryIntent === 'rag_query');
 }
 
+// 7quaterdecies. Generation de tests (bloc de code + verbe dedie)
+{
+  const { intent, plan } = run('Écris des tests unitaires pour cette fonction :\n```js\nfunction add(a, b) { return a + b }\n```');
+  check('test-gen: intent test_generation', intent.primaryIntent === 'test_generation');
+  check('test-gen: format test_suite', intent.expectedFormat === 'test_suite');
+  check('test-gen: requiresLongAnswer', intent.requiresLongAnswer === true);
+  check('test-gen: profil test_generation', plan.promptProfile === 'test_generation');
+  check('test-gen: tier strong', plan.preferredModelTier === 'strong');
+  check('test-gen: temperature basse (0.15)', plan.temperatureHint === 0.15);
+  const prompt = composeSystemPrompt({ intent, plan });
+  check('test-gen: prompt contient bloc generation de tests', /Génération de tests|Test generation:/i.test(prompt));
+}
+
+// 7quindecies. Generation de tests SANS bloc de code -> ne doit PAS declencher test_generation
+{
+  const { intent } = run('Peux-tu m\'expliquer comment écrire des tests unitaires en général ?');
+  check('test-gen-sans-code: pas test_generation', intent.primaryIntent !== 'test_generation');
+}
+
+// 7sedecies. Documentation de code (JSDoc explicite, sans bloc de code necessaire)
+{
+  const { intent, plan } = run('Génère la documentation JSDoc de cette fonction :\n```js\nfunction add(a, b) { return a + b }\n```');
+  check('code-doc: intent code_documentation', intent.primaryIntent === 'code_documentation');
+  check('code-doc: format code_documentation', intent.expectedFormat === 'code_documentation');
+  check('code-doc: profil code_documentation', plan.promptProfile === 'code_documentation');
+  check('code-doc: tier strong', plan.preferredModelTier === 'strong');
+  check('code-doc: temperature basse (0.15)', plan.temperatureHint === 0.15);
+  const prompt = composeSystemPrompt({ intent, plan });
+  check('code-doc: prompt contient bloc documentation', /Documentation de code|Code documentation:/i.test(prompt));
+}
+
+// 7septdecies. "Génère une JSDoc" ne doit PAS partir vers document_generation
+// (collision potentielle avec le pattern generique "génère un/une ...").
+{
+  const { intent } = run('Peux-tu générer une JSDoc pour ce module ?');
+  check('jsdoc-pas-document-generation: reste code_documentation', intent.primaryIntent === 'code_documentation');
+}
+
+// 7octodecies. Generation de tests garde priorite sur code_review quand les deux se chevauchent
+{
+  const { intent } = run('Corrige et génère des tests pour ce code :\n```js\nfunction div(a, b) { return a / b }\n```');
+  check('test-gen-prioritaire-sur-code-review: intent test_generation', intent.primaryIntent === 'test_generation');
+}
+
+// 7novodecies. Formes infinitives francaises (bug trouve en tests manuels :
+// le premier jet ne couvrait que l'imperatif "écris"/"génère", ratant les
+// tournures tres courantes "peux-tu écrire..."/"j'aimerais générer...").
+{
+  const a = run('Peux-tu écrire des tests pour cette fonction ?\n```js\nfunction f(){}\n```');
+  check('infinitif-ecrire: intent test_generation', a.intent.primaryIntent === 'test_generation');
+  const b = run('J\'aimerais générer des tests pour cette fonction :\n```js\nfunction f(){}\n```');
+  check('infinitif-generer: intent test_generation', b.intent.primaryIntent === 'test_generation');
+  const c = run('Peux-tu documenter ce code :\n```js\nfunction f(){}\n```');
+  check('infinitif-documenter: intent code_documentation', c.intent.primaryIntent === 'code_documentation');
+}
+
+// 7vicies. Autres formes infinitives manquantes trouvees par balayage manuel
+// systematique sur les 5 regex de detection (revoir/trouver/relire/vérifier/
+// analyser/sécuriser/auditer/accélérer/tester) — toutes deja deployees en
+// prod pour codeReviewVerb (Phase 1) et securityAuditVerb (Phase 2), le bug
+// dormait silencieusement depuis leur premier commit.
+{
+  const cases = [
+    ['Peux-tu revoir ce code ?\n```js\nfunction f(){}\n```', 'code_review'],
+    ['Peux-tu trouver les bugs dans ce code ?\n```js\nfunction f(){}\n```', 'code_review'],
+    ['Peux-tu relire mon code ?\n```js\nfunction f(){}\n```', 'code_review'],
+    ['Peux-tu vérifier mon code ?\n```js\nfunction f(){}\n```', 'code_review'],
+    ['Peux-tu analyser ce code ?\n```js\nfunction f(){}\n```', 'code_review'],
+    ['Peux-tu sécuriser mon site ?', 'security_audit'],
+    ['Peux-tu auditer la sécurité de mon appli ?', 'security_audit'],
+    ['Peux-tu accélérer cette fonction ?\n```js\nfunction f(){}\n```', 'performance_audit'],
+    ['Peux-tu tester ce code ?\n```js\nfunction f(){}\n```', 'test_generation']
+  ];
+  for (const [msg, expected] of cases) {
+    const { intent } = run(msg);
+    check(`infinitif "${msg.slice(0, 40)}...": intent ${expected}`, intent.primaryIntent === expected);
+  }
+}
+
 // 8. Demande plan d'action
 {
   const { intent, plan } = run('Que dois-je faire aujourd\'hui sur le projet ?');

@@ -42,7 +42,13 @@ const RX = {
   // non-mot par le moteur, donc aucune "frontiere de mot" n'est detectee
   // entre "é" et l'espace suivant. Les lookarounds \p{L} (letter Unicode)
   // couvrent correctement les caracteres accentues.
-  codeReviewVerb: /(?<![\p{L}\p{N}_])(revois|reviewe?r?|revue\s+de\s+code|code\s*review|audite[rz]?|audit\s+(?:de\s+)?(?:code|s[ée]curit[ée])|trouve\s+(?:les\s+|des\s+)?bugs?|trouve\s+(?:les\s+|des\s+)?failles|(?:trouve|cherche)\s+(?:les\s+|des\s+)?vuln[ée]rabilit[ée]s?|s[ée]curise\s+ce\s+code|relis\s+(?:mon|ce)\s+code|v[ée]rifie\s+(?:mon|ce)\s+code|analyse\s+(?:mon|ce|cette)\s+code|review\s+this\s+code|find\s+bugs?|find\s+(?:the\s+)?vulnerabilit(?:y|ies)|security\s+audit|check\s+this\s+code)(?![\p{L}\p{N}_])/iu,
+  // NOTE additionnelle (trouvee en test manuel systematique) : plusieurs
+  // verbes n'existaient qu'a l'imperatif ("revois", "trouve", "cherche",
+  // "relis") et ratenaient la tournure tres courante "peux-tu + infinitif"
+  // ("peux-tu revoir/trouver/chercher/relire..."). Ajout de la forme
+  // infinitive en alternative — aucune n'a d'accent, donc aucun risque du
+  // piege è/é rencontre sur générer/accélérer.
+  codeReviewVerb: /(?<![\p{L}\p{N}_])((?:revois|revoir)|reviewe?r?|revue\s+de\s+code|code\s*review|audite[rz]?|audit\s+(?:de\s+)?(?:code|s[ée]curit[ée])|(?:trouve|trouver)\s+(?:les\s+|des\s+)?bugs?|(?:trouve|trouver)\s+(?:les\s+|des\s+)?failles|(?:trouve|trouver|cherche|chercher)\s+(?:les\s+|des\s+)?vuln[ée]rabilit[ée]s?|s[ée]curise(?:r)?\s+ce\s+code|(?:relis|relire)\s+(?:mon|ce)\s+code|v[ée]rifie(?:r)?\s+(?:mon|ce)\s+code|analyse(?:r)?\s+(?:mon|ce|cette)\s+code|review\s+this\s+code|find\s+bugs?|find\s+(?:the\s+)?vulnerabilit(?:y|ies)|security\s+audit|check\s+this\s+code)(?![\p{L}\p{N}_])/iu,
   // Demande d'audit de securite au sens large (pas limitee a un extrait de
   // code : porte aussi sur l'architecture, la config, les dependances, les
   // donnees sensibles). Volontairement plus specifique/prioritaire que
@@ -51,13 +57,48 @@ const RX = {
   // bas, priorite explicite dans detectUserIntent). Memes lookarounds
   // Unicode que codeReviewVerb ci-dessus (meme raison : plusieurs
   // alternatives se terminent par un caractere accentue).
-  securityAuditVerb: /(?<![\p{L}\p{N}_])(audit\s+(?:de\s+)?s[ée]curit[ée]|security\s+audit|pentest(?:ing)?|test\s+d['e]intrusion|faille[s]?\s+de\s+s[ée]curit[ée]|vuln[ée]rabilit[ée]s?|vulnerabilit(?:y|ies)|owasp|injection\s+sql|sql\s+injection|xss|csrf|s[ée]curise\s+(?:mon|ce|cette|le|la)\s+(?:site|api|application|serveur|projet|backend|worker|code)|check\s+for\s+vulnerabilit(?:y|ies)|security\s+review|harden(?:ing)?\s+(?:my|this)|vulnerability\s+scan)(?![\p{L}\p{N}_])/iu,
+  // NOTE : audite[rz]?\s+(?:la\s+)?s[ée]curit[ée] (forme VERBALE, "audite/
+  // auditer la sécurité") est distinct de audit\s+(?:de\s+)?s[ée]curit[ée]
+  // (forme NOMINALE, "audit de sécurité") — trouve manquant en test manuel
+  // ("audite la sécurité de mon appli" ne matchait ni l'un ni l'autre).
+  // Idem s[ée]curise(?:r)? : couvre l'imperatif "sécurise" ET l'infinitif
+  // "sécuriser" (un seul accent ici, pas de piege de decalage è/é comme
+  // "générer"/"accélérer" plus haut).
+  securityAuditVerb: /(?<![\p{L}\p{N}_])(audit\s+(?:de\s+)?s[ée]curit[ée]|audite[rz]?\s+(?:la\s+)?s[ée]curit[ée]|security\s+audit|pentest(?:ing)?|test\s+d['e]intrusion|faille[s]?\s+de\s+s[ée]curit[ée]|vuln[ée]rabilit[ée]s?|vulnerabilit(?:y|ies)|owasp|injection\s+sql|sql\s+injection|xss|csrf|s[ée]curise(?:r)?\s+(?:mon|ce|cette|le|la)\s+(?:site|api|application|serveur|projet|backend|worker|code)|check\s+for\s+vulnerabilit(?:y|ies)|security\s+review|harden(?:ing)?\s+(?:my|this)|vulnerability\s+scan)(?![\p{L}\p{N}_])/iu,
   // Demande d'audit/optimisation de performance (perimetre dedie, distinct
   // des categories generiques de codeReviewVerb). Meme technique de
   // lookarounds Unicode que ci-dessus (plusieurs alternatives se terminent
-  // par un caractere accentue : "rapidit[ée]", "complexit[ée]", "lenteur"
-  // n'est pas concerne mais "acc[ée]l[èe]re" et "latence" le sont potentiellement).
-  performanceAuditVerb: /(?<![\p{L}\p{N}_])(optimi[sz]e[rz]?|am[ée]liore[rz]?\s+(?:les?\s+)?(?:performances?|perf|vitesse|rapidit[ée])|acc[ée]l[èe]re[rz]?|plus\s+rapide|trop\s+lent[e]?|c['e]est\s+lent|(?:[çc]a)\s+rame|lenteur[s]?|fuite[s]?\s+m[ée]moire|memory\s+leak|complexit[ée]\s+algorithmique|big\s*[- ]?o|requ[êe]tes?\s+redondantes?|requ[êe]tes?\s+n\+1|n\+1\s+quer(?:y|ies)|optimi[sz]e\s+(?:this|my)|speed\s+up|reduce\s+latency|performance\s+(?:audit|review|issue|report)|slow\s+(?:code|query|queries|function|endpoint)|bottleneck[s]?|goulot[s]?\s+d['e]?[ée]tranglement|latence|throughput|scalabilit[ée])(?![\p{L}\p{N}_])/iu,
+  // par un caractere accentue : "rapidit[ée]", "complexit[ée]").
+  //
+  // acc[ée]l[éèe]re(?:r)? : piege distinct trouve en test manuel — "accélère"
+  // (present, 2e syllabe en È) et "accélérer" (infinitif, 2e syllabe en É)
+  // n'ont PAS le meme accent a cette position. Un premier jet [èe] (correct
+  // pour le present) faisait donc echouer l'infinitif "accélérer", pourtant
+  // tres courant ("peux-tu accélérer ce endpoint ?"). [éèe] couvre les deux
+  // graphies (+ la forme non accentuee).
+  performanceAuditVerb: /(?<![\p{L}\p{N}_])(optimi[sz]e[rz]?|am[ée]liore[rz]?\s+(?:les?\s+)?(?:performances?|perf|vitesse|rapidit[ée])|acc[ée]l[éèe]re(?:r)?|plus\s+rapide|trop\s+lent[e]?|c['e]est\s+lent|(?:[çc]a)\s+rame|lenteur[s]?|fuite[s]?\s+m[ée]moire|memory\s+leak|complexit[ée]\s+algorithmique|big\s*[- ]?o|requ[êe]tes?\s+redondantes?|requ[êe]tes?\s+n\+1|n\+1\s+quer(?:y|ies)|optimi[sz]e\s+(?:this|my)|speed\s+up|reduce\s+latency|performance\s+(?:audit|review|issue|report)|slow\s+(?:code|query|queries|function|endpoint)|bottleneck[s]?|goulot[s]?\s+d['e]?[ée]tranglement|latence|throughput|scalabilit[ée])(?![\p{L}\p{N}_])/iu,
+  // Demande de generation de tests (unitaires/integration). Necessite un vrai
+  // bloc de code fourni (verifie via hasCodeBlock dans detectUserIntent,
+  // meme logique que codeReviewVerb) : on ne peut pas ecrire des tests
+  // pertinents sur du code qu'on n'a jamais vu.
+  // NOTE : (?:[ée]cris|[ée]crire) et (?:g[ée]n[èe]re|g[ée]n[ée]rer) couvrent a
+  // la fois l'imperatif ("écris des tests") et l'infinitif ("peux-tu écrire
+  // des tests ?") — meme convention que RX.document ci-dessus, qui liste deja
+  // separement "[ée]cris" et "[ée]crire". Un premier jet ne couvrant que
+  // l'imperatif ratait silencieusement les tournures tres courantes
+  // "peux-tu écrire..."/"j'aimerais générer...". Lookarounds Unicode (meme
+  // technique que codeReviewVerb/securityAuditVerb/performanceAuditVerb
+  // plus haut) : cette fois le \b defaillant est en DEBUT d'alternative
+  // ("écrire", "générer" COMMENCENT par un accent), pas en fin — meme cause
+  // (\b se base sur \w = [A-Za-z0-9_], "é" n'est pas un caractere de mot).
+  testGenerationVerb: /(?<![\p{L}\p{N}_])((?:[ée]cris|[ée]crire)\s+(?:des\s+|les\s+)?tests?|(?:g[ée]n[èe]re|g[ée]n[ée]rer)\s+(?:des\s+|les\s+)?tests?|teste(?:r)?\s+ce\s+code|couverture\s+de\s+tests?|tests?\s+unitaires?|tests?\s+d['e]int[ée]gration|write\s+(?:unit\s+)?tests?|generate\s+tests?|test\s+coverage|unit\s+tests?\s+for\s+this)(?![\p{L}\p{N}_])/iu,
+  // Demande de documentation de code (JSDoc/docstrings/README technique) —
+  // volontairement plus specifique que le pattern "document" generique
+  // (rapports/guides longs) pour eviter qu'une demande de JSDoc soit
+  // aiguillee vers document_generation (mauvais format de sortie).
+  // Memes lookarounds Unicode que testGenerationVerb ci-dessus (meme cause :
+  // "écris"/"écrire" en debut d'alternative).
+  docGenerationVerb: /(?<![\p{L}\p{N}_])((?:documente|documenter)\s+(?:ce|mon|cette)\s+code|jsdoc|docstrings?|(?:g[ée]n[èe]re|g[ée]n[ée]rer)\s+(?:la\s+)?doc(?:umentation)?\s+(?:de\s+ce\s+code|technique|de\s+l['e]api|api)|(?:[ée]cris|[ée]crire)\s+la\s+doc(?:umentation)?\s+(?:de\s+ce\s+code|technique)|document\s+this\s+code|generate\s+(?:jsdoc|docstrings?|documentation\s+for\s+this)|write\s+(?:the\s+)?documentation\s+for\s+this\s+code|api\s+documentation\s+for\s+this)(?![\p{L}\p{N}_])/iu,
   table: /\b(tableau|table|grille|matrice|colonnes?|en\s+ligne[s]?\s+et\s+colonnes?|sous\s+forme\s+de\s+tableau|in\s+a\s+table)\b/i,
   webRecency: /\b(aujourd['\s]hui|maintenant|actuel|actuelle|actuellement|r[ée]cent|r[ée]cente|derni[èe]res?\s+(?:nouvelles?|actualit[ée]s?|infos?)|actualit[ée]s?|en\s+202\d|cette\s+ann[ée]e|ce\s+mois|prix\s+actuel|cours\s+(?:de|du)|latest|current|recent|today|right\s+now|breaking|news|live)\b/i,
   ragProject: /\b(le\s+projet|ce\s+projet|du\s+projet|dans\s+le\s+projet|ce\s+document|ce\s+fichier|cette\s+source|selon\s+(?:le\s+projet|la\s+doc|le\s+document)|que\s+dit\s+(?:le|la|ce)|d['e]apr[èe]s\s+(?:le|la|ce|mes)\s+(?:projet|document|source|fichier|note)|in\s+(?:the|my)\s+project|the\s+document\s+says)\b/i,
@@ -107,7 +148,9 @@ export function detectUserIntent({ userMessage = '', projectContext = null, hasR
     hasCodeBlock: RX.codeBlockFence.test(msg),
     codeReviewVerb: RX.codeReviewVerb.test(msg),
     securityAuditVerb: RX.securityAuditVerb.test(msg),
-    performanceAuditVerb: RX.performanceAuditVerb.test(msg)
+    performanceAuditVerb: RX.performanceAuditVerb.test(msg),
+    testGenerationVerb: RX.testGenerationVerb.test(msg),
+    docGenerationVerb: RX.docGenerationVerb.test(msg)
   };
 
   // Revue de code : necessite un bloc de code REELLEMENT fourni (sinon on ne
@@ -120,6 +163,13 @@ export function detectUserIntent({ userMessage = '', projectContext = null, hasR
   // Audit de performance : idem, ne necessite pas de bloc de code (un site
   // "lent" ou une "fuite memoire" peuvent etre decrits sans extrait de code).
   const isPerformanceAudit = Boolean(flags.performanceAuditVerb);
+  // Generation de tests : necessite un bloc de code REEL (meme logique que
+  // isCodeReview) — impossible d'ecrire des tests pertinents sans voir le
+  // code a tester.
+  const isTestGeneration = Boolean(flags.hasCodeBlock && flags.testGenerationVerb);
+  // Documentation de code : le verbe est deja specifique (JSDoc/docstring/
+  // "documente ce code"), pas besoin d'exiger un bloc de code en plus.
+  const isCodeDocumentation = Boolean(flags.docGenerationVerb);
 
   const needsWeb = Boolean(hasWebIntent || flags.webRecency);
   const needsRag = Boolean(hasRagSources || flags.ragProject || flags.projectAnalysis);
@@ -140,6 +190,8 @@ export function detectUserIntent({ userMessage = '', projectContext = null, hasR
   if (isRagRetrievalQuestion) { primaryIntent = 'rag_query'; reasons.push('rag_retrieval_question'); }
   else if (isSecurityAudit) { primaryIntent = 'security_audit'; reasons.push('security_audit_signal'); }
   else if (isPerformanceAudit) { primaryIntent = 'performance_audit'; reasons.push('performance_audit_signal'); }
+  else if (isTestGeneration) { primaryIntent = 'test_generation'; reasons.push('test_generation_signal'); }
+  else if (isCodeDocumentation) { primaryIntent = 'code_documentation'; reasons.push('code_documentation_signal'); }
   else if (isCodeReview) { primaryIntent = 'code_review'; reasons.push('code_review_signal'); }
   else if (flags.technical) { primaryIntent = 'technical_help'; reasons.push('technical_keyword'); }
   else if (flags.projectAnalysis) { primaryIntent = 'project_analysis'; reasons.push('project_analysis_keyword'); }
@@ -162,6 +214,8 @@ export function detectUserIntent({ userMessage = '', projectContext = null, hasR
   else if (primaryIntent === 'planning') expectedFormat = 'checklist';
   else if (primaryIntent === 'security_audit') expectedFormat = 'security_audit_report';
   else if (primaryIntent === 'performance_audit') expectedFormat = 'performance_audit_report';
+  else if (primaryIntent === 'test_generation') expectedFormat = 'test_suite';
+  else if (primaryIntent === 'code_documentation') expectedFormat = 'code_documentation';
   else if (primaryIntent === 'code_review') expectedFormat = 'code_review_report';
   else if (primaryIntent === 'technical_help') expectedFormat = 'step_by_step';
   else if (primaryIntent === 'summary') expectedFormat = 'structured_answer';
@@ -177,6 +231,7 @@ export function detectUserIntent({ userMessage = '', projectContext = null, hasR
     primaryIntent === 'code_review' ||
     primaryIntent === 'security_audit' ||
     primaryIntent === 'performance_audit' ||
+    primaryIntent === 'test_generation' ||
     flags.longHint ||
     (primaryIntent === 'planning' && flags.longHint)
   );
@@ -247,10 +302,12 @@ export function planCapabilities(intent, runtimeContext = {}) {
   let preferredModelTier = 'balanced';
   if (preferredResponseLength === 'long' || safeIntent.complexity === 'high') preferredModelTier = 'strong';
   else if (preferredResponseLength === 'short' && safeIntent.complexity === 'low') preferredModelTier = 'fast';
-  // Revue de code / audit de securite / audit de performance : toujours le
-  // modele le plus capable, quel que soit le calcul generique ci-dessus — la
-  // fiabilite prime sur le cout ici.
-  if (['code_review', 'security_audit', 'performance_audit'].includes(safeIntent.primaryIntent)) preferredModelTier = 'strong';
+  // Revue de code / audit de securite / audit de performance / generation de
+  // tests / documentation de code : toujours le modele le plus capable, quel
+  // que soit le calcul generique ci-dessus — la fiabilite prime sur le cout
+  // ici (un signature de fonction ou un comportement invente est pire qu'une
+  // reponse plus couteuse).
+  if (['code_review', 'security_audit', 'performance_audit', 'test_generation', 'code_documentation'].includes(safeIntent.primaryIntent)) preferredModelTier = 'strong';
 
   // Bornes alignees sur le worker (defaut 2000, plafond MAX_TOKENS_CEILING 8192).
   let maxTokensHint = 2200;
@@ -259,7 +316,7 @@ export function planCapabilities(intent, runtimeContext = {}) {
 
   let temperatureHint = 0.35;
   if (safeIntent.primaryIntent === 'security_audit') temperatureHint = 0.1;
-  else if (safeIntent.primaryIntent === 'code_review' || safeIntent.primaryIntent === 'performance_audit') temperatureHint = 0.15;
+  else if (['code_review', 'performance_audit', 'test_generation', 'code_documentation'].includes(safeIntent.primaryIntent)) temperatureHint = 0.15;
   else if (safeIntent.primaryIntent === 'technical_help') temperatureHint = 0.2;
   else if (safeIntent.primaryIntent === 'creative') temperatureHint = 0.7;
   else if (safeIntent.primaryIntent === 'document_generation' || safeIntent.primaryIntent === 'project_analysis') temperatureHint = 0.3;
@@ -275,6 +332,8 @@ export function planCapabilities(intent, runtimeContext = {}) {
   let promptProfile = 'default';
   if (safeIntent.primaryIntent === 'security_audit') promptProfile = 'security_audit';
   else if (safeIntent.primaryIntent === 'performance_audit') promptProfile = 'performance_audit';
+  else if (safeIntent.primaryIntent === 'test_generation') promptProfile = 'test_generation';
+  else if (safeIntent.primaryIntent === 'code_documentation') promptProfile = 'code_documentation';
   else if (safeIntent.primaryIntent === 'code_review') promptProfile = 'code_review';
   else if (safeIntent.primaryIntent === 'technical_help') promptProfile = 'technical';
   else if (safeIntent.primaryIntent === 'planning' || safeIntent.primaryIntent === 'project_analysis') promptProfile = 'project_manager';
@@ -386,6 +445,14 @@ const BLOCKS = {
     fr: "Audit de performance : analyse uniquement les éléments réellement fournis (code, description du comportement observé), sans supposer de volumétrie ou de contexte absent. Structure ton analyse en quatre catégories, dans cet ordre : (1) Complexité algorithmique (boucles imbriquées, récursion coûteuse, structures de données inadaptées), (2) Requêtes et I/O (requêtes redondantes ou n+1, appels réseau synchrones/bloquants, absence de cache), (3) Mémoire et ressources (fuites mémoire, objets non libérés, allocations excessives), (4) Rendu et charge frontend (re-rendus inutiles, bundles surdimensionnés, chargement bloquant), si pertinent. Pour chaque problème réel : sévérité (critique/majeur/mineur), localisation précise (ligne, fonction ou extrait cité), impact estimé (ex. complexité O(n²) au lieu de O(n log n) sur une collection de taille N), et un correctif de code optimisé prêt à appliquer. Si une catégorie ne présente aucun problème réel, écris-le explicitement (« Aucun problème détecté ») plutôt que d'inventer un point mineur pour la remplir. Termine par un tableau récapitulatif trié par sévérité décroissante.",
     en: "Performance audit: analyze only the elements actually provided (code, described observed behavior), without assuming volume or absent context. Structure your analysis into four categories, in this order: (1) Algorithmic complexity (nested loops, costly recursion, unsuitable data structures), (2) Queries and I/O (redundant or n+1 queries, synchronous/blocking network calls, missing cache), (3) Memory and resources (memory leaks, unreleased objects, excessive allocations), (4) Frontend rendering and load (unnecessary re-renders, oversized bundles, blocking load), when relevant. For each real issue: severity (critical/major/minor), precise location (line, function or quoted excerpt), estimated impact (e.g. O(n²) complexity instead of O(n log n) on a collection of size N), and a ready-to-apply optimized code fix. If a category has no real issue, state it explicitly (\"No issue detected\") instead of inventing a minor point to fill it. End with a summary table sorted by decreasing severity."
   },
+  testGeneration: {
+    fr: "Génération de tests : écris des tests pour le code réellement fourni, sans inventer de fonctions, paramètres ou comportements absents du code. Utilise le framework de test le plus adapté au langage détecté (Jest/Vitest pour JS/TS, Pytest pour Python ; sinon demande lequel utiliser). Structure la suite en trois catégories : (1) cas nominaux (happy path), (2) cas limites (valeurs vides, nulles, extrêmes, tableaux vides), (3) cas d'erreur (entrées invalides, exceptions attendues). Chaque test doit être exécutable tel quel (imports inclus) et porter un nom explicite décrivant le comportement vérifié. Si une dépendance externe (base de données, API, fichier, horloge) doit être mockée pour isoler le test, indique-le explicitement et fournis le mock. Ne prétends jamais qu'un taux de couverture a été mesuré : tu n'exécutes aucun code, tu ne fais que l'écrire.",
+    en: "Test generation: write tests for the code actually provided, without inventing functions, parameters or behaviors absent from the code. Use the test framework best suited to the detected language (Jest/Vitest for JS/TS, Pytest for Python; otherwise ask which to use). Structure the suite into three categories: (1) happy path cases, (2) edge cases (empty, null, extreme values, empty arrays), (3) error cases (invalid input, expected exceptions). Each test must be runnable as-is (imports included) and carry an explicit name describing the verified behavior. If an external dependency (database, API, file, clock) needs mocking to isolate the test, state it explicitly and provide the mock. Never claim a coverage rate was measured: you execute no code, you only write it."
+  },
+  codeDocumentation: {
+    fr: "Documentation de code : documente uniquement les éléments réellement fournis (signatures, paramètres, comportements visibles dans le code), sans inventer de paramètre, de valeur de retour ou de comportement absent. Utilise le format natif du langage détecté (JSDoc pour JS/TS, docstrings pour Python, etc.) : description courte, chaque paramètre avec son type et son rôle, la valeur de retour, et les exceptions levées si elles sont identifiables dans le code. Pour une documentation plus large (README, doc d'API), structure en sections claires avec des exemples d'usage réalistes basés sur le code réellement fourni. Si un comportement n'est pas clair depuis le code fourni (ex. effet de bord non visible), dis-le explicitement plutôt que de le deviner.",
+    en: "Code documentation: document only the elements actually provided (signatures, parameters, behaviors visible in the code), without inventing a parameter, return value or behavior that is absent. Use the native format of the detected language (JSDoc for JS/TS, docstrings for Python, etc.): short description, each parameter with its type and role, the return value, and thrown exceptions if identifiable from the code. For broader documentation (README, API docs), structure it into clear sections with realistic usage examples based on the code actually provided. If a behavior is unclear from the provided code (e.g. a non-visible side effect), state it explicitly instead of guessing."
+  },
   projectManager: {
     fr: "Pilotage projet : raisonne comme un chef de projet. Donne des priorités claires, des actions concrètes, des risques et des prochaines étapes. Appuie-toi uniquement sur les données réelles fournies, sans rien inventer.",
     en: 'Project steering: reason like a project manager. Give clear priorities, concrete actions, risks and next steps. Rely only on the real data provided, inventing nothing.'
@@ -444,6 +511,14 @@ export function composeSystemPrompt({
   if (plan.promptProfile === 'performance_audit') {
     parts.push(BLOCKS.technical[lang]);
     parts.push(BLOCKS.performanceAudit[lang]);
+  }
+  if (plan.promptProfile === 'test_generation') {
+    parts.push(BLOCKS.technical[lang]);
+    parts.push(BLOCKS.testGeneration[lang]);
+  }
+  if (plan.promptProfile === 'code_documentation') {
+    parts.push(BLOCKS.technical[lang]);
+    parts.push(BLOCKS.codeDocumentation[lang]);
   }
   if (plan.promptProfile === 'project_manager') {
     parts.push(BLOCKS.projectManager[lang]);
