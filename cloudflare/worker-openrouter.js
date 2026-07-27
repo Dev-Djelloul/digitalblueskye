@@ -3877,7 +3877,14 @@ export default {
     // Tout echec AVANT le premier octet (cle absente, 402/429 sur toute la
     // chaine...) retombe silencieusement sur le chemin non-streame ci-dessous
     // — aucun nouveau mode d'echec pour l'utilisateur.
-    if (body?.stream === true) {
+    //
+    // body.compareModels desactive volontairement le streaming : la
+    // comparaison multi-modele (cf. plus bas) a besoin du texte complet des
+    // DEUX appels avant de repondre, ce qui est incompatible avec le
+    // streaming incremental du premier appel seul. Reglage rare/opt-in
+    // (toggle Parametres IA desactive par defaut) : perdre le premier octet
+    // instantane dans ce cas precis est un compromis acceptable.
+    if (body?.stream === true && body?.compareModels !== true) {
       const streamAttempt = await routeChatCompletionStream({
         messages: conversationMessages,
         systemPrompt: finalSystemPrompt,
@@ -4364,6 +4371,51 @@ export default {
       }
     }
 
+    // ── Comparaison multi-modele (opt-in) ───────────────────────────────
+    // body.compareModels vient d'un reglage LOCAL au navigateur (jamais
+    // synchronise en base D1 — cf. profile.html/ai-assistant.js), que
+    // l'utilisateur active lui-meme dans Parametres IA. Desactive par
+    // defaut car ca double le cout OpenRouter de la requete. Quand active,
+    // un second appel est effectue avec un tier DE MODELE DIFFERENT du
+    // tier principal (diversite garantie sans devoir choisir un modele
+    // precis), pour obtenir un vrai "deuxieme avis" plutot qu'une quasi-
+    // repetition du meme modele. Best-effort total et non-bloquant : toute
+    // erreur laisse `reply` (la reponse principale) totalement intacte, les
+    // champs *_alt restent simplement absents de la reponse.
+    let altReply = '';
+    let altModel = '';
+    let altProvider = '';
+    if (body?.compareModels === true) {
+      try {
+        const altTier = effectiveModelTier === 'strong' ? 'balanced' : 'strong';
+        const altResult = await routeChatCompletion({
+          messages: conversationMessages,
+          systemPrompt: finalSystemPrompt,
+          maxTokens: effectiveMaxTokens,
+          cloudflareAiMaxTokens: effectiveMaxTokens,
+          temperature: effectiveTemperature,
+          env,
+          metadata: { language, allowedOrigin },
+          modelTier: altTier,
+          maxContinuationsHint,
+          onEvent: onRouterEvent
+        });
+        if (altResult.ok && altResult.content) {
+          altReply = altResult.content;
+          altModel = altResult.model;
+          altProvider = altResult.provider;
+          queueAiEvent(ctx, env, request, {
+            event_type: 'compare_models_used',
+            event_value: altModel,
+            language, page_url: pageUrl, session_id: sessionId,
+            meta: { primary_model: routerResult.model, primary_tier: effectiveModelTier, alt_model: altModel, alt_tier: altTier }
+          });
+        }
+      } catch (error) {
+        console.warn('compare_models_failed', error instanceof Error ? error.message : String(error));
+      }
+    }
+
     const resolvedProvider = routerResult.provider;
     const responseBody = {
       ok: true,
@@ -4380,6 +4432,12 @@ export default {
     const knowledgeCitationsPayload = buildKnowledgeCitationsPayload(knowledgeResult);
     if (knowledgeCitationsPayload.length) {
       responseBody.knowledge_citations = knowledgeCitationsPayload;
+    }
+
+    if (altReply) {
+      responseBody.reply_alt = altReply;
+      responseBody.model_alt = altModel;
+      responseBody.provider_alt = altProvider;
     }
 
     if (resolvedProvider !== 'openrouter') {

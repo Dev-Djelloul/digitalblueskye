@@ -285,6 +285,34 @@
                   <p class="dbs-profile-saved" data-dbs-ai-settings-saved role="status" hidden data-i18n="aiSettingsSaved">Paramètres IA enregistrés.</p>
                 </div>
               </form>
+
+              <!--
+                Comparaison multi-modele : reglage LOCAL au navigateur
+                uniquement (localStorage, jamais synchronise en base D1),
+                donc volontairement HORS du <form> ci-dessus et sans
+                attribut data-dbs-ai-pref (qui le ferait passer par
+                DBSAuth.saveAssistantPreferences()/D1). Sauvegarde
+                immediate au clic, pas besoin du bouton "Enregistrer".
+                Voir le script dedie plus bas (data-dbs-compare-models-toggle).
+              -->
+              <div class="dbs-settings-group">
+                <h3 class="dbs-settings-group-title" data-i18n="aiSettingsGroupAdvanced">Avancé</h3>
+                <div class="dbs-settings-card">
+                  <div class="dbs-settings-row">
+                    <span class="dbs-settings-row-icon" aria-hidden="true">🔄</span>
+                    <div class="dbs-settings-row-text">
+                      <span class="dbs-settings-row-label" id="dbs-ai-compare-models-label" data-i18n="compareModels">Comparer deux modèles</span>
+                      <small data-i18n="compareModelsHint">Pour chaque message, demande aussi l'avis d'un second modèle et affiche les deux réponses. Double le coût de chaque message — réglage local à cet appareil, désactivé par défaut.</small>
+                    </div>
+                    <div class="dbs-settings-row-control">
+                      <label class="dbs-toggle-switch">
+                        <input type="checkbox" id="dbs-ai-compare-models" data-dbs-compare-models-toggle aria-labelledby="dbs-ai-compare-models-label" />
+                        <span class="dbs-toggle-switch-track" aria-hidden="true"></span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </section>
 
             <section class="dbs-profile-panel" id="dbs-panel-companion" role="tabpanel" aria-labelledby="dbs-tab-companion" data-dbs-profile-panel="companion" hidden>
@@ -479,6 +507,9 @@
           aiSettingsGroupVoice: ['Voix & audio', 'Voice & audio'],
           aiSettingsGroupDisplay: ['Affichage & confort', 'Display & comfort'],
           aiSettingsGroupSources: ['Sources', 'Sources'],
+          aiSettingsGroupAdvanced: ['Avancé', 'Advanced'],
+          compareModels: ['Comparer deux modèles', 'Compare two models'],
+          compareModelsHint: ["Pour chaque message, demande aussi l'avis d'un second modèle et affiche les deux réponses. Double le coût de chaque message — réglage local à cet appareil, désactivé par défaut.", 'For each message, also asks a second model for its answer and shows both replies. Doubles the cost of every message — a setting local to this device, disabled by default.'],
           assistantVoice: ["Voix de l'assistant", 'Assistant voice'],
           autoVoice: ['Voix auto', 'Auto voice'],
           voicesHint: ['Les voix disponibles dépendent du navigateur et du système.', 'Available voices depend on the browser and system.'],
@@ -833,6 +864,23 @@
             } else if (key !== 'aiVoice') {
               field.value = prefs[key] || DEFAULT_AI_SETTINGS[key] || '';
             }
+          });
+        }
+
+        // Comparaison multi-modele : reglage LOCAL au navigateur uniquement
+        // (localStorage), jamais synchronise via DBSAuth.saveAssistantPreferences()
+        // ni la base D1 — evite toute migration de schema pour un toggle
+        // opt-in couteux (double le cout OpenRouter de chaque message). Meme
+        // cle que scripts/ai-assistant.js (isCompareModelsEnabled()).
+        // Sauvegarde immediate au clic, independamment du formulaire
+        // Parametres IA et de son bouton "Enregistrer".
+        const COMPARE_MODELS_STORAGE_KEY = 'dbs_compare_models_enabled';
+        function wireCompareModelsToggle() {
+          const toggle = document.querySelector('[data-dbs-compare-models-toggle]');
+          if (!toggle) return;
+          try { toggle.checked = localStorage.getItem(COMPARE_MODELS_STORAGE_KEY) === '1'; } catch (_) { toggle.checked = false; }
+          toggle.addEventListener('change', () => {
+            try { localStorage.setItem(COMPARE_MODELS_STORAGE_KEY, toggle.checked ? '1' : '0'); } catch (_) { /* no-op */ }
           });
         }
 
@@ -1406,6 +1454,7 @@
           activateTab(initialTabFromHash(), false);
           wireForms();
           wireAvatarLightbox();
+          wireCompareModelsToggle();
           document.addEventListener('dbs-auth-changed', render);
           render();
           // Hydrate depuis le serveur au chargement (met a jour l'UI via l'evenement

@@ -1057,6 +1057,18 @@
   // retombe de lui-meme sur la reponse JSON classique si le flux ne peut pas
   // s'ouvrir — le front gere les deux formats quoi qu'il arrive.
   const STREAMING_ENABLED = window.DBS_AI_STREAMING !== false;
+  // Comparaison multi-modele (Phase Bonus) : reglage LOCAL au navigateur
+  // uniquement — jamais synchronise via DBSAuth.saveAssistantPreferences()/
+  // D1 (contrairement a showSuggestions, chatDensity, etc.), pour eviter
+  // toute migration de schema cote base. Toggle dans Parametres IA
+  // (profile.html, attribut data-dbs-compare-models-toggle), lu ici a
+  // chaque envoi de message (pas de cache module-level comme
+  // STREAMING_ENABLED) pour refleter un changement fait dans un autre
+  // onglet sans recharger la page.
+  const COMPARE_MODELS_STORAGE_KEY = 'dbs_compare_models_enabled';
+  function isCompareModelsEnabled() {
+    try { return localStorage.getItem(COMPARE_MODELS_STORAGE_KEY) === '1'; } catch (_) { return false; }
+  }
   const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.readonly';
   const DRIVE_PICKER_SCRIPT_URL = 'https://apis.google.com/js/api.js';
   const GOOGLE_IDENTITY_SCRIPT_URL = 'https://accounts.google.com/gsi/client';
@@ -10737,6 +10749,10 @@
     } catch (_) { /* jamais bloquant */ }
     chatHistory.splice(lastUserIndex + 1);
     persistActiveConversation();
+    // Bulle "second avis" (comparaison multi-modele) associee a cette
+    // reponse, si presente — cf. botBubble._altBubble dans askAI(). Sans ce
+    // nettoyage, elle resterait affichee dans le DOM apres regeneration.
+    if (bubble._altBubble) bubble._altBubble.remove();
     bubble.remove();
     askAI(userText);
   }
@@ -12083,7 +12099,8 @@
         documentSettings: assistantSettingsState.documents || {},
         ragTelemetry: ragContext.events || [],
         webSearchQuery: userText,
-        stream: STREAMING_ENABLED
+        stream: STREAMING_ENABLED,
+        compareModels: isCompareModelsEnabled()
       };
       assistantLog('debug', 'api_request', {
         historyMessages: payload.history.length,
@@ -12204,6 +12221,25 @@
           ...(displaySources.length ? { ragSourcesUsed: displaySources } : {}),
           ...(normalizedWebSources.length ? { webSourcesUsed: normalizedWebSources } : {})
         });
+        // Comparaison multi-modele (opt-in, cf. isCompareModelsEnabled()) :
+        // second appel best-effort cote worker (reply_alt absent si echoue ou si
+        // le reglage est desactive). Rendu volontairement minimal — une simple
+        // bulle bot supplementaire prefixee d'un en-tete markdown identifiant le
+        // modele, sans regenerer/lire a voix haute/suggestions dedies (portee
+        // MVP : comparer visuellement les deux textes, rien de plus).
+        if (data.reply_alt) {
+          const altHeader = currentLanguage === 'en'
+            ? `**🔄 Second opinion — ${data.model_alt || 'alternate model'}**\n\n`
+            : `**🔄 Deuxième avis — ${data.model_alt || 'modèle alternatif'}**\n\n`;
+          const altText = altHeader + data.reply_alt;
+          // Reference croisee sur botBubble : regenerateLastAssistantReply()
+          // ne supprime que la bulle qu'on lui passe explicitement (bubble.
+          // remove()) — sans ce lien, regenerer laisserait cette bulle "second
+          // avis" orpheline dans le DOM apres suppression de la bulle
+          // principale. Cf. le nettoyage ajoute dans regenerateLastAssistantReply.
+          botBubble._altBubble = addMessage('bot', altText);
+          chatHistory.push({ role: 'assistant', content: altText, isAltReply: true });
+        }
         persistActiveConversation();
       } else {
         assistantLog('warn', 'api_error', {
