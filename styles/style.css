@@ -12442,6 +12442,7 @@ body.profile-page .profile-main {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  margin-bottom: 50px;
 }
 
 .dbs-settings-group-title {
@@ -15979,9 +15980,15 @@ button.ai-assistant-project-row {
   text-transform: uppercase;
 }
 
+/* Fond aligne sur .ai-assistant-form (barre de saisie) plutot qu'un blanc
+   translucide : sur le fond degrade violet/cyan de .ai-sources-panel, un
+   fond blanc a 6% d'opacite laissait transparaitre la teinte violette du
+   panneau — l'encadre de chaque source paraissait violet au lieu de noir. */
 .ai-source-card {
-  background: rgb(255 255 255 / 6%);
-  border: 1px solid rgb(255 255 255 / 10%);
+  background:
+    linear-gradient(180deg, rgb(19 23 52 / 96%), rgb(12 15 35 / 96%)),
+    rgb(14 17 40 / 95%);
+  border: 1px solid rgb(93 93 255 / 26%);
   border-radius: 12px;
   display: grid;
   gap: 6px;
@@ -15998,7 +16005,9 @@ a.ai-source-card,
 
 a.ai-source-card:hover,
 .ai-source-card--openable:hover {
-  background: rgb(255 255 255 / 10%);
+  background:
+    linear-gradient(180deg, rgb(26 30 62 / 97%), rgb(17 20 44 / 97%)),
+    rgb(19 22 48 / 96%);
   border-color: rgb(121 230 255 / 32%);
   transform: translateY(-1px);
 }
@@ -17409,9 +17418,25 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
   width: 0.72em;
 }
 
+/* Affordance "cliquable" visible sans survol (meme symbole que
+   .ai-source-open-indicator sur les cartes du panneau lateral) : sans lui,
+   la pastille documentaire se distinguait mal d'un simple mot en italique
+   mis en valeur. */
+.ai-source-ref__open-indicator {
+  font-size: 0.85em;
+  font-style: normal;
+  margin-left: 0.15em;
+  opacity: 0.75;
+}
+
 .ai-source-ref--doc:hover,
 .ai-source-ref--doc:focus-visible {
   background: rgb(121 230 255 / 24%);
+}
+
+.ai-source-ref--doc:hover .ai-source-ref__open-indicator,
+.ai-source-ref--doc:focus-visible .ai-source-ref__open-indicator {
+  opacity: 1;
 }
 
 [data-theme="light"] .ai-source-ref--doc {
@@ -18258,13 +18283,20 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
   color: rgb(47 43 95 / 62%);
 }
 
+/* Meme alignement que le mode sombre ci-dessus : fond aligne sur
+   .ai-assistant-form (mode clair) plutot qu'un blanc translucide laissant
+   transparaitre le degrade violet de .ai-sources-panel. */
 [data-theme="light"] .ai-source-card {
-  background: rgb(255 255 255 / 70%);
-  border-color: rgb(93 93 255 / 14%);
+  background:
+    linear-gradient(180deg, rgb(249 250 255 / 96%), rgb(239 241 255 / 94%)),
+    rgb(248 249 255 / 96%);
+  border-color: rgb(93 93 255 / 20%);
 }
 
 [data-theme="light"] a.ai-source-card:hover {
-  background: rgb(255 255 255 / 92%);
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 98%), rgb(246 247 255 / 97%)),
+    rgb(252 253 255 / 98%);
   border-color: rgb(76 76 255 / 32%);
 }
 

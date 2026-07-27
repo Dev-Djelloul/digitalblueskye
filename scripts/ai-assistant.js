@@ -8974,13 +8974,25 @@
             // interprete comme du HTML.
             chip.innerHTML = '<svg class="ai-source-ref__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm0 2 6 6h-6V4z"/></svg>';
             chip.appendChild(document.createTextNode(shortDocumentLabel(entry.name)));
+            // Indicateur "ouvre le panneau Sources" — meme symbole que les
+            // cartes du panneau lateral (.ai-source-open-indicator), pour que
+            // l'affordance "cliquable" soit visible sans avoir a survoler.
+            const openIndicator = document.createElement('span');
+            openIndicator.className = 'ai-source-ref__open-indicator';
+            openIndicator.setAttribute('aria-hidden', 'true');
+            openIndicator.textContent = ' ↗';
+            chip.appendChild(openIndicator);
             chip.title = entry.name;
             chip.dataset.sourceNumber = String(entry.number);
             chip.addEventListener('click', () => {
-              // messageId est pose par attachSourcesPanelTrigger, appele juste
-              // apres ce rendu : on le lit donc au clic, pas a la construction.
-              const owner = chip.closest('[data-message-id]');
-              if (owner?.dataset.messageId) openSourcesPanelForMessage(owner.dataset.messageId);
+              // root est directement la bulle du message (bubble/botBubble
+              // selon l'appelant, cf. signature de replaceCitationsWithSourceNames) :
+              // lu via fermeture plutot que chip.closest('[data-message-id]')
+              // — pas de dependance a la stabilite de l'arbre DOM entre la
+              // creation du chip et le clic de l'utilisateur (attachSourcesPanelTrigger,
+              // qui pose root.dataset.messageId, tourne juste apres ce rendu,
+              // donc l'attribut est deja present bien avant tout clic reel).
+              if (root.dataset.messageId) openSourcesPanelForMessage(root.dataset.messageId);
             });
             frag.appendChild(chip);
           } else {
