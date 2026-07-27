@@ -157,7 +157,7 @@
                 <p data-i18n="aiSettingsDesc">Gérez les réglages persistants de l'assistant, notamment la voix, l'audio et les préférences d'interaction.</p>
               </div>
               <p class="dbs-profile-note" data-i18n="aiSettingsNote">Ces paramètres s'appliquent à votre expérience globale. Les réglages RAG propres à chaque projet restent dans les paramètres du projet. Les réglages techniques avancés sont disponibles dans Digital Blue Skye Studio.</p>
-              <form class="dbs-profile-settings-form" data-dbs-ai-settings-form>
+              <form class="dbs-profile-settings-form" id="dbs-ai-settings-form" data-dbs-ai-settings-form>
                 <div class="dbs-settings-group">
                   <h3 class="dbs-settings-group-title" data-i18n="aiSettingsGroupVoice">Voix &amp; audio</h3>
                   <div class="dbs-settings-card">
@@ -280,10 +280,6 @@
                   </div>
                 </div>
 
-                <div class="dbs-profile-form-footer">
-                  <button type="submit" class="dbs-profile-save" data-i18n="saveAiSettings">Enregistrer les paramètres IA</button>
-                  <p class="dbs-profile-saved" data-dbs-ai-settings-saved role="status" hidden data-i18n="aiSettingsSaved">Paramètres IA enregistrés.</p>
-                </div>
               </form>
 
               <!--
@@ -312,6 +308,19 @@
                     </div>
                   </div>
                 </div>
+              </div>
+
+              <!-- Bouton "Enregistrer" place APRES le bloc "Avance" (demande
+                   explicite) : reste associe au <form> ci-dessus via
+                   l'attribut form="dbs-ai-settings-form" bien qu'il en soit
+                   maintenant un frere DOM, pas un descendant — le submit
+                   fonctionne a l'identique (evenement 'submit' du formulaire
+                   cible, cf. wireForms()). Ne soumet jamais le toggle
+                   "Comparer deux modeles" : ce dernier n'a pas l'attribut
+                   data-dbs-ai-pref attendu par collectProfilePreferencesFromForm(). -->
+              <div class="dbs-profile-form-footer">
+                <button type="submit" form="dbs-ai-settings-form" class="dbs-profile-save" data-i18n="saveAiSettings">Enregistrer les paramètres IA</button>
+                <p class="dbs-profile-saved" data-dbs-ai-settings-saved role="status" hidden data-i18n="aiSettingsSaved">Paramètres IA enregistrés.</p>
               </div>
             </section>
 

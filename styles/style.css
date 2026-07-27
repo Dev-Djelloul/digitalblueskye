@@ -12436,13 +12436,17 @@ body.profile-page .profile-main {
   display: flex;
   flex-direction: column;
   gap: 22px;
+  /* Le bouton "Enregistrer les paramètres IA" et le bloc "Avancé" (toggle
+     multi-modele local, hors D1) sont maintenant des freres DOM APRES ce
+     formulaire, plus des descendants — .dbs-profile-panel n'est pas flex
+     (display: block), donc pas de gap automatique entre eux : marge dediee. */
+  margin-bottom: 22px;
 }
 
 .dbs-settings-group {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin-bottom: 50px;
 }
 
 .dbs-settings-group-title {
@@ -12662,6 +12666,17 @@ body.profile-page .profile-main {
 
 .dbs-profile-form-footer {
   grid-column: 1 / -1;
+}
+
+/* Scope specifique a l'onglet Parametres IA : .dbs-profile-form-footer est
+   reutilisee dans d'autres onglets (Identite, Preferences) ou elle reste un
+   enfant de grille (grid-column ci-dessus) — un margin-top generique sur la
+   classe partagee y aurait ajoute un espacement non demande. Ici, le bouton
+   "Enregistrer" est desormais un frere DOM du bloc "Avancé" qui le precede
+   (parent .dbs-profile-panel non-flex, display: block), d'ou cette marge
+   dediee au lieu d'un gap automatique. */
+#dbs-panel-ai-settings > .dbs-profile-form-footer {
+  margin-top: 22px;
 }
 
 /* Boutons secondaires : style subtil avec hover animé. */

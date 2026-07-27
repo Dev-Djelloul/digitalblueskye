@@ -8942,7 +8942,7 @@
     const ragNumberById = buildRagSourceNumberMap(ragSources);
     (ragSources || []).forEach((s) => {
       const id = Number(s?.id);
-      if (id && s?.documentName) ragMap.set(id, { name: String(s.documentName), number: ragNumberById.get(id) });
+      if (id && s?.documentName) ragMap.set(id, { name: String(s.documentName), number: ragNumberById.get(id), documentId: s.documentId || '' });
     });
     const webMap = new Map();
     (webSources || []).forEach((s) => { const idx = Number(s?.index); if (idx && /^https?:\/\//i.test(s?.link || '')) webMap.set(idx, s); });
@@ -8984,7 +8984,14 @@
             chip.appendChild(openIndicator);
             chip.title = entry.name;
             chip.dataset.sourceNumber = String(entry.number);
-            chip.addEventListener('click', () => {
+            chip.addEventListener('click', async () => {
+              // Meme comportement "ouvrir le vrai document" que les cartes du
+              // panneau Sources (cf. openRagSourceDocument, partagee) — la
+              // pastille inline n'ouvrait jusqu'ici QUE le panneau lateral,
+              // jamais le document lui-meme. Repli sur le panneau seulement
+              // si le document est introuvable localement (ex. non mis en
+              // cache dans ce navigateur).
+              //
               // root est directement la bulle du message (bubble/botBubble
               // selon l'appelant, cf. signature de replaceCitationsWithSourceNames) :
               // lu via fermeture plutot que chip.closest('[data-message-id]')
@@ -8992,7 +8999,8 @@
               // creation du chip et le clic de l'utilisateur (attachSourcesPanelTrigger,
               // qui pose root.dataset.messageId, tourne juste apres ce rendu,
               // donc l'attribut est deja present bien avant tout clic reel).
-              if (root.dataset.messageId) openSourcesPanelForMessage(root.dataset.messageId);
+              const opened = entry.documentId ? await openRagSourceDocument(entry.documentId) : false;
+              if (!opened && root.dataset.messageId) openSourcesPanelForMessage(root.dataset.messageId);
             });
             frag.appendChild(chip);
           } else {
@@ -9724,6 +9732,40 @@
       margin: 1rem 0;
       padding: .75rem 1rem;
     }
+    /* Pastilles de citation documentaire (cf. replaceCitationsWithSourceNames,
+       reutilisee telle quelle pour l'export HTML dans buildExportHtmlBody) :
+       ce bloc <style> ne definissait aucune regle .ai-source-ref*, donc le
+       SVG de l'icone document s'affichait a sa taille naturelle (aucune
+       contrainte de hauteur/largeur) au lieu de la taille compacte du chat —
+       d'ou des icones enormes dans le document exporte. Le bouton reste un
+       <button> HTML valide mais SANS JS dans un export statique : cursor
+       "default" (pas "pointer") et l'indicateur "↗" masque, pour ne pas
+       laisser croire qu'un clic ouvrirait quelque chose. */
+    .ai-source-ref {
+      color: var(--accent);
+      font-style: normal;
+      font-weight: 650;
+    }
+    .ai-source-ref--doc {
+      align-items: center;
+      background: rgb(158 232 255 / 14%);
+      border: 0;
+      border-radius: 6px;
+      cursor: default;
+      display: inline-flex;
+      font: inherit;
+      font-weight: 600;
+      padding: .05em .42em;
+      white-space: nowrap;
+    }
+    .ai-source-ref__icon {
+      fill: currentcolor;
+      flex: 0 0 auto;
+      height: .92em;
+      margin-right: .28em;
+      width: .72em;
+    }
+    .ai-source-ref__open-indicator { display: none; }
     @media (max-width: 760px) {
       body { padding: 14px; }
       main { border-radius: 20px; padding: 22px 16px; }
@@ -9740,6 +9782,8 @@
       h1, h2, h3 { color: #171833; }
       h2 { border-left-color: #5d5dff; color: #2929d8; }
       p, li, td { color: #1f2140; }
+      .ai-source-ref { color: #2929d8; }
+      .ai-source-ref--doc { background: #eef1ff; }
       .ai-assistant-table-wrap { border: 1px solid #d7d8ef; box-shadow: none; overflow: visible; }
       table { min-width: 0; page-break-inside: auto; }
       tr { page-break-inside: avoid; page-break-after: auto; }
@@ -11295,6 +11339,60 @@
     return card;
   }
 
+  // Ouvre un document RAG dans un nouvel onglet — fichier original si
+  // disponible (PDF/XLSX/DOCX...), sinon texte extrait, sinon apercu in-app
+  // en dernier recours. Partagee entre la carte du panneau Sources
+  // (buildRagSourcePanelCard, ou ce comportement existait deja) et les
+  // pastilles de citation inline dans le texte des reponses
+  // (replaceCitationsWithSourceNames, qui n'ouvrait jusqu'ici QUE le
+  // panneau lateral au lieu du document lui-meme) : meme action partout ou
+  // une source RAG est referencee, pas seulement dans le panneau.
+  function openBlobInNewTab(blob) {
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank', 'noopener');
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  }
+  // Les fichiers texte (.md/.txt/.html/.json/.csv) sont stockés tels quels
+  // (octets d'origine, déjà en UTF-8), mais leur Content-Type d'origine n'a
+  // souvent aucun charset déclaré (ex. file.type === '' pour un .md) :
+  // Chrome retombe alors sur un décodage Latin-1 pour un blob: URL sans
+  // charset, d'où les accents illisibles (Ã©, Ã¨...). On ne touche jamais
+  // aux octets, seulement à l'étiquette MIME, et jamais pour les formats
+  // binaires (PDF/DOCX/XLSX/images) qui doivent rester intacts.
+  const RAG_TEXTUAL_DOCUMENT_KINDS = new Set(['text', 'html']);
+  function withUtf8DocumentCharset(blob, kind) {
+    if (!RAG_TEXTUAL_DOCUMENT_KINDS.has(kind)) return blob;
+    const currentType = String(blob.type || '');
+    if (/charset=/i.test(currentType)) return blob;
+    const base = currentType.split(';')[0].trim() || 'text/plain';
+    return new Blob([blob], { type: `${base};charset=utf-8` });
+  }
+  // Retourne true si un onglet/apercu a effectivement ete ouvert, false si
+  // le document est introuvable (ex. documentId absent ou plus en cache
+  // local) — l'appelant peut alors retomber sur un autre comportement.
+  async function openRagSourceDocument(documentId) {
+    const target = getKnowledgeDocumentById(documentId);
+    if (!target) return false;
+    // 1) Fichier original (PDF, XLSX, DOCX...) -> nouvel onglet / outil adapté.
+    try {
+      const original = await getKnowledgeOriginalFile(target);
+      if (original?.blob) { openBlobInNewTab(withUtf8DocumentCharset(original.blob, target.kind)); return true; }
+    } catch (error) { /* repli */ }
+    // 2) Sinon (ex. .md / .txt sans original conservé) -> texte extrait en
+    //    blob ouvert dans un nouvel onglet, pour que TOUTE source s'ouvre.
+    try {
+      const extracted = typeof buildDocumentExtractMarkdown === 'function'
+        ? buildDocumentExtractMarkdown(target)
+        : (getKnowledgeDocChunks(target) || []).join('\n\n');
+      if (extracted) {
+        openBlobInNewTab(new Blob([extracted], { type: 'text/markdown;charset=utf-8' }));
+        return true;
+      }
+    } catch (error) { /* dernier repli */ }
+    if (typeof openKnowledgeDocumentPreview === 'function') { openKnowledgeDocumentPreview(target); return true; }
+    return false;
+  }
+
   function buildRagSourcePanelCard(source, number) {
     const en = currentLanguage === 'en';
     const isGlobal = source.sourceScope === 'global';
@@ -11345,48 +11443,9 @@
     card.appendChild(badge);
 
     // Clic / Entrée -> ouvre le document local dans un nouvel onglet (fichier
-    // original si disponible, sinon apercu).
-    const openInNewTab = (blob) => {
-      const url = URL.createObjectURL(blob);
-      window.open(url, '_blank', 'noopener');
-      setTimeout(() => URL.revokeObjectURL(url), 60000);
-    };
-    // Les fichiers texte (.md/.txt/.html/.json/.csv) sont stockés tels quels
-    // (octets d'origine, déjà en UTF-8), mais leur Content-Type d'origine n'a
-    // souvent aucun charset déclaré (ex. file.type === '' pour un .md) :
-    // Chrome retombe alors sur un décodage Latin-1 pour un blob: URL sans
-    // charset, d'où les accents illisibles (Ã©, Ã¨...). On ne touche jamais
-    // aux octets, seulement à l'étiquette MIME, et jamais pour les formats
-    // binaires (PDF/DOCX/XLSX/images) qui doivent rester intacts.
-    const TEXTUAL_DOCUMENT_KINDS = new Set(['text', 'html']);
-    const withUtf8Charset = (blob, kind) => {
-      if (!TEXTUAL_DOCUMENT_KINDS.has(kind)) return blob;
-      const currentType = String(blob.type || '');
-      if (/charset=/i.test(currentType)) return blob;
-      const base = currentType.split(';')[0].trim() || 'text/plain';
-      return new Blob([blob], { type: `${base};charset=utf-8` });
-    };
-    const openDocument = async () => {
-      const target = getKnowledgeDocumentById(source.documentId);
-      if (!target) return;
-      // 1) Fichier original (PDF, XLSX, DOCX...) -> nouvel onglet / outil adapté.
-      try {
-        const original = await getKnowledgeOriginalFile(target);
-        if (original?.blob) { openInNewTab(withUtf8Charset(original.blob, target.kind)); return; }
-      } catch (error) { /* repli */ }
-      // 2) Sinon (ex. .md / .txt sans original conservé) -> texte extrait en
-      //    blob ouvert dans un nouvel onglet, pour que TOUTE source s'ouvre.
-      try {
-        const extracted = typeof buildDocumentExtractMarkdown === 'function'
-          ? buildDocumentExtractMarkdown(target)
-          : (getKnowledgeDocChunks(target) || []).join('\n\n');
-        if (extracted) {
-          openInNewTab(new Blob([extracted], { type: 'text/markdown;charset=utf-8' }));
-          return;
-        }
-      } catch (error) { /* dernier repli */ }
-      if (typeof openKnowledgeDocumentPreview === 'function') openKnowledgeDocumentPreview(target);
-    };
+    // original si disponible, sinon apercu). Cf. openRagSourceDocument,
+    // partagee avec les pastilles de citation inline.
+    const openDocument = () => openRagSourceDocument(source.documentId);
     card.addEventListener('click', openDocument);
     card.addEventListener('keydown', (event) => {
       if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openDocument(); }
