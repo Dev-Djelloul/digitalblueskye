@@ -10904,14 +10904,92 @@
     if (panel) panel.classList.toggle('is-density-compact', prefs.chatDensity === 'compact');
   }
 
-  // Suggestions de questions de suivi (case "Suggestions" de Parametres IA) :
-  // heuristique legere basee sur la forme de la reponse (tableau, liste,
-  // reponse longue), sans appel IA supplementaire. Rendues dans le rail de
-  // chips deja stylise au-dessus du composer (#ai-assistant-quick-actions),
-  // jusqu'ici jamais peuple.
-  function buildFollowUpSuggestions(replyText) {
+  // Suggestions de questions de suivi (case "Suggestions" de Parametres IA).
+  // Priorite 1 : intention detectee cote serveur par le Prompt Orchestrator
+  // (assistant_intent, cf. worker-openrouter.js) — des suggestions propres
+  // au TYPE de demande (revue de code, audit securite, comparaison...) au
+  // lieu de deviner uniquement sur la FORME de la reponse. Corrige le
+  // probleme des memes 3 suggestions generiques quel que soit le sujet (ex.
+  // "Ajoute un critère de comparaison" affiche sur une bio LinkedIn parce
+  // que le texte contenait accidentellement un "|" et un "---").
+  const INTENT_FOLLOWUPS = {
+    code_review: {
+      fr: ['Corrige le problème le plus critique', 'Génère des tests pour ce code', "Explique pourquoi c'est un problème"],
+      en: ['Fix the most critical issue', 'Generate tests for this code', 'Explain why this is a problem']
+    },
+    security_audit: {
+      fr: ['Corrige la faille la plus critique', "Vérifie si d'autres endpoints sont concernés", 'Priorise les correctifs par urgence'],
+      en: ['Fix the most critical flaw', 'Check if other endpoints are affected', 'Prioritize fixes by urgency']
+    },
+    performance_audit: {
+      fr: ['Applique le correctif le plus impactant', 'Chiffre le gain de performance attendu', 'Vérifie le reste du code'],
+      en: ['Apply the most impactful fix', 'Estimate the expected performance gain', 'Check the rest of the code']
+    },
+    architecture_analysis: {
+      fr: ['Propose un plan de refactoring', 'Détaille le problème le plus critique', 'Compare avec une architecture alternative'],
+      en: ['Propose a refactoring plan', 'Detail the most critical issue', 'Compare with an alternative architecture']
+    },
+    debug_assistance: {
+      fr: ['Donne un code de reproduction minimal', "Comment éviter ce bug à l'avenir ?", "Vérifie s'il y a des cas similaires"],
+      en: ['Give a minimal reproduction case', 'How to avoid this bug in the future?', 'Check for similar cases']
+    },
+    test_generation: {
+      fr: ['Ajoute des cas limites supplémentaires', "Génère aussi des tests d'intégration", 'Explique ce que couvre chaque test'],
+      en: ['Add more edge cases', 'Also generate integration tests', 'Explain what each test covers']
+    },
+    code_documentation: {
+      fr: ["Documente aussi les cas d'erreur", "Ajoute des exemples d'usage", 'Génère un README complet'],
+      en: ['Also document error cases', 'Add usage examples', 'Generate a full README']
+    },
+    comparison: {
+      fr: ['Ajoute un autre critère de comparaison', 'Donne ta recommandation finale', 'Résume en 3 points'],
+      en: ['Add another comparison criterion', 'Give your final recommendation', 'Summarize in 3 points']
+    },
+    planning: {
+      fr: ['Priorise ces actions', 'Transforme en checklist', 'Estime le temps nécessaire'],
+      en: ['Prioritize these actions', 'Turn this into a checklist', 'Estimate the time needed']
+    },
+    document_generation: {
+      fr: ['Résume en 3 points', 'Propose une version plus courte', 'Adapte le ton pour LinkedIn'],
+      en: ['Summarize in 3 points', 'Suggest a shorter version', 'Adapt the tone for LinkedIn']
+    },
+    summary: {
+      fr: ['Développe le point le plus important', 'Donne un exemple concret', 'Résume encore plus court'],
+      en: ['Expand on the most important point', 'Give a concrete example', 'Summarize even shorter']
+    },
+    project_analysis: {
+      fr: ['Priorise les risques identifiés', "Propose un plan d'action", "Compare avec la dernière analyse"],
+      en: ['Prioritize the identified risks', 'Propose an action plan', 'Compare with the last analysis']
+    },
+    rag_query: {
+      fr: ['Cite la source exacte', 'Résume en 3 points', 'Compare avec une autre source du projet'],
+      en: ['Cite the exact source', 'Summarize in 3 points', 'Compare with another project source']
+    },
+    web_research: {
+      fr: ['Donne plus de détails', 'Vérifie une autre source', 'Résume en 3 points'],
+      en: ['Give more details', 'Check another source', 'Summarize in 3 points']
+    },
+    creative: {
+      fr: ['Propose une autre version', 'Rends-le plus court', 'Change le ton'],
+      en: ['Suggest another version', 'Make it shorter', 'Change the tone']
+    },
+    technical_help: {
+      fr: ['Donne un exemple concret', 'Explique étape par étape', 'Quels sont les risques ou limites ?'],
+      en: ['Give a concrete example', 'Explain step by step', 'What are the risks or limitations?']
+    }
+  };
+
+  function buildFollowUpSuggestions(replyText, intent) {
     const text = String(replyText || '');
     const isEn = currentLanguage === 'en';
+    const langKey = isEn ? 'en' : 'fr';
+
+    const mapped = intent && INTENT_FOLLOWUPS[intent];
+    if (mapped) return mapped[langKey].slice(0, 3);
+
+    // Repli : heuristique de forme (intention absente ou non mappee —
+    // orchestrateur desactive, historique ancien sans assistant_intent, ou
+    // intentions generiques comme "question"/"unknown").
     const hasTable = /\|.+\|/.test(text) && /\n\s*\|?\s*:?-{2,}/.test(text);
     const hasList = /(^|\n)\s*(\d+[.)]|[-*])\s+/.test(text);
     const isLong = text.length > 900;
@@ -10930,11 +11008,11 @@
     if (quickActionsContainer) quickActionsContainer.innerHTML = '';
   }
 
-  function renderFollowUpSuggestions(replyText) {
+  function renderFollowUpSuggestions(replyText, intent) {
     if (!quickActionsContainer) return;
     quickActionsContainer.innerHTML = '';
     if (!showSuggestionsPreferenceEnabled) return;
-    buildFollowUpSuggestions(replyText).forEach((label) => {
+    buildFollowUpSuggestions(replyText, intent).forEach((label) => {
       const chip = document.createElement('button');
       chip.type = 'button';
       chip.className = 'ai-assistant-quick-action';
@@ -12111,7 +12189,7 @@
         attachSourcesPanelTrigger(botBubble, { ragSources: displaySources, webSources: normalizedWebSources });
         markBubbleRegenerable(botBubble);
         speakText(cleanedReply, botBubble);
-        renderFollowUpSuggestions(cleanedReply);
+        renderFollowUpSuggestions(cleanedReply, data.assistant_intent);
         chatHistory.push({
           role: 'assistant',
           content: cleanedReply,

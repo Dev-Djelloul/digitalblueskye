@@ -3897,6 +3897,13 @@ export default {
           resolved_model: streamAttempt.model,
           fallback_model_used: streamAttempt.model !== primaryModel,
           streamed: true,
+          // Intention detectee par le Prompt Orchestrator (Lot 5+) — additif,
+          // consomme cote front pour des suggestions de suivi contextuelles
+          // (buildFollowUpSuggestions dans ai-assistant.js) au lieu de
+          // deviner uniquement sur la FORME de la reponse (tableau/liste/
+          // longueur). Chaine vide si l'orchestrateur est desactive/en erreur
+          // : le front retombe alors sur son heuristique de forme existante.
+          assistant_intent: orchestratorIntent?.primaryIntent || '',
           web_search_requested: shouldSearchWeb,
           web_search_performed: webSearchPerformed,
           web_search_error: webSearchError || '',
@@ -4365,7 +4372,9 @@ export default {
       provider: resolvedProvider,
       model: resolvedModel,
       resolved_model: resolvedModel,
-      fallback_model_used: resolvedModel !== primaryModel
+      fallback_model_used: resolvedModel !== primaryModel,
+      // Cf. commentaire equivalent sur metaPayload (chemin streaming) plus haut.
+      assistant_intent: orchestratorIntent?.primaryIntent || ''
     };
 
     const knowledgeCitationsPayload = buildKnowledgeCitationsPayload(knowledgeResult);
