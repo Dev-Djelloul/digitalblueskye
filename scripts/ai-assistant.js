@@ -11410,6 +11410,61 @@
     return false;
   }
 
+  // Extension -> "kind" (meme taxonomie que knowledgeLibrary : pdf/html/
+  // image/docx/excel/powerpoint/text/document). Necessaire pour les sources
+  // RAG SANS document local en cache (cf. rag_source_document_not_found_locally
+  // plus haut) : source.documentType ne contient que le type de recuperation
+  // ("rag"), jamais le type de fichier — seul le nom permet d'inferer un kind.
+  function inferDocumentKindFromName(name) {
+    const ext = String(name || '').split('.').pop().toLowerCase();
+    if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp'].includes(ext)) return 'image';
+    if (ext === 'pdf') return 'pdf';
+    if (ext === 'html' || ext === 'htm') return 'html';
+    if (ext === 'docx' || ext === 'doc') return 'docx';
+    if (ext === 'xlsx' || ext === 'xls' || ext === 'csv') return 'excel';
+    if (ext === 'pptx' || ext === 'ppt') return 'powerpoint';
+    if (ext === 'txt' || ext === 'md' || ext === 'json') return 'text';
+    return 'document';
+  }
+
+  // Vignette de la carte source (panneau Sources). Deux chemins :
+  // - Document present dans knowledgeLibrary (localDoc non-null) : reutilise
+  //   TEL QUEL renderLibraryDocumentThumb (meme fonction que la grille de la
+  //   Bibliotheque) — vrai rendu de 1ere page PDF genere/mis en cache a
+  //   l'import, ou mockup canvas colore par type. Meme langage visuel partout
+  //   ou un document indexe est represente dans l'app.
+  // - Sinon (source RAG jamais mise en cache dans ce navigateur — cas frequent
+  //   pour les documents projet, cf. commentaire dans openRagSourceDocument) :
+  //   mockup genere a la volee a partir des SEULES donnees de la citation
+  //   (nom, extrait si fourni), sans jamais dependre de knowledgeLibrary.
+  function buildRagSourceThumb(source, localDoc) {
+    const thumb = document.createElement('span');
+    const kind = localDoc?.kind || inferDocumentKindFromName(source.documentName);
+    thumb.className = `ai-source-thumb ai-source-thumb--${kind}`;
+    if (localDoc) {
+      renderLibraryDocumentThumb(localDoc, thumb);
+      return thumb;
+    }
+    const dataUrl = kind === 'html'
+      ? createHtmlCanvasPreview({ title: source.documentName, text: source.excerpt || '' })
+      : createDocumentCanvasPreview({ title: source.documentName, type: kind.toUpperCase(), kind, text: source.excerpt || '' });
+    if (dataUrl) {
+      const img = document.createElement('img');
+      img.src = dataUrl;
+      img.alt = '';
+      img.loading = 'lazy';
+      thumb.appendChild(img);
+      thumb.classList.add('has-preview');
+    } else {
+      const icon = document.createElement('img');
+      icon.src = kind === 'image' ? filesIconUrl : libraryIconUrl;
+      icon.alt = '';
+      icon.setAttribute('aria-hidden', 'true');
+      thumb.appendChild(icon);
+    }
+    return thumb;
+  }
+
   function buildRagSourcePanelCard(source, number) {
     const en = currentLanguage === 'en';
     const isGlobal = source.sourceScope === 'global';
@@ -11419,6 +11474,8 @@
     card.setAttribute('role', 'button');
     card.setAttribute('tabindex', '0');
     card.setAttribute('aria-label', `${en ? 'Open document: ' : 'Ouvrir le document : '}${source.documentName}`);
+
+    card.appendChild(buildRagSourceThumb(source, doc));
 
     const head = document.createElement('div');
     head.className = 'ai-source-card-head';
