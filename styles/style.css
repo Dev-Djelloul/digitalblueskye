@@ -16955,7 +16955,7 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
   align-items: center;
   display: flex;
   flex-wrap: wrap;
-  gap: 7px;
+  gap: 4px;
 }
 
 /* Icone seule : le libelle textuel reste dans le DOM (span, cf.
@@ -16987,8 +16987,8 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
 
 .ai-assistant-export-btn img {
   display: block;
-  height: 44px;
-  width: 44px;
+  height: 38px;
+  width: 38px;
   object-fit: contain;
 }
 
