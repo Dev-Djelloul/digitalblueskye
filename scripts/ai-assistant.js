@@ -8919,13 +8919,63 @@
   // tableau ragSources fourni a attachSourcesPanelTrigger / appendRagSources),
   // pour que le marqueur inline (n) corresponde exactement a la carte (n) du
   // panneau Sources.
+  // Cle de deduplication d'une source RAG : documentId si present (cas
+  // normal — fichier reellement indexe), sinon le nom du document (repli
+  // pour les sources sans documentId, ex. memoire projet). Un meme document
+  // peut etre cite plusieurs fois dans une reponse (plusieurs passages/
+  // chunks distincts extraits du meme fichier, chacun avec son propre
+  // identifiant sequentiel K1/K2/... attribue cote serveur — cf.
+  // cloudflare/knowledge/contextBuilder.js, citationId = `K${citations.length+1}`
+  // qui incremente PAR PASSAGE, jamais par document) : sans cette cle, le
+  // panneau Sources affichait une carte par PASSAGE cite au lieu d'une carte
+  // par DOCUMENT reel (ex. "État du projet SAFE.pdf" cite 4 fois dans le
+  // texte -> 2 cartes identiques dans le panneau, pour 2 passages distincts
+  // du meme fichier).
+  function ragSourceDedupeKey(source) {
+    return source?.documentId || `name:${source?.documentName || ''}`;
+  }
+
+  // Numerote les sources RAG PAR DOCUMENT UNIQUE (pas par citation/passage) :
+  // deux citations issues du meme document (meme ragSourceDedupeKey)
+  // partagent desormais le meme numero, pour que le marqueur inline (n)
+  // corresponde a la carte (n) du panneau Sources — qui n'affiche plus
+  // qu'une carte par document (cf. dedupeRagSources).
   function buildRagSourceNumberMap(ragSources) {
     const numberById = new Map();
-    (ragSources || []).forEach((s, index) => {
+    const numberByDedupeKey = new Map();
+    let nextNumber = 1;
+    (ragSources || []).forEach((s) => {
       const id = Number(s?.id);
-      if (id) numberById.set(id, index + 1);
+      if (!id) return;
+      const key = ragSourceDedupeKey(s);
+      let number = numberByDedupeKey.get(key);
+      if (!number) {
+        number = nextNumber;
+        nextNumber += 1;
+        numberByDedupeKey.set(key, number);
+      }
+      numberById.set(id, number);
     });
     return numberById;
+  }
+
+  // Reduit une liste de sources RAG a une entree par document unique (cf.
+  // ragSourceDedupeKey), en gardant la PREMIERE occurrence rencontree — donc
+  // le meme document qu'utilise buildRagSourceNumberMap pour son numero.
+  // Utilisee uniquement pour la LISTE de cartes du panneau Sources ; le
+  // texte de la reponse continue de citer chaque passage individuellement
+  // (plusieurs pastilles inline pour le meme document restent normales,
+  // seul le panneau lateral ne doit montrer qu'une carte par fichier).
+  function dedupeRagSources(ragSources) {
+    const seen = new Set();
+    const result = [];
+    (ragSources || []).forEach((source) => {
+      const key = ragSourceDedupeKey(source);
+      if (seen.has(key)) return;
+      seen.add(key);
+      result.push(source);
+    });
+    return result;
   }
 
   // Libelle court d'un document pour la pastille de citation : on retire
@@ -8942,7 +8992,7 @@
     const ragNumberById = buildRagSourceNumberMap(ragSources);
     (ragSources || []).forEach((s) => {
       const id = Number(s?.id);
-      if (id && s?.documentName) ragMap.set(id, { name: String(s.documentName), number: ragNumberById.get(id), documentId: s.documentId || '' });
+      if (id && s?.documentName) ragMap.set(id, { name: String(s.documentName), number: ragNumberById.get(id), documentId: s.documentId || '', documentType: s.documentType || '' });
     });
     const webMap = new Map();
     (webSources || []).forEach((s) => { const idx = Number(s?.index); if (idx && /^https?:\/\//i.test(s?.link || '')) webMap.set(idx, s); });
@@ -8999,11 +9049,7 @@
               // creation du chip et le clic de l'utilisateur (attachSourcesPanelTrigger,
               // qui pose root.dataset.messageId, tourne juste apres ce rendu,
               // donc l'attribut est deja present bien avant tout clic reel).
-              // Diagnostic (cf. commentaire equivalent dans openRagSourceDocument) :
-              // confirme que le clic part bien avec un documentId, avant meme
-              // la recherche locale. A retirer une fois la cause confirmee.
-              assistantLog('warn', 'rag_source_ref_clicked', { documentId: entry.documentId || '', name: entry.name, messageId: root.dataset.messageId || '' });
-              const opened = entry.documentId ? await openRagSourceDocument(entry.documentId) : false;
+              const opened = entry.documentId ? await openRagCitationTarget(entry) : false;
               if (!opened && root.dataset.messageId) openSourcesPanelForMessage(root.dataset.messageId);
             });
             frag.appendChild(chip);
@@ -11410,6 +11456,33 @@
     return false;
   }
 
+  // Active le projet cible et navigue directement sur son onglet "Mémoire"
+  // (memoire persistante editable, cf. navigateToProjectTab/openProject).
+  // Retourne false si le projet n'existe plus (ex. supprime depuis) —
+  // l'appelant retombe alors sur le comportement par defaut (panneau Sources).
+  function openProjectMemoryTab(projectId) {
+    if (!projectId || !getProjectById(projectId)) return false;
+    projectsState.activeProjectId = projectId;
+    saveProjectsState();
+    return navigateToProjectTab('memory');
+  }
+
+  // Point d'entree PARTAGE pour ouvrir la cible d'une citation RAG — inline
+  // (replaceCitationsWithSourceNames) ET carte du panneau Sources
+  // (buildRagSourcePanelCard). Cas special : la memoire projet
+  // (source.documentType === 'project_memory', cf.
+  // cloudflare/knowledge/sources/projectMemorySource.js) n'est PAS un
+  // fichier indexe mais le champ persistant editable du projet — son
+  // documentId porte alors l'identifiant du PROJET, pas d'un document.
+  // Tenter openRagSourceDocument dessus echouerait toujours (aucun
+  // knowledgeLibrary.documents ne correspond a un id de projet), d'ou ce
+  // branchement en amont vers l'onglet "Mémoire" plutot qu'un panneau
+  // Sources qui se recontente d'afficher ce que l'utilisateur voit deja.
+  async function openRagCitationTarget(source) {
+    if (source?.documentType === 'project_memory') return openProjectMemoryTab(source.documentId);
+    return openRagSourceDocument(source?.documentId);
+  }
+
   // Extension -> "kind" (meme taxonomie que knowledgeLibrary : pdf/html/
   // image/docx/excel/powerpoint/text/document). Necessaire pour les sources
   // RAG SANS document local en cache (cf. rag_source_document_not_found_locally
@@ -11519,7 +11592,7 @@
     // Clic / Entrée -> ouvre le document local dans un nouvel onglet (fichier
     // original si disponible, sinon apercu). Cf. openRagSourceDocument,
     // partagee avec les pastilles de citation inline.
-    const openDocument = () => openRagSourceDocument(source.documentId);
+    const openDocument = () => openRagCitationTarget(source);
     card.addEventListener('click', openDocument);
     card.addEventListener('keydown', (event) => {
       if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openDocument(); }
@@ -11531,9 +11604,17 @@
   function renderSourcesPanelBody(payload) {
     if (!sourcesPanelBody) return;
     sourcesPanelBody.innerHTML = '';
-    const ragSources = Array.isArray(payload?.ragSources) ? payload.ragSources : [];
+    const rawRagSources = Array.isArray(payload?.ragSources) ? payload.ragSources : [];
     const webSources = Array.isArray(payload?.webSources) ? payload.webSources : [];
-    const ragNumberById = buildRagSourceNumberMap(ragSources);
+    // Numerote a partir de la liste COMPLETE (avant dedup) : un marqueur
+    // inline [S5] doit rester resolvable meme si la source #5 a ete
+    // fusionnee avec la #4 dans la liste de cartes ci-dessous.
+    const ragNumberById = buildRagSourceNumberMap(rawRagSources);
+    // Liste de CARTES dedupliquee par document (cf. dedupeRagSources) : le
+    // texte de la reponse peut citer un meme document plusieurs fois
+    // (plusieurs passages distincts), mais le panneau n'affiche qu'une carte
+    // par fichier reel.
+    const ragSources = dedupeRagSources(rawRagSources);
     const projectSources = ragSources.filter((source) => source.sourceScope !== 'global');
     const globalSources = ragSources.filter((source) => source.sourceScope === 'global');
 
