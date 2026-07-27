@@ -166,7 +166,7 @@
         reasoningStillWorking: 'Still working on it',
         reasoningFinalizing: 'Finalizing the response',
         rateLimitError: 'The AI provider is temporarily saturated. Please try again in a few moments.',
-        hourlyRateLimitError: "You've reached the hourly message limit for your account. Please try again after the top of the next hour — check the AI usage tab in your profile for details.",
+        hourlyRateLimitError: "You've reached the hourly message limit for your account. Please try again after the top of the next hour — check the [AI usage](/profile.html#usage) tab in your profile for details.",
         friendlyApiError: 'I hit a temporary issue. Please try again in a few seconds.',
         openRouterLimited: 'The generation engine is temporarily limited. Sources were retrieved when available, but the full reformulated answer could not be generated.',
         openRouterFallbackTitle: 'Summary from retrieved sources',
@@ -301,7 +301,7 @@
       reasoningStillWorking: 'Toujours en cours de traitement',
       reasoningFinalizing: 'Finalisation de la réponse',
       rateLimitError: "Le fournisseur IA est temporairement saturé. Réessaie dans quelques instants.",
-      hourlyRateLimitError: "Tu as atteint la limite de messages par heure pour ton compte. Réessaie après le prochain top horaire — consulte l'onglet Utilisation IA de ton profil pour le détail.",
+      hourlyRateLimitError: "Tu as atteint la limite de messages par heure pour ton compte. Réessaie après le prochain top horaire — consulte l'onglet [Utilisation IA](/profile.html#usage) de ton profil pour le détail.",
       friendlyApiError: "Oups, je rencontre un souci temporaire. Réessaie dans quelques secondes.",
       openRouterLimited: "Le moteur de génération est temporairement limité. Les sources ont été récupérées lorsque disponibles, mais la reformulation complète n'a pas pu être générée.",
       openRouterFallbackTitle: 'Synthèse à partir des sources récupérées',
@@ -3357,12 +3357,14 @@
       html: 'PAGE WEB',
       text: 'TEXTE',
       pdf: 'PDF',
-      document: 'DOCUMENT'
+      document: 'DOCUMENT',
+      project_memory: 'MÉMOIRE'
     };
     const formatDescriptions = {
       excel: 'TABLEUR EXCEL',
       powerpoint: 'PRESENTATION POWERPOINT',
-      html: 'PAGE WEB HTML'
+      html: 'PAGE WEB HTML',
+      project_memory: 'MÉMOIRE PROJET'
     };
     const isSimplifiedPreview = shouldUseSimplifiedDocumentPreview(kind, type);
     const [start, end] = gradients[kind] || gradients.document;
@@ -3393,13 +3395,18 @@
       ? '800 86px system-ui, -apple-system, BlinkMacSystemFont, sans-serif'
       : '700 64px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(String(type || 'DOC').toUpperCase().slice(0, 5), 380, isSimplifiedPreview ? 300 : 185);
+    const mainText = String(type || 'DOC').toUpperCase().slice(0, 5);
+    const mainY = isSimplifiedPreview ? 300 : 185;
+    ctx.fillText(mainText, 380, mainY);
 
     ctx.fillStyle = '#79e6ff';
     ctx.font = isSimplifiedPreview
       ? '800 34px system-ui, -apple-system, BlinkMacSystemFont, sans-serif'
       : '700 24px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
-    ctx.fillText(kindLabels[kind] || String(kind || 'DOCUMENT').toUpperCase(), 380, isSimplifiedPreview ? 352 : 228);
+    ctx.textAlign = 'center';
+    const subtextY = isSimplifiedPreview ? 352 : 228;
+    const kindLabel = kindLabels[kind] || String(kind || 'DOCUMENT').toUpperCase();
+    ctx.fillText(kindLabel, 380, subtextY);
 
     if (isSimplifiedPreview) {
       ctx.fillStyle = 'rgba(247,247,255,0.76)';
@@ -4327,6 +4334,7 @@
     return normalizedKind === 'excel'
       || normalizedKind === 'powerpoint'
       || normalizedKind === 'html'
+      || normalizedKind === 'project_memory'
       || normalizedType === 'html';
   }
 
@@ -9010,30 +9018,17 @@
           const entry = ragMap.get(Number(m[1]));
           if (m.index > last) frag.appendChild(document.createTextNode(text.slice(last, m.index)));
           if (entry) {
-            // Pastille documentaire : affiche le NOM REEL du document (et non
-            // un simple numero opaque), sur le modele de la pastille web qui
-            // affiche le domaine. Cliquable : ouvre le panneau Sources du
-            // message. Les documents indexes n'ont pas d'URL publique (seul
-            // leur texte est conserve cote Worker), d'où le panneau plutot
-            // qu'un lien vers un fichier.
+            // Pastille documentaire : affiche le NUMERO du badge correspondant
+            // dans le panneau des sources (ex: [1], [2], [3]). Cliquable : ouvre
+            // le document ou le panneau Sources. Les documents indexes n'ont pas
+            // d'URL publique, d'où le panneau plutot qu'un lien vers un fichier.
             const chip = document.createElement('button');
             chip.type = 'button';
-            chip.className = 'ai-source-ref ai-source-ref--doc';
-            // Icone document (markup statique, aucune donnee utilisateur) puis
-            // le libelle en noeud texte : le nom du document n'est jamais
-            // interprete comme du HTML.
-            chip.innerHTML = '<svg class="ai-source-ref__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm0 2 6 6h-6V4z"/></svg>';
-            chip.appendChild(document.createTextNode(shortDocumentLabel(entry.name)));
-            // Indicateur "ouvre le panneau Sources" — meme symbole que les
-            // cartes du panneau lateral (.ai-source-open-indicator), pour que
-            // l'affordance "cliquable" soit visible sans avoir a survoler.
-            const openIndicator = document.createElement('span');
-            openIndicator.className = 'ai-source-ref__open-indicator';
-            openIndicator.setAttribute('aria-hidden', 'true');
-            openIndicator.textContent = ' ↗';
-            chip.appendChild(openIndicator);
+            chip.className = 'ai-citation-badge';
             chip.title = entry.name;
             chip.dataset.sourceNumber = String(entry.number);
+            // Affiche simplement le numéro du badge [1], [2], etc.
+            chip.textContent = entry.number;
             chip.addEventListener('click', async () => {
               // Meme comportement "ouvrir le vrai document" que les cartes du
               // panneau Sources (cf. openRagSourceDocument, partagee) — la
@@ -11512,7 +11507,8 @@
   //   (nom, extrait si fourni), sans jamais dependre de knowledgeLibrary.
   function buildRagSourceThumb(source, localDoc) {
     const thumb = document.createElement('span');
-    const kind = localDoc?.kind || inferDocumentKindFromName(source.documentName);
+    const isProjectMemory = source?.documentType === 'project_memory';
+    const kind = localDoc?.kind || (isProjectMemory ? 'project_memory' : inferDocumentKindFromName(source.documentName));
     thumb.className = `ai-source-thumb ai-source-thumb--${kind}`;
     if (localDoc) {
       renderLibraryDocumentThumb(localDoc, thumb);
@@ -11520,7 +11516,7 @@
     }
     const dataUrl = kind === 'html'
       ? createHtmlCanvasPreview({ title: source.documentName, text: source.excerpt || '' })
-      : createDocumentCanvasPreview({ title: source.documentName, type: kind.toUpperCase(), kind, text: source.excerpt || '' });
+      : createDocumentCanvasPreview({ title: source.documentName, type: 'DOC', kind, text: source.excerpt || '' });
     if (dataUrl) {
       const img = document.createElement('img');
       img.src = dataUrl;
@@ -11548,24 +11544,32 @@
     card.setAttribute('tabindex', '0');
     card.setAttribute('aria-label', `${en ? 'Open document: ' : 'Ouvrir le document : '}${source.documentName}`);
 
-    card.appendChild(buildRagSourceThumb(source, doc));
-
     const head = document.createElement('div');
     head.className = 'ai-source-card-head';
+
+    if (number) {
+      const badge = document.createElement('span');
+      badge.className = 'ai-source-number-badge';
+      badge.textContent = number;
+      head.appendChild(badge);
+    }
+
+    const isProjectMemory = source?.documentType === 'project_memory';
     const titleEl = document.createElement('div');
-    titleEl.className = 'ai-source-title';
-    titleEl.textContent = number ? `(${number}) ${source.documentName}` : source.documentName;
+    titleEl.className = `ai-source-title ${isProjectMemory ? 'ai-source-title--centered' : ''}`;
+    titleEl.textContent = source.documentName;
     head.appendChild(titleEl);
-    const openIndicator = document.createElement('span');
+    const openIndicator = document.createElement('img');
     openIndicator.className = 'ai-source-open-indicator';
+    openIndicator.src = '/assets/images/chatbot/icons8-arrow-64.png';
+    openIndicator.alt = '';
     openIndicator.setAttribute('aria-hidden', 'true');
-    openIndicator.textContent = '↗';
     head.appendChild(openIndicator);
     card.appendChild(head);
 
     const meta = document.createElement('span');
     meta.className = 'ai-source-meta';
-    meta.textContent = `${source.documentType} · ${(source.locators || []).join(', ')}`;
+    meta.textContent = (source.locators || []).join(', ');
     card.appendChild(meta);
 
     // Date et heure d'ajout (tracabilite) depuis l'import du document.
@@ -11588,6 +11592,8 @@
       ? (en ? 'Global library' : 'Bibliothèque globale')
       : (en ? 'Project' : 'Projet');
     card.appendChild(badge);
+
+    card.appendChild(buildRagSourceThumb(source, doc));
 
     // Clic / Entrée -> ouvre le document local dans un nouvel onglet (fichier
     // original si disponible, sinon apercu). Cf. openRagSourceDocument,

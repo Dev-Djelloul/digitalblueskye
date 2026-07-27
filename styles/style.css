@@ -16006,42 +16006,41 @@ button.ai-assistant-project-row {
   border: 1px solid rgb(93 93 255 / 26%);
   border-radius: 12px;
   display: grid;
-  gap: 6px;
-  overflow: hidden;
-  padding: 10px 11px;
+  gap: 8px;
+  overflow: visible;
+  padding: 12px 13px;
+  position: relative;
 }
 
-/* Vignette de la carte source (cf. buildRagSourceThumb) : bannière pleine
-   largeur en haut de carte, marges negatives pour "deborder" du padding de
-   .ai-source-card et venir affleurer ses coins arrondis (border-radius du
-   parent, decale de 3px pour l'epaisseur de la bordure). PDF avec document
-   local en cache -> vrai rendu de 1ere page ; sinon mockup colore par type. */
+/* Vignette de la carte source : très petite, discrètement placée dans un coin.
+   PDF avec document local en cache -> vrai rendu de 1ere page ;
+   sinon mockup colore par type. */
 .ai-source-thumb {
   align-items: center;
-  aspect-ratio: 3 / 1;
+  aspect-ratio: 1;
   background:
     linear-gradient(180deg, rgb(255 255 255 / 9%), rgb(255 255 255 / 4%)),
     linear-gradient(135deg, rgb(121 230 255 / 22%), rgb(200 34 255 / 18%));
-  border-radius: 9px 9px 0 0;
+  border-radius: 8px;
+  border: 1px solid rgb(121 230 255 / 20%);
   display: flex;
   gap: 8px;
   justify-content: center;
-  margin: -10px -11px 4px;
   overflow: hidden;
-  width: calc(100% + 22px);
+  width: 60px;
+  height: 60px;
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  flex: none;
 }
 
-/* object-position: top — createDocumentCanvasPreview() dessine son canvas
-   source en carre (libelle de type en haut, extrait de texte en bas) : un
-   recadrage centre sur cette bannière plus large que haute coupait le
-   libelle de type. Prioriser le haut garde le plus important (type + titre),
-   au prix de l'extrait de texte (moins critique, deja visible dans le corps
-   de la reponse via la citation elle-meme). */
+/* object-fit: contain affiche l'image entière sans découpe. */
 .ai-source-thumb img {
   display: block;
   height: 100%;
-  object-fit: cover;
-  object-position: top;
+  object-fit: contain;
+  object-position: center;
   width: 100%;
 }
 
@@ -16096,13 +16095,62 @@ a.ai-source-card:focus-visible {
 .ai-source-card-head {
   align-items: center;
   display: flex;
-  gap: 7px;
+  gap: 12px;
+}
+
+.ai-source-number-badge {
+  background: rgb(121 230 255 / 22%);
+  border: 1px solid rgb(121 230 255 / 40%);
+  border-radius: 6px;
+  color: rgb(121 230 255 / 92%);
+  flex: 0 0 auto;
+  font-size: 0.72rem;
+  font-weight: 700;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  padding: 0 5px;
+}
+
+.ai-citation-badge {
+  background: rgb(121 230 255 / 22%);
+  border: 1px solid rgb(121 230 255 / 40%);
+  border-radius: 6px;
+  color: rgb(121 230 255 / 92%);
+  font-size: 0.72rem;
+  font-weight: 700;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  padding: 0 5px;
+  margin: 0 2px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  vertical-align: middle;
+}
+
+.ai-citation-badge:hover {
+  background: rgb(121 230 255 / 32%);
+  border-color: rgb(121 230 255 / 60%);
+  transform: translateY(-1px);
 }
 
 .ai-source-open-indicator {
-  color: rgb(121 230 255 / 70%);
-  font-size: 0.78rem;
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
   margin-left: auto;
+  flex-shrink: 0;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.ai-source-card--openable:hover .ai-source-open-indicator {
+  opacity: 1;
 }
 
 .ai-source-favicon {
@@ -16150,6 +16198,11 @@ a.ai-source-card:focus-visible {
   font-size: 0.82rem;
   font-weight: 650;
   line-height: 1.35;
+  flex: 1;
+}
+
+.ai-source-title--centered {
+  text-align: center;
 }
 
 .ai-source-meta {
