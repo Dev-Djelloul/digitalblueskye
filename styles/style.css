@@ -16009,6 +16009,13 @@ button.ai-assistant-project-row {
   gap: 8px;
   overflow: visible;
   padding: 12px 13px;
+  /* Reserve l'espace occupe par .ai-source-thumb (60px + 12px de marge,
+     position: absolute) en bas de carte : sans ce padding, une carte au
+     contenu court (peu de locators, pas de date) a une hauteur totale
+     inferieure a celle du bloc vignette, qui remonte alors chevaucher le
+     titre et la fleche d'ouverture dans l'en-tete (cf. capture utilisateur
+     montrant la fleche decalee hors de la carte). */
+  padding-bottom: 84px;
   position: relative;
 }
 
@@ -16151,6 +16158,17 @@ a.ai-source-card:focus-visible {
 
 .ai-source-card--openable:hover .ai-source-open-indicator {
   opacity: 1;
+}
+
+/* Retour visuel bref quand le document cite n'a pas ete retrouve localement
+   (cf. showUnavailableFeedback dans buildRagSourcePanelCard) : la carte reste
+   cliquable ensuite, ce n'est pas un etat permanent. */
+.ai-source-card--unavailable {
+  border-color: rgb(255 176 79 / 55%);
+}
+
+.ai-source-card--unavailable .ai-source-meta {
+  color: #ffb04f;
 }
 
 .ai-source-favicon {

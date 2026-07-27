@@ -95,6 +95,7 @@
         libraryDelete: 'Remove from library',
         libraryDeleted: 'Content removed from the library.',
         libraryPreviewClose: 'Close preview',
+        sourceDocumentUnavailable: 'Document unavailable in this browser',
         discussions: 'Discussions',
         noMatchingDiscussions: 'No conversation found.',
         resizeSidebar: 'Resize sidebar',
@@ -230,6 +231,7 @@
       libraryDelete: 'Supprimer de la bibliothèque',
       libraryDeleted: 'Contenu supprimé de la bibliothèque.',
       libraryPreviewClose: "Fermer l'aperçu",
+      sourceDocumentUnavailable: 'Document indisponible dans ce navigateur',
       discussions: 'Discussions',
       noMatchingDiscussions: 'Aucune discussion trouvée.',
       resizeSidebar: 'Redimensionner le volet',
@@ -11598,7 +11600,32 @@
     // Clic / Entrée -> ouvre le document local dans un nouvel onglet (fichier
     // original si disponible, sinon apercu). Cf. openRagSourceDocument,
     // partagee avec les pastilles de citation inline.
-    const openDocument = () => openRagCitationTarget(source);
+    //
+    // openRagCitationTarget renvoie false quand le document n'a jamais ete
+    // mis en cache dans CE navigateur (cf. getKnowledgeDocumentById) — cas
+    // frequent pour des sources RAG projet indexees depuis un autre appareil
+    // ou importees hors upload manuel. Avant ce correctif, ce cas echouait
+    // silencieusement : la carte semblait "morte" au clic (aucune ouverture,
+    // aucun retour visuel), ce qui a ete signale comme "les liens des cartes
+    // ne sont plus cables". Ce n'est pas une regression du clic lui-meme
+    // (toujours cable, cf. addEventListener ci-dessous) mais l'absence de
+    // feedback quand l'ouverture reelle echoue : on l'ajoute ici plutot que
+    // de laisser l'utilisateur croire a un bug de cablage.
+    let feedbackTimer = null;
+    const showUnavailableFeedback = () => {
+      clearTimeout(feedbackTimer);
+      const previousText = meta.textContent;
+      card.classList.add('ai-source-card--unavailable');
+      meta.textContent = i18n.sourceDocumentUnavailable;
+      feedbackTimer = window.setTimeout(() => {
+        card.classList.remove('ai-source-card--unavailable');
+        meta.textContent = previousText;
+      }, 2200);
+    };
+    const openDocument = async () => {
+      const opened = await openRagCitationTarget(source);
+      if (!opened) showUnavailableFeedback();
+    };
     card.addEventListener('click', openDocument);
     card.addEventListener('keydown', (event) => {
       if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openDocument(); }
