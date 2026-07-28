@@ -13992,25 +13992,23 @@ body.profile-page .profile-main {
   color: #fff;
 }
 
-/* Remplace l'ancienne bande textuelle "Projet actif : X - RAG ... - N sources"
-   (voir renderRagStatus() dans ai-assistant.js) : le projet qui fournit le
-   contexte RAG/memoire de la conversation affichee est mis en evidence
-   directement dans le rail, par une bordure/lueur verte coherente avec les
-   accents "operationnel" deja utilises ailleurs sur le site (#30d158). */
+/* Met en evidence le projet actif (qui fournit le contexte RAG/memoire de la
+   conversation affichee) directement dans le rail, par une bordure/lueur bleu
+   ciel lumineux coherent avec l'accent primaire du design du chatbot IA. */
 .ai-assistant-project-item.is-context-active {
-  background: rgb(48 209 88 / 9%);
-  border-color: rgb(48 209 88 / 55%);
-  box-shadow: 0 0 0 1px rgb(48 209 88 / 22%), 0 0 14px rgb(48 209 88 / 28%);
+  background: rgb(121 230 255 / 8%);
+  border-color: rgb(121 230 255 / 48%);
+  box-shadow: 0 0 0 1px rgb(121 230 255 / 18%), 0 0 14px rgb(121 230 255 / 24%);
   color: #fff;
 }
 
 .ai-assistant-project-item.is-context-active:hover {
-  background: rgb(48 209 88 / 14%);
-  border-color: rgb(48 209 88 / 72%);
+  background: rgb(121 230 255 / 13%);
+  border-color: rgb(121 230 255 / 65%);
 }
 
 .ai-assistant-project-item.is-context-active .ai-assistant-project-item-icon {
-  border-color: rgb(48 209 88 / 60%);
+  border-color: rgb(121 230 255 / 54%);
   box-shadow: 0 0 8px rgb(48 209 88 / 35%);
 }
 
