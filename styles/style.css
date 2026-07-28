@@ -11270,6 +11270,120 @@ body.chat-page {
   }
 }
 
+@media (width <= 576px) {
+  .ai-assistant-panel {
+    height: calc(100dvh - 12px);
+    max-height: calc(100dvh - 12px);
+    width: calc(100vw - 12px);
+  }
+
+  .ai-assistant-header {
+    min-height: 54px;
+    padding: 10px 12px;
+  }
+
+  .ai-assistant-header-logo,
+  .ai-assistant-header-icon {
+    height: 36px;
+    width: 36px;
+  }
+
+  .ai-assistant-history-toggle {
+    height: 34px;
+    width: 34px;
+    left: 10px;
+  }
+
+  .ai-assistant-history-toggle img {
+    height: 18px;
+    width: 18px;
+  }
+
+  .ai-assistant-settings-open {
+    height: 34px;
+    width: 34px;
+    right: 10px;
+  }
+
+  .ai-assistant-settings-open img {
+    height: 18px;
+    width: 18px;
+  }
+
+  .ai-assistant-messages {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .ai-assistant-form {
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .ai-assistant-form textarea {
+    min-height: 40px;
+    font-size: 14px;
+  }
+
+  .ai-assistant-form input {
+    font-size: 14px;
+  }
+
+  .ai-assistant-rail {
+    display: none;
+  }
+
+  .ai-assistant-panel.has-rail .ai-assistant-history-toggle {
+    display: flex;
+  }
+
+  .ai-assistant-panel.has-rail .ai-assistant-messages,
+  .ai-assistant-panel.has-rail .ai-assistant-quick-actions,
+  .ai-assistant-panel.has-rail .ai-assistant-form {
+    margin-left: 0;
+    padding-left: 12px;
+  }
+
+  .ai-assistant-message {
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .ai-assistant-message-avatar {
+    height: 32px;
+    width: 32px;
+    min-width: 32px;
+  }
+
+  .ai-assistant-quick-actions {
+    padding-left: 12px;
+    padding-right: 12px;
+    gap: 8px;
+  }
+
+  .ai-assistant-quick-action {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+
+  .chat-page-gate {
+    padding: 16px;
+  }
+
+  .chat-page-gate h1 {
+    font-size: clamp(1.2rem, 2.5vw, 1.6rem);
+  }
+
+  .chat-page-gate p {
+    font-size: 0.9rem;
+  }
+
+  .chat-page-gate button {
+    font-size: 14px;
+    padding: 10px 24px;
+  }
+}
+
 .ai-assistant-history-toggle {
   align-items: center;
   background: rgb(255 255 255 / 6%);
