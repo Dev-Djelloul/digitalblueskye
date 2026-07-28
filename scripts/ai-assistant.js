@@ -7929,9 +7929,20 @@
           border-radius: 999px;
         }
         @media (max-width: 780px) {
-          /* Sur mobile, on garde un plancher pour que les tables multi-colonnes
-             restent lisibles (le conteneur defile). Les tables a 2-3 colonnes
-             restent sous ce plancher et remplissent donc la largeur. */
+          /* Sur mobile, on garde un plancher pour que les tables restent
+             lisibles (le conteneur .ai-assistant-table-wrap defile
+             horizontalement au lieu de tasser chaque colonne). Sans plancher,
+             une table a 2-3 colonnes sur un ecran etroit (ex. iPhone SE/XS,
+             ~300px utiles) force chaque colonne sous ~100px : le texte finit
+             par casser lettre par lettre malgre word-break:normal. Le
+             plancher est proportionnel au nombre de colonnes pour ne pas
+             forcer un defilement inutile sur une table a 2 colonnes courtes. */
+          .ai-assistant-message-content .ai-assistant-table.ai-assistant-table--cols-2 {
+            min-width: 320px;
+          }
+          .ai-assistant-message-content .ai-assistant-table.ai-assistant-table--cols-3 {
+            min-width: 420px;
+          }
           .ai-assistant-message-content .ai-assistant-table.ai-assistant-table--cols-4,
           .ai-assistant-message-content .ai-assistant-table.ai-assistant-table--cols-5,
           .ai-assistant-message-content .ai-assistant-table.ai-assistant-table--cols-6,

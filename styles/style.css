@@ -11270,119 +11270,10 @@ body.chat-page {
   }
 }
 
-@media (width <= 576px) {
-  .ai-assistant-panel {
-    height: calc(100dvh - 12px);
-    max-height: calc(100dvh - 12px);
-    width: calc(100vw - 12px);
-  }
-
-  .ai-assistant-header {
-    min-height: 54px;
-    padding: 10px 12px;
-  }
-
-  .ai-assistant-header-logo,
-  .ai-assistant-header-icon {
-    height: 36px;
-    width: 36px;
-  }
-
-  .ai-assistant-history-toggle {
-    height: 34px;
-    width: 34px;
-    left: 10px;
-  }
-
-  .ai-assistant-history-toggle img {
-    height: 18px;
-    width: 18px;
-  }
-
-  .ai-assistant-settings-open {
-    height: 34px;
-    width: 34px;
-    right: 10px;
-  }
-
-  .ai-assistant-settings-open img {
-    height: 18px;
-    width: 18px;
-  }
-
-  .ai-assistant-messages {
-    padding-left: 12px;
-    padding-right: 12px;
-  }
-
-  .ai-assistant-form {
-    padding: 12px;
-    gap: 8px;
-  }
-
-  .ai-assistant-form textarea {
-    min-height: 40px;
-    font-size: 14px;
-  }
-
-  .ai-assistant-form input {
-    font-size: 14px;
-  }
-
-  .ai-assistant-rail {
-    display: none;
-  }
-
-  .ai-assistant-panel.has-rail .ai-assistant-history-toggle {
-    display: flex;
-  }
-
-  .ai-assistant-panel.has-rail .ai-assistant-messages,
-  .ai-assistant-panel.has-rail .ai-assistant-quick-actions,
-  .ai-assistant-panel.has-rail .ai-assistant-form {
-    margin-left: 0;
-    padding-left: 12px;
-  }
-
-  .ai-assistant-message {
-    gap: 10px;
-    margin-bottom: 12px;
-  }
-
-  .ai-assistant-message-avatar {
-    height: 32px;
-    width: 32px;
-    min-width: 32px;
-  }
-
-  .ai-assistant-quick-actions {
-    padding-left: 12px;
-    padding-right: 12px;
-    gap: 8px;
-  }
-
-  .ai-assistant-quick-action {
-    font-size: 12px;
-    padding: 8px 12px;
-  }
-
-  .chat-page-gate {
-    padding: 16px;
-  }
-
-  .chat-page-gate h1 {
-    font-size: clamp(1.2rem, 2.5vw, 1.6rem);
-  }
-
-  .chat-page-gate p {
-    font-size: 0.9rem;
-  }
-
-  .chat-page-gate button {
-    font-size: 14px;
-    padding: 10px 24px;
-  }
-}
+/* Le detail des reglages mobile (<=576px) pour l'assistant IA vit tout en bas
+   de ce fichier (voir "Assistant IA — polish mobile final") : place ici, il
+   etait systematiquement ecrase par le gros bloc @media (width <= 768px) plus
+   loin dans le fichier (meme specificite, l'ordre de cascade tranche). */
 
 .ai-assistant-history-toggle {
   align-items: center;
@@ -20384,5 +20275,153 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
   .ai-source-title {
     font-size: 0.76rem;
     -webkit-line-clamp: 2;
+  }
+}
+
+/* ===========================================================================
+   Assistant IA — polish mobile final (<=576px, ex: iPhone SE/XS/12/13/14).
+   Placee volontairement tout en bas du fichier : plusieurs blocs plus haut
+   (@media (width <= 768px) notamment, autour de la ligne 19350) definissent
+   les memes selecteurs (.ai-assistant-panel, .ai-assistant-messages,
+   .ai-assistant-form, etc.). A specificite egale, CSS fait gagner la regle la
+   plus tardive dans le fichier — donc toute correction mobile placee plus
+   haut que ces blocs etait silencieusement ecrasee. Ce bloc doit rester le
+   DERNIER du fichier a toucher ces selecteurs.
+   =========================================================================== */
+@media (width <= 576px) {
+  /* Le rail lateral (icones Search/Library/Projects) prend ~74px sur 375px de
+     large : sur les tres petits ecrans on le masque completement et on ne
+     garde que le bouton toggle d'historique (deja bascule en position
+     absolue par .ai-assistant-panel.has-rail .ai-assistant-history-toggle),
+     ce qui rend a la conversation/aux tableaux toute la largeur utile. */
+  .ai-assistant-rail {
+    display: none !important;
+  }
+
+  .ai-assistant-panel.has-rail .ai-assistant-messages,
+  .ai-assistant-panel.has-rail .ai-assistant-quick-actions,
+  .ai-assistant-panel.has-rail .ai-assistant-form {
+    margin-left: 0 !important;
+  }
+
+  .ai-assistant-panel {
+    height: calc(100dvh - 10px);
+    max-height: calc(100dvh - 10px);
+    top: 5px;
+    width: calc(100vw - 10px);
+  }
+
+  .ai-assistant-header {
+    min-height: 52px;
+    padding: 8px 56px;
+  }
+
+  .ai-assistant-header-logo,
+  .ai-assistant-header-icon {
+    height: 32px;
+    width: 32px;
+  }
+
+  .ai-assistant-history-toggle {
+    height: 34px;
+    left: 8px;
+    width: 34px;
+  }
+
+  .ai-assistant-history-toggle img {
+    height: 17px;
+    width: 17px;
+  }
+
+  .ai-assistant-messages {
+    padding: 14px 10px 8px;
+  }
+
+  .ai-assistant-message {
+    font-size: 0.82rem;
+    max-width: 100%;
+    padding: 10px 12px;
+  }
+
+  .ai-assistant-message--bot {
+    margin-left: 26px;
+  }
+
+  .ai-assistant-message--user {
+    margin-right: 26px;
+  }
+
+  .ai-assistant-message::before {
+    height: 22px;
+    width: 22px;
+  }
+
+  .ai-assistant-message--bot::before {
+    left: -26px;
+  }
+
+  .ai-assistant-message--user::before {
+    right: -26px;
+  }
+
+  .ai-assistant-quick-actions {
+    gap: 6px;
+    padding: 8px 10px 4px;
+  }
+
+  .ai-assistant-quick-action {
+    font-size: 0.7rem;
+    padding: 6px 10px;
+  }
+
+  /* Le bouton "retour en bas" (position absolute, ancre par bottom) survolait
+     les pastilles de suggestion sur petit ecran faute d'espace : on le
+     remonte un peu au-dessus de la zone de suggestions/composer. */
+  .ai-assistant-scroll-bottom {
+    bottom: 152px;
+    height: 34px;
+    width: 34px;
+  }
+
+  .ai-assistant-form {
+    margin: 6px;
+    padding: 8px;
+  }
+
+  .ai-assistant-form input,
+  .ai-assistant-form textarea {
+    font-size: 0.85rem;
+  }
+
+  .chat-page-gate {
+    padding: 16px;
+  }
+
+  .chat-page-gate h1 {
+    font-size: clamp(1.15rem, 5vw, 1.5rem);
+  }
+
+  .chat-page-gate p {
+    font-size: 0.88rem;
+  }
+
+  .chat-page-gate button {
+    font-size: 14px;
+    padding: 10px 22px;
+  }
+
+  /* Tirroirs (historique des conversations, panneau sources) : sur mobile ils
+     doivent couvrir toute la largeur utile plutot qu'une bande etroite a
+     cheval sur le rail masque ci-dessus. */
+  .ai-assistant-session-bar {
+    left: 8px;
+    right: 8px;
+    width: auto;
+  }
+
+  .ai-sources-panel {
+    left: 8px;
+    right: 8px;
+    width: auto;
   }
 }
