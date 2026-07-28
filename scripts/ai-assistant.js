@@ -7929,28 +7929,30 @@
           border-radius: 999px;
         }
         @media (max-width: 780px) {
-          /* Sur mobile, on garde un plancher pour que les tables restent
-             lisibles (le conteneur .ai-assistant-table-wrap defile
-             horizontalement au lieu de tasser chaque colonne). Sans plancher,
-             une table a 2-3 colonnes sur un ecran etroit (ex. iPhone SE/XS,
-             ~300px utiles) force chaque colonne sous ~100px : le texte finit
-             par casser lettre par lettre malgre word-break:normal. Le
-             plancher est proportionnel au nombre de colonnes pour ne pas
-             forcer un defilement inutile sur une table a 2 colonnes courtes. */
-          .ai-assistant-message-content .ai-assistant-table.ai-assistant-table--cols-2 {
-            min-width: 320px;
+          /* Sur mobile, la table ne doit plus etre FORCEE a width:100% (regle
+             de base ci-dessus) : avec table-layout:auto, un width:100% sur un
+             conteneur etroit (ex. iPhone XS, ~300px utiles) oblige chaque
+             colonne a se tasser sous sa largeur naturelle, jusqu'a casser le
+             texte lettre par lettre malgre word-break:normal. On repasse la
+             table en largeur naturelle (width:auto) et on donne un plancher
+             par cellule : la table garde alors sa taille d'origine (ou
+             s'etire a 100% si elle est naturellement plus etroite, via
+             min-width:100%) et c'est .ai-assistant-table-wrap qui defile
+             horizontalement (overflow-x:auto + -webkit-overflow-scrolling:
+             touch deja definis plus haut) au lieu de la comprimer. Approche
+             volontairement independante du nombre de colonnes : robuste quel
+             que soit le tableau genere par l'IA. */
+          .ai-assistant-message-content .ai-assistant-table {
+            min-width: 100%;
+            width: auto;
           }
-          .ai-assistant-message-content .ai-assistant-table.ai-assistant-table--cols-3 {
-            min-width: 420px;
+          .ai-assistant-message-content .ai-assistant-table th,
+          .ai-assistant-message-content .ai-assistant-table td {
+            min-width: 120px;
           }
-          .ai-assistant-message-content .ai-assistant-table.ai-assistant-table--cols-4,
-          .ai-assistant-message-content .ai-assistant-table.ai-assistant-table--cols-5,
-          .ai-assistant-message-content .ai-assistant-table.ai-assistant-table--cols-6,
-          .ai-assistant-message-content .ai-assistant-table.ai-assistant-table--cols-7,
-          .ai-assistant-message-content .ai-assistant-table.ai-assistant-table--cols-8,
-          .ai-assistant-message-content .ai-assistant-table.ai-assistant-table--cols-9,
-          .ai-assistant-message-content .ai-assistant-table.ai-assistant-table--cols-10 {
-            min-width: 620px;
+          .ai-assistant-message-content .ai-assistant-table th:first-child,
+          .ai-assistant-message-content .ai-assistant-table td:first-child {
+            min-width: 96px;
           }
         }
       `;
