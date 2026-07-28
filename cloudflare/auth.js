@@ -394,9 +394,34 @@ async function ensureSchema(env) {
       title TEXT, custom_title INTEGER DEFAULT 0, summary TEXT,
       history TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
       deleted_at TEXT)`,
+    // Projets IA (sources/RAG/memoire) : memoire et reglages RAG synchronises
+    // tels quels ; icon_image peut porter une image encodee en data URL
+    // (jusqu'a ~2 Mo, voir maxProjectIconDataUrlLength cote client).
+    `CREATE TABLE IF NOT EXISTS ai_projects (
+      id TEXT PRIMARY KEY, user_id TEXT NOT NULL, name TEXT, description TEXT,
+      icon TEXT, icon_image TEXT, color TEXT, memory TEXT,
+      rag_scope TEXT, rag_project_ids TEXT, rag_enabled INTEGER DEFAULT 1,
+      rag_max_passages INTEGER DEFAULT 5, rag_use_global_library INTEGER DEFAULT 0,
+      rag_citations INTEGER DEFAULT 1, created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
+      deleted_at TEXT)`,
+    // Sources (documents de bibliotheque/projet) : synchronise le texte extrait
+    // et les chunks (utilises pour le RAG), PAS les data URL d'apercu/telechargement
+    // ni le fichier original (reste local, voir IndexedDB knowledgeLibraryDbName
+    // cote client) - trop volumineux pour ce canal. ragIndex n'est pas non plus
+    // transmis : il est deterministe et reconstruit localement depuis chunks
+    // (buildKnowledgeRagIndex) a la reception, evite de dupliquer des donnees
+    // derivables sur le reseau.
+    `CREATE TABLE IF NOT EXISTS ai_documents (
+      id TEXT PRIMARY KEY, user_id TEXT NOT NULL, project_ids TEXT,
+      name TEXT, type TEXT, kind TEXT, mime_type TEXT, size INTEGER,
+      imported_at TEXT NOT NULL, text_length INTEGER, has_original_file INTEGER,
+      preview_text TEXT, chunks TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
+      deleted_at TEXT)`,
     `CREATE INDEX IF NOT EXISTS idx_user_sessions_hash ON user_sessions(session_hash)`,
     `CREATE INDEX IF NOT EXISTS idx_user_identities_user ON user_identities(user_id)`,
-    `CREATE INDEX IF NOT EXISTS idx_ai_conversations_user ON ai_conversations(user_id)`
+    `CREATE INDEX IF NOT EXISTS idx_ai_conversations_user ON ai_conversations(user_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_ai_projects_user ON ai_projects(user_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_ai_documents_user ON ai_documents(user_id)`
   ];
   for (const sql of stmts) {
     try { await env.DB.prepare(sql).run(); } catch (error) { /* best-effort */ }
@@ -983,6 +1008,185 @@ export async function handleConversationsPush(request, env) {
 }
 
 // ---------------------------------------------------------------------------
+// Synchronisation des projets IA (sources/RAG/memoire) et de leurs documents
+// entre appareils. Meme garde/strategie que ai_conversations ci-dessus.
+// ---------------------------------------------------------------------------
+function projectRowToJson(row) {
+  return {
+    id: row.id,
+    name: row.name || '',
+    description: row.description || '',
+    icon: row.icon || '',
+    iconImage: row.icon_image || '',
+    color: row.color || '#79e6ff',
+    memory: row.memory || '',
+    ragScope: row.rag_scope || 'project',
+    ragProjectIds: (() => { try { return JSON.parse(row.rag_project_ids || '[]'); } catch (_) { return []; } })(),
+    ragEnabled: Boolean(row.rag_enabled),
+    ragMaxPassages: Number(row.rag_max_passages) || 5,
+    ragUseGlobalLibrary: Boolean(row.rag_use_global_library),
+    ragCitations: Boolean(row.rag_citations),
+    createdAt: Date.parse(row.created_at) || Date.now(),
+    updatedAt: Date.parse(row.updated_at) || Date.now()
+  };
+}
+
+export async function handleProjectsGet(request, env) {
+  await ensureSchema(env);
+  const user = await getSessionUser(env, request);
+  if (!user) return authJson(request, env, { ok: false, error: 'AUTH_REQUIRED' }, 401);
+
+  const result = await env.DB.prepare(
+    `SELECT id, name, description, icon, icon_image, color, memory, rag_scope, rag_project_ids,
+            rag_enabled, rag_max_passages, rag_use_global_library, rag_citations, created_at, updated_at
+     FROM ai_projects WHERE user_id = ? AND deleted_at IS NULL ORDER BY updated_at DESC`
+  ).bind(user.id).all();
+
+  return authJson(request, env, { ok: true, projects: (result?.results || []).map(projectRowToJson) });
+}
+
+export async function handleProjectsPush(request, env) {
+  await ensureSchema(env);
+  const user = await getSessionUser(env, request);
+  if (!user) return authJson(request, env, { ok: false, error: 'AUTH_REQUIRED' }, 401);
+
+  let body = {};
+  try { body = await request.json(); } catch (_) { body = {}; }
+  const projects = Array.isArray(body.projects) ? body.projects.slice(0, 100) : [];
+  const deletedIds = Array.isArray(body.deletedIds) ? body.deletedIds.filter((id) => typeof id === 'string').slice(0, 50) : [];
+  const now = nowIso();
+
+  for (const project of projects) {
+    const id = String(project?.id || '').trim();
+    if (!id) continue;
+    const updatedAtIso = Number.isFinite(Number(project?.updatedAt)) ? new Date(Number(project.updatedAt)).toISOString() : now;
+    const createdAtIso = Number.isFinite(Number(project?.createdAt)) ? new Date(Number(project.createdAt)).toISOString() : now;
+    await env.DB.prepare(
+      `INSERT INTO ai_projects (id, user_id, name, description, icon, icon_image, color, memory,
+         rag_scope, rag_project_ids, rag_enabled, rag_max_passages, rag_use_global_library, rag_citations,
+         created_at, updated_at, deleted_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)
+       ON CONFLICT(id) DO UPDATE SET
+         name = excluded.name, description = excluded.description, icon = excluded.icon,
+         icon_image = excluded.icon_image, color = excluded.color, memory = excluded.memory,
+         rag_scope = excluded.rag_scope, rag_project_ids = excluded.rag_project_ids,
+         rag_enabled = excluded.rag_enabled, rag_max_passages = excluded.rag_max_passages,
+         rag_use_global_library = excluded.rag_use_global_library, rag_citations = excluded.rag_citations,
+         updated_at = excluded.updated_at, deleted_at = NULL
+       WHERE excluded.updated_at > ai_projects.updated_at AND ai_projects.user_id = ?`
+    ).bind(
+      id, user.id,
+      String(project.name || '').slice(0, 80),
+      String(project.description || '').slice(0, 5000),
+      String(project.icon || '').slice(0, 2),
+      String(project.iconImage || '').slice(0, 2000000),
+      String(project.color || '#79e6ff').slice(0, 7),
+      String(project.memory || '').slice(0, 10000),
+      String(project.ragScope || 'project').slice(0, 20),
+      JSON.stringify(Array.isArray(project.ragProjectIds) ? project.ragProjectIds.slice(0, 12) : []),
+      project.ragEnabled === false ? 0 : 1,
+      [3, 5, 8].includes(Number(project.ragMaxPassages)) ? Number(project.ragMaxPassages) : 5,
+      project.ragUseGlobalLibrary ? 1 : 0,
+      project.ragCitations === false ? 0 : 1,
+      createdAtIso, updatedAtIso, user.id
+    ).run();
+  }
+
+  for (const id of deletedIds) {
+    await env.DB.prepare('UPDATE ai_projects SET deleted_at = ? WHERE id = ? AND user_id = ?')
+      .bind(now, id, user.id).run();
+  }
+
+  return authJson(request, env, { ok: true });
+}
+
+function documentRowToJson(row) {
+  let chunks = [];
+  let projectIds = [];
+  try { chunks = JSON.parse(row.chunks || '[]'); } catch (_) { chunks = []; }
+  try { projectIds = JSON.parse(row.project_ids || '[]'); } catch (_) { projectIds = []; }
+  return {
+    id: row.id,
+    projectIds,
+    projectId: projectIds[0] || null,
+    name: row.name || '',
+    type: row.type || '',
+    kind: row.kind || 'document',
+    mimeType: row.mime_type || '',
+    size: Number(row.size) || 0,
+    importedAt: Date.parse(row.imported_at) || Date.now(),
+    updatedAt: Date.parse(row.updated_at) || Date.now(),
+    textLength: Number(row.text_length) || 0,
+    hasOriginalFile: false, // le fichier original reste local (IndexedDB), jamais synchronise
+    previewText: row.preview_text || '',
+    chunks
+  };
+}
+
+export async function handleDocumentsGet(request, env) {
+  await ensureSchema(env);
+  const user = await getSessionUser(env, request);
+  if (!user) return authJson(request, env, { ok: false, error: 'AUTH_REQUIRED' }, 401);
+
+  const result = await env.DB.prepare(
+    `SELECT id, project_ids, name, type, kind, mime_type, size, imported_at, updated_at,
+            text_length, preview_text, chunks
+     FROM ai_documents WHERE user_id = ? AND deleted_at IS NULL ORDER BY updated_at DESC LIMIT 200`
+  ).bind(user.id).all();
+
+  return authJson(request, env, { ok: true, documents: (result?.results || []).map(documentRowToJson) });
+}
+
+export async function handleDocumentsPush(request, env) {
+  await ensureSchema(env);
+  const user = await getSessionUser(env, request);
+  if (!user) return authJson(request, env, { ok: false, error: 'AUTH_REQUIRED' }, 401);
+
+  let body = {};
+  try { body = await request.json(); } catch (_) { body = {}; }
+  const documents = Array.isArray(body.documents) ? body.documents.slice(0, 200) : [];
+  const deletedIds = Array.isArray(body.deletedIds) ? body.deletedIds.filter((id) => typeof id === 'string').slice(0, 200) : [];
+  const now = nowIso();
+
+  for (const doc of documents) {
+    const id = String(doc?.id || '').trim();
+    if (!id) continue;
+    const updatedAtIso = Number.isFinite(Number(doc?.updatedAt)) ? new Date(Number(doc.updatedAt)).toISOString() : now;
+    const importedAtIso = Number.isFinite(Number(doc?.importedAt)) ? new Date(Number(doc.importedAt)).toISOString() : now;
+    await env.DB.prepare(
+      `INSERT INTO ai_documents (id, user_id, project_ids, name, type, kind, mime_type, size,
+         imported_at, text_length, has_original_file, preview_text, chunks, created_at, updated_at, deleted_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, NULL)
+       ON CONFLICT(id) DO UPDATE SET
+         project_ids = excluded.project_ids, name = excluded.name, type = excluded.type, kind = excluded.kind,
+         mime_type = excluded.mime_type, size = excluded.size, text_length = excluded.text_length,
+         preview_text = excluded.preview_text, chunks = excluded.chunks, updated_at = excluded.updated_at, deleted_at = NULL
+       WHERE excluded.updated_at > ai_documents.updated_at AND ai_documents.user_id = ?`
+    ).bind(
+      id, user.id,
+      JSON.stringify(Array.isArray(doc.projectIds) ? doc.projectIds.slice(0, 12) : []),
+      String(doc.name || 'document').slice(0, 160),
+      String(doc.type || 'Document').slice(0, 48),
+      String(doc.kind || 'document').slice(0, 32),
+      String(doc.mimeType || '').slice(0, 96),
+      Number(doc.size) || 0,
+      importedAtIso,
+      Number(doc.textLength) || 0,
+      String(doc.previewText || '').slice(0, 360),
+      JSON.stringify(Array.isArray(doc.chunks) ? doc.chunks.slice(0, 140) : []),
+      importedAtIso, updatedAtIso, user.id
+    ).run();
+  }
+
+  for (const id of deletedIds) {
+    await env.DB.prepare('UPDATE ai_documents SET deleted_at = ? WHERE id = ? AND user_id = ?')
+      .bind(now, id, user.id).run();
+  }
+
+  return authJson(request, env, { ok: true });
+}
+
+// ---------------------------------------------------------------------------
 // Connexion par email (magic link) : POST /auth/email/request cree un token
 // a usage unique et envoie le lien par email (Cloudflare Email Sending) ;
 // GET /auth/email/verify le consomme et cree une session, comme un callback
@@ -1249,6 +1453,13 @@ export function authOptionsResponse(request, env) {
   return new Response(null, { status: 204, headers: authCorsHeaders(request, env) });
 }
 
+const SYNC_AI_PATHS = new Set([
+  '/ai/chat',
+  '/ai/conversations', '/ai/conversations/push',
+  '/ai/projects', '/ai/projects/push',
+  '/ai/documents', '/ai/documents/push'
+]);
+
 export function isAuthOrAiPath(pathname) {
-  return pathname.startsWith('/auth/') || pathname === '/ai/chat' || pathname === '/ai/conversations' || pathname === '/ai/conversations/push';
+  return pathname.startsWith('/auth/') || SYNC_AI_PATHS.has(pathname);
 }

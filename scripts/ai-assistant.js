@@ -1339,7 +1339,7 @@
       // Meme compte (ou meme visiteur anonyme) : rien a recharger, mais l'auth
       // vient peut-etre seulement d'etre confirmee (hydratation asynchrone au
       // chargement de page) -> tenter quand meme une synchro.
-      syncConversationsNow();
+      syncAllNow();
       return;
     }
     applyStorageScope();
@@ -1354,15 +1354,19 @@
       renderProjectList();
       renderCurrentConversation();
       lastConversationPushAt = 0;
+      lastProjectPushAt = 0;
+      lastDocumentPushAt = 0;
       reloadPendingDeletedSessionIds();
-      syncConversationsNow();
+      reloadPendingDeletedProjectIds();
+      reloadPendingDeletedDocumentIds();
+      syncAllNow();
     } catch (error) {
       assistantLog('warn', 'storage_scope_reload_failed', { reason: error?.message || 'scope_reload_failed' });
     }
   });
 
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') syncConversationsNow();
+    if (document.visibilityState === 'visible') syncAllNow();
   });
 
   const panelPositionStorageKey = 'ai_assistant_panel_position_v1';
@@ -1611,6 +1615,7 @@
     } catch (error) {
       assistantLog('warn', 'projects_save_failed', { reason: error?.message || 'local_storage_unavailable' });
     }
+    scheduleProjectSync();
   }
 
   function loadAssistantSettingsState() {
@@ -1714,6 +1719,7 @@
     ids.add(project.id);
     doc.projectIds = Array.from(ids);
     doc.projectId = doc.projectIds[0] || null;
+    doc.updatedAt = Date.now();
     return true;
   }
 
@@ -1722,6 +1728,7 @@
     const ids = getDocumentProjectIds(doc).filter((id) => id !== projectId);
     doc.projectIds = ids;
     doc.projectId = ids[0] || null;
+    doc.updatedAt = Date.now();
     return true;
   }
 
@@ -2568,6 +2575,7 @@
     (knowledgeLibrary.documents || []).forEach((doc) => {
       if (isDocumentLinkedToProject(doc, projectId)) detachDocumentFromProject(doc, projectId);
     });
+    trackDeletedProjectId(projectId);
     projectsState.projects = (projectsState.projects || []).filter((item) => item.id !== projectId);
     projectsState.projects.forEach((item) => {
       item.ragProjectIds = (item.ragProjectIds || []).filter((id) => id !== projectId);
@@ -4289,6 +4297,7 @@
             mimeType: String(doc?.mimeType || '').slice(0, 96),
             size: Number(doc?.size) || 0,
             importedAt: Number(doc?.importedAt) || Date.now(),
+            updatedAt: Number(doc?.updatedAt) || Number(doc?.importedAt) || Date.now(),
             textLength: Number(doc?.textLength) || 0,
             hasOriginalFile: Boolean(doc?.hasOriginalFile),
             previewVersion: Number(doc?.previewVersion) || 1,
@@ -4337,6 +4346,7 @@
       assistantLog('warn', 'knowledge_library_save_failed', { reason: error?.message || 'local_storage_unavailable' });
     }
     renderKnowledgeLibrary();
+    scheduleDocumentSync();
   }
 
   function getKnowledgeDocumentById(docId) {
@@ -4462,6 +4472,7 @@
   async function deleteKnowledgeDocument(docId) {
     if (!docId) return;
     const removedDoc = (knowledgeLibrary.documents || []).find((doc) => doc.id === docId) || { id: docId };
+    trackDeletedDocumentId(docId);
     knowledgeLibrary.documents = (knowledgeLibrary.documents || []).filter((doc) => doc.id !== docId);
     if (activePreviewDocId === docId) closeMediaPreview();
     if (activeLibraryMenuDocId === docId) closeLibraryCardMenu();
@@ -4538,6 +4549,7 @@
       name: extracted?.name || file?.name || 'document',
       type: extracted?.type || getKnowledgeFileTypeLabel(file),
       importedAt: Date.now(),
+      updatedAt: Date.now(),
       textLength: text.length,
       kind: extracted?.kind || getKnowledgeFileKind(file),
       mimeType: extracted?.mimeType || String(file?.type || ''),
@@ -5359,18 +5371,21 @@
   }
 
   // ---------------------------------------------------------------------------
-  // Synchronisation des conversations entre appareils (GET/POST /ai/conversations*,
-  // voir handleConversationsGet/handleConversationsPush dans cloudflare/auth.js).
-  // Strategie dernier-ecrit-gagne par conversation (updatedAt), suffisante pour
-  // un usage personnel multi-appareils. Desactivee pour les visiteurs non
+  // Synchronisation entre appareils : conversations, projets (sources/RAG/
+  // memoire) et documents de bibliotheque. Voir handleConversationsGet/Push,
+  // handleProjectsGet/Push, handleDocumentsGet/Push dans cloudflare/auth.js.
+  // Strategie dernier-ecrit-gagne par element (updatedAt), suffisante pour un
+  // usage personnel multi-appareils. Desactivee pour les visiteurs non
   // connectes et la connexion locale de test (dev), comme fetchSessionHistory/
-  // revokeSession dans dbs-auth.js.
+  // revokeSession dans dbs-auth.js. Les fichiers originaux (binaire, IndexedDB)
+  // et les data URL d'apercu/telechargement des documents restent locaux a
+  // chaque appareil : trop volumineux pour ce canal de synchro JSON.
   // ---------------------------------------------------------------------------
-  function conversationsApiBase() {
+  function syncApiBase() {
     return (String(window.DBS_API_BASE || '').trim().replace(/\/+$/, '')) || 'https://api.digitalblueskye.com';
   }
 
-  function canSyncConversations() {
+  function canSyncWithServer() {
     try {
       // Meme exclusion que fetchSessionHistory/revokeSession dans dbs-auth.js :
       // la connexion locale de test (dev) n'a pas de vraie session cote
@@ -5382,6 +5397,9 @@
       return false;
     }
   }
+  // Alias historique (conversations) conserve pour lisibilite locale.
+  const conversationsApiBase = syncApiBase;
+  const canSyncConversations = canSyncWithServer;
 
   // Fonction (et non une const figee) : storageScope change au changement de
   // compte (voir l'ecouteur 'dbs-auth-changed' plus haut), la cle doit suivre.
@@ -5484,10 +5502,216 @@
     }
   }
 
-  async function syncConversationsNow() {
-    if (!canSyncConversations()) return;
+  // --- Projets (nom, description, memoire, reglages RAG) -------------------
+  function projectDeletedIdsStorageKey() {
+    return `ai_assistant_projects_deleted_v1::${storageScope}`;
+  }
+  let pendingDeletedProjectIds = [];
+  function reloadPendingDeletedProjectIds() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(projectDeletedIdsStorageKey()) || '[]');
+      pendingDeletedProjectIds = Array.isArray(parsed) ? parsed : [];
+    } catch (_) { pendingDeletedProjectIds = []; }
+  }
+  reloadPendingDeletedProjectIds();
+
+  function trackDeletedProjectId(projectId) {
+    if (!projectId || pendingDeletedProjectIds.includes(projectId)) return;
+    pendingDeletedProjectIds.push(projectId);
+    try { localStorage.setItem(projectDeletedIdsStorageKey(), JSON.stringify(pendingDeletedProjectIds)); } catch (_) { /* no-op */ }
+  }
+
+  let lastProjectPushAt = 0;
+  let projectSyncTimer = null;
+  let projectSyncInFlight = false;
+
+  function scheduleProjectSync() {
+    if (!canSyncWithServer()) return;
+    window.clearTimeout(projectSyncTimer);
+    projectSyncTimer = window.setTimeout(() => { pushProjectsToServer(); }, 2500);
+  }
+
+  async function pushProjectsToServer() {
+    if (!canSyncWithServer() || projectSyncInFlight) return;
+    const deletedIds = pendingDeletedProjectIds.slice();
+    const changed = (projectsState.projects || []).filter((project) => project.updatedAt > lastProjectPushAt);
+    if (!changed.length && !deletedIds.length) return;
+    const requestStartedAt = Date.now();
+    projectSyncInFlight = true;
+    try {
+      const res = await fetch(`${syncApiBase()}/ai/projects/push`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projects: changed, deletedIds })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (data?.ok) {
+        lastProjectPushAt = requestStartedAt;
+        pendingDeletedProjectIds = pendingDeletedProjectIds.filter((id) => !deletedIds.includes(id));
+        try { localStorage.setItem(projectDeletedIdsStorageKey(), JSON.stringify(pendingDeletedProjectIds)); } catch (_) { /* no-op */ }
+      }
+    } catch (_) {
+      // best-effort : la prochaine synchro reessaiera.
+    } finally {
+      projectSyncInFlight = false;
+    }
+  }
+
+  async function pullProjectsFromServer() {
+    if (!canSyncWithServer()) return;
+    let data;
+    try {
+      const res = await fetch(`${syncApiBase()}/ai/projects`, { credentials: 'include' });
+      data = await res.json().catch(() => ({}));
+    } catch (_) {
+      return;
+    }
+    if (!data?.ok || !Array.isArray(data.projects)) return;
+
+    let hasChanged = false;
+    const localById = new Map((projectsState.projects || []).map((p) => [p.id, p]));
+
+    data.projects.forEach((serverProject) => {
+      const local = localById.get(serverProject.id);
+      if (!local) {
+        projectsState.projects.push(normalizeProject(serverProject));
+        localById.set(serverProject.id, serverProject);
+        hasChanged = true;
+        return;
+      }
+      if (serverProject.updatedAt > local.updatedAt) {
+        Object.assign(local, normalizeProject(serverProject, local));
+        hasChanged = true;
+      }
+    });
+
+    if (!projectsState.projects.some((p) => p.id === projectsState.activeProjectId)) {
+      projectsState.activeProjectId = projectsState.projects[0]?.id || '';
+    }
+    if (hasChanged) {
+      saveProjectsState();
+      renderProjectList();
+    }
+  }
+
+  // --- Documents / sources (texte extrait + chunks RAG, pas les binaires) --
+  function documentDeletedIdsStorageKey() {
+    return `ai_assistant_documents_deleted_v1::${storageScope}`;
+  }
+  let pendingDeletedDocumentIds = [];
+  function reloadPendingDeletedDocumentIds() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(documentDeletedIdsStorageKey()) || '[]');
+      pendingDeletedDocumentIds = Array.isArray(parsed) ? parsed : [];
+    } catch (_) { pendingDeletedDocumentIds = []; }
+  }
+  reloadPendingDeletedDocumentIds();
+
+  function trackDeletedDocumentId(documentId) {
+    if (!documentId || pendingDeletedDocumentIds.includes(documentId)) return;
+    pendingDeletedDocumentIds.push(documentId);
+    try { localStorage.setItem(documentDeletedIdsStorageKey(), JSON.stringify(pendingDeletedDocumentIds)); } catch (_) { /* no-op */ }
+  }
+
+  let lastDocumentPushAt = 0;
+  let documentSyncTimer = null;
+  let documentSyncInFlight = false;
+
+  function scheduleDocumentSync() {
+    if (!canSyncWithServer()) return;
+    window.clearTimeout(documentSyncTimer);
+    documentSyncTimer = window.setTimeout(() => { pushDocumentsToServer(); }, 2500);
+  }
+
+  async function pushDocumentsToServer() {
+    if (!canSyncWithServer() || documentSyncInFlight) return;
+    const deletedIds = pendingDeletedDocumentIds.slice();
+    const changed = (knowledgeLibrary.documents || []).filter((doc) => doc.updatedAt > lastDocumentPushAt);
+    if (!changed.length && !deletedIds.length) return;
+    const requestStartedAt = Date.now();
+    documentSyncInFlight = true;
+    try {
+      const res = await fetch(`${syncApiBase()}/ai/documents/push`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        // previewDataUrl/downloadDataUrl et ragIndex volontairement omis : voir
+        // le commentaire en tete de la table ai_documents (cloudflare/auth.js).
+        body: JSON.stringify({
+          documents: changed.map((doc) => ({
+            id: doc.id, projectIds: doc.projectIds, name: doc.name, type: doc.type, kind: doc.kind,
+            mimeType: doc.mimeType, size: doc.size, importedAt: doc.importedAt, updatedAt: doc.updatedAt,
+            textLength: doc.textLength, previewText: doc.previewText, chunks: doc.chunks
+          })),
+          deletedIds
+        })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (data?.ok) {
+        lastDocumentPushAt = requestStartedAt;
+        pendingDeletedDocumentIds = pendingDeletedDocumentIds.filter((id) => !deletedIds.includes(id));
+        try { localStorage.setItem(documentDeletedIdsStorageKey(), JSON.stringify(pendingDeletedDocumentIds)); } catch (_) { /* no-op */ }
+      }
+    } catch (_) {
+      // best-effort : la prochaine synchro reessaiera.
+    } finally {
+      documentSyncInFlight = false;
+    }
+  }
+
+  async function pullDocumentsFromServer() {
+    if (!canSyncWithServer()) return;
+    let data;
+    try {
+      const res = await fetch(`${syncApiBase()}/ai/documents`, { credentials: 'include' });
+      data = await res.json().catch(() => ({}));
+    } catch (_) {
+      return;
+    }
+    if (!data?.ok || !Array.isArray(data.documents)) return;
+
+    let hasChanged = false;
+    const localById = new Map((knowledgeLibrary.documents || []).map((d) => [d.id, d]));
+
+    data.documents.forEach((serverDoc) => {
+      const local = localById.get(serverDoc.id);
+      if (!local) {
+        // ragIndex n'est pas transmis (deterministe) : reconstruit ici depuis
+        // les chunks recus, comme le fait createStoredKnowledgeDocument().
+        serverDoc.ragIndex = buildKnowledgeRagIndex(serverDoc.chunks || [], serverDoc);
+        serverDoc.previewDataUrl = '';
+        serverDoc.downloadDataUrl = '';
+        serverDoc.hasOriginalFile = false;
+        knowledgeLibrary.documents.push(serverDoc);
+        localById.set(serverDoc.id, serverDoc);
+        hasChanged = true;
+        return;
+      }
+      if (serverDoc.updatedAt > local.updatedAt) {
+        // Preserve les champs locaux non transmis par le serveur (apercu/
+        // telechargement/fichier original) plutot que de les effacer.
+        const { previewDataUrl, downloadDataUrl, hasOriginalFile, ragIndex } = local;
+        Object.assign(local, serverDoc, { previewDataUrl, downloadDataUrl, hasOriginalFile });
+        local.ragIndex = buildKnowledgeRagIndex(local.chunks || [], local);
+        hasChanged = true;
+      }
+    });
+
+    knowledgeLibrary.documents = knowledgeLibrary.documents.slice(0, maxKnowledgeDocuments);
+    if (hasChanged) {
+      saveKnowledgeLibrary();
+    }
+  }
+
+  async function syncAllNow() {
+    if (!canSyncWithServer()) return;
     await pullConversationsFromServer();
+    await pullProjectsFromServer();
+    await pullDocumentsFromServer();
     await pushConversationsToServer();
+    await pushProjectsToServer();
+    await pushDocumentsToServer();
   }
 
   function getActiveSession() {

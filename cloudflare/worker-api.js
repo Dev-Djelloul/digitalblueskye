@@ -29,7 +29,13 @@ import { computeProjectPlan } from './aiProjectManager.js';
 import { buildMaturityDashboardPayload } from './maturityEngine.js';
 import { computeServiceHealthScore } from './serviceHealth.js';
 import { BUILD_INFO } from './build-info.js';
-import { handleAuthRoutes, handleAiChat, handleConversationsGet, handleConversationsPush, authOptionsResponse, isAuthOrAiPath } from './auth.js';
+import {
+  handleAuthRoutes, handleAiChat,
+  handleConversationsGet, handleConversationsPush,
+  handleProjectsGet, handleProjectsPush,
+  handleDocumentsGet, handleDocumentsPush,
+  authOptionsResponse, isAuthOrAiPath
+} from './auth.js';
 
 const REACTION_MAP = Object.freeze({
   thumbsup: "reactions_thumbsup",
@@ -6815,6 +6821,10 @@ export default {
       if (pathname === "/ai/chat") return await handleAiChat(request, env);
       if (pathname === "/ai/conversations") return await handleConversationsGet(request, env);
       if (pathname === "/ai/conversations/push") return await handleConversationsPush(request, env);
+      if (pathname === "/ai/projects") return await handleProjectsGet(request, env);
+      if (pathname === "/ai/projects/push") return await handleProjectsPush(request, env);
+      if (pathname === "/ai/documents") return await handleDocumentsGet(request, env);
+      if (pathname === "/ai/documents/push") return await handleDocumentsPush(request, env);
       if (pathname.startsWith("/auth/")) return await handleAuthRoutes(request, env, url);
       if (pathname.startsWith("/admin/")) return await handleAdmin(request, env, url);
       if (pathname === "/backend/consent.php") return await handleConsent(request, env);
