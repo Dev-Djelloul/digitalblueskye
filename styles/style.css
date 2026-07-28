@@ -11640,7 +11640,7 @@ body.chat-page {
   border-radius: 18px;
   box-shadow: 0 24px 60px rgb(0 0 0 / 40%);
   max-width: 380px;
-  padding: 28px 26px 24px;
+  padding: 44px 44px 36px;
   position: relative;
   width: calc(100% - 32px);
 }
@@ -11659,10 +11659,12 @@ body.chat-page {
 }
 
 .dbs-auth-panel-title {
-  color: #fff;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  background: linear-gradient(45deg, rgb(93, 93, 255), rgb(200, 34, 255)) text;
   font-family: var(--font-body);
   font-size: 1.15rem;
-  margin: 0 28px 10px 0;
+  margin: 0 0 10px 0;
 }
 
 .dbs-auth-panel-desc {
@@ -20027,7 +20029,9 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
   background:
     radial-gradient(circle at top, rgb(93 93 255 / 12%), transparent 40%),
     linear-gradient(180deg, #f7f7ff 0%, #efeeff 52%, #f9f6ff 100%);
-  color: rgb(20 22 40 / 92%);
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    background: linear-gradient(45deg, rgb(93, 93, 255), rgb(200, 34, 255)) text;
 }
 
 [data-theme="light"] .dbs-profile-page,
