@@ -1335,7 +1335,13 @@
   document.addEventListener('dbs-auth-changed', () => {
     const previousScope = storageScope;
     storageScope = currentStorageScope();
-    if (storageScope === previousScope) return;
+    if (storageScope === previousScope) {
+      // Meme compte (ou meme visiteur anonyme) : rien a recharger, mais l'auth
+      // vient peut-etre seulement d'etre confirmee (hydratation asynchrone au
+      // chargement de page) -> tenter quand meme une synchro.
+      syncConversationsNow();
+      return;
+    }
     applyStorageScope();
     migrateLegacyStorageIntoScope();
     try {
@@ -1347,9 +1353,16 @@
       renderSessionOptions();
       renderProjectList();
       renderCurrentConversation();
+      lastConversationPushAt = 0;
+      reloadPendingDeletedSessionIds();
+      syncConversationsNow();
     } catch (error) {
       assistantLog('warn', 'storage_scope_reload_failed', { reason: error?.message || 'scope_reload_failed' });
     }
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') syncConversationsNow();
   });
 
   const panelPositionStorageKey = 'ai_assistant_panel_position_v1';
@@ -5342,6 +5355,139 @@
         assistantLog('error', 'history_emergency_save_failed', { reason: fallbackError?.message || 'local_storage_unavailable' });
       }
     }
+    scheduleConversationSync();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Synchronisation des conversations entre appareils (GET/POST /ai/conversations*,
+  // voir handleConversationsGet/handleConversationsPush dans cloudflare/auth.js).
+  // Strategie dernier-ecrit-gagne par conversation (updatedAt), suffisante pour
+  // un usage personnel multi-appareils. Desactivee pour les visiteurs non
+  // connectes et la connexion locale de test (dev), comme fetchSessionHistory/
+  // revokeSession dans dbs-auth.js.
+  // ---------------------------------------------------------------------------
+  function conversationsApiBase() {
+    return (String(window.DBS_API_BASE || '').trim().replace(/\/+$/, '')) || 'https://api.digitalblueskye.com';
+  }
+
+  function canSyncConversations() {
+    try {
+      // Meme exclusion que fetchSessionHistory/revokeSession dans dbs-auth.js :
+      // la connexion locale de test (dev) n'a pas de vraie session cote
+      // api.digitalblueskye.com, l'appel echouerait systematiquement en 401.
+      const isFakeDevSession = /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)
+        && Boolean(localStorage.getItem('dbs_dev_session'));
+      return Boolean(window.DBSAuth?.isAuthenticated?.()) && !isFakeDevSession;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  // Fonction (et non une const figee) : storageScope change au changement de
+  // compte (voir l'ecouteur 'dbs-auth-changed' plus haut), la cle doit suivre.
+  function conversationDeletedIdsStorageKey() {
+    return `ai_assistant_conversations_deleted_v1::${storageScope}`;
+  }
+  let pendingDeletedSessionIds = [];
+  function reloadPendingDeletedSessionIds() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(conversationDeletedIdsStorageKey()) || '[]');
+      pendingDeletedSessionIds = Array.isArray(parsed) ? parsed : [];
+    } catch (_) { pendingDeletedSessionIds = []; }
+  }
+  reloadPendingDeletedSessionIds();
+
+  function trackDeletedSessionId(sessionId) {
+    if (!sessionId || pendingDeletedSessionIds.includes(sessionId)) return;
+    pendingDeletedSessionIds.push(sessionId);
+    try { localStorage.setItem(conversationDeletedIdsStorageKey(), JSON.stringify(pendingDeletedSessionIds)); } catch (_) { /* no-op */ }
+  }
+
+  let lastConversationPushAt = 0;
+  let conversationSyncTimer = null;
+  let conversationSyncInFlight = false;
+
+  function scheduleConversationSync() {
+    if (!canSyncConversations()) return;
+    window.clearTimeout(conversationSyncTimer);
+    conversationSyncTimer = window.setTimeout(() => { pushConversationsToServer(); }, 2500);
+  }
+
+  async function pushConversationsToServer() {
+    if (!canSyncConversations() || conversationSyncInFlight) return;
+    const deletedIds = pendingDeletedSessionIds.slice();
+    const changed = sessionsState.sessions.filter((session) => session.updatedAt > lastConversationPushAt);
+    if (!changed.length && !deletedIds.length) return;
+    const requestStartedAt = Date.now();
+    conversationSyncInFlight = true;
+    try {
+      const res = await fetch(`${conversationsApiBase()}/ai/conversations/push`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessions: changed, deletedIds })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (data?.ok) {
+        lastConversationPushAt = requestStartedAt;
+        pendingDeletedSessionIds = pendingDeletedSessionIds.filter((id) => !deletedIds.includes(id));
+        try { localStorage.setItem(conversationDeletedIdsStorageKey(), JSON.stringify(pendingDeletedSessionIds)); } catch (_) { /* no-op */ }
+      }
+    } catch (_) {
+      // best-effort : la prochaine synchro (debounce suivant, focus, reconnexion) reessaiera.
+    } finally {
+      conversationSyncInFlight = false;
+    }
+  }
+
+  async function pullConversationsFromServer() {
+    if (!canSyncConversations()) return;
+    let data;
+    try {
+      const res = await fetch(`${conversationsApiBase()}/ai/conversations`, { credentials: 'include' });
+      data = await res.json().catch(() => ({}));
+    } catch (_) {
+      return;
+    }
+    if (!data?.ok || !Array.isArray(data.sessions)) return;
+
+    let hasChanged = false;
+    const localById = new Map(sessionsState.sessions.map((s) => [s.id, s]));
+
+    data.sessions.forEach((serverSession) => {
+      const local = localById.get(serverSession.id);
+      if (!local) {
+        sessionsState.sessions.push(serverSession);
+        localById.set(serverSession.id, serverSession);
+        hasChanged = true;
+        return;
+      }
+      // Ne jamais ecraser une conversation active dont la copie locale a plus
+      // de messages que celle du serveur (ex. reponse en cours de generation
+      // qui n'a pas encore ete poussee) : protection minimale contre une
+      // synchro concurrente pendant une conversation en cours.
+      const localHistoryLength = Array.isArray(local.history) ? local.history.length : 0;
+      const serverHistoryLength = Array.isArray(serverSession.history) ? serverSession.history.length : 0;
+      if (serverSession.updatedAt > local.updatedAt && serverHistoryLength >= localHistoryLength) {
+        Object.assign(local, serverSession);
+        hasChanged = true;
+      }
+    });
+
+    sessionsState.sessions = sessionsState.sessions.slice(0, maxStoredSessions);
+    if (!sessionsState.sessions.some((s) => s.id === sessionsState.activeSessionId)) {
+      sessionsState.activeSessionId = sessionsState.sessions[0]?.id || sessionsState.activeSessionId;
+    }
+    if (hasChanged) {
+      saveSessionsState();
+      renderSessionOptions();
+    }
+  }
+
+  async function syncConversationsNow() {
+    if (!canSyncConversations()) return;
+    await pullConversationsFromServer();
+    await pushConversationsToServer();
   }
 
   function getActiveSession() {
@@ -6617,6 +6763,7 @@
   function deleteSessionById(sessionId = sessionsState.activeSessionId) {
     if (!sessionsState.sessions.length) return;
     const wasActive = sessionId === sessionsState.activeSessionId;
+    trackDeletedSessionId(sessionId);
     sessionsState.sessions = sessionsState.sessions.filter((s) => s.id !== sessionId);
     if (!sessionsState.sessions.length) {
       const fallback = makeDefaultSession();

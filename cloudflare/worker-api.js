@@ -29,7 +29,7 @@ import { computeProjectPlan } from './aiProjectManager.js';
 import { buildMaturityDashboardPayload } from './maturityEngine.js';
 import { computeServiceHealthScore } from './serviceHealth.js';
 import { BUILD_INFO } from './build-info.js';
-import { handleAuthRoutes, handleAiChat, authOptionsResponse, isAuthOrAiPath } from './auth.js';
+import { handleAuthRoutes, handleAiChat, handleConversationsGet, handleConversationsPush, authOptionsResponse, isAuthOrAiPath } from './auth.js';
 
 const REACTION_MAP = Object.freeze({
   thumbsup: "reactions_thumbsup",
@@ -6813,6 +6813,8 @@ export default {
     try {
       // Authentification serveur OAuth + proxy IA protege (cf. cloudflare/auth.js).
       if (pathname === "/ai/chat") return await handleAiChat(request, env);
+      if (pathname === "/ai/conversations") return await handleConversationsGet(request, env);
+      if (pathname === "/ai/conversations/push") return await handleConversationsPush(request, env);
       if (pathname.startsWith("/auth/")) return await handleAuthRoutes(request, env, url);
       if (pathname.startsWith("/admin/")) return await handleAdmin(request, env, url);
       if (pathname === "/backend/consent.php") return await handleConsent(request, env);

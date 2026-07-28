@@ -389,8 +389,14 @@ async function ensureSchema(env) {
     `CREATE TABLE IF NOT EXISTS ai_rate_limits (
       rate_key TEXT PRIMARY KEY, window_start TEXT NOT NULL, count INTEGER NOT NULL,
       updated_at TEXT NOT NULL)`,
+    `CREATE TABLE IF NOT EXISTS ai_conversations (
+      id TEXT PRIMARY KEY, user_id TEXT NOT NULL, project_id TEXT,
+      title TEXT, custom_title INTEGER DEFAULT 0, summary TEXT,
+      history TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
+      deleted_at TEXT)`,
     `CREATE INDEX IF NOT EXISTS idx_user_sessions_hash ON user_sessions(session_hash)`,
-    `CREATE INDEX IF NOT EXISTS idx_user_identities_user ON user_identities(user_id)`
+    `CREATE INDEX IF NOT EXISTS idx_user_identities_user ON user_identities(user_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_ai_conversations_user ON ai_conversations(user_id)`
   ];
   for (const sql of stmts) {
     try { await env.DB.prepare(sql).run(); } catch (error) { /* best-effort */ }
@@ -900,6 +906,83 @@ async function handleSessionsRevokeOthers(request, env) {
 }
 
 // ---------------------------------------------------------------------------
+// Synchronisation des conversations du chatbot IA entre appareils
+// (GET /ai/conversations, POST /ai/conversations/push). Meme garde d'auth que
+// les routes de session ci-dessus. Strategie dernier-ecrit-gagne par
+// conversation (comparaison sur updated_at), suffisante pour un usage
+// personnel multi-appareils. Voir scripts/ai-assistant.js pour le client.
+// ---------------------------------------------------------------------------
+function conversationRowToJson(row) {
+  let history = [];
+  try { history = JSON.parse(row.history || '[]'); } catch (_) { history = []; }
+  return {
+    id: row.id,
+    projectId: row.project_id || null,
+    title: row.title || '',
+    customTitle: Boolean(row.custom_title),
+    summary: row.summary || '',
+    createdAt: Date.parse(row.created_at) || Date.now(),
+    updatedAt: Date.parse(row.updated_at) || Date.now(),
+    history
+  };
+}
+
+export async function handleConversationsGet(request, env) {
+  await ensureSchema(env);
+  const user = await getSessionUser(env, request);
+  if (!user) return authJson(request, env, { ok: false, error: 'AUTH_REQUIRED' }, 401);
+
+  const result = await env.DB.prepare(
+    'SELECT id, project_id, title, custom_title, summary, history, created_at, updated_at FROM ai_conversations WHERE user_id = ? AND deleted_at IS NULL ORDER BY updated_at DESC LIMIT 20'
+  ).bind(user.id).all();
+
+  const sessions = (result?.results || []).map(conversationRowToJson);
+  return authJson(request, env, { ok: true, sessions });
+}
+
+export async function handleConversationsPush(request, env) {
+  await ensureSchema(env);
+  const user = await getSessionUser(env, request);
+  if (!user) return authJson(request, env, { ok: false, error: 'AUTH_REQUIRED' }, 401);
+
+  let body = {};
+  try { body = await request.json(); } catch (_) { body = {}; }
+  const sessions = Array.isArray(body.sessions) ? body.sessions.slice(0, 20) : [];
+  const deletedIds = Array.isArray(body.deletedIds) ? body.deletedIds.filter((id) => typeof id === 'string').slice(0, 20) : [];
+  const now = nowIso();
+
+  for (const session of sessions) {
+    const id = String(session?.id || '').trim();
+    if (!id) continue;
+    const updatedAtIso = Number.isFinite(Number(session?.updatedAt)) ? new Date(Number(session.updatedAt)).toISOString() : now;
+    const createdAtIso = Number.isFinite(Number(session?.createdAt)) ? new Date(Number(session.createdAt)).toISOString() : now;
+    await env.DB.prepare(
+      `INSERT INTO ai_conversations (id, user_id, project_id, title, custom_title, summary, history, created_at, updated_at, deleted_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)
+       ON CONFLICT(id) DO UPDATE SET
+         project_id = excluded.project_id, title = excluded.title, custom_title = excluded.custom_title,
+         summary = excluded.summary, history = excluded.history, updated_at = excluded.updated_at, deleted_at = NULL
+       WHERE excluded.updated_at > ai_conversations.updated_at AND ai_conversations.user_id = ?`
+    ).bind(
+      id, user.id,
+      session.projectId || null,
+      String(session.title || '').slice(0, 120),
+      session.customTitle ? 1 : 0,
+      String(session.summary || '').slice(0, 4000),
+      JSON.stringify(Array.isArray(session.history) ? session.history : []),
+      createdAtIso, updatedAtIso, user.id
+    ).run();
+  }
+
+  for (const id of deletedIds) {
+    await env.DB.prepare('UPDATE ai_conversations SET deleted_at = ? WHERE id = ? AND user_id = ?')
+      .bind(now, id, user.id).run();
+  }
+
+  return authJson(request, env, { ok: true });
+}
+
+// ---------------------------------------------------------------------------
 // Connexion par email (magic link) : POST /auth/email/request cree un token
 // a usage unique et envoie le lien par email (Cloudflare Email Sending) ;
 // GET /auth/email/verify le consomme et cree une session, comme un callback
@@ -1167,5 +1250,5 @@ export function authOptionsResponse(request, env) {
 }
 
 export function isAuthOrAiPath(pathname) {
-  return pathname.startsWith('/auth/') || pathname === '/ai/chat';
+  return pathname.startsWith('/auth/') || pathname === '/ai/chat' || pathname === '/ai/conversations' || pathname === '/ai/conversations/push';
 }
