@@ -469,7 +469,7 @@ body.body-menu-open {
 /* Styles de base pour les sections - Mode sombre par défaut */
 section {
   background-color: transparent !important;
-  margin-bottom: 100px; /* Marges entre les sections */
+  margin-bottom: 20px; /* Marges entre les sections */
   margin-top: 0;
   padding: 0; /* Padding pour l'espace interne */
   scroll-margin-top: 100px; /* Ajuste le point d'arrivée lors du défilement */
@@ -15637,7 +15637,7 @@ button.ai-assistant-project-row {
 .ai-assistant-panel.has-rail .ai-assistant-library-view,
 .ai-assistant-panel.has-rail .ai-assistant-project-view,
 .ai-assistant-panel.has-rail .ai-assistant-settings-view {
-  margin-left: var(--ai-rail-space, 0);
+  margin-left: 0;
 }
 
 .ai-assistant-panel.has-history-open .ai-assistant-library-view,
