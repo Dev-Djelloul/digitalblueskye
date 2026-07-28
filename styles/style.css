@@ -20433,6 +20433,7 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
     width: 17px;
   }
   .ai-assistant-session-bar {
+    bottom: 0;
     top: 52px;
   }
 
