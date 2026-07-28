@@ -13969,6 +13969,70 @@ body.profile-page .profile-main {
   visibility: hidden;
 }
 
+/* Encoche glissante (swipe-to-reveal) pour les ecrans tactiles (mobile,
+   tablette) : le clic droit qui ouvre le menu contextuel sur ordinateur
+   n'existe pas au doigt. Un glissement horizontal sur la ligne revele un
+   bouton "..." qui ouvre EXACTEMENT le meme menu contextuel que le clic
+   droit (memes options : renommer, sources, exporter, supprimer, etc.),
+   voir enableSwipeActions()/openSessionContextMenu()/openProjectContextMenu()
+   dans ai-assistant.js. N'a aucun effet sur souris/trackpad : entierement
+   pilote par des evenements touch*, jamais par mousedown/click. */
+.ai-assistant-swipe-row {
+  overflow: hidden;
+  position: relative;
+  touch-action: pan-y;
+}
+
+/* Piste glissante : contient l'item (100% de large) suivi des actions
+   (52px), donc plus large que la ligne visible. Au repos, seul l'item est
+   visible (les actions sont hors-cadre a droite, coupees par overflow:hidden
+   sur .ai-assistant-swipe-row ci-dessus) - aucun besoin de forcer un fond
+   opaque sur l'item pour masquer les actions, elles ne sont simplement pas
+   dans la zone visible tant que la piste n'a pas glisse. */
+.ai-assistant-swipe-track {
+  align-items: stretch;
+  display: flex;
+  transition: transform 0.2s ease;
+  width: 100%;
+}
+
+.ai-assistant-swipe-row.is-swiped-open .ai-assistant-swipe-track {
+  transform: translateX(-52px);
+}
+
+.ai-assistant-swipe-track > .ai-assistant-project-item,
+.ai-assistant-swipe-track > .ai-assistant-session-item {
+  flex: 0 0 100%;
+  min-width: 0;
+}
+
+.ai-assistant-swipe-actions {
+  align-items: stretch;
+  display: flex;
+  flex: 0 0 52px;
+}
+
+.ai-assistant-swipe-action {
+  background: rgb(121 230 255 / 16%);
+  border: 0;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05rem;
+  width: 52px;
+}
+
+.ai-assistant-swipe-action:active {
+  background: rgb(121 230 255 / 30%);
+}
+
+.ai-assistant-swipe-row.is-swiped-open > .ai-assistant-project-item,
+.ai-assistant-swipe-row.is-swiped-open > .ai-assistant-session-item {
+  transform: translateX(-52px);
+}
+
 .ai-assistant-project-item {
   align-items: center;
   background: transparent;

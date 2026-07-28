@@ -98,6 +98,7 @@
         sourceDocumentUnavailable: 'Document unavailable in this browser',
         discussions: 'Discussions',
         noMatchingDiscussions: 'No conversation found.',
+        moreOptions: 'More options',
         resizeSidebar: 'Resize sidebar',
         renameDiscussion: 'Rename conversation',
         renameDiscussionPrompt: 'Conversation name',
@@ -234,6 +235,7 @@
       sourceDocumentUnavailable: 'Document indisponible dans ce navigateur',
       discussions: 'Discussions',
       noMatchingDiscussions: 'Aucune discussion trouvée.',
+      moreOptions: 'Plus d’options',
       resizeSidebar: 'Redimensionner le volet',
       renameDiscussion: 'Renommer la discussion',
       renameDiscussionPrompt: 'Nom de la discussion',
@@ -5876,6 +5878,112 @@
     }
   }
 
+  // Enveloppe un item de liste (conversation ou projet) dans une ligne
+  // "swipe-to-reveal" pour les ecrans tactiles : un glissement horizontal
+  // revele un bouton "..." qui ouvre le meme menu contextuel que le clic
+  // droit sur ordinateur (voir enableSwipeActions plus bas, brancne sur
+  // sessionList/projectList). Sans effet sur souris/trackpad (item.onclick
+  // continue de fonctionner normalement, seul un vrai glissement tactile
+  // ouvre le volet d'actions).
+  // Gestion tactile du glissement horizontal (touch* uniquement, jamais
+  // declenchee par souris/trackpad). Suit le doigt en direct pendant le
+  // geste, puis "s'accroche" ouvert/ferme au relachement selon un seuil.
+  // Un seul volet ouvert a la fois dans la liste. Voir wrapWithSwipeRow()
+  // pour la structure DOM attendue (.ai-assistant-swipe-row > actions + item).
+  function enableSwipeActions(listEl) {
+    if (!listEl) return;
+    const REVEAL = 52;
+    const OPEN_THRESHOLD = REVEAL * 0.4;
+    let currentRow = null;
+    let startX = 0;
+    let startY = 0;
+    let dragging = false;
+    let horizontalLock = false;
+    let lastTranslate = 0;
+
+    function getTrack(row) {
+      return row?.querySelector('.ai-assistant-swipe-track') || null;
+    }
+
+    function closeAllExcept(except) {
+      listEl.querySelectorAll('.ai-assistant-swipe-row.is-swiped-open').forEach((row) => {
+        if (row !== except) row.classList.remove('is-swiped-open');
+      });
+    }
+
+    listEl.addEventListener('touchstart', (event) => {
+      if (event.target?.closest?.('.ai-assistant-swipe-action')) { currentRow = null; return; }
+      const row = event.target?.closest?.('.ai-assistant-swipe-row');
+      if (!row) { currentRow = null; return; }
+      currentRow = row;
+      const touch = event.touches[0];
+      startX = touch.clientX;
+      startY = touch.clientY;
+      dragging = false;
+      horizontalLock = false;
+      lastTranslate = row.classList.contains('is-swiped-open') ? -REVEAL : 0;
+    }, { passive: true });
+
+    listEl.addEventListener('touchmove', (event) => {
+      if (!currentRow) return;
+      const touch = event.touches[0];
+      const dx = touch.clientX - startX;
+      const dy = touch.clientY - startY;
+      if (!horizontalLock) {
+        if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+        horizontalLock = Math.abs(dx) > Math.abs(dy);
+        if (!horizontalLock) { currentRow = null; return; }
+      }
+      dragging = true;
+      event.preventDefault();
+      const base = currentRow.classList.contains('is-swiped-open') ? -REVEAL : 0;
+      const translate = Math.min(0, Math.max(-REVEAL, base + dx));
+      const track = getTrack(currentRow);
+      if (track) track.style.transform = `translateX(${translate}px)`;
+      lastTranslate = translate;
+    }, { passive: false });
+
+    listEl.addEventListener('touchend', () => {
+      if (!currentRow) return;
+      const track = getTrack(currentRow);
+      if (track) track.style.transform = '';
+      if (dragging) {
+        closeAllExcept(currentRow);
+        currentRow.classList.toggle('is-swiped-open', lastTranslate <= -OPEN_THRESHOLD);
+      }
+      currentRow = null;
+      dragging = false;
+      horizontalLock = false;
+    });
+
+    listEl.addEventListener('touchcancel', () => {
+      const track = getTrack(currentRow);
+      if (track) track.style.transform = '';
+      currentRow = null;
+      dragging = false;
+      horizontalLock = false;
+    });
+  }
+
+  function wrapWithSwipeRow(itemEl, moreLabel) {
+    const row = document.createElement('div');
+    row.className = 'ai-assistant-swipe-row';
+    const track = document.createElement('div');
+    track.className = 'ai-assistant-swipe-track';
+    const actions = document.createElement('div');
+    actions.className = 'ai-assistant-swipe-actions';
+    const moreButton = document.createElement('button');
+    moreButton.type = 'button';
+    moreButton.className = 'ai-assistant-swipe-action ai-assistant-swipe-action-more';
+    moreButton.textContent = '⋯';
+    moreButton.setAttribute('aria-label', moreLabel || i18n.moreOptions);
+    moreButton.title = moreLabel || i18n.moreOptions;
+    actions.appendChild(moreButton);
+    track.append(itemEl, actions);
+    row.appendChild(track);
+    return row;
+  }
+
   function renderSessionOptions() {
     if (sessionSelect) sessionSelect.innerHTML = '';
     if (sessionList) sessionList.innerHTML = '';
@@ -5934,7 +6042,7 @@
       metaNode.textContent = [dateLabel, messageCount ? `${messageCount} msg` : ''].filter(Boolean).join(' · ');
       button.appendChild(metaNode);
 
-      sessionList.appendChild(button);
+      sessionList.appendChild(wrapWithSwipeRow(button, i18n.moreOptions));
     }
     renderProjectList();
     applySidebarSectionState();
@@ -5999,7 +6107,7 @@
       meta.textContent = `${stats.conversations} conversation${stats.conversations > 1 ? 's' : ''} • ${stats.documents} source${stats.documents > 1 ? 's' : ''}`;
       body.append(name, meta);
       button.append(icon, body);
-      projectList.appendChild(button);
+      projectList.appendChild(wrapWithSwipeRow(button, i18n.moreOptions));
     });
     applySidebarSectionState();
   }
@@ -7331,8 +7439,31 @@
   }
   if (sessionList) {
     sessionList.addEventListener('click', (event) => {
-      closeSessionContextMenu();
+      const swipeRow = event.target?.closest?.('.ai-assistant-swipe-row');
+      const moreButton = event.target?.closest?.('.ai-assistant-swipe-action-more');
       const item = event.target?.closest?.('.ai-assistant-session-item');
+      if (moreButton) {
+        // stopPropagation obligatoire : sans ca, ce meme clic continue de
+        // remonter jusqu'au fermeur global "clic exterieur" (plus bas, sur
+        // document) qui refermerait aussitot le menu qu'on vient d'ouvrir,
+        // dans le meme evenement.
+        event.stopPropagation();
+        const sessionId = swipeRow?.querySelector('[data-session-id]')?.dataset?.sessionId;
+        if (sessionId) {
+          const rect = moreButton.getBoundingClientRect();
+          openSessionContextMenu({ clientX: rect.left, clientY: rect.bottom, preventDefault() {} }, sessionId);
+        }
+        swipeRow?.classList.remove('is-swiped-open');
+        return;
+      }
+      // Volet d'actions ouvert (glissement tactile) : le premier tap referme
+      // le volet au lieu de rouvrir la conversation, comme dans les listes a
+      // glissement usuelles (Mail, WhatsApp...).
+      if (swipeRow?.classList.contains('is-swiped-open')) {
+        swipeRow.classList.remove('is-swiped-open');
+        return;
+      }
+      closeSessionContextMenu();
       if (!item?.dataset?.sessionId) return;
       switchSession(item.dataset.sessionId);
     });
@@ -7346,6 +7477,7 @@
       if (!item?.dataset?.sessionId) return;
       renameSessionById(item.dataset.sessionId);
     });
+    enableSwipeActions(sessionList);
   }
   if (sessionLibraryButton) {
     sessionLibraryButton.addEventListener('click', () => {
@@ -7359,7 +7491,24 @@
   }
   if (projectList) {
     projectList.addEventListener('click', (event) => {
+      const swipeRow = event.target?.closest?.('.ai-assistant-swipe-row');
+      const moreButton = event.target?.closest?.('.ai-assistant-swipe-action-more');
       const item = event.target?.closest?.('.ai-assistant-project-item');
+      if (moreButton) {
+        // Voir le commentaire equivalent dans le handler sessionList.
+        event.stopPropagation();
+        const projectId = swipeRow?.querySelector('[data-project-id]')?.dataset?.projectId;
+        if (projectId) {
+          const rect = moreButton.getBoundingClientRect();
+          openProjectContextMenu({ clientX: rect.left, clientY: rect.bottom, preventDefault() {} }, projectId);
+        }
+        swipeRow?.classList.remove('is-swiped-open');
+        return;
+      }
+      if (swipeRow?.classList.contains('is-swiped-open')) {
+        swipeRow.classList.remove('is-swiped-open');
+        return;
+      }
       if (!item?.dataset?.projectId || !getProjectById(item.dataset.projectId)) return;
       openProject(item.dataset.projectId);
     });
@@ -7368,6 +7517,7 @@
       if (!item?.dataset?.projectId) return;
       openProjectContextMenu(event, item.dataset.projectId);
     });
+    enableSwipeActions(projectList);
   }
   if (projectTabs) {
     projectTabs.addEventListener('click', (event) => {
