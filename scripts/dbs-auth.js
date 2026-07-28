@@ -450,15 +450,26 @@
   }
 
   async function ensureAuthModal() {
-    if (document.getElementById('dbs-auth-modal')) return;
-    const en = isEnglish();
+    // Rebatit le contenu si la langue a change depuis la derniere
+    // construction : la modale n'est jamais recreee "a chaud" par
+    // translator.js (qui ne connait pas ce DOM injecte), donc sans ce
+    // controle son texte restait fige dans la langue de sa toute premiere
+    // ouverture, meme apres un changement de langue depuis le Home.
+    const targetLang = isEnglish() ? 'en' : 'fr';
+    const existing = document.getElementById('dbs-auth-modal');
+    if (existing && existing.dataset.dbsAuthLang === targetLang) return;
+    const en = targetLang === 'en';
     const providers = await fetchProviders();
 
-    const wrap = document.createElement('div');
+    const isNew = !existing;
+    const wrap = existing || document.createElement('div');
     wrap.id = 'dbs-auth-modal';
     wrap.className = 'dbs-auth-modal';
-    wrap.setAttribute('aria-hidden', 'true');
-    wrap.hidden = true;
+    wrap.dataset.dbsAuthLang = targetLang;
+    if (isNew) {
+      wrap.setAttribute('aria-hidden', 'true');
+      wrap.hidden = true;
+    }
 
     const providerButtons = Object.keys(PROVIDER_META).map((key) => {
       const meta = PROVIDER_META[key];
@@ -512,16 +523,23 @@
         ${emailLoginBlock}
         ${devFallback}
       </div>`;
-    document.body.appendChild(wrap);
+    if (isNew) document.body.appendChild(wrap);
 
-    wrap.addEventListener('click', (event) => {
-      if (event.target.closest('[data-dbs-auth-close]')) { closeAuthModal(); return; }
-      const providerBtn = event.target.closest('[data-dbs-provider]');
-      if (providerBtn && !providerBtn.disabled) loginWithProvider(providerBtn.dataset.dbsProvider);
-    });
-    document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape' && !wrap.hidden) closeAuthModal();
-    });
+    // Le contenu (dont les formulaires) est reconstruit a chaque changement
+    // de langue : les listeners lies aux anciens noeuds ont disparu avec eux,
+    // il faut donc les rebrancher a chaque fois. Seuls les listeners portes
+    // par `wrap` lui-meme (delegation via closest()) et celui sur `document`
+    // survivent a un innerHTML : ceux-la ne sont (re)brancher qu'a la creation.
+    if (isNew) {
+      wrap.addEventListener('click', (event) => {
+        if (event.target.closest('[data-dbs-auth-close]')) { closeAuthModal(); return; }
+        const providerBtn = event.target.closest('[data-dbs-provider]');
+        if (providerBtn && !providerBtn.disabled) loginWithProvider(providerBtn.dataset.dbsProvider);
+      });
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !wrap.hidden) closeAuthModal();
+      });
+    }
 
     const emailForm = wrap.querySelector('[data-dbs-email-form]');
     if (emailForm) {

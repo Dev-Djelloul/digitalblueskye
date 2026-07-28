@@ -62,11 +62,11 @@
     <div class="chat-logout-confirmation" data-chat-logout-confirmation aria-hidden="true">
       <div class="chat-logout-confirmation-backdrop" data-chat-logout-close></div>
       <div class="chat-logout-confirmation-panel" role="dialog" aria-modal="true" aria-labelledby="chat-logout-title">
-        <h2 id="chat-logout-title" data-i18n="logoutConfirmTitle">Êtes-vous sûr de vouloir vous déconnecter ?</h2>
-        <p data-i18n="logoutConfirmDesc">Vous serez déconnecté de votre compte.</p>
+        <h2 id="chat-logout-title" data-chat-logout-title>Êtes-vous sûr de vouloir vous déconnecter ?</h2>
+        <p data-chat-logout-desc>Vous serez déconnecté de votre compte.</p>
         <div class="chat-logout-confirmation-actions">
-          <button type="button" class="chat-logout-confirmation-yes" data-chat-logout-confirm data-i18n="yes">Oui</button>
-          <button type="button" class="chat-logout-confirmation-no" data-chat-logout-close data-i18n="no">Non</button>
+          <button type="button" class="chat-logout-confirmation-yes" data-chat-logout-confirm data-chat-logout-yes>Oui</button>
+          <button type="button" class="chat-logout-confirmation-no" data-chat-logout-close data-chat-logout-no>Non</button>
         </div>
       </div>
     </div>
@@ -86,6 +86,34 @@
         const gateText = document.querySelector('[data-chat-gate-text]');
         const signInBtn = document.querySelector('[data-chat-gate-signin]');
 
+        // chat.html ne charge pas scripts/translator.js (voir commentaire en
+        // tete de fichier) : ces quelques textes statiques (porte d'acces et
+        // modale de deconnexion) doivent donc etre traduits ici a la main,
+        // a partir de document.documentElement.lang deja pose plus haut.
+        function isEnglish() {
+          return (document.documentElement.lang || '').toLowerCase().startsWith('en');
+        }
+        function translateStaticTexts() {
+          const en = isEnglish();
+          if (gateText && !gateText.dataset.authError) {
+            gateText.textContent = en
+              ? 'Sign in to access your AI assistant.'
+              : 'Connectez-vous pour accéder à votre assistant IA.';
+          }
+          if (signInBtn) signInBtn.textContent = en ? 'Sign in' : 'Se connecter';
+          const gateTitle = document.querySelector('[data-chat-gate] h1');
+          if (gateTitle) gateTitle.textContent = en ? 'AI Assistant Digital Blue Skye' : 'Assistant IA Digital Blue Skye';
+          const logoutTitle = document.querySelector('[data-chat-logout-title]');
+          const logoutDesc = document.querySelector('[data-chat-logout-desc]');
+          const logoutYes = document.querySelector('[data-chat-logout-yes]');
+          const logoutNo = document.querySelector('[data-chat-logout-no]');
+          if (logoutTitle) logoutTitle.textContent = en ? 'Are you sure you want to sign out?' : 'Êtes-vous sûr de vouloir vous déconnecter ?';
+          if (logoutDesc) logoutDesc.textContent = en ? 'You will be signed out of your account.' : 'Vous serez déconnecté de votre compte.';
+          if (logoutYes) logoutYes.textContent = en ? 'Yes' : 'Oui';
+          if (logoutNo) logoutNo.textContent = en ? 'No' : 'Non';
+        }
+        translateStaticTexts();
+
         function render() {
           let user = null;
           try {
@@ -104,7 +132,8 @@
         try {
           const params = new URLSearchParams(window.location.search);
           if (params.get('auth') === 'error' && gateText) {
-            gateText.textContent = "La connexion a échoué. Merci de réessayer.";
+            gateText.dataset.authError = 'true';
+            gateText.textContent = isEnglish() ? 'Sign-in failed. Please try again.' : "La connexion a échoué. Merci de réessayer.";
           }
           if (params.has('auth')) {
             params.delete('auth');
