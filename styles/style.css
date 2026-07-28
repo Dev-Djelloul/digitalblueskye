@@ -13985,31 +13985,34 @@ body.profile-page .profile-main {
   width: 100%;
 }
 
-.ai-assistant-project-item:hover,
-.ai-assistant-project-item.is-active {
+.ai-assistant-project-item:hover {
   background: rgb(255 255 255 / 7%);
   border-color: rgb(121 230 255 / 16%);
   color: #fff;
 }
 
-/* Met en evidence le projet actif (qui fournit le contexte RAG/memoire de la
-   conversation affichee) directement dans le rail, par une bordure/lueur bleu
-   ciel lumineux coherent avec l'accent primaire du design du chatbot IA. */
-.ai-assistant-project-item.is-context-active {
-  background: rgb(121 230 255 / 8%);
-  border-color: rgb(121 230 255 / 48%);
-  box-shadow: 0 0 0 1px rgb(121 230 255 / 18%), 0 0 14px rgb(121 230 255 / 24%);
+/* Met en evidence le projet ACTUELLEMENT OUVERT dans le panneau (is-active,
+   voir renderProjectList() dans ai-assistant.js), quel que soit l'onglet
+   affiche a l'interieur de ce projet (Conversations/Sources/Memoire/RAG/
+   Statistiques/Parametres) : la surbrillance suit le panneau, pas la
+   conversation chargee, pour eviter que deux projets differents soient mis
+   en evidence en meme temps. Bleu ciel vif, bien plus marque qu'un simple
+   hover. */
+.ai-assistant-project-item.is-active {
+  background: rgb(121 230 255 / 14%);
+  border-color: rgb(121 230 255 / 75%);
+  box-shadow: 0 0 0 1px rgb(121 230 255 / 30%), 0 0 18px rgb(121 230 255 / 40%);
   color: #fff;
 }
 
-.ai-assistant-project-item.is-context-active:hover {
-  background: rgb(121 230 255 / 13%);
-  border-color: rgb(121 230 255 / 65%);
+.ai-assistant-project-item.is-active:hover {
+  background: rgb(121 230 255 / 20%);
+  border-color: rgb(121 230 255 / 90%);
 }
 
-.ai-assistant-project-item.is-context-active .ai-assistant-project-item-icon {
-  border-color: rgb(121 230 255 / 54%);
-  box-shadow: 0 0 8px rgb(48 209 88 / 35%);
+.ai-assistant-project-item.is-active .ai-assistant-project-item-icon {
+  border-color: rgb(121 230 255 / 80%);
+  box-shadow: 0 0 10px rgb(121 230 255 / 50%);
 }
 
 .ai-assistant-project-item-icon {
@@ -18563,23 +18566,22 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
   color: #2f2b5f;
 }
 
-[data-theme="light"] .ai-assistant-project-item:hover,
-[data-theme="light"] .ai-assistant-project-item.is-active {
+[data-theme="light"] .ai-assistant-project-item:hover {
   background: rgb(93 93 255 / 10%);
   border-color: rgb(93 93 255 / 20%);
   color: #24235c;
 }
 
-[data-theme="light"] .ai-assistant-project-item.is-context-active {
-  background: rgb(48 209 88 / 12%);
-  border-color: rgb(30 160 70 / 55%);
-  box-shadow: 0 0 0 1px rgb(30 160 70 / 20%), 0 0 12px rgb(48 209 88 / 24%);
-  color: #1c3d28;
+[data-theme="light"] .ai-assistant-project-item.is-active {
+  background: rgb(14 165 233 / 16%);
+  border-color: rgb(14 165 233 / 75%);
+  box-shadow: 0 0 0 1px rgb(14 165 233 / 30%), 0 0 16px rgb(14 165 233 / 35%);
+  color: #0c4a6e;
 }
 
-[data-theme="light"] .ai-assistant-project-item.is-context-active:hover {
-  background: rgb(48 209 88 / 18%);
-  border-color: rgb(30 160 70 / 70%);
+[data-theme="light"] .ai-assistant-project-item.is-active:hover {
+  background: rgb(14 165 233 / 22%);
+  border-color: rgb(14 165 233 / 90%);
 }
 
 [data-theme="light"] .ai-assistant-library-panel {
