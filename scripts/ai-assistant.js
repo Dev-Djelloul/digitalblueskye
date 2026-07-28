@@ -1340,6 +1340,7 @@
       // vient peut-etre seulement d'etre confirmee (hydratation asynchrone au
       // chargement de page) -> tenter quand meme une synchro.
       syncAllNow();
+      restartSyncPolling();
       return;
     }
     applyStorageScope();
@@ -1359,15 +1360,46 @@
       reloadPendingDeletedSessionIds();
       reloadPendingDeletedProjectIds();
       reloadPendingDeletedDocumentIds();
+      reloadKnownSyncedSessionIds();
+      reloadKnownSyncedProjectIds();
+      reloadKnownSyncedDocumentIds();
       syncAllNow();
+      restartSyncPolling();
     } catch (error) {
       assistantLog('warn', 'storage_scope_reload_failed', { reason: error?.message || 'scope_reload_failed' });
     }
   });
 
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') syncAllNow();
+    if (document.visibilityState === 'visible') {
+      syncAllNow();
+      restartSyncPolling();
+    } else {
+      stopSyncPolling();
+    }
   });
+
+  // Synchro quasi temps-reel sans rechargement de page : tant que l'onglet
+  // est visible et l'utilisateur connecte, on re-interroge le serveur a
+  // intervalle regulier (suppressions, renommages ou nouveaux elements faits
+  // sur un autre appareil doivent apparaitre ici sans F5). S'arrete des que
+  // l'onglet passe en arriere-plan (voir visibilitychange ci-dessus) pour ne
+  // pas consommer de requetes inutiles.
+  const SYNC_POLL_INTERVAL_MS = 20000;
+  let syncPollTimer = null;
+
+  function stopSyncPolling() {
+    window.clearInterval(syncPollTimer);
+    syncPollTimer = null;
+  }
+
+  function restartSyncPolling() {
+    stopSyncPolling();
+    if (!canSyncWithServer() || document.visibilityState !== 'visible') return;
+    syncPollTimer = window.setInterval(() => {
+      if (document.visibilityState === 'visible' && canSyncWithServer()) syncAllNow();
+    }, SYNC_POLL_INTERVAL_MS);
+  }
 
   const panelPositionStorageKey = 'ai_assistant_panel_position_v1';
   const panelSizeStorageKey = 'ai_assistant_panel_size_v1';
@@ -1785,6 +1817,12 @@
     saveProjectsState();
     setHistoryPanelOpen(true);
     setWorkspaceView('project');
+    // Sur mobile (rail/contenu exclusifs) : refermer le rail pour laisser la
+    // pleine largeur a la page projet, comme pour une nouvelle conversation
+    // (voir createNewSession) - sinon le rail reste affiche par-dessus.
+    if (panelsMustBeExclusive() && panel?.classList.contains('has-history-open')) {
+      setHistoryPanelOpen(false, false);
+    }
   }
 
   function focusProjectRagSettings() {
@@ -5421,6 +5459,25 @@
     try { localStorage.setItem(conversationDeletedIdsStorageKey(), JSON.stringify(pendingDeletedSessionIds)); } catch (_) { /* no-op */ }
   }
 
+  // Ids de conversations deja vus dans une reponse serveur au moins une fois
+  // sur cet appareil : sert a detecter une suppression faite sur un AUTRE
+  // appareil (l'id disparait du GET) sans jamais purger a tort un element
+  // local cree hors-ligne pas encore pousse (voir pullConversationsFromServer).
+  function knownSyncedSessionIdsStorageKey() {
+    return `ai_assistant_conversations_known_v1::${storageScope}`;
+  }
+  let knownSyncedSessionIds = new Set();
+  function reloadKnownSyncedSessionIds() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(knownSyncedSessionIdsStorageKey()) || '[]');
+      knownSyncedSessionIds = new Set(Array.isArray(parsed) ? parsed : []);
+    } catch (_) { knownSyncedSessionIds = new Set(); }
+  }
+  reloadKnownSyncedSessionIds();
+  function saveKnownSyncedSessionIds() {
+    try { localStorage.setItem(knownSyncedSessionIdsStorageKey(), JSON.stringify(Array.from(knownSyncedSessionIds))); } catch (_) { /* no-op */ }
+  }
+
   let lastConversationPushAt = 0;
   let conversationSyncTimer = null;
   let conversationSyncInFlight = false;
@@ -5471,6 +5528,7 @@
 
     let hasChanged = false;
     const localById = new Map(sessionsState.sessions.map((s) => [s.id, s]));
+    const serverIds = new Set(data.sessions.map((s) => s.id));
 
     data.sessions.forEach((serverSession) => {
       const local = localById.get(serverSession.id);
@@ -5492,6 +5550,21 @@
       }
     });
 
+    // Propage les suppressions faites sur un autre appareil : un id deja vu
+    // dans un GET precedent mais absent de celui-ci a ete supprime ailleurs.
+    // Jamais applique a la conversation active (evite de faire disparaitre
+    // sous les yeux de l'utilisateur ce qu'il est en train de lire/ecrire) ni
+    // aux ids jamais encore confirmes par le serveur (creation locale hors-
+    // ligne pas encore poussee).
+    const beforeCount = sessionsState.sessions.length;
+    sessionsState.sessions = sessionsState.sessions.filter((s) => (
+      serverIds.has(s.id) || !knownSyncedSessionIds.has(s.id) || s.id === sessionsState.activeSessionId
+    ));
+    if (sessionsState.sessions.length !== beforeCount) hasChanged = true;
+
+    knownSyncedSessionIds = serverIds;
+    saveKnownSyncedSessionIds();
+
     sessionsState.sessions = sessionsState.sessions.slice(0, maxStoredSessions);
     if (!sessionsState.sessions.some((s) => s.id === sessionsState.activeSessionId)) {
       sessionsState.activeSessionId = sessionsState.sessions[0]?.id || sessionsState.activeSessionId;
@@ -5499,6 +5572,7 @@
     if (hasChanged) {
       saveSessionsState();
       renderSessionOptions();
+      renderCurrentConversation();
     }
   }
 
@@ -5558,6 +5632,22 @@
     }
   }
 
+  // Meme mecanisme que knownSyncedSessionIds ci-dessus, pour les projets.
+  function knownSyncedProjectIdsStorageKey() {
+    return `ai_assistant_projects_known_v1::${storageScope}`;
+  }
+  let knownSyncedProjectIds = new Set();
+  function reloadKnownSyncedProjectIds() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(knownSyncedProjectIdsStorageKey()) || '[]');
+      knownSyncedProjectIds = new Set(Array.isArray(parsed) ? parsed : []);
+    } catch (_) { knownSyncedProjectIds = new Set(); }
+  }
+  reloadKnownSyncedProjectIds();
+  function saveKnownSyncedProjectIds() {
+    try { localStorage.setItem(knownSyncedProjectIdsStorageKey(), JSON.stringify(Array.from(knownSyncedProjectIds))); } catch (_) { /* no-op */ }
+  }
+
   async function pullProjectsFromServer() {
     if (!canSyncWithServer()) return;
     let data;
@@ -5571,6 +5661,7 @@
 
     let hasChanged = false;
     const localById = new Map((projectsState.projects || []).map((p) => [p.id, p]));
+    const serverIds = new Set(data.projects.map((p) => p.id));
 
     data.projects.forEach((serverProject) => {
       const local = localById.get(serverProject.id);
@@ -5586,12 +5677,26 @@
       }
     });
 
+    // Propage les suppressions faites sur un autre appareil (voir le
+    // commentaire equivalent dans pullConversationsFromServer). Le projet
+    // actif est protege : sa disparition retombe sur "Aucun projet" au
+    // prochain pull une fois que l'utilisateur en aura choisi un autre.
+    const beforeCount = projectsState.projects.length;
+    projectsState.projects = (projectsState.projects || []).filter((p) => (
+      serverIds.has(p.id) || !knownSyncedProjectIds.has(p.id) || p.id === projectsState.activeProjectId
+    ));
+    if (projectsState.projects.length !== beforeCount) hasChanged = true;
+
+    knownSyncedProjectIds = serverIds;
+    saveKnownSyncedProjectIds();
+
     if (!projectsState.projects.some((p) => p.id === projectsState.activeProjectId)) {
       projectsState.activeProjectId = projectsState.projects[0]?.id || '';
     }
     if (hasChanged) {
       saveProjectsState();
       renderProjectList();
+      if (panel?.classList.contains('is-project-view')) renderProjectWorkspace();
     }
   }
 
@@ -5660,6 +5765,22 @@
     }
   }
 
+  // Meme mecanisme que knownSyncedSessionIds ci-dessus, pour les documents.
+  function knownSyncedDocumentIdsStorageKey() {
+    return `ai_assistant_documents_known_v1::${storageScope}`;
+  }
+  let knownSyncedDocumentIds = new Set();
+  function reloadKnownSyncedDocumentIds() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(knownSyncedDocumentIdsStorageKey()) || '[]');
+      knownSyncedDocumentIds = new Set(Array.isArray(parsed) ? parsed : []);
+    } catch (_) { knownSyncedDocumentIds = new Set(); }
+  }
+  reloadKnownSyncedDocumentIds();
+  function saveKnownSyncedDocumentIds() {
+    try { localStorage.setItem(knownSyncedDocumentIdsStorageKey(), JSON.stringify(Array.from(knownSyncedDocumentIds))); } catch (_) { /* no-op */ }
+  }
+
   async function pullDocumentsFromServer() {
     if (!canSyncWithServer()) return;
     let data;
@@ -5673,6 +5794,7 @@
 
     let hasChanged = false;
     const localById = new Map((knowledgeLibrary.documents || []).map((d) => [d.id, d]));
+    const serverIds = new Set(data.documents.map((d) => d.id));
 
     data.documents.forEach((serverDoc) => {
       const local = localById.get(serverDoc.id);
@@ -5697,6 +5819,17 @@
         hasChanged = true;
       }
     });
+
+    // Propage les suppressions faites sur un autre appareil (voir le
+    // commentaire equivalent dans pullConversationsFromServer).
+    const beforeCount = knowledgeLibrary.documents.length;
+    knowledgeLibrary.documents = (knowledgeLibrary.documents || []).filter((d) => (
+      serverIds.has(d.id) || !knownSyncedDocumentIds.has(d.id)
+    ));
+    if (knowledgeLibrary.documents.length !== beforeCount) hasChanged = true;
+
+    knownSyncedDocumentIds = serverIds;
+    saveKnownSyncedDocumentIds();
 
     knowledgeLibrary.documents = knowledgeLibrary.documents.slice(0, maxKnowledgeDocuments);
     if (hasChanged) {
