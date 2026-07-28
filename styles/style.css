@@ -20370,7 +20370,7 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
   }
 
   .ai-assistant-messages {
-    padding: 14px 10px 8px;
+    padding: 14px 14px 8px;
   }
 
   .ai-assistant-message {
@@ -20384,7 +20384,7 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
   }
 
   .ai-assistant-message--user {
-    margin-right: 26px;
+    margin: 18px;
   }
 
   .ai-assistant-message::before {
