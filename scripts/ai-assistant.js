@@ -5731,6 +5731,27 @@
     documentSyncTimer = window.setTimeout(() => { pushDocumentsToServer(); }, 2500);
   }
 
+  // Meme plafond que ORIGINAL_DATA_URL_MAX_LENGTH cote serveur
+  // (cloudflare/auth.js) : au-dela, le fichier original n'est pas
+  // synchronise, seul le texte extrait l'est (comportement precedent).
+  const originalDataUrlMaxLength = maxStoredMediaDataUrlLength;
+
+  // Lit le fichier original localement stocke (IndexedDB) pour un document,
+  // en data URL, uniquement s'il reste sous le plafond de synchro - sinon
+  // retourne '' (le serveur retombera sur le texte extrait au telechargement
+  // depuis un autre appareil, comme avant ce correctif).
+  async function readDocumentOriginalDataUrlForSync(doc) {
+    if (!doc?.hasOriginalFile) return '';
+    try {
+      const original = await getKnowledgeOriginalFile(doc);
+      if (!original?.blob || original.blob.size > originalDataUrlMaxLength) return '';
+      const dataUrl = await readFileAsDataUrl(original.blob);
+      return dataUrl.length <= originalDataUrlMaxLength ? dataUrl : '';
+    } catch (_) {
+      return '';
+    }
+  }
+
   async function pushDocumentsToServer() {
     if (!canSyncWithServer() || documentSyncInFlight) return;
     const deletedIds = pendingDeletedDocumentIds.slice();
@@ -5739,6 +5760,14 @@
     const requestStartedAt = Date.now();
     documentSyncInFlight = true;
     try {
+      const documentsPayload = await Promise.all(changed.map(async (doc) => ({
+        id: doc.id, projectIds: doc.projectIds, name: doc.name, type: doc.type, kind: doc.kind,
+        mimeType: doc.mimeType, size: doc.size, importedAt: doc.importedAt, updatedAt: doc.updatedAt,
+        textLength: doc.textLength, previewText: doc.previewText, chunks: doc.chunks,
+        // Fichier original : envoye seulement si stocke localement sur cet
+        // appareil et sous le plafond de taille (voir readDocumentOriginalDataUrlForSync).
+        originalDataUrl: await readDocumentOriginalDataUrlForSync(doc)
+      })));
       const res = await fetch(`${syncApiBase()}/ai/documents/push`, {
         method: 'POST',
         credentials: 'include',
@@ -5746,11 +5775,7 @@
         // previewDataUrl/downloadDataUrl et ragIndex volontairement omis : voir
         // le commentaire en tete de la table ai_documents (cloudflare/auth.js).
         body: JSON.stringify({
-          documents: changed.map((doc) => ({
-            id: doc.id, projectIds: doc.projectIds, name: doc.name, type: doc.type, kind: doc.kind,
-            mimeType: doc.mimeType, size: doc.size, importedAt: doc.importedAt, updatedAt: doc.updatedAt,
-            textLength: doc.textLength, previewText: doc.previewText, chunks: doc.chunks
-          })),
+          documents: documentsPayload,
           deletedIds
         })
       });
@@ -5798,19 +5823,33 @@
     const localById = new Map((knowledgeLibrary.documents || []).map((d) => [d.id, d]));
     const serverIds = new Set(data.documents.map((d) => d.id));
 
-    data.documents.forEach((serverDoc) => {
+    // Stocke le fichier original recu du serveur dans IndexedDB (jamais dans
+    // knowledgeLibrary/localStorage - trop volumineux, voir
+    // maxStoredMediaDataUrlLength) et renvoie true si un original a bien ete
+    // enregistre pour ce document sur CET appareil.
+    async function hydrateOriginalFileFromServer(doc, originalDataUrl) {
+      if (!originalDataUrl) return false;
+      const blob = dataUrlToBlob(originalDataUrl);
+      if (!blob) return false;
+      const file = new File([blob], doc.name || 'document', { type: blob.type || doc.mimeType || 'application/octet-stream' });
+      return putKnowledgeOriginalFile(doc.id, file);
+    }
+
+    for (const serverDoc of data.documents) {
       const local = localById.get(serverDoc.id);
+      const originalDataUrl = serverDoc.originalDataUrl || '';
+      delete serverDoc.originalDataUrl;
       if (!local) {
         // ragIndex n'est pas transmis (deterministe) : reconstruit ici depuis
         // les chunks recus, comme le fait createStoredKnowledgeDocument().
         serverDoc.ragIndex = buildKnowledgeRagIndex(serverDoc.chunks || [], serverDoc);
         serverDoc.previewDataUrl = '';
         serverDoc.downloadDataUrl = '';
-        serverDoc.hasOriginalFile = false;
+        serverDoc.hasOriginalFile = await hydrateOriginalFileFromServer(serverDoc, originalDataUrl);
         knowledgeLibrary.documents.push(serverDoc);
         localById.set(serverDoc.id, serverDoc);
         hasChanged = true;
-        return;
+        continue;
       }
       if (serverDoc.updatedAt > local.updatedAt) {
         // Preserve les champs locaux non transmis par le serveur (apercu/
@@ -5820,7 +5859,14 @@
         local.ragIndex = buildKnowledgeRagIndex(local.chunks || [], local);
         hasChanged = true;
       }
-    });
+      // Meme si le texte local est deja a jour (branche ci-dessus non prise),
+      // cet appareil peut ne pas avoir l'original alors qu'un autre vient de
+      // l'envoyer au serveur : le recuperer ici comble ce manque.
+      if (!local.hasOriginalFile && originalDataUrl) {
+        local.hasOriginalFile = await hydrateOriginalFileFromServer(local, originalDataUrl);
+        if (local.hasOriginalFile) hasChanged = true;
+      }
+    }
 
     // Propage les suppressions faites sur un autre appareil (voir le
     // commentaire equivalent dans pullConversationsFromServer).

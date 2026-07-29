@@ -405,17 +405,20 @@ async function ensureSchema(env) {
       rag_citations INTEGER DEFAULT 1, created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
       deleted_at TEXT)`,
     // Sources (documents de bibliotheque/projet) : synchronise le texte extrait
-    // et les chunks (utilises pour le RAG), PAS les data URL d'apercu/telechargement
-    // ni le fichier original (reste local, voir IndexedDB knowledgeLibraryDbName
-    // cote client) - trop volumineux pour ce canal. ragIndex n'est pas non plus
-    // transmis : il est deterministe et reconstruit localement depuis chunks
-    // (buildKnowledgeRagIndex) a la reception, evite de dupliquer des donnees
-    // derivables sur le reseau.
+    // et les chunks (utilises pour le RAG). Le fichier original (voir IndexedDB
+    // knowledgeLibraryDbName cote client) est synchronise EN PLUS, mais
+    // seulement si sa taille en data URL reste sous originalDataUrlMaxLength
+    // (voir handleDocumentsPush) - au-dela, telecharger depuis un autre
+    // appareil que celui d'import retombe sur le texte extrait (comportement
+    // precedent). ragIndex n'est pas transmis : il est deterministe et
+    // reconstruit localement depuis chunks (buildKnowledgeRagIndex) a la
+    // reception, evite de dupliquer des donnees derivables sur le reseau.
     `CREATE TABLE IF NOT EXISTS ai_documents (
       id TEXT PRIMARY KEY, user_id TEXT NOT NULL, project_ids TEXT,
       name TEXT, type TEXT, kind TEXT, mime_type TEXT, size INTEGER,
       imported_at TEXT NOT NULL, text_length INTEGER, has_original_file INTEGER,
-      preview_text TEXT, chunks TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
+      preview_text TEXT, chunks TEXT, original_data_url TEXT,
+      created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
       deleted_at TEXT)`,
     `CREATE INDEX IF NOT EXISTS idx_user_sessions_hash ON user_sessions(session_hash)`,
     `CREATE INDEX IF NOT EXISTS idx_user_identities_user ON user_identities(user_id)`,
@@ -444,6 +447,9 @@ async function ensureSchema(env) {
   for (const [column, definition] of preferenceColumns) {
     try { await env.DB.prepare(`ALTER TABLE user_preferences ADD COLUMN ${column} ${definition}`).run(); } catch (error) { /* column already exists */ }
   }
+  // Migration idempotente pour les bases deja deployees avant l'ajout de la
+  // synchro du fichier original (colonne absente du CREATE TABLE historique).
+  try { await env.DB.prepare('ALTER TABLE ai_documents ADD COLUMN original_data_url TEXT').run(); } catch (error) { /* column already exists */ }
   schemaReady = true;
 }
 
@@ -1100,11 +1106,17 @@ export async function handleProjectsPush(request, env) {
   return authJson(request, env, { ok: true });
 }
 
+// Meme plafond que maxStoredMediaDataUrlLength cote client (ai-assistant.js) :
+// au-dela, le fichier original n'est pas synchronise et le telechargement
+// depuis un autre appareil que celui d'import retombe sur le texte extrait.
+const ORIGINAL_DATA_URL_MAX_LENGTH = 1500000;
+
 function documentRowToJson(row) {
   let chunks = [];
   let projectIds = [];
   try { chunks = JSON.parse(row.chunks || '[]'); } catch (_) { chunks = []; }
   try { projectIds = JSON.parse(row.project_ids || '[]'); } catch (_) { projectIds = []; }
+  const originalDataUrl = row.original_data_url || '';
   return {
     id: row.id,
     projectIds,
@@ -1117,7 +1129,8 @@ function documentRowToJson(row) {
     importedAt: Date.parse(row.imported_at) || Date.now(),
     updatedAt: Date.parse(row.updated_at) || Date.now(),
     textLength: Number(row.text_length) || 0,
-    hasOriginalFile: false, // le fichier original reste local (IndexedDB), jamais synchronise
+    hasOriginalFile: Boolean(originalDataUrl),
+    originalDataUrl,
     previewText: row.preview_text || '',
     chunks
   };
@@ -1130,7 +1143,7 @@ export async function handleDocumentsGet(request, env) {
 
   const result = await env.DB.prepare(
     `SELECT id, project_ids, name, type, kind, mime_type, size, imported_at, updated_at,
-            text_length, preview_text, chunks
+            text_length, preview_text, chunks, original_data_url
      FROM ai_documents WHERE user_id = ? AND deleted_at IS NULL ORDER BY updated_at DESC LIMIT 200`
   ).bind(user.id).all();
 
@@ -1153,14 +1166,24 @@ export async function handleDocumentsPush(request, env) {
     if (!id) continue;
     const updatedAtIso = Number.isFinite(Number(doc?.updatedAt)) ? new Date(Number(doc.updatedAt)).toISOString() : now;
     const importedAtIso = Number.isFinite(Number(doc?.importedAt)) ? new Date(Number(doc.importedAt)).toISOString() : now;
+    // Chaine vide (pas NULL) quand absent : permet au COALESCE cote SQL de
+    // distinguer "cet appareil n'a pas l'original" (ne pas ecraser une
+    // version deja stockee par un autre appareil) de "l'original est fourni".
+    const rawOriginal = String(doc.originalDataUrl || '');
+    const originalDataUrl = rawOriginal.startsWith('data:') && rawOriginal.length <= ORIGINAL_DATA_URL_MAX_LENGTH
+      ? rawOriginal
+      : '';
     await env.DB.prepare(
       `INSERT INTO ai_documents (id, user_id, project_ids, name, type, kind, mime_type, size,
-         imported_at, text_length, has_original_file, preview_text, chunks, created_at, updated_at, deleted_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, NULL)
+         imported_at, text_length, has_original_file, preview_text, chunks, original_data_url,
+         created_at, updated_at, deleted_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, NULL)
        ON CONFLICT(id) DO UPDATE SET
          project_ids = excluded.project_ids, name = excluded.name, type = excluded.type, kind = excluded.kind,
          mime_type = excluded.mime_type, size = excluded.size, text_length = excluded.text_length,
-         preview_text = excluded.preview_text, chunks = excluded.chunks, updated_at = excluded.updated_at, deleted_at = NULL
+         preview_text = excluded.preview_text, chunks = excluded.chunks,
+         original_data_url = CASE WHEN excluded.original_data_url != '' THEN excluded.original_data_url ELSE ai_documents.original_data_url END,
+         updated_at = excluded.updated_at, deleted_at = NULL
        WHERE excluded.updated_at > ai_documents.updated_at AND ai_documents.user_id = ?`
     ).bind(
       id, user.id,
@@ -1174,6 +1197,7 @@ export async function handleDocumentsPush(request, env) {
       Number(doc.textLength) || 0,
       String(doc.previewText || '').slice(0, 360),
       JSON.stringify(Array.isArray(doc.chunks) ? doc.chunks.slice(0, 140) : []),
+      originalDataUrl,
       importedAtIso, updatedAtIso, user.id
     ).run();
   }
