@@ -6593,10 +6593,10 @@
       </section>
 
       <section class="ai-assistant-settings-section ai-assistant-settings-danger">
-        <header class="ai-assistant-settings-head">
+        <div class="ai-assistant-settings-head">
           <h4>${en ? 'Sensitive zone' : 'Zone sensible'}</h4>
           <p>${en ? 'These actions cannot be undone.' : 'Ces actions sont irréversibles.'}</p>
-        </header>
+        </div>
         <div class="ai-assistant-settings-danger-actions">
           <div class="ai-assistant-settings-row">
             <span class="ai-assistant-settings-row-text">
