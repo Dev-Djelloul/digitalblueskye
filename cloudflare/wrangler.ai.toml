@@ -103,6 +103,9 @@ database_id = "eeb9d1b0-26ed-48a1-beb3-b0a944765174"
 [ai]
 binding = "AI"
 
+[ai.gateway]
+id = "digital-blue-skye-ai-gateway"
+
 [[vectorize]]
 binding = "VECTOR_INDEX"
 # Migration bge-m3 effectuée le 2026-07-13 : nouvel index 1024 dims (l'ancien
