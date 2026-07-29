@@ -18406,6 +18406,31 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
     position: static;
     top: auto;
   }
+
+  /* Menus contextuels (projet/conversation) en feuille pleine largeur ancree
+     en haut de la fenetre sur petit ecran, plutot qu'un menu ancre au point
+     de clic/glissement : sur un ecran etroit, un menu ancre pres du bord peut
+     toujours deborder (ex. sous-menus imbriques), alors qu'une feuille pleine
+     largeur ne deborde jamais quelle que soit sa hauteur de contenu (scroll
+     vertical si besoin). .ai-assistant-panel a un backdrop-filter, ce qui en
+     fait le conteneur englobant de tout descendant en position:fixed (regle
+     CSS standard) : "fixed" ici positionne donc bien la feuille en haut DU
+     PANNEAU (qui occupe tout l'ecran en mode mobile), pas du viewport brut.
+     !important necessaire : la position par defaut est posee en style inline
+     par openProjectContextMenu()/openSessionContextMenu() (JS), plus
+     specifique que toute regle de feuille de style classique. */
+  .ai-assistant-project-context-menu,
+  .ai-assistant-session-context-menu {
+    position: fixed !important;
+    top: 12px !important;
+    left: 12px !important;
+    right: 12px !important;
+    bottom: auto !important;
+    width: auto !important;
+    max-width: none;
+    max-height: calc(100vh - 24px);
+    overflow-y: auto;
+  }
 }
 
 [data-theme="light"] .ai-assistant-panel {

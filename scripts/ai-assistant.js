@@ -8474,7 +8474,15 @@
 
     function linkifyLine(text) {
       const preservedAnchors = [];
-      let output = text.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, (_, label, url) => {
+      // /profile.html#usage (chemin relatif, sans http/https) doit aussi
+      // devenir un lien : les moteurs de repli (formatBotMessageHtml/AST)
+      // ne matchaient que les URL absolues, contrairement a marked (moteur
+      // principal, charge depuis un CDN) qui gere tous les liens Markdown.
+      // Resultat avant ce correctif : le lien "[Utilisation IA](/profile...)"
+      // du message de limite horaire ne s'affichait que lorsque marked avait
+      // fini de charger a temps - sinon le repli l'affichait tel quel, sans
+      // le rendre cliquable.
+      let output = text.replace(/\[([^\]]+)\]\(((?:https?:\/\/|\/)[^\s)]+)\)/g, (_, label, url) => {
         const anchor = `<a class="ai-assistant-inline-link" href="${url}" target="_blank" rel="noopener noreferrer">${label}</a>`;
         preservedAnchors.push(anchor);
         return `__AI_LINK_${preservedAnchors.length - 1}__`;
@@ -8781,7 +8789,9 @@
   // ici plutot que partagee pour ne RIEN modifier dans formatBotMessageHtml.
   function linkifyLineForAst(text) {
     const preservedAnchors = [];
-    let output = String(text || '').replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, (_, label, url) => {
+    // Voir le commentaire equivalent dans linkifyLine() : accepte aussi les
+    // liens relatifs (/profile.html#usage), pas seulement http(s)://.
+    let output = String(text || '').replace(/\[([^\]]+)\]\(((?:https?:\/\/|\/)[^\s)]+)\)/g, (_, label, url) => {
       const anchor = `<a class="ai-assistant-inline-link" href="${url}" target="_blank" rel="noopener noreferrer">${label}</a>`;
       preservedAnchors.push(anchor);
       return `__AI_LINK_${preservedAnchors.length - 1}__`;
