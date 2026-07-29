@@ -7085,6 +7085,13 @@
     if (open) {
       closeAttachMenu();
       closeSessionContextMenu();
+      // Sur mobile (rail/contenu exclusifs) : refermer le rail pour laisser
+      // la bibliotheque prendre toute la largeur, sinon elle reste cachee
+      // derriere le rail encore ouvert (meme correctif que openProject/
+      // createNewSession).
+      if (panelsMustBeExclusive() && panel?.classList.contains('has-history-open')) {
+        setHistoryPanelOpen(false, false);
+      }
     }
   }
 
