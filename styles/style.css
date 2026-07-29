@@ -9765,7 +9765,7 @@ body.body-menu-open #footer {
     color: whitesmoke;
     font-size: 1.9rem;
     font-weight: bold;
-    padding: 20px;
+    padding: 50px;
   }
 
   .page-subtitle {
@@ -10576,6 +10576,8 @@ body.body-menu-open #footer {
 
   .page-title-container {
     font-size: 1.6rem;
+    height: 250px;
+    margin: 25px;
     padding: 20px;
   }
 
