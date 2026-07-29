@@ -262,7 +262,7 @@ body :where(
 }
 
 .page-intro {
-  margin: 0 auto 150px;
+  margin: 0 auto 10px;
   max-width: 980px;
   padding: 0 20px;
   text-align: center;
@@ -7898,7 +7898,7 @@ h1.main-title-animated .title-icon {
   margin: 0 auto 200px;
   max-width: 1400px;
   padding: 0 20px;
-  width: 100%;
+  width: 85%;
 }
 
 .skills-categories {
