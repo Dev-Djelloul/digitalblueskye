@@ -3,12 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title data-i18n="projectNames.dcaTimeMachine">DCA Time Machine</title>
+    <title data-i18n="projectNames.velocityLaunch">VelocityLaunch</title>
     <meta
       name="description"
-      content="DCA Time Machine: a React crypto simulator comparing Dollar-Cost Averaging vs Lump-Sum investing on Bitcoin, Ethereum and Solana, with a sarcastic shareable verdict, live CoinGecko data and export."
+      content="VelocityLaunch: an AI-powered product launch plan generator — Agile roadmap, marketing strategy, KPIs and financial forecast in minutes, built with React, Cloudflare Workers and OpenRouter."
     />
-    <link rel="canonical" href="https://digitalblueskye.com/projects/dca-time-machine.html" />
+    <link rel="canonical" href="https://digitalblueskye.com/projects/velocity-launch.html" />
     <link rel="stylesheet" href="/styles/style.css" />
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
     <link rel="icon" href="/favicon.ico" sizes="any" />
@@ -81,27 +81,30 @@
     <main>
       <section class="project-detail">
         <div class="project-hero" data-aos="fade-up">
-          <img src="/assets/images/projects/imagesDcaTimeMachine/dca-time-machine-logo.png" alt="DCA Time Machine simulator interface" width="1200" height="750" />
+          <img src="/assets/images/projects/imagesVelocityLaunch/velocity-launch-hero.png" alt="VelocityLaunch AI product launch plan generator" width="1924" height="1278" />
         </div>
 
         <div class="project-content" data-aos="fade-up">
-          <h1 class="title-banner" data-i18n="projectNames.dcaTimeMachine">DCA TIME MACHINE</h1>
+          <h1 class="title-banner" data-i18n="projectNames.velocityLaunch">VELOCITYLAUNCH</h1>
 
-          <p data-i18n="projectDescriptions.dcaTimeMachine.full">
-            DCA Time Machine is a React simulator that lets you remonter le temps and compare Dollar-Cost Averaging against a Lump-Sum investment on Bitcoin, Ethereum or Solana. It computes a sarcastic, shareable verdict, a comparison mode across up to three cryptos, an S&P 500 benchmark overlay, a volatility heatmap and a challenge mode with a localStorage score, all backed by live CoinGecko data with a local fallback.
+          <p data-i18n="projectDescriptions.velocityLaunch.full">
+            VelocityLaunch turns a product idea into a complete launch plan through a 4-step guided questionnaire: Agile roadmap with sprints and an interactive Gantt chart, channel-by-channel marketing strategy with budget figures, a personalized KPI dashboard, a financial forecast and ready-to-use exports (PDF, PPTX, Notion, Jira, GitHub). Accounts and team spaces via Clerk, Stripe subscriptions, and a Cloudflare Workers back end with AI generation backed by a local safety net.
           </p>
 
           <div class="project-tech">
             <span>React</span>
             <span>Vite</span>
-            <span>Recharts</span>
-            <span>CoinGecko API</span>
-            <span>Netlify</span>
+            <span>Cloudflare Workers</span>
+            <span>Cloudflare D1</span>
+            <span>Cloudflare Queues</span>
+            <span>Clerk</span>
+            <span>Stripe</span>
+            <span>OpenRouter</span>
           </div>
 
           <div class="project-links">
             <a href="/pages/projects.html" class="btn-back-projects" data-i18n="projectDetails.backToProjectsList">All projects</a>
-            <a href="https://dca-timemachine.netlify.app/" target="_blank" rel="noopener noreferrer" class="btn-live" data-i18n="projectDetails.viewLive">
+            <a href="https://velocity.digitalblueskye.com" target="_blank" rel="noopener noreferrer" class="btn-live" data-i18n="projectDetails.viewLive">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1-2-2h6"></path>
                 <polyline points="15 3 21 3 21 9"></polyline>
@@ -109,7 +112,7 @@
               </svg>
               Visit the site
             </a>
-            <a href="https://github.com/Dev-Djelloul/dca-time-machine" target="_blank" rel="noopener noreferrer" class="btn-view-code" data-i18n="projectDetails.viewCode">
+            <a href="https://github.com/Dev-Djelloul/velocity" target="_blank" rel="noopener noreferrer" class="btn-view-code" data-i18n="projectDetails.viewCode">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
               </svg>
@@ -122,39 +125,41 @@
           <h3 class="title-banner section-title" data-i18n="projectDetails.details">PROJECT DETAILS</h3>
 
           <h4 data-i18n="projectDetails.objective">Objective</h4>
-          <p data-i18n="projectDetails.dcaTimeMachine.objective">
-            The goal was to make the DCA vs Lump-Sum debate tangible by letting anyone pick a start date, a monthly amount and a crypto, then instantly see what each strategy would be worth today — with a sarcastic, shareable verdict rather than a dry number, and without ever pretending to be investment advice.
+          <p data-i18n="projectDetails.velocityLaunch.objective">
+            The goal was to replace the hours spent framing a product launch in a spreadsheet or scattered documents with a structured, actionable plan generated in minutes from a guided questionnaire, without ever leaving the user stuck even if the AI is unavailable.
           </p>
 
           <h4 data-i18n="projectDetails.technologies">Technologies used</h4>
-          <p data-i18n="projectDetails.dcaTimeMachine.technologiesDetail">
-            The app is built with React 18 and Vite, entirely front-end with no backend. Recharts renders the valuation curves, the volatility heatmap and the S&P 500 benchmark overlay. Historical and live prices come from the CoinGecko API with a local JSON fallback so the simulator keeps working offline or when the API is rate-limited. Challenge mode scores persist in localStorage, and results can be exported as a shareable PNG receipt.
+          <p data-i18n="projectDetails.velocityLaunch.technologiesDetail">
+            The front end is React 18 with Vite and React Router, with no UI framework. The back end, a Cloudflare Worker, calls a language model through OpenRouter (function calling with a structured schema) to generate the plan, backed by a fully local, deterministic rules engine as a safety net whenever the AI is unavailable or no API key is configured. Authentication and team spaces run on Clerk (Organizations), subscriptions on Stripe, and accounts, credits and OAuth tokens are stored in Cloudflare D1. The Notion, Jira and GitHub integrations each use their own OAuth flow with idempotent two-way sync via Cloudflare Queues. Exports are generated with html2canvas, pdfmake and pptxgenjs; the front end is hosted on Netlify and the back end on Cloudflare Workers.
           </p>
 
           <h4 data-i18n="projectDetails.challengesAndSolutions">Challenges and solutions</h4>
-          <p data-i18n="projectDetails.dcaTimeMachine.challengesSolutions">
-            The main challenge was keeping the simulation reliable without a backend: historical crypto prices had to be fetched, cached and gracefully degraded to a local fallback whenever CoinGecko was unavailable or rate-limited, while still supporting a three-way comparison mode and an S&P 500 overlay computed on the same timeline. Rendering an exportable PNG receipt client-side, matching the app's own visual identity, was solved by generating the export straight from the DOM rather than a separate template.
+          <p data-i18n="projectDetails.velocityLaunch.challengesSolutions">
+            The main challenge was guaranteeing a plan gets generated every time, even if the language-model call fails: the fix was to back the AI generation with a strictly local, deterministic rules engine, invisible to the end user. The third-party integrations (Notion, Jira, GitHub) had to stay idempotent so repeated exports wouldn't duplicate pages or issues already created, which required tracking the remote IDs generated for each plan.
           </p>
         </div>
 
         <div class="project-gallery" data-aos="fade-up">
           <h3 class="title-banner" data-i18n="projectDetails.gallery">GALLERY</h3>
           <div class="gallery-grid">
-            <div class="gallery-item"><img src="/assets/images/projects/imagesDcaTimeMachine/dca-time-machine-hero.png" alt="DCA Time Machine simulator setup screen" width="1600" height="900" loading="lazy" /></div>
-            <div class="gallery-item"><img src="/assets/images/projects/imagesDcaTimeMachine/dca-time-machine-results.png" alt="DCA Time Machine simulation results with valuation chart" width="1600" height="850" loading="lazy" /></div>
+            <div class="gallery-item"><img src="/assets/images/projects/imagesVelocityLaunch/velocity-launch-hero.png" alt="VelocityLaunch landing page hero" width="1924" height="1278" loading="lazy" /></div>
+            <div class="gallery-item"><img src="/assets/images/projects/imagesVelocityLaunch/velocity-launch-control-map.png" alt="VelocityLaunch launch control map visualization" width="1926" height="1278" loading="lazy" /></div>
+            <div class="gallery-item"><img src="/assets/images/projects/imagesVelocityLaunch/velocity-launch-industries.png" alt="VelocityLaunch industry-adapted plans: SaaS, E-commerce, FinTech, MarTech" width="1966" height="1270" loading="lazy" /></div>
+            <div class="gallery-item"><img src="/assets/images/projects/imagesVelocityLaunch/velocity-launch-testimonials.png" alt="VelocityLaunch testimonials section" width="2068" height="1284" loading="lazy" /></div>
           </div>
         </div>
 
         <div class="project-navigation">
-          <a href="/projects/codex-linguistica.html" class="prev-project" data-project-key="codexLinguistica" data-i18n-title="projects.prevProject" title="Previous project: Codex Linguistica">
+          <a href="/projects/dca-time-machine.html" class="prev-project" data-project-key="dcaTimeMachine" data-i18n-title="projects.prevProject" title="Previous project: DCA Time Machine">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="19" y1="12" x2="5" y2="12"></line>
               <polyline points="12 19 5 12 12 5"></polyline>
             </svg>
-            <span class="project-name-display">Codex Linguistica</span>
+            <span class="project-name-display">DCA Time Machine</span>
           </a>
-          <a href="/projects/velocity-launch.html" class="next-project" data-project-key="velocityLaunch" data-i18n-title="projects.nextProject" title="Next project: VelocityLaunch">
-            <span class="project-name-display">VelocityLaunch</span>
+          <a href="/projects/riding-cities.html" class="next-project" data-project-key="ridingCities" data-i18n-title="projects.nextProject" title="Next project: Riding Cities">
+            <span class="project-name-display">Riding Cities</span>
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="5" y1="12" x2="19" y2="12"></line>
               <polyline points="12 5 19 12 12 19"></polyline>

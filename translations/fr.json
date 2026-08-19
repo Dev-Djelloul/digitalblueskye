@@ -121,6 +121,7 @@
     "viewSkyeOrbital": "Découvrir le projet Skye Orbital",
     "viewCodexLinguistica": "Découvrir le projet Codex Linguistica",
     "viewDcaTimeMachine": "Découvrir le projet DCA Time Machine",
+    "viewVelocityLaunch": "Découvrir le projet VelocityLaunch",
     "filterBy": "Filtrer par"
   },
   "assistant": {
@@ -355,7 +356,8 @@
     "worldWildLife": "WORLD WILD LIFE",
     "skyeOrbital": "SKYE ORBITAL",
     "codexLinguistica": "CODEX LINGUISTICA",
-    "dcaTimeMachine": "DCA TIME MACHINE"
+    "dcaTimeMachine": "DCA TIME MACHINE",
+    "velocityLaunch": "VELOCITY LAUNCH"
   },
   "projectNames": {
     "ridingCities": "Riding Cities",
@@ -372,7 +374,8 @@
     "worldWildLife": "World Wild Life",
     "skyeOrbital": "Skye Orbital",
     "codexLinguistica": "Codex Linguistica",
-    "dcaTimeMachine": "DCA Time Machine"
+    "dcaTimeMachine": "DCA Time Machine",
+    "velocityLaunch": "VelocityLaunch"
   },
   "projectDescriptions": {
     "ridingCities": {
@@ -434,6 +437,10 @@
     "dcaTimeMachine": {
       "short": "Simulateur crypto DCA vs Lump-Sum au verdict sarcastique",
       "full": "DCA Time Machine est un simulateur React qui permet de remonter le temps et de comparer l'investissement programmé (DCA) à un placement d'un coup (Lump-Sum) sur Bitcoin, Ethereum ou Solana. Il calcule un verdict sarcastique et partageable, propose un mode comparaison jusqu'à trois cryptos, une superposition avec le S&P 500, une heatmap de volatilité et un mode défi avec score sauvegardé en localStorage, le tout alimenté par les données CoinGecko en temps réel avec un repli local."
+    },
+    "velocityLaunch": {
+      "short": "Générateur IA de plans de lancement produit",
+      "full": "VelocityLaunch transforme une idée de produit en plan de lancement complet en répondant à un questionnaire guidé en 4 étapes : roadmap Agile par sprints avec Gantt interactif, stratégie marketing chiffrée par canal, dashboard KPIs personnalisés, prévisionnel financier et exports prêts à l'emploi (PDF, PPTX, Notion, Jira, GitHub). Comptes et espaces d'équipe via Clerk, abonnements Stripe, backend Cloudflare Workers avec génération par IA et filet de sécurité local."
     }
   },
   "projectDetails": {
@@ -554,6 +561,13 @@
       "objective": "L’objectif était de rendre concret le débat DCA vs Lump-Sum en permettant à chacun de choisir une date de départ, un montant mensuel et une crypto, puis de voir instantanément ce que vaudrait chaque stratégie aujourd’hui — avec un verdict sarcastique et partageable plutôt qu’un chiffre froid, sans jamais se substituer à un conseil en investissement.",
       "technologiesDetail": "L’application est construite avec React 18 et Vite, entièrement front-end et sans backend. Recharts affiche les courbes de valorisation, la heatmap de volatilité et la superposition avec le S&P 500. Les prix historiques et en temps réel proviennent de l’API CoinGecko, avec un repli sur un fichier JSON local pour que le simulateur continue de fonctionner hors ligne ou en cas de limitation de l’API. Les scores du mode défi sont sauvegardés en localStorage, et les résultats peuvent être exportés sous forme de reçu PNG partageable.",
       "challengesSolutions": "Le principal défi était de garantir une simulation fiable sans backend : les prix historiques des cryptos devaient être récupérés, mis en cache et dégradés proprement vers un repli local en cas d’indisponibilité ou de limitation de CoinGecko, tout en conservant un mode comparaison à trois cryptos et une superposition S&P 500 calculée sur la même chronologie. La génération d’un reçu PNG exportable côté client, fidèle à l’identité visuelle de l’application, a été résolue en générant l’export directement à partir du DOM plutôt que d’un gabarit séparé."
+    },
+    "velocityLaunch": {
+      "title": "VelocityLaunch - Portfolio Digitalblueskye",
+      "headerTitle": "PROJET VELOCITYLAUNCH",
+      "objective": "L’objectif était de remplacer les heures passées à cadrer un lancement produit sur un tableur ou un document épars par un plan structuré et actionnable, généré en quelques minutes à partir d’un questionnaire guidé, sans jamais laisser l’utilisateur bloqué même si l’IA est indisponible.",
+      "technologiesDetail": "Le front-end est en React 18 avec Vite et React Router, sans framework UI. Le backend, un Worker Cloudflare, interroge un modèle de langage via OpenRouter (function calling avec schéma structuré) pour générer le plan, avec un moteur à règles déterministe entièrement local en filet de sécurité si l’IA est indisponible ou qu’aucune clé API n’est configurée. L’authentification et les espaces d’équipe reposent sur Clerk (Organizations), les abonnements sur Stripe, et les comptes, crédits et tokens OAuth sont stockés dans Cloudflare D1. Les intégrations Notion, Jira et GitHub utilisent des flux OAuth propres à chaque fournisseur avec synchronisation bidirectionnelle idempotente via Cloudflare Queues. Les exports sont générés avec html2canvas, pdfmake et pptxgenjs ; le front-end est hébergé sur Netlify et le backend sur Cloudflare Workers.",
+      "challengesSolutions": "Le principal défi était de garantir qu’un plan soit toujours généré, même si l’appel au modèle de langage échoue : la solution a été de doubler la génération IA d’un moteur à règles déterministe strictement local, invisible pour l’utilisateur final. Les intégrations tierces (Notion, Jira, GitHub) devaient rester idempotentes pour permettre des exports répétés sans dupliquer les pages ou issues déjà créées, ce qui a nécessité de tracker les identifiants distants générés pour chaque plan."
     }
   },
   "navigation": {
