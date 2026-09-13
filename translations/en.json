@@ -122,6 +122,8 @@
     "viewCodexLinguistica": "Discover the Codex Linguistica project",
     "viewDcaTimeMachine": "Discover the DCA Time Machine project",
     "viewVelocityLaunch": "Discover the VelocityLaunch project",
+    "viewJobFlow": "Discover the JobFlow project",
+    "viewSkillForge": "Discover the SkillForge project",
     "filterBy": "Filter by"
   },
   "assistant": {
@@ -367,7 +369,9 @@
     "skyeOrbital": "SKYE ORBITAL",
     "codexLinguistica": "CODEX LINGUISTICA",
     "dcaTimeMachine": "DCA TIME MACHINE",
-    "velocityLaunch": "VELOCITY LAUNCH"
+    "velocityLaunch": "VELOCITY LAUNCH",
+    "jobFlow": "JOBFLOW",
+    "skillForge": "SKILLFORGE"
   },
   "projectNames": {
     "ridingCities": "Riding Cities",
@@ -385,7 +389,9 @@
     "skyeOrbital": "Skye Orbital",
     "codexLinguistica": "Codex Linguistica",
     "dcaTimeMachine": "DCA Time Machine",
-    "velocityLaunch": "VelocityLaunch"
+    "velocityLaunch": "VelocityLaunch",
+    "jobFlow": "JobFlow",
+    "skillForge": "SkillForge"
   },
   "projectDescriptions": {
     "ridingCities": {
@@ -451,6 +457,14 @@
     "velocityLaunch": {
       "short": "AI-powered product launch plan generator",
       "full": "VelocityLaunch turns a product idea into a complete launch plan through a 4-step guided questionnaire: Agile roadmap with sprints and an interactive Gantt chart, channel-by-channel marketing strategy with budget figures, a personalized KPI dashboard, a financial forecast and ready-to-use exports (PDF, PPTX, Notion, Jira, GitHub). Accounts and team spaces via Clerk, Stripe subscriptions, and a Cloudflare Workers back end with AI generation backed by a local safety net."
+    },
+    "jobFlow": {
+      "short": "Local-first job application tracker and PWA",
+      "full": "JobFlow is a local-first job search companion: dashboard, application tracking with a Kanban board, follow-up reminders, contacts, companies, email templates, analytics and automatic data-quality checks. Installable as an offline-capable PWA and deployed on Cloudflare Workers, with every piece of data kept in the browser's localStorage — full JSON/CSV backup and restore, no account, no server database."
+    },
+    "skillForge": {
+      "short": "AI-powered technical interview trainer",
+      "full": "SkillForge simulates realistic technical interviews across AI/ML, digital project management, web development and digital culture: AI-generated questions that grow the question bank session after session, adaptive difficulty and category selection via Vectorize similarity search, LLM-as-judge scoring against an explicit rubric, a personalized revision plan and progress tracking over time — no account required."
     }
   },
   "projectDetails": {
@@ -578,6 +592,20 @@
       "objective": "The goal was to replace the hours spent framing a product launch in a spreadsheet or scattered documents with a structured, actionable plan generated in minutes from a guided questionnaire, without ever leaving the user stuck even if the AI is unavailable.",
       "technologiesDetail": "The front end is React 18 with Vite and React Router, with no UI framework. The back end, a Cloudflare Worker, calls a language model through OpenRouter (function calling with a structured schema) to generate the plan, backed by a fully local, deterministic rules engine as a safety net whenever the AI is unavailable or no API key is configured. Authentication and team spaces run on Clerk (Organizations), subscriptions on Stripe, and accounts, credits and OAuth tokens are stored in Cloudflare D1. The Notion, Jira and GitHub integrations each use their own OAuth flow with idempotent two-way sync via Cloudflare Queues. Exports are generated with html2canvas, pdfmake and pptxgenjs; the front end is hosted on Netlify and the back end on Cloudflare Workers.",
       "challengesSolutions": "The main challenge was guaranteeing a plan gets generated every time, even if the language-model call fails: the fix was to back the AI generation with a strictly local, deterministic rules engine, invisible to the end user. The third-party integrations (Notion, Jira, GitHub) had to stay idempotent so repeated exports wouldn't duplicate pages or issues already created, which required tracking the remote IDs generated for each plan."
+    },
+    "jobFlow": {
+      "title": "JobFlow - Digitalblueskye Portfolio",
+      "headerTitle": "JOBFLOW PROJECT",
+      "objective": "The goal was to replace a scattered spreadsheet-and-notes job search with a single local tool covering the whole pipeline — from sourcing offers to follow-ups — without ever requiring an account or sending personal data to a server.",
+      "technologiesDetail": "The front end is TanStack Start (SSR) with React 19, TanStack Router and TanStack Query, styled with Tailwind CSS v4 and shadcn/ui components, and built with Vite via Nitro for deployment to Cloudflare Workers. All application data — applications, contacts, settings, email templates — lives in the browser's localStorage under versioned keys, exported and imported as backups with automatic migration from v1 to v4. A custom service worker (Workbox, injectManifest mode) caches assets and visited routes for offline use, with a dedicated offline fallback page and a non-intrusive update prompt. Recharts renders the analytics, and Playwright end-to-end tests (Python scripts) cover navigation and CSV import.",
+      "challengesSolutions": "The main challenge was making the app fully usable offline while keeping local data always available regardless of network state: solved with a custom injectManifest service worker that caches HTML per visited route (NetworkFirst strategy) without ever routing localStorage reads and writes through it. Backups also had to stay backward compatible as the data model evolved, which required a versioned JSON format with automatic migration from v1 through v4."
+    },
+    "skillForge": {
+      "title": "SkillForge - Digitalblueskye Portfolio",
+      "headerTitle": "SKILLFORGE PROJECT",
+      "objective": "The goal was to turn generic interview prep into a personalized, adaptive coach: instead of a fixed question bank and a subjective grade, each session targets the candidate's weak spots and scores answers against an explicit, pre-defined rubric rather than a global impression.",
+      "technologiesDetail": "The stack runs entirely on Cloudflare: a Hono API on Workers, D1 for sessions and question history, Vectorize for adaptive question selection by semantic similarity on weak points, and Pages for the vanilla TypeScript front end. Text generation — evaluation, follow-ups, questions, glossary entries, the revision plan — goes through OpenRouter; Workers AI is kept only for the embeddings that feed Vectorize. There is no user account: each browser gets a persistent anonymous client ID in localStorage, used to track progress and history without sign-up.",
+      "challengesSolutions": "The main challenge was scoring answers fairly and consistently: solved with an LLM-as-judge approach graded only against an explicit rubric of expected points defined in advance for each question, rather than a holistic impression, with neutral pedagogical feedback that never reads as a correction of the candidate's mistakes. Keeping the question bank fresh while staying relevant required generating new AI questions every session and feeding them back into Vectorize so adaptive selection keeps improving instead of cycling through a static set."
     }
   },
   "navigation": {

@@ -122,6 +122,8 @@
     "viewCodexLinguistica": "Découvrir le projet Codex Linguistica",
     "viewDcaTimeMachine": "Découvrir le projet DCA Time Machine",
     "viewVelocityLaunch": "Découvrir le projet VelocityLaunch",
+    "viewJobFlow": "Découvrir le projet JobFlow",
+    "viewSkillForge": "Découvrir le projet SkillForge",
     "filterBy": "Filtrer par"
   },
   "assistant": {
@@ -366,7 +368,9 @@
     "skyeOrbital": "SKYE ORBITAL",
     "codexLinguistica": "CODEX LINGUISTICA",
     "dcaTimeMachine": "DCA TIME MACHINE",
-    "velocityLaunch": "VELOCITY LAUNCH"
+    "velocityLaunch": "VELOCITY LAUNCH",
+    "jobFlow": "JOBFLOW",
+    "skillForge": "SKILLFORGE"
   },
   "projectNames": {
     "ridingCities": "Riding Cities",
@@ -384,7 +388,9 @@
     "skyeOrbital": "Skye Orbital",
     "codexLinguistica": "Codex Linguistica",
     "dcaTimeMachine": "DCA Time Machine",
-    "velocityLaunch": "VelocityLaunch"
+    "velocityLaunch": "VelocityLaunch",
+    "jobFlow": "JobFlow",
+    "skillForge": "SkillForge"
   },
   "projectDescriptions": {
     "ridingCities": {
@@ -450,6 +456,14 @@
     "velocityLaunch": {
       "short": "Générateur IA de plans de lancement produit",
       "full": "VelocityLaunch transforme une idée de produit en plan de lancement complet en répondant à un questionnaire guidé en 4 étapes : roadmap Agile par sprints avec Gantt interactif, stratégie marketing chiffrée par canal, dashboard KPIs personnalisés, prévisionnel financier et exports prêts à l'emploi (PDF, PPTX, Notion, Jira, GitHub). Comptes et espaces d'équipe via Clerk, abonnements Stripe, backend Cloudflare Workers avec génération par IA et filet de sécurité local."
+    },
+    "jobFlow": {
+      "short": "Suivi de candidatures 100% local, en PWA",
+      "full": "JobFlow est un compagnon de recherche d'emploi 100% local : tableau de bord, suivi des candidatures avec vue Kanban, relances, contacts, entreprises, modèles d'emails, analytics et détection automatique d'anomalies de données. Installable comme PWA utilisable hors ligne et déployé sur Cloudflare Workers, avec toutes les données conservées dans le localStorage du navigateur — export/import JSON et CSV complet, sans compte ni base de données serveur."
+    },
+    "skillForge": {
+      "short": "Simulateur d'entretien technique piloté par IA",
+      "full": "SkillForge simule des entretiens techniques réalistes en IA/ML, gestion de projet digital, développement web et culture des métiers du numérique : questions générées par IA qui enrichissent la banque à chaque session, sélection adaptative de la catégorie et de la difficulté via recherche de similarité Vectorize, évaluation LLM-as-judge sur rubrique explicite, plan de révision personnalisé et suivi de la progression dans le temps — sans compte requis."
     }
   },
   "projectDetails": {
@@ -577,6 +591,20 @@
       "objective": "L’objectif était de remplacer les heures passées à cadrer un lancement produit sur un tableur ou un document épars par un plan structuré et actionnable, généré en quelques minutes à partir d’un questionnaire guidé, sans jamais laisser l’utilisateur bloqué même si l’IA est indisponible.",
       "technologiesDetail": "Le front-end est en React 18 avec Vite et React Router, sans framework UI. Le backend, un Worker Cloudflare, interroge un modèle de langage via OpenRouter (function calling avec schéma structuré) pour générer le plan, avec un moteur à règles déterministe entièrement local en filet de sécurité si l’IA est indisponible ou qu’aucune clé API n’est configurée. L’authentification et les espaces d’équipe reposent sur Clerk (Organizations), les abonnements sur Stripe, et les comptes, crédits et tokens OAuth sont stockés dans Cloudflare D1. Les intégrations Notion, Jira et GitHub utilisent des flux OAuth propres à chaque fournisseur avec synchronisation bidirectionnelle idempotente via Cloudflare Queues. Les exports sont générés avec html2canvas, pdfmake et pptxgenjs ; le front-end est hébergé sur Netlify et le backend sur Cloudflare Workers.",
       "challengesSolutions": "Le principal défi était de garantir qu’un plan soit toujours généré, même si l’appel au modèle de langage échoue : la solution a été de doubler la génération IA d’un moteur à règles déterministe strictement local, invisible pour l’utilisateur final. Les intégrations tierces (Notion, Jira, GitHub) devaient rester idempotentes pour permettre des exports répétés sans dupliquer les pages ou issues déjà créées, ce qui a nécessité de tracker les identifiants distants générés pour chaque plan."
+    },
+    "jobFlow": {
+      "title": "JobFlow - Portfolio Digitalblueskye",
+      "headerTitle": "PROJET JOBFLOW",
+      "objective": "L’objectif était de remplacer un suivi de candidatures éparpillé entre tableur et notes par un outil local unique couvrant tout le pipeline — du sourcing des offres aux relances — sans jamais nécessiter de compte ni envoyer de données personnelles à un serveur.",
+      "technologiesDetail": "Le front-end est en TanStack Start (SSR) avec React 19, TanStack Router et TanStack Query, stylé avec Tailwind CSS v4 et des composants shadcn/ui, buildé avec Vite via Nitro pour un déploiement sur Cloudflare Workers. Toutes les données applicatives — candidatures, contacts, paramètres, modèles d’emails — vivent dans le localStorage du navigateur sous des clés versionnées, exportables et importables en sauvegarde avec migration automatique de v1 à v4. Un service worker custom (Workbox, mode injectManifest) met en cache les assets et les routes visitées pour un usage hors ligne, avec une page de secours dédiée et un bandeau de mise à jour non intrusif. Recharts génère les graphiques analytics, et des tests Playwright de bout en bout (scripts Python) couvrent la navigation et l’import CSV.",
+      "challengesSolutions": "Le principal défi était de rendre l’application pleinement utilisable hors ligne tout en gardant les données locales toujours disponibles quel que soit l’état du réseau : résolu avec un service worker custom en mode injectManifest qui met en cache le rendu HTML par route visitée (stratégie NetworkFirst) sans jamais faire transiter les lectures/écritures localStorage par lui. Les sauvegardes devaient aussi rester rétrocompatibles à mesure que le modèle de données évoluait, ce qui a nécessité un format JSON versionné avec migration automatique de v1 à v4."
+    },
+    "skillForge": {
+      "title": "SkillForge - Portfolio Digitalblueskye",
+      "headerTitle": "PROJET SKILLFORGE",
+      "objective": "L’objectif était de transformer une préparation d’entretien générique en coach personnalisé et adaptatif : plutôt qu’une banque de questions figée et une note subjective, chaque session cible les points faibles du candidat et note les réponses sur une rubrique explicite définie à l’avance plutôt que sur une impression globale.",
+      "technologiesDetail": "La stack tourne entièrement sur Cloudflare : une API Hono sur Workers, D1 pour les sessions et l’historique des questions, Vectorize pour la sélection adaptative des questions par similarité sémantique sur les points faibles, et Pages pour le front-end en TypeScript vanilla. La génération de texte — évaluation, relances, questions, lexique, plan de révision — passe par OpenRouter ; Workers AI n’est conservé que pour les embeddings qui alimentent Vectorize. Aucun compte utilisateur : chaque navigateur reçoit un identifiant anonyme persistant en localStorage, utilisé pour suivre la progression et l’historique sans inscription.",
+      "challengesSolutions": "Le principal défi était de noter les réponses de façon juste et cohérente : résolu par une évaluation LLM-as-judge notée uniquement sur une rubrique explicite de points attendus définie à l’avance pour chaque question, plutôt que sur une impression globale, avec un feedback pédagogique neutre jamais formulé comme une correction des erreurs du candidat. Garder la banque de questions fraîche tout en restant pertinente a nécessité de générer de nouvelles questions IA à chaque session et de les réindexer dans Vectorize pour que la sélection adaptative continue de s’améliorer au lieu de tourner sur un jeu figé."
     }
   },
   "navigation": {
