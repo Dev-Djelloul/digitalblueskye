@@ -4485,6 +4485,41 @@ h1.main-title-animated .title-icon {
   }
 }
 
+.article-body table {
+  border-collapse: collapse;
+  display: block;
+  margin: 32px auto;
+  max-width: 100%;
+  overflow-x: auto;
+  width: 100%;
+}
+
+.article-body th,
+.article-body td {
+  border: 1px solid rgb(93 93 255 / 30%);
+  padding: 12px 16px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.article-body thead th {
+  background: rgb(93 93 255 / 14%);
+  color: var(--accent-color);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.article-body tbody tr:nth-child(even) {
+  background: rgb(255 255 255 / 3%);
+}
+
+@media (width <= 480px) {
+  .article-body th,
+  .article-body td {
+    padding: 8px 10px;
+  }
+}
+
 .article-body h2 {
   color: #c822ff;
   font-size: 2rem;
