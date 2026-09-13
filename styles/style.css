@@ -4488,16 +4488,19 @@ h1.main-title-animated .title-icon {
 .article-body table {
   border-collapse: collapse;
   display: block;
+  font-size: 1rem;
   margin: 32px auto;
   max-width: 100%;
   overflow-x: auto;
+  table-layout: fixed;
   width: 100%;
 }
 
 .article-body th,
 .article-body td {
   border: 1px solid rgb(93 93 255 / 30%);
-  padding: 12px 16px;
+  overflow-wrap: break-word;
+  padding: 10px 14px;
   text-align: left;
   vertical-align: top;
 }
@@ -4506,7 +4509,6 @@ h1.main-title-animated .title-icon {
   background: rgb(93 93 255 / 14%);
   color: var(--accent-color);
   font-weight: 700;
-  white-space: nowrap;
 }
 
 .article-body tbody tr:nth-child(even) {
