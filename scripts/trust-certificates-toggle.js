@@ -56,6 +56,23 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // Ouverture automatique du bloc OpenClassrooms / Studi au scroll, une seule fois.
+  if ('IntersectionObserver' in window && mergedCards.length) {
+    const autoOpenObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        const card = entry.target;
+        const button = card.querySelector('.trust-cert-toggle--merged');
+        if (button && button.getAttribute('aria-expanded') !== 'true') {
+          setMergedToggleState(card, true);
+        }
+        autoOpenObserver.unobserve(card);
+      });
+    }, { threshold: 0.4 });
+
+    mergedCards.forEach((card) => autoOpenObserver.observe(card));
+  }
+
   document.addEventListener('translationCompleted', () => {
     mergedCards.forEach((card) => {
       const button = card.querySelector('.trust-cert-toggle--merged');
