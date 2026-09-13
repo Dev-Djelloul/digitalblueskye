@@ -404,7 +404,7 @@ body :where(
   );
   border-radius: 999px;
   height: 4px;
-  margin: 60px auto;
+  margin: 90px auto;
   position: relative;
 }
 
@@ -2487,7 +2487,7 @@ h1.main-title-animated .title-icon {
   grid-area: explorer-display;
   margin: 0;
   overflow: hidden; /* Empêche le défilement */
-  padding: 30px 0 34px;
+  padding: 55px 0 34px;
   position: relative;
   width: 100%;
 }
