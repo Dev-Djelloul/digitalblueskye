@@ -57,20 +57,27 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Ouverture automatique du bloc OpenClassrooms / Studi au scroll, une seule fois.
+  // On ne commence à observer qu'après un premier vrai geste de scroll de l'utilisateur,
+  // pour ne jamais ouvrir le bloc automatiquement dès le chargement (grand écran, page
+  // courte...) : il ne doit s'ouvrir qu'en réaction à une action de scroll réelle.
   if ('IntersectionObserver' in window && mergedCards.length) {
-    const autoOpenObserver = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
-        const card = entry.target;
-        const button = card.querySelector('.trust-cert-toggle--merged');
-        if (button && button.getAttribute('aria-expanded') !== 'true') {
-          setMergedToggleState(card, true);
-        }
-        autoOpenObserver.unobserve(card);
-      });
-    }, { threshold: 0.4 });
+    const startAutoOpen = () => {
+      const autoOpenObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          const card = entry.target;
+          const button = card.querySelector('.trust-cert-toggle--merged');
+          if (button && button.getAttribute('aria-expanded') !== 'true') {
+            setMergedToggleState(card, true);
+          }
+          autoOpenObserver.unobserve(card);
+        });
+      }, { threshold: 0.4 });
 
-    mergedCards.forEach((card) => autoOpenObserver.observe(card));
+      mergedCards.forEach((card) => autoOpenObserver.observe(card));
+    };
+
+    window.addEventListener('scroll', startAutoOpen, { once: true, passive: true });
   }
 
   document.addEventListener('translationCompleted', () => {
