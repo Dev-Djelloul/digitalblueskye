@@ -108,6 +108,7 @@
     "viewRidingCities": "Discover the Riding Cities project",
     "viewBooki": "Discover the Booki project",
     "viewOhmyfood": "Discover the Ohmyfood project",
+    "viewOhmyfoodWordpress": "Discover the WordPress redesign of the Ohmyfood project",
     "viewPrintIt": "Discover the Print It project",
     "viewSophieBluel": "Discover the Sophie Bluel project",
     "viewMemoryGame": "Discover the Memory Game project",
@@ -385,6 +386,7 @@
     "ridingCities": "Riding Cities",
     "booki": "Booki",
     "ohmyfood": "Ohmyfood",
+    "ohmyfoodWordpress": "Oh My Food - WordPress",
     "printIt": "Print It",
     "sophieBluel": "Sophie Bluel",
     "memoryGame": "Memory Game",
@@ -413,6 +415,10 @@
     "ohmyfood": {
       "short": "Online food ordering application",
       "full": "Ohmyfood is a responsive website created with HTML and CSS and published on GitHub Pages. It was designed during my learning of basic languages with Openclassrooms school."
+    },
+    "ohmyfoodWordpress": {
+      "short": "WordPress redesign built during my Digital Project Manager training",
+      "full": "A WordPress redesign of the Oh My Food site, built during my Digital Project Manager training. The goal was to approach website creation from a no-code/low-code angle, with a project management mindset: specifications, sitemap, theme and plugin choices, then integration and content customization."
     },
     "printIt": {
       "short": "Local printing company website",
@@ -509,6 +515,13 @@
       "objective": "The objective of this project was to develop a \"mobile first\" site that lists gourmet restaurant menus. The site had to allow online reservation and the composition of personalized menus, with a smooth user experience and refined CSS animations.",
       "technologiesDetail": "I used HTML5 to structure the content and CSS3 with Sass for styling and animations. The \"mobile first\" approach guided all development, with progressive adaptation for larger screens. The Sass preprocessor allowed me to organize my CSS code into reusable modules and simplify the creation of complex animations.",
       "challengesSolutions": "The main challenge was to create smooth and attractive animations to enhance the user experience. I implemented transitions on restaurant cards, loading animations, and hover effects on buttons. Another challenge was ensuring compatibility across different browsers and devices. To solve these issues, I used modern CSS properties with vendor prefixes and extensive testing."
+    },
+    "ohmyfoodWordpress": {
+      "title": "Oh My Food - WordPress - Digitalblueskye Portfolio",
+      "headerTitle": "OH MY FOOD - WORDPRESS PROJECT",
+      "objective": "As part of my Digital Project Manager training, the goal was to take the Oh My Food concept (a platform showcasing curated gourmet restaurants) and rebuild it with WordPress, focusing on site structure, page sitemap, and tool selection rather than raw code.",
+      "technologiesDetail": "The site was built with WordPress (theme and customization via the native editor), on a local environment managed with Local by Flywheel (PHP 8.2, MySQL 8.0, Nginx server). This approach complements the front-end skills acquired earlier with a content-management and CMS-tooling perspective.",
+      "challengesSolutions": "The main challenge was shifting from a \"from scratch\" development mindset to a configuration and content-structuring mindset suited to a CMS, while keeping a visual identity and content consistent with the original project."
     },
     "printIt": {
       "title": "Print It - Digitalblueskye Portfolio",
