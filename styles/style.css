@@ -15968,7 +15968,7 @@ button.ai-assistant-project-row {
   width: 20px;
 }
 
-.ai-assistant-panel.has-history-open .ai-assistant-session-bar {
+.ai-assistant-panel.is-open.has-history-open .ai-assistant-session-bar {
   opacity: 1;
   pointer-events: auto;
   transform: translateX(0);
