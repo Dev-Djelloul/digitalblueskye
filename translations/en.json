@@ -124,6 +124,7 @@
     "viewVelocityLaunch": "Discover the VelocityLaunch project",
     "viewJobFlow": "Discover the JobFlow project",
     "viewSkillForge": "Discover the SkillForge project",
+    "viewMetricsDash": "Discover the metrics-dash project",
     "filterBy": "Filter by"
   },
   "assistant": {
@@ -380,7 +381,8 @@
     "dcaTimeMachine": "DCA TIME MACHINE",
     "velocityLaunch": "VELOCITY LAUNCH",
     "jobFlow": "JOBFLOW",
-    "skillForge": "SKILLFORGE"
+    "skillForge": "SKILLFORGE",
+    "metricsDash": "METRICS-DASH"
   },
   "projectNames": {
     "ridingCities": "Riding Cities",
@@ -401,7 +403,8 @@
     "dcaTimeMachine": "DCA Time Machine",
     "velocityLaunch": "VelocityLaunch",
     "jobFlow": "JobFlow",
-    "skillForge": "SkillForge"
+    "skillForge": "SkillForge",
+    "metricsDash": "metrics-dash"
   },
   "projectDescriptions": {
     "ridingCities": {
@@ -479,6 +482,10 @@
     "skillForge": {
       "short": "AI-powered technical interview trainer",
       "full": "SkillForge simulates realistic technical interviews across AI/ML, digital project management, web development and digital culture: AI-generated questions that grow the question bank session after session, adaptive difficulty and category selection via Vectorize similarity search, LLM-as-judge scoring against an explicit rubric, a personalized revision plan and progress tracking over time — no account required."
+    },
+    "metricsDash": {
+      "short": "E-commerce BI dashboard connected to Stripe and Shopify",
+      "full": "metrics-dash is an educational BI dashboard for e-commerce, connected to Stripe and Shopify: revenue by country, month-over-month and year-over-year growth, RFM customer segmentation with lifetime value and churn, cohort retention heatmaps and linear-regression revenue forecasts with a confidence interval. Every analysis technique is implemented by hand in Python, without any data-science library, and each table exports to CSV for Power BI or Excel. Sign-in with Google, per-user data connections, a simulated demo mode and an installable PWA."
     }
   },
   "projectDetails": {
@@ -628,6 +635,13 @@
       "objective": "The goal was to turn generic interview prep into a personalized, adaptive coach: instead of a fixed question bank and a subjective grade, each session targets the candidate's weak spots and scores answers against an explicit, pre-defined rubric rather than a global impression.",
       "technologiesDetail": "The stack runs entirely on Cloudflare: a Hono API on Workers, D1 for sessions and question history, Vectorize for adaptive question selection by semantic similarity on weak points, and Pages for the vanilla TypeScript front end. Text generation — evaluation, follow-ups, questions, glossary entries, the revision plan — goes through OpenRouter; Workers AI is kept only for the embeddings that feed Vectorize. There is no user account: each browser gets a persistent anonymous client ID in localStorage, used to track progress and history without sign-up.",
       "challengesSolutions": "The main challenge was scoring answers fairly and consistently: solved with an LLM-as-judge approach graded only against an explicit rubric of expected points defined in advance for each question, rather than a holistic impression, with neutral pedagogical feedback that never reads as a correction of the candidate's mistakes. Keeping the question bank fresh while staying relevant required generating new AI questions every session and feeding them back into Vectorize so adaptive selection keeps improving instead of cycling through a static set."
+    },
+    "metricsDash": {
+      "title": "metrics-dash - Digitalblueskye Portfolio",
+      "headerTitle": "METRICS-DASH PROJECT",
+      "objective": "The goal was to learn, by building them, the analysis techniques found in tools like Power BI or Tableau: instead of dropping charts on top of a black-box library, each metric — growth, RFM, cohorts, forecasting — is implemented by hand so the logic stays readable, then applied to real Stripe and Shopify sales data.",
+      "technologiesDetail": "The back end is a FastAPI application in Python whose analysis functions all take the same normalized record format, whether it comes from real Stripe charges, Shopify orders or the built-in demo data generator. The front end is a single HTML page with Chart.js and no framework or build step, installable as a PWA with a network-first service worker. Sign-in relies on Google OAuth, while Stripe Connect and Shopify OAuth link each user's own data sources, with signed stateless session tokens and users and connections stored in Cloudflare D1. The whole app runs in a Docker container on Cloudflare Containers behind a small TypeScript Worker, deployed with Wrangler.",
+      "challengesSolutions": "The main challenge was separating identity from data access: Google sign-in only says who is using the dashboard, while Stripe and Shopify connections each grant access to a data source that can be added or removed independently, with one failing source never blocking the other. Mixing several sales channels also meant never merging or converting currencies, so each currency gets its own complete set of metrics. Finally, testing the temporal and geographic analyses without a rich Stripe account led to a simulated 8-month demo mode with realistic customer profiles."
     }
   },
   "navigation": {
