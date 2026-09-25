@@ -1098,7 +1098,7 @@
     'https://cdnjs.cloudflare.com/ajax/libs/marked/16.3.0/lib/marked.umd.min.js':
       'sha384-28tGVU6cfNCYHN01DPkRbQ5zNcqr7cHx7RE2PA0Os8oQsE0H1dRIJBoGPX75oXDs',
     'https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.4.8/purify.min.js':
-      'sha384-R99bc6AdiNZcL+ueHrz0xh6SyglwkdixKGUnBqeJrDSFsFfD/HBaI345ap29kH9g',
+      'sha384-jrsBdrv4eDpEYIq32u13DPbvB6tRmqIDnA6UlgFBoexpetaiWi7g/VbfMEL1WVen',
   };
   // Config Google Drive Picker. Valeurs de repli integrees ici pour que le
   // Drive fonctionne sur TOUTES les pages qui chargent ce script (chat.html
