@@ -126,6 +126,7 @@
     "viewSkillForge": "Discover the SkillForge project",
     "viewMetricsDash": "Discover the Metrics Dash project",
     "viewStrategos": "Discover the Strategos project",
+    "viewHumanBody": "Discover the Human Body project",
     "prevProject": "Previous project: {projectName}",
     "nextProject": "Next project: {projectName}",
     "filterBy": "Filter by"
@@ -395,7 +396,8 @@
     "jobFlow": "JOBFLOW",
     "skillForge": "SKILLFORGE",
     "metricsDash": "METRICS DASH",
-    "strategos": "STRATEGOS"
+    "strategos": "STRATEGOS",
+    "humanBody": "HUMAN BODY"
   },
   "projectNames": {
     "ridingCities": "Riding Cities",
@@ -418,7 +420,8 @@
     "jobFlow": "JobFlow",
     "skillForge": "SkillForge",
     "metricsDash": "Metrics Dash",
-    "strategos": "Strategos"
+    "strategos": "Strategos",
+    "humanBody": "Human Body"
   },
   "projectDescriptions": {
     "ridingCities": {
@@ -504,6 +507,10 @@
     "strategos": {
       "short": "Interactive 3D globe for exploring conflicts and geopolitical tensions",
       "full": "Strategos is an interactive 3D globe for exploring armed conflicts and geopolitical tensions using open data. It brings together several independent sources, displays their attribution and freshness, and offers a timeline and contextual map layers. Confidence levels and data limitations are made explicit; the map is not an exhaustive inventory."
+    },
+    "humanBody": {
+      "short": "Bilingual collection of interactive experiences exploring the human body",
+      "full": "Human Body is a bilingual collection of playful, science-based experiences exploring the systems that keep us alive. Its four modules cover telomeres and cellular ageing, the cardiac cycle and blood circulation, neurons and synapses, and innate and adaptive immune responses. Interactive diagrams and simplified models make these mechanisms easier to explore."
     }
   },
   "projectDetails": {
@@ -666,6 +673,12 @@
       "objective": "The goal was to create a clear, interactive way to explore conflict-related events and geopolitical context on a 3D globe, while making data sources, freshness, confidence levels and limitations visible.",
       "technologiesDetail": "The globe and map layers use CesiumJS. A TypeScript Cloudflare Worker handles API routes, scheduled collection and generated methodology pages; Cloudflare KV caches data, while GeoJSON layers and static assets are served by the Worker. The project combines independent sources including UCDP and GDELT, with contextual layers from Wikidata and OpenStreetMap. Optional Cesium Ion services can provide terrain and photorealistic 3D cities.",
       "challengesSolutions": "Open sources differ in coverage, update frequency and reliability. Strategos keeps source failures independent, displays data freshness and attribution, and distinguishes confirmed, qualified and press-only reports rather than presenting every event as equally verified. Territorial-control layers are explicitly identified as estimates with their own sources and limitations."
+    },
+    "humanBody": {
+      "title": "Human Body - Digitalblueskye Portfolio",
+      "objective": "The objective was to bring several standalone biology learning experiences together in a clear bilingual portal, so visitors can choose a subject and explore its interactive models at their own pace.",
+      "technologiesDetail": "The collection combines a responsive HTML, CSS and JavaScript portal with four independent modules. TelomereClock is built with React and Vite; Heartbeat Lab, Neuro Map and Immune Arena are static experiences using HTML, CSS and JavaScript modules. The portal, TelomereClock and Heartbeat Lab are published on separate Cloudflare Pages projects; Neuro Map and Immune Arena are served from paths on the portal.",
+      "challengesSolutions": "Each module has its own subject, interface and teaching model, so the portal presents them as distinct experiences while keeping a shared visual identity and French-English access. Biological diagrams and simulations intentionally simplify real processes for learning: they are not clinical measurements, individual predictions, diagnoses or treatment recommendations."
     }
   },
   "navigation": {

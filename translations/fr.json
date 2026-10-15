@@ -126,6 +126,7 @@
     "viewSkillForge": "Découvrir le projet SkillForge",
     "viewMetricsDash": "Découvrir le projet Metrics Dash",
     "viewStrategos": "Découvrir le projet Strategos",
+    "viewHumanBody": "Découvrir le projet Human Body",
     "filterBy": "Filtrer par"
   },
   "assistant": {
@@ -392,7 +393,8 @@
     "jobFlow": "JOBFLOW",
     "skillForge": "SKILLFORGE",
     "metricsDash": "METRICS DASH",
-    "strategos": "STRATEGOS"
+    "strategos": "STRATEGOS",
+    "humanBody": "HUMAN BODY"
   },
   "projectNames": {
     "ridingCities": "Riding Cities",
@@ -415,7 +417,8 @@
     "jobFlow": "JobFlow",
     "skillForge": "SkillForge",
     "metricsDash": "Metrics Dash",
-    "strategos": "Strategos"
+    "strategos": "Strategos",
+    "humanBody": "Human Body"
   },
   "projectDescriptions": {
     "ridingCities": {
@@ -501,6 +504,10 @@
     "strategos": {
       "short": "Globe 3D interactif pour explorer conflits et tensions géopolitiques",
       "full": "Strategos est un globe 3D interactif permettant d’explorer les conflits armés et les tensions géopolitiques à partir de données ouvertes. L’application rassemble plusieurs sources indépendantes, présente leur attribution et leur fraîcheur, et propose une chronologie ainsi que des couches cartographiques contextuelles. Elle distingue les niveaux de confiance et explicite les limites des données, qui ne constituent pas un inventaire exhaustif."
+    },
+    "humanBody": {
+      "short": "Collection bilingue d’expériences interactives pour explorer le corps humain",
+      "full": "Human Body est une collection bilingue d’expériences scientifiques et ludiques pour explorer les systèmes du corps humain. Ses quatre modules abordent les télomères et le vieillissement cellulaire, le cycle cardiaque et la circulation sanguine, les neurones et les synapses, ainsi que les réponses immunitaires innée et adaptative. Des schémas interactifs et des modèles simplifiés rendent ces mécanismes accessibles à la découverte."
     }
   },
   "projectDetails": {
@@ -663,6 +670,12 @@
       "objective": "L’objectif était de créer un moyen visuel et interactif d’explorer les événements liés aux conflits et leur contexte géopolitique sur un globe 3D, tout en rendant visibles les sources, la fraîcheur, les niveaux de confiance et les limites des données.",
       "technologiesDetail": "Le globe et les couches cartographiques s’appuient sur CesiumJS. Un Worker Cloudflare en TypeScript gère les routes API, les collectes planifiées et les pages de méthodologie générées ; Cloudflare KV met en cache les données, tandis que les couches GeoJSON et les ressources statiques sont servies par le Worker. Le projet combine notamment des sources indépendantes comme UCDP et GDELT, avec des couches contextuelles issues de Wikidata et d’OpenStreetMap. Les services Cesium Ion peuvent fournir le terrain et des villes 3D photoréalistes.",
       "challengesSolutions": "Les sources ouvertes varient en couverture, fréquence de mise à jour et fiabilité. Strategos isole les erreurs de chaque source, affiche l’attribution et la fraîcheur des données, et distingue les événements confirmés, qualifiés ou rapportés par la presse plutôt que de les présenter comme également vérifiés. Les couches de contrôle territorial sont explicitement signalées comme des estimations, avec leurs propres sources et limites."
+    },
+    "humanBody": {
+      "title": "Human Body - Portfolio Digitalblueskye",
+      "objective": "L’objectif était de rassembler plusieurs expériences pédagogiques autonomes de biologie dans un portail bilingue clair, afin que chacun puisse choisir un sujet et explorer ses modèles interactifs à son rythme.",
+      "technologiesDetail": "La collection associe un portail responsive en HTML, CSS et JavaScript à quatre modules indépendants. TelomereClock utilise React et Vite ; Heartbeat Lab, Neuro Map et Immune Arena sont des expériences statiques conçues avec HTML, CSS et modules JavaScript. Le portail, TelomereClock et Heartbeat Lab sont publiés sur des projets Cloudflare Pages distincts ; Neuro Map et Immune Arena sont servis depuis le portail.",
+      "challengesSolutions": "Chaque module possède son propre sujet, son interface et son modèle pédagogique. Le portail les présente comme des expériences distinctes tout en conservant une identité visuelle commune et un accès en français et en anglais. Les schémas et simulations biologiques simplifient volontairement les phénomènes réels : ils ne constituent ni des mesures cliniques, ni des prédictions individuelles, ni des diagnostics ou recommandations de traitement."
     }
   },
   "navigation": {
