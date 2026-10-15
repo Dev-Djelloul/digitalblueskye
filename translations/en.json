@@ -125,6 +125,9 @@
     "viewJobFlow": "Discover the JobFlow project",
     "viewSkillForge": "Discover the SkillForge project",
     "viewMetricsDash": "Discover the metrics-dash project",
+    "viewStrategos": "Discover the Strategos project",
+    "prevProject": "Previous project: {projectName}",
+    "nextProject": "Next project: {projectName}",
     "filterBy": "Filter by"
   },
   "assistant": {
@@ -391,7 +394,8 @@
     "velocityLaunch": "VELOCITY LAUNCH",
     "jobFlow": "JOBFLOW",
     "skillForge": "SKILLFORGE",
-    "metricsDash": "METRICS-DASH"
+    "metricsDash": "METRICS-DASH",
+    "strategos": "STRATEGOS"
   },
   "projectNames": {
     "ridingCities": "Riding Cities",
@@ -413,7 +417,8 @@
     "velocityLaunch": "VelocityLaunch",
     "jobFlow": "JobFlow",
     "skillForge": "SkillForge",
-    "metricsDash": "metrics-dash"
+    "metricsDash": "metrics-dash",
+    "strategos": "Strategos"
   },
   "projectDescriptions": {
     "ridingCities": {
@@ -495,6 +500,10 @@
     "metricsDash": {
       "short": "E-commerce BI dashboard connected to Stripe and Shopify",
       "full": "metrics-dash is an educational BI dashboard for e-commerce, connected to Stripe and Shopify: revenue by country, month-over-month and year-over-year growth, RFM customer segmentation with lifetime value and churn, cohort retention heatmaps and linear-regression revenue forecasts with a confidence interval. Every analysis technique is implemented by hand in Python, without any data-science library, and each table exports to CSV for Power BI or Excel. Sign-in with Google, per-user data connections, a simulated demo mode and an installable PWA."
+    },
+    "strategos": {
+      "short": "Interactive 3D globe for exploring conflicts and geopolitical tensions",
+      "full": "Strategos is an interactive 3D globe for exploring armed conflicts and geopolitical tensions using open data. It brings together several independent sources, displays their attribution and freshness, and offers a timeline and contextual map layers. Confidence levels and data limitations are made explicit; the map is not an exhaustive inventory."
     }
   },
   "projectDetails": {
@@ -651,6 +660,12 @@
       "objective": "The goal was to learn, by building them, the analysis techniques found in tools like Power BI or Tableau: instead of dropping charts on top of a black-box library, each metric — growth, RFM, cohorts, forecasting — is implemented by hand so the logic stays readable, then applied to real Stripe and Shopify sales data.",
       "technologiesDetail": "The back end is a FastAPI application in Python whose analysis functions all take the same normalized record format, whether it comes from real Stripe charges, Shopify orders or the built-in demo data generator. The front end is a single HTML page with Chart.js and no framework or build step, installable as a PWA with a network-first service worker. Sign-in relies on Google OAuth, while Stripe Connect and Shopify OAuth link each user's own data sources, with signed stateless session tokens and users and connections stored in Cloudflare D1. The whole app runs in a Docker container on Cloudflare Containers behind a small TypeScript Worker, deployed with Wrangler.",
       "challengesSolutions": "The main challenge was separating identity from data access: Google sign-in only says who is using the dashboard, while Stripe and Shopify connections each grant access to a data source that can be added or removed independently, with one failing source never blocking the other. Mixing several sales channels also meant never merging or converting currencies, so each currency gets its own complete set of metrics. Finally, testing the temporal and geographic analyses without a rich Stripe account led to a simulated 8-month demo mode with realistic customer profiles."
+    },
+    "strategos": {
+      "title": "Strategos - Digitalblueskye Portfolio",
+      "objective": "The goal was to create a clear, interactive way to explore conflict-related events and geopolitical context on a 3D globe, while making data sources, freshness, confidence levels and limitations visible.",
+      "technologiesDetail": "The globe and map layers use CesiumJS. A TypeScript Cloudflare Worker handles API routes, scheduled collection and generated methodology pages; Cloudflare KV caches data, while GeoJSON layers and static assets are served by the Worker. The project combines independent sources including UCDP and GDELT, with contextual layers from Wikidata and OpenStreetMap. Optional Cesium Ion services can provide terrain and photorealistic 3D cities.",
+      "challengesSolutions": "Open sources differ in coverage, update frequency and reliability. Strategos keeps source failures independent, displays data freshness and attribution, and distinguishes confirmed, qualified and press-only reports rather than presenting every event as equally verified. Territorial-control layers are explicitly identified as estimates with their own sources and limitations."
     }
   },
   "navigation": {

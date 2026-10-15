@@ -125,6 +125,7 @@
     "viewJobFlow": "Découvrir le projet JobFlow",
     "viewSkillForge": "Découvrir le projet SkillForge",
     "viewMetricsDash": "Découvrir le projet metrics-dash",
+    "viewStrategos": "Découvrir le projet Strategos",
     "filterBy": "Filtrer par"
   },
   "assistant": {
@@ -390,7 +391,8 @@
     "velocityLaunch": "VELOCITY LAUNCH",
     "jobFlow": "JOBFLOW",
     "skillForge": "SKILLFORGE",
-    "metricsDash": "METRICS-DASH"
+    "metricsDash": "METRICS-DASH",
+    "strategos": "STRATEGOS"
   },
   "projectNames": {
     "ridingCities": "Riding Cities",
@@ -412,7 +414,8 @@
     "velocityLaunch": "VelocityLaunch",
     "jobFlow": "JobFlow",
     "skillForge": "SkillForge",
-    "metricsDash": "metrics-dash"
+    "metricsDash": "metrics-dash",
+    "strategos": "Strategos"
   },
   "projectDescriptions": {
     "ridingCities": {
@@ -494,6 +497,10 @@
     "metricsDash": {
       "short": "Dashboard BI e-commerce branché sur Stripe et Shopify",
       "full": "metrics-dash est un dashboard BI éducatif pour l'e-commerce, branché sur Stripe et Shopify : CA par pays, croissance MoM et YoY, segmentation client RFM avec LTV et churn, heatmaps de rétention par cohortes et prévision du CA par régression linéaire avec intervalle de confiance. Chaque technique d'analyse est implémentée à la main en Python, sans librairie de data science, et chaque table s'exporte en CSV pour Power BI ou Excel. Connexion Google, sources de données propres à chaque utilisateur, mode démo simulé et PWA installable."
+    },
+    "strategos": {
+      "short": "Globe 3D interactif pour explorer conflits et tensions géopolitiques",
+      "full": "Strategos est un globe 3D interactif permettant d’explorer les conflits armés et les tensions géopolitiques à partir de données ouvertes. L’application rassemble plusieurs sources indépendantes, présente leur attribution et leur fraîcheur, et propose une chronologie ainsi que des couches cartographiques contextuelles. Elle distingue les niveaux de confiance et explicite les limites des données, qui ne constituent pas un inventaire exhaustif."
     }
   },
   "projectDetails": {
@@ -650,6 +657,12 @@
       "objective": "L’objectif était d’apprendre, en les construisant, les techniques d’analyse qu’on retrouve dans des outils comme Power BI ou Tableau : plutôt que d’empiler des graphiques sur une librairie boîte noire, chaque métrique — croissance, RFM, cohortes, prévision — est implémentée à la main pour que la logique reste lisible, puis appliquée à de vraies données de vente Stripe et Shopify.",
       "technologiesDetail": "Le back-end est une application FastAPI en Python dont toutes les fonctions d’analyse prennent le même format de données normalisé, qu’il provienne de vraies charges Stripe, de commandes Shopify ou du générateur de démo intégré. Le front-end est une page HTML unique avec Chart.js, sans framework ni étape de build, installable en PWA avec un service worker en network-first. La connexion repose sur Google OAuth, tandis que Stripe Connect et Shopify OAuth relient les sources de données propres à chaque utilisateur, avec des jetons de session signés sans état et les utilisateurs et connexions stockés dans Cloudflare D1. L’ensemble tourne dans un conteneur Docker sur Cloudflare Containers derrière un petit Worker TypeScript, déployé avec Wrangler.",
       "challengesSolutions": "Le principal défi était de séparer l’identité de l’accès aux données : la connexion Google indique seulement qui utilise le dashboard, alors que les connexions Stripe et Shopify donnent chacune accès à une source de données qui peut être ajoutée ou retirée indépendamment, sans qu’une source en échec ne bloque l’autre. Mélanger plusieurs canaux de vente imposait aussi de ne jamais fusionner ni convertir les devises, chaque devise ayant donc son propre jeu complet de métriques. Enfin, tester les analyses temporelles et géographiques sans compte Stripe bien fourni a conduit à un mode démo simulé sur 8 mois avec des profils clients réalistes."
+    },
+    "strategos": {
+      "title": "Strategos - Portfolio Digitalblueskye",
+      "objective": "L’objectif était de créer un moyen visuel et interactif d’explorer les événements liés aux conflits et leur contexte géopolitique sur un globe 3D, tout en rendant visibles les sources, la fraîcheur, les niveaux de confiance et les limites des données.",
+      "technologiesDetail": "Le globe et les couches cartographiques s’appuient sur CesiumJS. Un Worker Cloudflare en TypeScript gère les routes API, les collectes planifiées et les pages de méthodologie générées ; Cloudflare KV met en cache les données, tandis que les couches GeoJSON et les ressources statiques sont servies par le Worker. Le projet combine notamment des sources indépendantes comme UCDP et GDELT, avec des couches contextuelles issues de Wikidata et d’OpenStreetMap. Les services Cesium Ion peuvent fournir le terrain et des villes 3D photoréalistes.",
+      "challengesSolutions": "Les sources ouvertes varient en couverture, fréquence de mise à jour et fiabilité. Strategos isole les erreurs de chaque source, affiche l’attribution et la fraîcheur des données, et distingue les événements confirmés, qualifiés ou rapportés par la presse plutôt que de les présenter comme également vérifiés. Les couches de contrôle territorial sont explicitement signalées comme des estimations, avec leurs propres sources et limites."
     }
   },
   "navigation": {
