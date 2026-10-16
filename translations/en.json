@@ -127,6 +127,7 @@
     "viewMetricsDash": "Discover the Metrics Dash project",
     "viewStrategos": "Discover the Strategos project",
     "viewHumanBody": "Discover the Human Body project",
+    "viewWidgetParcels": "Discover the Widget Parcels project",
     "prevProject": "Previous project: {projectName}",
     "nextProject": "Next project: {projectName}",
     "filterBy": "Filter by"
@@ -397,7 +398,8 @@
     "skillForge": "SKILLFORGE",
     "metricsDash": "METRICS DASH",
     "strategos": "STRATEGOS",
-    "humanBody": "HUMAN BODY"
+    "humanBody": "HUMAN BODY",
+    "widgetParcels": "WIDGET PARCELS"
   },
   "projectNames": {
     "ridingCities": "Riding Cities",
@@ -421,7 +423,8 @@
     "skillForge": "SkillForge",
     "metricsDash": "Metrics Dash",
     "strategos": "Strategos",
-    "humanBody": "Human Body"
+    "humanBody": "Human Body",
+    "widgetParcels": "Widget Parcels"
   },
   "projectDescriptions": {
     "ridingCities": {
@@ -511,6 +514,10 @@
     "humanBody": {
       "short": "Bilingual collection of interactive experiences exploring the human body",
       "full": "Human Body is a bilingual collection of playful, science-based experiences exploring the systems that keep us alive. Its four modules cover telomeres and cellular ageing, the cardiac cycle and blood circulation, neurons and synapses, and innate and adaptive immune responses. Interactive diagrams and simplified models make these mechanisms easier to explore."
+    },
+    "widgetParcels": {
+      "short": "Bilingual dashboard for parcel tracking and everyday information",
+      "full": "Widget Parcels is a bilingual dashboard bringing together parcel tracking, news, weather and time-zone information. Tracking references and preferences are stored in the browser. A 3D map visualizes routes for context only; it does not provide real-time GPS locations."
     }
   },
   "projectDetails": {
@@ -679,6 +686,12 @@
       "objective": "The objective was to bring several standalone biology learning experiences together in a clear bilingual portal, so visitors can choose a subject and explore its interactive models at their own pace.",
       "technologiesDetail": "The collection combines a responsive HTML, CSS and JavaScript portal with four independent modules. TelomereClock is built with React and Vite; Heartbeat Lab, Neuro Map and Immune Arena are static experiences using HTML, CSS and JavaScript modules. The portal, TelomereClock and Heartbeat Lab are published on separate Cloudflare Pages projects; Neuro Map and Immune Arena are served from paths on the portal.",
       "challengesSolutions": "Each module has its own subject, interface and teaching model, so the portal presents them as distinct experiences while keeping a shared visual identity and French-English access. Biological diagrams and simulations intentionally simplify real processes for learning: they are not clinical measurements, individual predictions, diagnoses or treatment recommendations."
+    },
+    "widgetParcels": {
+      "title": "Widget Parcels - Digitalblueskye Portfolio",
+      "objective": "The goal was to bring everyday delivery information together in one dashboard: tracking, news, weather and time-zone references, with a bilingual interface that works across devices.",
+      "technologiesDetail": "Widget Parcels is a static HTML, CSS and JavaScript web app deployed on Cloudflare Pages and installable as a PWA. It combines the Parcel App widget and Parcels v4 API for tracking, MapLibre GL JS with OpenFreeMap tiles for the globe, and weather and news services. Tracking references and preferences stay in the browser's local storage; API secrets are managed in the deployment environment and are not included in this portfolio.",
+      "challengesSolutions": "The dashboard brings together external services with different data and availability. The interface keeps them in distinct modules and stores tracking references on the user's device. The map shows indicative routes between known points; it should not be interpreted as GPS location or a precise estimate of a parcel's progress."
     }
   },
   "navigation": {

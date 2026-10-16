@@ -127,6 +127,7 @@
     "viewMetricsDash": "Découvrir le projet Metrics Dash",
     "viewStrategos": "Découvrir le projet Strategos",
     "viewHumanBody": "Découvrir le projet Human Body",
+    "viewWidgetParcels": "Découvrir le projet Widget Parcels",
     "filterBy": "Filtrer par"
   },
   "assistant": {
@@ -394,7 +395,8 @@
     "skillForge": "SKILLFORGE",
     "metricsDash": "METRICS DASH",
     "strategos": "STRATEGOS",
-    "humanBody": "HUMAN BODY"
+    "humanBody": "HUMAN BODY",
+    "widgetParcels": "WIDGET PARCELS"
   },
   "projectNames": {
     "ridingCities": "Riding Cities",
@@ -418,7 +420,8 @@
     "skillForge": "SkillForge",
     "metricsDash": "Metrics Dash",
     "strategos": "Strategos",
-    "humanBody": "Human Body"
+    "humanBody": "Human Body",
+    "widgetParcels": "Widget Parcels"
   },
   "projectDescriptions": {
     "ridingCities": {
@@ -508,6 +511,10 @@
     "humanBody": {
       "short": "Collection bilingue d’expériences interactives pour explorer le corps humain",
       "full": "Human Body est une collection bilingue d’expériences scientifiques et ludiques pour explorer les systèmes du corps humain. Ses quatre modules abordent les télomères et le vieillissement cellulaire, le cycle cardiaque et la circulation sanguine, les neurones et les synapses, ainsi que les réponses immunitaires innée et adaptative. Des schémas interactifs et des modèles simplifiés rendent ces mécanismes accessibles à la découverte."
+    },
+    "widgetParcels": {
+      "short": "Tableau de bord bilingue de suivi de colis et d’informations pratiques",
+      "full": "Widget Parcels est un tableau de bord bilingue qui rassemble le suivi de colis, les actualités, la météo et des informations sur les fuseaux horaires. Les références de suivi et préférences sont conservées dans le navigateur. Une carte 3D visualise les trajets à titre indicatif : elle ne fournit pas de position GPS en temps réel."
     }
   },
   "projectDetails": {
@@ -676,6 +683,12 @@
       "objective": "L’objectif était de rassembler plusieurs expériences pédagogiques autonomes de biologie dans un portail bilingue clair, afin que chacun puisse choisir un sujet et explorer ses modèles interactifs à son rythme.",
       "technologiesDetail": "La collection associe un portail responsive en HTML, CSS et JavaScript à quatre modules indépendants. TelomereClock utilise React et Vite ; Heartbeat Lab, Neuro Map et Immune Arena sont des expériences statiques conçues avec HTML, CSS et modules JavaScript. Le portail, TelomereClock et Heartbeat Lab sont publiés sur des projets Cloudflare Pages distincts ; Neuro Map et Immune Arena sont servis depuis le portail.",
       "challengesSolutions": "Chaque module possède son propre sujet, son interface et son modèle pédagogique. Le portail les présente comme des expériences distinctes tout en conservant une identité visuelle commune et un accès en français et en anglais. Les schémas et simulations biologiques simplifient volontairement les phénomènes réels : ils ne constituent ni des mesures cliniques, ni des prédictions individuelles, ni des diagnostics ou recommandations de traitement."
+    },
+    "widgetParcels": {
+      "title": "Widget Parcels - Portfolio Digitalblueskye",
+      "objective": "L’objectif était de regrouper dans un tableau de bord unique les informations utiles au quotidien autour des livraisons : suivi, actualités, météo et repères horaires, avec une interface bilingue et adaptée au mobile.",
+      "technologiesDetail": "Widget Parcels est une application web statique en HTML, CSS et JavaScript, publiée sur Cloudflare Pages et installable comme PWA. Elle combine le widget Parcel App et l’API Parcels v4 pour le suivi, MapLibre GL JS avec des tuiles OpenFreeMap pour le globe, ainsi que des services météo et d’actualités. Les suivis et préférences restent dans le stockage local du navigateur ; les secrets d’API sont gérés côté déploiement et ne sont pas intégrés au portfolio.",
+      "challengesSolutions": "Le tableau rassemble des services externes aux données et disponibilités différentes. L’interface les présente dans des modules distincts et conserve les références de suivi sur l’appareil de l’utilisateur. La carte représente des trajets indicatifs entre points connus : elle ne doit pas être interprétée comme une localisation GPS ou une estimation précise de l’avancement du colis."
     }
   },
   "navigation": {
