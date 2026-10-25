@@ -32,11 +32,15 @@ Fournir des modifications ciblées, sûres et non invasives : corrections CSS/JS
 
 ## Workflows et commandes utiles (exécutables localement)
 
-- Linter CSS (vérifier + corriger auto-fixable) :
+- Linter CSS (bloque les nouvelles violations par rapport à `origin/master`) :
 
   npm run lint:css
 
-  ou (fix global) :
+  Diagnostic strict de toutes les règles, y compris les violations historiques :
+
+  npm run lint:css:strict
+
+  ou (autofix global à examiner avant de conserver) :
 
   npx stylelint "**/*.css" --fix
 

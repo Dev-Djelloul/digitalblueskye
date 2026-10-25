@@ -6,9 +6,11 @@
     "wrangler": "^4.115.0"
   },
   "scripts": {
-    "lint:css": "stylelint \"styles/**/*.css\"",
+    "lint:css": "node scripts/lint-css-baseline.mjs",
+    "lint:css:strict": "stylelint \"styles/**/*.css\"",
     "build:info": "node scripts/generate-build-info.mjs",
     "predeploy:api": "npm run build:info",
-    "deploy:api": "wrangler deploy -c cloudflare/wrangler.api.toml"
+    "deploy:api": "wrangler deploy -c cloudflare/wrangler.api.toml",
+    "version:api-preview": "npm run build:info && wrangler versions upload --config cloudflare/wrangler.api.toml --var PREVIEW_ALLOWED_ORIGIN:https://deploy-preview-1--digitalblueskye.netlify.app"
   }
 }

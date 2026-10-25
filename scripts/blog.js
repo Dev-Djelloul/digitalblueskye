@@ -92,7 +92,6 @@ document.addEventListener('DOMContentLoaded', function() {
   // Charger le contenu des articles au démarrage (page depuis l'ancre si dispo)
   const initialPage = getPageFromHash() || 1;
   currentPage = initialPage;
-  loadArticlesContent(initialPage);
   
   // Détecter les changements de langue
   if (languageButton) {
@@ -200,8 +199,6 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   // Pagination fonctionnelle
-  const paginationButtons = document.querySelectorAll('.pagination-btn');
-  const pageButtons = document.querySelectorAll('.pagination-btn[data-page]');
   const navButtons = document.querySelectorAll('.pagination-btn[data-nav]');
   const articlesPerPage = 6; // Nombre d'articles par page
 
@@ -209,33 +206,29 @@ document.addEventListener('DOMContentLoaded', function() {
     return Math.max(1, Math.ceil(articleCards.length / articlesPerPage));
   }
 
-  if (paginationButtons.length > 0) {
-    paginationButtons.forEach(btn => {
-      btn.addEventListener('click', function() {
-        const totalPages = getTotalPages();
-        let pageNumber = currentPage;
+  if (paginationContainer) {
+    paginationContainer.addEventListener('click', function(event) {
+      const button = event.target.closest('.pagination-btn');
+      if (!button) {
+        return;
+      }
 
-        if (this.dataset.page) {
-          pageNumber = parseInt(this.dataset.page, 10);
-        } else if (this.dataset.nav === 'prev') {
-          pageNumber = Math.max(1, currentPage - 1);
-        } else if (this.dataset.nav === 'next') {
-          pageNumber = Math.min(totalPages, currentPage + 1);
-        }
+      const totalPages = getTotalPages();
+      let pageNumber = currentPage;
 
-        // Mettre à jour la variable de suivi
-        currentPage = pageNumber;
-        
-        // Afficher les articles correspondant à la page sélectionnée
-        showArticlesForPage(currentPage);
-        
-        // Mettre à jour l'UI pour montrer la page active
-        updatePaginationUI(currentPage);
+      if (button.dataset.page) {
+        pageNumber = parseInt(button.dataset.page, 10);
+      } else if (button.dataset.nav === 'prev') {
+        pageNumber = Math.max(1, currentPage - 1);
+      } else if (button.dataset.nav === 'next') {
+        pageNumber = Math.min(totalPages, currentPage + 1);
+      }
 
-        // Mettre à jour l'ancre et remonter sur la liste
-        setPageHash(currentPage);
-        scrollToPageAnchor();
-      });
+      currentPage = pageNumber;
+      showArticlesForPage(currentPage);
+      updatePaginationUI(currentPage);
+      setPageHash(currentPage);
+      scrollToPageAnchor();
     });
   }
 
@@ -265,19 +258,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (paginationContainer) {
       paginationContainer.style.display = totalPages > 1 ? 'flex' : 'none';
-    }
-
-    if (pageButtons.length > 0) {
-      // D'abord, supprimer la classe active de tous les boutons de page
-      pageButtons.forEach(btn => btn.classList.remove('active'));
-      
-      // Ensuite, ajouter la classe active uniquement au bouton de la page active
-      const activeBtn = Array.from(pageButtons).find(
-        btn => parseInt(btn.dataset.page, 10) === activePage
+      paginationContainer.querySelectorAll('.pagination-btn[data-page]').forEach(
+        (button) => button.remove()
       );
-      
-      if (activeBtn) {
-        activeBtn.classList.add('active');
+
+      const nextButton = paginationContainer.querySelector('.pagination-btn[data-nav="next"]');
+      for (let page = 1; page <= totalPages; page += 1) {
+        const button = document.createElement('button');
+        button.className = 'pagination-btn';
+        button.dataset.page = page;
+        button.textContent = page;
+        if (page === activePage) {
+          button.classList.add('active');
+        }
+        paginationContainer.insertBefore(button, nextButton);
       }
     }
 
@@ -353,11 +347,11 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Afficher ou masquer l'article
         if (matchesSearch && matchesCategory) {
-          card.style.display = 'block';
+          card.hidden = false;
           hasVisibleArticles = true;
           console.log(`Article "${title}" affiché`);
         } else {
-          card.style.display = 'none';
+          card.hidden = true;
           console.log(`Article "${title}" masqué`);
         }
       });
@@ -416,10 +410,10 @@ document.addEventListener('DOMContentLoaded', function() {
     articleCards.forEach((card, index) => {
       // Vérifier si l'article est dans la plage de la page actuelle
       if (index >= startIndex && index < endIndex) {
-        card.style.display = 'block';
+        card.hidden = false;
         hasVisibleArticles = true;
       } else {
-        card.style.display = 'none';
+        card.hidden = true;
       }
     });
     
@@ -435,7 +429,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function refreshVisibleCardsAnimations() {
     const visibleCards = Array.from(articleCards).filter(
-      (card) => card.style.display !== 'none'
+      (card) => !card.hidden
     );
 
     if (visibleCards.length === 0) {
@@ -486,4 +480,8 @@ document.addEventListener('DOMContentLoaded', function() {
       noResultsMsg.remove();
     }
   }
+
+  showArticlesForPage(currentPage);
+  updatePaginationUI(currentPage);
+  loadArticlesContent(currentPage);
 });

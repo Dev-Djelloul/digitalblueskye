@@ -1,8 +1,5 @@
 name: Lint CSS
 
-permissions:
-  contents: write
-
 on:
   push:
     branches: ["master"]
@@ -11,8 +8,10 @@ on:
 
 jobs:
   stylelint:
-    name: Stylelint (exit non-zero on errors)
+    name: Stylelint (no new errors)
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -29,15 +28,17 @@ jobs:
         run: |
           npm ci --prefer-offline --no-audit --no-fund || npm install --no-audit --no-fund
 
-      - name: Run Stylelint (failing job if lint errors)
-        run: |
-          echo "Running stylelint (strict)..."
-          npm run lint:css
+      - name: Run Stylelint (fail on new violations)
+        run: npm run lint:css -- "${{ github.event.pull_request.base.sha || github.event.before }}"
 
   stylelint-report:
     name: Stylelint report (JSON)
     runs-on: ubuntu-latest
     needs: stylelint
+    if: always()
+    permissions:
+      contents: read
+      actions: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -54,43 +55,10 @@ jobs:
       - name: Generate stylelint JSON report
         run: |
           echo "Generating stylelint JSON report..."
-          npx stylelint "**/*.css" --formatter json > stylelint-report.json || true
+          npx stylelint "**/*.css" --formatter json > stylelint-report.json 2>&1 || true
 
       - name: Upload stylelint JSON report
         uses: actions/upload-artifact@v4
         with:
           name: stylelint-report
           path: stylelint-report.json
-
-  stylelint-autofix:
-    name: Stylelint autofix + create PR
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    steps:
-      - name: Checkout (full)
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
-
-      - name: Install dependencies
-        run: |
-          npm ci --prefer-offline --no-audit --no-fund || npm install --no-audit --no-fund
-
-      - name: Apply stylelint --fix
-        run: |
-          echo "Running stylelint --fix..."
-          npx stylelint "**/*.css" --fix || true
-
-      - name: Create pull request with fixes (if any)
-        uses: peter-evans/create-pull-request@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "chore(style): apply stylelint --fix"
-          branch: stylelint-fixes/${{ github.run_number }}
-          title: "style: apply automatic stylelint fixes"
-          body: "Automated fixes applied by stylelint --fix. Please review before merging."

@@ -50,6 +50,21 @@ Deux options:
 
 Le Worker garde les formats de reponses attendus par ton front actuel.
 
+### Deploy Preview Netlify (PR #1)
+
+Le Deploy Preview de la PR #1 utilise les Workers de la branche `dev`, sans
+modifier les URLs de production. Pour les nouveaux builds de version de l'API,
+configurer la commande de version Cloudflare sur :
+
+```sh
+npm run version:api-preview
+```
+
+Cette commande ajoute `PREVIEW_ALLOWED_ORIGIN` uniquement a la version de
+previsualisation. La commande de deploiement de production reste
+`npm run deploy:api` et n'ajoute pas cette origine. Le site ne route vers ces
+Workers que sur `deploy-preview-1--digitalblueskye.netlify.app`.
+
 Pour l'option 2, tu peux definir:
 ```html
 <script>

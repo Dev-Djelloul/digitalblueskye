@@ -159,6 +159,11 @@ function isOriginAllowed(origin, env) {
   const normalized = normalizeOrigin(origin);
   if (LOCALHOST_ORIGIN_PATTERN.test(normalized)) return true;
   if (STATIC_ALLOWED_ORIGINS.includes(normalized)) return true;
+  const previewAllowedOrigins = String(env?.PREVIEW_ALLOWED_ORIGIN || "")
+    .split(",")
+    .map(normalizeOrigin)
+    .filter(Boolean);
+  if (previewAllowedOrigins.includes(normalized)) return true;
   return getEnvAllowedOrigins(env).includes(normalized);
 }
 
