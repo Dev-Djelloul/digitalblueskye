@@ -128,6 +128,7 @@
     "viewStrategos": "Découvrir le projet Strategos",
     "viewHumanBody": "Découvrir le projet Human Body",
     "viewWidgetParcels": "Découvrir le projet Widget Parcels",
+    "viewVeille": "Découvrir le projet Veille",
     "filterBy": "Filtrer par"
   },
   "assistant": {
@@ -396,7 +397,8 @@
     "metricsDash": "METRICS DASH",
     "strategos": "STRATEGOS",
     "humanBody": "HUMAN BODY",
-    "widgetParcels": "WIDGET PARCELS"
+    "widgetParcels": "WIDGET PARCELS",
+    "veille": "VEILLE"
   },
   "projectNames": {
     "ridingCities": "Riding Cities",
@@ -421,7 +423,8 @@
     "metricsDash": "Metrics Dash",
     "strategos": "Strategos",
     "humanBody": "Human Body",
-    "widgetParcels": "Widget Parcels"
+    "widgetParcels": "Widget Parcels",
+    "veille": "Veille"
   },
   "projectDescriptions": {
     "ridingCities": {
@@ -515,6 +518,10 @@
     "widgetParcels": {
       "short": "Tableau de bord bilingue de suivi de colis et d’informations pratiques",
       "full": "Widget Parcels est un tableau de bord bilingue qui rassemble le suivi de colis, les actualités, la météo et des informations sur les fuseaux horaires. Les références de suivi et préférences sont conservées dans le navigateur. Une carte 3D visualise les trajets à titre indicatif : elle ne fournit pas de position GPS en temps réel."
+    },
+    "veille": {
+      "short": "Veille éditoriale avec archives européennes, cartes interactives et assistant IA",
+      "full": "Veille rassemble des articles issus de 26 flux RSS et Atom publics et des recherches d’actualité quotidiennes dans 48 pays européens. Explorez la couverture attribuée à ses sources par date et sujet, consultez des archives conservées jusqu’à 400 jours et comparez la couverture et les tendances par pays. Agora, l’assistant de recherche IA, répond aux questions libres, traduit et compare des articles, effectue des recherches Web et consulte les archives à une date choisie. Les catégories et regroupements sont automatisés, les repères cartographiques s’appuient sur des indices textuels et la couverture dépend des sources disponibles ; Agora peut se tromper."
     }
   },
   "projectDetails": {
@@ -689,6 +696,12 @@
       "objective": "L’objectif était de regrouper dans un tableau de bord unique les informations utiles au quotidien autour des livraisons : suivi, actualités, météo et repères horaires, avec une interface bilingue et adaptée au mobile.",
       "technologiesDetail": "Widget Parcels est une application web statique en HTML, CSS et JavaScript, publiée sur Cloudflare Pages et installable comme PWA. Elle combine le widget Parcel App et l’API Parcels v4 pour le suivi, MapLibre GL JS avec des tuiles OpenFreeMap pour le globe, ainsi que des services météo et d’actualités. Les suivis et préférences restent dans le stockage local du navigateur ; les secrets d’API sont gérés côté déploiement et ne sont pas intégrés au portfolio.",
       "challengesSolutions": "Le tableau rassemble des services externes aux données et disponibilités différentes. L’interface les présente dans des modules distincts et conserve les références de suivi sur l’appareil de l’utilisateur. La carte représente des trajets indicatifs entre points connus : elle ne doit pas être interprétée comme une localisation GPS ou une estimation précise de l’avancement du colis."
+    },
+    "veille": {
+      "title": "Veille - Portfolio Digitalblueskye",
+      "objective": "L’objectif est de réunir actualité et archives dans un espace de veille éditoriale : préserver l’attribution des articles à leurs sources, explorer la couverture médiatique en Europe et permettre aux lecteurs d’interroger les contenus collectés.",
+      "technologiesDetail": "L’interface statique HTML, CSS et JavaScript s’appuie sur Cloudflare Pages Functions pour agréger les flux RSS/Atom, lancer les recherches GNews et fournir les routes API. Un Worker Cloudflare planifié collecte l’actualité dans 48 pays européens et la conserve dans Cloudflare KV jusqu’à 400 jours ; GDELT peut être utilisé pour rechercher des dates historiques. Leaflet affiche le contexte géographique à partir du texte des articles et de données administratives ouvertes. Workers AI aide à classer certains cas ambigus de mots-clés lorsqu’il est configuré. Agora transmet un lot limité d’articles récents ou archivés à OpenRouter Auto et peut utiliser OpenRouter Web Search ; ses réponses citent des sources, mais peuvent être erronées. La PWA propose aussi des flux HTTPS personnels, des articles enregistrés, des alertes, des filtres partageables, des comparaisons de couverture, des tendances et des recherches sur les réseaux sociaux.",
+      "challengesSolutions": "L’enjeu est de rendre une collection multilingue importante explorable sans masquer la façon dont elle est constituée. La disponibilité des flux et des recherches d’archives varie ; classification par mots-clés et détection des lieux sont automatisées, et les repères cartographiques reposent sur des indices textuels, pas sur une confirmation indépendante. Plusieurs médias peuvent reprendre une même dépêche. Agora peut traduire et comparer la couverture collectée, mais ses analyses IA et les résultats Web invitent à consulter les sources originales citées."
     }
   },
   "navigation": {

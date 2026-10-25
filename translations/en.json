@@ -128,6 +128,7 @@
     "viewStrategos": "Discover the Strategos project",
     "viewHumanBody": "Discover the Human Body project",
     "viewWidgetParcels": "Discover the Widget Parcels project",
+    "viewVeille": "Discover the Veille project",
     "prevProject": "Previous project: {projectName}",
     "nextProject": "Next project: {projectName}",
     "filterBy": "Filter by"
@@ -399,7 +400,8 @@
     "metricsDash": "METRICS DASH",
     "strategos": "STRATEGOS",
     "humanBody": "HUMAN BODY",
-    "widgetParcels": "WIDGET PARCELS"
+    "widgetParcels": "WIDGET PARCELS",
+    "veille": "VEILLE"
   },
   "projectNames": {
     "ridingCities": "Riding Cities",
@@ -424,7 +426,8 @@
     "metricsDash": "Metrics Dash",
     "strategos": "Strategos",
     "humanBody": "Human Body",
-    "widgetParcels": "Widget Parcels"
+    "widgetParcels": "Widget Parcels",
+    "veille": "Veille"
   },
   "projectDescriptions": {
     "ridingCities": {
@@ -518,6 +521,10 @@
     "widgetParcels": {
       "short": "Bilingual dashboard for parcel tracking and everyday information",
       "full": "Widget Parcels is a bilingual dashboard bringing together parcel tracking, news, weather and time-zone information. Tracking references and preferences are stored in the browser. A 3D map visualizes routes for context only; it does not provide real-time GPS locations."
+    },
+    "veille": {
+      "short": "Editorial monitoring with European archives, interactive maps and an AI assistant",
+      "full": "Veille combines articles from 26 public RSS and Atom feeds with daily news searches across 48 European countries. Explore source-attributed coverage by date and topic, consult archives retained for up to 400 days, and compare country coverage and trends. Agora, the AI research assistant, answers open questions, translates and compares articles, searches the web and consults archives for selected dates. Categories and groupings are automated, map markers use textual clues, and coverage depends on available sources; Agora can make mistakes."
     }
   },
   "projectDetails": {
@@ -692,6 +699,12 @@
       "objective": "The goal was to bring everyday delivery information together in one dashboard: tracking, news, weather and time-zone references, with a bilingual interface that works across devices.",
       "technologiesDetail": "Widget Parcels is a static HTML, CSS and JavaScript web app deployed on Cloudflare Pages and installable as a PWA. It combines the Parcel App widget and Parcels v4 API for tracking, MapLibre GL JS with OpenFreeMap tiles for the globe, and weather and news services. Tracking references and preferences stay in the browser's local storage; API secrets are managed in the deployment environment and are not included in this portfolio.",
       "challengesSolutions": "The dashboard brings together external services with different data and availability. The interface keeps them in distinct modules and stores tracking references on the user's device. The map shows indicative routes between known points; it should not be interpreted as GPS location or a precise estimate of a parcel's progress."
+    },
+    "veille": {
+      "title": "Veille - Digitalblueskye Portfolio",
+      "objective": "The goal is to bring current reporting and historical archives into one editorial monitoring workspace: preserve source attribution, explore coverage across Europe, and let readers ask questions about collected articles.",
+      "technologiesDetail": "The static HTML, CSS and JavaScript interface uses Cloudflare Pages Functions for RSS/Atom aggregation, GNews searches and API routes. A scheduled Cloudflare Worker collects news for 48 European countries into Cloudflare KV archives retained for up to 400 days; GDELT can search historical dates. Leaflet renders geographic context from article text and open administrative data. Workers AI helps classify some ambiguous keyword matches when configured. Agora sends a limited set of recent or archived articles to OpenRouter Auto and can use OpenRouter Web Search; responses cite sources but may be mistaken. The PWA also supports personal HTTPS feeds, saved articles, alerts, shareable filters, coverage comparisons, trend charts and social-media searches.",
+      "challengesSolutions": "The challenge is making a large multilingual collection explorable without obscuring how it is assembled. Feed availability and archive searches vary; keyword classification and place detection are automated, and map markers reflect textual clues rather than independently confirmed locations. Multiple outlets may carry the same wire report. Agora can translate and compare collected coverage, but its AI analysis and web results still require readers to consult the cited original sources."
     }
   },
   "navigation": {
