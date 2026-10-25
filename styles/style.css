@@ -155,6 +155,8 @@ body.project-page {
 }
 
 body.home-page {
+  --home-block-gap: clamp(64px, 7vw, 96px);
+
   padding-top: 0;
 }
 
@@ -5164,6 +5166,12 @@ h1.main-title-animated .title-icon {
   -webkit-text-fill-color: transparent;
 }
 
+@media (width >= 769px) {
+  :where(.home-page) [class~="trust-card--merged"] .trust-cert-header h3 {
+    font-size: 1.45rem;
+  }
+}
+
 .about-text-box p {
   background: linear-gradient(45deg, var(--accent-color), #c822ff);
   background-clip: text;
@@ -6962,10 +6970,7 @@ h1.main-title-animated .title-icon {
   }
 
   .inspirations-cover {
-    margin-left: -16px;
-    margin-right: -16px;
-    margin-top: var(--site-header-height, 124px);
-    margin-bottom: 2rem;
+    margin: var(--site-header-height, 124px) -16px 2rem;
     width: calc(100% + 32px);
   }
 
@@ -6974,8 +6979,8 @@ h1.main-title-animated .title-icon {
   }
 
   .cover-image {
-    height: 100%;
     object-fit: cover;
+    height: 100%;
     object-position: center 52%;
   }
 
@@ -7001,8 +7006,8 @@ h1.main-title-animated .title-icon {
 
   .inspirations-hero .hero-badges li {
     box-sizing: border-box;
-    width: fit-content;
     max-width: 100%;
+    width: fit-content;
   }
 
   .inspirations-hero .ghost-link {
@@ -10340,12 +10345,6 @@ body.body-menu-open #footer {
 
 .trust-cert-header h3 {
   margin-bottom: 0;
-}
-
-@media (width >= 769px) {
-  .home-page .trust-card--merged .trust-cert-header h3 {
-    font-size: 1.45rem;
-  }
 }
 
 .trust-cert-toggle {
@@ -19650,10 +19649,6 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
 }
 
 /* Shared home-page heading panels: gallery, training and digital trends. */
-.home-page {
-  --home-block-gap: clamp(64px, 7vw, 96px);
-}
-
 .home-page .home-section-heading {
   background: linear-gradient(
     135deg,
@@ -19684,9 +19679,9 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
   max-width: 100%;
   padding: 0 0 0.12em;
   text-align: center;
+  -webkit-text-fill-color: transparent;
   text-wrap: balance;
   white-space: normal;
-  -webkit-text-fill-color: transparent;
 }
 
 [data-theme="light"] .home-page .home-section-heading .main-page-title,
