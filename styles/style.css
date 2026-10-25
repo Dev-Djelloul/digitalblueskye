@@ -4587,8 +4587,8 @@ h1.main-title-animated .title-icon {
 /* Le logo Networkee est large (~2:1) : on préserve son ratio d'origine au lieu
    de le forcer dans un carré 24×24 (le bouton s'élargit légèrement en pilule). */
 .share-btn.share-networkee img {
-  width: auto;
   height: 26px;
+  width: auto;
 }
 
 .share-copy-label {
@@ -7064,7 +7064,7 @@ h1.main-title-animated .title-icon {
 .projects-filter-chips {
   display: flex;
   gap: 8px;
-  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 20px, #000 calc(100% - 20px), transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 20px, #000 calc(100% - 20px), transparent 100%);
   mask-image: linear-gradient(90deg, transparent 0, #000 20px, #000 calc(100% - 20px), transparent 100%);
   -ms-overflow-style: none;
   overflow-x: auto;
@@ -7231,9 +7231,9 @@ h1.main-title-animated .title-icon {
 }
 
 .project-card img {
+  object-fit: cover;
   height: 100%;
   inset: 0;
-  object-fit: cover;
   position: absolute;
   transition: transform 0.4s ease;
   width: 100%;
@@ -7598,8 +7598,8 @@ h1.main-title-animated .title-icon {
   background-image: none;
   box-shadow: 0 0 26px 4px rgb(74 74 255 / 65%), 0 8px 18px rgb(0 0 0 / 25%);
   color: #fff;
-  transform: translateY(-2px);
   -webkit-text-fill-color: #fff;
+  transform: translateY(-2px);
 }
 
 .project-detail .project-links a.btn-live {
@@ -7629,8 +7629,8 @@ h1.main-title-animated .title-icon {
   background-image: linear-gradient(135deg, rgb(15 15 26 / 95%), rgb(45 45 70 / 95%));
   box-shadow: 0 10px 22px rgb(0 0 0 / 45%);
   color: #fff;
-  transform: translateY(-2px);
   -webkit-text-fill-color: #fff;
+  transform: translateY(-2px);
 }
 
 /* Navigation entre projets (Précédent/Suivant) */
@@ -8077,6 +8077,7 @@ h1.main-title-animated .title-icon {
 }
 
 /* Ligne héro : badge d'accroche + colonne étoile */
+
 /* Étoile interactive pour les compétences */
 .skills-star-section {
   display: flex;
@@ -11713,12 +11714,12 @@ body.chat-page {
 }
 
 .dbs-auth-panel-title {
+  background: linear-gradient(45deg, rgb(93 93 255), rgb(200 34 255)) text;
   color: transparent;
-  -webkit-text-fill-color: transparent;
-  background: linear-gradient(45deg, rgb(93, 93, 255), rgb(200, 34, 255)) text;
   font-family: var(--font-body);
   font-size: 1.15rem;
-  margin: 0 0 10px 0;
+  margin: 0 0 10px;
+  -webkit-text-fill-color: transparent;
 }
 
 .dbs-auth-panel-desc {
@@ -11889,10 +11890,10 @@ body.profile-page [hidden] {
 /* Icone de fournisseur (Google/GitHub) devant le nom du provider connecte :
    Identite, Securite, Historique. */
 .dbs-provider-icon {
+  object-fit: contain;
   border-radius: 4px;
   height: 16px;
   margin-right: 6px;
-  object-fit: contain;
   vertical-align: -3px;
   width: 16px;
 }
@@ -12324,8 +12325,8 @@ body.profile-page .profile-main {
 .dbs-profile-nav {
   display: flex;
   flex-direction: column;
-  justify-content: center;
   gap: 10px;
+  justify-content: center;
 }
 
 .dbs-profile-tab {
@@ -12491,6 +12492,7 @@ body.profile-page .profile-main {
   display: flex;
   flex-direction: column;
   gap: 22px;
+
   /* Le bouton "Enregistrer les paramètres IA" et le bloc "Avancé" (toggle
      multi-modele local, hors D1) sont maintenant des freres DOM APRES ce
      formulaire, plus des descendants — .dbs-profile-panel n'est pas flex
@@ -12769,9 +12771,9 @@ body.profile-page .profile-main {
 .dbs-status-positive {
   align-items: center;
   color: rgb(110 231 168) !important;
-  display: inline-flex;
-  justify-content: center; 
+  display: inline-flex; 
   gap: 6px;
+  justify-content: center;
 }
 
 .dbs-status-dot {
@@ -12892,6 +12894,7 @@ body.profile-page .profile-main {
 }
 
 .dbs-companion-try {
+  align-self: flex-start;
   background: transparent;
   border: 1px solid rgb(93 93 255 / 30%);
   border-radius: 8px;
@@ -12901,7 +12904,6 @@ body.profile-page .profile-main {
   font-size: 0.74rem;
   margin-top: 8px;
   padding: 6px 10px;
-  align-self: flex-start;
 }
 
 .dbs-companion-try:hover {
@@ -12926,7 +12928,7 @@ body.profile-page .profile-main {
   grid-template-columns: repeat(2, 1fr);
 }
 
-@media (max-width: 640px) {
+@media (width <= 640px) {
   .dbs-info-grid--pair {
     grid-template-columns: 1fr;
   }
@@ -14062,14 +14064,14 @@ body.profile-page .profile-main {
 }
 
 .ai-assistant-swipe-action {
+  align-items: center;
   background: rgb(121 230 255 / 16%);
   border: 0;
   color: #fff;
   cursor: pointer;
   display: flex;
-  align-items: center;
-  justify-content: center;
   font-size: 1.05rem;
+  justify-content: center;
   width: 52px;
 }
 
@@ -14266,12 +14268,12 @@ body.profile-page .profile-main {
   flex: 1;
   margin-left: 0;
   min-height: 0;
+
   /* overflow-x: hidden en filet de securite : un enfant qui deborde (ex.
      nom de fichier long sans min-width:0 sur un flex/grid item, voir
      .ai-assistant-rag-doc-name) ne doit plus jamais entrainer tout le
      panneau en scroll horizontal sur mobile. */
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: hidden auto;
   padding: clamp(24px, 4cqw, 42px);
   position: relative;
   transition: margin-left 0.22s ease;
@@ -15110,6 +15112,7 @@ button.ai-assistant-project-row {
 
 .ai-assistant-rag-doc-name {
   color: #fff;
+
   /* min-width: 0 indispensable : un enfant flex a par defaut min-width:auto
      (= largeur intrinseque de son contenu), ce qui empechait ce nom de
      document (souvent long) de retrecir et declenchait l'ellipsis - la ligne
@@ -16133,32 +16136,32 @@ button.ai-assistant-project-row {
    fond blanc a 6% d'opacite laissait transparaitre la teinte violette du
    panneau — l'encadre de chaque source paraissait violet au lieu de noir. */
 .ai-source-card {
+  align-items: start;
   background:
     linear-gradient(180deg, rgb(19 23 52 / 96%), rgb(12 15 35 / 96%)),
     rgb(14 17 40 / 95%);
   border: 1px solid rgb(93 93 255 / 26%);
   border-radius: 12px;
   display: grid;
-  grid-template-columns: 1fr auto;
   gap: 12px;
+  grid-template-columns: 1fr auto;
   overflow: hidden;
   padding: 12px 13px;
   position: relative;
-  align-items: start;
 }
 
 /* Conteneur du contenu textuel : colonne gauche qui prend l'espace disponible */
 .ai-source-card-content {
   display: grid;
+  flex: 1;
   gap: 8px;
   min-width: 0;
-  flex: 1;
 }
 
 /* Conteneur de la vignette : colonne droite fixe */
 .ai-source-card-thumb-wrapper {
-  display: flex;
   align-items: flex-start;
+  display: flex;
   flex: 0 0 auto;
 }
 
@@ -16171,30 +16174,30 @@ button.ai-assistant-project-row {
   background:
     linear-gradient(180deg, rgb(255 255 255 / 9%), rgb(255 255 255 / 4%)),
     linear-gradient(135deg, rgb(121 230 255 / 22%), rgb(200 34 255 / 18%));
-  border-radius: 8px;
   border: 1px solid rgb(121 230 255 / 20%);
+  border-radius: 8px;
   display: flex;
+  flex: 0 0 auto;
   gap: 8px;
+  height: 60px;
   justify-content: center;
   overflow: hidden;
   width: 60px;
-  height: 60px;
-  flex: 0 0 auto;
 }
 
 /* object-fit: contain affiche l'image entière sans découpe. */
 .ai-source-thumb img {
+  object-fit: contain;
   display: block;
   height: 100%;
-  object-fit: contain;
   object-position: center;
   width: 100%;
 }
 
 .ai-source-thumb:not(.has-preview) img {
+  object-fit: contain;
   filter: drop-shadow(0 6px 14px rgb(0 0 0 / 24%));
   height: 22px;
-  object-fit: contain;
   width: 22px;
 }
 
@@ -16242,42 +16245,42 @@ a.ai-source-card:focus-visible {
 .ai-source-card-head {
   align-items: center;
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   min-width: 0;
-  flex-wrap: wrap;
 }
 
 .ai-source-number-badge {
+  align-items: center;
   background: rgb(121 230 255 / 22%);
   border: 1px solid rgb(121 230 255 / 40%);
   border-radius: 6px;
   color: rgb(121 230 255 / 92%);
+  display: flex;
   flex: 0 0 auto;
   font-size: 0.72rem;
   font-weight: 700;
   height: 22px;
-  display: flex;
-  align-items: center;
   justify-content: center;
   min-width: 22px;
   padding: 0 5px;
 }
 
 .ai-citation-badge {
+  align-items: center;
   background: rgb(121 230 255 / 22%);
   border: 1px solid rgb(121 230 255 / 40%);
   border-radius: 6px;
   color: rgb(121 230 255 / 92%);
+  cursor: pointer;
+  display: inline-flex;
   font-size: 0.72rem;
   font-weight: 700;
   height: 22px;
-  display: inline-flex;
-  align-items: center;
   justify-content: center;
+  margin: 0 2px;
   min-width: 22px;
   padding: 0 5px;
-  margin: 0 2px;
-  cursor: pointer;
   transition: all 0.2s ease;
   vertical-align: middle;
 }
@@ -16289,14 +16292,14 @@ a.ai-source-card:focus-visible {
 }
 
 .ai-source-open-indicator {
-  width: 18px;
-  height: 18px;
   object-fit: contain;
-  margin-left: auto;
+  display: block;
   flex-shrink: 0;
+  height: 18px;
+  margin-left: auto;
   opacity: 0.6;
   transition: opacity 0.2s ease;
-  display: block;
+  width: 18px;
 }
 
 .ai-source-card--openable:hover .ai-source-open-indicator {
@@ -16355,16 +16358,16 @@ a.ai-source-card:focus-visible {
 }
 
 .ai-source-title {
+  -webkit-box-orient: vertical;
   color: rgb(246 247 255 / 92%);
+  display: -webkit-box;
+  flex: 1;
   font-size: 0.82rem;
   font-weight: 650;
+  -webkit-line-clamp: 2;
   line-height: 1.35;
-  flex: 1;
   min-width: 0;
   overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
   word-break: break-word;
 }
 
@@ -17280,10 +17283,10 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
 }
 
 .ai-assistant-export-btn img {
+  object-fit: contain;
   display: block;
   height: 38px;
   width: 38px;
-  object-fit: contain;
 }
 
 .ai-assistant-export-btn:hover {
@@ -17320,11 +17323,11 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
 }
 
 .ai-assistant-regenerate-btn img {
-  display: block;
   object-fit: contain;
-  width: 44px;
+  display: block;
   height: 44px;
   transition: transform 0.35s ease;
+  width: 44px;
 }
 
 .ai-assistant-regenerate-btn:hover {
@@ -18482,15 +18485,12 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
      specifique que toute regle de feuille de style classique. */
   .ai-assistant-project-context-menu,
   .ai-assistant-session-context-menu {
-    position: fixed !important;
-    top: 12px !important;
-    left: 12px !important;
-    right: 12px !important;
-    bottom: auto !important;
-    width: auto !important;
-    max-width: none;
+    inset: 12px 12px auto !important;
     max-height: calc(100vh - 24px);
+    max-width: none;
     overflow-y: auto;
+    position: fixed !important;
+    width: auto !important;
   }
 }
 
@@ -19661,7 +19661,7 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
 
   .header-logo img {
     height: 66px;
-    margin: 6px 0 0 0;
+    margin: 6px 0 0;
   }
 
   .header-portfolio-avatar,
@@ -20184,9 +20184,9 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
   background:
     radial-gradient(circle at top, rgb(93 93 255 / 12%), transparent 40%),
     linear-gradient(180deg, #f7f7ff 0%, #efeeff 52%, #f9f6ff 100%);
+    background: linear-gradient(45deg, rgb(93 93 255), rgb(200 34 255)) text;
     color: transparent;
     -webkit-text-fill-color: transparent;
-    background: linear-gradient(45deg, rgb(93, 93, 255), rgb(200, 34, 255)) text;
 }
 
 [data-theme="light"] .dbs-profile-page,
@@ -20407,10 +20407,10 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
 }
 
 /* Media query pour les cartes sources en mobile */
-@media (max-width: 640px) {
+@media (width <= 640px) {
   .ai-source-card {
-    grid-template-columns: 1fr;
     gap: 8px;
+    grid-template-columns: 1fr;
   }
 
   .ai-source-card-thumb-wrapper {
@@ -20518,6 +20518,7 @@ body.ai-assistant-minimized .ai-assistant-collapse-handle {
     height: 17px;
     width: 17px;
   }
+
   .ai-assistant-session-bar {
     bottom: 0;
     top: 52px;
