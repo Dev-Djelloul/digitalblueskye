@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" data-i18n="news.article19.metaDescription" content="Comment intégrer la sobriété de l’IA générative dans un projet digital : cadrer le besoin, choisir le bon modèle, réduire les usages inutiles et mesurer les résultats." />
+    <link rel="canonical" href="https://digitalblueskye.com/blog/digital/article-ia-frugale-projets-digitaux-2026.html" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" data-i18n="news.article19.metaTitle" content="IA générative et sobriété numérique : la méthode projet" />
+    <meta property="og:description" data-i18n="news.article19.metaDescription" content="Comment intégrer la sobriété de l’IA générative dans un projet digital : cadrer le besoin, choisir le bon modèle, réduire les usages inutiles et mesurer les résultats." />
+    <meta property="og:image" content="https://digitalblueskye.com/assets/images/blog/IA-Frugale/ia-frugale-couverture-green-it.jpeg" />
+    <meta property="og:url" content="https://digitalblueskye.com/blog/digital/article-ia-frugale-projets-digitaux-2026.html" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" data-i18n="news.article19.metaTitle" content="IA générative et sobriété numérique : la méthode projet" />
+    <meta name="twitter:description" data-i18n="news.article19.metaDescription" content="Comment intégrer la sobriété de l’IA générative dans un projet digital : cadrer le besoin, choisir le bon modèle, réduire les usages inutiles et mesurer les résultats." />
+    <meta name="twitter:image" content="https://digitalblueskye.com/assets/images/blog/IA-Frugale/ia-frugale-couverture-green-it.jpeg" />
+    <title data-i18n="news.article19.metaTitle">IA générative et sobriété numérique : la méthode projet</title>
+    <script>
+      (function() {
+        const savedTheme = localStorage.getItem("theme") || "dark";
+        document.documentElement.setAttribute("data-theme", savedTheme);
+      })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Iceland&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/styles/style.css" />
+    <script src="/scripts/jsonld-injector.js" defer></script>
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#1f1d2b">
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="header-placeholder"></div>
+      <div class="header-logo">
+        <a href="/index.html" title="Retour à l'accueil">
+          <img src="/assets/images/logo/DigitalBlueSkye-Logo.png" alt="Logo Digitalblueskye" width="50" height="50" />
+        </a>
+      </div>
+      <div class="menu-controls">
+        <div class="language-switch" role="group" aria-label="Changer de langue">
+          <button id="switch-to-en" class="lang-button" type="button" title="Switch to English">
+            <img src="/assets/images/ui/icons8-uk-flag-48.png" alt="English" width="32" height="32" />
+          </button>
+          <button id="switch-to-fr" class="lang-button" type="button" style="display: none" title="Passer en français">
+            <img src="/assets/images/ui/icons8-french-flag-48.png" alt="Français" width="32" height="32" />
+          </button>
+        </div>
+        <button id="theme-switch" aria-label="Changer de thème">
+          <svg width="24" height="24" viewBox="0 0 24 24" class="moon-icon"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z" fill="currentColor" /></svg>
+          <svg width="24" height="24" viewBox="0 0 24 24" class="sun-icon" style="display: none"><path d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0-5a1 1 0 0 0 1-1V1a1 1 0 0 0-2 0v0a1 1 0 0 0 1 1zm0 20a1 1 0 0 0-1 1v0a1 1 0 0 0 2 0v0a1 1 0 0 0-1-1zm10-11h0a1 1 0 0 0 0-2h0a1 1 0 0 0 0 2zM2 11h0a1 1 0 0 0 0 2h0a1 1 0 0 0 0-2z" fill="currentColor" /></svg>
+        </button>
+      </div>
+      <div class="hamburger" id="hamburger" aria-label="Menu">
+        <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6" /></svg>
+      </div>
+    </header>
+    <div class="dropdown-menu" id="dropdown-menu">
+      <nav class="dropdown-nav">
+        <ul>
+          <li><a href="/index.html" data-i18n="nav.home"><h2>Accueil</h2></a></li>
+          <li><a href="/pages/about.html" data-i18n="nav.about"><h2>A propos de moi</h2></a></li>
+          <li class="dropdown-submenu">
+            <a class="nav-link nav-link-with-submenu"><span data-i18n="nav.explore">Exploration</span><span class="submenu-chevron" aria-hidden="true">▾</span></a>
+            <ul class="submenu-list">
+              <li><a class="nav-link submenu-link" href="/pages/projects.html" data-i18n="nav.projects">Mes projets</a></li>
+              <li><a class="nav-link submenu-link" href="/pages/skills.html" data-i18n="nav.skills">Mes compétences</a></li>
+            </ul>
+          </li>
+          <li><a href="/pages/agilite.html" data-i18n="nav.agility"><h2>Ma vision de l'Agilité</h2></a></li>
+          <li><a href="/pages/gouvernance-ia.html" data-i18n="nav.aiGovernance"><h2>Gouvernance IA</h2></a></li>
+          <li><a href="/blog/digital/blogarticles" data-i18n="nav.blogDigital"><h2>L'actu du Coin Digital</h2></a></li>
+          <li><a href="/blog/inspirations/carnets-inspirations.html" data-i18n="nav.blogInspiration"><h2>Mes carnets d’inspirations</h2></a></li>
+          <li><a href="/pages/contact.html" data-i18n="nav.contact"><h2>Contactez-moi</h2></a></li>
+        </ul>
+      </nav>
+    </div>
+    <div class="menu-overlay" id="menu-overlay"></div>
+    <main class="article-detail-page">
+      <article class="article-content-full section-padding">
+        <div class="container">
+          <h1 class="article-title-main" data-i18n="news.article19.title">IA générative : faire mieux avec moins de ressources</h1>
+          <p class="article-dateline-detailed" data-i18n="news.article19.datelineFull">Publié en Novembre 2026 • Catégorie: RSE & Impact</p>
+          <div class="article-reactions">
+            <div class="article-comment-count" aria-live="polite">
+              <img src="/assets/images/ui/icons8-comment-48.png" alt="" class="comment-count-icon" width="24" height="24" loading="lazy" />
+              <span class="comment-count-number" data-comments-count>0</span>
+              <span class="comment-count-label" data-comments-count-label>commentaires</span>
+            </div>
+            <button class="like-button" type="button" data-like data-like-scope="article" aria-pressed="false">
+              <img src="/assets/images/ui/icons8-like-48.png" alt="" class="like-icon" width="24" height="24" loading="lazy" />
+              <span class="like-count" data-like-count>0</span>
+              <span class="like-label" data-like-label>likes</span>
+            </button>
+          </div>
+          <img src="/assets/images/blog/IA-Frugale/ia-frugale-couverture-green-it.jpeg" alt="Téléphone entouré de symboles de recyclage et d’énergies renouvelables, illustrant un numérique plus responsable" class="article-banner-image" loading="lazy" width="1434" height="563" />
+          <figure class="article-figure" data-article-placement="introduction">
+            <img src="/assets/images/blog/IA-Frugale/data-center-server-racks.jpg" alt="Baies de serveurs dans un centre de données" loading="lazy" width="1333" height="2000" />
+            <figcaption data-i18n="news.article19.imageDatacenterCaption">Baies de serveurs dans un centre de données. Photo d’Eric Stoynov via <a href="https://unsplash.com/license" target="_blank" rel="noopener noreferrer">Unsplash</a>.</figcaption>
+          </figure>
+          <figure class="article-figure" data-article-placement="example">
+            <img src="/assets/images/blog/IA-Frugale/human-ai-collaboration.jpg" alt="Main humaine et main robotique tendues l’une vers l’autre, symbolisant la coopération entre humains et IA" loading="lazy" width="2000" height="1000" />
+            <figcaption data-i18n="news.article19.imageCollaborationCaption">Illustration de la collaboration entre intelligence humaine et intelligence artificielle. Image d’Igor Omilaev via <a href="https://unsplash.com/license" target="_blank" rel="noopener noreferrer">Unsplash</a>.</figcaption>
+          </figure>
+          <div class="article-body" data-i18n="news.article19.fullContent"></div>
+          <figure class="article-figure" data-article-placement="measurement">
+            <img src="/assets/images/blog/IA-Frugale/electricity-grid-substation.jpg" alt="Poste électrique et lignes de transport d’énergie" loading="lazy" width="2000" height="1000" />
+            <figcaption data-i18n="news.article19.imageGridCaption">Poste électrique et lignes de transport d’énergie. Photo de l’American Public Power Association via <a href="https://unsplash.com/license" target="_blank" rel="noopener noreferrer">Unsplash</a>.</figcaption>
+          </figure>
+          <figure class="article-figure" data-article-placement="model-choice">
+            <img src="/assets/images/blog/IA-Frugale/ai-computing-chip.jpg" alt="Illustration d’un processeur et de ses circuits intégrés" loading="lazy" width="2000" height="1300" />
+            <figcaption data-i18n="news.article19.imageChipCaption">Illustration d’un processeur, au cœur des calculs informatiques. Image de Brecht Corbeel via <a href="https://unsplash.com/license" target="_blank" rel="noopener noreferrer">Unsplash</a>.</figcaption>
+          </figure>
+          <div class="article-navigation">
+            <a href="/blog/digital/article-ia-valeur-projet-digital-2026.html" class="btn-nav-style" data-i18n="news.previousArticle">Article Précédent</a>
+            <a href="/blog/digital/blogarticles" class="btn-nav-style" data-i18n="news.backToList">Retour</a>
+            <span class="btn-nav-style" data-i18n="news.nextArticle" aria-disabled="true">Article Suivant</span>
+          </div>
+          <section class="article-share">
+            <h2 class="article-section-title" data-i18n="news.shareTitle">Partager l'article</h2>
+            <p class="article-section-subtitle" data-i18n="news.shareSubtitle">Si cet article vous a plu, partagez-le autour de vous.</p>
+            <div class="article-share-actions">
+              <a class="share-btn share-x" data-share="x" href="#" target="_blank" rel="noopener" title="X" data-i18n-title="news.shareX"><img src="/assets/images/ui/icons8-x-64.png" alt="X" width="64" height="64" /></a>
+              <a class="share-btn share-linkedin" data-share="linkedin" href="#" target="_blank" rel="noopener" title="LinkedIn" data-i18n-title="news.shareLinkedIn"><img src="/assets/images/ui/icons8-linkedin-64.png" alt="LinkedIn" width="64" height="64" /></a>
+              <button class="share-btn share-networkee" data-share="networkee" data-share-image="https://digitalblueskye.com/assets/images/blog/IA-Frugale/ia-frugale-couverture-green-it.jpeg" type="button" title="Networkee"><img src="/assets/images/ui/networkee-mark.png" alt="Networkee" width="64" height="64" /></button>
+              <button class="share-btn share-copy" data-share="copy" type="button" title="Copier le lien" data-i18n-title="news.copyLink"><img src="/assets/images/ui/icons8-copy-link-48.png" alt="Copier le lien" width="48" height="48" /></button>
+            </div>
+          </section>
+          <section class="article-comments">
+            <h2 class="article-section-title" data-i18n="news.commentsTitle">Commentaires</h2>
+            <p class="article-section-subtitle" data-i18n="news.commentsSubtitle">Un retour, une question ou une idée ? Laissez un commentaire.</p>
+            <p class="comments-status" data-comments-status></p>
+            <div class="comments-list" data-comments></div>
+            <div class="comments-copy" data-comments-copy hidden>
+              <span data-copy="empty" data-i18n="news.commentsEmpty">Aucun commentaire pour le moment.</span>
+              <span data-copy="success" data-i18n="news.commentsSuccess">Merci ! Votre commentaire a bien été publié.</span>
+              <span data-copy="pending" data-i18n="news.commentsPending">Merci ! Votre commentaire est en attente de validation.</span>
+              <span data-copy="error" data-i18n="news.commentsError">Erreur d'envoi.</span>
+              <span data-copy="countSingular" data-i18n="news.commentLabelSingular">commentaire</span>
+              <span data-copy="countPlural" data-i18n="news.commentLabelPlural">commentaires</span>
+            </div>
+            <form class="article-comments-form" novalidate>
+              <div class="comment-field">
+                <label for="comment-name" data-i18n="contact.name">Nom</label>
+                <input id="comment-name" name="comment-name" type="text" data-i18n-placeholder="contact.enterName" placeholder="Entrez votre nom..." />
+              </div>
+              <div class="comment-field">
+                <label for="comment-email" data-i18n="contact.email">Email</label>
+                <input id="comment-email" name="comment-email" type="email" data-i18n-placeholder="contact.enterEmail" placeholder="Entrez votre email..." />
+              </div>
+              <div class="comment-field">
+                <label for="comment-message" data-i18n="contact.message">Message</label>
+                <textarea id="comment-message" name="comment-message" rows="5" data-i18n-placeholder="contact.enterMessage" placeholder="Entrez votre message..."></textarea>
+              </div>
+              <div class="comment-honeypot" aria-hidden="true">
+                <label for="comment-website">Website</label>
+                <input id="comment-website" name="website" type="text" tabindex="-1" autocomplete="off" />
+              </div>
+              <button class="comment-submit" type="submit" data-i18n="contact.send">Envoyer</button>
+            </form>
+          </section>
+        </div>
+      </article>
+    </main>
+    <footer id="footer">
+      <div class="footer-container">
+        <div class="footer-section"><h3 data-i18n="footer.services">Services</h3><ul><li><a href="/pages/about.html" data-i18n="footer.expertise">Mon expertise</a></li><li><a href="/pages/projects.html" data-i18n="footer.projects">Nos projets</a></li><li><a href="/blog/digital/blogarticles" data-i18n="footer.blog">Blog & Articles</a></li><li><a href="/pages/contact.html" data-i18n="footer.contact">Formulaire de contact</a></li></ul></div>
+        <div class="footer-section"><h3 data-i18n="footer.legal">Légal</h3><ul><li><a href="/pages/privacy.html" data-i18n="footer.privacy">Politique de confidentialité</a></li><li><a href="/pages/terms.html" data-i18n="footer.terms">Conditions d'utilisation</a></li><li><a href="/pages/cookies-policy.html" data-i18n="footer.cookies">Gestion des cookies</a></li></ul></div>
+        <div class="footer-section"><h3 data-i18n="footer.followUs">Suivez-moi</h3><div class="footer-social"><a href="https://github.com/Dev-Djelloul" target="_blank" rel="noopener noreferrer" title="GitHub"><img src="/assets/images/ui/icons8-github-64.png" alt="GitHub" width="64" height="64" /></a><a href="https://www.linkedin.com/in/yellowblueskye/" target="_blank" rel="noopener noreferrer" title="LinkedIn"><img src="/assets/images/ui/icons8-linkedin-64.png" alt="LinkedIn" width="64" height="64" /></a><a href="https://x.com/digitalblueskye" target="_blank" rel="noopener noreferrer" title="X"><img src="/assets/images/ui/icons8-x-64.png" alt="X" width="64" height="64" /></a></div></div>
+      </div>
+      <div class="footer-bottom"><p data-i18n="footer.copyright">&copy; 2026 Digitalblueskye. Tous droits réservés.</p></div>
+    </footer>
+    <button id="scroll-to-top" class="scroll-to-top" data-i18n-title="ui.backToTop" title="Retour en haut" aria-label="Retour en haut"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M7 14l5-5 5 5z" fill="currentColor"></path></svg></button>
+    <script src="/scripts/share-links.js?v=10"></script>
+    <script src="/scripts/likes.js?v=20260224r2"></script>
+    <script src="/scripts/comments.js?v=20260224r2"></script>
+    <script src="/scripts/scroll-to-top.js"></script>
+    <script src="/scripts/translator.js"></script>
+    <script>
+      const articleIllustrations = Array.from(document.querySelectorAll("[data-article-placement]"));
+
+      document.addEventListener("translationCompleted", function() {
+        const articleBody = document.querySelector(".article-body");
+        if (!articleBody) return;
+
+        const headings = articleBody.querySelectorAll("h2");
+        const placements = {
+          introduction: headings[0],
+          "model-choice": headings[1],
+          example: headings[4]?.nextElementSibling,
+          measurement: articleBody.querySelector('a[href="/blog/digital/article-pue-datacenters.html"]')?.closest("p")
+        };
+
+        articleIllustrations.forEach(function(figure) {
+          const anchor = placements[figure.dataset.articlePlacement];
+          if (!anchor) return;
+
+          if (figure.dataset.articlePlacement === "introduction") {
+            anchor.before(figure);
+          } else {
+            anchor.after(figure);
+          }
+        });
+      });
+    </script>
+    <script src="/scripts/theme-switcher.js"></script>
+    <script src="/scripts/ai-assistant.js"></script>
+    <script src="/scripts/navbar-dropdown.js?v=20260604-click-menu"></script>
+    <script src="/scripts/loader.js"></script>
+    <script src="/scripts/scroll-animations.js"></script>
+  </body>
+</html>
