@@ -291,6 +291,7 @@ function allowedOrigins(env) {
   });
   push(env.FRONTEND_ORIGIN);
   push(env.ALLOWED_ORIGIN);
+  push(env.PREVIEW_ALLOWED_ORIGIN);
   return list;
 }
 

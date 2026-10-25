@@ -23,6 +23,11 @@
 (function () {
   'use strict';
 
+  if (window.location.hostname === 'deploy-preview-1--digitalblueskye.netlify.app'
+    && !String(window.DBS_API_BASE || '').trim()) {
+    window.DBS_API_BASE = 'https://dev-digitalblueskye-api.djelloulabid75.workers.dev';
+  }
+
   const API_BASE = (String(window.DBS_API_BASE || '').trim().replace(/\/+$/, '')) ||
     'https://api.digitalblueskye.com';
 

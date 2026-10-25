@@ -2,6 +2,15 @@
  * Script de traduction pour le site Digitalblueskye
  * Version corrigée pour éviter les redirections et gérer innerHTML
  */
+if (window.location.hostname === 'deploy-preview-1--digitalblueskye.netlify.app') {
+  if (!String(window.DBS_API_BASE || '').trim()) {
+    window.DBS_API_BASE = 'https://dev-digitalblueskye-api.djelloulabid75.workers.dev';
+  }
+  if (!String(window.DBS_AI_ENDPOINT || '').trim()) {
+    window.DBS_AI_ENDPOINT = 'https://dev-digitalblueskye-ai.djelloulabid75.workers.dev';
+  }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   console.log("Translator script initialized");
 
